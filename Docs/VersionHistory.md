@@ -2,6 +2,28 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 158 · 13 September 2026
+
+**Quick capture on the iPhone is rebuilt.** You chose the shape and all four extras.
+
+- **The words get the room.** The writing area fills the sheet instead of two cramped lines with
+  an empty space under them.
+- **It shows what it understood.** Write `>2026-09-15 !! #travel` and chips appear under the
+  field: **Due 15 September**, **Priority !!**, **#travel**. If a chip does not appear, the app
+  did not read that part — you can see it before you save.
+- **Buttons write the syntax for you**: Today, Tomorrow, Date…, **!**, **!!**, **#tag**. You
+  never have to remember it. Typing it by hand still works.
+- **Where it goes** is a row of chips, not a dropdown. **A task** or **A note** are two words,
+  not a switch labelled "As note, not task" — which was a double negative.
+- **Save is a wide button above the keyboard.** It used to hang off the right edge, because the
+  panel asked for a fixed Mac width of 460 points on a phone about 390 wide.
+- The long syntax line moved behind the **ⓘ**, where it can be read whole.
+- **The four small things:** the button says **Caught it** for a moment after saving; the tray
+  symbol gives a short flourish; the empty field greets you differently each time; and a quiet
+  line says how many you have caught today.
+- The flourish is off when Reduce Motion is on in iOS Settings.
+- The Mac panel keeps its shape, and gains the read-back chips and the syntax buttons.
+
 ## Build 157 · 13 September 2026
 
 **Search is rebuilt around tick boxes.**

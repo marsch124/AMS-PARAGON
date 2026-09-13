@@ -184,3 +184,69 @@ public extension Vault {
         return try loadNote(relativePath: config.inboxFile)
     }
 }
+
+/// What PARAGON will make of a line typed into Quick capture.
+///
+/// Build 158 shows this back to him as chips under the field, so a capture says what it
+/// understood before it is saved. He chose that shape from a preview of three
+/// (https://claude.ai/code/artifact/8e6a6105-6865-4fcd-a86e-e25c84733e49).
+///
+/// **It is read with the task parser itself**, over the very line the capture will write. That
+/// is the whole point: a chip that came from a second, simpler parser could say one thing while
+/// the vault stored another, and a read-back that can lie is worse than none.
+public struct CaptureReading: Equatable, Sendable {
+    /// The words left after the markers are taken out. Tags stay in, as they do in a task.
+    public var title: String
+    public var dueDate: DateOnly?
+    public var dueTime: TimeOfDay?
+    /// 0 = none, 1 = `!`, 2 = `!!`, 3 = `!!!`.
+    public var priority: Int
+    public var tags: [String]
+
+    /// True when the line is only words: nothing to show back.
+    public var isPlain: Bool { dueDate == nil && priority == 0 && tags.isEmpty }
+
+    /// Reads the line the way the note will. `- [ ] ` is prepended because that is what a
+    /// captured task becomes, and `TaskParser` needs a real task line to work on.
+    public init(line: String) {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let task = TaskParser.parse(line: "- [ ] " + trimmed) else {
+            self.init(title: trimmed, dueDate: nil, dueTime: nil, priority: 0, tags: [])
+            return
+        }
+        self.init(title: task.title, dueDate: task.dueDate, dueTime: task.dueTime,
+                  priority: task.priority, tags: task.tags)
+    }
+
+    public init(title: String, dueDate: DateOnly?, dueTime: TimeOfDay?, priority: Int, tags: [String]) {
+        self.title = title
+        self.dueDate = dueDate
+        self.dueTime = dueTime
+        self.priority = priority
+        self.tags = tags
+    }
+
+    /// Where the due date falls relative to a day, so the chip can say "Today" rather than a
+    /// date he has to work out. The words themselves are the view's; the decision is here,
+    /// where it can be tested.
+    public enum Nearness: Equatable, Sendable { case yesterday, today, tomorrow, other }
+
+    public func nearness(to today: DateOnly, calendar: Calendar = .current) -> Nearness? {
+        guard let dueDate else { return nil }
+        if dueDate == today { return .today }
+        if dueDate == today.adding(days: 1, calendar: calendar) { return .tomorrow }
+        if dueDate == today.adding(days: -1, calendar: calendar) { return .yesterday }
+        return .other
+    }
+
+    /// `!`, `!!` or `!!!`, or nil when the line asked for none.
+    public var priorityMarks: String? {
+        guard priority > 0 else { return nil }
+        return String(repeating: "!", count: min(priority, 3))
+    }
+}
+
+public extension CaptureItem {
+    /// This capture read back, exactly as the note will read it.
+    var reading: CaptureReading { CaptureReading(line: lineText) }
+}

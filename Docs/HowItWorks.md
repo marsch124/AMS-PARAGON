@@ -554,10 +554,30 @@ Open **Templates** in the sidebar, pick a file and edit it. It saves itself a mo
 ## Quick capture
 
 - ⇧⌘N opens the capture panel in the app. On the Mac there is also a panel in the menu bar.
+- On the iPhone it is the **Capture** tab.
 - On the iPhone, Share › PARAGON sends text or a link.
 - Other apps and Shortcuts can call `amspara://capture?text=Call%20the%20bank&target=inbox`.
 
 Captures land in the Inbox, today's note or a project, and are filed the next time the app is active.
+
+### What the chips under the field mean
+
+Write a line and the app reads it back to you in chips:
+
+- **Due 15 September** — it found a date.
+- **Priority !!** — it found the marks.
+- **#travel** — it found a tag.
+
+**If a chip does not appear, the app did not read that part.** That is the point of them: you
+see what will be saved before you save it. The chips are dashed because they are not buttons;
+they are what the app heard.
+
+The row under them **writes the syntax for you**: **Today**, **Tomorrow**, **Date…**, **!**,
+**!!** and **#tag** all put the right thing at the end of your line. You can still type it by
+hand, and the **ⓘ** at the top right shows the whole list.
+
+Under that, **where it goes** (Inbox, today's note, or one of your projects) and whether it is
+**a task** or **a note**.
 
 ## Backups
 

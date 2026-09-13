@@ -1298,6 +1298,42 @@ reaction?") is what placed it.
 - The boxes fold (`@AppStorage "searchFiltersFolded"`, **open by default** — build 121) because
   the middle column is narrow, and each row is a `WrappingHStack` (build 138).
 
+## Quick capture on the phone (build 158)
+
+He asked for the capture screen to be "really, really attractive — a nice and funny thing where
+we get creative", and picked from a preview of three
+(https://claude.ai/code/artifact/8e6a6105-6865-4fcd-a86e-e25c84733e49): **"It shows what it
+understood"**, plus all four of the small extras.
+
+**Part of it was a plain bug.** `QuickCaptureView` had one body with `.frame(width: compact ?
+380 : 460)` — a Mac panel width on a ~390pt phone, which is why **Save** hung off the right
+edge in his screenshot. It now branches `phoneBody` / `deskBody` on `horizontalSizeClass`, the
+same shape `NoteEditorView` has had since build 53. **Any view shared with the Mac needs that
+check before it is called a phone screen.**
+
+- **`CaptureReading` (Core, tested) runs the task parser itself** over `CaptureItem.lineText` —
+  the very line the capture will write — and hands back the date, the marks and the tags. **A
+  read-back that can lie is worse than none**, so there is no second, simpler parser: the chips
+  and the vault cannot disagree. `nearness(to:)` decides today/tomorrow/yesterday in Core; only
+  the wording is the view's.
+- **Three kinds of chip, and the difference is visible.** `ReadChip` is **dashed** (what the app
+  heard, not a control — dashed already means "loose" on the Map, in `StateToggle` and in
+  `FilterBox`), `AddChip` is a grey button that writes syntax into the field, `PickChip` is one
+  of a set. Same family as build 157's `FilterBox`.
+- **"As note, not task" is gone**: a double negative on a switch, with nothing saying which way
+  was which. Two chips, **A task** and **A note**.
+- The syntax moved behind a **ⓘ** popover — build 142's lesson about the add-a-task
+  placeholder, in a new place. The placeholder is now one of four greetings.
+- **The four extras, all his**: "Caught it" on the button, a short flourish into the tray
+  (**skipped when `accessibilityReduceMotion` is on**), a changing greeting, and
+  `AppModel.caughtToday`.
+- **`caughtToday` is counted per day in `UserDefaults`, not from the vault.** A captured line
+  carries no timestamp, so the vault cannot answer "how many today", and inventing one would
+  mean writing something into every note to satisfy a caption. It earns its place beyond the
+  pleasure of it: the number is also how he knows the Inbox needs sorting.
+- The Mac panel keeps its shape and gains the read-back and the syntax buttons, so the two do
+  not drift.
+
 Still open, in the order agreed: Goals and Aspirations
 screens if the one review is not enough; then the status vocabulary (reached / missed / dropped), last because it edits his
 notes. Also queued: **spread `StateToggle`** to the other two-state controls (Hide finished,

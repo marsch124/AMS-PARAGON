@@ -101,7 +101,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 157
+    static let number = 158
 }
 
 @MainActor
@@ -241,6 +241,7 @@ final class AppModel: ObservableObject {
 
     init() {
         log("launch build \(BuildStamp.number)")
+        loadCaughtToday()
         // Before the vault is opened: opening it is what starts the watch.
         cloudWatcher.onChange = { [weak self] in self?.cloudFilesChanged() }
         restoreVault()
@@ -2015,6 +2016,37 @@ final class AppModel: ObservableObject {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty || url != nil else { return }
         capture(CaptureItem(text: trimmed, url: url, target: target, asTask: asTask))
+        countCaught()
+    }
+
+    // MARK: How many caught today
+
+    /// One of the four small things he ticked in the build 158 preview. It earns its place
+    /// beyond the pleasure of it: a number here is also how he knows the Inbox needs sorting.
+    ///
+    /// Counted per day on this device, in `UserDefaults` — not from the vault. A captured line
+    /// carries no timestamp, so the vault simply cannot answer "how many today", and inventing
+    /// one would mean writing something into every note to satisfy a caption.
+    @Published private(set) var caughtToday = 0
+
+    private let caughtDayKey = "captureCountDay"
+    private let caughtCountKey = "captureCountToday"
+
+    private func countCaught() {
+        let today = DateOnly.today().description
+        let defaults = UserDefaults.standard
+        let onDay = defaults.string(forKey: caughtDayKey)
+        let count = onDay == today ? defaults.integer(forKey: caughtCountKey) + 1 : 1
+        defaults.set(today, forKey: caughtDayKey)
+        defaults.set(count, forKey: caughtCountKey)
+        caughtToday = count
+    }
+
+    /// Reads the stored count at launch, and forgets yesterday's.
+    func loadCaughtToday() {
+        let defaults = UserDefaults.standard
+        caughtToday = defaults.string(forKey: caughtDayKey) == DateOnly.today().description
+            ? defaults.integer(forKey: caughtCountKey) : 0
     }
 
     /// Files everything the share extension left in the outbox. Returns how many items were filed.
