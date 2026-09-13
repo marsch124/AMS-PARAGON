@@ -9,12 +9,19 @@ struct CalendarDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("", selection: $showsNote) {
-                Text("Schedule").tag(false)
-                Text("Note").tag(true)
+            // Build 159: the segmented Picker became the app's own two-state control, the
+            // same one the Edit pencil uses. The heading says which of the two you are
+            // looking at, so nothing is lost by the button carrying one symbol only.
+            HStack(spacing: 8) {
+                SectionLabel(title: showsNote ? "Note" : "Schedule",
+                             count: nil,
+                             systemImage: showsNote ? "doc.text" : "clock",
+                             tint: ParaKind.daily.tint)
+                StateToggle(systemImage: "doc.text", title: "Note",
+                            isOn: showsNote, tint: ParaKind.daily.tint) {
+                    showsNote.toggle()
+                }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
             .padding(8)
             Divider()
             content

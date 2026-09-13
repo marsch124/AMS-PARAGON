@@ -2,6 +2,23 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 159 · 13 September 2026
+
+**Three more buttons now look like the rest of the app.** Since build 142 a two-state button in
+PARAGON says which state you are in: the tint filled in with a solid border when it is on, grey
+with a dashed border when it is off. Three buttons had not caught up.
+
+- **Hide finished**, in a note's task box, is now that button. It used to swap its own symbol
+  between an open and a closed eye, which could be read either way. It is always the closed eye,
+  lit when finished tasks are hidden. The number of finished tasks sits beside it as plain text,
+  so you can see it whether they are hidden or not.
+- **The Calendar's Schedule / Note switch** was a segmented control. It is now a heading that
+  says what you are looking at — SCHEDULE or NOTE — and one button beside it.
+- **Arrange**, on the Map, was a plain button that looked much the same on or off. It is now lit
+  when Arrange is on.
+
+Nothing about what these buttons do has changed.
+
 ## Build 158 · 13 September 2026
 
 **Quick capture on the iPhone is rebuilt.** You chose the shape and all four extras.

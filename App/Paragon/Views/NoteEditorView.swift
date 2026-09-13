@@ -299,17 +299,18 @@ struct NoteEditorView: View {
                         Spacer()
                         let finished = note.tasks.count - note.openTasks.count
                         if finished > 0 {
-                            Button {
+                            // Build 159: the same two-state control as the Edit pencil. The
+                            // symbol no longer swaps with the state — it is always the closed
+                            // eye, lit when finished tasks are hidden — and the count is a
+                            // plain caption beside it, because it is a fact about the note
+                            // rather than part of the button.
+                            Text("\(finished) finished")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            StateToggle(systemImage: "eye.slash", title: "Hide finished",
+                                        isOn: hideFinishedTasks, tint: note.tint) {
                                 hideFinishedTasks.toggle()
-                            } label: {
-                                Label(hideFinishedTasks ? "\(finished) finished hidden" : "Hide finished",
-                                      systemImage: hideFinishedTasks ? "eye.slash" : "eye")
-                                    .font(.caption)
-                                    .labelStyle(.titleAndIcon)
                             }
-                            .buttonStyle(.borderless)
-                            .foregroundStyle(.secondary)
-                            .help("Show or hide tasks that are done or cancelled")
                         }
                     }
                 }

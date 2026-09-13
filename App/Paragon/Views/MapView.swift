@@ -61,13 +61,14 @@ struct MapView: View {
                     .disabled(zoom <= Self.zoomSteps.first!)
                 Button { step(1) } label: { Label("Zoom in", systemImage: "plus.magnifyingglass") }
                     .disabled(zoom >= Self.zoomSteps.last!)
-                Toggle(isOn: $arranging) {
-                    Label("Arrange", systemImage: "hand.draw")
+                // Build 159: the app's own two-state control rather than a
+                // `Toggle(.button)`, which draws a plain macOS button that looks the same
+                // whichever way it is set.
+                StateToggle(systemImage: "hand.draw", title: "Arrange",
+                            isOn: arranging, tint: Color("GoalTint")) {
+                    arranging.toggle()
+                    if !arranging { marked = [] }
                 }
-                .toggleStyle(.button)
-                .onChange(of: arranging) { _, on in if !on { marked = [] } }
-                .help(arranging ? "Tap boxes to mark them, then drag any one to move them all."
-                                : "Turn on to drag boxes where you want them")
                 Divider()
                 Menu {
                     Button("PDF\u{2026}") { export(MapExport.pdfData(for: map), extension: "pdf") }

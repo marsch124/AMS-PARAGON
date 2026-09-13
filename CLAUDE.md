@@ -1334,10 +1334,24 @@ check before it is called a phone screen.**
 - The Mac panel keeps its shape and gains the read-back and the syntax buttons, so the two do
   not drift.
 
-Still open, in the order agreed: Goals and Aspirations
-screens if the one review is not enough; then the status vocabulary (reached / missed / dropped), last because it edits his
-notes. Also queued: **spread `StateToggle`** to the other two-state controls (Hide finished,
-the Calendar's Schedule/Note switch, the Map's Arrange).
+## Two-state controls, everywhere (build 159)
+
+The last three controls that were not build 142's `StateToggle`: **Hide finished** in a note's
+task box, the Calendar detail column's **Schedule/Note** segmented Picker, and the Map's
+**Arrange**. All three now use it, so there is nothing left to spread. Two details worth
+keeping:
+- `StateToggle` is a symbol only, so information the old control carried in words has to go
+  somewhere. The count of finished tasks became a plain caption beside the button, and the
+  Calendar's two names became a `SectionLabel` that says which half you are on. **A control
+  that shrinks has to hand its words to the row it sits in**, or the screen quietly loses
+  something.
+- `Docs/HowItWorks.md` still said Arrange was "at the left of the Map's toolbar" — stale
+  since build 155 moved it out of `.navigation`. Fixed here. **A manual sentence that names a
+  position goes stale when a toolbar is rearranged**; grep the manual for the screen's name
+  when moving one.
+
+Still open, in the order agreed: Goals and Aspirations screens if the one review is not enough;
+then the status vocabulary (reached / missed / dropped), last because it edits his notes.
 
 ## Not built (by choice)
 
