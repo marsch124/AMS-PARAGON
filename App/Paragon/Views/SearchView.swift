@@ -19,6 +19,12 @@ struct SearchView: View {
     @EnvironmentObject private var model: AppModel
     @FocusState private var focused: Bool
     @State private var fieldText = ""
+#if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    private var isPhone: Bool { horizontalSizeClass == .compact }
+#else
+    private var isPhone: Bool { false }
+#endif
     /// His to fold, and open to begin with: build 121 is about not hiding the settings he asked
     /// to see. A narrow middle column is the only reason the fold exists at all.
     @AppStorage("searchFiltersFolded") private var filtersFolded = false
@@ -36,15 +42,34 @@ struct SearchView: View {
                 foldedLine(query)
             } else {
                 ScrollView { filters(query) }
-                    .frame(maxHeight: 320)
+                    // The phone has the keyboard under all of this. 320pt of boxes plus the
+                    // field plus the keyboard left the results about two rows tall, which is
+                    // what he reported (build 160).
+                    .frame(maxHeight: isPhone ? 200 : 320)
             }
             Divider()
             results(query)
+                // A swipe down the results puts the keyboard away. It reaches every scroll
+                // view below, so the two result lists and the help text all have it.
+                .scrollDismissesKeyboard(.immediately)
         }
         .onAppear {
             fieldText = model.queryText
-            focused = true
+            // On the phone the keyboard is what squeezes the results, so it only comes up on
+            // its own when there is nothing to look at yet. Arriving with a word already
+            // there — from the Tags screen, or an `amspara://` link — you want the results.
+            focused = !isPhone || model.queryText.isEmpty
         }
+#if os(iOS)
+        // Three ways to put the keyboard away, because one is never found: Search on the
+        // keyboard itself, a swipe down the result list, and a Done button above the keys.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { focused = false }
+            }
+        }
+#endif
     }
 
     // MARK: The word
@@ -58,6 +83,8 @@ struct SearchView: View {
                 TextField("Search for a word", text: $fieldText)
                     .textFieldStyle(.roundedBorder)
                     .focused($focused)
+                    .submitLabel(.search)
+                    .onSubmit { focused = false }
                     .onChange(of: fieldText) { _, value in
                         if model.queryText != value { model.queryText = value }
                     }

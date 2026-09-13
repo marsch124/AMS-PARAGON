@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 160 · 13 September 2026
+
+**On the iPhone, Search now lets you put the keyboard away.** You reported that the result list
+was very small, because the keyboard sat under the field and the tick boxes and nothing closed
+it. Three ways now, so one of them is always to hand:
+
+- **Search** on the keyboard itself closes it.
+- **Swipe down over the results** and the keyboard goes away.
+- A **Done** button sits above the keys.
+
+Two more things on the phone:
+
+- The tick boxes take less height there, so more of the screen is results.
+- The keyboard no longer opens by itself when you arrive with a search already in the field —
+  for example after tapping a tag. You came to read the results, not to type.
+
+Nothing changed on the Mac.
+
 ## Build 159 · 13 September 2026
 
 **Three more buttons now look like the rest of the app.** Since build 142 a two-state button in

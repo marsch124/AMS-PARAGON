@@ -406,6 +406,11 @@ you asked.
 The button beside the field folds the boxes away when the column is narrow. While they are
 folded, a line says what the search is in words.
 
+**On the iPhone**, three things put the keyboard away so the results have room: **Search** on
+the keyboard, a swipe down over the result list, and the **Done** button above the keys. The
+keyboard does not open by itself when you arrive with a search already in the field — after
+tapping a tag, for example.
+
 Every box also has a word you can type instead, if you prefer typing:
 
 - `type:project`, `type:area`, `type:goal`
