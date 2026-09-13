@@ -1367,6 +1367,23 @@ same family as build 158's fixed 460pt width.
 - `isPhone` here is `horizontalSizeClass == .compact` behind `#if os(iOS)`, with a `false`
   stub for macOS, so the body has no `#if` in the middle of a modifier chain (build 148).
 
+**Build 161, from the screenshot that followed — and it is a rule.** The field said *Search for
+a word* and held `is:open`, put there by the **Not done** box. **Build 157 wrote that promise
+into the documentation and the code broke it in the same build**, because "the text is the one
+source of truth" was taken to mean the field shows the whole text. The truth can be one string
+and the field can still show one part of it. **When a screen promises that two things are
+separate, check what the user actually sees, not what the model holds.**
+- Core, tested: `SearchQuery.isBoxToken(_:)` asks `parse` itself (a token `parse` files under
+  `terms` is a word, one that sets a filter is a box), so the two can never drift;
+  `words(in:)` and `replacing(wordsIn:with:)` are the pair the field uses. `rejoined` puts the
+  quotes back on a phrase, since `tokenize` strips them.
+- **While the field has focus it is the author** — `onChange(of: model.queryText)` returns
+  early — or a token halfway typed (`#tra` on the way to `#travel`) would be pulled out from
+  under the cursor. It is re-read on losing focus. `Clear` sets both, for the same reason.
+- The boxes now start **folded on the phone** (`searchFiltersFoldedPhone`, its own key so an
+  iPad cannot overwrite the Mac's) and open on the Mac. Build 121 still holds: the fold is one
+  press away and the summary line says what the search is while they are closed.
+
 Still open, in the order agreed: the Goals screen — three shapes put to him on
 https://claude.ai/code/artifact/5ccd27ac-0b62-4895-8e62-b575ca226861 (A: the list stays and a
 goal opens as a real screen; B: aspirations in the middle column and the whole chain on the

@@ -403,8 +403,13 @@ people out. Writing **done** looks for the letters d-o-n-e in your notes. Tickin
 box asks for tasks you have finished. Neither is wrong; the boxes just make it plain which one
 you asked.
 
-The button beside the field folds the boxes away when the column is narrow. While they are
-folded, a line says what the search is in words.
+The field holds **your words only**. Ticking a box never puts anything in it. If you prefer to
+type the syntax by hand, write it in the field anyway — `type:project` ticks the **Projects**
+box, and the words move out of the field when you leave it.
+
+The button beside the field folds the boxes away. On the iPhone they start folded, so the
+results have the screen; on the Mac they start open. While they are folded, a line says what
+the search is in words.
 
 **On the iPhone**, three things put the keyboard away so the results have room: **Search** on
 the keyboard, a swipe down over the result list, and the **Done** button above the keys. The

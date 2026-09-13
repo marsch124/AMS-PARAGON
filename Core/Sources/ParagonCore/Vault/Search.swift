@@ -60,6 +60,45 @@ public struct SearchQuery: Equatable, Sendable {
         return query
     }
 
+    // MARK: Words and tick boxes, kept apart
+
+    /// True when this one token is something a tick box stands for — `is:open`, `due:today`,
+    /// `type:project`, `#travel` — rather than a word to look for.
+    ///
+    /// It asks `parse` rather than repeating its rules, so the two can never drift: a token
+    /// that `parse` files under `terms` is a word, and one that sets a filter is a box.
+    /// `foo:bar` is a word, because `parse` treats an unknown key as one.
+    public static func isBoxToken(_ token: String) -> Bool {
+        let parsed = parse(token)
+        return parsed.terms.isEmpty && !parsed.isEmpty
+    }
+
+    /// Only the words of a query, ready to show in a field that promises words.
+    ///
+    /// **Build 161, and it was a plain fault.** Build 157 said "the field is for words,
+    /// everything else is a tick box", and then every box wrote its token straight into the
+    /// text the field shows: ticking **Not done** put `is:open` in a field labelled *Search for
+    /// a word*. He sent a screenshot of it.
+    public static func words(in text: String) -> String {
+        rejoined(tokenize(text).filter { !isBoxToken($0) })
+    }
+
+    /// The query text with its words replaced and every tick box left exactly as it was.
+    /// A word that is already a ticked box is not added twice.
+    public static func replacing(wordsIn text: String, with words: String) -> String {
+        let boxes = tokenize(text).filter(isBoxToken)
+        let typed = tokenize(words).filter { token in
+            !boxes.contains { $0.caseInsensitiveCompare(token) == .orderedSame }
+        }
+        return rejoined(boxes + typed)
+    }
+
+    /// `tokenize` drops the quotes around a phrase, so putting tokens back together has to put
+    /// them on again or `"two words"` would become two searches.
+    private static func rejoined(_ tokens: [String]) -> String {
+        tokens.map { $0.contains(" ") ? "\"\($0)\"" : $0 }.joined(separator: " ")
+    }
+
     // MARK: Saying what it means
 
     /// The query in plain words: "Notes in Projects with the word \u201cplan\u201d."

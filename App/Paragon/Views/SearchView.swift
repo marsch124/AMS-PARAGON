@@ -25,9 +25,13 @@ struct SearchView: View {
 #else
     private var isPhone: Bool { false }
 #endif
-    /// His to fold, and open to begin with: build 121 is about not hiding the settings he asked
-    /// to see. A narrow middle column is the only reason the fold exists at all.
-    @AppStorage("searchFiltersFolded") private var filtersFolded = false
+    /// His to fold. **Open on the Mac** (build 121 is about not hiding the settings he asked to
+    /// see) and **folded on the phone**, where the boxes plus the keyboard left about two rows
+    /// of results — his screenshot, build 161. Two keys, so the two never overwrite each
+    /// other on an iPad, and while folded the line underneath still says what the search is.
+    @AppStorage("searchFiltersFolded") private var deskFiltersFolded = false
+    @AppStorage("searchFiltersFoldedPhone") private var phoneFiltersFolded = true
+    private var filtersFolded: Bool { isPhone ? phoneFiltersFolded : deskFiltersFolded }
 
     private static let kinds: [ParaKind] = [.goal, .project, .area, .resource, .archive, .daily, .inbox]
     private static let statuses = ["active", "on-hold", "done", "archived"]
@@ -54,7 +58,7 @@ struct SearchView: View {
                 .scrollDismissesKeyboard(.immediately)
         }
         .onAppear {
-            fieldText = model.queryText
+            fieldText = SearchQuery.words(in: model.queryText)
             // On the phone the keyboard is what squeezes the results, so it only comes up on
             // its own when there is nothing to look at yet. Arriving with a word already
             // there — from the Tags screen, or an `amspara://` link — you want the results.
@@ -80,19 +84,33 @@ struct SearchView: View {
                 // Only words go in here now. Everything else is a box below, so the field can
                 // say what it is in two words instead of a line of syntax (build 142's lesson
                 // about the add-a-task placeholder).
+                // **Words only.** Build 157 promised that and did not keep it: every tick box
+                // wrote its token into this very text, so ticking Not done put `is:open` in a
+                // field labelled "Search for a word" (his screenshot, build 161). The text is
+                // still the one source of truth — the field now shows and edits only its
+                // words, and `SearchQuery.replacing(wordsIn:with:)` leaves the boxes alone.
                 TextField("Search for a word", text: $fieldText)
                     .textFieldStyle(.roundedBorder)
                     .focused($focused)
                     .submitLabel(.search)
                     .onSubmit { focused = false }
                     .onChange(of: fieldText) { _, value in
-                        if model.queryText != value { model.queryText = value }
+                        let rebuilt = SearchQuery.replacing(wordsIn: model.queryText, with: value)
+                        if model.queryText != rebuilt { model.queryText = rebuilt }
                     }
                     .onChange(of: model.queryText) { _, value in
-                        if fieldText != value { fieldText = value }
+                        // While he is typing the field is the author, or a token he is halfway
+                        // through writing (`#tra` on the way to `#travel`) would be taken out
+                        // from under the cursor. It is re-read the moment he leaves the field.
+                        guard !focused else { return }
+                        let shown = SearchQuery.words(in: value)
+                        if fieldText != shown { fieldText = shown }
+                    }
+                    .onChange(of: focused) { _, isOn in
+                        if !isOn { fieldText = SearchQuery.words(in: model.queryText) }
                     }
                 Button {
-                    filtersFolded.toggle()
+                    if isPhone { phoneFiltersFolded.toggle() } else { deskFiltersFolded.toggle() }
                 } label: {
                     Label(filtersFolded ? "Show the boxes" : "Hide the boxes",
                           systemImage: filtersFolded ? "chevron.down" : "chevron.up")
@@ -101,7 +119,8 @@ struct SearchView: View {
                 .buttonStyle(.borderless)
                 .help(filtersFolded ? "Show the tick boxes" : "Put the tick boxes away")
                 if !model.queryText.isEmpty {
-                    Button("Clear") { model.queryText = "" }
+                    // Both, because the field is not re-read from the model while it has focus.
+                    Button("Clear") { model.queryText = ""; fieldText = "" }
                         .buttonStyle(.borderless)
                         .help("Empty the field and untick every box")
                 }

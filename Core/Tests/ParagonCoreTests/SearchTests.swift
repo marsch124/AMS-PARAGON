@@ -144,4 +144,47 @@ final class SearchTests: XCTestCase {
         XCTAssertEqual(hit?.note.title, "Website relaunch")
         XCTAssertEqual(hit?.tasks.map(\.title), ["Get two quotes from web designers"])
     }
+
+    // MARK: The field shows words, the boxes hold the rest (build 161)
+
+    func testBoxTokensAreToldApartFromWords() {
+        for token in ["is:open", "due:today", "type:project", "status:active", "#travel", "area:Health", "in:Projects"] {
+            XCTAssertTrue(SearchQuery.isBoxToken(token), token)
+        }
+        // An unknown key and a bare hash are words: `parse` files them under `terms`, so this
+        // has to agree with it.
+        for token in ["plan", "done", "foo:bar", "#", "due:whenever"] {
+            XCTAssertFalse(SearchQuery.isBoxToken(token), token)
+        }
+    }
+
+    func testWordsLeavesOutEveryTickBox() {
+        XCTAssertEqual(SearchQuery.words(in: "is:open"), "")
+        XCTAssertEqual(SearchQuery.words(in: "is:open plan"), "plan")
+        XCTAssertEqual(SearchQuery.words(in: "plan type:project #travel kitchen"), "plan kitchen")
+        XCTAssertEqual(SearchQuery.words(in: ""), "")
+    }
+
+    func testWordsKeepsAPhraseTogether() {
+        XCTAssertEqual(SearchQuery.words(in: "is:open \"two words\""), "\"two words\"")
+        let round = SearchQuery.replacing(wordsIn: "is:open", with: "\"two words\"")
+        XCTAssertEqual(SearchQuery.parse(round).terms, ["two words"])
+    }
+
+    func testReplacingWordsLeavesTheBoxesAlone() {
+        XCTAssertEqual(SearchQuery.replacing(wordsIn: "is:open plan", with: "kitchen"), "is:open kitchen")
+        XCTAssertEqual(SearchQuery.replacing(wordsIn: "is:open plan", with: ""), "is:open")
+        XCTAssertEqual(SearchQuery.replacing(wordsIn: "", with: "plan"), "plan")
+        // Typed by hand while the same box is already ticked: not added twice.
+        XCTAssertEqual(SearchQuery.replacing(wordsIn: "is:open", with: "is:open"), "is:open")
+    }
+
+    func testTypingTheSyntaxByHandStillWorks() {
+        let text = SearchQuery.replacing(wordsIn: "", with: "plan type:project")
+        let query = SearchQuery.parse(text)
+        XCTAssertEqual(query.terms, ["plan"])
+        XCTAssertEqual(query.kinds, [.project])
+        // And on leaving the field it moves out of the words and into the boxes.
+        XCTAssertEqual(SearchQuery.words(in: text), "plan")
+    }
 }

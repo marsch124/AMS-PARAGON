@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 161 · 13 September 2026
+
+**The search field holds words only — now it really does.** You sent a screenshot of the iPhone
+where the field said *Search for a word* and contained `is:open`. That token came from the
+**Not done** box, not from you. Build 157 promised the field was for words and the boxes were
+for everything else, and it did not keep that promise.
+
+- The field now shows and edits **only your words**. Ticking a box changes the boxes, never the
+  field.
+- Typing the syntax by hand still works. Write `type:project` in the field and the **Projects**
+  box ticks itself; the token moves out of the field when you leave it.
+- A phrase in quotes stays one phrase.
+
+**The tick boxes start folded on the iPhone.** The boxes plus the keyboard left about two rows
+of results. They are one press away, the arrow beside the field opens them, and while they are
+folded the line underneath still says what you are searching for. On the Mac they are open as
+before.
+
 ## Build 160 · 13 September 2026
 
 **On the iPhone, Search now lets you put the keyboard away.** You reported that the result list
