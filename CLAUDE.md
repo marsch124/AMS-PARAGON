@@ -1409,6 +1409,10 @@ projects, the next action on each.
   and without a search field in it there would have been no way to type a search in Goals — so
   the fall-through to the flat list could never have been reached. Caught while writing.
   **A branch guarded by a state the branch itself cannot produce is dead code.**
+- **`createNote` gives a project the template's own task.** Two of the new tests counted open
+  tasks on a freshly made project and were one out, because the project template ships
+  "Define the outcome and the first step". A test that counts tasks has to **set** the body,
+  never add to it. CI caught it; the build number stayed 162, since nothing had shipped.
 - Still to ask him: five of the six small extras came back unticked from the page while his
   screenshot showed all six looking unticked, and the db held only `serves` — the page and the
   screenshot disagreed, so the answer was not trusted. Only `serves` is built (a dated goal

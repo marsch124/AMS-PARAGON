@@ -39,7 +39,9 @@ final class AspirationChainTests: XCTestCase {
                                                     ("goal", "A calm, well-run home")])
         var project = try vault.createNote(kind: .project, title: "Worktops and sink",
                                            extraFrontmatter: [("goal", "Finish the kitchen")])
-        project.body += "\n- [ ] Measure the run\n- [ ] Ring the stone yard #next\n"
+        // The body is replaced, not added to: the project template already ships one task
+        // ("Define the outcome and the first step"), which CI caught me counting.
+        project.body = "## Tasks\n\n- [ ] Measure the run\n- [ ] Ring the stone yard #next\n"
         _ = try vault.save(project)
 
         let chain = try index().chain(of: XCTUnwrap(try index().aspirations().first), today: today)
@@ -56,14 +58,17 @@ final class AspirationChainTests: XCTestCase {
     func testAProjectWithNoOpenTaskSaysSo() throws {
         _ = try vault.createNote(kind: .goal, title: "Finish the kitchen",
                                  extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01")])
-        _ = try vault.createNote(kind: .project, title: "Paint the ceiling",
-                                 extraFrontmatter: [("goal", "Finish the kitchen")])
+        var project = try vault.createNote(kind: .project, title: "Paint the ceiling",
+                                           extraFrontmatter: [("goal", "Finish the kitchen")])
+        // Emptied on purpose: a project the template just made already has one task.
+        project.body = "## Tasks\n"
+        _ = try vault.save(project)
         let index = try index()
         let goal = index.chainGoal(of: try XCTUnwrap(index.notes(kind: .goal).first), today: today)
-        let project = try XCTUnwrap(goal.projects.first)
-        XCTAssertNil(project.nextAction)
-        XCTAssertTrue(project.hasNothingToDo)
-        XCTAssertFalse(project.isFinished)
+        let project2 = try XCTUnwrap(goal.projects.first)
+        XCTAssertNil(project2.nextAction)
+        XCTAssertTrue(project2.hasNothingToDo)
+        XCTAssertFalse(project2.isFinished)
     }
 
     func testAnAspirationWithNothingUnderItIsBareRatherThanMissing() throws {
