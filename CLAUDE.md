@@ -1350,8 +1350,29 @@ keeping:
   position goes stale when a toolbar is rearranged**; grep the manual for the screen's name
   when moving one.
 
-Still open, in the order agreed: Goals and Aspirations screens if the one review is not enough;
-then the status vocabulary (reached / missed / dropped), last because it edits his notes.
+## The phone's Search can close its keyboard (build 160)
+
+His report the morning after 157 shipped: *"On the iPhone, we need to be able to collapse the
+keyboard because the result list is so very small."* The screen was built and checked on the
+Mac, where there is no keyboard taking half the height. **Any screen with a text field needs
+to be thought about with the keyboard up before it is called finished on the phone** — the
+same family as build 158's fixed 460pt width.
+- **Three ways out, not one**: `.submitLabel(.search)` + `.onSubmit`, `.scrollDismissesKeyboard
+  (.immediately)` applied once where `results(query)` is called (so it reaches both result
+  lists and the help text), and a `ToolbarItemGroup(placement: .keyboard)` with **Done**. One
+  route is never found (build 74).
+- The filter panel is capped at **200pt on the phone**, 320 on the Mac.
+- `onAppear` takes focus only when the query is empty. Arriving with a word already there —
+  from the Tags screen, or an `amspara://` link — you want the results, not the keyboard.
+- `isPhone` here is `horizontalSizeClass == .compact` behind `#if os(iOS)`, with a `false`
+  stub for macOS, so the body has no `#if` in the middle of a modifier chain (build 148).
+
+Still open, in the order agreed: the Goals screen — three shapes put to him on
+https://claude.ai/code/artifact/5ccd27ac-0b62-4895-8e62-b575ca226861 (A: the list stays and a
+goal opens as a real screen; B: aspirations in the middle column and the whole chain on the
+right; C: one board of bands) with six small extras to tick, his answer read back with
+`read_db` on `answers/goals-screen`; then the status vocabulary (reached / missed / dropped),
+last because it edits his notes.
 
 ## Not built (by choice)
 
