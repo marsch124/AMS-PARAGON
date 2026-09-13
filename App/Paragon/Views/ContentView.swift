@@ -414,6 +414,15 @@ struct NoteListView: View {
                 TagsView()
             } else if model.section == .search {
                 SearchView()
+            } else if model.section == .kind(.goal), !searching {
+                // Build 162, his choice from the preview: the Goals list is the aspirations,
+                // and what serves each one is drawn beside it (the Mac) or folded open under
+                // it (the phone). Searching falls through to the ordinary list, which is what
+                // a search of the vault should be.
+                AspirationsListView()
+                    // The field has to exist here, or there would be no way to start a search
+                    // in this section and the `!searching` branch above could never be taken.
+                    .searchable(text: $searchText, prompt: "Search notes")
             } else {
                 let listed = visibleNotes
                 if listed.isEmpty {
@@ -837,6 +846,16 @@ struct DetailView: View {
         } else if model.section == .inbox, !model.inboxShowsNote {
             // Sorting happens in the middle column; this is where the lines can go.
             InboxFileItView()
+        } else if model.section == .kind(.goal), let path = model.selectedNotePath,
+                  let note = model.note(at: path), note.kind == .goal {
+            // The chain under the chosen aspiration. The note itself is one button away in
+            // its header, so nothing is lost by not opening the editor straight away.
+            GoalDetailView(note: note).id(path)
+        } else if model.section == .kind(.goal), model.selectedNotePath == nil {
+            EmptyStateView(title: "Pick an aspiration",
+                           systemImage: SidebarSection.kind(.goal).systemImage,
+                           message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each.",
+                           tint: ParaKind.goal.tint)
         } else if let path = model.selectedNotePath, model.note(at: path) != nil {
             NoteEditorView(path: path)
                 .id(path)

@@ -2,6 +2,30 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 162 · 13 September 2026
+
+**The Goals screen is the chain, top to bottom.** You chose this shape from a preview of three.
+
+The **Goals** row in the sidebar no longer gives you a plain list of goal notes. It lists your
+**aspirations** — the few things you are becoming. Choose one and everything working towards it
+appears beside it:
+
+- the **goals with a target date** that serve it, soonest first, each with how far it has come;
+- the **projects** under each goal, finished ones struck through;
+- the **next action** on each project, or **No next action** in orange when there is none.
+
+Two groups make sure nothing hides. **Nothing serves these yet** holds aspirations with no goal
+under them. **Goals with no aspiration** holds dated goals that stand on their own. Neither is a
+fault; they just have to be visible.
+
+Every dated goal says what it **Serves**, so you can see what it is in aid of without opening it.
+
+**The note itself is one button away.** The **Note** button at the top of the column shows the
+goal's own text; press it again for the chain. On the iPhone there is no second column, so an
+aspiration folds open where it stands.
+
+Searching still works: type in the search field and the ordinary note list comes back.
+
 ## Build 161 · 13 September 2026
 
 **The search field holds words only — now it really does.** You sent a screenshot of the iPhone

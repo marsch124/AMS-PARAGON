@@ -1384,12 +1384,38 @@ separate, check what the user actually sees, not what the model holds.**
   iPad cannot overwrite the Mac's) and open on the Mac. Build 121 still holds: the fold is one
   press away and the summary line says what the search is while they are closed.
 
-Still open, in the order agreed: the Goals screen — three shapes put to him on
-https://claude.ai/code/artifact/5ccd27ac-0b62-4895-8e62-b575ca226861 (A: the list stays and a
-goal opens as a real screen; B: aspirations in the middle column and the whole chain on the
-right; C: one board of bands) with six small extras to tick, his answer read back with
-`read_db` on `answers/goals-screen`; then the status vocabulary (reached / missed / dropped),
-last because it edits his notes.
+## The Goals screen is the chain (build 162)
+
+He picked **B** from a preview of three
+(https://claude.ai/code/artifact/5ccd27ac-0b62-4895-8e62-b575ca226861): the middle column lists
+the **aspirations**, and picking one draws everything working towards it — dated goals, their
+projects, the next action on each.
+- `Core/Vault/AspirationChain.swift` (tested): `ChainProject`, `ChainGoal`, `AspirationChain`,
+  and `NoteIndex.aspirations()` / `goalsOutsideAnyAspiration()` / `chainGoal(of:)` /
+  `chain(of:)`. All of it is computed from `goalHealth`, so the Map, the review, the goal
+  dashboard and this screen cannot give four different answers to "what serves what".
+- **Two groups exist only so nothing can hide**: aspirations with nothing under them, and dated
+  goals with no aspiration above them. Build 100's rule — picking an aspiration must never be
+  a way for a goal to fall off the screen. Neither is drawn as a fault.
+- `App/Paragon/Views/GoalsView.swift`: `AspirationsListView` (middle column),
+  `GoalDetailView` (third column, with a build-159 `StateToggle` that swaps the chain for the
+  note text — `@State` reset by `.id(path)` from `DetailView`, so picking another goal never
+  starts on the previous one's text), `AspirationChainBody`, `ChainGoalBlock`,
+  `ChainProjectRow`, `ChainChip`.
+- **The phone folds the chain open in the row** rather than pushing a screen — the `TagsView`
+  precedent (build 143): a second screen needs its own `PhoneRoute` and a second layout. Those
+  rows are plain `Button`s in a `List` with no selection tag (builds 71–74).
+- **The `.searchable` had to go on the new branch too.** The branch is guarded by `!searching`,
+  and without a search field in it there would have been no way to type a search in Goals — so
+  the fall-through to the flat list could never have been reached. Caught while writing.
+  **A branch guarded by a state the branch itself cannot produce is dead code.**
+- Still to ask him: five of the six small extras came back unticked from the page while his
+  screenshot showed all six looking unticked, and the db held only `serves` — the page and the
+  screenshot disagreed, so the answer was not trusted. Only `serves` is built (a dated goal
+  names what it serves). The other five: the measure on the row, days left beside a target
+  date, an attention mark, reached goals folding away, and "what changed this month".
+
+Still open: the status vocabulary (reached / missed / dropped), last because it edits his notes.
 
 ## Not built (by choice)
 

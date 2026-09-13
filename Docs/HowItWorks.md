@@ -169,6 +169,25 @@ New › Goal creates a goal, and the **Horizon** you pick says which kind it is.
 
 **This year** and **Long term** are dated goals: a target date, a measure of what success looks like, and the aspiration they serve, chosen in the **Serves aspiration** box. Projects and areas link to a goal with the `goal:` line. The goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Achieved".
 
+### The Goals screen
+
+The **Goals** row lists your **aspirations**, not every goal note. Choose one and everything
+working towards it appears beside it, in order:
+
+- the **goals with a target date** that serve it, soonest first;
+- the **projects** under each goal — finished ones struck through;
+- the **next action** on each project. **No next action** in orange means there is nothing on
+  that project you could start.
+
+Two more groups are always there so that nothing can hide. **Nothing serves these yet** holds
+aspirations with no goal under them. **Goals with no aspiration** holds dated goals that stand on
+their own. Neither is a fault — a goal can stand alone — but a list that quietly left them out
+would be a list you cannot trust.
+
+The **Note** button at the top of the column shows the goal's own text instead of the chain.
+Press it again to go back. On the iPhone there is no second column, so an aspiration folds open
+where it stands. Type in the search field and the ordinary note list comes back.
+
 ### How far a goal has come
 
 Every goal shows a bar and a per cent, on its own page, in the Goals list and on its row in **Weekly review**. The figure is worked out from the projects under the goal. You never type it in.
