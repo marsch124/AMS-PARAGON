@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 170 · 14 September 2026
+
+**The Map now speaks the same words as the rest of the app.** It is the oldest screen here and
+it had not kept up.
+
+- **A goal box carries the right icon.** A star when it is an aspiration, the target when it is
+  a goal with a date — the pair the Goals screen and the sidebar have used since build 168.
+  Both are gold, so the colour could never tell them apart.
+- **The legend names them**, along the bottom of the Map, beside the colours for areas,
+  projects, resources and the archive.
+- **The second line under a box says what the note is.** A goal now begins with the word
+  **Aspiration** or **Goal**; a goal with a date used to have no word at all.
+- **A marked note says Done, Missed or Dropped** in those words. The Map was the one screen
+  build 165 missed, so it alone still printed the raw word from the file — "Achieved" where
+  everything else says "Done".
+
+The manual has a much fuller **Map** section: what every icon means, what a solid and a dashed
+line mean, and how the Map and the Goals screen relate.
+
 ## Build 169 · 14 September 2026
 
 Two small things on the Goals screen.

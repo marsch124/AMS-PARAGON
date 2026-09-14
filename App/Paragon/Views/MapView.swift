@@ -572,6 +572,13 @@ extension MapNode {
         case .task, .more: return nil
         }
     }
+
+    /// The star for an aspiration, the target for a goal with a date, and nil for everything
+    /// else — where the kind's own symbol is right (build 170).
+    var chainSymbol: String? {
+        guard case .note(let note) = content, note.kind == .goal else { return nil }
+        return ChainSymbol.forGoal(note)
+    }
 }
 
 struct MapNodeView: View {
@@ -611,7 +618,12 @@ struct MapNodeView: View {
 
     private func card(_ note: Note) -> some View {
         HStack(spacing: 8 * zoom) {
-            KindBadge(kind: note.kind, size: 20 * zoom)
+            // **Build 170: the Map speaks the chain's own vocabulary.** A goal note carries
+            // the star when it is an aspiration and the target when it has a date — the same
+            // pair the Goals screen and the sidebar use since build 168. The badge's *colour*
+            // still comes from the note's kind, so an archived goal stays grey.
+            KindBadge(kind: note.kind, size: 20 * zoom,
+                      systemImage: note.kind == .goal ? ChainSymbol.forGoal(note) : nil)
             VStack(alignment: .leading, spacing: 1) {
                 Text(note.displayTitle)
                     .font(.system(size: 12.5 * zoom, weight: .semibold))
@@ -673,8 +685,17 @@ struct MapNodeView: View {
 
     private func subtitle(for note: Note) -> String {
         var parts: [String] = []
-        if let horizon = note.horizon { parts.append(horizon.label) }
-        if let status = note.status, status != "active" { parts.append(status.capitalized) }
+        // A goal note says what kind of goal it is, in the chain's words. "Aspiration" came
+        // from the horizon already; a goal with a date had no word at all and fell through to
+        // the plural list name at the foot of this function (build 170).
+        if note.kind == .goal {
+            parts.append((note.horizon ?? .year) == .life ? GoalHorizon.life.label : "Goal")
+        } else if let horizon = note.horizon {
+            parts.append(horizon.label)
+        }
+        // **Through `NoteStatus`, not the raw word.** This was the one place build 165 missed,
+        // so the Map alone still said "Achieved" where every other screen says "Done".
+        if note.noteStatus != .active { parts.append(note.noteStatus.label) }
         if note.kind.isTaskKind {
             let open = note.openTasks.count
             parts.append(open == 0 ? "no open tasks" : "\(open) open")
@@ -696,8 +717,11 @@ struct MapFooter: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 14) {
-                legend(ParaKind.goal.tint, "Goals")
+            // A `WrappingHStack`, not an `HStack`: the legend gained two items in build 170
+            // and a narrow window squeezes an HStack until its words break mid-word (138).
+            WrappingHStack(spacing: 14, lineSpacing: 4) {
+                symbolLegend(ChainSymbol.aspiration, "Aspiration", ParaKind.goal.tint)
+                symbolLegend(ChainSymbol.datedGoal, "Goal with a date", ParaKind.goal.tint)
                 legend(ParaKind.area.tint, "Areas")
                 legend(ParaKind.project.tint, "Projects, their actions")
                 legend(ParaKind.resource.tint, "Resources")
@@ -706,12 +730,13 @@ struct MapFooter: View {
                     .foregroundStyle(.secondary)
             }
             .font(.caption)
+            .lineLimit(1)
             if let selectedID, let node = map.node(selectedID) {
                 let up = names(map.upstream(of: selectedID))
                 let down = names(map.downstream(of: selectedID))
                 HStack(alignment: .top, spacing: 8) {
                     if let kind = node.paraKind {
-                        KindBadge(kind: kind, size: 18)
+                        KindBadge(kind: kind, size: 18, systemImage: node.chainSymbol)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(node.title).font(.subheadline.weight(.semibold))
@@ -735,6 +760,14 @@ struct MapFooter: View {
     private func legend(_ color: Color, _ text: String) -> some View {
         HStack(spacing: 4) {
             Circle().fill(color).frame(width: 8, height: 8)
+            Text(text)
+        }
+    }
+
+    /// The two goal symbols, named. Colour alone cannot tell them apart — they are both gold.
+    private func symbolLegend(_ symbol: String, _ text: String, _ tint: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol).foregroundStyle(tint)
             Text(text)
         }
     }

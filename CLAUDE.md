@@ -1483,6 +1483,19 @@ circles?"* He picked the fix himself (the row keeps its name and takes the targe
   edge of a wide column; with several projects the numbers formed a column that read as its own
   list. The `Spacer` moved to the end of the `HStack`, so the count follows the project's name.
 
+**Build 170: the Map speaks the chain.** He asked for all five of the remaining ideas, one
+build each; this is the first. The Map is the oldest screen and had drifted from the vocabulary
+every newer screen uses.
+- `MapNode.chainSymbol` (MapView.swift, beside `tint`/`paraKind`) is nil for everything but a
+  goal note, so `KindBadge`'s override is only reached where it means something. The card and
+  the footer both read it — two places, one source.
+- `subtitle(for:)` names a goal ("Aspiration" or "Goal"); a dated goal previously fell through
+  to the plural list name at the foot of the function.
+- **`subtitle(for:)` was the eleventh place comparing `status` to a raw string** — build 165
+  converted ten and missed this one, so the Map alone printed "Achieved". Through `NoteStatus`
+  now. **When a rule says "all N places", count them again a build later.**
+- The legend became a `WrappingHStack` when it gained two items (build 138).
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

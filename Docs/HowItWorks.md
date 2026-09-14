@@ -358,6 +358,27 @@ A goal is flagged when nothing serves it, when its target date has passed, when 
 
 The Map draws what serves what: goals at the top, then areas and projects, then open tasks and resources. Notes without a goal and archived notes sit in dashed boxes. Click a box to highlight its connections and open the note.
 
+The Map and the Goals screen answer the same question — what serves what — and they are built from the same reading of your notes, so they can never tell you different things. The difference is the shape. The Map is the picture: it shows the whole vault at once, including the parts that hang from nothing. The Goals screen is the list: one aspiration at a time, with dates, per cents and next actions a drawing has no room for.
+
+### What each box says
+
+Every box carries the same icon the rest of the app uses for that kind of note:
+
+- **A star** is an **aspiration** — a goal with no date, which says what you are becoming. It is the north star on PARAGON's own app icon: what you steer by and never tick off.
+- **Two circles, a target**, is a **goal with a target date** — what you aim at and hit on a day.
+- **A flag** is a **project**, **four squares** an **area**, **books** a **resource**, and a **ring** is one open task.
+
+The colour is the note's kind: goals gold, areas pink, projects green, resources blue, the archive grey. Because an aspiration and a goal with a date are both gold, the icon is what tells them apart — so both are named in the legend along the bottom of the Map.
+
+Under the name, a second line says what the note is and how it stands. For a goal it begins with the word **Aspiration** or **Goal**. Then, if the note has been marked, its state — **Done**, **Missed**, **Dropped**, **On hold** or **Archived**, in the same words the rest of the app uses. Then the open task count for a project or an area, a deadline (`due`) and a target date (`by`).
+
+### The lines between the boxes
+
+- A **solid line** means *sits under*: this box's only home is the one above it.
+- A **dashed line** means *also serves*: a second link the tree cannot draw as a parent. A project that belongs to an area and also delivers a goal sits under the area and has a dashed line to the goal. An archived note keeps dashed lines to the goal and area it still names.
+
+Click any box and the footer says, in words, what it **serves** (everything above it, in order) and what is **served by** it.
+
 ### Wiring it up by dragging
 
 The Map is not only something to look at. Drag one box onto another and the link is written into the notes:
