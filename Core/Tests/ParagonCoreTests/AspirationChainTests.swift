@@ -147,9 +147,10 @@ final class AspirationChainTests: XCTestCase {
         let index = try index()
         let chain = index.chain(of: try XCTUnwrap(index.aspirations().first), today: today)
         XCTAssertEqual(chain.goals.map(\.note.title), ["Paperwork under control"])
-        XCTAssertEqual(chain.reachedGoals.map(\.note.title), ["Finish the kitchen"])
+        XCTAssertEqual(chain.endedGoals.map(\.note.title), ["Finish the kitchen"])
         // And it is not lost: the whole-vault list has it, and the live lists do not.
-        XCTAssertEqual(index.reachedGoals().map(\.title), ["Finish the kitchen"])
+        XCTAssertEqual(index.endedGoals().map(\.status), [.done])
+        XCTAssertEqual(index.endedGoals().first?.notes.map(\.title), ["Finish the kitchen"])
         XCTAssertFalse(index.goalsOutsideAnyAspiration().contains { $0.title == "Finish the kitchen" })
         XCTAssertFalse(chain.isBare)
     }
@@ -159,7 +160,48 @@ final class AspirationChainTests: XCTestCase {
                                  extraFrontmatter: [("horizon", "life"), ("status", "achieved")])
         let index = try index()
         XCTAssertTrue(index.aspirations().isEmpty)
-        XCTAssertEqual(index.reachedGoals().map(\.title), ["Learn to sail"])
+        XCTAssertEqual(index.endedGoals().first?.notes.map(\.title), ["Learn to sail"])
+    }
+
+    // MARK: Done, missed, dropped (build 165)
+
+    func testTheThreeEndingsAreToldApartAndGroupedByName() throws {
+        _ = try vault.createNote(kind: .goal, title: "Finish the kitchen",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01"), ("status", "done")])
+        _ = try vault.createNote(kind: .goal, title: "Run a half marathon",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-05-01"), ("status", "missed")])
+        _ = try vault.createNote(kind: .goal, title: "Learn the tuba",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-06-01"), ("status", "dropped")])
+        _ = try vault.createNote(kind: .goal, title: "Sort the photo archive",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-10-31")])
+        let index = try index()
+        // Only the live one is still work.
+        XCTAssertEqual(index.goalsOutsideAnyAspiration().map(\.title), ["Sort the photo archive"])
+        // One group per ending, in the order the menu offers them, each named for its ending.
+        let groups = index.endedGoals()
+        XCTAssertEqual(groups.map(\.status), [.done, .missed, .dropped])
+        XCTAssertEqual(groups.map { $0.notes.map(\.title) },
+                       [["Finish the kitchen"], ["Run a half marathon"], ["Learn the tuba"]])
+    }
+
+    /// The point of the build: only **done** delivered. A goal marked missed or dropped is
+    /// over, and the roll-up must neither count it as a whole project nor hold the goal at
+    /// zero for ever.
+    func testMissedAndDroppedProjectsAreLeftOutOfTheRollUp() throws {
+        _ = try vault.createNote(kind: .goal, title: "Finish the kitchen",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01")])
+        for (title, status) in [("Electrics", "done"), ("Underfloor heating", "dropped"), ("Skylight", "missed")] {
+            _ = try vault.createNote(kind: .project, title: title,
+                                     extraFrontmatter: [("goal", "Finish the kitchen"), ("status", status)])
+        }
+        let index = try index()
+        let goal = index.chainGoal(of: try XCTUnwrap(index.notes(kind: .goal).first), today: today)
+        XCTAssertEqual(goal.finishedProjects.map(\.note.title), ["Electrics"])
+        XCTAssertTrue(goal.projects.isEmpty)
+        // One project counted, and it delivered, so the goal reads as finished.
+        XCTAssertEqual(goal.progress.projectsTotal, 1)
+        XCTAssertEqual(goal.progress.projectsDone, 1)
+        XCTAssertEqual(goal.progress.fraction, 1)
     }
 
     /// A finished project still belongs to its goal — it is what the goal has already got

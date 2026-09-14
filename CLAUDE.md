@@ -1451,7 +1451,44 @@ retyped, so the sidebar and this screen cannot drift.
 - `TintStripe` left the two Goals rows: the badge already carries the colour, and a stripe
   beside it is two coloured things saying one thing.
 
-Still open: the status vocabulary (reached / missed / dropped), last because it edits his notes.
+## Done, Missed, Dropped (build 165)
+
+The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /
+dropped and he asked for **Done** / Missed / Dropped, because `done` is already in his notes
+and so nothing needs rewriting. He was right, and it also meant build 163's **Reached** group
+on the Goals screen had to be renamed — **two words for one state is the fault, whichever
+word is prettier.**
+
+- `Core/Model/NoteStatus.swift` (tested) is now the only place `status:` is understood.
+  **Before it, ten places compared the raw string and each knew a different set**: `Review`
+  knew four spellings of on hold, `GoalProgress` three of done, `NoteIndex` knew `"on hold"`
+  with a space that nothing has ever written. All ten go through the enum.
+  `NoteStatus(reading:)` keeps every old spelling working for ever — `achieved`, `completed`,
+  `paused`, `someday` — and `NoteStatusTests` pins each one, because a note written in 2026
+  must still read the same in 2030.
+- **`isEnded` ≠ `isDelivered`.** Ended is done/missed/dropped; delivered is done alone. That
+  one distinction is the build: the roll-up counts only delivered, and **a missed or dropped
+  project is skipped entirely** — counting it 1 is a lie, counting it 0 holds the goal at
+  nothing for ever. Same reasoning build 141 used for an archived-not-done note.
+- **`setStatus(_: NoteStatus, for:)` writes `.active` by removing the line**, never by writing
+  `status: active`: a note that says nothing is active, and writing it back would stamp every
+  note he opens.
+- **`NoteStatusChip` is the fifth time this rule has been earned.** `status:` was read by five
+  screens and written only by three buttons in the review's context menu, **projects only** —
+  so a goal could never be marked anything from the app at all. Same fault as `due:` (132), an
+  area's `goal:` (134), a project's `goal:` (140), `tags:` (144). Each menu line carries its
+  meaning, since *Missed* and *Dropped* are new words.
+- **Dropped is drawn grey, not orange.** It is a decision, not a failure, and a warning colour
+  would say otherwise.
+- **One group per ending on the Goals screen**, never one group for all three: `endedGoals()`
+  returns `[(status, notes)]`. A group called **Done** holding a goal you missed is the
+  "Hobby or homeless?" naming fault wearing a plainer coat.
+- `AspirationChainBody.endedGroups` is a computed property, not a loop in the body — the
+  `@ViewBuilder` rule (build 58), which I broke first and caught by counting braces.
+
+Still open: nothing on the agreed roadmap. Two things wait on him looking at build 164 —
+whether **Goals with no aspiration** dominates his real vault (if so it should be quiet and
+folded, per build 132's `noGoal` lesson), and how the Goals screen reads on the iPhone.
 
 ## Not built (by choice)
 

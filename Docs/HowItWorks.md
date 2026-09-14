@@ -45,7 +45,7 @@ tags: [sport, training]
 ---
 ```
 
-Useful keys: `status` (active, on hold, done), `area`, `goal`, `due`, `tags`, `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
+Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
 Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, and **Tags…** for `tags`.
 
@@ -168,6 +168,29 @@ New › Goal creates a goal, and the **Horizon** you pick says which kind it is.
 **Aspiration** has no date: who you want to be in some part of your life, which stays true after every goal is reached. It is the A in PARAGON, and it is never ticked off.
 
 **This year** and **Long term** are dated goals: a target date, a measure of what success looks like, and the aspiration they serve, chosen in the **Serves aspiration** box. Projects and areas link to a goal with the `goal:` line. The goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Achieved".
+
+### How a note stands
+
+Press the button in a note's header to say how it stands. A project or a goal can end in three
+different ways, and the difference matters:
+
+- **Done** — finished, and it did what it was for.
+- **Missed** — it is over and it did not happen. A date passed, or you decided it had not worked.
+- **Dropped** — you decided not to do it. Nothing failed; you called it off.
+
+**Only Done counts towards a goal's per cent.** A missed or dropped project is left out of the sum
+altogether: counting it as finished would be untrue, and counting it as nothing done would hold the
+goal below full for ever.
+
+Anything that has ended leaves the working lists — the weekly **Review**, the next actions, the
+**Map**, and the list of notes you can move a task into. On the **Goals** screen it drops into a
+closed group at the foot named after the ending.
+
+The other two words are **Active** (you are working on it) and **On hold** (not now, but not given
+up). The weekly **Review** offers the same choices when you right-click a project.
+
+Older words still read as they always did: `achieved` and `completed` mean Done, and `paused` and
+`someday` mean On hold. Nothing in your notes was rewritten.
 
 ### The Goals screen
 
@@ -454,7 +477,7 @@ tapping a tag, for example.
 Every box also has a word you can type instead, if you prefer typing:
 
 - `type:project`, `type:area`, `type:goal`
-- `status:active`, `status:done`
+- `status:active`, `status:done`, `status:missed`, `status:dropped`, `status:on-hold`
 - `tag:web` or `#web`
 - `area:Health`
 - `in:Projects` to limit to a folder

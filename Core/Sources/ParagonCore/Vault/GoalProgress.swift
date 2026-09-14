@@ -51,8 +51,7 @@ public extension Note {
     /// A project that is over. The status is what says so, not the boxes: he marks a project
     /// done from the review, and the last task is often one he decided not to do.
     var isFinishedProject: Bool {
-        guard declaredKind == .project, let status else { return false }
-        return status == "done" || status == "completed" || status == "achieved"
+        declaredKind == .project && noteStatus.isDelivered
     }
 }
 
@@ -85,6 +84,11 @@ public extension NoteIndex {
         for note in linked(to: goal) {
             // An archived note that was never marked done was dropped, not left undone.
             // Leave it out rather than hold its goal at zero for ever. A finished one counts.
+            // Anything that is over without delivering is left out rather than counted as
+            // zero: an archived note that was never marked done, and since build 165 a note
+            // marked **missed** or **dropped**. Counting it zero would hold its goal down for
+            // ever; counting it one would be a lie. It is simply not work any more.
+            if note.isEnded, !note.noteStatus.isDelivered { continue }
             if note.isArchived, !note.isFinishedProject { continue }
             switch note.declaredKind {
             case .project:

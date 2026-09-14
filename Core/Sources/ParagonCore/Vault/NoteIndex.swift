@@ -65,7 +65,7 @@ public struct NoteIndex: Sendable {
     /// One next action per active project: the `#next` task, else the first open top-level task.
     public func nextActions() -> [TaskRef] {
         notes(kind: .project)
-            .filter { !$0.isArchived && $0.status != "done" && $0.status != "completed" && $0.status != "on hold" }
+            .filter { !$0.isArchived && !$0.isEnded && !$0.noteStatus.isOnHold }
             .compactMap { note in
                 let task = note.nextAction ?? note.tasks.first { !$0.isDone && !$0.isSubtask }
                 return task.map { TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: $0) }

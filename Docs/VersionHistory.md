@@ -2,6 +2,36 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 165 · 14 September 2026
+
+**A goal or a project can now end three ways: Done, Missed or Dropped.**
+
+Until now there was only **done**. So a goal you gave up on and a goal you reached were written
+the same way, and your history said you reached everything you ever stopped working on.
+
+- **Done** — finished, and it did what it was for.
+- **Missed** — it is over and it did not happen.
+- **Dropped** — you decided not to do it. Nothing failed; you called it off.
+
+**Where you set it.** A new button in the note's header says how the note stands — press it and
+pick. That is the first time a **goal** could be marked anything at all from inside the app; the
+weekly **Review** could only ever do it for projects, and only "Mark done". The Review now offers
+all three.
+
+**What it changes elsewhere:**
+
+- **A goal's per cent counts only Done.** A missed or dropped project is left out of the sum
+  entirely. Counting it as finished would be untrue, and counting it as zero would hold the goal
+  down for ever.
+- **Anything that has ended leaves the working lists** — the Review, the next actions, the Map,
+  the "move a task to" list. A goal you dropped is not work.
+- On the **Goals** screen, goals that are over sit in closed groups at the foot, **one group per
+  ending**, each named after it. A group called Done never holds a goal you missed.
+- **Search** has boxes for **Missed** and **Dropped**.
+
+**Nothing in your notes was rewritten.** Old words keep their meaning: `achieved` and `completed`
+still read as Done, and `paused` and `someday` still read as On hold.
+
 ## Build 164 · 14 September 2026
 
 **The Goals screen has icons now**, one for every link in the chain, and they are the ones the

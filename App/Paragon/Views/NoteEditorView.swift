@@ -638,8 +638,8 @@ struct NoteHeader: View {
                 .buttonStyle(.plain)
                 .help("Press to rename this note. The file is renamed too, and links to it follow.")
             }
-            if let status = note.status {
-                Label(status.capitalized, systemImage: "circle.fill")
+            if note.kind != .inbox, note.kind != .daily {
+                NoteStatusChip(model: model, note: note)
             }
             if let area = note.area {
                 Label(area, systemImage: "circle.grid.2x2")

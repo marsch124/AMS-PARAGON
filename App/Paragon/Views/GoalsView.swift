@@ -20,8 +20,8 @@ import ParagonCore
 struct AspirationsListView: View {
     @EnvironmentObject private var model: AppModel
     @State private var opened: Set<String> = []
-    /// Closed to begin with: a reached goal is something you look back at on purpose.
-    @AppStorage("goalsReachedFolded") private var reachedFolded = true
+    /// Closed to begin with: a goal that is over is something you look back at on purpose.
+    @AppStorage("goalsReachedFolded") private var endedFolded = true
 #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private var isPhone: Bool { horizontalSizeClass == .compact }
@@ -34,18 +34,18 @@ struct AspirationsListView: View {
         let held = chains.filter { !$0.isBare }
         let bare = chains.filter(\.isBare)
         let loose = model.index.goalsOutsideAnyAspiration()
-        let reached = model.index.reachedGoals()
+        let ended = model.index.endedGoals()
         Group {
-            if chains.isEmpty && loose.isEmpty && reached.isEmpty {
+            if chains.isEmpty && loose.isEmpty && ended.isEmpty {
                 EmptyStateView(title: "No goals yet",
                                systemImage: SidebarSection.kind(.goal).systemImage,
                                message: "An aspiration says what you are becoming. A goal with a target date says what you will have done. Make one and the chain under it appears here.",
                                tint: ParaKind.goal.tint,
                                actionTitle: "New goal\u{2026}") { model.activeSheet = .newNote }
             } else if isPhone {
-                phoneList(held: held, bare: bare, loose: loose, reached: reached)
+                phoneList(held: held, bare: bare, loose: loose, ended: ended)
             } else {
-                deskList(held: held, bare: bare, loose: loose, reached: reached)
+                deskList(held: held, bare: bare, loose: loose, ended: ended)
             }
         }
         .navigationTitle("Goals")
@@ -53,7 +53,8 @@ struct AspirationsListView: View {
 
     // MARK: The Mac — a list that fills the third column
 
-    private func deskList(held: [AspirationChain], bare: [AspirationChain], loose: [Note], reached: [Note]) -> some View {
+    private func deskList(held: [AspirationChain], bare: [AspirationChain], loose: [Note],
+                          ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List(selection: model.noteSelection) {
             if !held.isEmpty {
                 Section("Aspirations") {
@@ -82,47 +83,53 @@ struct AspirationsListView: View {
                     }
                 }
             }
-            if !reached.isEmpty {
-                reachedSection(reached)
+            ForEach(ended, id: \.status) { group in
+                endedSection(group.status, group.notes)
             }
         }
     }
 
-    /// Build 163: a goal marked as reached drops out of the lists above and gathers here,
-    /// closed. It is history rather than work, but it is never hidden altogether.
+    /// A goal that is over drops out of the lists above and gathers here, closed, **under the
+    /// name of its ending** — Done, Missed or Dropped (builds 163 and 165). It is history
+    /// rather than work, but it is never hidden altogether.
     @ViewBuilder
-    private func reachedSection(_ reached: [Note]) -> some View {
+    private func endedSection(_ status: NoteStatus, _ notes: [Note]) -> some View {
         Section {
-            if !reachedFolded {
-                ForEach(reached) { note in
+            if !endedFolded {
+                ForEach(notes) { note in
                     DatedGoalRow(note: note)
                         .tag(note.relativePath)
                         .contextMenu { rowMenu(note) }
                 }
             }
         } header: {
-            Button {
-                reachedFolded.toggle()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: reachedFolded ? "chevron.right" : "chevron.down")
-                        .font(.caption2)
-                    Text("Reached")
-                    Text("\(reached.count)")
-                        .font(.caption2.monospacedDigit())
-                        .padding(.horizontal, 5)
-                        .background(.quaternary, in: Capsule())
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+            endedHeader(status, notes.count)
         }
+    }
+
+    private func endedHeader(_ status: NoteStatus, _ count: Int) -> some View {
+        Button {
+            endedFolded.toggle()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: endedFolded ? "chevron.right" : "chevron.down")
+                    .font(.caption2)
+                Text(status.label)
+                Text("\(count)")
+                    .font(.caption2.monospacedDigit())
+                    .padding(.horizontal, 5)
+                    .background(.quaternary, in: Capsule())
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: The phone — the chain folds open in place
 
-    private func phoneList(held: [AspirationChain], bare: [AspirationChain], loose: [Note], reached: [Note]) -> some View {
+    private func phoneList(held: [AspirationChain], bare: [AspirationChain], loose: [Note],
+                           ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List {
             if !held.isEmpty {
                 Section("Aspirations") {
@@ -145,22 +152,13 @@ struct AspirationsListView: View {
                     }
                 }
             }
-            if !reached.isEmpty {
+            ForEach(ended, id: \.status) { group in
                 Section {
-                    if !reachedFolded {
-                        ForEach(reached) { note in looseRow(note) }
+                    if !endedFolded {
+                        ForEach(group.notes) { note in looseRow(note) }
                     }
                 } header: {
-                    Button { reachedFolded.toggle() } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: reachedFolded ? "chevron.right" : "chevron.down")
-                                .font(.caption2)
-                            Text("Reached \(reached.count)")
-                            Spacer(minLength: 0)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
+                    endedHeader(group.status, group.notes.count)
                 }
             }
         }
@@ -293,8 +291,9 @@ struct DatedGoalRow: View {
             KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.forGoal(note))
             VStack(alignment: .leading, spacing: 3) {
                 Text(note.title)
+                    // Struck through however it ended: done, missed or dropped, it is over.
+                    .strikethrough(note.isEnded)
                     .font(.headline)
-                    .strikethrough(note.isAchieved)
                     .lineLimit(2)
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
                     if health.progress.fraction != nil {
@@ -305,9 +304,9 @@ struct DatedGoalRow: View {
                         Label("\(target.description) · \(left)", systemImage: "flag")
                             .foregroundStyle(overdue(target) ? Color.orange : ParaKind.goal.tint)
                     }
-                    if note.isAchieved {
-                        Label("Reached", systemImage: "checkmark.seal")
-                            .foregroundStyle(ParaKind.goal.tint)
+                    if note.isEnded {
+                        Label(note.noteStatus.label, systemImage: note.isAchieved ? "checkmark.seal" : "xmark.circle")
+                            .foregroundStyle(note.isAchieved ? ParaKind.goal.tint : Color.secondary)
                     } else if health.needsAttention, let first = health.flags.first {
                         Label(first.label, systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
@@ -327,7 +326,7 @@ struct DatedGoalRow: View {
     }
 
     private func overdue(_ target: DateOnly) -> Bool {
-        !note.isAchieved && target < .today()
+        !note.isEnded && target < .today()
     }
 }
 
@@ -403,28 +402,14 @@ struct AspirationChainBody: View {
             ForEach(chain.goals) { goal in
                 ChainGoalBlock(goal: goal, lead: false)
             }
-            if !chain.reachedGoals.isEmpty {
-                SectionLabel(title: "Reached", count: chain.reachedGoals.count,
-                             systemImage: "checkmark.seal", tint: ParaKind.goal.tint)
-                ForEach(chain.reachedGoals) { goal in
-                    Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: ChainSymbol.datedGoal)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                            Text(goal.note.title)
-                                .strikethrough()
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                            if let target = goal.note.targetDate {
-                                Text(target.description)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                    }
-                    .buttonStyle(.plain)
+            // One heading per ending, never one heading for all three: a group called Done
+            // may not hold a goal that was missed (build 165).
+            ForEach(endedGroups, id: \.status) { group in
+                SectionLabel(title: group.status.label, count: group.goals.count,
+                             systemImage: group.status == .done ? "checkmark.seal" : "xmark.circle",
+                             tint: group.status == .done ? ParaKind.goal.tint : .secondary)
+                ForEach(group.goals) { goal in
+                    endedRow(goal)
                 }
             }
             if !chain.projects.isEmpty {
@@ -447,6 +432,36 @@ struct AspirationChainBody: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// The goals that are over, split by how they ended and in the order the menu offers.
+    /// Worked out here rather than in the body: a `@ViewBuilder` takes views, not loops.
+    private var endedGroups: [(status: NoteStatus, goals: [ChainGoal])] {
+        NoteStatus.endings.compactMap { ending in
+            let over = chain.endedGoals.filter { $0.note.noteStatus == ending }
+            return over.isEmpty ? nil : (ending, over)
+        }
+    }
+
+    private func endedRow(_ goal: ChainGoal) -> some View {
+        Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
+            HStack(spacing: 6) {
+                Image(systemName: ChainSymbol.datedGoal)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(goal.note.title)
+                    .strikethrough()
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                if let target = goal.note.targetDate {
+                    Text(target.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private var head: some View {
@@ -501,7 +516,7 @@ struct ChainGoalBlock: View {
                         if let target = goal.note.targetDate {
                             // Build 163: the date alone never says whether it is close.
                             let left = target.timeLeftText(from: .today())
-                            let late = !goal.isReached && target < .today()
+                            let late = !goal.isEnded && target < .today()
                             ChainChip(text: "Target \(target.description) · \(left)",
                                       tint: late ? .orange : ParaKind.goal.tint, filled: false)
                         }
@@ -631,5 +646,72 @@ struct ChainChip: View {
                                        style: StrokeStyle(lineWidth: 1, dash: dashed ? [3, 2] : []))
             )
             .foregroundStyle(tint)
+    }
+}
+
+/// How a note stands, and pressing it changes it.
+///
+/// **Build 165, and the fifth time this rule has been earned.** `status:` was read by the
+/// review, the Map, the search, the roll-up and the note header — and the only thing that
+/// could write it was three buttons in the weekly review's context menu, projects only. So a
+/// goal could never be marked anything at all from the app. `due:` (132), an area's `goal:`
+/// (134), a project's `goal:` (140) and `tags:` (144) were the same fault. **Before shipping a
+/// screen that reads a field, find the control that writes it.**
+///
+/// A `Menu`, not a popover: there is nothing to type, only one of six words to pick, and each
+/// line says what it means — "Missed" and "Dropped" are new words and a bare list of them
+/// would be a guess.
+struct NoteStatusChip: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+
+    var body: some View {
+        // Read back out of the model: a change saves and reloads, so the note handed in is one
+        // behind (build 144's lesson, in a new place).
+        let live = model.note(at: note.relativePath) ?? note
+        let status = live.noteStatus
+        Menu {
+            Picker("How it stands", selection: statusBinding(live)) {
+                ForEach(NoteStatus.allCases.filter { $0 != .archived }, id: \.self) { choice in
+                    Text("\(choice.label) — \(choice.meaning)").tag(choice)
+                }
+            }
+            .pickerStyle(.inline)
+            .labelsHidden()
+        } label: {
+            Label(status.label, systemImage: symbol(for: status))
+                .font(.caption)
+                .foregroundStyle(tint(for: status))
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help("How this note stands. Done means it delivered; Missed means it is over and did not happen; Dropped means you called it off.")
+    }
+
+    private func statusBinding(_ live: Note) -> Binding<NoteStatus> {
+        Binding(get: { live.noteStatus },
+                set: { model.setStatus($0, for: live) })
+    }
+
+    private func symbol(for status: NoteStatus) -> String {
+        switch status {
+        case .active: return "circle"
+        case .onHold: return "pause.circle"
+        case .done: return "checkmark.circle.fill"
+        case .missed: return "xmark.circle"
+        case .dropped: return "minus.circle"
+        case .archived: return "archivebox"
+        }
+    }
+
+    /// Done is the note's own colour because it is the good ending. Missed is orange, the
+    /// colour this app already uses for "look at this". **Dropped is grey on purpose** — it is
+    /// not a failure, it is a decision, and drawing it in a warning colour would say otherwise.
+    private func tint(for status: NoteStatus) -> Color {
+        switch status {
+        case .done: return note.tint
+        case .missed: return .orange
+        default: return .secondary
+        }
     }
 }

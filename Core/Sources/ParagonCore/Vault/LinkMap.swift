@@ -200,7 +200,7 @@ public extension NoteIndex {
     func linkMap(taskLimit: Int = NoteIndex.mapTaskLimit) -> LinkMap {
         let candidates = notes.filter { $0.kind != .daily }
         // Finished projects sit with the archive until they are moved there.
-        func isParked(_ note: Note) -> Bool { note.isArchived || note.status == "done" || note.status == "completed" }
+        func isParked(_ note: Note) -> Bool { note.isArchived || note.isEnded }
         let active = candidates.filter { !isParked($0) }
         let archived = candidates.filter(isParked)
         let activePaths = Set(active.map(\.relativePath))

@@ -119,8 +119,8 @@ public struct ChainGoal: Identifiable, Equatable, Sendable {
 
     public var id: String { note.relativePath }
     public var needsAttention: Bool { !flags.isEmpty && flags != [.achieved] }
-    /// Marked as reached. It is the `status:` that says so, never the boxes (build 141).
-    public var isReached: Bool { note.isAchieved }
+    /// Over, whichever way. It is the `status:` that says so, never the boxes (build 141).
+    public var isEnded: Bool { note.isEnded }
 }
 
 /// An aspiration and everything working towards it.
@@ -136,16 +136,17 @@ public struct AspirationChain: Identifiable, Equatable, Sendable {
     public var areas: [Note]
     public var progress: GoalProgress
     public var flags: [GoalHealth.Flag]
-    /// Goals under it already marked as reached. Kept out of `goals` so the live chain is
-    /// short, and shown folded away at the foot (build 163, his pick).
-    public var reachedGoals: [ChainGoal]
+    /// Goals under it that are over, whichever way they ended (build 165). Kept out of
+    /// `goals` so the live chain is short, and shown folded away at the foot under the name
+    /// of the ending — a group called **Done** may not hold a goal that was missed.
+    public var endedGoals: [ChainGoal]
     public var activity: ChainActivity
 
     public var id: String { note.relativePath }
 
     /// Nothing at all works towards this aspiration yet.
     public var isBare: Bool {
-        goals.isEmpty && reachedGoals.isEmpty && projects.isEmpty && areas.isEmpty
+        goals.isEmpty && endedGoals.isEmpty && projects.isEmpty && areas.isEmpty
     }
 
     /// Every dated goal under it that wants looking at.
@@ -161,7 +162,7 @@ public extension NoteIndex {
     /// you will have done. Archived ones are left out.
     func aspirations() -> [Note] {
         notes(kind: .goal)
-            .filter { !$0.isArchived && !$0.isAchieved && ($0.horizon ?? .year) == .life }
+            .filter { !$0.isArchived && !$0.isEnded && ($0.horizon ?? .year) == .life }
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
     }
 
@@ -171,20 +172,27 @@ public extension NoteIndex {
     func goalsOutsideAnyAspiration() -> [Note] {
         notes(kind: .goal)
             .filter { note in
-                guard !note.isArchived, !note.isAchieved, (note.horizon ?? .year) != .life else { return false }
+                guard !note.isArchived, !note.isEnded, (note.horizon ?? .year) != .life else { return false }
                 guard let reference = note.goal else { return true }
                 return goal(matching: reference).map { $0.horizon != .life } ?? true
             }
             .sorted(by: NoteIndex.byTargetThenTitle)
     }
 
-    /// Goals of any kind already marked as reached. They leave the lists above and gather in
-    /// one group at the foot, closed (build 163, his pick): a reached goal is history, not
-    /// work, but hiding it altogether would be build 100's rule broken.
-    func reachedGoals() -> [Note] {
-        notes(kind: .goal)
-            .filter { !$0.isArchived && $0.isAchieved }
-            .sorted(by: NoteIndex.byTargetThenTitle)
+    /// Goals that are over, gathered under the name of the ending (build 165). They leave the
+    /// live lists — a goal you dropped is not work — and sit in closed groups at the foot,
+    /// because hiding them altogether would be build 100's rule broken.
+    ///
+    /// **One group per ending, never one group for all three.** A group called **Done** that
+    /// held a goal you missed would be exactly the naming fault this project keeps catching:
+    /// the name has to be true of every member.
+    func endedGoals() -> [(status: NoteStatus, notes: [Note])] {
+        let over = notes(kind: .goal).filter { !$0.isArchived && $0.isEnded }
+        return NoteStatus.endings.compactMap { ending in
+            let matching = over.filter { $0.noteStatus == ending }
+                .sorted(by: NoteIndex.byTargetThenTitle)
+            return matching.isEmpty ? nil : (ending, matching)
+        }
     }
 
     /// Soonest target first, then by name. One place, so the three lists agree.
@@ -226,12 +234,12 @@ public extension NoteIndex {
         let finished = health.finishedProjects.map(ChainProject.init)
         return AspirationChain(note: aspiration,
                                area: area,
-                               goals: all.filter { !$0.isReached },
+                               goals: all.filter { !$0.isEnded },
                                projects: projects + finished,
                                areas: health.areas,
                                progress: health.progress,
                                flags: health.flags,
-                               reachedGoals: all.filter(\.isReached),
+                               endedGoals: all.filter(\.isEnded),
                                activity: ChainActivity(tasksFinished: health.completedLast30Days,
                                                        daysSinceActivity: health.daysSinceActivity,
                                                        projectsFinished: finished.count,

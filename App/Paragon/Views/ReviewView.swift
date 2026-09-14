@@ -162,11 +162,15 @@ struct HealthRow: View {
             Button("Mark reviewed") { model.markReviewed(health.note) }
             if health.note.kind == .project {
                 if health.flags.contains(.onHold) {
-                    Button("Set active") { model.setStatus("active", for: health.note) }
+                    Button("Set active") { model.setStatus(NoteStatus.active, for: health.note) }
                 } else {
-                    Button("Put on hold") { model.setStatus("on-hold", for: health.note) }
+                    Button("Put on hold") { model.setStatus(NoteStatus.onHold, for: health.note) }
                 }
-                Button("Mark done") { model.setStatus("done", for: health.note) }
+                // Three endings, not one (build 165). "Mark done" used to be the only way out,
+                // so a project you gave up on was written down as one you finished.
+                ForEach(NoteStatus.endings, id: \.self) { ending in
+                    Button("Mark \(ending.label.lowercased())") { model.setStatus(ending, for: health.note) }
+                }
                 Button("Archive") { model.archive(health.note) }
             }
         }

@@ -101,7 +101,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 164
+    static let number = 165
 }
 
 @MainActor
@@ -1978,7 +1978,7 @@ final class AppModel: ObservableObject {
 
     /// Targets offered in the capture panel: Inbox, today's note, then every active project.
     var captureTargets: [CaptureTarget] {
-        let projects = notes.filter { $0.kind == .project && !$0.isArchived && $0.status != "done" }
+        let projects = notes.filter { $0.kind == .project && !$0.isArchived && !$0.isEnded }
         return [CaptureTarget.inbox, .today] + projects.map { CaptureTarget.note(path: $0.relativePath) }
     }
 
@@ -2119,6 +2119,21 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         var updated = note
         updated.frontmatter.set("status", status)
+        save(updated)
+    }
+
+    /// The one way the app writes how a note stands (build 165), so the word in the file is
+    /// always one `NoteStatus` knows. `.active` removes the line rather than writing
+    /// `status: active`: a note that says nothing is active, and that is what a new note looks
+    /// like — writing it back would mark every note he ever touches.
+    func setStatus(_ status: NoteStatus, for note: Note) {
+        flushPendingEdits()
+        var updated = note
+        if status == .active {
+            updated.frontmatter.remove("status")
+        } else {
+            updated.frontmatter.set("status", status.rawValue)
+        }
         save(updated)
     }
 

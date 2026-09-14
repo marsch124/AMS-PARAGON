@@ -34,7 +34,9 @@ struct SearchView: View {
     private var filtersFolded: Bool { isPhone ? phoneFiltersFolded : deskFiltersFolded }
 
     private static let kinds: [ParaKind] = [.goal, .project, .area, .resource, .archive, .daily, .inbox]
-    private static let statuses = ["active", "on-hold", "done", "archived"]
+    /// Build 165: the boxes are the `NoteStatus` cases, so the list can never miss one the
+    /// app can write — and **On hold** is spelled as a person spells it, not as the file does.
+    private static let statuses = NoteStatus.allCases
     private static let dues: [SearchQuery.DueFilter] = [.overdue, .today, .week, .month, .none]
     private static let taskStates: [SearchQuery.TaskFilter] = [.open, .done]
 
@@ -168,10 +170,11 @@ struct SearchView: View {
                 }
             }
             group("How the note stands", tint: SidebarSection.review.tint, note: nil) {
+                let asked = Set(query.statuses.map { NoteStatus(reading: $0) })
                 ForEach(Self.statuses, id: \.self) { status in
-                    FilterBox(title: status.capitalizedFirst,
-                              isOn: query.statuses.contains(status),
-                              tint: SidebarSection.review.tint) { toggle("status:\(status)") }
+                    FilterBox(title: status.label,
+                              isOn: asked.contains(status),
+                              tint: SidebarSection.review.tint) { toggle("status:\(status.rawValue)") }
                 }
             }
             tagGroup(query)

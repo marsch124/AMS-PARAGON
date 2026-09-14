@@ -123,8 +123,7 @@ public extension NoteIndex {
         let daysSinceReview = note.reviewedDate.map { today.days(since: $0, calendar: calendar) }
 
         var flags: [ProjectHealth.Flag] = []
-        let status = note.status ?? "active"
-        if status == "on-hold" || status == "onhold" || status == "paused" || status == "someday" {
+        if note.noteStatus.isOnHold {
             flags.append(.onHold)
         } else {
             if open.isEmpty { flags.append(.noNextAction) }
@@ -214,7 +213,8 @@ public extension NoteIndex {
     }
 
     func review(today: DateOnly = .today(), config: VaultConfig, calendar: Calendar = .current) -> ReviewReport {
-        let active = { (note: Note) in !note.isArchived && note.status != "done" && note.status != "completed" }
+        // Anything that has ended is out of the review, whichever way it ended (build 165).
+        let active = { (note: Note) in !note.isArchived && !note.isEnded }
         let projects = notes(kind: .project).filter(active).map { health(of: $0, today: today, config: config, calendar: calendar) }
             .sorted { a, b in
                 if a.needsAttention != b.needsAttention { return a.needsAttention }

@@ -276,9 +276,12 @@ public extension NoteIndex {
     private func matchesFilters(_ note: Note, query: SearchQuery) -> Bool {
         if !query.kinds.isEmpty && !query.kinds.contains(note.kind) { return false }
         if !query.statuses.isEmpty {
-            let status = note.status ?? (note.isArchived ? "archived" : "active")
-            let normalized = status.replacingOccurrences(of: " ", with: "-")
-            guard query.statuses.contains(normalized) || (normalized == "onhold" && query.statuses.contains("on-hold")) else { return false }
+            // Through `NoteStatus`, so a box ticked here and the word written in the note
+            // agree however the note spells it — `achieved`, `completed` and `done` are one
+            // answer (build 165).
+            let status = note.isArchived && note.status == nil ? NoteStatus.archived : note.noteStatus
+            let asked = Set(query.statuses.map { NoteStatus(reading: $0).rawValue })
+            guard asked.contains(status.rawValue) else { return false }
         }
         if !query.tags.isEmpty {
             let noteTags = Set(note.tags.map { $0.lowercased() } + note.tasks.flatMap { $0.tags.map { $0.lowercased() } })

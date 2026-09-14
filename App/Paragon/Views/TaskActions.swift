@@ -77,7 +77,7 @@ struct TaskContextMenu: View {
     private func destinations(_ kind: ParaKind) -> [Note] {
         let listed = kind == .area ? model.index.areasInFamilyOrder() : model.notes.filter { $0.kind == kind }
         return listed.filter {
-            !$0.isArchived && $0.status != "done" && $0.relativePath != ref.notePath
+            !$0.isArchived && !$0.isEnded && $0.relativePath != ref.notePath
         }
     }
 

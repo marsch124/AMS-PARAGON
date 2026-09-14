@@ -27,7 +27,7 @@ enum InboxItems {
     }
 
     static func isActive(_ note: Note) -> Bool {
-        !note.isArchived && note.status != "done"
+        !note.isArchived && !note.isEnded
     }
 
     static func projects(_ model: AppModel) -> [Note] {

@@ -106,7 +106,9 @@ public struct Note: Equatable, Identifiable, Sendable {
     }
     public var targetDate: DateOnly? { frontmatter.string("target").flatMap(DateOnly.init) }
     public var measure: String? { frontmatter.string("measure") }
-    public var isAchieved: Bool { status == "achieved" || status == "done" }
+    /// Reached what it was for. Only `done`: a goal that was missed or dropped is over,
+    /// but it did not deliver (build 165).
+    public var isAchieved: Bool { noteStatus == .done }
     public var dueDate: DateOnly? { frontmatter.string("due").flatMap(DateOnly.init) }
 
     /// `sync: false` in the frontmatter keeps a note out of Reminders.
