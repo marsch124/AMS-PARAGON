@@ -108,6 +108,60 @@ final class AspirationChainTests: XCTestCase {
         XCTAssertEqual(chain.goals.map(\.note.title), ["Finish the kitchen", "Paperwork under control"])
     }
 
+    // MARK: The five small extras (build 163)
+
+    func testTimeLeftIsSaidInPlainWords() {
+        let today = DateOnly(year: 2026, month: 9, day: 14)
+        XCTAssertEqual(DateOnly(year: 2026, month: 9, day: 14).timeLeftText(from: today), "today")
+        XCTAssertEqual(DateOnly(year: 2026, month: 9, day: 15).timeLeftText(from: today), "tomorrow")
+        XCTAssertEqual(DateOnly(year: 2026, month: 9, day: 25).timeLeftText(from: today), "in 11 days")
+        XCTAssertEqual(DateOnly(year: 2026, month: 12, day: 14).timeLeftText(from: today), "in about 3 months")
+        XCTAssertEqual(DateOnly(year: 2031, month: 9, day: 14).timeLeftText(from: today), "in about 5 years")
+        // Past the date it says how far past, which is the half that matters.
+        XCTAssertEqual(DateOnly(year: 2026, month: 9, day: 13).timeLeftText(from: today), "1 day over")
+        XCTAssertEqual(DateOnly(year: 2026, month: 9, day: 3).timeLeftText(from: today), "11 days over")
+    }
+
+    func testActivitySaysNothingWhenThereIsNothingToSay() {
+        let quiet = ChainActivity(tasksFinished: 0, daysSinceActivity: nil,
+                                  projectsFinished: 0, projectsTotal: 0)
+        XCTAssertNil(quiet.summary)
+        let busy = ChainActivity(tasksFinished: 12, daysSinceActivity: 3,
+                                 projectsFinished: 1, projectsTotal: 4)
+        XCTAssertEqual(busy.summary,
+                       "12 tasks finished in 30 days \u{00B7} 1 of 4 projects finished \u{00B7} last activity 3 days ago")
+        let today = ChainActivity(tasksFinished: 1, daysSinceActivity: 0,
+                                  projectsFinished: 0, projectsTotal: 2)
+        XCTAssertEqual(today.summary, "1 task finished in 30 days \u{00B7} something moved today")
+    }
+
+    func testAReachedGoalLeavesTheLiveChainAndGathersAtTheFoot() throws {
+        _ = try vault.createNote(kind: .goal, title: "A calm, well-run home",
+                                 extraFrontmatter: [("horizon", "life")])
+        _ = try vault.createNote(kind: .goal, title: "Finish the kitchen",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01"),
+                                                    ("goal", "A calm, well-run home"), ("status", "achieved")])
+        _ = try vault.createNote(kind: .goal, title: "Paperwork under control",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2027-06-30"),
+                                                    ("goal", "A calm, well-run home")])
+        let index = try index()
+        let chain = index.chain(of: try XCTUnwrap(index.aspirations().first), today: today)
+        XCTAssertEqual(chain.goals.map(\.note.title), ["Paperwork under control"])
+        XCTAssertEqual(chain.reachedGoals.map(\.note.title), ["Finish the kitchen"])
+        // And it is not lost: the whole-vault list has it, and the live lists do not.
+        XCTAssertEqual(index.reachedGoals().map(\.title), ["Finish the kitchen"])
+        XCTAssertFalse(index.goalsOutsideAnyAspiration().contains { $0.title == "Finish the kitchen" })
+        XCTAssertFalse(chain.isBare)
+    }
+
+    func testAReachedAspirationLeavesTheLiveListToo() throws {
+        _ = try vault.createNote(kind: .goal, title: "Learn to sail",
+                                 extraFrontmatter: [("horizon", "life"), ("status", "achieved")])
+        let index = try index()
+        XCTAssertTrue(index.aspirations().isEmpty)
+        XCTAssertEqual(index.reachedGoals().map(\.title), ["Learn to sail"])
+    }
+
     /// A finished project still belongs to its goal — it is what the goal has already got
     /// done (build 141) — but it is kept apart from the live work.
     func testFinishedProjectsAreKeptApart() throws {

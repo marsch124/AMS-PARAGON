@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 163 · 14 September 2026
+
+**The five small extras on the Goals screen**, the ones you asked for.
+
+- **The measure is on the row.** Your `measure:` line — "cooking in it every day" — is under
+  the goal's name in the list, not only inside the goal.
+- **Days left beside the target date.** "2026-12-01 · in about 3 months", and **in orange**
+  when the date has passed: "11 days over".
+- **Goals that need attention are marked.** The same checks the weekly **Review** makes —
+  nothing serving it, past its target, nothing moving for 30 days — so the two screens agree.
+- **Reached goals fold away.** A goal you mark as reached leaves the lists above and gathers in
+  a **Reached** group at the foot, closed. Press it to look back. The same happens inside an
+  aspiration: its reached goals sit under a small **Reached** heading below the live ones.
+- **What changed lately.** One line on a goal or aspiration: tasks finished in the last 30
+  days, how many projects are finished, and when something last moved. If nothing can be
+  counted, no line is shown at all — a line saying "0 tasks, no activity" would tell you less
+  than nothing.
+
 ## Build 162 · 13 September 2026
 
 **The Goals screen is the chain, top to bottom.** You chose this shape from a preview of three.

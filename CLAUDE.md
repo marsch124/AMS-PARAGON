@@ -1413,11 +1413,31 @@ projects, the next action on each.
   tasks on a freshly made project and were one out, because the project template ships
   "Define the outcome and the first step". A test that counts tasks has to **set** the body,
   never add to it. CI caught it; the build number stayed 162, since nothing had shipped.
-- Still to ask him: five of the six small extras came back unticked from the page while his
-  screenshot showed all six looking unticked, and the db held only `serves` — the page and the
-  screenshot disagreed, so the answer was not trusted. Only `serves` is built (a dated goal
-  names what it serves). The other five: the measure on the row, days left beside a target
-  date, an attention mark, reached goals folding away, and "what changed this month".
+- **The db page and his screenshot disagreed** — the db held only `serves` while the screenshot
+  showed all six boxes looking unticked — so I did not trust either and asked him in chat. He
+  answered "All five, please". **When a read-back page and a screenshot of it disagree, ask;
+  do not pick the one that suits.**
+
+**Build 163: the five small extras.** All in `AspirationChain.swift` (Core, tested) and
+`GoalsView.swift`.
+- `DateOnly.timeLeftText(from:)` — "today", "tomorrow", "in 11 days", "in about 3 months",
+  "in about 5 years", "11 days over". In Core because it decides wording read on three screens.
+- `ChainActivity` — tasks finished in 30 days, projects finished, days since activity, and a
+  `summary` that is **nil when there is nothing to say**. **Projects carry no date when they are
+  finished** (`isFinishedProject` reads `status:`, nothing stamps the day), so it never claims
+  "projects finished this month"; that would be build 141's zero-that-looks-like-an-answer in a
+  new place.
+- Reached goals: `aspirations()` and `goalsOutsideAnyAspiration()` exclude `isAchieved`,
+  `reachedGoals()` gathers them, and `AspirationChain.reachedGoals` splits them out of the live
+  chain. `isBare` counts them, or an aspiration whose goals were all reached would read as
+  having nothing. Folded by default (`goalsReachedFolded`); the heading still shows the count,
+  so nothing is hidden (build 100).
+- `NoteIndex.byTargetThenTitle` is the one sort the three lists share.
+- `DatedGoalRow` carries four of the five at once — measure, target with days left, attention
+  mark, progress — because a row that shows two of them and leaves the rest out is the fault
+  that made build 153 replace `doc.text`.
+- `goalHealth(of:)` is **internal**, so the App cannot call it; `chainGoal(of:)` is the public
+  way in and is what `DatedGoalRow` uses. Caught while writing.
 
 Still open: the status vocabulary (reached / missed / dropped), last because it edits his notes.
 

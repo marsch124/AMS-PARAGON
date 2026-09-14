@@ -184,6 +184,18 @@ aspirations with no goal under them. **Goals with no aspiration** holds dated go
 their own. Neither is a fault — a goal can stand alone — but a list that quietly left them out
 would be a list you cannot trust.
 
+Each row shows its **measure**, its **target date with how long is left** ("in about 3 months",
+or "11 days over" in orange), and a **mark when it needs attention** — the same checks the
+weekly **Review** makes, so the two screens agree.
+
+A goal you mark as **reached** leaves those lists and gathers in a **Reached** group at the
+foot, closed. Press the heading to look back. Inside an aspiration its reached goals sit under
+a small **Reached** heading below the live ones.
+
+A goal or aspiration also shows **what changed lately**: tasks finished in the last 30 days,
+how many projects are finished, and when something last moved. When nothing can be counted the
+line is not shown at all.
+
 The **Note** button at the top of the column shows the goal's own text instead of the chain.
 Press it again to go back. On the iPhone there is no second column, so an aspiration folds open
 where it stands. Type in the search field and the ordinary note list comes back.

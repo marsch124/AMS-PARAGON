@@ -20,6 +20,8 @@ import ParagonCore
 struct AspirationsListView: View {
     @EnvironmentObject private var model: AppModel
     @State private var opened: Set<String> = []
+    /// Closed to begin with: a reached goal is something you look back at on purpose.
+    @AppStorage("goalsReachedFolded") private var reachedFolded = true
 #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private var isPhone: Bool { horizontalSizeClass == .compact }
@@ -32,17 +34,18 @@ struct AspirationsListView: View {
         let held = chains.filter { !$0.isBare }
         let bare = chains.filter(\.isBare)
         let loose = model.index.goalsOutsideAnyAspiration()
+        let reached = model.index.reachedGoals()
         Group {
-            if chains.isEmpty && loose.isEmpty {
+            if chains.isEmpty && loose.isEmpty && reached.isEmpty {
                 EmptyStateView(title: "No goals yet",
                                systemImage: SidebarSection.kind(.goal).systemImage,
                                message: "An aspiration says what you are becoming. A goal with a target date says what you will have done. Make one and the chain under it appears here.",
                                tint: ParaKind.goal.tint,
                                actionTitle: "New goal\u{2026}") { model.activeSheet = .newNote }
             } else if isPhone {
-                phoneList(held: held, bare: bare, loose: loose)
+                phoneList(held: held, bare: bare, loose: loose, reached: reached)
             } else {
-                deskList(held: held, bare: bare, loose: loose)
+                deskList(held: held, bare: bare, loose: loose, reached: reached)
             }
         }
         .navigationTitle("Goals")
@@ -50,7 +53,7 @@ struct AspirationsListView: View {
 
     // MARK: The Mac — a list that fills the third column
 
-    private func deskList(held: [AspirationChain], bare: [AspirationChain], loose: [Note]) -> some View {
+    private func deskList(held: [AspirationChain], bare: [AspirationChain], loose: [Note], reached: [Note]) -> some View {
         List(selection: model.noteSelection) {
             if !held.isEmpty {
                 Section("Aspirations") {
@@ -73,18 +76,53 @@ struct AspirationsListView: View {
             if !loose.isEmpty {
                 Section("Goals with no aspiration") {
                     ForEach(loose) { note in
-                        NoteRow(note: note, goalProgress: model.index.progress(of: note))
+                        DatedGoalRow(note: note)
                             .tag(note.relativePath)
                             .contextMenu { rowMenu(note) }
                     }
                 }
             }
+            if !reached.isEmpty {
+                reachedSection(reached)
+            }
+        }
+    }
+
+    /// Build 163: a goal marked as reached drops out of the lists above and gathers here,
+    /// closed. It is history rather than work, but it is never hidden altogether.
+    @ViewBuilder
+    private func reachedSection(_ reached: [Note]) -> some View {
+        Section {
+            if !reachedFolded {
+                ForEach(reached) { note in
+                    DatedGoalRow(note: note)
+                        .tag(note.relativePath)
+                        .contextMenu { rowMenu(note) }
+                }
+            }
+        } header: {
+            Button {
+                reachedFolded.toggle()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: reachedFolded ? "chevron.right" : "chevron.down")
+                        .font(.caption2)
+                    Text("Reached")
+                    Text("\(reached.count)")
+                        .font(.caption2.monospacedDigit())
+                        .padding(.horizontal, 5)
+                        .background(.quaternary, in: Capsule())
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
     }
 
     // MARK: The phone — the chain folds open in place
 
-    private func phoneList(held: [AspirationChain], bare: [AspirationChain], loose: [Note]) -> some View {
+    private func phoneList(held: [AspirationChain], bare: [AspirationChain], loose: [Note], reached: [Note]) -> some View {
         List {
             if !held.isEmpty {
                 Section("Aspirations") {
@@ -103,16 +141,38 @@ struct AspirationsListView: View {
             if !loose.isEmpty {
                 Section("Goals with no aspiration") {
                     ForEach(loose) { note in
-                        Button {
-                            model.show(section: .kind(.goal), notePath: note.relativePath)
-                        } label: {
-                            NoteRow(note: note, goalProgress: model.index.progress(of: note))
-                        }
-                        .buttonStyle(.plain)
+                        looseRow(note)
                     }
                 }
             }
+            if !reached.isEmpty {
+                Section {
+                    if !reachedFolded {
+                        ForEach(reached) { note in looseRow(note) }
+                    }
+                } header: {
+                    Button { reachedFolded.toggle() } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: reachedFolded ? "chevron.right" : "chevron.down")
+                                .font(.caption2)
+                            Text("Reached \(reached.count)")
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
+    }
+
+    private func looseRow(_ note: Note) -> some View {
+        Button {
+            model.show(section: .kind(.goal), notePath: note.relativePath)
+        } label: {
+            DatedGoalRow(note: note)
+        }
+        .buttonStyle(.plain)
     }
 
     /// One aspiration on the phone: a plain `Button`, never a selection tag, because a list
@@ -178,12 +238,75 @@ struct AspirationRow: View {
                               systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
                     }
+                    if chain.needsAttention {
+                        Label(chain.flags.first?.label ?? "Needs attention",
+                              systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    }
                 }
                 .font(.caption)
                 .lineLimit(1)
+                // The measure, on the row rather than only inside the goal (build 163).
+                if let measure = chain.note.measure, !measure.isEmpty {
+                    Text(measure)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
         }
         .padding(.vertical, 2)
+    }
+}
+
+/// One dated goal in a list: its target with how long is left, how far it has come, whether it
+/// wants attention, and what it is measured by. Build 163 — all four are his small extras, and
+/// they are one row so the list never says two of the four and leaves you guessing.
+struct DatedGoalRow: View {
+    @EnvironmentObject private var model: AppModel
+    let note: Note
+
+    var body: some View {
+        let health = model.index.chainGoal(of: note)
+        HStack(spacing: 10) {
+            TintStripe(color: ParaKind.goal.tint, height: 34)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(note.title)
+                    .font(.headline)
+                    .strikethrough(note.isAchieved)
+                    .lineLimit(2)
+                WrappingHStack(spacing: 8, lineSpacing: 4) {
+                    if health.progress.fraction != nil {
+                        GoalProgressBar(progress: health.progress, width: 56, showsCounts: false)
+                    }
+                    if let target = note.targetDate {
+                        let left = target.timeLeftText(from: .today())
+                        Label("\(target.description) · \(left)", systemImage: "flag")
+                            .foregroundStyle(overdue(target) ? Color.orange : ParaKind.goal.tint)
+                    }
+                    if note.isAchieved {
+                        Label("Reached", systemImage: "checkmark.seal")
+                            .foregroundStyle(ParaKind.goal.tint)
+                    } else if health.needsAttention, let first = health.flags.first {
+                        Label(first.label, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .font(.caption)
+                .lineLimit(1)
+                if let measure = note.measure, !measure.isEmpty {
+                    Text(measure)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func overdue(_ target: DateOnly) -> Bool {
+        !note.isAchieved && target < .today()
     }
 }
 
@@ -250,8 +373,35 @@ struct AspirationChainBody: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
+            if let changed = chain.activity.summary {
+                Label(changed, systemImage: "clock.arrow.circlepath")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
             ForEach(chain.goals) { goal in
                 ChainGoalBlock(goal: goal, lead: false)
+            }
+            if !chain.reachedGoals.isEmpty {
+                SectionLabel(title: "Reached", count: chain.reachedGoals.count,
+                             systemImage: "checkmark.seal", tint: ParaKind.goal.tint)
+                ForEach(chain.reachedGoals) { goal in
+                    Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
+                        HStack(spacing: 6) {
+                            Text(goal.note.title)
+                                .strikethrough()
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                            if let target = goal.note.targetDate {
+                                Text(target.description)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             if !chain.projects.isEmpty {
                 SectionLabel(title: "Straight under the aspiration", count: nil,
@@ -317,7 +467,11 @@ struct ChainGoalBlock: View {
                         .lineLimit(2)
                     WrappingHStack(spacing: 6, lineSpacing: 5) {
                         if let target = goal.note.targetDate {
-                            ChainChip(text: "Target \(target.description)", tint: ParaKind.goal.tint, filled: false)
+                            // Build 163: the date alone never says whether it is close.
+                            let left = target.timeLeftText(from: .today())
+                            let late = !goal.isReached && target < .today()
+                            ChainChip(text: "Target \(target.description) · \(left)",
+                                      tint: late ? .orange : ParaKind.goal.tint, filled: false)
                         }
                         if let serves = goal.note.goal, !serves.isEmpty {
                             // The extra he ticked: a dated goal says what it is in service of.
@@ -340,6 +494,12 @@ struct ChainGoalBlock: View {
                 }
             }
             .buttonStyle(.plain)
+            if lead, let changed = goal.activity.summary {
+                Label(changed, systemImage: "clock.arrow.circlepath")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
             rail
         }
     }
