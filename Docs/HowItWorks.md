@@ -348,9 +348,30 @@ The review is a walk you do once a week, in order, from the top of the screen do
 
 ### What the top of the screen says
 
-Today's date, then one line saying how many tasks you finished in the last seven days. Under that, one orange capsule for each thing that wants looking at: overdue tasks, projects needing attention, goals needing attention, items waiting in the Inbox, projects that serve no goal.
+Today's date, then one line saying how many tasks you finished in the last seven days. Under that, one orange capsule for each thing that wants looking at: overdue tasks, projects needing attention, goals needing attention, items waiting in the Inbox, notes due for a look, projects that serve no goal.
 
 **When there is nothing to look at, one green capsule says so.** That matters: a row of zeroes reads as if the app had failed to count, and it is easy to miss that a week was simply a good one.
+
+### Due for a look
+
+Under the summary is **Due for a look**: everything whose review rhythm has come round.
+
+Each level of the chain is on its own rhythm, because they do not change at the same speed:
+
+| Level | How often | Why |
+| --- | --- | --- |
+| Aspiration | every 365 days | What you are becoming changes slowly. More often makes it feel like a task. |
+| Goal with a date | every 90 days | Is it still what you want, and is anything delivering it? |
+| Project | every 7 days | Live work, looked at with the rest of the weekly review. |
+| Area | every 30 days | No finish line, so the question is whether the standard is still being kept. |
+
+All four can be changed under **Settings › Review rhythm**. The project one is the same setting the review has always had, so there is one number for it, not two.
+
+Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever marked reviewed says **never looked at** and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
+
+Press a row to open the note with the review still beside it. Right-click it for **Mark reviewed**, which writes `reviewed:` with today's date into the note. Because it is written into the note, both devices agree and it is in your backups.
+
+Work that is over is never asked about: a project you dropped, a goal you missed, anything archived. A review is a question about work you are still doing.
 
 ### The five steps
 
@@ -368,7 +389,7 @@ Under the five steps, when there are any, comes **Projects with no goal** — a 
 
 Right-click any goal, project or area row (long-press on the phone):
 
-- **Mark reviewed** — writes `reviewed:` with today's date into the note.
+- **Mark reviewed** — writes `reviewed:` with today's date into the note, and starts that note's rhythm again.
 - **Put on hold** / **Set active** — a project or goal you are deliberately not working on now. On hold is never counted as needing attention.
 - **Mark done**, **Mark missed**, **Mark dropped** — the three ways a thing can be over. Done means you delivered it; missed means the date passed without it; dropped means you decided not to. Only *done* counts towards a goal's per cent.
 - **Archive** — moves the note to the Archive folder and stops syncing its tasks.

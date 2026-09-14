@@ -2,6 +2,40 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 172 · 14 September 2026
+
+**A review rhythm for every level of the chain.** This is the last piece of the Aspiration
+Chain you brought me, and the one real gap that was left.
+
+Until now the app asked about one thing: a project you had not marked reviewed for a week.
+A goal could sit untouched for two years and never be mentioned.
+
+Now each level has its own rhythm, because they do not change at the same speed:
+
+- an **aspiration** every 365 days
+- a **goal with a date** every 90 days
+- a **project** every 7 days
+- an **area** every 30 days
+
+**Due for a look** is a new section at the top of the Weekly review, listing everything whose
+rhythm has come round. Each row says which level it is, when you last looked at it, and how far
+past the rhythm it is. Press a row to open the note with the review still beside it;
+right-click for **Mark reviewed**.
+
+A note nobody has ever marked reviewed says **never looked at**, and is always at the top. That
+is deliberately not written as a number of days — it is a different thing from "looked at a
+very long time ago".
+
+Work that is over is never asked about: a project you dropped, a goal you missed, anything
+archived.
+
+**Settings › Review rhythm** sets all four, each with one line saying why it is what it is. The
+project number is the setting the review has always had, moved here — one number for it, never
+two. Nothing else in your settings is touched.
+
+Nothing new is written into your notes. It all reads the `reviewed:` line **Mark reviewed** has
+always written.
+
 ## Build 171 · 14 September 2026
 
 **The Weekly review, brought up to date.** It was the second-oldest screen in the app.

@@ -7,8 +7,33 @@ struct ReviewView: View {
 
     var body: some View {
         let report = model.index.review(config: model.config)
+        let due = model.dueForReview()
         List(selection: model.noteSelection) {
-            Section { ReviewSummary(report: report) }
+            Section { ReviewSummary(report: report, dueForReview: due.count) }
+
+            // **Build 172: the review rhythm.** Until now the app asked about one thing only —
+            // a project not marked reviewed for a week. A goal could sit untouched for two
+            // years and never be mentioned. This section is every level of the chain on its
+            // own rhythm, set under Settings › Review rhythm.
+            //
+            // Buttons, not tagged rows: most of these notes are listed again further down, and
+            // two rows carrying the same selection tag is what made the Inbox unusable in
+            // builds 71 to 74.
+            Section {
+                if due.isEmpty {
+                    Label("Everything has been looked at recently", systemImage: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(due) { item in
+                        ReviewDueRow(item: item)
+                    }
+                }
+            } header: {
+                Text("Due for a look")
+            } footer: {
+                Text("Each level of the chain has its own rhythm: an aspiration once a year, a goal with a date every quarter, a project every week, an area every month. Change them under Settings \u{203A} Review rhythm.")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Section("1. Empty the inbox") {
                 if report.inboxOpenTasks == 0 {
@@ -125,6 +150,8 @@ struct ReviewView: View {
 /// be drawn as if it were a fault.
 struct ReviewSummary: View {
     let report: ReviewReport
+    /// How many notes are past their review rhythm (build 172).
+    var dueForReview = 0
 
     /// One thing that wants looking at. **A struct, not a tuple**, because a `ForEach` id is a
     /// key path and a key path cannot address a tuple member — the same wall build 61 hit.
@@ -159,6 +186,11 @@ struct ReviewSummary: View {
             out.append(Worry(text: report.inboxOpenTasks == 1 ? "1 item in the Inbox"
                                                                : "\(report.inboxOpenTasks) items in the Inbox",
                              symbol: SidebarSection.inbox.systemImage))
+        }
+        if dueForReview > 0 {
+            out.append(Worry(text: dueForReview == 1 ? "1 note due for a look"
+                                                     : "\(dueForReview) notes due for a look",
+                             symbol: "calendar.badge.clock"))
         }
         if !report.projectsWithoutGoal.isEmpty {
             out.append(Worry(text: report.projectsWithoutGoal.count == 1
@@ -366,6 +398,62 @@ struct GoalHealthRow: View {
             if model.canArchive(health.note) {
                 Button("Archive") { model.archive(health.note) }
             }
+        }
+    }
+}
+
+/// One note whose rhythm has come round (build 172).
+///
+/// It names **which level** it is — aspiration, goal, project or area — because the same note
+/// title means nothing on its own once four kinds are in one list, and because the level is
+/// what decides the rhythm behind the row.
+struct ReviewDueRow: View {
+    @EnvironmentObject private var model: AppModel
+    let item: ReviewDue
+
+    private var symbol: String {
+        switch item.level {
+        case .aspiration: return ChainSymbol.aspiration
+        case .goal: return ChainSymbol.datedGoal
+        case .project: return ChainSymbol.project
+        case .area: return ChainSymbol.area
+        }
+    }
+
+    private var tint: Color {
+        item.level == .area ? ParaKind.area.tint
+            : (item.level == .project ? ParaKind.project.tint : ParaKind.goal.tint)
+    }
+
+    var body: some View {
+        Button {
+            // Stay in Weekly review, so the list is still beside the note (build 135).
+            model.show(section: .review, notePath: item.note.relativePath)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .foregroundStyle(tint)
+                    .frame(width: 18)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.note.displayTitle)
+                        .lineLimit(2)
+                    Text("\(item.level.label) \u{00B7} \(item.lastText)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 6)
+                Text(item.whenText)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("Mark reviewed") { model.markReviewed(item.note) }
+            Button("Open the note") { model.show(section: .review, notePath: item.note.relativePath) }
         }
     }
 }

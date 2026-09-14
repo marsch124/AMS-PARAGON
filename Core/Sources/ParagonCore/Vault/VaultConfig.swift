@@ -28,7 +28,14 @@ public struct VaultConfig: Codable, Equatable, Sendable {
     /// A project without any change for this many days is flagged in the weekly review.
     public var staleProjectDays = 14
     /// Projects not reviewed for this many days are flagged in the weekly review.
+    /// This is also the **project** rhythm in `ReviewRhythm` (build 172) — one number, not two,
+    /// or the review and the rhythm could disagree about the same thing.
     public var reviewIntervalDays = 7
+    /// The rest of the review rhythm (build 172). An aspiration changes slowly, a goal with a
+    /// date wants a quarterly look, an area a monthly one. Defaults live in `ReviewLevel`.
+    public var aspirationReviewDays = ReviewLevel.aspiration.defaultDays
+    public var goalReviewDays = ReviewLevel.goal.defaultDays
+    public var areaReviewDays = ReviewLevel.area.defaultDays
     public var conflictPolicy: ConflictPolicy = .noteWins
     /// Mirror tasks of Area notes as well as Project notes.
     public var syncAreas = true
@@ -43,6 +50,7 @@ public struct VaultConfig: Codable, Equatable, Sendable {
         case projectsFolder, areasFolder, resourcesFolder, archiveFolder, templatesFolder, calendarFolder, goalsFolder, workFolder, inboxFile, inboxListName
         case dailyNotesListName, syncDailyNotes, staleProjectDays, reviewIntervalDays
         case conflictPolicy, syncAreas, createMissingLists, importCompletedReminders
+        case aspirationReviewDays, goalReviewDays, areaReviewDays
     }
 
     public init(from decoder: Decoder) throws {
@@ -66,6 +74,9 @@ public struct VaultConfig: Codable, Equatable, Sendable {
         syncAreas = try c.decodeIfPresent(Bool.self, forKey: .syncAreas) ?? d.syncAreas
         createMissingLists = try c.decodeIfPresent(Bool.self, forKey: .createMissingLists) ?? d.createMissingLists
         importCompletedReminders = try c.decodeIfPresent(Bool.self, forKey: .importCompletedReminders) ?? d.importCompletedReminders
+        aspirationReviewDays = try c.decodeIfPresent(Int.self, forKey: .aspirationReviewDays) ?? d.aspirationReviewDays
+        goalReviewDays = try c.decodeIfPresent(Int.self, forKey: .goalReviewDays) ?? d.goalReviewDays
+        areaReviewDays = try c.decodeIfPresent(Int.self, forKey: .areaReviewDays) ?? d.areaReviewDays
     }
 
     public func folder(for kind: ParaKind) -> String? {

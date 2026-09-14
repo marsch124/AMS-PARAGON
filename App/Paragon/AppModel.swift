@@ -108,7 +108,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 171
+    static let number = 172
 }
 
 @MainActor
@@ -2150,6 +2150,12 @@ final class AppModel: ObservableObject {
         updated.frontmatter.set("reviewed", DateOnly.today().description)
         save(updated)
     }
+
+    /// The rhythm this vault is on (build 172).
+    var reviewRhythm: ReviewRhythm { ReviewRhythm(config: config) }
+
+    /// What is due for a look, the ones never looked at first.
+    func dueForReview() -> [ReviewDue] { index.dueForReview(rhythm: reviewRhythm) }
 
     func markAllReviewed() {
         for health in index.review(config: config).projects {

@@ -1512,6 +1512,30 @@ every newer screen uses.
   the label of a flag is an eleventh** — the same miss as the Map's `subtitle` in build 170.
   The *case* keeps its name: it is read by code, not by him.
 
+**Build 172: a review rhythm per level.** Third of the five, and the last real gap from the
+Aspiration Chain spec (build 132 on). `Core/Vault/ReviewRhythm.swift`, tested:
+`ReviewLevel` (aspiration/goal/project/area, each with `label`, `reason` and `defaultDays`),
+`ReviewRhythm` (read from `VaultConfig`), `ReviewDue`, and `NoteIndex.reviewLevel(of:)` /
+`reviewSchedule(rhythm:)` / `dueForReview(rhythm:)`.
+- **The project rhythm is `VaultConfig.reviewIntervalDays`, which already existed and already
+  meant this.** A second number for one thing is how two screens come to disagree; a test pins
+  it. Only `aspirationReviewDays`, `goalReviewDays` and `areaReviewDays` are new.
+- `VaultConfig` already had an explicit `init(from:)` using `decodeIfPresent`, so adding keys
+  cannot reset his config. **Worth knowing before adding another** — `Vault.init` does
+  `(try? loadConfig()) ?? VaultConfig()`, so a decode failure would silently throw away every
+  setting he has. A test now pins that an old config.json still reads.
+- **`reviewLevel(of:)` uses `declaredKind`** — an archived project reads as `.archive` from its
+  folder (build 141).
+- **Never reviewed is `nil`, not a big number**, and never drawn as one (build 141's rule); it
+  sorts above everything via `overdueBy == Int.max`.
+- Ended and archived notes are excluded: a review is a question about live work. Same reasoning
+  that kept `noGoal` out of "needs attention" (132).
+- App: `AppModel.reviewRhythm`/`dueForReview()`, a **Due for a look** section at the top of the
+  review (`ReviewDueRow` — **Buttons, never tagged rows**, since those notes appear again lower
+  down: builds 71–74), a capsule in `ReviewSummary`, and `ReviewRhythmStepper` in Settings.
+  The stepper is its own view because building a `Binding` per level is a statement (build 58),
+  and its `step` is 30 for a year and 5 for a quarter — build 136's lesson about forty presses.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

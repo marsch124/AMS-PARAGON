@@ -183,10 +183,21 @@ struct SettingsView: View {
                     get: { model.config.staleProjectDays },
                     set: { var c = model.config; c.staleProjectDays = $0; model.config = c }
                 ), in: 3...90)
-                Stepper("Review projects every \(model.config.reviewIntervalDays) days", value: Binding(
-                    get: { model.config.reviewIntervalDays },
-                    set: { var c = model.config; c.reviewIntervalDays = $0; model.config = c }
-                ), in: 1...60)
+            }
+            .disabled(model.vault == nil)
+
+            // **Build 172: a rhythm per level.** The project number was already here under a
+            // different name ("Review projects every N days") and is *the same setting* — one
+            // number, never two for one thing. The other three are new.
+            Section {
+                ForEach(ReviewLevel.allCases, id: \.self) { level in
+                    ReviewRhythmStepper(model: model, level: level)
+                }
+            } header: {
+                Text("Review rhythm")
+            } footer: {
+                Text("How long PARAGON waits before it asks you to look at something again. What is due appears at the top of the Weekly review. Marking a note reviewed writes today's date into it, so both devices agree.")
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .disabled(model.vault == nil)
 
@@ -225,5 +236,42 @@ struct SettingsView: View {
             Text("\(backup.noteCount) notes are written back into the vault, replacing the current versions. What you have now is saved as a backup first.")
         }
         .onAppear { model.refreshBackups() }
+    }
+}
+
+/// One line of the review rhythm. Its own view because building the `Binding` for a level is
+/// a statement, and a `@ViewBuilder` takes views and nothing else (build 58).
+struct ReviewRhythmStepper: View {
+    @ObservedObject var model: AppModel
+    let level: ReviewLevel
+
+    private var days: Binding<Int> {
+        Binding(
+            get: { ReviewRhythm(config: model.config).days(for: level) },
+            set: { value in
+                var c = model.config
+                switch level {
+                case .aspiration: c.aspirationReviewDays = value
+                case .goal: c.goalReviewDays = value
+                case .project: c.reviewIntervalDays = value
+                case .area: c.areaReviewDays = value
+                }
+                model.config = c
+            }
+        )
+    }
+
+    /// Big numbers need big steps. A yearly rhythm nudged one day at a time is forty presses
+    /// to move it a month — the same objection he made about the date picker in build 136.
+    private var step: Int { level == .aspiration ? 30 : (level == .goal ? 5 : 1) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Stepper("\(level.label): every \(days.wrappedValue) days", value: days, in: 1...1095, step: step)
+            Text(level.reason)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
