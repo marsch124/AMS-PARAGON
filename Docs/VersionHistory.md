@@ -2,6 +2,30 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 167 · 14 September 2026
+
+Two things you reported on 166.
+
+**The All of them button has stopped wandering.** It was in the window's toolbar, so it sat
+after whatever else each screen owned and landed somewhere different every time — and it had
+no word next to it. It is now in a header row at the top of the Goals column, always in the
+same place, with its name beside it: **ALL OF THEM**, or **ASPIRATION** / **GOAL** / **NOTE**
+when you are looking at one.
+
+**A goal with no aspiration now says what to do about it.** That group used to state the
+problem and leave you to find the fix three screens away. Each of those goals now carries an
+orange **Give it an aspiration** button that opens the list of your aspirations, and the group
+heading is marked in orange with one line saying why it matters.
+
+Orange rather than red on purpose: orange is what this app has always used for "look at this"
+— past a target date, no next action, needs attention. A goal with no aspiration is a loose
+end, not an error.
+
+**The two icons, since you asked:** an **aspiration** is a **star** — the north star on
+PARAGON's own icon, what you steer by and never tick off. A **goal with a target date** is a
+**target** — what you aim at and hit on a day. The aspiration is the higher of the two: Area
+→ Aspiration → Goal with a date → Project → Task.
+
 ## Build 166 · 14 September 2026
 
 **Your whole life on one screen.** Your idea, and you chose the shape.

@@ -1508,6 +1508,27 @@ the preview before publishing rather than offer something he had already refused
 - On the phone `showAll` opens every folding row; tapping one row turns it off and leaves that
   one open, which is what a tap on an open list should mean.
 
+**Build 167, both from his test of 166.**
+- **"I don't understand, and it also moves in various views."** The **All of them** button was
+  a `ToolbarItemGroup` on the middle column, so on macOS it sat after whatever else each
+  screen owned and landed in a different place every time — and carried no word. `GoalsHeader`
+  is now one header row inside the column (the Calendar's Schedule/Note header, build 159, is
+  the same shape) with the name beside the button. **A control that governs what a column
+  shows belongs in that column, next to its own name, never in the window's toolbar.**
+- `GoalsHeader` has a **written-out `init`**: a struct mixing `@AppStorage` with a
+  `@ViewBuilder` stored property is where the generated memberwise initializer is hard to
+  predict, and there is no compiler here to ask.
+- **`NoAspirationPrompt` — the sixth time.** "Goals with no aspiration" stated a problem and
+  left the fix three screens away. Now each row carries **Give it an aspiration**, opening the
+  existing `NoteGoalOptions`. Same rule as `due:` (132), an area's `goal:` (134), a project's
+  `goal:` (140), `tags:` (144), `status:` (165).
+- **He asked for red; it is orange.** Orange is what this app has always meant by "look at
+  this" (past target, no next action, needs attention) and **red appears nowhere in the
+  palette**. A goal with no aspiration is a loose end, not an error. Told him so plainly.
+- He also asked what the two icons mean, which says the star/target pair is not
+  self-explanatory. Both are now named in `Docs/HowItWorks.md` with the reason — star = the
+  north star you steer by, target = what you aim at on a day.
+
 **His preview pages have stopped recording ticks.** Twice now the `db` doc came back with
 `choice: null` and `extras: {}` while he plainly had an answer — build 163's five extras and
 this one's shape both had to be asked again in chat. He said it himself: *"I have already

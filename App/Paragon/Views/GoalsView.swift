@@ -52,16 +52,6 @@ struct AspirationsListView: View {
             }
         }
         .navigationTitle("Goals")
-        .toolbar {
-            ToolbarItemGroup {
-                // Build 142's two-state control: it shows the state you are in. Lit means
-                // you are looking at all of them.
-                StateToggle(systemImage: "list.bullet.indent", title: "All of them",
-                            isOn: showAll, tint: ParaKind.goal.tint) {
-                    showAll.toggle()
-                }
-            }
-        }
     }
 
     // MARK: The Mac — a list that fills the third column
@@ -88,12 +78,15 @@ struct AspirationsListView: View {
                 }
             }
             if !loose.isEmpty {
-                Section("Goals with no aspiration") {
+                Section {
                     ForEach(loose) { note in
                         DatedGoalRow(note: note)
                             .tag(note.relativePath)
                             .contextMenu { rowMenu(note) }
                     }
+                } header: {
+                    Label("Goals with no aspiration", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
                 }
             }
             ForEach(ended, id: \.status) { group in
@@ -323,6 +316,8 @@ struct DatedGoalRow: View {
                     if note.isEnded {
                         Label(note.noteStatus.label, systemImage: note.isAchieved ? "checkmark.seal" : "xmark.circle")
                             .foregroundStyle(note.isAchieved ? ParaKind.goal.tint : Color.secondary)
+                    } else if needsAnAspiration {
+                        NoAspirationPrompt(model: model, note: note)
                     } else if health.needsAttention, let first = health.flags.first {
                         Label(first.label, systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
@@ -343,6 +338,13 @@ struct DatedGoalRow: View {
 
     private func overdue(_ target: DateOnly) -> Bool {
         !note.isEnded && target < .today()
+    }
+
+    /// A live dated goal with nothing above it. An aspiration itself never needs one.
+    private var needsAnAspiration: Bool {
+        guard !note.isEnded, (note.horizon ?? .year) != .life else { return false }
+        guard let reference = note.goal else { return true }
+        return model.index.goal(matching: reference)?.horizon != .life
     }
 }
 
@@ -378,11 +380,8 @@ struct GoalDetailView: View {
     private var isAspiration: Bool { (note.horizon ?? .year) == .life }
 
     private var header: some View {
-        HStack(spacing: 8) {
-            SectionLabel(title: showsNote ? "Note" : (isAspiration ? "Aspiration" : "Goal"),
-                         count: nil,
-                         systemImage: showsNote ? "doc.text" : "star",
-                         tint: ParaKind.goal.tint)
+        GoalsHeader(title: showsNote ? "Note" : (isAspiration ? "Aspiration" : "Goal"),
+                    systemImage: showsNote ? "doc.text" : ChainSymbol.forGoal(note)) {
             // Build 159's two-state control: it shows the state you are in, not the one you
             // would get.
             StateToggle(systemImage: "doc.text", title: "Note",
@@ -390,7 +389,6 @@ struct GoalDetailView: View {
                 showsNote.toggle()
             }
         }
-        .padding(8)
     }
 }
 
@@ -756,6 +754,14 @@ struct AllAspirationsView: View {
     var body: some View {
         let chains = model.index.aspirationChains()
         let loose = model.index.goalsOutsideAnyAspiration()
+        VStack(spacing: 0) {
+            GoalsHeader(title: "All of them", systemImage: "list.bullet.indent") { EmptyView() }
+            Divider()
+            outline(chains: chains, loose: loose)
+        }
+    }
+
+    private func outline(chains: [AspirationChain], loose: [Note]) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 if chains.isEmpty && loose.isEmpty {
@@ -772,9 +778,15 @@ struct AllAspirationsView: View {
                 if !loose.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionLabel(title: "Goals with no aspiration", count: loose.count,
-                                     systemImage: ChainSymbol.datedGoal, tint: ParaKind.goal.tint)
+                                     systemImage: ChainSymbol.datedGoal, tint: .orange)
+                        Text("Each of these is working towards nothing. Give it the aspiration it is in service of.")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
                         ForEach(loose) { note in
-                            ChainGoalBlock(goal: model.index.chainGoal(of: note), lead: false)
+                            VStack(alignment: .leading, spacing: 4) {
+                                ChainGoalBlock(goal: model.index.chainGoal(of: note), lead: false)
+                                NoAspirationPrompt(model: model, note: note)
+                            }
                         }
                     }
                 }
@@ -782,5 +794,73 @@ struct AllAspirationsView: View {
             .padding(Theme.gutter)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+/// The one header row the Goals column always has, so **All of them** is always in the same
+/// place with its name beside it.
+///
+/// **Build 167, and it was his report: "I don't understand, and it also moves in various
+/// views."** Build 166 put that button in the window's `.toolbar`, where it sits after
+/// whatever else the screen owns — so it landed in a different spot on every screen and
+/// carried no word at all. **A control that governs what a column shows belongs in that
+/// column, next to its own name.** The Calendar's Schedule/Note header (build 159) is the
+/// same shape and does not wander.
+struct GoalsHeader<Trailing: View>: View {
+    private let title: String
+    private let systemImage: String
+    private let trailing: Trailing
+    @AppStorage(GoalsShowAll.key) private var showAll = false
+
+    /// Written out rather than left to the memberwise initializer: a struct that mixes a
+    /// property wrapper with a `@ViewBuilder` stored property is exactly where the generated
+    /// one is hard to predict, and there is no Swift compiler in this container to ask.
+    init(title: String, systemImage: String, @ViewBuilder trailing: () -> Trailing) {
+        self.title = title
+        self.systemImage = systemImage
+        self.trailing = trailing()
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            SectionLabel(title: showAll ? "All of them" : title, count: nil,
+                         systemImage: showAll ? "list.bullet.indent" : systemImage,
+                         tint: ParaKind.goal.tint)
+            trailing
+            StateToggle(systemImage: "list.bullet.indent", title: "All of them",
+                        isOn: showAll, tint: ParaKind.goal.tint) {
+                showAll.toggle()
+            }
+        }
+        .padding(8)
+    }
+}
+
+/// A dated goal that hangs under no aspiration, with the one button that fixes it.
+///
+/// **Build 167, his ask.** The group has always said these goals exist; it never said what to
+/// do about them, and the answer — give it an aspiration — was three screens away. Same rule
+/// as `due:` (132), an area's `goal:` (134), a project's `goal:` (140), `tags:` (144) and
+/// `status:` (165): **when a screen asks a question, the answer is one press from where it is
+/// asked.**
+///
+/// **Orange, not red.** Orange is what this app has always used for "look at this" — past a
+/// target date, no next action, needs attention. Red is not in the palette anywhere, and a
+/// goal with no aspiration is a loose end, not an error.
+struct NoAspirationPrompt: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+
+    var body: some View {
+        Menu {
+            NoteGoalOptions(model: model, note: note)
+        } label: {
+            Label("Give it an aspiration", systemImage: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(.orange)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help("This goal hangs under no aspiration. Choose the one it is in service of.")
     }
 }

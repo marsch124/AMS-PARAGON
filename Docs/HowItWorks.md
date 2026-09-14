@@ -207,9 +207,14 @@ aspirations with no goal under them. **Goals with no aspiration** holds dated go
 their own. Neither is a fault — a goal can stand alone — but a list that quietly left them out
 would be a list you cannot trust.
 
-Every link in the chain has its own icon: an **aspiration** is a star, a **goal with a target
-date** is a target, a **project** is a flag, a **task** is a ring, and an **area** is the four
-squares. They are the same icons the sidebar uses.
+Every link in the chain has its own icon: an **aspiration** is a **star** — the north star on
+PARAGON's own app icon, what you steer by and never tick off — and a **goal with a target
+date** is a **target**, what you aim at and hit on a day. A **project** is a flag, a **task**
+is a ring, and an **area** is the four squares. They are the same icons the sidebar uses.
+
+A goal with no aspiration above it is marked in orange and carries a **Give it an aspiration**
+button, which opens the list of your aspirations. Nothing is wrong with such a goal — it is a
+loose end, not an error — but the chain only works when each link points at the next.
 
 Each row shows its **measure**, its **target date with how long is left** ("in about 3 months",
 or "11 days over" in orange), and a **mark when it needs attention** — the same checks the

@@ -850,7 +850,8 @@ struct DetailView: View {
             InboxFileItView()
         } else if model.section == .kind(.goal), goalsShowAll {
             // **All of them** (build 166): the whole chain for every aspiration, in one
-            // scroll. The button that turns it on is in the Goals column's toolbar.
+            // scroll. Its own header carries the button that turns it off again, in the same
+            // place as every other Goals header (build 167).
             AllAspirationsView()
         } else if model.section == .kind(.goal), let path = model.selectedNotePath,
                   let note = model.note(at: path), note.kind == .goal {
