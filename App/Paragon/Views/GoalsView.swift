@@ -597,15 +597,16 @@ struct ChainProjectRow: View {
                 HStack(spacing: 6) {
                     Image(systemName: ChainSymbol.project)
                         .font(.caption2)
-                        .foregroundStyle(project.isFinished ? Color.secondary : ParaKind.project.tint)
+                        .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                     Text(project.note.title)
                         .font(.callout)
-                        .strikethrough(project.isFinished)
-                        .foregroundStyle(project.isFinished ? Color.secondary : ParaKind.project.tint)
+                        .strikethrough(project.note.isEnded)
+                        .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                         .lineLimit(2)
                     Spacer(minLength: 0)
-                    if project.isFinished {
-                        Text("done").font(.caption2).foregroundStyle(.secondary)
+                    if project.note.isEnded {
+                        Text(project.note.noteStatus.label.lowercased())
+                            .font(.caption2).foregroundStyle(.secondary)
                     } else if project.openTaskCount > 0 {
                         Text("\(project.openTaskCount) open").font(.caption2).foregroundStyle(.secondary)
                     }

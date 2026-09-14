@@ -70,6 +70,8 @@ public struct GoalHealth: Identifiable, Equatable, Sendable {
     public var subgoals: [Note]
     /// Projects that served this goal and are over. They are not in `projects`, which is the
     /// live work, but they are what the goal has already got done.
+    /// Everything under the goal that is over, however it ended: done, missed or dropped
+    /// (build 165). They are not in `projects`, which is the live work.
     public var finishedProjects: [Note]
     /// How far the work under this goal has come.
     public var progress: GoalProgress
@@ -158,8 +160,11 @@ public extension NoteIndex {
     /// The live notes whose `goal:` key resolves to this goal, split by kind. Archived and
     /// finished notes are left out here; `linked(to:)` is the whole set.
     func serving(_ goal: Note) -> (projects: [Note], areas: [Note], subgoals: [Note]) {
-        let live = linked(to: goal).filter { !$0.isArchived }
-        // `!isFinishedProject`, not a list of status words, so this and `finishedProjects`
+        // Build 165: **ended** here, not just archived. A project marked missed or dropped is
+        // over; leaving it in this list drew it under its goal as live work, which a test
+        // caught before it shipped.
+        let live = linked(to: goal).filter { !$0.isArchived && !$0.isEnded }
+        // `live` has already dropped everything that ended, so this and `finishedProjects`
         // can never both claim the same note and hand a ForEach two rows with one id.
         return (live.filter { $0.kind == .project && !$0.isFinishedProject },
                 live.filter { $0.kind == .area },
@@ -169,7 +174,9 @@ public extension NoteIndex {
     func goalHealth(of goal: Note, today: DateOnly, calendar: Calendar = .current) -> GoalHealth {
         let (projects, areas, subgoals) = serving(goal)
         let servingNotes = projects + areas + subgoals
-        let finished = linked(to: goal).filter(\.isFinishedProject)
+        // Everything under the goal that is over, however it ended — so a project you dropped
+        // is still visible beneath its goal rather than vanishing (build 100's rule).
+        let finished = linked(to: goal).filter(\.isEnded)
         let monthAgo = today.adding(days: -30, calendar: calendar)
         var open = 0
         var completed = 0

@@ -214,10 +214,7 @@ public extension NoteIndex {
                          finishedProjects: finished,
                          areas: health.areas,
                          flags: health.flags,
-                         activity: ChainActivity(tasksFinished: health.completedLast30Days,
-                                                 daysSinceActivity: health.daysSinceActivity,
-                                                 projectsFinished: finished.count,
-                                                 projectsTotal: projects.count + finished.count))
+                         activity: NoteIndex.activity(health: health, projects: projects, finished: finished))
     }
 
     /// An aspiration and the whole chain beneath it.
@@ -232,6 +229,7 @@ public extension NoteIndex {
         }
         let projects = health.projects.map(ChainProject.init)
         let finished = health.finishedProjects.map(ChainProject.init)
+        let activity = NoteIndex.activity(health: health, projects: projects, finished: finished)
         return AspirationChain(note: aspiration,
                                area: area,
                                goals: all.filter { !$0.isEnded },
@@ -240,10 +238,19 @@ public extension NoteIndex {
                                progress: health.progress,
                                flags: health.flags,
                                endedGoals: all.filter(\.isEnded),
-                               activity: ChainActivity(tasksFinished: health.completedLast30Days,
-                                                       daysSinceActivity: health.daysSinceActivity,
-                                                       projectsFinished: finished.count,
-                                                       projectsTotal: projects.count + finished.count))
+                               activity: activity)
+    }
+
+    /// What has happened lately, counted the same way the per cent is (build 165): **only a
+    /// project that is done counts as finished**, and one that was missed or dropped is left
+    /// out of both halves of "N of M". `GoalProgress` skips them too, so the line and the bar
+    /// beside it can never tell different stories.
+    static func activity(health: GoalHealth, projects: [ChainProject], finished: [ChainProject]) -> ChainActivity {
+        let delivered = finished.filter { $0.note.noteStatus.isDelivered }
+        return ChainActivity(tasksFinished: health.completedLast30Days,
+                             daysSinceActivity: health.daysSinceActivity,
+                             projectsFinished: delivered.count,
+                             projectsTotal: projects.count + delivered.count)
     }
 
     /// Every aspiration with its chain, the ones wanting attention first — the same order the

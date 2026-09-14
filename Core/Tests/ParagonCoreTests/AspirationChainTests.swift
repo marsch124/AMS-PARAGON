@@ -196,12 +196,18 @@ final class AspirationChainTests: XCTestCase {
         }
         let index = try index()
         let goal = index.chainGoal(of: try XCTUnwrap(index.notes(kind: .goal).first), today: today)
-        XCTAssertEqual(goal.finishedProjects.map(\.note.title), ["Electrics"])
+        // None of the three is live work any more — and all three are still visible under the
+        // goal, so a project you dropped does not vanish (build 100's rule).
         XCTAssertTrue(goal.projects.isEmpty)
-        // One project counted, and it delivered, so the goal reads as finished.
+        XCTAssertEqual(Set(goal.finishedProjects.map(\.note.title)),
+                       ["Electrics", "Underfloor heating", "Skylight"])
+        // But only the one that delivered is counted. One of one, so the goal reads as full.
         XCTAssertEqual(goal.progress.projectsTotal, 1)
         XCTAssertEqual(goal.progress.projectsDone, 1)
         XCTAssertEqual(goal.progress.fraction, 1)
+        // And the line beside the bar says the same thing, never "1 of 3".
+        XCTAssertEqual(goal.activity.projectsFinished, 1)
+        XCTAssertEqual(goal.activity.projectsTotal, 1)
     }
 
     /// A finished project still belongs to its goal — it is what the goal has already got
