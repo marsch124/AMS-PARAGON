@@ -207,7 +207,7 @@ public extension NoteIndex {
     func chainGoal(of goal: Note, today: DateOnly = .today(), calendar: Calendar = .current) -> ChainGoal {
         let health = goalHealth(of: goal, today: today, calendar: calendar)
         let projects = health.projects.map(ChainProject.init)
-        let finished = health.finishedProjects.map(ChainProject.init)
+        let finished = health.endedNotes.map(ChainProject.init)
         return ChainGoal(note: goal,
                          progress: health.progress,
                          projects: projects,
@@ -220,24 +220,32 @@ public extension NoteIndex {
     /// An aspiration and the whole chain beneath it.
     func chain(of aspiration: Note, today: DateOnly = .today(), calendar: Calendar = .current) -> AspirationChain {
         let health = goalHealth(of: aspiration, today: today, calendar: calendar)
-        let all = health.subgoals
+        let live = health.subgoals
             .sorted(by: NoteIndex.byTargetThenTitle)
             .map { chainGoal(of: $0, today: today, calendar: calendar) }
         let area = aspiration.area.flatMap { reference in
             notes(kind: .area).first { $0.title.localizedCaseInsensitiveCompare(reference) == .orderedSame }
                 ?? note(matching: reference).flatMap { $0.kind == .area ? $0 : nil }
         }
+        // `serving` drops everything that has ended, so an ended **sub-goal** is not in
+        // `health.subgoals` at all — it is in `endedNotes`, together with the ended projects.
+        // Splitting them apart here is what a failing test caught: `endedGoals` was always
+        // empty, because it was being filtered out of a list it could never be in.
+        let ended = health.endedNotes
+        let endedGoals = ended.filter { $0.declaredKind == .goal }
+            .sorted(by: NoteIndex.byTargetThenTitle)
+            .map { chainGoal(of: $0, today: today, calendar: calendar) }
         let projects = health.projects.map(ChainProject.init)
-        let finished = health.finishedProjects.map(ChainProject.init)
-        let activity = NoteIndex.activity(health: health, projects: projects, finished: finished)
+        let endedProjects = ended.filter { $0.declaredKind != .goal }.map(ChainProject.init)
+        let activity = NoteIndex.activity(health: health, projects: projects, finished: endedProjects)
         return AspirationChain(note: aspiration,
                                area: area,
-                               goals: all.filter { !$0.isEnded },
-                               projects: projects + finished,
+                               goals: live,
+                               projects: projects + endedProjects,
                                areas: health.areas,
                                progress: health.progress,
                                flags: health.flags,
-                               endedGoals: all.filter(\.isEnded),
+                               endedGoals: endedGoals,
                                activity: activity)
     }
 

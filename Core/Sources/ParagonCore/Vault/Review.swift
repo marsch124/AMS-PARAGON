@@ -71,8 +71,10 @@ public struct GoalHealth: Identifiable, Equatable, Sendable {
     /// Projects that served this goal and are over. They are not in `projects`, which is the
     /// live work, but they are what the goal has already got done.
     /// Everything under the goal that is over, however it ended: done, missed or dropped
-    /// (build 165). They are not in `projects`, which is the live work.
-    public var finishedProjects: [Note]
+    /// (build 165). **Any kind** — an ended sub-goal is in here too, not in `subgoals`,
+    /// which is the live work. Named `endedNotes` since 165 for exactly that reason: it held
+    /// goals as well as projects and the old name hid it.
+    public var endedNotes: [Note]
     /// How far the work under this goal has come.
     public var progress: GoalProgress
     public var openTaskCount: Int
@@ -164,7 +166,7 @@ public extension NoteIndex {
         // over; leaving it in this list drew it under its goal as live work, which a test
         // caught before it shipped.
         let live = linked(to: goal).filter { !$0.isArchived && !$0.isEnded }
-        // `live` has already dropped everything that ended, so this and `finishedProjects`
+        // `live` has already dropped everything that ended, so this and `endedNotes`
         // can never both claim the same note and hand a ForEach two rows with one id.
         return (live.filter { $0.kind == .project && !$0.isFinishedProject },
                 live.filter { $0.kind == .area },
@@ -214,7 +216,7 @@ public extension NoteIndex {
             if let days = daysSinceActivity, days >= 30 { flags.append(.noRecentActivity) }
         }
         return GoalHealth(note: goal, projects: projects, areas: areas, subgoals: subgoals,
-                          finishedProjects: finished, progress: progress(of: goal),
+                          endedNotes: finished, progress: progress(of: goal),
                           openTaskCount: open, completedLast30Days: completed,
                           daysSinceActivity: daysSinceActivity, flags: flags)
     }

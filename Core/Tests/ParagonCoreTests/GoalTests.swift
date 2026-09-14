@@ -132,7 +132,7 @@ final class GoalTests: XCTestCase {
 
         let health = index.goalHealth(of: goal, today: today)
         XCTAssertEqual(health.progress, progress)
-        XCTAssertEqual(health.finishedProjects.map(\.title), ["Buy the boots"])
+        XCTAssertEqual(health.endedNotes.map(\.title), ["Buy the boots"])
         XCTAssertEqual(health.projects.map(\.title).sorted(), ["Book the train", "Train"])
     }
 

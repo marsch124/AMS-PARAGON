@@ -1038,7 +1038,7 @@ struct GoalDashboardView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            let serving = health.subgoals + health.projects + health.areas + health.finishedProjects
+            let serving = health.subgoals + health.projects + health.areas + health.endedNotes
             if serving.isEmpty {
                 Text("Nothing serves this goal yet. Add `goal: \(goal.title)` to a project or area's frontmatter.")
                     .font(.caption)
