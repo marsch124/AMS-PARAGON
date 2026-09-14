@@ -1486,9 +1486,34 @@ word is prettier.**
 - `AspirationChainBody.endedGroups` is a computed property, not a loop in the body — the
   `@ViewBuilder` rule (build 58), which I broke first and caught by counting braces.
 
-Still open: nothing on the agreed roadmap. Two things wait on him looking at build 164 —
-whether **Goals with no aspiration** dominates his real vault (if so it should be quiet and
-folded, per build 132's `noGoal` lesson), and how the Goals screen reads on the iPhone.
+**Build 164 answered both open questions from his screenshot**: "Goals with no aspiration" has
+one row, not the whole screen, and the chain reads well. Neither needs the change I had ready.
+
+## All of them (build 166)
+
+His idea — *"if you could open aspirations and have that mapped or listed, you would see your
+whole life on one screen"* — then **he ruled out the drawing himself**: *"No, I don't want that
+as a drawn tree, more as a list."* He was right, and the reason is worth keeping: **the Map is
+already the drawn version**, a second picture of one thing leaves you unsure which to open, and
+a list carries the dates, per cents and next actions a drawing cannot. I dropped shape C from
+the preview before publishing rather than offer something he had already refused.
+- `AllAspirationsView` is a `ScrollView` of the **same `AspirationChainBody`** the
+  one-at-a-time view uses. **Never a second way of drawing a chain** — that is how the Map,
+  the review and the goal dashboard came to answer "what serves what" three different ways
+  before 162. Goals with no aspiration are listed at the foot (build 100: a screen that claims
+  to be everything may not quietly leave them out).
+- `GoalsShowAll.key` is one `@AppStorage` key read by the middle column's `StateToggle` and by
+  `DetailView`, so the button and what it shows cannot drift. He asked for a toggle rather
+  than a sidebar row, and that is right: a second row would be two doors into one room.
+- On the phone `showAll` opens every folding row; tapping one row turns it off and leaves that
+  one open, which is what a tap on an open list should mean.
+
+**His preview pages have stopped recording ticks.** Twice now the `db` doc came back with
+`choice: null` and `extras: {}` while he plainly had an answer — build 163's five extras and
+this one's shape both had to be asked again in chat. He said it himself: *"I have already
+entered that, so I don't know if the mockup questionnaire works."* **Until that is diagnosed,
+a preview page is for showing, not for collecting: draw the options and ask him to reply in
+chat.** The free-text box does save; only the buttons and tick boxes are lost.
 
 ## Not built (by choice)
 

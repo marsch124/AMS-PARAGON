@@ -22,6 +22,9 @@ struct AspirationsListView: View {
     @State private var opened: Set<String> = []
     /// Closed to begin with: a goal that is over is something you look back at on purpose.
     @AppStorage("goalsReachedFolded") private var endedFolded = true
+    /// **One at a time**, or every aspiration at once (build 166, his ask). One key, read by
+    /// this column and by the detail column, so the button and what it shows cannot disagree.
+    @AppStorage(GoalsShowAll.key) private var showAll = false
 #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private var isPhone: Bool { horizontalSizeClass == .compact }
@@ -49,6 +52,16 @@ struct AspirationsListView: View {
             }
         }
         .navigationTitle("Goals")
+        .toolbar {
+            ToolbarItemGroup {
+                // Build 142's two-state control: it shows the state you are in. Lit means
+                // you are looking at all of them.
+                StateToggle(systemImage: "list.bullet.indent", title: "All of them",
+                            isOn: showAll, tint: ParaKind.goal.tint) {
+                    showAll.toggle()
+                }
+            }
+        }
     }
 
     // MARK: The Mac — a list that fills the third column
@@ -177,8 +190,11 @@ struct AspirationsListView: View {
     /// whose rows carry a tag takes the click away from anything inside them (builds 71–74).
     @ViewBuilder
     private func foldingRow(_ chain: AspirationChain) -> some View {
-        let isOpen = opened.contains(chain.note.relativePath)
+        // While **All of them** is on every chain is open, because that is what the button
+        // means. The chevron still works; it just starts open.
+        let isOpen = showAll || opened.contains(chain.note.relativePath)
         Button {
+            if showAll { showAll = false; opened = [chain.note.relativePath]; return }
             if isOpen { opened.remove(chain.note.relativePath) } else { opened.insert(chain.note.relativePath) }
         } label: {
             HStack(spacing: 6) {
@@ -713,6 +729,58 @@ struct NoteStatusChip: View {
         case .done: return note.tint
         case .missed: return .orange
         default: return .secondary
+        }
+    }
+}
+
+/// Where the **One at a time / All of them** setting is spelled, so the middle column's button
+/// and the detail column's content read the same key (build 166).
+enum GoalsShowAll {
+    static let key = "goalsShowAll"
+}
+
+/// Every aspiration at once, as one outline — his "whole life on one screen".
+///
+/// **A list, not a drawing, and that was his call.** He asked for it mapped *or* listed and
+/// then said: *"No, I don't want that as a drawn tree, more as a list."* He is right. The
+/// **Map** is already the drawn version of this, and a second picture of one thing leaves you
+/// unsure which to open; a list can also carry the target dates, the per cents and the next
+/// actions that a drawing cannot.
+///
+/// It is the same `AspirationChainBody` the one-at-a-time view uses, repeated. **Never a second
+/// way of drawing a chain** — that is how the Map, the review and the goal dashboard came to
+/// answer "what serves what" three different ways before build 162.
+struct AllAspirationsView: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        let chains = model.index.aspirationChains()
+        let loose = model.index.goalsOutsideAnyAspiration()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 26) {
+                if chains.isEmpty && loose.isEmpty {
+                    EmptyStateView(title: "No aspirations yet",
+                                   systemImage: ChainSymbol.aspiration,
+                                   message: "An aspiration says what you are becoming. Make one and everything working towards it appears here.",
+                                   tint: ParaKind.goal.tint)
+                }
+                ForEach(chains) { chain in
+                    AspirationChainBody(chain: chain, compact: false)
+                }
+                // Build 100's rule: a screen called "your whole life" may not quietly leave
+                // out the goals that hang under no aspiration.
+                if !loose.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionLabel(title: "Goals with no aspiration", count: loose.count,
+                                     systemImage: ChainSymbol.datedGoal, tint: ParaKind.goal.tint)
+                        ForEach(loose) { note in
+                            ChainGoalBlock(goal: model.index.chainGoal(of: note), lead: false)
+                        }
+                    }
+                }
+            }
+            .padding(Theme.gutter)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

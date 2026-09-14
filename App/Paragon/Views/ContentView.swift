@@ -809,6 +809,8 @@ struct NoteRow: View {
 
 struct DetailView: View {
     @EnvironmentObject private var model: AppModel
+    /// The same key the Goals column's button writes, so the two cannot disagree (build 166).
+    @AppStorage(GoalsShowAll.key) private var goalsShowAll = false
 
     var body: some View {
         // The colour follows the section, not the note: it is there to say which mode you are
@@ -846,6 +848,10 @@ struct DetailView: View {
         } else if model.section == .inbox, !model.inboxShowsNote {
             // Sorting happens in the middle column; this is where the lines can go.
             InboxFileItView()
+        } else if model.section == .kind(.goal), goalsShowAll {
+            // **All of them** (build 166): the whole chain for every aspiration, in one
+            // scroll. The button that turns it on is in the Goals column's toolbar.
+            AllAspirationsView()
         } else if model.section == .kind(.goal), let path = model.selectedNotePath,
                   let note = model.note(at: path), note.kind == .goal {
             // The chain under the chosen aspiration. The note itself is one button away in
@@ -854,7 +860,7 @@ struct DetailView: View {
         } else if model.section == .kind(.goal), model.selectedNotePath == nil {
             EmptyStateView(title: "Pick an aspiration",
                            systemImage: SidebarSection.kind(.goal).systemImage,
-                           message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each.",
+                           message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each. The button at the top right shows all of them at once.",
                            tint: ParaKind.goal.tint)
         } else if let path = model.selectedNotePath, model.note(at: path) != nil {
             NoteEditorView(path: path)

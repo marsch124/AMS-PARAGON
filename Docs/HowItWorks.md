@@ -223,6 +223,12 @@ A goal or aspiration also shows **what changed lately**: tasks finished in the l
 how many projects are finished, and when something last moved. When nothing can be counted the
 line is not shown at all.
 
+**All of them.** The button at the top right of the **Goals** screen opens every aspiration at
+once, as one outline: each aspiration, the goals that serve it, the projects under those, and
+the next action on each. Goals with no aspiration are at the foot, so nothing is missing. Press
+it again for one at a time. On the iPhone the same button opens every row; tapping one row
+closes the rest.
+
 The **Note** button at the top of the column shows the goal's own text instead of the chain.
 Press it again to go back. On the iPhone there is no second column, so an aspiration folds open
 where it stands. Type in the search field and the ordinary note list comes back.

@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 166 · 14 September 2026
+
+**Your whole life on one screen.** Your idea, and you chose the shape.
+
+The **Goals** screen has a new button at the top right: **All of them**. Turn it on and every
+aspiration is open at once, in one outline — each aspiration, the dated goals that serve it,
+the projects under those, and the next action on each. Turn it off and you are back to one at
+a time.
+
+- It is a **list, not a drawing**. You asked for that, and you were right: the **Map** is
+  already the drawn version, and a list can carry the target dates, the per cents and the next
+  actions that a drawing cannot.
+- Goals with no aspiration are at the foot, so nothing is left out of a screen that claims to
+  be everything.
+- On the iPhone the same button opens every aspiration in the list. Tapping one closes the
+  rest and leaves you on that one.
+- It is the same drawing of a chain as the one-at-a-time view, so the two can never disagree.
+
 ## Build 165 · 14 September 2026
 
 **A goal or a project can now end three ways: Done, Missed or Dropped.**
