@@ -58,7 +58,11 @@ public struct GoalHealth: Identifiable, Equatable, Sendable {
             case .noProjectYet: return "No project yet \u{2014} only an area serves this"
             case .pastTarget: return "Past its target date"
             case .noRecentActivity: return "Nothing moved in 30 days"
-            case .achieved: return "Achieved"
+            // **"Done", not "Achieved"** (build 171). Build 165 settled the words the app
+            // uses for an ending and this flag's label was missed, so the review alone said
+            // a different word for the same state. The case keeps its name: it is read by
+            // code, not by him, and renaming it would touch every call site for nothing.
+            case .achieved: return "Done"
             }
         }
     }

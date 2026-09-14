@@ -1496,6 +1496,22 @@ every newer screen uses.
   now. **When a rule says "all N places", count them again a build later.**
 - The legend became a `WrappingHStack` when it gained two items (build 138).
 
+**Build 171: the Weekly review.** Second of the five.
+- `ReviewSummary` + `ReviewStat` replace five `LabeledContent` rows. **A table is not a
+  summary**: every line looked equally important and a zero looked like a fault. Worries are
+  orange capsules; **no worries is one green capsule**, never a row of zeroes (build 100).
+- `ReviewSummary.Worry` is a **struct**, not a tuple, because a `ForEach` id is a key path and
+  a key path cannot address a tuple member (build 61, third time).
+- **Every numbered step is always drawn.** A section that only appeared when non-empty made the
+  walk read 1, 2, 4, and a finished step looked identical to one the app had hidden.
+- Goals became step 3; "Projects with no goal" moved to the foot with no number.
+- **`GoalHealthRow` got the context menu — the seventh time this rule has been earned.** The
+  review flagged a goal and offered no way to answer the flag; project rows had had the menu
+  since 165. Same family as 132, 134, 140, 144, 165, 167.
+- `GoalHealth.Flag.achieved.label` was still "Achieved". **Build 165 said "all ten places" and
+  the label of a flag is an eleventh** — the same miss as the Map's `subtitle` in build 170.
+  The *case* keeps its name: it is read by code, not by him.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

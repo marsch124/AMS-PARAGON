@@ -167,7 +167,7 @@ New › Goal creates a goal, and the **Horizon** you pick says which kind it is.
 
 **Aspiration** has no date: who you want to be in some part of your life, which stays true after every goal is reached. It is the A in PARAGON, and it is never ticked off.
 
-**This year** and **Long term** are dated goals: a target date, a measure of what success looks like, and the aspiration they serve, chosen in the **Serves aspiration** box. Projects and areas link to a goal with the `goal:` line. The goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Achieved".
+**This year** and **Long term** are dated goals: a target date, a measure of what success looks like, and the aspiration they serve, chosen in the **Serves aspiration** box. Projects and areas link to a goal with the `goal:` line. The goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Done".
 
 ### How a note stands
 
@@ -344,13 +344,44 @@ Time Blocks are the one thing the app writes to Calendar. They are blocks of tim
 
 ## Weekly review
 
-The review walks through the inbox, the projects that need attention and the goals. A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, or is on hold. Marking a project reviewed writes `reviewed:` with today's date.
+The review is a walk you do once a week, in order, from the top of the screen down.
+
+### What the top of the screen says
+
+Today's date, then one line saying how many tasks you finished in the last seven days. Under that, one orange capsule for each thing that wants looking at: overdue tasks, projects needing attention, goals needing attention, items waiting in the Inbox, projects that serve no goal.
+
+**When there is nothing to look at, one green capsule says so.** That matters: a row of zeroes reads as if the app had failed to count, and it is easy to miss that a week was simply a good one.
+
+### The five steps
+
+Every step is always on screen, even when it is empty — a step you have finished says "Inbox is empty" or "Nothing is overdue" rather than disappearing. A step that vanished was impossible to tell from one the app had decided not to show you.
+
+1. **Empty the inbox.** How many loose items are waiting. Press it to go to the Inbox and file them.
+2. **Reschedule or drop overdue tasks.** Every task whose date has passed, with the note it lives in. Tick it, move it, or drop it, straight from the row.
+3. **Goals.** One row per goal: its icon (a star for an aspiration, a target for a goal with a date), how far the work under it has come, how many projects and areas serve it, and the flags below.
+4. **Projects.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
+5. **Areas.** The same row for each area.
+
+Under the five steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no number.
+
+### What you can do to a row
+
+Right-click any goal, project or area row (long-press on the phone):
+
+- **Mark reviewed** — writes `reviewed:` with today's date into the note.
+- **Put on hold** / **Set active** — a project or goal you are deliberately not working on now. On hold is never counted as needing attention.
+- **Mark done**, **Mark missed**, **Mark dropped** — the three ways a thing can be over. Done means you delivered it; missed means the date passed without it; dropped means you decided not to. Only *done* counts towards a goal's per cent.
+- **Archive** — moves the note to the Archive folder and stops syncing its tasks.
+
+### The flags
+
+A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, or is on hold.
 
 Two of those deserve a word.
 
 **"Due after its goal"** means the project's own deadline falls later than the target date of the goal it serves. That cannot be true and the goal still be reached, so either the project has to come forward or the goal has to move. Set a project's deadline from the **Due** button at the top of the project note. Write the date in the field as 2031-12-01, or pick it in the calendar below; press the button again to change or clear it. A goal can be years away, so typing is usually quicker than clicking.
 
-**"Projects with no goal"** is its own short list, above the inbox: the projects with no `goal:` line at all. Work with nothing above it is not an error — plenty of good work is simply something you want to do — so these are never counted as needing attention and never coloured as a problem. The review asks once. To answer, open the project and press **Serves…** at the top of the note; the same choice is on the right-click menu in the project list.
+**"Projects with no goal"** is its own short list at the foot of the review: the projects with no `goal:` line at all. Work with nothing above it is not an error — plenty of good work is simply something you want to do — so these are never counted as needing attention and never coloured as a problem. The review asks once. To answer, open the project and press **Serves…** at the top of the note; the same choice is on the right-click menu in the project list.
 
 A goal is flagged when nothing serves it, when its target date has passed, when nothing has moved for 30 days, or when the only thing serving it is an area. A goal whose projects are all finished counts as served, not as neglected. That last one, **"No project yet"**, is the difference between a dated goal and a wish: an area is a standard you keep up, not a path to an outcome on a date. It applies to dated goals only. A goal reached through dated sub-goals is fine — those carry the projects — and so is an aspiration held by an area, which is exactly where an aspiration belongs.
 

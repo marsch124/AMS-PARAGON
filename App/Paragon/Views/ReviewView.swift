@@ -8,22 +8,87 @@ struct ReviewView: View {
     var body: some View {
         let report = model.index.review(config: model.config)
         List(selection: model.noteSelection) {
-            Section("This week") {
-                LabeledContent("Completed in the last 7 days", value: "\(report.completedLast7Days)")
-                LabeledContent("Overdue tasks", value: "\(report.overdueTasks.count)")
-                LabeledContent("Projects needing attention", value: "\(report.projectsNeedingAttention.count)")
-                if !report.goals.isEmpty {
-                    LabeledContent("Goals needing attention", value: "\(report.goalsNeedingAttention.count)")
-                }
-                if !report.projectsWithoutGoal.isEmpty {
-                    LabeledContent("Projects not serving a goal", value: "\(report.projectsWithoutGoal.count)")
+            Section { ReviewSummary(report: report) }
+
+            Section("1. Empty the inbox") {
+                if report.inboxOpenTasks == 0 {
+                    Label("Inbox is empty", systemImage: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button {
+                        model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
+                    } label: {
+                        Label("\(report.inboxOpenTasks) open items to file into projects or areas", systemImage: "tray")
+                    }
                 }
             }
 
+            // **Every numbered step is always drawn, even when it is empty** (build 171).
+            // They used to appear only when they had something in them, so the walk through
+            // the review read 1, 2, 4 on a good week and you could not tell a step you had
+            // finished from one the app had decided not to show you. Build 100's rule: an
+            // absence has to say it is an absence.
+            Section("2. Reschedule or drop overdue tasks") {
+                if report.overdueTasks.isEmpty {
+                    Label("Nothing is overdue", systemImage: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(report.overdueTasks) { ref in
+                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                            .tag(ref.notePath)
+                    }
+                }
+            }
+
+            Section("3. Goals") {
+                if report.goals.isEmpty {
+                    Label("No goals yet", systemImage: ChainSymbol.datedGoal)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(report.goals) { health in
+                        GoalHealthRow(health: health)
+                            .tag(health.note.relativePath)
+                    }
+                }
+            }
+
+            Section {
+                ForEach(report.projects) { health in
+                    HealthRow(health: health)
+                        .tag(health.note.relativePath)
+                }
+                if report.projects.isEmpty {
+                    Label("No active projects", systemImage: SidebarSection.kind(.project).systemImage)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                HStack {
+                    Text("4. Projects")
+                    Spacer()
+                    Button("Mark all reviewed") { model.markAllReviewed() }
+                        .font(.caption)
+                }
+            }
+
+            Section("5. Areas") {
+                if report.areas.isEmpty {
+                    Label("No areas yet", systemImage: SidebarSection.kind(.area).systemImage)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(report.areas) { health in
+                        HealthRow(health: health)
+                            .tag(health.note.relativePath)
+                    }
+                }
+            }
+
+            // **Last, and with no number** (build 171). It sat above step 1, which put a
+            // question that is not part of the weekly walk in front of the walk itself. It
+            // is a loose end to tidy when you have time, and it says so.
             if !report.projectsWithoutGoal.isEmpty {
                 Section {
                     // Buttons, not tagged HealthRows: these projects are listed again under
-                    // "3. Projects", and two rows carrying the same selection tag is exactly
+                    // "4. Projects", and two rows carrying the same selection tag is exactly
                     // what made the Inbox unselectable in builds 71 to 74.
                     ForEach(report.projectsWithoutGoal) { health in
                         Button {
@@ -46,61 +111,104 @@ struct ReviewView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-
-            Section("1. Empty the inbox") {
-                if report.inboxOpenTasks == 0 {
-                    Label("Inbox is empty", systemImage: "checkmark.circle")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Button {
-                        model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
-                    } label: {
-                        Label("\(report.inboxOpenTasks) open items to file into projects or areas", systemImage: "tray")
-                    }
-                }
-            }
-
-            if !report.overdueTasks.isEmpty {
-                Section("2. Reschedule or drop overdue tasks") {
-                    ForEach(report.overdueTasks) { ref in
-                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
-                            .tag(ref.notePath)
-                    }
-                }
-            }
-
-            if !report.goals.isEmpty {
-                Section("Goals") {
-                    ForEach(report.goals) { health in
-                        GoalHealthRow(health: health)
-                            .tag(health.note.relativePath)
-                    }
-                }
-            }
-
-            Section {
-                ForEach(report.projects) { health in
-                    HealthRow(health: health)
-                        .tag(health.note.relativePath)
-                }
-            } header: {
-                HStack {
-                    Text("3. Projects")
-                    Spacer()
-                    Button("Mark all reviewed") { model.markAllReviewed() }
-                        .font(.caption)
-                }
-            }
-
-            if !report.areas.isEmpty {
-                Section("4. Areas") {
-                    ForEach(report.areas) { health in
-                        HealthRow(health: health)
-                            .tag(health.note.relativePath)
-                    }
-                }
-            }
         }
+    }
+}
+
+/// The week in one block: what moved, then one capsule for each thing that wants looking at.
+///
+/// **Build 171.** It was five `LabeledContent` rows — a name on the left and a bare number on
+/// the right. That is a table, not a summary: every line looked equally important, and a zero
+/// looked exactly like a fault. Now what moved is one plain sentence, each worry is an orange
+/// capsule, and **when there is nothing to worry about one green capsule says so** rather than
+/// four zeroes. Build 100's rule in a new place: an absence has to be visible, and it must not
+/// be drawn as if it were a fault.
+struct ReviewSummary: View {
+    let report: ReviewReport
+
+    /// One thing that wants looking at. **A struct, not a tuple**, because a `ForEach` id is a
+    /// key path and a key path cannot address a tuple member — the same wall build 61 hit.
+    struct Worry: Identifiable {
+        var text: String
+        var symbol: String
+        var id: String { text }
+    }
+
+    /// The things that want looking at. A plain array built outside the body, because a
+    /// `@ViewBuilder` takes views and nothing else (build 58).
+    private var worries: [Worry] {
+        var out: [Worry] = []
+        if !report.overdueTasks.isEmpty {
+            out.append(Worry(text: report.overdueTasks.count == 1 ? "1 task overdue"
+                                                                   : "\(report.overdueTasks.count) tasks overdue",
+                             symbol: "clock.badge.exclamationmark"))
+        }
+        let projects = report.projectsNeedingAttention.count
+        if projects > 0 {
+            out.append(Worry(text: projects == 1 ? "1 project needs attention"
+                                                  : "\(projects) projects need attention",
+                             symbol: SidebarSection.kind(.project).systemImage))
+        }
+        let goals = report.goalsNeedingAttention.count
+        if goals > 0 {
+            out.append(Worry(text: goals == 1 ? "1 goal needs attention"
+                                               : "\(goals) goals need attention",
+                             symbol: ChainSymbol.datedGoal))
+        }
+        if report.inboxOpenTasks > 0 {
+            out.append(Worry(text: report.inboxOpenTasks == 1 ? "1 item in the Inbox"
+                                                               : "\(report.inboxOpenTasks) items in the Inbox",
+                             symbol: SidebarSection.inbox.systemImage))
+        }
+        if !report.projectsWithoutGoal.isEmpty {
+            out.append(Worry(text: report.projectsWithoutGoal.count == 1
+                                   ? "1 project serves no goal"
+                                   : "\(report.projectsWithoutGoal.count) projects serve no goal",
+                             symbol: "questionmark.circle"))
+        }
+        return out
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            // The same wording Today uses, so the two screens name a day the same way.
+            Text(DateOnly.today().date()?.formatted(.dateTime.weekday(.wide).day().month(.wide))
+                 ?? DateOnly.today().description)
+                .font(.headline)
+            Text(report.completedLast7Days == 1 ? "1 task finished in the last 7 days"
+                                                : "\(report.completedLast7Days) tasks finished in the last 7 days")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            WrappingHStack(spacing: 6, lineSpacing: 5) {
+                if worries.isEmpty {
+                    ReviewStat(text: "Nothing needs attention", symbol: "checkmark.circle", tint: ParaKind.project.tint)
+                } else {
+                    ForEach(worries) { worry in
+                        ReviewStat(text: worry.text, symbol: worry.symbol, tint: .orange)
+                    }
+                }
+            }
+            .lineLimit(1)
+        }
+        .padding(.vertical, 3)
+    }
+}
+
+/// One capsule in the review's summary. The same two-state language the rest of the app uses
+/// (build 142): a filled tint with a solid border for something that is true right now.
+struct ReviewStat: View {
+    let text: String
+    let symbol: String
+    let tint: Color
+
+    var body: some View {
+        Label(text, systemImage: symbol)
+            .font(.caption)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(tint.opacity(0.16), in: Capsule())
+            .overlay(Capsule().strokeBorder(tint, lineWidth: 1))
+            .foregroundStyle(tint)
     }
 }
 
@@ -178,12 +286,15 @@ struct HealthRow: View {
 }
 
 struct GoalHealthRow: View {
+    @EnvironmentObject private var model: AppModel
     let health: GoalHealth
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                KindBadge(kind: .goal, size: 20)
+                // The star for an aspiration, the target for a goal with a date (build 171,
+                // finishing what 168 and 170 did on the other screens).
+                KindBadge(kind: .goal, size: 20, systemImage: ChainSymbol.forGoal(health.note))
                 Text(health.note.title)
                     .font(.headline)
                     .lineLimit(2)
@@ -238,5 +349,23 @@ struct GoalHealthRow: View {
             }
         }
         .padding(.vertical, 3)
+        // **Build 171, and it is the seventh time.** The project rows have carried this menu
+        // since build 165 and the goal rows carried nothing at all — so the review could ask
+        // "nothing moved in 30 days" about a goal and offer no way to answer it. A screen that
+        // asks a question has to put the answer one press away.
+        .contextMenu {
+            Button("Mark reviewed") { model.markReviewed(health.note) }
+            if health.note.noteStatus.isOnHold {
+                Button("Set active") { model.setStatus(NoteStatus.active, for: health.note) }
+            } else {
+                Button("Put on hold") { model.setStatus(NoteStatus.onHold, for: health.note) }
+            }
+            ForEach(NoteStatus.endings, id: \.self) { ending in
+                Button("Mark \(ending.label.lowercased())") { model.setStatus(ending, for: health.note) }
+            }
+            if model.canArchive(health.note) {
+                Button("Archive") { model.archive(health.note) }
+            }
+        }
     }
 }

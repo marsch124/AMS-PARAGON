@@ -2,6 +2,36 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 171 · 14 September 2026
+
+**The Weekly review, brought up to date.** It was the second-oldest screen in the app.
+
+- **The top of the screen is a summary, not a table.** It was five rows of a name and a bare
+  number, where a zero looked exactly like a fault. Now: today's date, one line saying how many
+  tasks you finished in the last seven days, then one orange capsule for each thing that wants
+  looking at. **When nothing does, one green capsule says so** — a row of zeroes reads as if
+  the app had failed to count.
+- **The steps are numbered 1 to 5 and always on screen**, even when empty. They used to appear
+  only when they had something in them, so on a good week the walk read 1, 2, 4 and you could
+  not tell a step you had finished from one the app had decided not to show you. An empty step
+  now says "Inbox is empty" or "Nothing is overdue".
+- **Goals are step 3**, between the overdue tasks and the projects. The numbering matches the
+  order you work in.
+- **"Projects with no goal" moved to the foot of the review.** It sat above step 1, putting a
+  question that is not part of the weekly walk in front of the walk itself. It has no number,
+  because it is a loose end to tidy when you have time.
+- **A goal row can be acted on.** Right-click it for **Mark reviewed**, **Put on hold**,
+  **Mark done / missed / dropped** and **Archive** — the menu the project rows have had since
+  build 165. The review could say "nothing moved in 30 days" about a goal and offer no way at
+  all to answer it.
+- **A goal row carries its own icon**: the star for an aspiration, the target for a goal with a
+  date.
+- **"Achieved" is now "Done"**, the word settled in build 165. The review was the last place
+  still using the old one.
+
+The manual has a much fuller **Weekly review** section: what the top of the screen means, the
+five steps in order, what the right-click menu does, and what every flag means.
+
 ## Build 170 · 14 September 2026
 
 **The Map now speaks the same words as the rest of the app.** It is the oldest screen here and
