@@ -620,7 +620,11 @@ struct NoteHeader: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Label(note.kind == .daily ? "Daily note" : note.kind.displayName, systemImage: SidebarSection.kind(note.kind).systemImage)
+            // A goal note says which of the two it is: the star for an aspiration, the
+            // target for a goal with a date (build 168). Every other kind has one symbol.
+            Label(note.kind == .daily ? "Daily note" : note.kind.displayName,
+                  systemImage: note.kind == .goal ? ChainSymbol.forGoal(note)
+                                                  : SidebarSection.kind(note.kind).systemImage)
                 .foregroundStyle(note.tint)
                 .fontWeight(.semibold)
             if let rename {
@@ -653,7 +657,7 @@ struct NoteHeader: View {
                 // only way to answer was dragging its box onto a goal on the Map.
                 NoteGoalChip(model: model, note: note)
             } else if let goal = note.goal {
-                Label(goal, systemImage: "star")
+                Label(goal, systemImage: ChainSymbol.forGoal(named: goal, in: model.index))
                     .foregroundStyle(ParaKind.goal.tint)
                     .contentShape(Rectangle())
                     .onTapGesture { model.openGoal(reference: goal) }

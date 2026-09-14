@@ -223,16 +223,33 @@ struct AspirationsListView: View {
 /// tick off — and a goal with a target date gets a **target**, which is what you aim at and
 /// hit on a day. Everything below them already had a symbol and keeps it: a project is a flag,
 /// an area is the four squares, a task is the plain ring the Done list and every checkbox use.
+///
+/// **Build 168 finished the job 164 started.** 164 split the two apart here and nowhere else,
+/// so the sidebar row named **Goals** still wore the star and every `goal:` chip in the app
+/// did too. The star is now spelled **once**, here, and means an aspiration wherever it is
+/// drawn; the dated goal reads its symbol back out of `SidebarSection`, so the row and the
+/// chip cannot drift apart again.
 enum ChainSymbol {
-    static let aspiration = SidebarSection.kind(.goal).systemImage   // star
-    static let datedGoal = "target"
-    static let project = SidebarSection.kind(.project).systemImage   // flag
-    static let area = SidebarSection.kind(.area).systemImage         // circle.grid.2x2
-    static let task = SidebarSection.allActions.systemImage          // circle
+    /// The one place the star is spelled. It means an aspiration, and nothing else.
+    static let aspiration = "star"
+    static let datedGoal = SidebarSection.kind(.goal).systemImage   // target
+    static let project = SidebarSection.kind(.project).systemImage  // flag
+    static let area = SidebarSection.kind(.area).systemImage        // circle.grid.2x2
+    static let task = SidebarSection.allActions.systemImage         // circle
 
     /// The right one for a goal note, whichever kind of goal it is.
     static func forGoal(_ note: Note) -> String {
         (note.horizon ?? .year) == .life ? aspiration : datedGoal
+    }
+
+    /// The right one for a `goal:` line, which may name either kind. A name with no note
+    /// behind it gets the dated goal's target: it is the section's own mark, so an unresolved
+    /// link never claims to be an aspiration.
+    static func forGoal(named reference: String, in index: NoteIndex) -> String {
+        // Written out rather than `.map(forGoal)`: `forGoal` is overloaded now, and there is
+        // no Swift compiler here to settle which one a bare function reference means.
+        guard let note = index.goal(matching: reference) else { return datedGoal }
+        return forGoal(note)
     }
 }
 

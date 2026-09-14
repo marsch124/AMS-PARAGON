@@ -210,7 +210,9 @@ would be a list you cannot trust.
 Every link in the chain has its own icon: an **aspiration** is a **star** — the north star on
 PARAGON's own app icon, what you steer by and never tick off — and a **goal with a target
 date** is a **target**, what you aim at and hit on a day. A **project** is a flag, a **task**
-is a ring, and an **area** is the four squares. They are the same icons the sidebar uses.
+is a ring, and an **area** is the four squares. They are the same icons the sidebar uses: the
+sidebar row **Goals** carries the target, and the star is used for one thing only in the whole
+app — an aspiration. A note's own header shows which of the two it is.
 
 A goal with no aspiration above it is marked in orange and carries a **Give it an aspiration**
 button, which opens the list of your aspirations. Nothing is wrong with such a goal — it is a

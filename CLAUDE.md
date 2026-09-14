@@ -1451,6 +1451,26 @@ retyped, so the sidebar and this screen cannot drift.
 - `TintStripe` left the two Goals rows: the badge already carries the colour, and a stripe
   beside it is two coloured things saying one thing.
 
+**Build 168: a symbol split in one screen has to be split everywhere.** Build 164 made the
+star mean *aspiration* and `target` mean *a goal with a date* — **inside `GoalsView` only**.
+The sidebar row named **Goals** kept the star, and so did every `goal:` chip in the app, so the
+row said one word and drew another. He found it at once: *"If you say that a goal is two
+circles, and an aspiration is a star. How come the goal button to the left doesn't have the two
+circles?"* He picked the fix himself (the row keeps its name and takes the target).
+- **`ChainSymbol.aspiration` is now the one place `"star"` is spelled**, and `datedGoal` reads
+  `SidebarSection.kind(.goal).systemImage` back out, so the row and the chips cannot drift
+  again. It was the other way round before, which is exactly how the drift happened.
+- `ChainSymbol.forGoal(named:in:)` resolves a `goal:` line, which may name either kind; an
+  unresolved name gets the target, never the star. Used by the **Serves…** chip, the note
+  header, `NoteRow` and the planner's serves line. `NoteRow` takes `goalSymbol` as a parameter
+  for the same reason it takes `goalProgress` (build 141): a row holds one note and cannot look
+  another one up.
+- `forGoal` is overloaded now, so `.map(forGoal)` was written out as a `guard let`. **No
+  compiler here** — never leave an overload for inference to settle.
+- **The rule: when one screen splits a shared symbol in two, every other screen that draws it
+  is part of the same build.** Same family as the fields nothing could write (132, 134, 140,
+  144, 165, 167), and as build 153's `doc.text` badge that said nothing.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

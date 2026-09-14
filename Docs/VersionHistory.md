@@ -2,6 +2,28 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 168 · 14 September 2026
+
+**The sidebar Goals row now has the goal's icon, not the aspiration's star.** You spotted it:
+"If you say that a goal is two circles, and an aspiration is a star. How come the goal button
+to the left doesn't have the two circles?" You were right, and it was my mistake.
+
+Until build 164 there was one goal icon, the star, and the sidebar row wore it. Build 164 split
+the two apart on the Goals screen — star for an aspiration, target for a goal with a date — but
+only there. So the row said **Goals** and showed the aspiration's star.
+
+Now the star means one thing in the whole app: an aspiration. Everywhere else that shows the
+goal a note serves picks the right one of the two:
+
+- the sidebar row **Goals** carries the target
+- a note's own header shows a star when the note is an aspiration, a target when it has a date
+- the **Serves…** chip in a note header shows the star or the target, depending on which one
+  it names
+- the same for the goal shown on a note row in a list, and for the line under an action in the
+  planner that says what it is in aid of
+
+Nothing moved and nothing was renamed. Only the pictures changed.
+
 ## Build 167 · 14 September 2026
 
 Two things you reported on 166.

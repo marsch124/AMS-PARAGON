@@ -70,7 +70,14 @@ enum SidebarSection: Hashable, Identifiable {
         case .search: return "magnifyingglass"
         case .work: return "briefcase"
         case .kind(.daily): return "calendar"
-        case .kind(.goal): return "star"
+        // **Two circles, not the star (build 168).** Until build 164 there was one goal
+        // icon and this row wore it. Then the Goals screen split the two apart — the star
+        // became the aspiration, the target a goal with a date — and this row was left
+        // showing the aspiration's mark above the word "Goals". He spotted it at once:
+        // "How come the goal button to the left doesn't have the two circles?" The row is
+        // named Goals, so it carries the goal's icon, and the star now means one thing in
+        // the whole app: an aspiration. `ChainSymbol` is where both are spelled.
+        case .kind(.goal): return "target"
         case .kind(.project): return "flag"
         case .kind(.area): return "circle.grid.2x2"
         case .kind(.resource): return "books.vertical"
@@ -101,7 +108,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 167
+    static let number = 168
 }
 
 @MainActor

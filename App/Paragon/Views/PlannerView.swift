@@ -815,7 +815,7 @@ struct PlannerActionsView: View {
     @ViewBuilder
     private func servesLine(for ref: TaskRef) -> some View {
         if let serves = serves(ref) {
-            Label(serves.title, systemImage: serves.isGoal ? "star" : "circle.grid.2x2")
+            Label(serves.title, systemImage: serves.symbol)
                 .font(.caption2)
                 .foregroundStyle(serves.isGoal ? ParaKind.goal.tint : ParaKind.area.tint)
                 .lineLimit(1)
@@ -826,15 +826,21 @@ struct PlannerActionsView: View {
     private struct Serves {
         let title: String
         let isGoal: Bool
+        /// Star for an aspiration, target for a dated goal, the four squares for an area
+        /// (build 168). It is worked out where the note is resolved, so this row never has to
+        /// guess which kind of goal it is naming.
+        let symbol: String
     }
 
     private func serves(_ ref: TaskRef) -> Serves? {
         guard let note = model.note(at: ref.notePath) else { return nil }
         if let goal = note.goal {
-            return Serves(title: model.index.goal(matching: goal)?.displayTitle ?? goal, isGoal: true)
+            return Serves(title: model.index.goal(matching: goal)?.displayTitle ?? goal, isGoal: true,
+                          symbol: ChainSymbol.forGoal(named: goal, in: model.index))
         }
         if let area = note.area {
-            return Serves(title: model.index.note(matching: area)?.displayTitle ?? area, isGoal: false)
+            return Serves(title: model.index.note(matching: area)?.displayTitle ?? area, isGoal: false,
+                          symbol: ChainSymbol.area)
         }
         return nil
     }

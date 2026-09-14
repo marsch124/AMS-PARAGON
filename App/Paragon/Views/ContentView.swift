@@ -353,7 +353,10 @@ struct NoteListView: View {
             } else if model.section == .kind(.area), !searching {
                 Spacer().frame(width: 14)
             }
-            NoteRow(note: note, goalProgress: note.kind == .goal ? model.index.progress(of: note) : nil)
+            NoteRow(note: note,
+                    goalProgress: note.kind == .goal ? model.index.progress(of: note) : nil,
+                    goalSymbol: note.goal.map { ChainSymbol.forGoal(named: $0, in: model.index) }
+                        ?? ChainSymbol.datedGoal)
         }
         .padding(.leading, model.index.parentArea(of: note) == nil ? 0 : 18)
         .tag(note.relativePath)
@@ -548,7 +551,7 @@ struct NoteListView: View {
                                message: "Resources are reference material: an article, a checklist, an idea you want to keep.",
                                tint: ParaKind.resource.tint, actionTitle: "New resource…") { model.activeSheet = .newNote }
             case .kind(.goal)?:
-                EmptyStateView(title: "No goals yet", systemImage: "star",
+                EmptyStateView(title: "No goals yet", systemImage: SidebarSection.kind(.goal).systemImage,
                                message: "Goals sit above everything else. Write what you want, then point projects and areas at it with a goal: line.",
                                tint: ParaKind.goal.tint, actionTitle: "New goal…") { model.activeSheet = .newNote }
             case .kind(.archive)?:
@@ -687,11 +690,17 @@ struct NoteGoalChip: View {
             .map { "Serves \($0.displayTitle)" } ?? "Serves\u{2026}"
     }
 
+    /// The star when it serves an aspiration, the target when it serves a dated goal
+    /// (build 168). Before that every chip showed the star, whichever it named.
+    private var symbol: String {
+        note.goal.map { ChainSymbol.forGoal(named: $0, in: model.index) } ?? ChainSymbol.datedGoal
+    }
+
     var body: some View {
         Menu {
             NoteGoalOptions(model: model, note: note)
         } label: {
-            Label(title, systemImage: "star")
+            Label(title, systemImage: symbol)
         }
         .menuIndicator(.hidden)
         .fixedSize()
@@ -741,6 +750,10 @@ struct NoteRow: View {
     /// Filled in for goals only: how far the work under this goal has come. The row cannot
     /// work it out itself — it holds one note, and the roll-up needs the whole index.
     var goalProgress: GoalProgress? = nil
+    /// The symbol for the goal this note serves — star for an aspiration, target for a dated
+    /// goal (build 168). Handed in for the same reason as `goalProgress`: the row holds one
+    /// note and cannot look the named goal up.
+    var goalSymbol: String = ChainSymbol.datedGoal
 
     var body: some View {
         HStack(spacing: 10) {
@@ -787,7 +800,7 @@ struct NoteRow: View {
                         Label(target.description, systemImage: "flag.checkered")
                     }
                     if let goal = note.goal, note.kind != .goal {
-                        Label(goal, systemImage: "star")
+                        Label(goal, systemImage: goalSymbol)
                             .foregroundStyle(ParaKind.goal.tint)
                     }
                     if let area = note.area {
@@ -860,7 +873,7 @@ struct DetailView: View {
             GoalDetailView(note: note).id(path)
         } else if model.section == .kind(.goal), model.selectedNotePath == nil {
             EmptyStateView(title: "Pick an aspiration",
-                           systemImage: SidebarSection.kind(.goal).systemImage,
+                           systemImage: ChainSymbol.aspiration,
                            message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each. The button at the top right shows all of them at once.",
                            tint: ParaKind.goal.tint)
         } else if let path = model.selectedNotePath, model.note(at: path) != nil {
