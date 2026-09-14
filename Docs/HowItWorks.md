@@ -184,6 +184,10 @@ aspirations with no goal under them. **Goals with no aspiration** holds dated go
 their own. Neither is a fault — a goal can stand alone — but a list that quietly left them out
 would be a list you cannot trust.
 
+Every link in the chain has its own icon: an **aspiration** is a star, a **goal with a target
+date** is a target, a **project** is a flag, a **task** is a ring, and an **area** is the four
+squares. They are the same icons the sidebar uses.
+
 Each row shows its **measure**, its **target date with how long is left** ("in about 3 months",
 or "11 days over" in orange), and a **mark when it needs attention** — the same checks the
 weekly **Review** makes, so the two screens agree.

@@ -1439,6 +1439,18 @@ projects, the next action on each.
 - `goalHealth(of:)` is **internal**, so the App cannot call it; `chainGoal(of:)` is the public
   way in and is what `DatedGoalRow` uses. Caught while writing.
 
+**Build 164: icons on the Goals screen**, his ask. `ChainSymbol` (GoalsView.swift) is the one
+place the five are spelled, and four of them are read back out of `SidebarSection` rather than
+retyped, so the sidebar and this screen cannot drift.
+- **The one new symbol is `target`, for a goal with a target date.** An aspiration and a dated
+  goal are both `.goal` notes and shared the star, which said they were the same thing. The
+  aspiration keeps the star — the north star on the app's icon, build 129 — because it is
+  what you steer by and never tick off.
+- `KindBadge` gained an optional `systemImage` override for exactly this: one badge look, two
+  meanings under one `ParaKind`. **Reach for that before drawing a second badge.**
+- `TintStripe` left the two Goals rows: the badge already carries the colour, and a stripe
+  beside it is two coloured things saying one thing.
+
 Still open: the status vocabulary (reached / missed / dropped), last because it edits his notes.
 
 ## Not built (by choice)

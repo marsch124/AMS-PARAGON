@@ -208,6 +208,27 @@ struct AspirationsListView: View {
     }
 }
 
+/// The symbol for each link in the chain, in one place so the list, the chain and the header
+/// can never show three different pictures of the same thing (build 164, his ask).
+///
+/// **An aspiration and a dated goal share the `.goal` kind but not the idea.** The aspiration
+/// keeps the **star** — the north star on the app's own icon, the thing you steer by and never
+/// tick off — and a goal with a target date gets a **target**, which is what you aim at and
+/// hit on a day. Everything below them already had a symbol and keeps it: a project is a flag,
+/// an area is the four squares, a task is the plain ring the Done list and every checkbox use.
+enum ChainSymbol {
+    static let aspiration = SidebarSection.kind(.goal).systemImage   // star
+    static let datedGoal = "target"
+    static let project = SidebarSection.kind(.project).systemImage   // flag
+    static let area = SidebarSection.kind(.area).systemImage         // circle.grid.2x2
+    static let task = SidebarSection.allActions.systemImage          // circle
+
+    /// The right one for a goal note, whichever kind of goal it is.
+    static func forGoal(_ note: Note) -> String {
+        (note.horizon ?? .year) == .life ? aspiration : datedGoal
+    }
+}
+
 /// One aspiration in the list: its name, how many goals serve it, and how far they have come.
 struct AspirationRow: View {
     @EnvironmentObject private var model: AppModel
@@ -215,7 +236,7 @@ struct AspirationRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            TintStripe(color: ParaKind.goal.tint, height: 34)
+            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.aspiration)
             VStack(alignment: .leading, spacing: 3) {
                 Text(chain.note.title)
                     .font(.headline)
@@ -229,7 +250,7 @@ struct AspirationRow: View {
                             .foregroundStyle(ParaKind.goal.tint)
                     }
                     if let area = chain.area {
-                        Label(area.title, systemImage: "circle.grid.2x2")
+                        Label(area.title, systemImage: ChainSymbol.area)
                             .foregroundStyle(ParaKind.area.tint)
                     }
                     let wanting = chain.goalsNeedingAttention.count
@@ -269,7 +290,7 @@ struct DatedGoalRow: View {
     var body: some View {
         let health = model.index.chainGoal(of: note)
         HStack(spacing: 10) {
-            TintStripe(color: ParaKind.goal.tint, height: 34)
+            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.forGoal(note))
             VStack(alignment: .leading, spacing: 3) {
                 Text(note.title)
                     .font(.headline)
@@ -388,6 +409,9 @@ struct AspirationChainBody: View {
                 ForEach(chain.reachedGoals) { goal in
                     Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
                         HStack(spacing: 6) {
+                            Image(systemName: ChainSymbol.datedGoal)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                             Text(goal.note.title)
                                 .strikethrough()
                                 .foregroundStyle(.secondary)
@@ -412,10 +436,10 @@ struct AspirationChainBody: View {
             }
             if !chain.areas.isEmpty {
                 SectionLabel(title: "Areas that hold this", count: nil,
-                             systemImage: "circle.grid.2x2", tint: ParaKind.area.tint)
+                             systemImage: ChainSymbol.area, tint: ParaKind.area.tint)
                 ForEach(chain.areas) { area in
                     Button { model.show(section: .kind(.goal), notePath: area.relativePath) } label: {
-                        Label(area.title, systemImage: "circle.grid.2x2")
+                        Label(area.title, systemImage: ChainSymbol.area)
                             .foregroundStyle(ParaKind.area.tint)
                     }
                     .buttonStyle(.plain)
@@ -427,9 +451,12 @@ struct AspirationChainBody: View {
 
     private var head: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(chain.note.title)
-                .font(.title2.weight(.semibold))
-                .lineLimit(3)
+            HStack(spacing: 8) {
+                KindBadge(kind: .goal, size: 26, systemImage: ChainSymbol.aspiration)
+                Text(chain.note.title)
+                    .font(.title2.weight(.semibold))
+                    .lineLimit(3)
+            }
             WrappingHStack(spacing: 6, lineSpacing: 6) {
                 ChainChip(text: GoalHorizon.life.label, tint: ParaKind.goal.tint, filled: true)
                 if let area = chain.area {
@@ -461,10 +488,15 @@ struct ChainGoalBlock: View {
         VStack(alignment: .leading, spacing: 6) {
             Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(goal.note.title)
-                        .font(lead ? .title3.weight(.semibold) : .headline)
-                        .foregroundStyle(ParaKind.goal.tint)
-                        .lineLimit(2)
+                    HStack(spacing: 6) {
+                        Image(systemName: ChainSymbol.datedGoal)
+                            .font(.caption)
+                            .foregroundStyle(ParaKind.goal.tint)
+                        Text(goal.note.title)
+                            .font(lead ? .title3.weight(.semibold) : .headline)
+                            .foregroundStyle(ParaKind.goal.tint)
+                            .lineLimit(2)
+                    }
                     WrappingHStack(spacing: 6, lineSpacing: 5) {
                         if let target = goal.note.targetDate {
                             // Build 163: the date alone never says whether it is close.
@@ -520,7 +552,7 @@ struct ChainGoalBlock: View {
             }
             ForEach(goal.areas) { area in
                 Button { model.show(section: .kind(.goal), notePath: area.relativePath) } label: {
-                    Label(area.title, systemImage: "circle.grid.2x2")
+                    Label(area.title, systemImage: ChainSymbol.area)
                         .font(.callout)
                         .foregroundStyle(ParaKind.area.tint)
                 }
@@ -548,6 +580,9 @@ struct ChainProjectRow: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
+                    Image(systemName: ChainSymbol.project)
+                        .font(.caption2)
+                        .foregroundStyle(project.isFinished ? Color.secondary : ParaKind.project.tint)
                     Text(project.note.title)
                         .font(.callout)
                         .strikethrough(project.isFinished)
@@ -561,7 +596,7 @@ struct ChainProjectRow: View {
                     }
                 }
                 if let next = project.nextAction {
-                    Text("Next: \(next.title)")
+                    Label("Next: \(next.title)", systemImage: ChainSymbol.task)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)

@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 164 · 14 September 2026
+
+**The Goals screen has icons now**, one for every link in the chain, and they are the ones the
+rest of the app already uses.
+
+- **Aspiration — a star.** The north star on PARAGON's own icon: the thing you steer by and
+  never tick off.
+- **Goal with a target date — a target.** The one new symbol. An aspiration and a dated goal
+  were both gold stars before, which said they were the same thing. They are not.
+- **Project — a flag**, as in the sidebar.
+- **Task — a ring**, the same circle as a checkbox and the **Done** list.
+- **Area — the four squares**, as in the sidebar.
+
+They appear on the rows, on the goal's own screen and all the way down the chain, so the same
+thing looks the same wherever you meet it.
+
 ## Build 163 · 14 September 2026
 
 **The five small extras on the Goals screen**, the ones you asked for.

@@ -952,9 +952,12 @@ extension Note {
 struct KindBadge: View {
     let kind: ParaKind
     var size: CGFloat = 22
+    /// Overrides the kind's own symbol. An aspiration and a goal with a date are both `.goal`
+    /// notes and are not the same thing, so the Goals screen hands in its own (build 164).
+    var systemImage: String? = nil
 
     var body: some View {
-        Image(systemName: SidebarSection.kind(kind).systemImage)
+        Image(systemName: systemImage ?? SidebarSection.kind(kind).systemImage)
             .font(.system(size: size * 0.5, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
