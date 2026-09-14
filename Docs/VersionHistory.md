@@ -2,6 +2,29 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 173 · 14 September 2026
+
+**Saved searches.** The last thing on the roadmap you stopped in build 157.
+
+**Saving one.** Set up the search, then press the **bookmark** button beside the field. A name
+is offered already — the query in the same plain words the line under the tick boxes uses.
+
+**Running one.** They appear as chips under the field, on the Mac and the phone. Press one and
+it runs. The one you are in is filled with a solid border; the others are grey with a dashed
+one, the same two states as every other button in the app. The heading **Saved searches** folds
+them away.
+
+**Changing one.** Right-click a chip for **Rename…** and **Delete**. Saving again under a name
+you already used changes that one rather than making a second row with the same name, and a
+name another saved search has is refused.
+
+**What is saved is the search, not the results**, so it answers for your vault as it is today.
+It is only text, so you can change any box after running one.
+
+They live in `.ams-para/searches.json` inside the vault: they travel between the Mac and the
+iPhone through iCloud, and they are in your backups. They are not notes, so they never turn up
+in Today, the Map, the review or Apple Reminders.
+
 ## Build 172 · 14 September 2026
 
 **A review rhythm for every level of the chain.** This is the last piece of the Aspiration

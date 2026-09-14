@@ -108,7 +108,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 172
+    static let number = 173
 }
 
 @MainActor
@@ -946,6 +946,7 @@ final class AppModel: ObservableObject {
         refreshDeleted()
         refreshSnippets()
         refreshWorkNotes()
+        refreshSavedSearches()
     }
 
     // MARK: Editing
@@ -1080,6 +1081,51 @@ final class AppModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    // MARK: Saved searches
+
+    /// Searches he gave a name to (build 173). Kept in `.ams-para/searches.json`, so they
+    /// travel with the vault through iCloud and are in every backup.
+    @Published private(set) var savedSearches: [SavedSearch] = []
+
+    func refreshSavedSearches() {
+        savedSearches = vault?.savedSearches() ?? []
+    }
+
+    /// Saves whatever the Search screen is asking for right now.
+    func saveCurrentSearch(named name: String) {
+        guard let vault else { return }
+        do {
+            savedSearches = try vault.addSavedSearch(name: name, query: queryText)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func renameSavedSearch(_ search: SavedSearch, to name: String) {
+        guard let vault else { return }
+        do {
+            savedSearches = try vault.renameSavedSearch(id: search.id, to: name)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteSavedSearch(_ search: SavedSearch) {
+        guard let vault else { return }
+        do {
+            savedSearches = try vault.deleteSavedSearch(id: search.id)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Runs one: it is only text, so this is the same as having typed it.
+    func runSavedSearch(_ search: SavedSearch) {
+        queryText = search.query
+        // `notePath:` has no default; a saved search opens the screen, not a note.
+        show(section: .search, notePath: nil)
     }
 
     // MARK: Deleted notes

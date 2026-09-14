@@ -11,6 +11,10 @@ public enum VaultError: Error, LocalizedError, Equatable {
     case notDownloadedYet(String)
     case taskNotFound(String)
     case backupFailed(Int)
+    /// A name that is empty once the spaces are taken off (build 173, saved searches).
+    case invalidName
+    /// Something in the same list already goes by this name.
+    case nameInUse(String)
 
     public var errorDescription: String? {
         switch self {
@@ -24,6 +28,8 @@ public enum VaultError: Error, LocalizedError, Equatable {
         case .notDownloadedYet(let p): return "\(p) is still coming from iCloud. Try again in a moment."
         case .taskNotFound(let t): return "\u{201C}\(t)\u{201D} is no longer where it was; the note may have changed."
         case .backupFailed(let n): return "The backup could not be made: \(n) file(s) could not be copied."
+        case .invalidName: return "The name is empty."
+        case .nameInUse(let n): return "\u{201C}\(n)\u{201D} is already taken. Pick another name."
         }
     }
 }

@@ -571,6 +571,33 @@ Every box also has a word you can type instead, if you prefer typing:
 - `is:open`, `is:done`, `is:task`
 - quotes for an exact phrase: `"race day"`
 
+### Saved searches
+
+A search you run often can be kept.
+
+**Saving one.** Set up the search — the word, the boxes, or both — and press the **bookmark**
+button beside the field. A name is offered already, the same plain words the line under the tick
+boxes uses; change it if you like and press **Save**. The button only appears when there is
+something to save.
+
+**Running one.** Saved searches appear as chips under the field, on the Mac and the phone.
+Press one and it runs. The one you are looking at right now is filled in and has a solid
+border; the others are grey with a dashed one — the same two states every other button in the
+app uses. Press the heading **Saved searches** to fold them away.
+
+**Changing one.** Right-click a chip (long-press on the phone) for **Rename…** and **Delete**.
+Saving again under a name you already used changes that one rather than making a second with
+the same name. A name another saved search already has is refused.
+
+**What is actually saved is the search, not the results.** It is the same text the field and the
+boxes make between them, so running a saved search is exactly like typing it again: it answers
+for your vault as it is today, not as it was when you saved it. And because it is only text, you
+can still change any box after running one.
+
+They are kept in `.ams-para/searches.json` inside the vault, so they travel between your Mac and
+your iPhone through iCloud like everything else, and they are in your backups. They are not
+notes, so they never appear in Today, the Map, the review or Apple Reminders.
+
 ## Tools: templates, snippets and tags
 
 The sidebar group **Tools** holds the three things you use *on* your notes rather than notes

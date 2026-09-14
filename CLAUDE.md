@@ -1536,6 +1536,27 @@ Aspiration Chain spec (build 132 on). `Core/Vault/ReviewRhythm.swift`, tested:
   The stepper is its own view because building a `Binding` per level is a statement (build 58),
   and its `step` is 30 for a year and 5 for a quarter — build 136's lesson about forty presses.
 
+**Build 173: saved searches.** Fourth of the five, and the one item the roadmap had been
+stopped at since 157. `Core/Vault/SavedSearches.swift`, tested.
+- **A saved search is not a note.** It has no text, no tasks and nothing to link to, so a note
+  would appear in Today, the Map, the review and Reminders and be wrong in all four. It lives in
+  `.ams-para/searches.json` beside `tags.json` — the same decision build 145 made for an unused
+  tag.
+- **The query text is stored, never the results**, so a saved search and the same words typed by
+  hand are the same search; a test pins that through `SearchQuery.parse`. Build 157's "the text
+  is the one source of truth" carried through.
+- `addSavedSearch` matches on **name**, not id: saving the same name twice is a change, not a
+  second row. `renameSavedSearch` refuses a name in use (build 77's rule for notes).
+- `SavedSearch.suggestedName(for:)` uses `SearchQuery.summary` — one place puts a query into
+  words, so the offered name and the folded line agree. **It checks `query.isEmpty`, not an
+  empty summary**: `summary` is never empty (it says "Nothing searched for yet…"), which would
+  have become a name.
+- Two new `VaultError` cases, `invalidName` and `nameInUse`.
+- App: `SavedSearchChip` uses build 142's two states (filled + solid = the one you are in,
+  grey + dashed = the others), in a `WrappingHStack` (138). **Chips, not a list and not a
+  sidebar row**: a list eats the results on a phone, and a second sidebar row would be two
+  doors into one room (the argument he accepted in 166). Nothing is drawn when there are none.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /
@@ -1623,5 +1644,9 @@ chat.** The free-text box does save; only the buttons and tick boxes are lost.
 
 ## Not built (by choice)
 
-Saved searches. Roadmap stopped there on his request.
+Nothing. Saved searches were the last item and shipped in build 173.
+
+**Still open:** the iPhone widget (the fifth of the five he asked for on 14 September). It
+needs a new target, its own App ID and the App Group enabled for it in the developer portal, so
+it is the one that can fail in a way this container cannot fix — left until he is awake.
 

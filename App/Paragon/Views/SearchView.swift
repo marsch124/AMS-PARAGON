@@ -29,6 +29,14 @@ struct SearchView: View {
     /// see) and **folded on the phone**, where the boxes plus the keyboard left about two rows
     /// of results — his screenshot, build 161. Two keys, so the two never overwrite each
     /// other on an iPad, and while folded the line underneath still says what the search is.
+    /// Build 173. A saved search is being named, or renamed. One `.alert` for each, because a
+    /// macOS alert drops everything that is not a TextField (build 93) and these ask for
+    /// nothing else.
+    @State private var savingName = ""
+    @State private var savePrompt = false
+    @State private var renaming: SavedSearch?
+    @State private var renamingName = ""
+    @AppStorage("searchSavedFolded") private var savedFolded = false
     @AppStorage("searchFiltersFolded") private var deskFiltersFolded = false
     @AppStorage("searchFiltersFoldedPhone") private var phoneFiltersFolded = true
     private var filtersFolded: Bool { isPhone ? phoneFiltersFolded : deskFiltersFolded }
@@ -44,6 +52,7 @@ struct SearchView: View {
         let query = model.searchQuery
         VStack(spacing: 0) {
             wordField
+            savedBar
             if filtersFolded {
                 foldedLine(query)
             } else {
@@ -65,6 +74,24 @@ struct SearchView: View {
             // its own when there is nothing to look at yet. Arriving with a word already
             // there — from the Tags screen, or an `amspara://` link — you want the results.
             focused = !isPhone || model.queryText.isEmpty
+        }
+        .alert("Save this search", isPresented: $savePrompt) {
+            TextField("Name", text: $savingName)
+            Button("Save") { model.saveCurrentSearch(named: savingName) }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("It is saved as the words and boxes you have set, not as the results, so it answers for the vault as it is each time you run it.")
+        }
+        .alert("Rename saved search", isPresented: Binding(
+            get: { renaming != nil },
+            set: { if !$0 { renaming = nil } }
+        )) {
+            TextField("Name", text: $renamingName)
+            Button("Rename") {
+                if let search = renaming { model.renameSavedSearch(search, to: renamingName) }
+                renaming = nil
+            }
+            Button("Cancel", role: .cancel) { renaming = nil }
         }
 #if os(iOS)
         // Three ways to put the keyboard away, because one is never found: Search on the
@@ -121,6 +148,18 @@ struct SearchView: View {
                 .buttonStyle(.borderless)
                 .help(filtersFolded ? "Show the tick boxes" : "Put the tick boxes away")
                 if !model.queryText.isEmpty {
+                    // Build 173. Offered only when there is something to save, and it comes
+                    // with a name already filled in — the query in the same plain words the
+                    // line under the boxes uses, so the two can never disagree.
+                    Button {
+                        savingName = SavedSearch.suggestedName(for: model.searchQuery)
+                        savePrompt = true
+                    } label: {
+                        Label("Save this search", systemImage: "bookmark")
+                            .labelStyle(.iconOnly)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Give this search a name and keep it")
                     // Both, because the field is not re-read from the model while it has focus.
                     Button("Clear") { model.queryText = ""; fieldText = "" }
                         .buttonStyle(.borderless)
@@ -131,6 +170,55 @@ struct SearchView: View {
         .padding(.horizontal, 10)
         .padding(.top, 10)
         .padding(.bottom, 8)
+    }
+
+    // MARK: Saved searches
+
+    /// The saved searches as chips, right under the field (build 173).
+    ///
+    /// **Chips, not a list and not a sidebar row.** A list would take the room the results
+    /// need on a phone, and a sidebar row would be a second door into the Search screen — the
+    /// argument he accepted in build 166 against giving "All of them" its own row. A chip is
+    /// one press to run, and a `WrappingHStack` so a long name moves to the next line whole
+    /// rather than being squeezed (build 138).
+    ///
+    /// Nothing is drawn at all when there are none: an empty grey strip above the results
+    /// would be a promise with nothing behind it. The **Save this search** button beside the
+    /// field is how the first one is made, and it only appears when there is a search to save.
+    @ViewBuilder
+    private var savedBar: some View {
+        if !model.savedSearches.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Button {
+                    savedFolded.toggle()
+                } label: {
+                    Label("Saved searches",
+                          systemImage: savedFolded ? "chevron.right" : "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                if !savedFolded {
+                    WrappingHStack(spacing: 6, lineSpacing: 5) {
+                        ForEach(model.savedSearches) { search in
+                            SavedSearchChip(search: search,
+                                            isCurrent: search.query == model.queryText) {
+                                model.runSavedSearch(search)
+                                fieldText = SearchQuery.words(in: search.query)
+                                focused = false
+                            } rename: {
+                                renamingName = search.name
+                                renaming = search
+                            }
+                        }
+                    }
+                    .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.bottom, 8)
+        }
     }
 
     /// What the boxes say while they are folded away, so the query is never invisible.
@@ -403,5 +491,41 @@ extension String {
     var capitalizedFirst: String {
         guard let first else { return self }
         return String(first).uppercased() + dropFirst()
+    }
+}
+
+/// One saved search (build 173).
+///
+/// It uses the two-state language the rest of the app has used since build 142: the one you
+/// are looking at right now is filled with a solid border, the others are grey with a dashed
+/// one. So the screen says which saved search you are in without a word of explanation.
+struct SavedSearchChip: View {
+    @EnvironmentObject private var model: AppModel
+    let search: SavedSearch
+    let isCurrent: Bool
+    let run: () -> Void
+    let rename: () -> Void
+
+    private var tint: Color { isCurrent ? SidebarSection.search.tint : Color.primary.opacity(0.62) }
+
+    var body: some View {
+        Button(action: run) {
+            Label(search.name, systemImage: "bookmark")
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(isCurrent ? tint.opacity(0.24) : Color.clear, in: Capsule())
+                .overlay(
+                    Capsule().strokeBorder(tint, style: StrokeStyle(lineWidth: 1.2,
+                                                                    dash: isCurrent ? [] : [3, 3]))
+                )
+                .foregroundStyle(tint)
+        }
+        .buttonStyle(.plain)
+        .help(search.query)
+        .contextMenu {
+            Button("Rename\u{2026}", action: rename)
+            Button("Delete", role: .destructive) { model.deleteSavedSearch(search) }
+        }
     }
 }
