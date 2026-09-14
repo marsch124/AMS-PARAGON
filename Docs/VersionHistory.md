@@ -2,6 +2,21 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 169 · 14 September 2026
+
+Two small things on the Goals screen.
+
+**A goal no longer repeats the aspiration you are already looking at.** Inside an aspiration's
+chain, every goal under it carried a **Serves…** chip naming that same aspiration. The chip
+stays where it tells you something: when you open a goal on its own, and in **Goals with no
+aspiration**. It is also gold now rather than pink — pink is the colour this app uses for an
+area, and what the chip names is an aspiration.
+
+**A project's open count sits next to the project.** "2 open" was pushed out to the right edge
+of the column, away from the name it counts. With several projects under one goal the numbers
+lined up as a column of their own and read as a separate list. They now follow the project's
+name.
+
 ## Build 168 · 14 September 2026
 
 **The sidebar Goals row now has the goal's icon, not the aspiration's star.** You spotted it:

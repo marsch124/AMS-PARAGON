@@ -1471,6 +1471,18 @@ circles?"* He picked the fix himself (the row keeps its name and takes the targe
   is part of the same build.** Same family as the fields nothing could write (132, 134, 140,
   144, 165, 167), and as build 153's `doc.text` badge that said nothing.
 
+**Build 169: two small things on the Goals screen, both his.**
+- **A chip that repeats what the screen already says carries no information.** `ChainGoalBlock`
+  drew **Serves <aspiration>** on every goal inside that aspiration's own chain. It now takes
+  `under:` (the aspiration it is being drawn beneath) and hides the chip on a match;
+  `AspirationChainBody` is the only caller that passes it, so a goal opened on its own and the
+  ones in **Goals with no aspiration** keep it. Same family as build 153's `doc.text` badge.
+- The chip was `ParaKind.area.tint` (pink) while naming an aspiration. Gold now. **A tint is a
+  claim about what a thing is**, the same as an icon.
+- **`Spacer` in a row pushes a fact away from what it describes.** "2 open" sat at the right
+  edge of a wide column; with several projects the numbers formed a column that read as its own
+  list. The `Spacer` moved to the end of the `HStack`, so the count follows the project's name.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

@@ -431,7 +431,7 @@ struct AspirationChainBody: View {
                     .lineLimit(2)
             }
             ForEach(chain.goals) { goal in
-                ChainGoalBlock(goal: goal, lead: false)
+                ChainGoalBlock(goal: goal, lead: false, under: chain.note.title)
             }
             // One heading per ending, never one heading for all three: a group called Done
             // may not hold a goal that was missed (build 165).
@@ -529,6 +529,24 @@ struct ChainGoalBlock: View {
     let goal: ChainGoal
     /// True when this goal is the whole screen rather than one link in a chain.
     let lead: Bool
+    /// The aspiration whose chain this row is being drawn inside, when there is one.
+    ///
+    /// **Build 169, his report.** The **Serves…** chip named that same aspiration on every
+    /// goal under it, which is a sentence you are already looking at. It still appears when
+    /// the goal stands on its own — opened by itself, or in **Goals with no aspiration** —
+    /// where the answer is not on the screen already. Same family as build 153's grey page
+    /// badge: not wrong, just carrying no information.
+    var under: String? = nil
+
+    /// What this goal is in service of, unless the screen already says so.
+    private var servesToShow: String? {
+        guard let serves = goal.note.goal, !serves.isEmpty else { return nil }
+        // Written out rather than the `if let under` shorthand: there is no compiler here.
+        if let shown = under, shown.localizedCaseInsensitiveCompare(serves) == .orderedSame {
+            return nil
+        }
+        return serves
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -551,9 +569,11 @@ struct ChainGoalBlock: View {
                             ChainChip(text: "Target \(target.description) · \(left)",
                                       tint: late ? .orange : ParaKind.goal.tint, filled: false)
                         }
-                        if let serves = goal.note.goal, !serves.isEmpty {
+                        if let serves = servesToShow {
                             // The extra he ticked: a dated goal says what it is in service of.
-                            ChainChip(text: "Serves \(serves)", tint: ParaKind.area.tint, filled: false)
+                            // Gold, because what it names is an aspiration — it was pink, the
+                            // colour this app uses for an area (build 169).
+                            ChainChip(text: "Serves \(serves)", tint: ParaKind.goal.tint, filled: false)
                         }
                         if let percent = goal.progress.percent {
                             ChainChip(text: "\(percent)%", tint: ParaKind.goal.tint, filled: true)
@@ -634,13 +654,17 @@ struct ChainProjectRow: View {
                         .strikethrough(project.note.isEnded)
                         .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                         .lineLimit(2)
-                    Spacer(minLength: 0)
+                    // **Build 169: the count belongs to the project, so it sits next to it.**
+                    // A `Spacer` pushed "2 open" out to the right edge of a wide column, far
+                    // from the name it counts, and with several projects the numbers formed a
+                    // column of their own that read as a separate list.
                     if project.note.isEnded {
                         Text(project.note.noteStatus.label.lowercased())
                             .font(.caption2).foregroundStyle(.secondary)
                     } else if project.openTaskCount > 0 {
                         Text("\(project.openTaskCount) open").font(.caption2).foregroundStyle(.secondary)
                     }
+                    Spacer(minLength: 0)
                 }
                 if let next = project.nextAction {
                     Label("Next: \(next.title)", systemImage: ChainSymbol.task)
