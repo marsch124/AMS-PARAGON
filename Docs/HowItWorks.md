@@ -790,6 +790,18 @@ On the phone, a note's own actions — Rename, Archive and Delete — are behind
 
 The phone shows four tabs. **Today** and **Inbox** are the same lists as on the Mac. **Browse** holds everything else: Goals, Projects, Areas, Resources, Archive, Calendar, Time Blocks, Done, Review, Map, Search, and Settings with Help. **Capture** opens the capture panel. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
+## Two pages on the iPhone
+
+**Plan the day** and **All actions** are one screen with two pages. Swipe sideways to go from
+one to the other; the two dots at the bottom show which page you are on. **Time Blocks** in
+**Browse** opens on the plan, **All actions** opens on the actions.
+
+The swipe starts anywhere on the screen. A drag from the very left edge still means *go back*,
+as it does everywhere in iOS.
+
+All actions has its own filter at the top: **All**, **With a date**, **No date** and **Next
+actions**.
+
 ## Widgets
 
 Two widgets, on the Mac and on the iPhone.

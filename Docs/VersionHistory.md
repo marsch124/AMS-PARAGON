@@ -2,6 +2,21 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 181 · 15 September 2026
+
+**Two pages on the iPhone, swiped between.** **Plan the day** and **All actions** are now one
+screen with two pages. Swipe right to left for one, left to right for the other. Two small dots
+at the foot show which page you are on.
+
+Both rows lead there and open where you pressed: **Time Blocks** opens on the plan, **All
+actions** opens on the actions.
+
+This is a proper pager, not a gesture of our own, for one reason: on the iPhone a drag from the
+**left edge** is Apple's own *go back*. If PARAGON took that gesture, going back from a note
+would stop working. A pager leaves the edge alone.
+
+Nothing changed on the Mac.
+
 ## Build 180 · 15 September 2026
 
 **A line for where we are in the day.** Your ask, and the planner was the one day view without

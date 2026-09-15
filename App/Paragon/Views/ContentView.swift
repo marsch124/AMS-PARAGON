@@ -313,6 +313,14 @@ struct NoteListView: View {
     @State private var foldedAreas: Set<String> = []
     @State private var makingWorkNote = false
     @State private var workNoteTitle = ""
+    // The phone shows this view *as the screen*; an iPad in three columns shows it as the
+    // middle one. Only the phone gets the swipe pages (build 181).
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
 
     private var searching: Bool { !searchText.trimmingCharacters(in: .whitespaces).isEmpty }
 
@@ -426,8 +434,13 @@ struct NoteListView: View {
                 MapView()
             } else if model.section == .timeBlocks {
                 #if os(iOS)
-                // No third column on the phone, so the section is the whole planner, stacked.
-                PlannerView()
+                // No third column on the phone, so the section is the whole planner — and
+                // since build 181 it is page one of two, All actions being the other.
+                if isPhone {
+                    PhoneDayPages(start: .plan)
+                } else {
+                    PlannerView()
+                }
                 #else
                 // Build 150, his choice: the planner lives in the ordinary window. The day's
                 // actions are the middle column and the two lanes are the detail column.
@@ -436,7 +449,16 @@ struct NoteListView: View {
             } else if model.section == .done {
                 DoneView()
             } else if model.section == .allActions {
+                #if os(iOS)
+                // The same pair as Time Blocks, opened on this half instead (build 181).
+                if isPhone {
+                    PhoneDayPages(start: .actions)
+                } else {
+                    AllActionsView()
+                }
+                #else
                 AllActionsView()
+                #endif
             } else if model.section == .deleted {
                 DeletedView()
             } else if model.section == .templates {

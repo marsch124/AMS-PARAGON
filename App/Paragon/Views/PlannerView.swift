@@ -49,6 +49,53 @@ struct PlannerView: View {
     }
 }
 
+#if os(iOS)
+/// The phone's two pages: **Plan the day** and **All actions**, swiped between (build 181).
+///
+/// His ask, and he chose this shape over a swipe gesture of our own: *"swiping from right to
+/// left should show Plan the Day, and swiping from left to right should show My Actions… I want
+/// to go for option B immediately."*
+///
+/// **A pager rather than our own gesture, for one reason.** On the iPhone a drag from the left
+/// edge belongs to iOS: it is *go back*. A gesture of ours that took it would break going back
+/// from every note, and no test here could catch that (builds 71–74, in the place it would hurt
+/// most). A `TabView` in page style leaves the edge to the system and takes the rest.
+///
+/// **The dots at the foot are the feature.** A swipe nobody can see is a swipe nobody finds
+/// (build 74), so the page indicator is always shown: it is the only sign that the second page
+/// is there at all.
+///
+/// Both sidebar rows lead here and open on the half he pressed — **Time Blocks** on the plan,
+/// **All actions** on the actions. One room, entered at the end you asked for.
+struct PhoneDayPages: View {
+    enum Page: Int, Hashable {
+        case plan
+        case actions
+    }
+
+    var start: Page
+    @State private var page: Page
+
+    init(start: Page) {
+        self.start = start
+        _page = State(initialValue: start)
+    }
+
+    var body: some View {
+        TabView(selection: $page) {
+            PlannerView()
+                .tag(Page.plan)
+            AllActionsView()
+                .tag(Page.actions)
+        }
+        .tabViewStyle(.page(indexDisplayMode: .always))
+        .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .navigationTitle(page == .plan ? "Plan the day" : "All actions")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+#endif
+
 // MARK: The day: hours, calendar, blocks
 
 /// The detail column: the day's header and its two lanes.
