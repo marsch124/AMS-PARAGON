@@ -415,6 +415,9 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         textView.text = text
         context.coordinator.textView = textView
         context.coordinator.highlight(tint: UIColor(tint))
+        // What the screen tests type into (build 191). A name of its own, so a change to the
+        // screen around it cannot quietly stop the test from finding it.
+        textView.accessibilityIdentifier = "note.editor"
         return textView
     }
 

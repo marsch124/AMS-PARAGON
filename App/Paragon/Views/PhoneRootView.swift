@@ -342,6 +342,7 @@ struct PhoneBrowseView: View {
                                     .foregroundStyle(section.tint)
                             }
                         }
+                        .accessibilityIdentifier("browse.\(section.title)")
                     }
                 }
             }

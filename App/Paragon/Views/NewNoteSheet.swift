@@ -182,53 +182,12 @@ struct NewNoteSheet: View {
         }
     }
 
-    /// **Build 186, from his screenshot of the phone.** Cancel and Create were two blue words
-    /// in the bottom corner — the plain `Button` a Mac sheet draws as a proper button and a
-    /// phone draws as text. On the phone **Create** is now a full-width filled button in the
-    /// kind's own colour, the same shape as the capture screen's **Save**, so the one thing
-    /// the sheet is for can be hit with a thumb. The Mac keeps its two buttons bottom right,
-    /// where a Mac sheet's buttons belong, with Create filled in the same colour.
-    @ViewBuilder
+    /// **Build 186, from his screenshot of the phone**: Cancel and Create were two blue words in
+    /// the bottom corner. `SheetFooter` (Theme.swift) is where that is put right, for every
+    /// sheet at once since build 191.
     private var footer: some View {
-        if isPhone {
-            HStack(spacing: 12) {
-                // The padding is inside the label, not on the Button: a Button's tap area is
-                // its label, so padding put outside only pushes it about.
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Cancel")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 18)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                Button(action: create) {
-                    Text("Create")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(canCreate ? tint(for: thing) : Color.secondary.opacity(0.3),
-                                    in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
-                }
-                .buttonStyle(.plain)
-                .disabled(!canCreate)
-            }
-        } else {
-            HStack {
-                Spacer()
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-                Button("Create", action: create)
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .tint(tint(for: thing))
-                    .disabled(!canCreate)
-            }
-        }
+        SheetFooter(actionTitle: "Create", tint: tint(for: thing), canAct: canCreate,
+                    cancel: { dismiss() }, act: create)
     }
 
     private var canCreate: Bool { !title.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -652,12 +611,26 @@ struct NoteFromLinkSheet: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
     @State private var kind: ParaKind = .resource
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
+
+    /// The work notes' own colour for a link inside a work note, else the chosen kind's.
+    private var tint: Color {
+        model.linkToCreate?.isWork == true ? SidebarSection.work.tint : kind.tint
+    }
+
+    /// A phone sheet may not be given a minimum width wider than the phone (build 158).
+    private var sheetMinWidth: CGFloat? { isPhone ? nil : 380 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Make this note")
                 .font(.title2.bold())
-                .foregroundStyle(model.linkToCreate?.isWork == true ? SidebarSection.work.tint : kind.tint)
+                .foregroundStyle(tint)
             Text(linkTitle)
                 .font(.title3.weight(.semibold))
                 .textSelection(.enabled)
@@ -677,16 +650,10 @@ struct NoteFromLinkSheet: View {
             Text("The link becomes a real link as soon as the note is there.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-            HStack {
-                Spacer()
-                Button("Cancel") { cancel() }
-                    .keyboardShortcut(.cancelAction)
-                Button("Create", action: create)
-                    .keyboardShortcut(.defaultAction)
-            }
+            SheetFooter(actionTitle: "Create", tint: tint, cancel: cancel, act: create)
         }
-        .padding(20)
-        .frame(minWidth: 380)
+        .padding(isPhone ? 14 : 20)
+        .frame(minWidth: sheetMinWidth)
     }
 
     private var linkTitle: String { model.linkToCreate?.title ?? "" }

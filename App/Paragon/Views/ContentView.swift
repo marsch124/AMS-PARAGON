@@ -392,6 +392,10 @@ struct NoteListView: View {
         }
         .padding(.leading, model.index.parentArea(of: note) == nil ? 0 : 18)
         .tag(note.relativePath)
+        // Named by its path for the screen tests (build 191); the title alone can appear on
+        // other pages of the phone's pager at the same time.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("note.\(note.relativePath)")
         .acceptsTaskDrop { ref in model.moveTask(ref, to: note.relativePath) }
         .contextMenu {
             if note.kind != .inbox, note.kind != .daily {

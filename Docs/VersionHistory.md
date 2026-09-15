@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 191 · 15 September 2026
+
+**Two more checks on the build machine, and one small fix.**
+
+The machine now also opens a project note on the simulated iPhone and types into it, and picks
+a line in the Inbox by tapping it. Those are the two faults that cost the most days earlier this
+month, and until now nothing could catch them before they reached you.
+
+The fix: the small sheet that appears when you follow a `[[link]]` to a note that does not
+exist yet had the same two blue words at the bottom that the New note screen had before build
+186. It now has the same proper **Cancel** and **Create** buttons, and it no longer asks for
+more width than the phone has.
+
 ## Build 190 · 15 September 2026
 
 **Nothing changes in the app.** This build is a check, not a feature, so there is nothing for

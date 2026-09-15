@@ -219,7 +219,16 @@ struct InboxRow: View {
         // between them they cost builds 71 to 74 — a line could no longer be picked at all.
         // Renaming is on the menu instead, and a line is filed by clicking a destination.
         .contextMenu { menuItems }
+        // The row is one thing to accessibility, named by its line, and it says out loud
+        // whether it is the selected one (build 191). That is what lets a screen test check
+        // the very fault of builds 71 to 74 — a line that cannot be picked — and it is also
+        // what VoiceOver should have been told all along.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("inbox.\(ref.task.title)")
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
+
+    private var isSelected: Bool { model.inboxSelection == ref.triageID }
 
     private func startEditing() {
         draft = Note.removingTag(Note.nextActionTag, from: ref.task.title)

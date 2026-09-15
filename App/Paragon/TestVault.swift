@@ -57,6 +57,9 @@ enum TestVault {
                                  extraFrontmatter: [("goal", datedGoal)])
         _ = try vault.createNote(kind: .area, title: area, extraFrontmatter: [("goal", aspiration)])
         _ = try vault.createNote(kind: .resource, title: resource)
+        // Through `capture`, the same path the capture screens use, so the line is exactly
+        // what a real capture would have written.
+        _ = try vault.capture(CaptureItem(text: inboxLine))
         return root
     }
 
@@ -66,5 +69,6 @@ enum TestVault {
     static let project = "Plan the Kungsleden trip"
     static let area = "Health"
     static let resource = "Packing list"
+    static let inboxLine = "Call the bank about the ferry"
 }
 #endif

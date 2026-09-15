@@ -277,6 +277,80 @@ struct WrappingHStack: Layout {
 ///
 /// Nothing is drawn when there is nothing to measure. A goal with no projects under it yet is
 /// not at zero per cent — there is no figure at all, and an empty bar would say the opposite.
+/// Cancel and the one doing button at the foot of a sheet, drawn the way each platform draws
+/// them.
+///
+/// **Build 186's fix, made one thing in build 191.** A plain `Button` is a proper button on a
+/// Mac and two blue words in a corner on a phone, which is what his screenshot of the New note
+/// sheet showed. The New note sheet was fixed on its own; the sheet a `[[link]]` opens still
+/// had the two words. One footer for both, so a third sheet cannot get it wrong either.
+///
+/// On the phone the doing button is full width in the sheet's own colour and grey until it may
+/// be pressed, the same shape as the capture screen's **Save**; Cancel sits beside it with the
+/// padding *inside* its label, because a Button's tap area is its label. On the Mac the two
+/// stay bottom right, where a Mac sheet keeps them, with Return and Escape wired to them.
+struct SheetFooter: View {
+    /// The word on the doing button: "Create", "Save".
+    let actionTitle: String
+    let tint: Color
+    var canAct = true
+    let cancel: () -> Void
+    let act: () -> Void
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
+
+    var body: some View {
+        if isPhone {
+            phoneBar
+        } else {
+            deskRow
+        }
+    }
+
+    private var phoneBar: some View {
+        HStack(spacing: 12) {
+            Button(action: cancel) {
+                Text("Cancel")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 18)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            Button(action: act) {
+                Text(actionTitle)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(canAct ? tint : Color.secondary.opacity(0.3),
+                                in: RoundedRectangle(cornerRadius: 12))
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+            .disabled(!canAct)
+        }
+    }
+
+    private var deskRow: some View {
+        HStack {
+            Spacer()
+            Button("Cancel", action: cancel)
+                .keyboardShortcut(.cancelAction)
+            Button(actionTitle, action: act)
+                .keyboardShortcut(.defaultAction)
+                .buttonStyle(.borderedProminent)
+                .tint(tint)
+                .disabled(!canAct)
+        }
+    }
+}
+
 struct GoalProgressBar: View {
     let progress: GoalProgress
     var width: CGFloat? = nil
