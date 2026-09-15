@@ -111,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 177
+    static let number = 178
 }
 
 @MainActor
@@ -959,8 +959,29 @@ final class AppModel: ObservableObject {
     /// is a security-scoped bookmark only this app can resolve, so there is no falling back to
     /// Application Support here the way `outboxURL` does: a widget that cannot see the shared
     /// container has nothing to read, and saying so is better than writing a file nobody reads.
+    /// The App Group the widget's file lives in. **Two names, on purpose** (build 178).
+    ///
+    /// The iPhone uses the group that has existed since the share extension,
+    /// `group.com.schabbauer.amspara`. A sandboxed Mac app cannot join a group spelled that
+    /// way: on the Mac the name must begin with the Team ID, and the Mac App Store refuses a
+    /// group without it — which is why the Mac carried no App Group at all until this build.
+    /// It is the same group in Apple's portal, spelled the way each platform requires.
+    ///
+    /// `appGroupID` above is deliberately left alone: it is the capture outbox the share
+    /// extension writes, which is iOS only, and on the Mac it falls back to Application
+    /// Support. Pointing it at the new container would move a folder for no reason.
+    static var widgetGroupID: String {
+        // Written out with `return`: an implicit return around an `#if` is the kind of thing
+        // there is no compiler here to settle.
+        #if os(macOS)
+        return "D24ENP83QQ.group.com.schabbauer.amspara"
+        #else
+        return appGroupID
+        #endif
+    }
+
     static var widgetContainerURL: URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID)
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
     }
 
     /// Writes what the widget draws, then asks the system to redraw it.

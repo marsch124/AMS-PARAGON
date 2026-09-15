@@ -10,5 +10,13 @@
 	<true/>
 	<key>com.apple.security.personal-information.calendars</key>
 	<true/>
+	<!-- Build 178: the Mac app writes the widget's summary into this shared folder, and the
+	     Mac widget reads it. The Team ID in front is the Mac spelling of the same group the
+	     iPhone uses as plain "group.com.schabbauer.amspara"; the Mac App Store refuses it
+	     without the prefix, which is why the Mac carried no group at all until now. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>D24ENP83QQ.group.com.schabbauer.amspara</string>
+	</array>
 </dict>
 </plist>

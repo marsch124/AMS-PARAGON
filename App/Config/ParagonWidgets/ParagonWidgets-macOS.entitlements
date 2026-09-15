@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- An extension inside a sandboxed Mac app has to be sandboxed itself. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- The Mac spelling of the App Group: the Team ID goes in front of it. The plain
+	     name works on iOS only, and the Mac App Store refuses a group without the prefix. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>D24ENP83QQ.group.com.schabbauer.amspara</string>
+	</array>
+</dict>
+</plist>

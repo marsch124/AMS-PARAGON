@@ -1760,6 +1760,34 @@ So 177 makes each of them say its own name:
 100 said never let a read failure look like an absence; a widget is where that is hardest and
 matters most, because the only debugging tool is what the box says.
 
+## The widget on the Mac (build 178)
+
+**The blank box was never a fault in the widget.** He said it in one line the next morning:
+*"I use the widget on my Mac only."* There was no Mac widget — 174 built an iPhone one on
+purpose ("a Mac widget would be a second thing to sign"). The PARAGON widget the Mac *could*
+offer him was his iPhone's, relayed by **iPhone Mirroring, which Apple does not provide in the
+EU**: the very dialog he had screenshotted an hour earlier and I had answered as unrelated.
+**Two reports an hour apart were the same report.** When something is impossible in the user's
+country, check whether the next thing he shows you depends on it.
+
+- `ParagonWidgets` is `supportedDestinations: [iOS, macOS]` and the app's dependency on it lost
+  its `platformFilter`.
+- **The App Group has two spellings, and that is the whole risk of this build.** iOS keeps
+  `group.com.schabbauer.amspara` (one of the four identifiers the rename kept). A sandboxed Mac
+  app cannot join a group spelled that way: on the Mac it must begin with the Team ID, and the
+  Mac App Store refuses one without it — which is why `Paragon-macOS.entitlements` had dropped
+  the group entirely since build 64. Both now carry
+  `D24ENP83QQ.group.com.schabbauer.amspara`. It is the same group in the portal, spelled as
+  each platform requires. `AppModel.widgetGroupID` and `ParagonWidgetBundle.appGroupID` decide
+  it per platform, and the two are written out separately because a widget target cannot see
+  the app's code (the `WidgetLook` problem again).
+- **`AppModel.appGroupID` is deliberately left alone.** It is the capture outbox, the share
+  extension is iOS only, and on the Mac it falls back to Application Support. Pointing it at
+  the new container would move a folder for no reason and strand anything queued in it.
+- `App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements` also turns the sandbox on: an
+  extension inside a sandboxed Mac app must be sandboxed itself.
+- Settings › Widget (build 177) is no longer `#if os(iOS)`.
+
 ## Not built (by choice)
 
 Nothing. Saved searches were the last item and shipped in build 173.

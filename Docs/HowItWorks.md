@@ -788,15 +788,21 @@ On the phone, a note's own actions — Rename, Archive and Delete — are behind
 
 The phone shows four tabs. **Today** and **Inbox** are the same lists as on the Mac. **Browse** holds everything else: Goals, Projects, Areas, Resources, Archive, Calendar, Time Blocks, Done, Review, Map, Search, and Settings with Help. **Capture** opens the capture panel. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
-## Widgets on the iPhone
+## Widgets
 
-Two widgets for the Home Screen and the Lock Screen. Press and hold the Home Screen, press **+** at the top, search for **PARAGON**, and pick one.
+Two widgets, on the Mac and on the iPhone.
+
+**On the Mac**: click the date and time at the right of the menu bar to open Notification Centre, scroll to the bottom and click **Edit Widgets**. Search for **PARAGON** and drag one in. You can also right-click the desktop and choose **Edit Widgets**, which puts the widget on the desktop itself.
+
+**On the iPhone**: press and hold the Home Screen, press **+** at the top, search for **PARAGON**, and pick one.
 
 **Today's actions** is the same list the planner shows: everything due today or earlier, then your next actions. Each line shows the note it lives in and, under it, **what it serves** — the goal in gold, or the area in pink. It comes in three sizes; the small one shows three lines, the medium four, the large seven.
 
 **What is waiting** is four numbers: due today, overdue, waiting in the Inbox, and due for a look. A zero is grey and a number that wants you is in its own colour, so the one to read finds you first.
 
-Tapping either one opens PARAGON.
+Clicking or tapping either one opens PARAGON.
+
+Each side is fed by the app on that machine: the Mac widget by PARAGON on the Mac, the iPhone widget by PARAGON on the iPhone. They can therefore show slightly different things for a moment, until both apps have seen the same notes through iCloud.
 
 ### How they get their information
 
@@ -805,11 +811,11 @@ The widget never opens your vault. It cannot: the vault is a folder you chose, a
 Instead, **PARAGON writes a short summary for the widget every time it reloads** — when you tick a task, when a sync finishes, when a file arrives from iCloud — and the widget reads only that. So:
 
 - The widgets are right as of the last time the app noticed a change.
-- **Open PARAGON once after installing**, or the widget has nothing to read yet and says so.
+- **Open PARAGON once after installing**, or the widget has nothing to read yet and says so. On the Mac that means PARAGON on the Mac; on the iPhone, PARAGON on the iPhone.
 - If you have not opened the app today, the widget says **"Nothing since you last opened PARAGON"** rather than showing yesterday's list as though it were this morning's.
 - When there is genuinely nothing due and nothing waiting, it says that too. An empty widget and a widget with nothing to say are different things, and it never leaves you guessing which one you are looking at.
 
-Nothing is written back from the widget, and nothing about your notes leaves the phone.
+Nothing is written back from the widget, and nothing about your notes leaves the machine it is on.
 
 ### When a widget looks empty
 
@@ -823,7 +829,7 @@ Read it like this:
 - **shared folder missing** — the widget cannot reach the small file the app writes. Nothing
   you do on the phone will mend this; it has to be fixed in the build. Tell me and I will.
 - **no line at all, a completely blank box** — the widget itself is not running. That is also a
-  build problem, not something to fix on the phone.
+  build problem, not something you can fix yourself.
 
 **Settings › Widget** says the same thing from the app's side: whether the shared folder was
 found, when the summary was last written, and how many actions are in it. There is a **Write it

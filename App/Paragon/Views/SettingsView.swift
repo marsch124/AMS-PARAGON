@@ -211,12 +211,9 @@ struct SettingsView: View {
                 }
             }
 
-            #if os(iOS)
-            // The Mac has no widget, and its own entitlements deliberately drop the App Group
-            // (the Mac App Store wants team-prefixed groups), so this section would report a
-            // missing folder there and mean nothing by it.
+            // On both platforms since build 178: the Mac has a widget of its own now, and the
+            // Mac's entitlements carry the team-prefixed App Group that goes with it.
             WidgetStatusSection()
-            #endif
 
             Section("About") {
                 LabeledContent("Device id", value: model.deviceID)
@@ -297,12 +294,11 @@ struct ReviewRhythmStepper: View {
     }
 }
 
-#if os(iOS)
-/// What the widget can see, said inside the app (build 177).
+/// What the widget can see, said inside the app (build 177; on the Mac too since 178).
 ///
 /// **A widget that is not running cannot say anything at all**, which is exactly the state his
-/// phone was in: a blank box, and the only advice available was "open the app once" — which
-/// mends nothing when the shared folder is what is missing. So the app answers the same three
+/// Mac was in: a blank box, and the only advice available was "open the app once" — which mends
+/// nothing when the shared folder is what is missing. So the app answers the same three
 /// questions the widget's own foot line answers, and this screen can be looked at even when the
 /// widget draws nothing.
 ///
@@ -320,7 +316,7 @@ struct WidgetStatusSection: View {
 
     private var explanation: String {
         if !folderFound {
-            return "The widget reads a small file that the app and the widget share. This phone cannot reach that shared folder, so the widget has nothing to read. That is not something you can mend on the phone — tell me and I will fix it in the build."
+            return "The widget reads a small file that the app and the widget share. PARAGON cannot reach that shared folder here, so the widget has nothing to read. That is not something you can mend yourself — tell me and I will fix it in the build."
         }
         if snapshot == nil {
             return "Nothing has been written yet. Open a vault, or press Write it again now."
@@ -358,4 +354,3 @@ struct WidgetStatusSection: View {
         snapshot = model.widgetSnapshotOnDisk()
     }
 }
-#endif

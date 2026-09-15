@@ -32,10 +32,11 @@ targets:
         product: ParagonCore
       - target: ParagonShare
         platformFilter: iOS
-      # iOS only, deliberately: a Mac widget would be a second thing to sign and a second
-      # thing to get wrong, and the Home Screen is where he wanted this (build 174).
+      # Both platforms since build 178. It was iPhone only in 174, and he then said he uses
+      # the widget on the Mac only: the PARAGON widget the Mac could offer him came from the
+      # phone over iPhone Mirroring, which Apple does not provide in the EU, so it could only
+      # ever draw a blank box.
       - target: ParagonWidgets
-        platformFilter: iOS
     info:
       path: App/Config/Paragon/Info.plist
       properties:
@@ -134,12 +135,12 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.schabbauer.AMSPara.Share
         SKIP_INSTALL: true
 
-  # The iPhone widget (build 174). It reads one small file out of the App Group container
-  # that the app writes on every reload; it never opens the vault, which is a
-  # security-scoped bookmark only the app can resolve.
+  # The widget (build 174 on the iPhone, build 178 on the Mac as well). It reads one small
+  # file out of the App Group container that the app writes on every reload; it never opens
+  # the vault, which is a security-scoped bookmark only the app can resolve.
   ParagonWidgets:
     type: app-extension
-    platform: iOS
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: App/ParagonWidgets
         type: syncedFolder
@@ -166,6 +167,10 @@ targets:
         GENERATE_INFOPLIST_FILE: false
         PRODUCT_BUNDLE_IDENTIFIER: com.schabbauer.AMSPara.Widgets
         SKIP_INSTALL: true
+        # The Mac needs its own entitlements: an extension inside a sandboxed Mac app must be
+        # sandboxed itself, and the App Group must carry the Team ID in front of it — the
+        # plain name is an iOS spelling and the Mac App Store refuses it.
+        CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements
 
 schemes:
   Paragon:

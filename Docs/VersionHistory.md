@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 178 · 15 September 2026
+
+**The widget on the Mac.** You said you use the widget on the Mac only, and that explains the
+blank box: **PARAGON had no Mac widget at all**. The PARAGON widget the Mac offered you was
+your iPhone's widget, handed over by iPhone Mirroring — the feature Apple does not provide in
+your part of the world. It could never have drawn anything.
+
+PARAGON now has its own Mac widget, built from the Mac app, with nothing coming from the phone.
+Click the date and time in the menu bar, scroll to the bottom of Notification Centre, click
+**Edit Widgets**, search for **PARAGON**. Right-clicking the desktop and choosing **Edit
+Widgets** puts it on the desktop instead.
+
+Both widgets are the same two: **Today's actions** and **What is waiting**. Each is fed by the
+app on that machine, so the Mac widget follows PARAGON on the Mac.
+
+**Settings › Widget** is now on the Mac as well, with the same three answers and the same
+**Write it again now** button.
+
 ## Build 177 · 15 September 2026
 
 **A widget that cannot be silent.** Your widget came up as a blank box, and nothing anywhere

@@ -2,8 +2,13 @@ import WidgetKit
 import SwiftUI
 import ParagonCore
 
-/// PARAGON on the Home Screen and the Lock Screen (build 174, the last of the five he asked
-/// for on 14 September).
+/// PARAGON on the iPhone's Home Screen and Lock Screen (build 174), and in the Mac's
+/// Notification Centre and on the Mac desktop (build 178).
+///
+/// **The Mac half is why this exists at all.** The widget shipped for the iPhone in 174; he
+/// then said he uses the widget on the Mac only. The PARAGON widget the Mac could offer him
+/// came from the phone over iPhone Mirroring, which Apple does not provide in the EU, so it
+/// could only ever draw a blank box. A Mac widget has to come from the Mac app.
 ///
 /// **The widget reads one small file and nothing else.** The vault is a folder he picked, held
 /// as a security-scoped bookmark that only the app can resolve, and a widget gets a few
@@ -33,8 +38,8 @@ struct ParagonEntry: TimelineEntry {
 }
 
 struct ParagonProvider: TimelineProvider {
-    /// What the widget gallery shows while he is choosing one. Real-looking lines rather than
-    /// his own, which are not readable from here anyway.
+    /// What the widget gallery shows while he is choosing one — on the Mac, the list under
+    /// Edit Widgets. Real-looking lines rather than his own, which are not readable from here.
     func placeholder(in context: Context) -> ParagonEntry {
         ParagonEntry(date: Date(), snapshot: ParagonProvider.example)
     }
@@ -361,10 +366,26 @@ struct CountsWidget: Widget {
 
 @main
 struct ParagonWidgetBundle: WidgetBundle {
-    /// **The old name on purpose.** The App Group is one of the four identifiers the rename to
-    /// PARAGON deliberately kept, because it is enabled under this name in Apple's developer
-    /// portal and the share extension already uses it.
-    static let appGroupID = "group.com.schabbauer.amspara"
+    /// The shared folder this widget reads from. **Two spellings of one group** (build 178).
+    ///
+    /// **The old name on purpose** on iOS: the App Group is one of the four identifiers the
+    /// rename to PARAGON deliberately kept, because it is enabled under this name in Apple's
+    /// developer portal and the share extension already uses it.
+    ///
+    /// On the Mac the name must begin with the Team ID — a sandboxed Mac app cannot join a
+    /// group spelled the iOS way, and the Mac App Store refuses one without the prefix. It is
+    /// the same group, spelled as each platform requires.
+    ///
+    /// **This is written out here as well as in `AppModel.widgetGroupID`**, because a widget
+    /// target cannot see the app's code. Like `WidgetLook` below, that is real drift risk: a
+    /// change to one belongs in the same build as the change to the other.
+    static var appGroupID: String {
+        #if os(macOS)
+        return "D24ENP83QQ.group.com.schabbauer.amspara"
+        #else
+        return "group.com.schabbauer.amspara"
+        #endif
+    }
 
     var body: some Widget {
         ActionsWidget()
