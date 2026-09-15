@@ -174,15 +174,29 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(save.isEnabled, "Save stayed grey after a line was typed.")
         save.tap()
 
-        // The screen shows "Saved" for a moment and then closes itself; the Inbox tab is
-        // behind it until it does.
+        // What the app says after Save ("Saved to Inbox") is the proof the capture ran; the
+        // screen then closes itself a moment later, and the Inbox tab is behind it until it
+        // does. Each is checked on its own, with what was on screen in the message, because a
+        // log is the only eye there is on this simulator.
+        let saidSaved = app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Saved'")).firstMatch
+        let confirmed = saidSaved.waitForExistence(timeout: 10)
         let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
-        wait(for: [closed], timeout: 15)
+        let closing = XCTWaiter().wait(for: [closed], timeout: 15)
+        XCTAssertTrue(confirmed,
+                      "Save was pressed and the screen never said Saved. On screen: \(visibleTexts())")
+        XCTAssertEqual(closing, .completed,
+                       "The capture screen said Saved but did not close itself. On screen: \(visibleTexts())")
 
         app.buttons["tab.inbox"].tap()
         let line = element("inbox.Captured by the screen test")
         XCTAssertTrue(line.waitForExistence(timeout: 20),
                       "The captured line is not in the Inbox. Either the capture was not written, or the Inbox did not reload.")
+    }
+
+    /// The first twenty texts on screen, for a failure message. The nearest thing to a
+    /// screenshot that can be read back from the CI log.
+    private func visibleTexts() -> String {
+        app.staticTexts.allElementsBoundByIndex.prefix(20).map { $0.label }.joined(separator: " | ")
     }
 
     /// Any element carrying that identifier, whatever kind of element SwiftUI made it.
