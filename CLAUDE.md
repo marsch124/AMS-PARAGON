@@ -1917,9 +1917,119 @@ three shapes to him and he took **five tabs, Capture as a button**: the bar is n
 - **Untested from here**: whether a horizontal scroll inside a page (the Map's two-way scroll,
   the Calendar's chip strip) wins its own swipe. CI compiles but never swipes.
 
+## One door in (builds 185 to 189)
+
+His words about the old New note sheet: *"This is a very sad entry page. I would like to have:
+Goal, Project, Area, Resource, Quick Capture — all five with buttons at the top, then we can
+have the name field."* He chose the lower half from a preview
+(https://claude.ai/artifact/67nAaem7sj89DyZGZBiXDQ) — shape **B**, chips — and asked for
+"Capture" as the short name and "Template" as the word.
+
+- **`NewThing`** is the five, its own type rather than `ParaKind`: a capture is not a kind of
+  note, and pretending it is would put it in the sidebar, the Map and the review. Capture wears
+  the **Inbox** tint, which is the same orange the preview drew by eye.
+- **The capture half is `QuickCaptureView(embedded: true)`**, the very view the menu bar item,
+  ⇧⌘N and the phone's button use. `embedded` drops its heading, padding and width, and
+  `deskWidth` is written out rather than a ternary over `CGFloat?`.
+- **`ChipLabel` / `PickerChip` / `DateChip`** are build 142's two states in a settings row: set
+  is the tint filled with a solid border, not set is grey with a dashed one. **A popover, not a
+  `Menu`**: `ProjectDeadlineChip` and `NoteTagsChip` are both built that way and are known to
+  behave on both platforms, and a popover can carry a heading saying what is being chosen.
+  `ChipOption` is a struct, not a tuple (build 61, fourth time).
+- **New in the sheet: an area can be given the aspiration it serves.** The same fault as 132,
+  134, 140, 144, 165 and 167, inside the sheet this time.
+- **Build 186: a plain `Button` is a proper button on a Mac and two blue words on a phone.** His
+  screenshot. The footer is split per platform; on the phone **Create** is full width in the
+  chosen kind's tint. **The padding goes inside the label** — a Button's tap area is its label,
+  and padding put outside only moves it.
+- **He asked for plain words**: *"don't use words like 'caught it' in order to be cool. Just use
+  Save."* The capture button says **Save** and the caption says "3 saved today."
+
+## Tags you can see before you make a new one (builds 187 and 188)
+
+*"It's not always too easy to know what tags I have defined, and I don't want two tags the same
+meaning, but slightly different names."*
+
+- **`TagChoices` (TagsView.swift) is the one list**, pulled out of `NoteTagsChip` and opened by
+  the note header, the New note sheet and the Capture screen. Each row says how much of the
+  vault carries that tag, or "not used yet" — **that number is the feature**, because it is what
+  makes a near-duplicate visible.
+- **The counts are read once in `onAppear`.** `tagUses()` walks every note and every task;
+  reading it from `body` would redo that walk on every keystroke in the new-tag field.
+- **`Vault.createNote` takes `tags:` separately from `extraFrontmatter`**, because
+  `extraFrontmatter` writes a *string* and "travel, work" as a string is one tag called
+  "travel, work". An empty list writes nothing, so a template's own `tags:` line survives.
+- **`AppModel.cleanTag` moved into Core as `TagName.clean`/`cleaned`, with tests** — build 146
+  asked for exactly that after shipping a version that stripped only a leading `#`.
+- **Build 188, and he had to ask.** *"The tags work on everything except Capture."* The reason
+  is worth keeping: a note's tags are a `tags:` line and a capture's are `#tag` inside the
+  words, so **in the code they are two mechanisms and I was editing one screen** rather than
+  asking which screens pick a tag. `CaptureReading.line(_:settingTags:)` (Core, tested) strips
+  with `TaskParser.tagRegex` itself, so what comes out is exactly what the parser would read.
+  **When a build changes how something is chosen, every screen that chooses the same thing is
+  part of that build** (build 168's rule, third time).
+
+## The colour of an aspiration (build 189)
+
+Open since build 175, decided from a preview of four
+(https://claude.ai/artifact/4ka6hyMeeTCuEBMjN5Ajc2). He took **B**: a deeper gold
+(`AspirationTint`, #8A5A12 / #E0A83E). Plum was drawn and refused — it leaves the goal family
+and neighbours the Calendar's violet.
+
+- **`ChainTint` sits beside `ChainSymbol`** with the same two overloads, so the colour and the
+  symbol are decided in one breath everywhere. An unresolved `goal:` name takes the dated goal's
+  gold, never the aspiration's.
+- **`Note.tint` is the change that carries most of it**: a goal note asks `ChainTint`, which
+  covers `NoteRow`, the note header, `TintStripe` and every `MapNode.tint`. `KindBadge` and
+  `GoalProgressBar` gained a `tint` override for the same reason each already took a symbol.
+- **Every screen in the same build**: Goals list and chain, the Map card and its legend, the
+  review's `GoalHealthRow` and `ReviewDueRow`, the note header, `NoteGoalChip`, the planner's
+  serves line, the New note sheet and the rhythm chips in Settings.
+- **Left gold on purpose**: the sidebar row **Goals**, the tint over the detail column, "No
+  goals yet", and a dated goal's own counts, target and rail. That row is the whole family,
+  which is also why it carries the target and not the star (build 168).
+
+## CI opens the app now (build 190)
+
+He asked for it after I named it the biggest weakness. **CI had compiled this app since the
+first push and had never once opened a screen in it**, which is why builds 71–74, 85, 114–128
+and 123–127 all shipped green.
+
+- **`App/Paragon/TestVault.swift`, DEBUG only.** The vault was always the obstacle: PARAGON
+  opens a folder the user chose, kept as a security-scoped bookmark, so a fresh install shows
+  the welcome screen and a test can go no further. With `-paragon-test-vault` the app makes a
+  folder in the temporary directory and opens it **through the ordinary `openVault(at:)`**, so
+  the tests exercise the real path. It wipes the app's `UserDefaults` first — the simulator
+  keeps the container between runs, and a remembered section or `editorMode` deciding what a
+  test sees is builds 123–127 all over again.
+- **`ParagonUITests` has a target *and a scheme* of its own.** The `Paragon` scheme that
+  TestFlight archives does not know it exists, which is the only way to be sure a Release
+  archive can never contain a test bundle.
+- **Two tests, deliberately dull**: the tab bar appears (which also proves the vault opened
+  rather than the welcome screen), and every tab opens a screen with the app still running.
+  **A screen test that fails for its own reasons is worse than none**, because the next red
+  light is then ignored. Grow the suite one or two at a time and watch each addition go green.
+- **The CI job picks the simulator by id** from what the runner actually has; a destination
+  naming an iPhone the image lacks fails in a way that reads like a broken test.
+- **A suite with nothing in it also prints `TEST SUCCEEDED`**, so the job counts the cases that
+  started and the ones that passed. Build 178's rule: a check that can only be wrong in one
+  direction is worth as much as no check at all.
+- Tab buttons carry `accessibilityIdentifier("tab.today")` and so on — **a name of its own,
+  never the title**, so a tab renamed for him does not quietly stop a test finding it.
+- **A push that changes `project.yml` makes CI commit the regenerated project**, so the next
+  local push needs `git pull --rebase` first.
+
 ## Not built (by choice)
 
-Nothing. Saved searches were the last item and shipped in build 173.
+- **The App Group in the developer portal**, parked by him on 15 September and explained again
+  that day: it costs him five minutes and buys two iPhone-only things — Share › PARAGON from
+  another app reaching the Inbox, and the iPhone widget. He uses the widget on the Mac, which
+  is unaffected. Told him plainly that if he wants neither, there is no advantage.
+- **The full peek carousel** on the phone (build 184): it means replacing the page view, and
+  then every screen's top bar lives inside a scroll view.
+- **A filter on All actions** — his own "maybe we should make the filter function later on".
+- **More screen tests.** Build 190 is two; the obvious next ones are opening a note and typing
+  in it (the 114–128 fault), and selecting a row in the Inbox (the 71–74 fault).
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
