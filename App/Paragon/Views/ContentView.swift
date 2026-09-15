@@ -386,7 +386,9 @@ struct NoteListView: View {
             NoteRow(note: note,
                     goalProgress: note.kind == .goal ? model.index.progress(of: note) : nil,
                     goalSymbol: note.goal.map { ChainSymbol.forGoal(named: $0, in: model.index) }
-                        ?? ChainSymbol.datedGoal)
+                        ?? ChainSymbol.datedGoal,
+                    goalTint: note.goal.map { ChainTint.forGoal(named: $0, in: model.index) }
+                        ?? ChainTint.datedGoal)
         }
         .padding(.leading, model.index.parentArea(of: note) == nil ? 0 : 18)
         .tag(note.relativePath)
@@ -728,6 +730,13 @@ struct NoteGoalChip: View {
         note.goal.map { ChainSymbol.forGoal(named: $0, in: model.index) } ?? ChainSymbol.datedGoal
     }
 
+    /// The deeper gold when it names an aspiration (build 189). The symbol and the colour are
+    /// decided in the same breath everywhere, or one screen says star and gold while another
+    /// says star and bronze.
+    private var tint: Color {
+        note.goal.map { ChainTint.forGoal(named: $0, in: model.index) } ?? ChainTint.datedGoal
+    }
+
     var body: some View {
         Menu {
             NoteGoalOptions(model: model, note: note)
@@ -736,7 +745,7 @@ struct NoteGoalChip: View {
         }
         .menuIndicator(.hidden)
         .fixedSize()
-        .foregroundStyle(note.goal == nil ? Color.secondary : ParaKind.goal.tint)
+        .foregroundStyle(note.goal == nil ? Color.secondary : tint)
         .help(note.kind == .project
               ? "Which goal this project delivers"
               : "Which aspiration this part of your life serves")
@@ -786,6 +795,8 @@ struct NoteRow: View {
     /// goal (build 168). Handed in for the same reason as `goalProgress`: the row holds one
     /// note and cannot look the named goal up.
     var goalSymbol: String = ChainSymbol.datedGoal
+    /// Its colour, handed in for the same reason and always with it (build 189).
+    var goalTint: Color = ChainTint.datedGoal
 
     var body: some View {
         HStack(spacing: 10) {
@@ -814,7 +825,7 @@ struct NoteRow: View {
                         Text("\(progress.done) of \(progress.total)")
                             .foregroundStyle(note.tint)
                     } else if let roll = goalProgress, roll.fraction != nil {
-                        GoalProgressBar(progress: roll, width: 56, showsCounts: false)
+                        GoalProgressBar(progress: roll, width: 56, showsCounts: false, tint: note.tint)
                     } else if note.openTasks.count > 0 {
                         Label("\(note.openTasks.count)", systemImage: "checklist")
                             .foregroundStyle(note.tint)
@@ -833,7 +844,7 @@ struct NoteRow: View {
                     }
                     if let goal = note.goal, note.kind != .goal {
                         Label(goal, systemImage: goalSymbol)
-                            .foregroundStyle(ParaKind.goal.tint)
+                            .foregroundStyle(goalTint)
                     }
                     if let area = note.area {
                         Label(area, systemImage: "circle.grid.2x2")
@@ -907,7 +918,7 @@ struct DetailView: View {
             EmptyStateView(title: "Pick an aspiration",
                            systemImage: ChainSymbol.aspiration,
                            message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each. The button at the top right shows all of them at once.",
-                           tint: ParaKind.goal.tint)
+                           tint: ChainTint.aspiration)
         } else if let path = model.selectedNotePath, model.note(at: path) != nil {
             NoteEditorView(path: path)
                 .id(path)
@@ -997,7 +1008,10 @@ extension SidebarSection {
 }
 
 extension Note {
-    var tint: Color { kind.tint }
+    /// A note's colour. **An aspiration is the one note whose colour is not simply its kind's**
+    /// (build 189): it is the head of the goal family and wears the deeper gold. `ChainTint` is
+    /// the one place that is decided, so this and the chips cannot drift apart.
+    var tint: Color { kind == .goal ? ChainTint.forGoal(self) : kind.tint }
 }
 
 /// A small filled circle carrying a bucket's colour and symbol.
@@ -1007,13 +1021,17 @@ struct KindBadge: View {
     /// Overrides the kind's own symbol. An aspiration and a goal with a date are both `.goal`
     /// notes and are not the same thing, so the Goals screen hands in its own (build 164).
     var systemImage: String? = nil
+    /// Overrides the kind's own colour, for the same reason and always in the same breath as
+    /// `systemImage`: since build 189 an aspiration is the deeper gold, so a badge that carries
+    /// the star must carry that colour too.
+    var tint: Color? = nil
 
     var body: some View {
         Image(systemName: systemImage ?? SidebarSection.kind(kind).systemImage)
             .font(.system(size: size * 0.5, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
-            .background(kind.tint, in: Circle())
+            .background(tint ?? kind.tint, in: Circle())
             .accessibilityLabel(kind.displayName)
     }
 }

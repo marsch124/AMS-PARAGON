@@ -224,6 +224,10 @@ is a ring, and an **area** is the four squares. They are the same icons the side
 sidebar row **Goals** carries the target, and the star is used for one thing only in the whole
 app — an aspiration. A note's own header shows which of the two it is.
 
+They also have their own colours: an **aspiration is a deeper gold** and a **goal with a date**
+is the lighter gold the Goals list has always used. The sidebar row named **Goals** keeps the
+lighter one, because that row is both of them.
+
 A goal with no aspiration above it is marked in orange and carries a **Give it an aspiration**
 button, which opens the list of your aspirations. Nothing is wrong with such a goal — it is a
 loose end, not an error — but the chain only works when each link points at the next.
@@ -437,7 +441,7 @@ Every box carries the same icon the rest of the app uses for that kind of note:
 **The difference is the date.** An aspiration has no target date; a goal has one. That one rule is the whole distinction, and everywhere the two sit side by side the app says it in a line under the heading.
 - **A flag** is a **project**, **four squares** an **area**, **books** a **resource**, and a **ring** is one open task.
 
-The colour is the note's kind: goals gold, areas pink, projects green, resources blue, the archive grey. Because an aspiration and a goal with a date are both gold, the icon is what tells them apart. The legend along the bottom names every one of them, with the same icon the box itself carries.
+The colour is the note's kind: goals gold, areas pink, projects green, resources blue, the archive grey. An **aspiration** is a deeper gold than a **goal with a date**, so on the Map the colour and the icon say the same thing. The legend along the bottom names every one of them, with the same icon and colour the box itself carries.
 
 Under the name, the second line begins with **what the note is** — Aspiration, Goal, Project, Area, Resource — and then how it stands.
 

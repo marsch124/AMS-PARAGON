@@ -268,6 +268,42 @@ enum ChainSymbol {
     }
 }
 
+/// The colour of each link in the chain, paired with `ChainSymbol` above.
+///
+/// **Build 189, his choice from a preview** (https://claude.ai/artifact/4ka6hyMeeTCuEBMjN5Ajc2).
+/// An aspiration wears a **deeper gold** than a goal with a date. He had asked for this since
+/// build 175: *"sometimes I have difficulties understanding what is an aspiration and what is
+/// a goal."* Build 176 answered it with words; this answers it with the colour.
+///
+/// **It stays inside the goal family on purpose.** A colour in PARAGON is a claim about what a
+/// thing is (build 169), and an aspiration is the head of the goals, not a fifth kind of note.
+/// Plum was drawn and rejected for exactly that, and because it neighbours the Calendar's
+/// violet.
+///
+/// **The sidebar row named Goals keeps the plain gold**, the same reasoning as build 168's
+/// icon: the row is the whole family, so it wears the family's colour. `SidebarSection.tint`
+/// is untouched, and so is the tint over the detail column.
+enum ChainTint {
+    /// The one place the deeper gold is spelled.
+    static let aspiration = Color("AspirationTint")
+    static let datedGoal = ParaKind.goal.tint
+
+    /// The right one for a goal note, whichever kind of goal it is.
+    static func forGoal(_ note: Note) -> Color {
+        (note.horizon ?? .year) == .life ? aspiration : datedGoal
+    }
+
+    /// The right one for a `goal:` line, which may name either kind. A name with no note behind
+    /// it takes the dated goal's gold, never the aspiration's — the same rule `ChainSymbol` uses,
+    /// so an unresolved link never claims to be an aspiration.
+    static func forGoal(named reference: String, in index: NoteIndex) -> Color {
+        // Written out rather than `.map(forGoal)`: `forGoal` is overloaded, and there is no
+        // Swift compiler here to settle which one a bare function reference means (build 168).
+        guard let note = index.goal(matching: reference) else { return datedGoal }
+        return forGoal(note)
+    }
+}
+
 /// The two kinds of goal, named and explained in one place.
 ///
 /// **Build 176, and it is not a drawing problem.** He said: *"sometimes I have difficulties
@@ -303,14 +339,16 @@ struct AspirationRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.aspiration)
+            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.aspiration,
+                      tint: ChainTint.aspiration)
             VStack(alignment: .leading, spacing: 3) {
                 Text(chain.note.title)
                     .font(.headline)
                     .lineLimit(2)
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
                     if chain.progress.fraction != nil {
-                        GoalProgressBar(progress: chain.progress, width: 56, showsCounts: false)
+                        GoalProgressBar(progress: chain.progress, width: 56, showsCounts: false,
+                                        tint: ChainTint.aspiration)
                     }
                     if !chain.goals.isEmpty {
                         Text(chain.goals.count == 1 ? "1 goal" : "\(chain.goals.count) goals")
@@ -357,7 +395,8 @@ struct DatedGoalRow: View {
     var body: some View {
         let health = model.index.chainGoal(of: note)
         HStack(spacing: 10) {
-            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.forGoal(note))
+            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.forGoal(note),
+                      tint: ChainTint.forGoal(note))
             VStack(alignment: .leading, spacing: 3) {
                 Text(note.title)
                     // Struck through however it ended: done, missed or dropped, it is over.
@@ -366,7 +405,8 @@ struct DatedGoalRow: View {
                     .lineLimit(2)
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
                     if health.progress.fraction != nil {
-                        GoalProgressBar(progress: health.progress, width: 56, showsCounts: false)
+                        GoalProgressBar(progress: health.progress, width: 56, showsCounts: false,
+                                        tint: ChainTint.forGoal(note))
                     }
                     if let target = note.targetDate {
                         let left = target.timeLeftText(from: .today())
@@ -445,7 +485,7 @@ struct GoalDetailView: View {
             // Build 159's two-state control: it shows the state you are in, not the one you
             // would get.
             StateToggle(systemImage: "doc.text", title: "Note",
-                        isOn: showsNote, tint: ParaKind.goal.tint) {
+                        isOn: showsNote, tint: ChainTint.forGoal(note)) {
                 showsNote.toggle()
             }
         }
@@ -541,13 +581,14 @@ struct AspirationChainBody: View {
     private var head: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                KindBadge(kind: .goal, size: 26, systemImage: ChainSymbol.aspiration)
+                KindBadge(kind: .goal, size: 26, systemImage: ChainSymbol.aspiration,
+                          tint: ChainTint.aspiration)
                 Text(chain.note.title)
                     .font(.title2.weight(.semibold))
                     .lineLimit(3)
             }
             WrappingHStack(spacing: 6, lineSpacing: 6) {
-                ChainChip(text: GoalHorizon.life.label, tint: ParaKind.goal.tint, filled: true)
+                ChainChip(text: GoalHorizon.life.label, tint: ChainTint.aspiration, filled: true)
                 if let area = chain.area {
                     ChainChip(text: "In area: \(area.title)", tint: ParaKind.area.tint, filled: false)
                 }
@@ -555,12 +596,13 @@ struct AspirationChainBody: View {
                     ChainChip(text: "Measure: \(measure)", tint: .secondary, filled: false, dashed: true)
                 }
                 ForEach(chain.flags, id: \.self) { flag in
-                    ChainChip(text: flag.label, tint: flag == .achieved ? ParaKind.goal.tint : .orange, filled: false)
+                    ChainChip(text: flag.label,
+                              tint: flag == .achieved ? ChainTint.aspiration : .orange, filled: false)
                 }
             }
             .lineLimit(2)
             if chain.progress.fraction != nil {
-                GoalProgressBar(progress: chain.progress, width: 200)
+                GoalProgressBar(progress: chain.progress, width: 200, tint: ChainTint.aspiration)
             }
         }
     }
@@ -614,9 +656,12 @@ struct ChainGoalBlock: View {
                         }
                         if let serves = servesToShow {
                             // The extra he ticked: a dated goal says what it is in service of.
-                            // Gold, because what it names is an aspiration — it was pink, the
-                            // colour this app uses for an area (build 169).
-                            ChainChip(text: "Serves \(serves)", tint: ParaKind.goal.tint, filled: false)
+                            // The chip takes the colour of the thing it NAMES, not of the goal
+                            // it sits on — the deeper gold since build 189, and gold rather
+                            // than the area's pink since build 169.
+                            ChainChip(text: "Serves \(serves)",
+                                      tint: ChainTint.forGoal(named: serves, in: model.index),
+                                      filled: false)
                         }
                         if let percent = goal.progress.percent {
                             ChainChip(text: "\(percent)%", tint: ParaKind.goal.tint, filled: true)
@@ -852,7 +897,7 @@ struct AllAspirationsView: View {
                     EmptyStateView(title: "No aspirations yet",
                                    systemImage: ChainSymbol.aspiration,
                                    message: "An aspiration says what you are becoming. Make one and everything working towards it appears here.",
-                                   tint: ParaKind.goal.tint)
+                                   tint: ChainTint.aspiration)
                 }
                 ForEach(chains) { chain in
                     AspirationChainBody(chain: chain, compact: false)

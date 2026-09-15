@@ -366,7 +366,8 @@ struct GoalHealthRow: View {
             HStack(spacing: 8) {
                 // The star for an aspiration, the target for a goal with a date (build 171,
                 // finishing what 168 and 170 did on the other screens).
-                KindBadge(kind: .goal, size: 20, systemImage: ChainSymbol.forGoal(health.note))
+                KindBadge(kind: .goal, size: 20, systemImage: ChainSymbol.forGoal(health.note),
+                          tint: ChainTint.forGoal(health.note))
                 Text(health.note.title)
                     .font(.headline)
                     .lineLimit(2)
@@ -391,7 +392,8 @@ struct GoalHealthRow: View {
             }
             WrappingHStack(spacing: 8, lineSpacing: 3) {
                 // One item, so the bar and its per cent always move to a new line together.
-                GoalProgressBar(progress: health.progress, width: 54, showsCounts: false)
+                GoalProgressBar(progress: health.progress, width: 54, showsCounts: false,
+                                tint: ChainTint.forGoal(health.note))
                 if health.progress.projectsTotal > 0 {
                     Label("\(health.progress.projectsDone) of \(health.progress.projectsTotal) projects done", systemImage: "flag")
                 } else {
@@ -460,9 +462,15 @@ struct ReviewDueRow: View {
         }
     }
 
+    /// The level's own colour, decided in the same breath as its symbol: an aspiration is the
+    /// deeper gold since build 189, a goal with a date the family gold.
     private var tint: Color {
-        item.level == .area ? ParaKind.area.tint
-            : (item.level == .project ? ParaKind.project.tint : ParaKind.goal.tint)
+        switch item.level {
+        case .aspiration: return ChainTint.aspiration
+        case .goal: return ChainTint.datedGoal
+        case .project: return ParaKind.project.tint
+        case .area: return ParaKind.area.tint
+        }
     }
 
     var body: some View {

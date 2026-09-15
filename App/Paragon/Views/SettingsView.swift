@@ -265,6 +265,17 @@ struct ReviewRhythmStepper: View {
         )
     }
 
+    /// Each level in its own colour, so the four rows read as the four things they set. An
+    /// aspiration is the deeper gold since build 189.
+    private var levelTint: Color {
+        switch level {
+        case .aspiration: return ChainTint.aspiration
+        case .goal: return ChainTint.datedGoal
+        case .project: return ParaKind.project.tint
+        case .area: return ParaKind.area.tint
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(level.label)
@@ -279,7 +290,7 @@ struct ReviewRhythmStepper: View {
                     // drew that line and a checkmark square here would say you may have two.
                     PickChip(title: ReviewRhythm.label(forDays: choice),
                              isOn: choice == days.wrappedValue,
-                             tint: ParaKind.goal.tint) {
+                             tint: levelTint) {
                         days.wrappedValue = choice
                     }
                 }

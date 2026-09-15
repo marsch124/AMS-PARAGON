@@ -658,7 +658,7 @@ struct NoteHeader: View {
                 NoteGoalChip(model: model, note: note)
             } else if let goal = note.goal {
                 Label(goal, systemImage: ChainSymbol.forGoal(named: goal, in: model.index))
-                    .foregroundStyle(ParaKind.goal.tint)
+                    .foregroundStyle(ChainTint.forGoal(named: goal, in: model.index))
                     .contentShape(Rectangle())
                     .onTapGesture { model.openGoal(reference: goal) }
             }
@@ -1014,7 +1014,7 @@ struct GoalDashboardView: View {
         VStack(alignment: .leading, spacing: 8) {
             // The roll-up first: one line that answers "how far have I come?" before any of
             // the counts below explain it.
-            GoalProgressBar(progress: health.progress, width: 160)
+            GoalProgressBar(progress: health.progress, width: 160, tint: ChainTint.forGoal(goal))
             HStack(spacing: 14) {
                 stat("\(health.projects.count)", "projects")
                 stat("\(health.areas.count)", "areas")

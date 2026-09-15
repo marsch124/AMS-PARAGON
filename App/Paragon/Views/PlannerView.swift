@@ -824,7 +824,7 @@ struct PlannerActionsView: View {
         if let serves = serves(ref) {
             Label(serves.title, systemImage: serves.symbol)
                 .font(.caption2)
-                .foregroundStyle(serves.isGoal ? ParaKind.goal.tint : ParaKind.area.tint)
+                .foregroundStyle(serves.tint)
                 .lineLimit(1)
                 .padding(.leading, 22)
         }
@@ -832,22 +832,25 @@ struct PlannerActionsView: View {
 
     private struct Serves {
         let title: String
-        let isGoal: Bool
         /// Star for an aspiration, target for a dated goal, the four squares for an area
         /// (build 168). It is worked out where the note is resolved, so this row never has to
         /// guess which kind of goal it is naming.
         let symbol: String
+        /// Its colour, resolved with the symbol in the same breath: the deeper gold for an
+        /// aspiration since build 189, the family gold for a goal with a date, pink for an area.
+        let tint: Color
     }
 
     private func serves(_ ref: TaskRef) -> Serves? {
         guard let note = model.note(at: ref.notePath) else { return nil }
         if let goal = note.goal {
-            return Serves(title: model.index.goal(matching: goal)?.displayTitle ?? goal, isGoal: true,
-                          symbol: ChainSymbol.forGoal(named: goal, in: model.index))
+            return Serves(title: model.index.goal(matching: goal)?.displayTitle ?? goal,
+                          symbol: ChainSymbol.forGoal(named: goal, in: model.index),
+                          tint: ChainTint.forGoal(named: goal, in: model.index))
         }
         if let area = note.area {
-            return Serves(title: model.index.note(matching: area)?.displayTitle ?? area, isGoal: false,
-                          symbol: ChainSymbol.area)
+            return Serves(title: model.index.note(matching: area)?.displayTitle ?? area,
+                          symbol: ChainSymbol.area, tint: ParaKind.area.tint)
         }
         return nil
     }

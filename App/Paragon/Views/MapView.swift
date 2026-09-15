@@ -616,14 +616,24 @@ struct MapNodeView: View {
         .animation(.easeInOut(duration: 0.12), value: targeted)
     }
 
+    /// The badge's colour for a goal note, nil for everything else so the kind decides. A
+    /// function rather than a ternary in the call: the pair symbol/colour is written together
+    /// everywhere, and there is no compiler here to settle an inferred `Color?`.
+    private func chainTint(for note: Note) -> Color? {
+        guard note.kind == .goal else { return nil }
+        return ChainTint.forGoal(note)
+    }
+
     private func card(_ note: Note) -> some View {
         HStack(spacing: 8 * zoom) {
             // **Build 170: the Map speaks the chain's own vocabulary.** A goal note carries
             // the star when it is an aspiration and the target when it has a date — the same
-            // pair the Goals screen and the sidebar use since build 168. The badge's *colour*
-            // still comes from the note's kind, so an archived goal stays grey.
+            // pair the Goals screen and the sidebar use since build 168, and since build 189
+            // the deeper gold that goes with the star. An archived goal's kind is `.archive`,
+            // so `chainTint` leaves it nil and the badge stays grey.
             KindBadge(kind: note.kind, size: 20 * zoom,
-                      systemImage: note.kind == .goal ? ChainSymbol.forGoal(note) : nil)
+                      systemImage: note.kind == .goal ? ChainSymbol.forGoal(note) : nil,
+                      tint: chainTint(for: note))
             VStack(alignment: .leading, spacing: 1) {
                 Text(note.displayTitle)
                     .font(.system(size: 12.5 * zoom, weight: .semibold))
@@ -742,8 +752,8 @@ struct MapFooter: View {
                 // **Build 175, his ask**: the boxes carry symbols and the legend carried
                 // coloured dots for four of the six, so the legend did not explain the thing
                 // it sits under. Every entry is now the symbol the box itself draws.
-                symbolLegend(ChainSymbol.aspiration, GoalWording.aspiration, ParaKind.goal.tint)
-                symbolLegend(ChainSymbol.datedGoal, GoalWording.datedGoal, ParaKind.goal.tint)
+                symbolLegend(ChainSymbol.aspiration, GoalWording.aspiration, ChainTint.aspiration)
+                symbolLegend(ChainSymbol.datedGoal, GoalWording.datedGoal, ChainTint.datedGoal)
                 symbolLegend(ChainSymbol.area, "Areas", ParaKind.area.tint)
                 symbolLegend(ChainSymbol.project, "Projects", ParaKind.project.tint)
                 symbolLegend(ChainSymbol.task, "Their actions", ParaKind.project.tint)

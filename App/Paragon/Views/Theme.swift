@@ -281,15 +281,19 @@ struct GoalProgressBar: View {
     let progress: GoalProgress
     var width: CGFloat? = nil
     var showsCounts = true
+    /// The goal family's gold unless the bar belongs to an aspiration, which has worn the
+    /// deeper gold since build 189. Handed in for the same reason `KindBadge` takes one: the
+    /// bar sits beside a badge, and two golds in one row would say they are two things.
+    var tint: Color = ParaKind.goal.tint
 
     var body: some View {
         if let fraction = progress.fraction, let percent = progress.percent {
             HStack(spacing: 6) {
                 ProgressView(value: fraction)
-                    .tint(ParaKind.goal.tint)
+                    .tint(tint)
                     .frame(width: width)
                 Text("\(percent)%")
-                    .foregroundStyle(ParaKind.goal.tint)
+                    .foregroundStyle(tint)
                 if showsCounts {
                     Text(counts)
                         .foregroundStyle(.secondary)

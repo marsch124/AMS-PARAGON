@@ -129,7 +129,8 @@ struct NewNoteSheet: View {
             ForEach(NewThing.allCases) { choice in
                 ThingChoice(thing: choice,
                             chosen: thing == choice,
-                            symbol: symbol(for: choice)) { pick(choice) }
+                            symbol: symbol(for: choice),
+                            tint: tint(for: choice)) { pick(choice) }
             }
         }
     }
@@ -143,6 +144,12 @@ struct NewNoteSheet: View {
         case .capture: return "tray.and.arrow.down"
         default: return SidebarSection.kind(choice.kind).systemImage
         }
+    }
+
+    /// And its colour, decided with its symbol: the deeper gold goes with the star (build 189).
+    private func tint(for choice: NewThing) -> Color {
+        guard choice == .goal else { return choice.tint }
+        return horizon == .life ? ChainTint.aspiration : ChainTint.datedGoal
     }
 
     // MARK: Making a note
@@ -203,7 +210,7 @@ struct NewNoteSheet: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(canCreate ? thing.tint : Color.secondary.opacity(0.3),
+                        .background(canCreate ? tint(for: thing) : Color.secondary.opacity(0.3),
                                     in: RoundedRectangle(cornerRadius: 12))
                         .foregroundStyle(.white)
                 }
@@ -218,7 +225,7 @@ struct NewNoteSheet: View {
                 Button("Create", action: create)
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
-                    .tint(thing.tint)
+                    .tint(tint(for: thing))
                     .disabled(!canCreate)
             }
         }
@@ -235,22 +242,25 @@ struct NewNoteSheet: View {
                            emptyLabel: GoalWording.datedGoal,
                            noneLabel: nil,
                            systemImage: ChainSymbol.datedGoal,
-                           tint: ParaKind.goal.tint,
+                           tint: horizon == .life ? ChainTint.aspiration : ChainTint.datedGoal,
                            options: horizonOptions,
                            choice: horizonChoice)
                 if horizon != .life {
+                    // A target date belongs to a goal with a date, so it keeps the family gold.
                     DateChip(name: "Target",
                              emptyLabel: "Set a target date\u{2026}",
-                             tint: ParaKind.goal.tint,
+                             tint: ChainTint.datedGoal,
                              text: $target)
                 }
             }
             if let serves = serves {
+                // The chip takes the colour of the thing it names, not of the note being made.
                 PickerChip(name: serves.name,
                            emptyLabel: serves.empty,
                            noneLabel: "Nothing yet",
                            systemImage: ChainSymbol.datedGoal,
-                           tint: ParaKind.goal.tint,
+                           tint: servesGoal.isEmpty ? ChainTint.datedGoal
+                               : ChainTint.forGoal(named: servesGoal, in: model.index),
                            options: serves.options,
                            choice: $servesGoal)
             }
@@ -411,12 +421,13 @@ private struct ThingChoice: View {
     let thing: NewThing
     let chosen: Bool
     let symbol: String
+    let tint: Color
     let choose: () -> Void
 
     var body: some View {
         Button(action: choose) {
             VStack(spacing: 5) {
-                KindBadge(kind: thing.kind, size: 18, systemImage: symbol)
+                KindBadge(kind: thing.kind, size: 18, systemImage: symbol, tint: tint)
                     .opacity(chosen ? 1 : 0.45)
                 Text(thing.name)
                     .font(.caption)
@@ -427,11 +438,11 @@ private struct ThingChoice: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .padding(.horizontal, 2)
-            .foregroundStyle(chosen ? thing.tint : Color.secondary)
-            .background(thing.tint.opacity(chosen ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 9))
+            .foregroundStyle(chosen ? tint : Color.secondary)
+            .background(tint.opacity(chosen ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 9))
             .overlay(
                 RoundedRectangle(cornerRadius: 9)
-                    .strokeBorder(chosen ? thing.tint : Color.secondary.opacity(0.3),
+                    .strokeBorder(chosen ? tint : Color.secondary.opacity(0.3),
                                   lineWidth: chosen ? 1.5 : 1)
             )
             .contentShape(RoundedRectangle(cornerRadius: 9))

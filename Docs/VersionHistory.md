@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 189 · 15 September 2026
+
+**An aspiration has its own colour now: a deeper gold.** You picked it from a drawing. A goal
+with a date keeps the gold it has always had, so the two are told apart by colour as well as by
+the star and the target.
+
+It is the same colour everywhere at once — the Goals list, the chain, the Map, the weekly
+review, the note header, every **Serves…** chip, the New note screen and the review rhythm in
+Settings. One symbol in two colours on some screens and not others is a fault this app has
+already paid for twice.
+
+**The sidebar row named Goals keeps the plain gold**, and so does the colour over the note
+column. That row is the whole family, not one half of it — the same reason it carries the
+target and not the star.
+
+On the New note screen the **Goal** button changes colour as you choose: deeper gold with a
+star while **Aspiration** is picked, plain gold with a target once it has a date.
+
 ## Build 188 · 15 September 2026
 
 **The Capture screen has the same tag list.** You found it: *"The tags work on everything
