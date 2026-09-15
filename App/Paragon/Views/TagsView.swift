@@ -252,14 +252,19 @@ struct NoteTagsChip: View {
     @ObservedObject var model: AppModel
     let note: Note
     @State private var showing = false
-    @State private var draft = ""
 
     /// Read back from the model rather than kept: a toggle saves and reloads, and the copy
     /// handed to this view a moment ago is then one behind.
     private var live: Note { model.note(at: note.relativePath) ?? note }
 
     private var title: String {
-        live.tags.isEmpty ? "Tags\u{2026}" : live.tags.map { "#\($0)" }.joined(separator: " ")
+        live.tags.isEmpty ? "Tags…" : live.tags.map { "#\($0)" }.joined(separator: " ")
+    }
+
+    /// The note's tags as something that can be written to. `setTags` cleans and de-duplicates,
+    /// so the list that comes back may differ from the one handed in — which is the point.
+    private var chosen: Binding<[String]> {
+        Binding(get: { live.tags }, set: { model.setTags($0, on: live) })
     }
 
     var body: some View {
@@ -272,19 +277,40 @@ struct NoteTagsChip: View {
         .buttonStyle(.plain)
         .foregroundStyle(live.tags.isEmpty ? Color.secondary : SidebarSection.tags.tint)
         .help("Add or remove this note's tags")
-        .popover(isPresented: $showing) { picker }
+        .popover(isPresented: $showing) {
+            TagChoices(model: model, title: "Tags on this note", chosen: chosen)
+        }
     }
+}
 
-    private var picker: some View {
+/// Every tag the vault knows, with a tick on the ones chosen, and a field to make a new one.
+///
+/// **One view, used by the note header and by the New note sheet (build 187).** His ask:
+/// *"It's not always too easy to know what tags I have defined, and I don't want two tags the
+/// same meaning, but slightly different names."* Seeing the whole list at the moment of
+/// choosing is the answer to that, so the list has to be the same list in both places — two
+/// of them is how the Map, the review and the goal dashboard came to give three answers to
+/// "what serves what" before build 162.
+///
+/// **The counts are read once, in `onAppear`.** `tagUses()` walks every note and every task;
+/// reading it from `body` would do that walk again on every keystroke in the new-tag field.
+struct TagChoices: View {
+    @ObservedObject var model: AppModel
+    let title: String
+    @Binding var chosen: [String]
+    @State private var draft = ""
+    @State private var totals: [String: Int] = [:]
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Tags on this note")
+            Text(title)
                 .font(.subheadline.weight(.semibold))
             HStack(spacing: 6) {
                 TextField("New tag", text: $draft)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit(addDraft)
                 Button("Add", action: addDraft)
-                    .disabled(AppModel.cleanTag(draft) == nil)
+                    .disabled(TagName.clean(draft) == nil)
             }
             choices
             Text("A tag can also be written straight into the note's tags: line, or as #tag on a task.")
@@ -293,8 +319,13 @@ struct NoteTagsChip: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
-        .frame(width: 290)
+        .frame(width: 300)
         .presentationCompactAdaptation(.popover)
+        .onAppear {
+            var counts: [String: Int] = [:]
+            for use in model.tagUses() { counts[use.tag.lowercased()] = use.total }
+            totals = counts
+        }
     }
 
     @ViewBuilder
@@ -308,31 +339,46 @@ struct NoteTagsChip: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(tags, id: \.self) { tag in
-                        Button {
-                            model.toggleTag(tag, on: live)
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: isOn(tag) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(isOn(tag) ? SidebarSection.tags.tint : Color.secondary)
-                                Text("#\(tag)")
-                                Spacer(minLength: 0)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
+                        row(tag)
                     }
                 }
             }
-            .frame(maxHeight: 200)
+            .frame(maxHeight: 220)
         }
     }
 
-    /// This note's tags first, in its own order, then every other tag in the vault. Built
-    /// outside the ViewBuilder, where a `var` is allowed.
+    private func row(_ tag: String) -> some View {
+        Button {
+            toggle(tag)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: isOn(tag) ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isOn(tag) ? SidebarSection.tags.tint : Color.secondary)
+                Text("#\(tag)")
+                    .lineLimit(1)
+                Spacer(minLength: 6)
+                Text(countText(for: tag))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// How much of the vault carries it, so a tag that means the same as another one but is
+    /// spelled differently stands out as the one with almost nothing on it.
+    private func countText(for tag: String) -> String {
+        let total = totals[tag.lowercased()] ?? 0
+        return total == 0 ? "not used yet" : "\(total)"
+    }
+
+    /// The chosen tags first, in their own order, then every other tag in the vault. Built
+    /// outside the ViewBuilder, where a `var` is not allowed (build 58).
     private var offered: [String] {
         var seen = Set<String>()
         var result: [String] = []
-        for tag in live.tags where seen.insert(tag.lowercased()).inserted {
+        for tag in chosen where seen.insert(tag.lowercased()).inserted {
             result.append(tag)
         }
         for tag in model.allTagNames where seen.insert(tag.lowercased()).inserted {
@@ -342,12 +388,23 @@ struct NoteTagsChip: View {
     }
 
     private func isOn(_ tag: String) -> Bool {
-        live.tags.contains { $0.lowercased() == tag.lowercased() }
+        chosen.contains { $0.lowercased() == tag.lowercased() }
+    }
+
+    private func toggle(_ tag: String) {
+        guard let clean = TagName.clean(tag) else { return }
+        var tags = chosen
+        if let index = tags.firstIndex(where: { $0.lowercased() == clean.lowercased() }) {
+            tags.remove(at: index)
+        } else {
+            tags.append(clean)
+        }
+        chosen = tags
     }
 
     private func addDraft() {
-        guard let clean = AppModel.cleanTag(draft) else { return }
-        if !isOn(clean) { model.toggleTag(clean, on: live) }
+        guard let clean = TagName.clean(draft) else { return }
+        if !isOn(clean) { toggle(clean) }
         draft = ""
     }
 }

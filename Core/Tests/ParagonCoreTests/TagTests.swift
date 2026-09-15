@@ -98,4 +98,42 @@ final class TagTests: XCTestCase {
         XCTAssertEqual(travel?.finishedTaskCount, 1)
         XCTAssertFalse(travel?.isUnused ?? true)
     }
+
+    // MARK: The stored shape of a tag (build 187; it lived in the app untested until now)
+
+    func testCleanTurnsWhatHeTypesIntoATagTheParserCanAlsoMatch() {
+        XCTAssertEqual(TagName.clean("travel"), "travel")
+        XCTAssertEqual(TagName.clean("#travel"), "travel")
+        // Build 146's fault: only the leading # was stripped, so this became one tag called
+        // "Claude-#Productivity", which `#tag` on a task line can never spell.
+        XCTAssertEqual(TagName.clean("Claude #Productivity"), "Claude-Productivity")
+        XCTAssertEqual(TagName.clean("  two   words "), "two-words")
+        XCTAssertEqual(TagName.clean("a -- b"), "a-b")
+        XCTAssertEqual(TagName.clean("-edge-"), "edge")
+        XCTAssertNil(TagName.clean(""))
+        XCTAssertNil(TagName.clean("   "))
+        XCTAssertNil(TagName.clean("#"))
+        XCTAssertNil(TagName.clean("---"))
+    }
+
+    func testCleanedDropsWhatIsOnlyADifferentCase() {
+        XCTAssertEqual(TagName.cleaned(["Travel", "travel", "#TRAVEL", "waiting"]),
+                       ["Travel", "waiting"])
+        XCTAssertEqual(TagName.cleaned(["", "  "]), [])
+    }
+
+    // MARK: Tags given to a note as it is made
+
+    func testANewNoteCanBeGivenItsTags() throws {
+        let note = try vault.createNote(kind: .project, title: "Trip", tags: ["#Travel", "travel", "two words"])
+        let saved = try vault.loadNote(relativePath: note.relativePath)
+        XCTAssertEqual(saved.tags, ["Travel", "two-words"])
+    }
+
+    func testNoTagsLeavesTheTemplatesOwnLineAlone() throws {
+        try vault.saveTemplate(named: "Project", text: "---\ntype: project\ntags: kept\n---\n\n# {{title}}\n")
+        let note = try vault.createNote(kind: .project, title: "Plain")
+        let saved = try vault.loadNote(relativePath: note.relativePath)
+        XCTAssertEqual(saved.tags, ["kept"])
+    }
 }

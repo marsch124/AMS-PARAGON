@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 187 · 15 September 2026
+
+**The New note screen has a Tags chip, and it shows every tag you already have.** Your words:
+*"It's not always too easy to know what tags I have defined, and I don't want two tags the same
+meaning, but slightly different names."*
+
+Press **Tags…** and you get the whole list, with a tick on the ones you have picked. Beside each
+tag is **how much of your vault carries it** — a number, or "not used yet". That is what makes a
+near-duplicate show itself: if you see **#travel 24** and **#travelling 1**, you know which one
+you meant. There is also a field at the top for a tag that does not exist yet.
+
+**It is the same list the tag button in a note's header opens**, so the two can never offer you
+different tags.
+
+A tag you type is tidied the same way everywhere: a `#` and any spaces become hyphens, so
+`Claude #Productivity` is stored as `Claude-Productivity`. That rule moved into the tested part
+of the app, where it belongs.
+
 ## Build 186 · 15 September 2026
 
 **Cancel and Create are proper buttons on the iPhone now.** They were two blue words in the

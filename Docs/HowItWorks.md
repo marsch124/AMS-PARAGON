@@ -60,6 +60,7 @@ Under that, everything else a note can be given as it is made, drawn as chips yo
 - **Goal** — which kind of goal it is (**Aspiration**, **Long term**, **This year**), a **Target** date, and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The button at the top shows the star while Aspiration is chosen and the target while a date is.
 - **Project** — the goal it delivers.
 - **Area** — the area it is part of, and the aspiration it serves.
+- **Tags** — the whole list of tags you already have, with a tick on the ones you pick and a number beside each saying how much of your vault carries it, so a tag that means the same as one you already use but is spelled differently stands out. A field at the top makes a tag that does not exist yet. It is the same list the tag button in a note's header opens.
 - **Template** — which template to start from, when that kind has more than one.
 
 Only the chips that apply to the kind you have chosen are shown.

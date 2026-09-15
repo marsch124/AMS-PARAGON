@@ -111,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 186
+    static let number = 187
 }
 
 @MainActor
@@ -1142,11 +1142,11 @@ final class AppModel: ObservableObject {
     }
 
     func createNote(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
-                    template: String? = nil) {
+                    tags: [String] = [], template: String? = nil) {
         guard let vault else { return }
         do {
             let note = try vault.createNote(kind: kind, title: title, extraFrontmatter: extraFrontmatter,
-                                            template: template)
+                                            tags: tags, template: template)
             reload()
             show(section: .kind(kind), notePath: note.relativePath)
         } catch {
@@ -1660,8 +1660,7 @@ final class AppModel: ObservableObject {
     func setTags(_ tags: [String], on note: Note) {
         flushPendingEdits()
         guard var updated = self.note(at: note.relativePath) else { return }
-        var seen = Set<String>()
-        let cleaned = tags.compactMap(AppModel.cleanTag).filter { seen.insert($0.lowercased()).inserted }
+        let cleaned = TagName.cleaned(tags)
         // An empty list keeps the key and writes `tags:`, the convention the templates use,
         // rather than taking the line out of a note that had one.
         updated.frontmatter.set("tags", list: cleaned)
@@ -1753,16 +1752,9 @@ final class AppModel: ObservableObject {
     /// Build 145 only stripped a *leading* `#`, so typing "Claude #Productivity" made the one
     /// tag "Claude-#Productivity", which the task parser can never match. Stripping every `#`
     /// is the only spelling that keeps the two ways of writing a tag interchangeable.
-    static func cleanTag(_ raw: String) -> String? {
-        let words = raw.replacingOccurrences(of: "#", with: " ")
-            .split(whereSeparator: { $0.isWhitespace })
-            .map(String.init)
-        guard !words.isEmpty else { return nil }
-        var joined = words.joined(separator: "-")
-        while joined.contains("--") { joined = joined.replacingOccurrences(of: "--", with: "-") }
-        joined = joined.trimmingCharacters(in: .init(charactersIn: "-"))
-        return joined.isEmpty ? nil : joined
-    }
+    /// Kept as a name the app's views already call. The rule itself lives in Core, where it
+    /// can be tested (build 187, and build 146's note asking for exactly this).
+    static func cleanTag(_ raw: String) -> String? { TagName.clean(raw) }
 
     /// Puts an area under another one, or takes it back out with nil.
     /// Areas only, one level: the note that becomes a parent loses any parent of its own.

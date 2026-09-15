@@ -79,6 +79,9 @@ struct NewNoteSheet: View {
     @State private var servesGoal = ""
     @State private var parentArea = ""
     @State private var template = ""
+    /// Tags for the new note. His ask, build 187: he wants to see the tags he already has at
+    /// the moment he is making the note, so he does not write a second one meaning the same.
+    @State private var tags: [String] = []
     @FocusState private var nameFocused: Bool
 
     var body: some View {
@@ -162,11 +165,10 @@ struct NewNoteSheet: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             // No fold. He tried build 119's "More" toggle and asked for everything to be
-            // on screen at once (build 121), so the settings are simply here.
-            if hasSettings {
-                Divider()
-                settingsChips
-            }
+            // on screen at once (build 121), so the settings are simply here. There is always
+            // at least the tags chip, so the divider is always earned.
+            Divider()
+            settingsChips
 
             if isPhone { Spacer(minLength: 12) }
             footer
@@ -261,6 +263,7 @@ struct NewNoteSheet: View {
                            options: possibleParents.map { ChipOption(value: $0.displayTitle, label: $0.displayTitle) },
                            choice: $parentArea)
             }
+            NewNoteTagsChip(model: model, tags: $tags)
             if templateChoices.count > 1 {
                 PickerChip(name: "Template",
                            emptyLabel: "Template",
@@ -363,17 +366,6 @@ struct NewNoteSheet: View {
         model.index.areaTree().map(\.area).filter { !$0.isArchived }
     }
 
-    /// Whether there is anything under the divider at all, so it never opens onto nothing.
-    private var hasSettings: Bool {
-        if templateChoices.count > 1 { return true }
-        if serves != nil { return true }
-        switch thing {
-        case .goal: return true
-        case .area: return !possibleParents.isEmpty
-        default: return false
-        }
-    }
-
     /// One sentence. The full description of each kind lives in the manual, which is
     /// searchable; a paragraph here was read once and skipped ever after.
     private var hint: String {
@@ -406,7 +398,8 @@ struct NewNoteSheet: View {
             if horizon != .life, !servesGoal.isEmpty { extra.append(("goal", servesGoal)) }
         }
         let chosen = templateChoices.contains { $0.name == template } ? template : nil
-        model.createNote(kind: kind, title: trimmed, extraFrontmatter: extra, template: chosen)
+        model.createNote(kind: kind, title: trimmed, extraFrontmatter: extra,
+                         tags: tags, template: chosen)
         dismiss()
     }
 }
@@ -557,6 +550,35 @@ private struct PickerChip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// The tags a new note is given, with every tag the vault already knows in the list.
+///
+/// **Build 187, his ask:** *"It's not always too easy to know what tags I have defined, and I
+/// don't want two tags the same meaning, but slightly different names."* The list is
+/// `TagChoices`, the very one the note header's tag chip opens, so the two can never offer
+/// different tags — and each row says how much of the vault carries that tag, which is how a
+/// near-duplicate shows itself.
+private struct NewNoteTagsChip: View {
+    @ObservedObject var model: AppModel
+    @Binding var tags: [String]
+    @State private var showing = false
+
+    var body: some View {
+        Button {
+            showing = true
+        } label: {
+            ChipLabel(text: tags.isEmpty ? "Tags\u{2026}" : tags.map { "#\($0)" }.joined(separator: " "),
+                      systemImage: SidebarSection.tags.systemImage,
+                      tint: SidebarSection.tags.tint,
+                      isSet: !tags.isEmpty)
+        }
+        .buttonStyle(.plain)
+        .help("Tags for this note")
+        .popover(isPresented: $showing) {
+            TagChoices(model: model, title: "Tags for this note", chosen: $tags)
+        }
     }
 }
 

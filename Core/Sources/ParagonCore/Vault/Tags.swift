@@ -1,5 +1,36 @@
 import Foundation
 
+/// What a tag may look like when it is stored.
+///
+/// **Moved here in build 187.** It lived in the app as `AppModel.cleanTag` and had no tests,
+/// which is how build 146 shipped a version that only stripped a *leading* `#`: "Claude
+/// #Productivity" became the single tag `Claude-#Productivity`, a name the task parser's own
+/// pattern can never match, so it could never be written as `#tag` on a task line. Anything
+/// that decides the shape of a stored value belongs here.
+public enum TagName {
+    /// The stored spelling of a tag, or nil when there is nothing left of it.
+    ///
+    /// Every `#` becomes a space and the words are joined with hyphens, because the two ways
+    /// of writing a tag — the `tags:` line and `#tag` on a task — have to stay
+    /// interchangeable, and a tag with a space in it could never be written the second way.
+    public static func clean(_ raw: String) -> String? {
+        let words = raw.replacingOccurrences(of: "#", with: " ")
+            .split(whereSeparator: { $0.isWhitespace })
+            .map(String.init)
+        guard !words.isEmpty else { return nil }
+        var joined = words.joined(separator: "-")
+        while joined.contains("--") { joined = joined.replacingOccurrences(of: "--", with: "-") }
+        joined = joined.trimmingCharacters(in: .init(charactersIn: "-"))
+        return joined.isEmpty ? nil : joined
+    }
+
+    /// A list of tags as it is stored: each one cleaned, and no two that differ only in case.
+    public static func cleaned(_ raw: [String]) -> [String] {
+        var seen = Set<String>()
+        return raw.compactMap(clean).filter { seen.insert($0.lowercased()).inserted }
+    }
+}
+
 /// One tag and how much of the vault carries it.
 public struct TagUse: Identifiable, Equatable, Sendable {
     public let tag: String

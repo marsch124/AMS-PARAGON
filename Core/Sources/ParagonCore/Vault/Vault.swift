@@ -376,8 +376,12 @@ public final class Vault {
     }
 
     /// Creates a note from the kind's template (if present) or a minimal frontmatter block.
+    /// `tags` is its own parameter rather than one more `extraFrontmatter` pair because a
+    /// tag list is a list: `extraFrontmatter` writes a string, and "travel, work" written as
+    /// a string is one tag called "travel, work". An empty list writes nothing at all, so a
+    /// template's own `tags:` line survives when no tag was chosen.
     public func createNote(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
-                           template: String? = nil) throws -> Note {
+                           tags: [String] = [], template: String? = nil) throws -> Note {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let fileName = Self.sanitizeFileName(cleanTitle)
         guard !fileName.isEmpty, kind != .daily, let folder = config.folder(for: kind) else { throw VaultError.invalidTitle }
@@ -392,6 +396,8 @@ public final class Vault {
         if note.frontmatter.string("type") == nil { note.frontmatter.set("type", kind.frontmatterType) }
         if note.frontmatter.string("created") == nil { note.frontmatter.set("created", DateOnly.today().description) }
         for (key, value) in extraFrontmatter { note.frontmatter.set(key, value) }
+        let cleanTags = TagName.cleaned(tags)
+        if !cleanTags.isEmpty { note.frontmatter.set("tags", list: cleanTags) }
         try save(note)
         return note
     }
