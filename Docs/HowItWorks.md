@@ -379,8 +379,8 @@ Every step is always on screen, even when it is empty — a step you have finish
 
 1. **Empty the inbox.** How many loose items are waiting. Press it to go to the Inbox and file them.
 2. **Reschedule or drop overdue tasks.** Every task whose date has passed, with the note it lives in. Tick it, move it, or drop it, straight from the row.
-3. **Read the aspirations again.** One row per aspiration. Is each one still true?
-4. **Check the goals are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
+3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
+4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
 6. **Look over the areas.** The same row for each area.
 
@@ -420,7 +420,9 @@ The Map and the Goals screen answer the same question — what serves what — a
 Every box carries the same icon the rest of the app uses for that kind of note:
 
 - **A star** is an **aspiration** — a goal with no date, which says what you are becoming. It is the north star on PARAGON's own app icon: what you steer by and never tick off.
-- **Two circles, a target**, is a **goal with a target date** — what you aim at and hit on a day.
+- **Two circles, a target**, is a **goal with a date** — what you will have done, by a day.
+
+**The difference is the date.** An aspiration has no target date; a goal has one. That one rule is the whole distinction, and everywhere the two sit side by side the app says it in a line under the heading.
 - **A flag** is a **project**, **four squares** an **area**, **books** a **resource**, and a **ring** is one open task.
 
 The colour is the note's kind: goals gold, areas pink, projects green, resources blue, the archive grey. Because an aspiration and a goal with a date are both gold, the icon is what tells them apart. The legend along the bottom names every one of them, with the same icon the box itself carries.

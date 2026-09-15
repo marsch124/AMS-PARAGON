@@ -2,6 +2,31 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 176 · 15 September 2026
+
+**Telling an aspiration from a goal.** You said you sometimes have trouble with it, and asked
+whether the star could be made to stand out more. Three changes, and the star stays gold.
+
+**The star is filled now.** A filled shape carries a colour far better than an outline — the
+same thing the New note button taught us in build 156, where most of the "pop" turned out to be
+the fill rather than the shape.
+
+**The dated one is called "Goal with a date".** The word *Goal* on its own was the ambiguous
+one: an aspiration is also a kind of goal, so plain "Goal" asked you to hold both meanings at
+once. Wherever the two appear together — the Goals screen header, the Weekly review's step 4,
+the Map legend — it now says **Goal with a date**, and the name carries the rule.
+
+On a Map box it still says just **Goal**, because the target date is printed right beside it
+and saying both would be saying the same thing twice.
+
+**The rule is on screen where the two sit side by side.** One short line under each heading:
+
+- Aspirations — *What you are becoming. No date.*
+- Goals with a date — *What you will have done, by a date.*
+
+That is the whole difference. Read it a few times and you should stop needing it, which is the
+point of putting it there rather than in the manual.
+
 ## Build 175 · 15 September 2026
 
 Everything you asked for in the field test of 170 to 173.

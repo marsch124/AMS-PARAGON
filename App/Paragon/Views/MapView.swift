@@ -711,7 +711,11 @@ struct MapNodeView: View {
     /// one word standing in for both.
     private func kindWord(for note: Note) -> String {
         switch note.declaredKind {
-        case .goal: return (note.horizon ?? .year) == .life ? GoalHorizon.life.label : "Goal"
+        // **The short form here, and only here** (build 176): the target date is printed
+        // immediately after it on a Map box, so "Goal with a date · by 2031-08-01" would say
+        // the same thing twice and be cut off at this width. The date does the teaching.
+        case .goal: return GoalWording.isAspiration(note) ? GoalWording.aspiration
+                                                         : GoalWording.datedGoalShort
         case .project: return "Project"
         case .area: return "Area"
         case .resource: return "Resource"
@@ -738,8 +742,8 @@ struct MapFooter: View {
                 // **Build 175, his ask**: the boxes carry symbols and the legend carried
                 // coloured dots for four of the six, so the legend did not explain the thing
                 // it sits under. Every entry is now the symbol the box itself draws.
-                symbolLegend(ChainSymbol.aspiration, "Aspiration", ParaKind.goal.tint)
-                symbolLegend(ChainSymbol.datedGoal, "Goal with a date", ParaKind.goal.tint)
+                symbolLegend(ChainSymbol.aspiration, GoalWording.aspiration, ParaKind.goal.tint)
+                symbolLegend(ChainSymbol.datedGoal, GoalWording.datedGoal, ParaKind.goal.tint)
                 symbolLegend(ChainSymbol.area, "Areas", ParaKind.area.tint)
                 symbolLegend(ChainSymbol.project, "Projects", ParaKind.project.tint)
                 symbolLegend(ChainSymbol.task, "Their actions", ParaKind.project.tint)

@@ -81,7 +81,7 @@ struct ReviewView: View {
             // from goals — "Goals and aspirations are mixed. Is it possible to separate
             // them?" They are two different questions, asked at different speeds (the review
             // rhythm says so: a year against a quarter), so they are two steps.
-            Section("3. Read the aspirations again") {
+            Section {
                 if aspirations(report).isEmpty {
                     Label("No aspirations yet", systemImage: ChainSymbol.aspiration)
                         .foregroundStyle(.secondary)
@@ -91,9 +91,16 @@ struct ReviewView: View {
                             .tag(health.note.relativePath)
                     }
                 }
+            } header: {
+                Text("3. Read the aspirations again")
+            } footer: {
+                // Build 176: the rule in one line, where the two kinds sit side by side.
+                // A title string and a footer cannot be given together (build 157).
+                Text(GoalWording.aspirationRule)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Section("4. Check the goals are on course") {
+            Section {
                 if datedGoals(report).isEmpty {
                     Label("No goals with a date yet", systemImage: ChainSymbol.datedGoal)
                         .foregroundStyle(.secondary)
@@ -103,6 +110,11 @@ struct ReviewView: View {
                             .tag(health.note.relativePath)
                     }
                 }
+            } header: {
+                Text("4. Check the goals with a date are on course")
+            } footer: {
+                Text(GoalWording.datedGoalRule)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Section {

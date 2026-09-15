@@ -60,12 +60,19 @@ struct AspirationsListView: View {
                           ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List(selection: model.noteSelection) {
             if !held.isEmpty {
-                Section("Aspirations") {
+                Section {
                     ForEach(held) { chain in
                         AspirationRow(chain: chain)
                             .tag(chain.note.relativePath)
                             .contextMenu { rowMenu(chain.note) }
                     }
+                } header: {
+                    Text("Aspirations")
+                } footer: {
+                    // `Section { } header: { } footer: { }` — a title string and a footer
+                    // cannot be given together (build 157).
+                    Text(GoalWording.aspirationRule)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if !bare.isEmpty {
@@ -87,6 +94,9 @@ struct AspirationsListView: View {
                 } header: {
                     Label("Goals with no aspiration", systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
+                } footer: {
+                    Text(GoalWording.datedGoalRule)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             ForEach(ended, id: \.status) { group in
@@ -231,7 +241,12 @@ struct AspirationsListView: View {
 /// chip cannot drift apart again.
 enum ChainSymbol {
     /// The one place the star is spelled. It means an aspiration, and nothing else.
-    static let aspiration = "star"
+    ///
+    /// **Filled, since build 176.** He asked whether the star could be made "a bit more
+    /// popping" without a second colour, and a filled shape is what carries a tint — the same
+    /// thing the New note button learned in build 156, where most of the pop turned out to be
+    /// the fill rather than the glyph.
+    static let aspiration = "star.fill"
     static let datedGoal = SidebarSection.kind(.goal).systemImage   // target
     static let project = SidebarSection.kind(.project).systemImage  // flag
     static let area = SidebarSection.kind(.area).systemImage        // circle.grid.2x2
@@ -251,6 +266,34 @@ enum ChainSymbol {
         guard let note = index.goal(matching: reference) else { return datedGoal }
         return forGoal(note)
     }
+}
+
+/// The two kinds of goal, named and explained in one place.
+///
+/// **Build 176, and it is not a drawing problem.** He said: *"sometimes I have difficulties
+/// understanding what is an aspiration and what is a goal."* An icon can only remind you of
+/// something you already know, so no amount of star-versus-target fixes that. Two things do:
+///
+/// 1. **The word "Goal" alone is the ambiguous one.** An aspiration *is* a kind of goal, so
+///    calling the dated one just "Goal" asks him to hold both meanings at once. Wherever the
+///    two sit together it is spelled **"Goal with a date"**, and the name then carries the rule.
+/// 2. **The difference is the date**, and one short line says so where they sit side by side.
+///    Read a few times, it stops being needed — which is the point.
+enum GoalWording {
+    static let aspiration = "Aspiration"
+    static let datedGoal = "Goal with a date"
+
+    /// The short form, for the one place the target date is printed immediately after it: a
+    /// Map box, where "Goal with a date · by 2031-08-01" would say the same thing twice and be
+    /// cut off at this width anyway. The date beside the word teaches the rule by itself.
+    static let datedGoalShort = "Goal"
+
+    static let aspirationRule = "What you are becoming. No date."
+    static let datedGoalRule = "What you will have done, by a date."
+
+    static func isAspiration(_ note: Note) -> Bool { (note.horizon ?? .year) == .life }
+    static func name(for note: Note) -> String { isAspiration(note) ? aspiration : datedGoal }
+    static func rule(for note: Note) -> String { isAspiration(note) ? aspirationRule : datedGoalRule }
 }
 
 /// One aspiration in the list: its name, how many goals serve it, and how far they have come.
@@ -397,7 +440,7 @@ struct GoalDetailView: View {
     private var isAspiration: Bool { (note.horizon ?? .year) == .life }
 
     private var header: some View {
-        GoalsHeader(title: showsNote ? "Note" : (isAspiration ? "Aspiration" : "Goal"),
+        GoalsHeader(title: showsNote ? "Note" : (isAspiration ? GoalWording.aspiration : GoalWording.datedGoal),
                     systemImage: showsNote ? "doc.text" : ChainSymbol.forGoal(note)) {
             // Build 159's two-state control: it shows the state you are in, not the one you
             // would get.

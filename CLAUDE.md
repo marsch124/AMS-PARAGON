@@ -1620,6 +1620,26 @@ one this project has added since the share extension.
   goal family and an aspiration is the head of it, so a second colour needs his decision before
   any code.
 
+**Build 176: telling an aspiration from a goal — and it was never a drawing problem.** His
+words: *"sometimes I have difficulties understanding what is an aspiration and what is a
+goal."* He asked for the star to be "more popping" and explicitly kept gold. I put four options
+to him and he took the first three.
+- **An icon can only remind you of something you already know.** No amount of star-versus-target
+  fixes a meaning he has not settled yet. What fixes it is the *name* and one *sentence*.
+- **The word "Goal" alone was the ambiguous one**: an aspiration is also a kind of goal, so
+  plain "Goal" asks him to hold both meanings at once. `GoalWording` (GoalsView.swift) is the
+  one place both are spelled: `aspiration`, `datedGoal` ("Goal with a date"), and
+  `datedGoalShort` ("Goal") for the **one** place the target date is printed immediately after
+  it — a Map box, where the long form would say the same thing twice and be truncated anyway.
+  **A shared name with one documented exception beats two names nobody can find.**
+- **The rule itself is on screen where the two sit together**: `aspirationRule` / `datedGoalRule`
+  as Section footers on the Goals list and the review's steps 3 and 4. The difference is the
+  date; saying so is cheaper than any icon.
+- `ChainSymbol.aspiration` is **`star.fill`**. Build 156's lesson: most of the pop is the fill,
+  not the glyph.
+- Three `Section(_:)` titles became `Section { } header: { } footer: { }` — a title string and a
+  footer cannot be given together (build 157, third time it has come up).
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /
