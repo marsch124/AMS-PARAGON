@@ -2019,6 +2019,27 @@ and 123–127 all shipped green.
 - **A push that changes `project.yml` makes CI commit the regenerated project**, so the next
   local push needs `git pull --rebase` first.
 
+**Build 191: the two tests the plumbing was for, both green first time.** Browse › Projects ›
+the test project, typing into the editor (the 114–128 fault); tapping an Inbox line and
+checking it became the selected one (the 71–74 fault).
+- **Everything is found by accessibility identifier, never by words.** The phone's tabs are
+  pages of one pager, so "Projects" can be on screen twice at once (a Browse row and a group
+  heading on the Actions page), and a word he asks to be renamed must not stop a test finding
+  the thing. The names: `tab.*`, `browse.<section title>`, `note.<relativePath>`,
+  `inbox.<line title>`, `note.editor` (set on the `UITextView` in `makeUIView`). A row gets
+  `.accessibilityElement(children: .contain)` first, so the identifier lands on one element
+  with a frame that can be tapped.
+- **`InboxRow` carries the `isSelected` trait when it is the selected line**, which is what
+  lets the test ask the 71–74 question at all — and what VoiceOver should have been told all
+  along. The test waits for it with an `NSPredicate` expectation, since selection is published
+  a turn later through `afterUpdate`.
+- `TestVault` captures one Inbox line through `Vault.capture`, the same path a real capture
+  takes. Its titles are `static let`s in that file; the tests spell them again because a test
+  target cannot see the app's code — keep the two in step.
+- **`SheetFooter` (Theme.swift)** is build 186's phone-and-Mac footer as one view, used by the
+  New note sheet and by `NoteFromLinkSheet`, which still had two blue words in a corner on the
+  phone and a 380pt `minWidth`. Reach for it on any new sheet.
+
 ## Not built (by choice)
 
 - **The App Group in the developer portal**, parked by him on 15 September and explained again
@@ -2028,8 +2049,9 @@ and 123–127 all shipped green.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **A filter on All actions** — his own "maybe we should make the filter function later on".
-- **More screen tests.** Build 190 is two; the obvious next ones are opening a note and typing
-  in it (the 114–128 fault), and selecting a row in the Inbox (the 71–74 fault).
+- **More screen tests.** Four now (build 191). Candidates: the New note sheet making a note
+  from its five buttons, the Capture screen saving a line into the Inbox, and a Map box taking
+  a tap (the build 85 fault) — one or two per build, each watched to green.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
