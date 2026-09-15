@@ -1787,6 +1787,19 @@ country, check whether the next thing he shows you depends on it.
 - `App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements` also turns the sandbox on: an
   extension inside a sandboxed Mac app must be sandboxed itself.
 - Settings › Widget (build 177) is no longer `#if os(iOS)`.
+- **A new Mac widget is not in the picker until the app it came with has run.** He updated,
+  looked at **Edit Widgets**, and PARAGON had vanished entirely — the iPhone entry gone with
+  nothing to replace it. Opening PARAGON, ⌘Q, and opening it again was the whole fix. It is in
+  `Docs/HowItWorks.md` now, because it will happen again on every machine that installs this
+  for the first time. **The CI check is what made this answerable without guessing**: the Mac
+  app provably carried `ParagonWidgets.appex`, so the question was only whether macOS had
+  loaded it.
+- **The CI step "What is inside the Mac app" and the TestFlight step of the same name look in
+  different folders**: an iPhone app is flat (`PlugIns`), a Mac app is not
+  (`Contents/PlugIns`). Build 178's first upload reported "no extensions are embedded" for the
+  Mac because the step only knew the iOS shape. **A check that can be wrong in one direction
+  is worth as much as no check at all** — it nearly sent me hunting a fault that was not
+  there.
 
 ## Not built (by choice)
 

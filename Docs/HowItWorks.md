@@ -794,6 +794,8 @@ Two widgets, on the Mac and on the iPhone.
 
 **On the Mac**: click the date and time at the right of the menu bar to open Notification Centre, scroll to the bottom and click **Edit Widgets**. Search for **PARAGON** and drag one in. You can also right-click the desktop and choose **Edit Widgets**, which puts the widget on the desktop itself.
 
+**The first time after an update, PARAGON may not be in that list.** macOS only learns about a new widget once the app it came with has run. Open PARAGON, quit it with ⌘Q, open it again, and look in **Edit Widgets** once more. If it is still missing, restart the Mac: macOS keeps its own list of known widgets and that list is stubborn about new ones.
+
 **On the iPhone**: press and hold the Home Screen, press **+** at the top, search for **PARAGON**, and pick one.
 
 **Today's actions** is the same list the planner shows: everything due today or earlier, then your next actions. Each line shows the note it lives in and, under it, **what it serves** — the goal in gold, or the area in pink. It comes in three sizes; the small one shows three lines, the medium four, the large seven.
