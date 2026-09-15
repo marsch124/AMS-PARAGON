@@ -278,6 +278,8 @@ There is a second kind of block, and it is the opposite of a Time Block: it stay
 PARAGON. It is what the **Time Blocks** section shows. **Go › Plan the Day…** (⇧⌘P) on the
 Mac opens the same thing in a window of its own, which can stay up while you work in a note.
 
+On today, a red line and dot cross both lanes at the time it is now, and move as the day goes on. It is the same line the Calendar section's day view draws.
+
 The screen has three parts:
 
 - **Actions** in the middle column: what is due that day, then your next actions. Each row is a

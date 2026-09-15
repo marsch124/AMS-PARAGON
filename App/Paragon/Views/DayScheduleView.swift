@@ -90,7 +90,6 @@ struct DayScheduleView: View {
     let day: DateOnly
 
     @State private var sheet: ScheduleSheet?
-    @State private var now = Date()
 
     private static let hourHeight: CGFloat = 46
     private static let gutter: CGFloat = 52
@@ -124,13 +123,6 @@ struct DayScheduleView: View {
         .task(id: day) {
             await model.loadEvents(for: day)
             await model.loadTimeBlocks()
-        }
-        .task {
-            // The now line only has to be roughly right.
-            while !Task.isCancelled {
-                now = Date()
-                try? await Task.sleep(for: .seconds(60))
-            }
         }
         .sheet(item: $sheet) { kind in
             switch kind {
@@ -201,13 +193,13 @@ struct DayScheduleView: View {
                                 y: offset(of: placed.item.start, in: range))
                         .onTapGesture { open(placed.item) }
                 }
-                if let line = nowOffset(in: range) {
-                    HStack(spacing: 0) {
-                        Circle().fill(Color.red).frame(width: 6, height: 6)
-                        Rectangle().fill(Color.red).frame(height: 1)
-                    }
-                    .offset(x: Self.gutter - 3, y: line)
-                }
+                // Build 180: the same component the planner draws, so the two cannot drift.
+                // `range.upperBound` is the hour after the last one drawn, hence the -1.
+                NowLine(isToday: day == .today(),
+                        firstHour: range.lowerBound,
+                        lastHour: range.upperBound - 1,
+                        hourHeight: Self.hourHeight,
+                        leading: Self.gutter)
             }
         }
         .frame(height: CGFloat(range.upperBound - range.lowerBound) * Self.hourHeight)
@@ -325,13 +317,6 @@ struct DayScheduleView: View {
 
     private func height(of item: ScheduleItem) -> CGFloat {
         CGFloat(item.end.timeIntervalSince(item.start) / 3600) * Self.hourHeight - 2
-    }
-
-    private func nowOffset(in range: ClosedRange<Int>) -> CGFloat? {
-        guard day == .today() else { return nil }
-        let offset = self.offset(of: now, in: range)
-        let limit = CGFloat(range.upperBound - range.lowerBound) * Self.hourHeight
-        return (offset >= 0 && offset <= limit) ? offset : nil
     }
 
     // MARK: Actions

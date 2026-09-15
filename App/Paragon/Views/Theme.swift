@@ -364,3 +364,67 @@ struct StateToggle: View {
                           style: StrokeStyle(lineWidth: isOn ? 1.4 : 1.2, dash: isOn ? [] : [3.5, 2.5]))
     }
 }
+
+/// The line across a day column showing where *now* is, the way every calendar app draws it
+/// (build 180). His ask: *"add an indication with a line for where we are in the day… as a
+/// normal calendar app does it."*
+///
+/// **One component, two screens.** The Calendar section's day had a line of its own since
+/// build 61 and the planner had none, which is the drift this project keeps paying for. Both
+/// draw this now.
+///
+/// - It keeps its own time and moves every minute; a line that stands still where the screen
+///   happened to open is worse than none.
+/// - **Red, and only here.** Red appears nowhere else in PARAGON — orange is "look at this" and
+///   is already the plan block's own colour — so a red line cannot be read as a warning about
+///   anything. It is also what every calendar draws, which is what he asked for.
+/// - `allowsHitTesting(false)`: it lies over the cards, and nothing that lies over a card may
+///   take its click (builds 71–74).
+struct NowLine: View {
+    /// Nothing is drawn on any day but today.
+    var isToday: Bool
+    var firstHour: Int
+    /// The last hour drawn, inclusive: the line disappears after `lastHour + 1`.
+    var lastHour: Int
+    var hourHeight: CGFloat
+    /// Where the dot sits across the column, matching the cards' own inset.
+    var leading: CGFloat = 0
+
+    @State private var now = Date()
+
+    /// Assembled outside the body, since a `@ViewBuilder` takes views only (build 58).
+    private var offset: CGFloat? {
+        guard isToday else { return nil }
+        let parts = Calendar.current.dateComponents([.hour, .minute], from: now)
+        let minutes = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+        let first = firstHour * 60
+        let last = (lastHour + 1) * 60
+        guard minutes >= first, minutes <= last else { return nil }
+        return CGFloat(minutes - first) / 60 * hourHeight
+    }
+
+    var body: some View {
+        Group {
+            if let offset {
+                HStack(spacing: 0) {
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 6, height: 6)
+                    Rectangle()
+                        .fill(Color.red)
+                        .frame(height: 1)
+                }
+                .offset(x: leading - 3, y: offset)
+                .allowsHitTesting(false)
+            }
+        }
+        // The clock is kept here rather than by each screen, so the line cannot be live in one
+        // place and stuck in another. Once a minute is as exact as this line has to be.
+        .task {
+            while !Task.isCancelled {
+                now = Date()
+                try? await Task.sleep(for: .seconds(60))
+            }
+        }
+    }
+}

@@ -231,6 +231,13 @@ struct PlannerDayView: View {
                             item(placed, tint: tint, x: box.x, width: box.width)
                         }
                     }
+                    // Last in the stack, so it lies over the cards, and hit testing is off so it
+                    // can never take a card's click (builds 71-74).
+                    NowLine(isToday: day == .today(),
+                            firstHour: firstHour,
+                            lastHour: lastHour,
+                            hourHeight: hourHeight,
+                            leading: 4)
                 }
             }
             .frame(height: laneHeight)

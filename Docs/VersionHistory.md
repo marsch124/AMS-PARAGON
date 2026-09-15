@@ -2,6 +2,16 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 180 · 15 September 2026
+
+**A line for where we are in the day.** Your ask, and the planner was the one day view without
+it. **Plan the day** now draws the red line and dot across both lanes at the current time, the
+way a calendar app does, and it moves on its own every minute. It is drawn only on today, and
+only while the time is inside the hours the planner shows.
+
+The Calendar section's day already had such a line. Both now draw the same one, so they cannot
+end up looking different from each other.
+
 ## Build 179 · 15 September 2026
 
 **A way back to your folder.** You found this on the iPhone: PARAGON showed the welcome screen

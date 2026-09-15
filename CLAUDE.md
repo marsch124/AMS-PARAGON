@@ -1860,6 +1860,26 @@ another app's share sheet never reached the Inbox and nothing ever said so.
   nothing about what is inside it** — the same lesson as build 178's missing PlugIns check,
   one layer deeper.
 
+## The line for now (build 180)
+
+His ask, in his words: *"add an indication with a line for where we are in the day… as a normal
+calendar app does it."* The Calendar section's day had drawn one since build 61; **the planner,
+the newer screen, had none** — the same drift as the Map's vocabulary before 170.
+
+`NowLine` (Theme.swift) is the one component both screens draw, and it **keeps its own clock**
+(a `.task` loop, once a minute) so the two can never be live in one place and stuck in the
+other. It takes `firstHour`/`lastHour`/`hourHeight` and returns nothing at all when the day is
+not today or the time is outside the drawn hours.
+
+- **Red, and this is the one place red is allowed.** Orange means "look at this" here and is
+  already the plan block's colour, so a now line in orange would read as a warning. Red is used
+  nowhere else in PARAGON, and it is what every calendar draws — which is what he asked for.
+  Build 167's "red appears nowhere in the palette" was about a *fault* marker and still holds.
+- `allowsHitTesting(false)`: it lies over the cards, and anything over a card that could take
+  its click is builds 71–74 again.
+- `DayScheduleView` lost its own `now` state, its refresh loop and `nowOffset(in:)` to it. Its
+  `range.upperBound` is the hour *after* the last one drawn, hence `lastHour: upperBound - 1`.
+
 ## Not built (by choice)
 
 Nothing. Saved searches were the last item and shipped in build 173.
