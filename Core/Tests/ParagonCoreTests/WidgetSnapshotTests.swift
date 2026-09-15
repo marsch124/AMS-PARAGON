@@ -28,7 +28,22 @@ final class WidgetSnapshotTests: XCTestCase {
         - [ ] A task nobody asked for
         """)
         let actions = index([due, next]).actionsForPlanning(on: today)
-        XCTAssertEqual(actions.map(\.task.title), ["Book the hotel", "Order the saddle"])
+        // The parser keeps `#tags` in a title on purpose, so they round-trip to the file.
+        XCTAssertEqual(actions.map(\.task.title), ["Book the hotel", "Order the saddle #next"])
+    }
+
+    func testTheWidgetDropsHashNextAndKeepsHisOwnTags() {
+        // `#next` is the app's own marker, and the widget is showing the task because of it —
+        // so on three short lines the word says nothing. His own tags do say something.
+        XCTAssertEqual(WidgetSnapshot.widgetTitle("Order the saddle #next"), "Order the saddle")
+        XCTAssertEqual(WidgetSnapshot.widgetTitle("#next Order the saddle"), "Order the saddle")
+        XCTAssertEqual(WidgetSnapshot.widgetTitle("Book the hotel #travel"), "Book the hotel #travel")
+        XCTAssertEqual(WidgetSnapshot.widgetTitle("Plan #nextweek"), "Plan #nextweek")
+        XCTAssertEqual(WidgetSnapshot.widgetTitle("Ring #next the shop"), "Ring the shop")
+
+        let note = project("Bike", body: "- [ ] Order the saddle #next\n")
+        let snapshot = index([note]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0)
+        XCTAssertEqual(snapshot.items.first?.title, "Order the saddle")
     }
 
     func testAnOverdueTaskIsStillTodaysWork() {

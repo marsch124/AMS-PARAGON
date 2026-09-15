@@ -150,7 +150,7 @@ public extension NoteIndex {
             let serves = self.serves(ref)
             return WidgetSnapshot.Item(
                 id: ref.id,
-                title: ref.task.title,
+                title: WidgetSnapshot.widgetTitle(ref.task.title),
                 noteTitle: ref.noteTitle,
                 noteKind: (self.note(path: ref.notePath)?.declaredKind ?? .project).rawValue,
                 dueText: due.map { $0.timeLeftText(from: day) },
@@ -173,6 +173,30 @@ public extension NoteIndex {
 }
 
 public extension WidgetSnapshot {
+    /// The task's title with **`#next` taken off, and nothing else**.
+    ///
+    /// The parser keeps `#tags` in a title on purpose, so a task round-trips through the app
+    /// and back to the file unchanged, and every screen in the app shows them. On a Home Screen
+    /// widget three lines long that is worth one exception: `#next` is the app's own marker for
+    /// "this is the next action", and the widget is showing the task *because* of it, so the
+    /// word says nothing there. His own tags stay — those carry information. Nothing is written
+    /// back, so the file is untouched either way.
+    ///
+    /// **A test caught this**, not a screenshot: the widget would have read
+    /// "Order the saddle #next" on his phone. Same family as build 153's grey page badge.
+    static func widgetTitle(_ title: String) -> String {
+        // The task parser's own pattern, so "#nextweek" and "#next-year" are left alone.
+        let pattern = "(?<!\\S)#\(Note.nextActionTag)(?![\\p{L}\\p{N}_/\\-])"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return title
+        }
+        let range = NSRange(title.startIndex..., in: title)
+        let stripped = regex.stringByReplacingMatches(in: title, range: range, withTemplate: "")
+        return stripped
+            .replacingOccurrences(of: "  +", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+    }
+
     /// `amspara://<note title>`, which `AppModel.handle(url:)` has opened since build 39.
     /// **The existing scheme, never a new one**: `amspara://` is one of the four identifiers
     /// the rename deliberately kept, and his Shortcuts already use it.

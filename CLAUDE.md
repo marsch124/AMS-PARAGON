@@ -1581,6 +1581,11 @@ one this project has added since the share extension.
 - **The workflow change that matters**: `App/Config/ParagonWidgets/Info.plist` was added to the
   "Number this build" loop. Every bundle must carry the same `CFBundleVersion` or Apple refuses
   the upload with "bundle version does not match".
+- **A test caught a real wart, not a bad test.** The parser keeps `#tags` in a task title on
+  purpose so a task round-trips to the file, and every screen in the app shows them — but the
+  widget would have read "Order the saddle #next" on three short lines. `WidgetSnapshot
+  .widgetTitle` strips **only `#next`** (the task parser's own pattern, so `#nextweek` survives)
+  and only for the widget; his own tags stay, because those carry information. Build 153's rule.
 - **The risk this build carries**: `com.schabbauer.AMSPara.Widgets` is a new App ID. Export runs
   with `-allowProvisioningUpdates` and an Admin key, so Apple should create it and enable the
   App Group by itself — but if the TestFlight run fails on provisioning, that is the one part
