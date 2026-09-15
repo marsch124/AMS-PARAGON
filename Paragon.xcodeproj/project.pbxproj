@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		13E458BE7B29FB9402EBF563 /* ScreenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446EED97021901C80DE8243E /* ScreenTests.swift */; };
 		156E7AB9FEFEAE96BDD7D5DB /* HowItWorks.md in Resources */ = {isa = PBXBuildFile; fileRef = 6BD311D35F38F0FEFC26141A /* HowItWorks.md */; };
 		22C9DAD4998A986F0473429B /* ParagonWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		257B573BA8DBE27CEC19DF21 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = F7C362F03D42E9BC8FBE7A65 /* ParagonCore */; };
@@ -17,6 +18,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		820C4CE7CD932087033EEA87 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E443F4D613DDF4FD685C9FC3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 76AF015D317DBBD896B2C5D2;
+			remoteInfo = Paragon;
+		};
 		A26DF654641CA03FC2DA1B0E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E443F4D613DDF4FD685C9FC3 /* Project object */;
@@ -52,8 +60,10 @@
 		1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1948F57C2B6673ACAA4E203E /* Paragon.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Paragon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2714DD3A4254950C4A439829 /* ParagonShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		446EED97021901C80DE8243E /* ScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTests.swift; sourceTree = "<group>"; };
 		55B3B1883D9DE44B343B78C6 /* Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Core; path = Core; sourceTree = SOURCE_ROOT; };
 		6BD311D35F38F0FEFC26141A /* HowItWorks.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HowItWorks.md; sourceTree = "<group>"; };
+		78AE22FC8C9C0A80A3D7CF78 /* ParagonUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ParagonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6919AFBC2371667D46DD399 /* VersionHistory.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = VersionHistory.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -128,12 +138,21 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		1E845C6854A70724BDF46B81 /* ParagonUITests */ = {
+			isa = PBXGroup;
+			children = (
+				446EED97021901C80DE8243E /* ScreenTests.swift */,
+			);
+			path = ParagonUITests;
+			sourceTree = "<group>";
+		};
 		59832F9D12253109BCFB8B6E = {
 			isa = PBXGroup;
 			children = (
 				111019AC4496CC9FD738C077 /* App */,
 				611DF020B8C6CB1EE5F91AD6 /* Docs */,
 				6E714B112B36EFAD1E166C83 /* Packages */,
+				B617BE351309885F2699F3B9 /* Tests */,
 				5FE500A051BF8D4B5BA637A5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -143,6 +162,7 @@
 			children = (
 				1948F57C2B6673ACAA4E203E /* Paragon.app */,
 				2714DD3A4254950C4A439829 /* ParagonShare.appex */,
+				78AE22FC8C9C0A80A3D7CF78 /* ParagonUITests.xctest */,
 				1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */,
 			);
 			name = Products;
@@ -163,6 +183,14 @@
 				55B3B1883D9DE44B343B78C6 /* Core */,
 			);
 			name = Packages;
+			sourceTree = "<group>";
+		};
+		B617BE351309885F2699F3B9 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				1E845C6854A70724BDF46B81 /* ParagonUITests */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -240,6 +268,24 @@
 			productReference = 1948F57C2B6673ACAA4E203E /* Paragon.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C1476D83766DB0F024A71FDB /* ParagonUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA7D661A5E43D84815A621E1 /* Build configuration list for PBXNativeTarget "ParagonUITests" */;
+			buildPhases = (
+				0B833D907F2FD9760482FF3D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8B11E3BCCCDA173A925DBC87 /* PBXTargetDependency */,
+			);
+			name = ParagonUITests;
+			packageProductDependencies = (
+			);
+			productName = ParagonUITests;
+			productReference = 78AE22FC8C9C0A80A3D7CF78 /* ParagonUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -260,6 +306,11 @@
 					76AF015D317DBBD896B2C5D2 = {
 						DevelopmentTeam = D24ENP83QQ;
 						ProvisioningStyle = Automatic;
+					};
+					C1476D83766DB0F024A71FDB = {
+						DevelopmentTeam = D24ENP83QQ;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 76AF015D317DBBD896B2C5D2;
 					};
 				};
 			};
@@ -283,6 +334,7 @@
 				76AF015D317DBBD896B2C5D2 /* Paragon */,
 				0505718A6B71861742C3E58F /* ParagonShare */,
 				3A86F7AB02F0AE0C81EA13CA /* ParagonWidgets */,
+				C1476D83766DB0F024A71FDB /* ParagonUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -314,6 +366,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0B833D907F2FD9760482FF3D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13E458BE7B29FB9402EBF563 /* ScreenTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		12F4C0250616572A7E9754A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -348,6 +408,11 @@
 			platformFilter = ios;
 			target = 0505718A6B71861742C3E58F /* ParagonShare */;
 			targetProxy = B352280E005DC0325DCD14CF /* PBXContainerItemProxy */;
+		};
+		8B11E3BCCCDA173A925DBC87 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 76AF015D317DBBD896B2C5D2 /* Paragon */;
+			targetProxy = 820C4CE7CD932087033EEA87 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -404,6 +469,31 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		2FD8668999A7E318D4BBF86B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D24ENP83QQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.ScreenTests;
+				PRODUCT_NAME = ParagonUITests;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Paragon;
+			};
+			name = Release;
 		};
 		611E91B4BB29FF62FD9C7B29 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -488,6 +578,31 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		653BD82619A22A4DB1623302 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = D24ENP83QQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.ScreenTests;
+				PRODUCT_NAME = ParagonUITests;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Paragon;
+			};
+			name = Debug;
 		};
 		99524158D64945EF98D859B6 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -659,6 +774,15 @@
 			buildConfigurations = (
 				99524158D64945EF98D859B6 /* Debug */,
 				01592B86CBB79FC18C358B30 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AA7D661A5E43D84815A621E1 /* Build configuration list for PBXNativeTarget "ParagonUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				653BD82619A22A4DB1623302 /* Debug */,
+				2FD8668999A7E318D4BBF86B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
