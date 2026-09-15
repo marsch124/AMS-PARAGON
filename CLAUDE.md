@@ -2040,6 +2040,15 @@ checking it became the selected one (the 71–74 fault).
   New note sheet and by `NoteFromLinkSheet`, which still had two blue words in a corner on the
   phone and a 380pt `minWidth`. Reach for it on any new sheet.
 
+**Build 193: a capture, end to end** — `today.capture` on Today, `capture.text`, `capture.save`,
+then `tab.inbox` and the line as `inbox.<text>`. **It failed once and passed the next run with
+no app change**: the first version waited 15 s for the sheet to close itself after Save, and a
+cold CI simulator took longer than that. The wait is 30 s now, and the test checks the "Saved"
+confirmation first so a real fault would be named. **On a CI simulator, a wait for the app's
+own timers needs twice the room you think** — a test that fails for its own reasons is the one
+thing this suite may not do (build 190). `visibleTexts()` puts the first twenty texts on screen
+into a failure message: the nearest thing to a screenshot the log can carry.
+
 **Build 192: the New note screen, end to end** — Browse › Projects › `list.newNote`, press
 `new.project`, type into `new.name`, press `sheet.action`, and the new note opens in
 `note.editor` with the name in its text. Five tests, all green first time. `sheet.action` /
@@ -2055,9 +2064,8 @@ footer is pressable the same way.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **A filter on All actions** — his own "maybe we should make the filter function later on".
-- **More screen tests.** Five now (build 192). Candidates: the Capture screen saving a line
-  into the Inbox, and a Map box taking a tap (the build 85 fault) — one or two per build, each
-  watched to green.
+- **More screen tests.** Six now (build 193). Left on the list: a Map box taking a tap (the
+  build 85 fault), and a Mac run of the same suite — every test so far is the phone.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).

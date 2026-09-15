@@ -180,8 +180,11 @@ final class ScreenTests: XCTestCase {
         // log is the only eye there is on this simulator.
         let saidSaved = app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Saved'")).firstMatch
         let confirmed = saidSaved.waitForExistence(timeout: 10)
+        // Thirty seconds, not fifteen: the screen closes itself 1.8 s after Save, but the
+        // first run of this test on a cold CI simulator took longer than fifteen and failed
+        // for its own reasons — the flake this suite must never have (build 190).
         let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
-        let closing = XCTWaiter().wait(for: [closed], timeout: 15)
+        let closing = XCTWaiter().wait(for: [closed], timeout: 30)
         XCTAssertTrue(confirmed,
                       "Save was pressed and the screen never said Saved. On screen: \(visibleTexts())")
         XCTAssertEqual(closing, .completed,
