@@ -99,6 +99,22 @@ jobs:
             CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
             test 2>&1 | tee test-ui.log | grep -E "error:|Test Case|Test Suite|XCTAssert|\*\* TEST" || true
           grep -q "\*\* TEST SUCCEEDED \*\*" test-ui.log
+      - name: Check the tests really ran
+        # **A suite with nothing in it also says TEST SUCCEEDED.** Build 178 paid for a check
+        # that could only be wrong in one direction, and this is the same shape: if the target
+        # ever stops finding its tests, the step above would go green and say nothing.
+        run: |
+          STARTED=$(grep -c "' started\.$" test-ui.log || true)
+          PASSED=$(grep -c "' passed (" test-ui.log || true)
+          echo "$PASSED of $STARTED test cases passed."
+          if [ "$STARTED" -lt 1 ]; then
+            echo "No test case ran at all."
+            exit 1
+          fi
+          if [ "$STARTED" != "$PASSED" ]; then
+            echo "A test case started and did not finish."
+            exit 1
+          fi
       - name: Upload the test log
         if: always()
         uses: actions/upload-artifact@v4
