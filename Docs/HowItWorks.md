@@ -270,7 +270,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 The app reads events from the calendars you choose in Settings › Apple Calendar. Events appear in Today and in daily notes. Double-click an event, or use its arrow button, to open it in the Calendar app.
 
-The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a red line for now, and a strip at the top for all-day events and tasks with no time. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
+The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
 
 ### Plan the day
 
@@ -278,7 +278,7 @@ There is a second kind of block, and it is the opposite of a Time Block: it stay
 PARAGON. It is what the **Time Blocks** section shows. **Go › Plan the Day…** (⇧⌘P) on the
 Mac opens the same thing in a window of its own, which can stay up while you work in a note.
 
-On today, a red line and dot cross both lanes at the time it is now, and move as the day goes on. It is the same line the Calendar section's day view draws.
+On today, a slate blue line and dot cross both lanes at the time it is now, and move as the day goes on. It is the same line the Calendar section's day view draws. The colour is its own on purpose: every other colour in PARAGON means a kind of note or a warning, and the time of day is neither.
 
 The screen has three parts:
 

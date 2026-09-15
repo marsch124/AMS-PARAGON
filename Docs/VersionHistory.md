@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 182 · 15 September 2026
+
+**The line for now is no longer red.** Your reason was the right one: in PARAGON red means
+overdue or dangerous, and a line that only says what the time is should not look like a
+warning. It is a soft **slate blue** now, and a little thicker so it still reads.
+
+The colour is its own, not borrowed. Purple is the Calendar lane drawn right beside it, orange
+is your blocks, pink Areas, green Projects, blue Resources, teal the review, gold Goals, grey
+the Archive. The time of day is none of those, so it has a colour of its own.
+
+If you would rather have another one, name it and it is one line to change.
+
 ## Build 181 · 15 September 2026
 
 **Two pages on the iPhone, swiped between.** **Plan the day** and **All actions** are now one

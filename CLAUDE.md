@@ -1871,10 +1871,18 @@ the newer screen, had none** — the same drift as the Map's vocabulary before 1
 other. It takes `firstHour`/`lastHour`/`hourHeight` and returns nothing at all when the day is
 not today or the time is outside the drawn hours.
 
-- **Red, and this is the one place red is allowed.** Orange means "look at this" here and is
-  already the plan block's colour, so a now line in orange would read as a warning. Red is used
-  nowhere else in PARAGON, and it is what every calendar draws — which is what he asked for.
-  Build 167's "red appears nowhere in the palette" was about a *fault* marker and still holds.
+- **Red lasted one build.** He said why, and he was right: *"Red is for something that is
+  overdue or dangerous, so take a friendly color."* I had reasoned from what other calendars
+  draw instead of from what colour means **in this app** — and build 167 had already written
+  the rule down ("red appears nowhere in the palette"). **When a convention from outside
+  disagrees with the app's own language, the app's language wins.**
+- **`Theme.nowTint` (`NowTint`, a soft slate blue) is deliberately not one of the nine tints**
+  (build 182). Purple is the Calendar lane drawn right beside it, orange the plan blocks, pink
+  Areas, green Projects, blue Resources, teal the review, gold Goals, grey the Archive. The
+  time of day is not a kind of note, so it may not wear a kind's colour. The line went to
+  1.5pt and the dot to 7pt at the same time, since slate reads quieter than red.
+- Two sentences in `Docs/HowItWorks.md` said "a red line" — build 159's lesson about a manual
+  that names a colour or a position. Grep the manual whenever one changes.
 - `allowsHitTesting(false)`: it lies over the cards, and anything over a card that could take
   its click is builds 71–74 again.
 - `DayScheduleView` lost its own `now` state, its refresh loop and `nowOffset(in:)` to it. Its

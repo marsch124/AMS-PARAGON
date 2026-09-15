@@ -19,6 +19,19 @@ enum Theme {
     /// the whole point of the two lanes is that they are different things. One place, so the
     /// lane, the card, the "make a block" buttons and the sheet cannot drift apart.
     static let planBlockTint = Color("PlanTint")
+
+    /// The line showing the time it is now, on the planner and on the Calendar's day.
+    ///
+    /// **Build 182, his ask: "Red is for something that is overdue or dangerous, so take a
+    /// friendly colour."** He is right, and it is a rule this app already had — orange is
+    /// "look at this" everywhere else, so red on a calendar was borrowed from other apps, not
+    /// from PARAGON.
+    ///
+    /// A soft slate blue, and **deliberately not one of the nine tints**: purple is the
+    /// Calendar lane drawn right beside it, orange the plan blocks, pink Areas, green
+    /// Projects, blue Resources, teal the review, gold Goals, grey the Archive. The time of
+    /// day is not one of those things, so it may not wear one of their colours.
+    static let nowTint = Color("NowTint")
 }
 
 /// A quiet heading above a group, used instead of the default list section titles
@@ -408,11 +421,11 @@ struct NowLine: View {
             if let offset {
                 HStack(spacing: 0) {
                     Circle()
-                        .fill(Color.red)
-                        .frame(width: 6, height: 6)
+                        .fill(Theme.nowTint)
+                        .frame(width: 7, height: 7)
                     Rectangle()
-                        .fill(Color.red)
-                        .frame(height: 1)
+                        .fill(Theme.nowTint)
+                        .frame(height: 1.5)
                 }
                 .offset(x: leading - 3, y: offset)
                 .allowsHitTesting(false)
