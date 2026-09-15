@@ -168,6 +168,9 @@ struct WidgetFoot: View {
             .foregroundStyle(.tertiary)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
+            // Keeps its row when the card is full: without this the message above it wins the
+            // space and the line that explains the message is the part that disappears.
+            .layoutPriority(1)
     }
 }
 
@@ -229,23 +232,32 @@ struct ActionsWidgetView: View {
     /// app, and opening PARAGON again would not mend it (build 177).
     @ViewBuilder
     private var emptyLine: some View {
-        if !entry.folderFound {
-            Text("This widget cannot reach PARAGON's shared folder. Nothing you do on the phone will mend it.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        } else if entry.snapshot == nil {
-            Text("Open PARAGON once and your actions appear here.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        } else if let snapshot = entry.snapshot, snapshot.isStale(on: .today()) {
-            Text("Nothing since you last opened PARAGON.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        } else {
+        if entry.snapshot != nil, entry.folderFound, !(entry.snapshot?.isStale(on: .today()) ?? false) {
             Label("Nothing due, nothing waiting", systemImage: "checkmark.circle")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        } else {
+            Text(emptyText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .minimumScaleFactor(0.9)
         }
+    }
+
+    /// **Short on the small widget** (build 179). His screenshot showed the four-line version
+    /// filling a small widget completely and pushing `WidgetFoot` — the line that explains what
+    /// is wrong — off the bottom. A message that crowds out its own explanation is worse than
+    /// a shorter one.
+    private var emptyText: String {
+        let small = family == .systemSmall
+        if !entry.folderFound {
+            return small ? "Shared folder missing."
+                         : "This widget cannot reach PARAGON's shared folder. Nothing you do on the phone will mend it."
+        }
+        if entry.snapshot == nil {
+            return small ? "Open PARAGON once." : "Open PARAGON once and your actions appear here."
+        }
+        return small ? "Not opened today." : "Nothing since you last opened PARAGON."
     }
 }
 

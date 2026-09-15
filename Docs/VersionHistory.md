@@ -2,6 +2,27 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 179 · 15 September 2026
+
+**A way back to your folder.** You found this on the iPhone: PARAGON showed the welcome screen
+with **Choose a vault folder…**, as though the app had never been set up, and there was no way
+back into it. That is also why the widget on that phone stayed empty — with no vault open, the
+app writes nothing for it to read.
+
+Three different situations used to look exactly the same on that screen: a real first run, a
+vault closed by mistake, and a folder PARAGON knew about but could not open. Now:
+
+- **The screen says which one it is.** If PARAGON cannot open the folder it used last, it says
+  so in orange, and names the likely reasons — renamed, moved, or not yet down from iCloud.
+- **There is a way back.** The first button is **Open <your folder> again**. Choosing a
+  different folder is still there, underneath, as the second choice.
+- **Closing a vault no longer throws the way home away.** PARAGON keeps a pointer to the last
+  folder even after you close it, purely so that button can exist.
+
+**The small widget kept its own explanation.** On the small size the message filled the whole
+card and pushed the little grey line off the bottom — the very line that says what is wrong.
+The small size now uses short messages and the grey line always keeps its place.
+
 ## Build 178 · 15 September 2026
 
 **The widget on the Mac.** You said you use the widget on the Mac only, and that explains the

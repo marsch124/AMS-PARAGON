@@ -111,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 178
+    static let number = 179
 }
 
 @MainActor
@@ -221,6 +221,12 @@ final class AppModel: ObservableObject {
 
     private let defaults = UserDefaults.standard
     private let bookmarkKey = "vaultBookmark"
+    /// The same bookmark, kept even after the vault is closed (build 179). `closeVault` removes
+    /// `vaultBookmark`, which used to leave the app with no way back to the folder at all — the
+    /// welcome screen then looked like a fresh install and the only way home was finding the
+    /// folder again by hand. This one is never removed; it is an offer, not an open vault.
+    private let lastVaultBookmarkKey = "lastVaultBookmark"
+    private let lastVaultNameKey = "lastVaultName"
     private let deviceIDKey = "deviceID"
     private let autoSyncKey = "autoSyncMinutes"
     private let showCalendarKey = "showCalendarEvents"
@@ -727,6 +733,7 @@ final class AppModel: ObservableObject {
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = scoped ? url : nil
         storeBookmark(for: url)
+        vaultProblem = nil
         selectedNotePath = nil
         clearHistory()
         vault = opened
@@ -837,6 +844,10 @@ final class AppModel: ObservableObject {
     /// app does not understand.
     @Published private(set) var unreadableNotes: [String] = []
 
+    /// Why there is no vault open, when the app expected one (build 179). Nil on a genuine
+    /// first run — that is not a problem, it is a beginning.
+    @Published var vaultProblem: String?
+
     /// One line for the sidebar when the vault is not all here, or nil when everything is.
     var vaultWarning: String? {
         let waiting = notesWaitingForCloud.count
@@ -899,17 +910,34 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func restoreVault() {
-        guard let data = defaults.data(forKey: bookmarkKey) else { return }
+    private func resolveBookmark(_ data: Data) -> URL? {
         var stale = false
         #if os(macOS)
         let options: URL.BookmarkResolutionOptions = [.withSecurityScope]
         #else
         let options: URL.BookmarkResolutionOptions = []
         #endif
-        guard let url = try? URL(resolvingBookmarkData: data, options: options, relativeTo: nil, bookmarkDataIsStale: &stale) else { return }
-        securityScopedURL = url.startAccessingSecurityScopedResource() ? url : nil
+        guard let url = try? URL(resolvingBookmarkData: data, options: options,
+                                 relativeTo: nil, bookmarkDataIsStale: &stale) else { return nil }
         if stale { storeBookmark(for: url) }
+        return url
+    }
+
+    /// **A vault this app already knows about never fails in silence** (build 179).
+    ///
+    /// Before this, a bookmark that would not resolve — a folder renamed, moved, or not yet
+    /// down from iCloud — simply returned, and `ContentView` drew the welcome screen because
+    /// `vault` was nil. On his iPhone that read as "you have never set this up", which is
+    /// build 100's rule broken in the one place it hurts most: the app looked empty and said
+    /// nothing about why.
+    private func restoreVault() {
+        guard let data = defaults.data(forKey: bookmarkKey) else { return }
+        guard let url = resolveBookmark(data) else {
+            vaultProblem = "PARAGON could not open \(lastVaultName ?? "your vault folder"). The folder may have been renamed or moved, or iCloud may not have it on this device yet."
+            log("vault bookmark did not resolve")
+            return
+        }
+        securityScopedURL = url.startAccessingSecurityScopedResource() ? url : nil
         do {
             let vault = try Vault(rootURL: url)
             try vault.bootstrap()
@@ -918,8 +946,31 @@ final class AppModel: ObservableObject {
             reload()
             scheduleAutoSync()
         } catch {
-            errorMessage = error.localizedDescription
+            vaultProblem = "PARAGON could not open \(lastVaultName ?? "your vault folder"): \(error.localizedDescription)"
+            log("vault did not open: \(error.localizedDescription)")
         }
+    }
+
+    /// The name of the last folder used, for the welcome screen to say out loud.
+    var lastVaultName: String? { defaults.string(forKey: lastVaultNameKey) }
+
+    /// Whether there is a folder to go back to.
+    var canReopenLastVault: Bool { defaults.data(forKey: lastVaultBookmarkKey) != nil }
+
+    /// The way back into the app (build 179). His words: "a way out back into the app".
+    /// Closing a vault, or a bookmark that did not resolve at launch, both land on the welcome
+    /// screen; this is the one press that returns to the notes.
+    func reopenLastVault() {
+        guard let data = defaults.data(forKey: lastVaultBookmarkKey) ?? defaults.data(forKey: bookmarkKey) else {
+            vaultProblem = "PARAGON has no folder to go back to. Choose one."
+            return
+        }
+        guard let url = resolveBookmark(data) else {
+            vaultProblem = "PARAGON still cannot reach \(lastVaultName ?? "that folder"). Choose the folder again."
+            return
+        }
+        vaultProblem = nil
+        openVault(at: url)
     }
 
     private func storeBookmark(for url: URL) {
@@ -929,6 +980,9 @@ final class AppModel: ObservableObject {
         let data = try? url.bookmarkData(options: [.minimalBookmark], includingResourceValuesForKeys: nil, relativeTo: nil)
         #endif
         defaults.set(data, forKey: bookmarkKey)
+        // Kept past a close, so the welcome screen can offer the way back.
+        if data != nil { defaults.set(data, forKey: lastVaultBookmarkKey) }
+        defaults.set(url.lastPathComponent, forKey: lastVaultNameKey)
     }
 
     func reload() {

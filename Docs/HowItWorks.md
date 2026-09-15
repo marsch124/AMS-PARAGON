@@ -819,6 +819,18 @@ Instead, **PARAGON writes a short summary for the widget every time it reloads**
 
 Nothing is written back from the widget, and nothing about your notes leaves the machine it is on.
 
+### When the app asks for a vault folder
+
+If PARAGON shows the welcome screen with **Choose a vault folder…**, it has no folder open. A
+widget on that device stays empty, because the app writes nothing for it to read.
+
+If PARAGON knows the folder you used last, the first button is **Open <your folder> again**.
+That is the way back. If it could not open that folder by itself, it says so in orange above
+the buttons: the folder may have been renamed or moved, or iCloud may not have it on this
+device yet. Pressing the button again after iCloud has caught up is usually enough.
+
+**Choose a different folder…** is the second button, for when you really do want another vault.
+
 ### When a widget looks empty
 
 Every widget carries one small grey line at the very bottom, for example **PARAGON 177 ·

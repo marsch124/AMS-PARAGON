@@ -143,8 +143,30 @@ struct ContentView: View {
     }
 }
 
+/// The screen shown when no vault is open.
+///
+/// **Build 179 gave it a way back.** Until then it was the first-run screen and nothing else, so
+/// three different situations looked identical: a genuine first run, a vault closed by mistake,
+/// and a folder the app knew about but could not open. His iPhone was the third, and the screen
+/// said nothing at all about it — build 100's rule ("never let a read failure look like an
+/// absence") broken in the one place where it is the whole screen.
+///
+/// His words for what was missing: *"a way out back into the app"*. That is `reopenLastVault`.
 struct WelcomeView: View {
+    @EnvironmentObject private var model: AppModel
     @Binding var showingImporter: Bool
+
+    /// The subtitle depends on why there is no vault, so it is assembled here rather than in
+    /// the body (the `@ViewBuilder` rule, build 58).
+    private var explanation: String {
+        if let problem = model.vaultProblem { return problem }
+        return "Projects, Areas, Resources and Archive as plain markdown files, with tasks that stay in sync with Apple Reminders."
+    }
+
+    private var backTitle: String {
+        if let name = model.lastVaultName { return "Open \(name) again" }
+        return "Open my last folder again"
+    }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -157,12 +179,20 @@ struct WelcomeView: View {
             }
             Text("PARAGON")
                 .font(.largeTitle.bold())
-            Text("Projects, Areas, Resources and Archive as plain markdown files, with tasks that stay in sync with Apple Reminders.")
+            Text(explanation)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(model.vaultProblem == nil ? Color.secondary : Color.orange)
                 .frame(maxWidth: 420)
-            Button("Choose a vault folder…") { showingImporter = true }
-                .buttonStyle(.borderedProminent)
+            // The way back comes first when there is one: it is the answer nine times out of
+            // ten, and choosing a folder by hand is the fallback, not the first offer.
+            if model.canReopenLastVault {
+                Button(backTitle) { model.reopenLastVault() }
+                    .buttonStyle(.borderedProminent)
+                Button("Choose a different folder…") { showingImporter = true }
+            } else {
+                Button("Choose a vault folder…") { showingImporter = true }
+                    .buttonStyle(.borderedProminent)
+            }
             Text("Pick an empty folder or an existing NotePlan style folder. The PARA folders, an Inbox note and templates are created if missing.")
                 .font(.footnote)
                 .foregroundStyle(.tertiary)

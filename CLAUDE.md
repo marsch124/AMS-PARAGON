@@ -1801,6 +1801,32 @@ country, check whether the next thing he shows you depends on it.
   is worth as much as no check at all** — it nearly sent me hunting a fault that was not
   there.
 
+## No vault, and no way back (build 179)
+
+His iPhone widget stayed on "Open PARAGON once…" through every check. **The screenshot of the
+app settled it in one step**: the phone was showing the *welcome screen*. No vault open, so
+`reload()` returns early, so `writeWidgetSnapshot()` never runs. The widget had been right all
+along, and three rounds of widget questions were spent because I never asked to see the app.
+**When a reader says "nothing is there", look at the writer.**
+
+- **`restoreVault` failed in silence.** `guard let url = try? URL(resolvingBookmarkData:…)
+  else { return }` — a folder renamed, moved, or not yet down from iCloud left `vault` nil and
+  `ContentView` drew `WelcomeView`, which is the first-run screen. So "I cannot open your
+  folder" and "you have never set this up" were the same picture. That is build 100's rule
+  broken where it costs most, because here the absence *is* the whole screen.
+  `AppModel.vaultProblem` now carries the reason and `WelcomeView` shows it in orange.
+- **`closeVault` deleted the only pointer to the folder** (`defaults.removeObject(forKey:
+  bookmarkKey)`), so there was no way back even in principle. `lastVaultBookmark` +
+  `lastVaultName` survive a close; `canReopenLastVault` and `reopenLastVault()` are the way
+  home, and the welcome screen leads with **Open <name> again**. His ask, in his words: *"a
+  way out back into the app"*.
+- **A screen that can only go forward is a trap**, however sensible each step looked: choosing
+  a folder was the only control on it, and closing a vault was a one-way door.
+- The small widget's message filled the card and pushed `WidgetFoot` off the bottom — **the
+  diagnostic line crowded out by the thing it was there to explain**. `emptyText` is short on
+  `.systemSmall` and the foot carries `.layoutPriority(1)`. **A message that hides its own
+  explanation is worse than a shorter message.**
+
 ## Not built (by choice)
 
 Nothing. Saved searches were the last item and shipped in build 173.
