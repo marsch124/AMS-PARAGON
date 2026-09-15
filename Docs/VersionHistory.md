@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 177 · 15 September 2026
+
+**A widget that cannot be silent.** Your widget came up as a blank box, and nothing anywhere
+could say why. Three different faults looked exactly the same from the outside, and one of the
+three — the widget being unable to reach the small file the app writes for it — cannot be mended
+by opening the app, which was the only advice the widget could give.
+
+**Every widget now carries one small grey line at the bottom**, for example **PARAGON 177 ·
+written 09:41**. If that line is on screen, the widget itself is running, and the line says what
+it found: *written 09:41*, *nothing written yet*, or *shared folder missing*. If there is still
+no line at all, the widget is not running, and that is mine to fix in the build.
+
+**Settings › Widget** answers the same question from the app's side: shared folder found or not,
+when the summary was last written, how many actions are in it, and a **Write it again now**
+button.
+
+The build now also lists every part it ships, so a widget quietly left out of the app can never
+again look the same as a clean build.
+
 ## Build 176 · 15 September 2026
 
 **Telling an aspiration from a goal.** You said you sometimes have trouble with it, and asked

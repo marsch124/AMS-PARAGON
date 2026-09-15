@@ -133,6 +133,32 @@ jobs:
             2>&1 | tee build/archive.log | grep -E "error:|warning:|\*\* ARCHIVE" || true
           grep -q "\*\* ARCHIVE SUCCEEDED \*\*" build/archive.log
 
+      - name: What is inside the app
+        # Build 177. His widget came up blank on the phone and nothing in the logs could say
+        # whether the widget was even in the app: both the archive and the export steps keep
+        # only the lines matching "error:", so an extension quietly left out would look exactly
+        # like a clean build. This step is three seconds and it names every bundle that shipped.
+        run: |
+          APP=$(ls -d "$PWD/build/${{ matrix.archive }}.xcarchive"/Products/Applications/*.app 2>/dev/null | head -1)
+          if [ -z "$APP" ]; then
+            echo "No app in the archive."
+            exit 0
+          fi
+          echo "App: $(basename "$APP")"
+          if [ -d "$APP/PlugIns" ]; then
+            ls -1 "$APP/PlugIns"
+          else
+            echo "No PlugIns folder: no extensions are embedded in this app."
+          fi
+          for ext in "$APP"/PlugIns/*.appex; do
+            [ -e "$ext" ] || continue
+            echo "--- $(basename "$ext") ---"
+            /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$ext/Info.plist" || true
+            /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$ext/Info.plist" || true
+            /usr/libexec/PlistBuddy -c "Print :NSExtension:NSExtensionPointIdentifier" "$ext/Info.plist" || true
+            codesign -d --entitlements :- "$ext" 2>&1 | head -20 || true
+          done
+
       - name: Send it to TestFlight
         env:
           KEY_ID: ${{ secrets.ASC_KEY_ID }}

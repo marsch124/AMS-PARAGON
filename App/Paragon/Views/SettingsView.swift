@@ -211,6 +211,13 @@ struct SettingsView: View {
                 }
             }
 
+            #if os(iOS)
+            // The Mac has no widget, and its own entitlements deliberately drop the App Group
+            // (the Mac App Store wants team-prefixed groups), so this section would report a
+            // missing folder there and mean nothing by it.
+            WidgetStatusSection()
+            #endif
+
             Section("About") {
                 LabeledContent("Device id", value: model.deviceID)
                 Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
@@ -289,3 +296,66 @@ struct ReviewRhythmStepper: View {
         .padding(.vertical, 2)
     }
 }
+
+#if os(iOS)
+/// What the widget can see, said inside the app (build 177).
+///
+/// **A widget that is not running cannot say anything at all**, which is exactly the state his
+/// phone was in: a blank box, and the only advice available was "open the app once" — which
+/// mends nothing when the shared folder is what is missing. So the app answers the same three
+/// questions the widget's own foot line answers, and this screen can be looked at even when the
+/// widget draws nothing.
+///
+/// Read fresh every time it appears. The question is what is true now, never what was true at
+/// launch.
+struct WidgetStatusSection: View {
+    @EnvironmentObject private var model: AppModel
+    @State private var snapshot: WidgetSnapshot?
+    @State private var folderFound = true
+
+    private var writtenText: String {
+        guard let snapshot else { return "nothing written yet" }
+        return snapshot.written.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private var explanation: String {
+        if !folderFound {
+            return "The widget reads a small file that the app and the widget share. This phone cannot reach that shared folder, so the widget has nothing to read. That is not something you can mend on the phone — tell me and I will fix it in the build."
+        }
+        if snapshot == nil {
+            return "Nothing has been written yet. Open a vault, or press Write it again now."
+        }
+        return "The widget reads this file. It is written again every time PARAGON reloads the vault."
+    }
+
+    var body: some View {
+        Section("Widget") {
+            LabeledContent("Shared folder") {
+                Text(folderFound ? "Found" : "Not found")
+                    .foregroundStyle(folderFound ? Color.secondary : Color.orange)
+            }
+            LabeledContent("Last written") {
+                Text(writtenText).foregroundStyle(Color.secondary)
+            }
+            LabeledContent("Actions in it") {
+                Text("\(snapshot?.items.count ?? 0)").foregroundStyle(Color.secondary)
+            }
+            Button("Write it again now") {
+                model.writeWidgetSnapshot()
+                refresh()
+            }
+            .disabled(!folderFound)
+            Text(explanation)
+                .font(.caption)
+                .foregroundStyle(Color.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .onAppear(perform: refresh)
+    }
+
+    private func refresh() {
+        folderFound = model.widgetFolderFound
+        snapshot = model.widgetSnapshotOnDisk()
+    }
+}
+#endif

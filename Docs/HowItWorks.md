@@ -811,6 +811,24 @@ Instead, **PARAGON writes a short summary for the widget every time it reloads**
 
 Nothing is written back from the widget, and nothing about your notes leaves the phone.
 
+### When a widget looks empty
+
+Every widget carries one small grey line at the very bottom, for example **PARAGON 177 ·
+written 09:41**. It is there so that a widget can never be a blank box with no explanation.
+Read it like this:
+
+- **written 09:41** — the widget is working and read the app's summary at that time. If the
+  rest of the widget is empty, there is genuinely nothing due and nothing waiting.
+- **nothing written yet** — the app has not written a summary on this phone. Open PARAGON once.
+- **shared folder missing** — the widget cannot reach the small file the app writes. Nothing
+  you do on the phone will mend this; it has to be fixed in the build. Tell me and I will.
+- **no line at all, a completely blank box** — the widget itself is not running. That is also a
+  build problem, not something to fix on the phone.
+
+**Settings › Widget** says the same thing from the app's side: whether the shared folder was
+found, when the summary was last written, and how many actions are in it. There is a **Write it
+again now** button for when you want to be sure.
+
 ## Mac and iPhone together
 
 Keep the vault in iCloud Drive and pick the same folder on both devices. iCloud carries the files across. Each device syncs with Reminders on its own.

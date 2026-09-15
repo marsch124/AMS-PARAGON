@@ -111,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 176
+    static let number = 177
 }
 
 @MainActor
@@ -982,6 +982,20 @@ final class AppModel: ObservableObject {
         } catch {
             log("widget snapshot not written: \(error.localizedDescription)")
         }
+    }
+
+    /// Whether the folder the app and the widget share can be reached from here (build 177).
+    ///
+    /// **The app has to be able to answer this, because a widget that is not running cannot.**
+    /// His widget came up blank and the only advice anyone could give was "open the app once",
+    /// which mends nothing when the App Group is the thing that is missing.
+    var widgetFolderFound: Bool { Self.widgetContainerURL != nil }
+
+    /// The snapshot as it is on disk now, read back exactly the way the widget reads it — so
+    /// Settings and the widget cannot give two different answers.
+    func widgetSnapshotOnDisk() -> WidgetSnapshot? {
+        guard let container = Self.widgetContainerURL else { return nil }
+        return WidgetSnapshot.read(fromContainer: container)
     }
 
     /// Asks the system to redraw the widgets. **Behind `canImport`**, because WidgetKit is not

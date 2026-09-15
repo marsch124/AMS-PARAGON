@@ -1725,6 +1725,41 @@ entered that, so I don't know if the mockup questionnaire works."* **Until that 
 a preview page is for showing, not for collecting: draw the options and ask him to reply in
 chat.** The free-text box does save; only the buttons and tick boxes are lost.
 
+## The blank widget (build 177)
+
+His report the morning after 176: the widget was **a completely blank box**, and it stayed blank
+after opening the app. Asking him one question ("which of these four does it show?") is what made
+it useful — *blank* is not the same report as *"Open PARAGON once…"*, and the two have different
+causes. **That question cost one message and would have cost two builds** (123–127 again).
+
+Nothing was changed on a guess, because there is nothing here to guess from: three faults look
+identical from the outside, and only one of them is about his vault.
+- `containerURL` nil — the App Group is not switched on for this build of the widget. **Opening
+  the app can never mend it**, and until 177 that was the only advice the widget gave.
+- No file — the app has not written yet.
+- The extension not running at all — nothing the app does is visible.
+
+So 177 makes each of them say its own name:
+- **`WidgetFoot`: one small line on every widget**, `PARAGON <build> · <state>`, where state is
+  "shared folder missing", "nothing written yet" or "written 09:41". **Its presence is the
+  message**: if the line is on screen the extension is running, which is the one thing a widget
+  can never otherwise tell you. The build number comes from the *widget's own* Info.plist
+  (`CFBundleShortVersionString`, set per bundle by the workflow), so a widget left behind by an
+  update shows it.
+- **`ParagonEntry.folderFound`**, so the view can tell the first two apart at all.
+- **Settings › Widget** (`WidgetStatusSection`, iOS only — the Mac entitlements drop the App
+  Group by design) answers the same three questions from the app's side, because **a widget that
+  is not running cannot answer anything**. It reads the file back exactly the way the widget
+  does, so the two cannot disagree.
+- **The workflow lists every bundle it ships** ("What is inside the app"): both xcodebuild steps
+  keep only lines matching `error:`, so an extension quietly left out of the app looked exactly
+  like a clean build. `codesign -d --entitlements` on each `.appex` is in there too, for the App
+  Group question.
+
+**The rule: a screen with no keyboard and no user to ask has to carry its own diagnosis.** Build
+100 said never let a read failure look like an absence; a widget is where that is hardest and
+matters most, because the only debugging tool is what the box says.
+
 ## Not built (by choice)
 
 Nothing. Saved searches were the last item and shipped in build 173.

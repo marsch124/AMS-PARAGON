@@ -23,6 +23,13 @@ struct ParagonEntry: TimelineEntry {
     var date: Date
     /// Nil means the file was not there at all — a different answer from "nothing to do".
     var snapshot: WidgetSnapshot?
+    /// Whether the shared folder could be reached at all (build 177).
+    ///
+    /// **This is a third answer, and the app cannot fix it.** If the App Group is not switched
+    /// on for this build of the widget, `containerURL` is nil and there is nothing to read no
+    /// matter how often PARAGON is opened. Before 177 that looked exactly like "the app has
+    /// never run here", and he was told to open the app again — which could never have worked.
+    var folderFound: Bool = true
 }
 
 struct ParagonProvider: TimelineProvider {
@@ -33,8 +40,9 @@ struct ParagonProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (ParagonEntry) -> Void) {
-        completion(ParagonEntry(date: Date(),
-                                snapshot: context.isPreview ? ParagonProvider.example : read()))
+        completion(context.isPreview
+                   ? ParagonEntry(date: Date(), snapshot: ParagonProvider.example)
+                   : currentEntry())
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<ParagonEntry>) -> Void) {
@@ -42,17 +50,23 @@ struct ParagonProvider: TimelineProvider {
         // its own during a day — the app calls `reloadAllTimelines()` whenever the vault does —
         // but "today" does, and a list headed with yesterday's date is exactly what this widget
         // must not show.
-        let entry = ParagonEntry(date: Date(), snapshot: read())
+        let now = currentEntry()
         let midnight = Calendar.current.nextDate(after: Date(),
                                                  matching: DateComponents(hour: 0, minute: 1),
                                                  matchingPolicy: .nextTime) ?? Date().addingTimeInterval(3600)
-        completion(Timeline(entries: [entry], policy: .after(midnight)))
+        completion(Timeline(entries: [now], policy: .after(midnight)))
     }
 
-    private func read() -> WidgetSnapshot? {
+    /// Named `currentEntry`, never `entry`: `let entry = entry()` would be a local
+    /// shadowing the method inside its own initial value (build 150).
+    private func currentEntry() -> ParagonEntry {
         guard let container = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: ParagonWidgetBundle.appGroupID) else { return nil }
-        return WidgetSnapshot.read(fromContainer: container)
+            .containerURL(forSecurityApplicationGroupIdentifier: ParagonWidgetBundle.appGroupID) else {
+            return ParagonEntry(date: Date(), snapshot: nil, folderFound: false)
+        }
+        return ParagonEntry(date: Date(),
+                            snapshot: WidgetSnapshot.read(fromContainer: container),
+                            folderFound: true)
     }
 
     static let example = WidgetSnapshot(
@@ -113,6 +127,45 @@ enum WidgetLook {
     }
 }
 
+// MARK: - The line that is always there
+
+/// The widget's own build number, read out of its own Info.plist.
+///
+/// The workflow sets `CFBundleShortVersionString` to `1.0.<build>` on every bundle, so this is
+/// the build of **the widget**, not of the app beside it. That difference matters: a widget can
+/// be left behind by an update, and then nothing else on the phone would say so.
+enum WidgetBuild {
+    static var number: String {
+        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        return short.split(separator: ".").last.map(String.init) ?? "?"
+    }
+}
+
+/// One small line at the foot of every widget, saying what this widget found (build 177).
+///
+/// **His widget came up completely blank** and nothing anywhere could say which of three things
+/// had happened: the extension not running at all, the shared folder not reachable, or the file
+/// not written yet. This line answers all three at once — if it is on screen the extension is
+/// running, and it names what it read. That is build 100's rule ("never let a read failure look
+/// like an absence") applied to the one screen that cannot be asked any questions.
+struct WidgetFoot: View {
+    var entry: ParagonEntry
+
+    private var state: String {
+        if !entry.folderFound { return "shared folder missing" }
+        guard let snapshot = entry.snapshot else { return "nothing written yet" }
+        return "written " + snapshot.written.formatted(date: .omitted, time: .shortened)
+    }
+
+    var body: some View {
+        Text("PARAGON \(WidgetBuild.number) · \(state)")
+            .font(.system(size: 8))
+            .foregroundStyle(.tertiary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+    }
+}
+
 // MARK: - The actions widget
 
 struct ActionsWidgetView: View {
@@ -143,6 +196,7 @@ struct ActionsWidgetView: View {
                 emptyLine
             }
             Spacer(minLength: 0)
+            WidgetFoot(entry: entry)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .widgetURL(URL(string: "amspara://"))
@@ -164,11 +218,17 @@ struct ActionsWidgetView: View {
         }
     }
 
-    /// **Three different silences, said as three different things.** Drawing the same blank
-    /// box for all of them is the fault build 100 is about.
+    /// **Four different silences, said as four different things.** Drawing the same blank
+    /// box for all of them is the fault build 100 is about. The first one is not about his
+    /// vault at all: it is this widget being unable to reach the folder it shares with the
+    /// app, and opening PARAGON again would not mend it (build 177).
     @ViewBuilder
     private var emptyLine: some View {
-        if entry.snapshot == nil {
+        if !entry.folderFound {
+            Text("This widget cannot reach PARAGON's shared folder. Nothing you do on the phone will mend it.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } else if entry.snapshot == nil {
             Text("Open PARAGON once and your actions appear here.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -246,11 +306,14 @@ struct CountsWidgetView: View {
                 CountLine(number: s.dueForReview, word: "for a look",
                           symbol: "target", tint: WidgetLook.goal)
             } else {
-                Text("Open PARAGON once and the counts appear here.")
+                Text(entry.folderFound
+                     ? "Open PARAGON once and the counts appear here."
+                     : "This widget cannot reach PARAGON's shared folder.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
+            WidgetFoot(entry: entry)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .widgetURL(URL(string: "amspara://"))
