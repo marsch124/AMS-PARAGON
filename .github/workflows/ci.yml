@@ -32,8 +32,26 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild -project Paragon.xcodeproj -scheme Paragon -destination 'platform=macOS' \
+            -derivedDataPath build/dd-macos \
             CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" build 2>&1 | tee build-macos.log | grep -E "error:|warning:|\*\* BUILD" || true
           grep -q "\*\* BUILD SUCCEEDED \*\*" build-macos.log
+
+      - name: What is inside the Mac app
+        # The widget is a separate bundle inside the app. A build that compiles it but never
+        # copies it in looks exactly like a clean build, which is how the Mac widget could ship
+        # as nothing at all. Cheaper to ask here than to spend a TestFlight upload finding out.
+        run: |
+          APP=$(ls -d build/dd-macos/Build/Products/*/*.app 2>/dev/null | head -1)
+          if [ -z "$APP" ]; then
+            echo "No app was built."
+            exit 0
+          fi
+          echo "App: $APP"
+          if [ -d "$APP/Contents/PlugIns" ]; then
+            ls -1 "$APP/Contents/PlugIns"
+          else
+            echo "No Contents/PlugIns folder: no extensions are embedded in the Mac app."
+          fi
       - name: Build for iOS Simulator
         run: |
           set -o pipefail

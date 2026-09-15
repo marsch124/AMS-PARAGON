@@ -145,12 +145,18 @@ jobs:
             exit 0
           fi
           echo "App: $(basename "$APP")"
-          if [ -d "$APP/PlugIns" ]; then
-            ls -1 "$APP/PlugIns"
+          # An iPhone app is flat and keeps its extensions in PlugIns; a Mac app keeps them in
+          # Contents/PlugIns. Looking in one place only made the Mac app of build 178 report
+          # "no extensions" when the question had not really been asked.
+          PLUGINS="$APP/PlugIns"
+          [ -d "$PLUGINS" ] || PLUGINS="$APP/Contents/PlugIns"
+          if [ -d "$PLUGINS" ]; then
+            echo "Extensions in $(echo "$PLUGINS" | sed "s|.*$(basename "$APP")/||"):"
+            ls -1 "$PLUGINS"
           else
             echo "No PlugIns folder: no extensions are embedded in this app."
           fi
-          for ext in "$APP"/PlugIns/*.appex; do
+          for ext in "$PLUGINS"/*.appex; do
             [ -e "$ext" ] || continue
             echo "--- $(basename "$ext") ---"
             /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$ext/Info.plist" || true
