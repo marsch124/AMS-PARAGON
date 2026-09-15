@@ -92,6 +92,9 @@ struct NewNoteSheet: View {
         }
         .padding(isPhone ? 14 : 20)
         .frame(minWidth: sheetMinWidth)
+        // The phone's sheet is the whole screen, so the content is pinned to the top and the
+        // footer pushed to the foot. On the Mac the sheet takes the size of what is in it.
+        .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         .onAppear {
             if case .kind(let current)? = model.section,
                let match = NewThing.allCases.first(where: { !$0.isCapture && $0.kind == current }) {
@@ -108,6 +111,13 @@ struct NewNoteSheet: View {
 
     /// A phone sheet may not be given a minimum width wider than the phone (build 158).
     private var sheetMinWidth: CGFloat? { isPhone ? nil : 420 }
+
+    /// Written out rather than a ternary with `nil` in one arm: `.infinity` is a member of
+    /// `CGFloat`, not of `CGFloat?`, and there is no compiler here to settle it.
+    private var fillOnPhone: CGFloat? {
+        if isPhone { return CGFloat.infinity }
+        return nil
+    }
 
     // MARK: The five buttons
 
@@ -158,16 +168,61 @@ struct NewNoteSheet: View {
                 settingsChips
             }
 
+            if isPhone { Spacer(minLength: 12) }
+            footer
+        }
+    }
+
+    /// **Build 186, from his screenshot of the phone.** Cancel and Create were two blue words
+    /// in the bottom corner — the plain `Button` a Mac sheet draws as a proper button and a
+    /// phone draws as text. On the phone **Create** is now a full-width filled button in the
+    /// kind's own colour, the same shape as the capture screen's **Save**, so the one thing
+    /// the sheet is for can be hit with a thumb. The Mac keeps its two buttons bottom right,
+    /// where a Mac sheet's buttons belong, with Create filled in the same colour.
+    @ViewBuilder
+    private var footer: some View {
+        if isPhone {
+            HStack(spacing: 12) {
+                // The padding is inside the label, not on the Button: a Button's tap area is
+                // its label, so padding put outside only pushes it about.
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 18)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                Button(action: create) {
+                    Text("Create")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(canCreate ? thing.tint : Color.secondary.opacity(0.3),
+                                    in: RoundedRectangle(cornerRadius: 12))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canCreate)
+            }
+        } else {
             HStack {
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Button("Create", action: create)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .tint(thing.tint)
+                    .disabled(!canCreate)
             }
         }
     }
+
+    private var canCreate: Bool { !title.trimmingCharacters(in: .whitespaces).isEmpty }
 
     /// What a note can be given as it is made, each one a chip you press. Only the chips that
     /// apply to the chosen kind are drawn, so the row stays short without anything folded away.

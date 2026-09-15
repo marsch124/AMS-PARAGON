@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 186 · 15 September 2026
+
+**Cancel and Create are proper buttons on the iPhone now.** They were two blue words in the
+bottom corner. **Create** is a full-width button in the colour of the kind you picked — gold
+for a goal, green for a project — and it is grey until the name field has something in it. It
+is the same shape as **Save** on the capture screen. **Cancel** sits beside it with room around
+it, so neither is a small target.
+
+The screen also starts at the top now instead of floating in the middle.
+
+On the Mac the two buttons stay where a Mac sheet keeps them, bottom right, and Create is
+filled in the same colour. Return still creates and Escape still cancels.
+
 ## Build 185 · 15 September 2026
 
 **The New note screen is rebuilt.** You called the old one a very sad entry page, and you were
