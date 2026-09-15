@@ -28,6 +28,18 @@ struct PhoneRootView: View {
 
         var id: Int { rawValue }
 
+        /// What the screen tests press. A name of its own, never the title: a tab renamed for
+        /// him must not quietly stop a test from finding it (build 190).
+        var identifier: String {
+            switch self {
+            case .today: return "tab.today"
+            case .plan: return "tab.plan"
+            case .actions: return "tab.actions"
+            case .inbox: return "tab.inbox"
+            case .browse: return "tab.browse"
+            }
+        }
+
         var title: String {
             switch self {
             case .today: return "Today"
@@ -177,6 +189,7 @@ struct PhoneTabBar: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.title)
+                .accessibilityIdentifier(item.identifier)
             }
         }
         .padding(.top, 7)

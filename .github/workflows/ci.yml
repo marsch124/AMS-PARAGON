@@ -65,10 +65,51 @@ jobs:
           name: xcodebuild-logs
           path: build-*.log
 
+  screen-tests:
+    name: Screen tests (iPhone Simulator)
+    runs-on: macos-15
+    # A job of its own, so a red light says "a screen is broken" and not "the app does not
+    # compile". Build 190: until now CI compiled this app and never opened a screen in it,
+    # which is why builds 71-74, 85 and 114-128 all shipped green.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Pick a simulator
+        id: sim
+        # By id, not by name: the runner image decides which iPhones exist, and a destination
+        # naming a device that is not on this image fails with something that reads like a
+        # broken test.
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available | grep -E "^ +iPhone" | head -1 | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+          if [ -z "$UDID" ]; then
+            echo "No iPhone simulator on this runner."
+            exit 1
+          fi
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+      - name: Press the buttons
+        run: |
+          set -o pipefail
+          xcodebuild -project Paragon.xcodeproj -scheme ParagonUITests \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build/dd-uitests \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
+            test 2>&1 | tee test-ui.log | grep -E "error:|Test Case|Test Suite|XCTAssert|\*\* TEST" || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test-ui.log
+      - name: Upload the test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-test-log
+          path: test-ui.log
+
   commit-project:
     name: Commit generated Xcode project
     runs-on: macos-15
-    needs: [core-tests, app-build]
+    needs: [core-tests, app-build, screen-tests]
     # Only when the project definition itself changed, so a developer's local
     # signing settings in Paragon.xcodeproj are never overwritten by a pull.
     if: github.event_name == 'push'

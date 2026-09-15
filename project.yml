@@ -172,6 +172,28 @@ targets:
         # plain name is an iOS spelling and the Mac App Store refuses it.
         CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements
 
+  # The screen tests (build 190). A target of its own and a **scheme of its own**, so the
+  # Paragon scheme that TestFlight archives cannot pick any of this up: a Release archive must
+  # never contain a test bundle, and the safest way to guarantee that is for the archive scheme
+  # not to know it exists.
+  ParagonUITests:
+    type: bundle.ui-testing
+    supportedDestinations: [iOS]
+    sources:
+      - path: Tests/ParagonUITests
+    dependencies:
+      - target: Paragon
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.schabbauer.AMSPara.ScreenTests
+        PRODUCT_NAME: ParagonUITests
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: true
+        TEST_TARGET_NAME: Paragon
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: D24ENP83QQ
+        TARGETED_DEVICE_FAMILY: "1,2"
+
 schemes:
   Paragon:
     build:
@@ -187,3 +209,13 @@ schemes:
       config: Debug
     archive:
       config: Release
+
+  # `xcodebuild -scheme ParagonUITests test` is what CI runs on a simulator.
+  ParagonUITests:
+    build:
+      targets:
+        ParagonUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - ParagonUITests

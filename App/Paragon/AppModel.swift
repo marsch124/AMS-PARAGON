@@ -111,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 189
+    static let number = 190
 }
 
 @MainActor
@@ -260,7 +260,23 @@ final class AppModel: ObservableObject {
         loadCaughtToday()
         // Before the vault is opened: opening it is what starts the watch.
         cloudWatcher.onChange = { [weak self] in self?.cloudFilesChanged() }
+        #if DEBUG
+        // The screen tests CI runs have nobody to choose a folder, so they ask for one to be
+        // made (build 190). Everything after this is the ordinary path: `openVault(at:)` is
+        // what a folder he picks himself goes through too.
+        if TestVault.isWanted {
+            TestVault.resetSettings()
+            if let url = try? TestVault.make() {
+                openVault(at: url)
+            } else {
+                vaultProblem = "The test vault could not be made."
+            }
+        } else {
+            restoreVault()
+        }
+        #else
         restoreVault()
+        #endif
         fetchCloudFiles(force: true)
         #if os(macOS)
         terminationObserver = NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in

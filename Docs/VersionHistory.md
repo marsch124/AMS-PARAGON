@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 190 · 15 September 2026
+
+**Nothing changes in the app.** This build is a check, not a feature, so there is nothing for
+you to look at.
+
+Until now the build machine only checked that PARAGON *compiles*. It never opened a screen. That
+is why the faults that cost us the most days all went past it with a green light: the Inbox where
+no line could be clicked, the map boxes that swallowed every click, and the phone note that
+needed a long press before it would take a letter.
+
+From this build the machine starts an iPhone simulator on every push, opens PARAGON with a small
+made-up vault, and presses the tabs. If a screen draws nothing, or the app stops, the build turns
+red before it can reach you. It is two checks today; more will be added as we go.
+
 ## Build 189 · 15 September 2026
 
 **An aspiration has its own colour now: a deeper gold.** You picked it from a drawing. A goal
