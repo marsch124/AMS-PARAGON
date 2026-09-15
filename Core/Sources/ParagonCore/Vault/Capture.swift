@@ -246,6 +246,31 @@ public struct CaptureReading: Equatable, Sendable {
     }
 }
 
+public extension CaptureReading {
+    /// The same line carrying exactly these tags: every `#tag` taken out, the chosen ones put
+    /// back at the end.
+    ///
+    /// **A capture's tags live in the words, as `#tag`** — a capture becomes a task line, and
+    /// `#tag` is the only place a task can carry one. A note's `tags:` line is a different
+    /// thing in a different place. That is why the two looked like two features and why the
+    /// capture screen was left without a tag list in build 187; they are one thing to him.
+    ///
+    /// It strips with `TaskParser`'s own pattern, so what is taken out is exactly what the
+    /// parser would have read: `#travelling` is not `#travel`, and a `#` glued to a word is
+    /// not a tag (build 145's rule).
+    static func line(_ line: String, settingTags tags: [String]) -> String {
+        let ns = line as NSString
+        var rest = TaskParser.tagRegex.stringByReplacingMatches(
+            in: line, options: [], range: NSRange(location: 0, length: ns.length), withTemplate: "")
+        while rest.contains("  ") { rest = rest.replacingOccurrences(of: "  ", with: " ") }
+        rest = rest.trimmingCharacters(in: .whitespaces)
+        let wanted = TagName.cleaned(tags)
+        guard !wanted.isEmpty else { return rest }
+        let suffix = wanted.map { "#\($0)" }.joined(separator: " ")
+        return rest.isEmpty ? suffix : rest + " " + suffix
+    }
+}
+
 public extension CaptureItem {
     /// This capture read back, exactly as the note will read it.
     var reading: CaptureReading { CaptureReading(line: lineText) }

@@ -297,6 +297,9 @@ struct NoteTagsChip: View {
 struct TagChoices: View {
     @ObservedObject var model: AppModel
     let title: String
+    /// The sentence under the list. It differs by where the tags end up: a note keeps them on
+    /// its `tags:` line, a capture keeps them in the words as `#tag`.
+    var hint = "A tag can also be written straight into the note's tags: line, or as #tag on a task."
     @Binding var chosen: [String]
     @State private var draft = ""
     @State private var totals: [String: Int] = [:]
@@ -313,7 +316,7 @@ struct TagChoices: View {
                     .disabled(TagName.clean(draft) == nil)
             }
             choices
-            Text("A tag can also be written straight into the note's tags: line, or as #tag on a task.")
+            Text(hint)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

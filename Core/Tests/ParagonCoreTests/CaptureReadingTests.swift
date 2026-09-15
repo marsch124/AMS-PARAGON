@@ -52,4 +52,29 @@ final class CaptureReadingTests: XCTestCase {
         XCTAssertEqual(reading.priorityMarks, "!!!")
         XCTAssertEqual(reading.tags, ["travel"])
     }
+
+    // MARK: Writing the tags back into the line (build 188)
+
+    func testSettingTagsReplacesEveryTagAndKeepsTheRest() {
+        let line = CaptureReading.line("Book the ferry >2026-09-15 !! #summer", settingTags: ["travel", "waiting"])
+        XCTAssertEqual(line, "Book the ferry >2026-09-15 !! #travel #waiting")
+        XCTAssertEqual(CaptureReading(line: line).tags, ["travel", "waiting"])
+        XCTAssertEqual(CaptureReading(line: line).priority, 2)
+        XCTAssertEqual(CaptureReading(line: line).dueDate, DateOnly("2026-09-15"))
+    }
+
+    func testSettingNoTagsTakesThemAllOutAndTidiesTheGap() {
+        XCTAssertEqual(CaptureReading.line("Book  #travel the ferry #summer", settingTags: []),
+                       "Book the ferry")
+    }
+
+    func testTagsAreTidiedAndNotDuplicatedByCase() {
+        XCTAssertEqual(CaptureReading.line("Call the bank", settingTags: ["#Travel", "travel", "two words"]),
+                       "Call the bank #Travel #two-words")
+    }
+
+    func testAHashGluedToAWordIsNotATagAndIsLeftAlone() {
+        XCTAssertEqual(CaptureReading.line("Order part no#4 today", settingTags: ["parts"]),
+                       "Order part no#4 today #parts")
+    }
 }

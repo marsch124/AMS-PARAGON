@@ -769,6 +769,8 @@ Write a line and the app reads it back to you in chips:
 - **Priority !!** — it found the marks.
 - **#travel** — it found a tag.
 
+The **#tag…** button under the field opens the whole list of tags you already have, the same one the New note screen and a note's header use, so you can see what you have before making a new one. Tags on a capture are written into the words as `#travel`, which is how a task carries a tag.
+
 **If a chip does not appear, the app did not read that part.** That is the point of them: you
 see what will be saved before you save it. The chips are dashed because they are not buttons;
 they are what the app heard.

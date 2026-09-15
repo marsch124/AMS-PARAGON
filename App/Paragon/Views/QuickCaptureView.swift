@@ -233,7 +233,7 @@ struct QuickCaptureView: View {
             AddChip(title: "Date\u{2026}") { pickingDate = true }
             AddChip(title: "!") { insert("!") }
             AddChip(title: "!!") { insert("!!") }
-            AddChip(title: "#tag") { insert("#") }
+            CaptureTagsChip(model: model, tags: tagChoice)
         }
         .lineLimit(1)
     }
@@ -304,6 +304,14 @@ struct QuickCaptureView: View {
 
     // MARK: Doing it
 
+    /// The tags on this capture, read out of the line and written back into it. There is no
+    /// separate list to keep in step: `CaptureReading` reads the very line the capture will
+    /// write, so the chips, the picker and the vault cannot disagree.
+    private var tagChoice: Binding<[String]> {
+        Binding(get: { reading.tags },
+                set: { text = CaptureReading.line(text, settingTags: $0) })
+    }
+
     /// Puts a marker at the end of what he has written, with one space in front of it.
     private func insert(_ marker: String) {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
@@ -349,6 +357,46 @@ struct ReadChip: View {
             .overlay(
                 Capsule().strokeBorder(tint.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
             )
+    }
+}
+
+/// The tags on a capture, chosen from the tags he already has.
+///
+/// **Build 188, and he had to ask for it.** Build 187 put this list on the New note screen
+/// and left the capture screen with a button that wrote a bare `#`: *"The tags work on
+/// everything except Capture."* The reason it was missed is worth writing down — a note's
+/// tags are a `tags:` line and a capture's are `#tag` inside the words, so in the code they
+/// are two different things, and I was editing one screen rather than asking which screens
+/// pick a tag. **When a build changes how something is chosen, every screen that chooses the
+/// same thing is part of that build** (build 168's rule, in a new place).
+///
+/// It is drawn as an `AddChip`, because that is what it is: a button that writes tag syntax
+/// into the field. Only the way you pick the word has changed.
+struct CaptureTagsChip: View {
+    @ObservedObject var model: AppModel
+    @Binding var tags: [String]
+    @State private var showing = false
+
+    var body: some View {
+        Button {
+            showing = true
+        } label: {
+            Text("#tag\u{2026}")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .background(Color.secondary.opacity(0.12), in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help("Put a tag on this, from the ones you already have")
+        .popover(isPresented: $showing) {
+            TagChoices(model: model,
+                       title: "Tags for this capture",
+                       hint: "Tags on a capture are written into the words as #tag, which is how a task carries one.",
+                       chosen: $tags)
+        }
     }
 }
 

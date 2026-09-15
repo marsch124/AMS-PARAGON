@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 188 · 15 September 2026
+
+**The Capture screen has the same tag list.** You found it: *"The tags work on everything
+except Capture."* The **#tag…** button used to write a bare `#` and leave you to remember the
+word. It now opens the very same list as the New note screen and a note's header — every tag
+you have, with a tick on the ones you picked and a number saying how much of your vault carries
+it.
+
+The tags go into the words as `#travel`, which is how a task carries a tag, so the chips under
+the field read them straight back. Picking tags moves them to the end of the line; the date and
+the `!` marks stay where you put them.
+
 ## Build 187 · 15 September 2026
 
 **The New note screen has a Tags chip, and it shows every tag you already have.** Your words:
