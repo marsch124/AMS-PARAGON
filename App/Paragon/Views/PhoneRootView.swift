@@ -62,10 +62,26 @@ struct PhoneRootView: View {
         }
     }
 
+    /// The gap between two screens while one slides past the other (build 184).
+    ///
+    /// His ask: make the swipe read as a carousel — *"you see a piece of the next screen at the
+    /// edge while you swipe, so it looks like cards passing by."* A page view draws its pages
+    /// edge to edge, so the two screens moved as one sheet and nothing said where one ended.
+    /// Six points of padding on each page is a twelve-point gap in the middle of a swipe, and
+    /// the two edges become two cards.
+    ///
+    /// **Deliberately not the full carousel.** Showing a slice of the next screen while nothing
+    /// is moving means replacing the page view with a horizontal `ScrollView`, and then every
+    /// screen's navigation bar lives inside a scroll view instead of its own stack — the top
+    /// bar is exactly where this app has paid for mistakes before (builds 88, 117, 155). Told
+    /// him the trade and left it to him.
+    private static let pageGap: CGFloat = 6
+
     var body: some View {
         TabView(selection: $tab) {
             ForEach(Tab.allCases) { item in
                 page(for: item)
+                    .padding(.horizontal, Self.pageGap)
                     .tag(item)
             }
         }

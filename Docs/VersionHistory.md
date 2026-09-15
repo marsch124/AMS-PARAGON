@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 184 · 15 September 2026
+
+**The swipe looks like cards now.** There is a small gap between the screens, so while one
+slides past the other you see two edges moving rather than one sheet. Your word for it was
+carousel.
+
+What it does not do is show a slice of the next screen while nothing is moving. That needs
+replacing Apple's page view with our own scrolling, and then every screen's top bar would sit
+inside a scrolling area instead of its own — the part of the phone layout this app has had the
+most trouble with. Say the word and I will do it, but I would rather not spend that risk on a
+look.
+
 ## Build 183 · 15 September 2026
 
 **Five tabs on the iPhone, and you can swipe between all of them.** You asked for the swipe to
