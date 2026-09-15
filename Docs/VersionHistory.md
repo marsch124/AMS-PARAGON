@@ -2,6 +2,12 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 194 · 15 September 2026
+
+**One more check on the build machine, nothing new to see.** The simulated iPhone now opens the
+Map from Browse, taps a box, and checks that the box's note opens. That is the fault from build
+85 — boxes that swallowed every click — pressed on every push from now on.
+
 ## Build 193 · 15 September 2026
 
 **One more check on the build machine, nothing new to see.** The simulated iPhone now presses

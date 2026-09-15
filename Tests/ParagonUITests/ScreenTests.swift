@@ -17,7 +17,7 @@ import XCTest
 /// must not quietly stop a test from finding the thing. The names the tests use are spelled in
 /// the app beside the views: `tab.*`, `browse.<section>`, `note.<path>`, `inbox.<line>`,
 /// `note.editor`, `list.newNote`, `new.<thing>`, `sheet.action` / `sheet.cancel`,
-/// `today.capture`, `capture.text`, `capture.save`. The vault is
+/// `today.capture`, `capture.text`, `capture.save`, `map.<path>`. The vault is
 /// `TestVault` in the app, which is where its titles live.
 final class ScreenTests: XCTestCase {
     private var app: XCUIApplication!
@@ -194,6 +194,34 @@ final class ScreenTests: XCTestCase {
         let line = element("inbox.Captured by the screen test")
         XCTAssertTrue(line.waitForExistence(timeout: 20),
                       "The captured line is not in the Inbox. Either the capture was not written, or the Inbox did not reload.")
+    }
+
+    /// A box on the Map takes a tap and opens its note. Build 85 had every box swallow clicks
+    /// across the whole canvas and the last one drawn win them all; CI compiled it green. The
+    /// aspiration's box is the one tapped because root goals sit at the top of the layout,
+    /// where a phone shows them without scrolling.
+    func testAMapBoxOpensItsNote() {
+        XCTAssertTrue(app.buttons["tab.browse"].waitForExistence(timeout: appears),
+                      "The tab bar never appeared.")
+        app.buttons["tab.browse"].tap()
+
+        let mapRow = element("browse.Map")
+        XCTAssertTrue(mapRow.waitForExistence(timeout: 20), "Browse has no Map row.")
+        mapRow.tap()
+
+        let box = element("map.Goals/Be strong and steady at seventy.md")
+        XCTAssertTrue(box.waitForExistence(timeout: 30),
+                      "The Map drew no box for the test aspiration. On screen: \(visibleTexts())")
+        XCTAssertTrue(box.isHittable,
+                      "The aspiration's box is on the Map but not on screen at this size, so it cannot be tapped. On screen: \(visibleTexts())")
+        box.tap()
+
+        let editor = app.textViews["note.editor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The box was tapped and its note did not open. On screen: \(visibleTexts())")
+        let shown = editor.value as? String ?? ""
+        XCTAssertTrue(shown.contains("Be strong and steady at seventy"),
+                      "A note opened, but not the one whose box was tapped. It shows: \(shown.prefix(200))")
     }
 
     /// The first twenty texts on screen, for a failure message. The nearest thing to a

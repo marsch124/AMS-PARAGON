@@ -525,6 +525,11 @@ struct MapNodeBox: View {
         abs(translation.width) > 3 || abs(translation.height) > 3
     }
 
+    /// "map.<note path>" for a note's box, the node's own id for anything else — what the
+    /// screen tests tap (build 194). Accessibility only; nothing here takes the box's click,
+    /// which is the one thing a box may never be given (build 85).
+    private var identifier: String { "map." + (item.node.notePath ?? item.node.id) }
+
     var body: some View {
         if arranging, canMove {
             placed(shift)
@@ -532,6 +537,8 @@ struct MapNodeBox: View {
                 .contextMenu {
                     Button(unpinTitle, action: unpin)
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier(identifier)
         } else {
             placed(.zero)
                 .onTapGesture(perform: select)
@@ -540,6 +547,8 @@ struct MapNodeBox: View {
                     guard let first = transfers.first else { return false }
                     return drop(first)
                 } isTargeted: { targeting($0) }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier(identifier)
         }
     }
 }
