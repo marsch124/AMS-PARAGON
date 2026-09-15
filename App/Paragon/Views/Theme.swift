@@ -323,6 +323,7 @@ struct SheetFooter: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("sheet.cancel")
             Button(action: act) {
                 Text(actionTitle)
                     .font(.headline)
@@ -334,6 +335,7 @@ struct SheetFooter: View {
             }
             .buttonStyle(.plain)
             .disabled(!canAct)
+            .accessibilityIdentifier("sheet.action")
         }
     }
 
@@ -342,11 +344,13 @@ struct SheetFooter: View {
             Spacer()
             Button("Cancel", action: cancel)
                 .keyboardShortcut(.cancelAction)
+                .accessibilityIdentifier("sheet.cancel")
             Button(actionTitle, action: act)
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
                 .tint(tint)
                 .disabled(!canAct)
+                .accessibilityIdentifier("sheet.action")
         }
     }
 }

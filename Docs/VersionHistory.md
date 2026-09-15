@@ -2,6 +2,13 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 192 · 15 September 2026
+
+**One more check on the build machine, nothing new to see.** The simulated iPhone now opens the
+New note screen from the Projects list, presses **Project**, types a name, presses **Create**,
+and checks that the new note opens with that name in it. The screen you asked for in build 185
+is now pressed on every push.
+
 ## Build 191 · 15 September 2026
 
 **Two more checks on the build machine, and one small fix.**

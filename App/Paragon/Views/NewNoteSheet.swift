@@ -164,6 +164,7 @@ struct NewNoteSheet: View {
                     .textFieldStyle(.roundedBorder)
                     .focused($nameFocused)
                     .onSubmit(create)
+                    .accessibilityIdentifier("new.name")
             }
 
             Text(hint)
@@ -408,6 +409,8 @@ private struct ThingChoice: View {
         }
         .buttonStyle(.plain)
         .help(thing.isCapture ? "Write a line straight into the Inbox" : "Make a \(thing.name.lowercased())")
+        // "new.project" and so on, for the screen tests (build 192).
+        .accessibilityIdentifier("new.\(thing.rawValue)")
     }
 }
 

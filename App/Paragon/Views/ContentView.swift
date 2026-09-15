@@ -515,6 +515,7 @@ struct NoteListView: View {
                         .foregroundStyle(model.section?.tint ?? Color.accentColor)
                 }
                 .help("New note in this section (⌘N)")
+                .accessibilityIdentifier("list.newNote")
             }
             if model.section == .work {
                 ToolbarItem {

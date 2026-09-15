@@ -16,7 +16,8 @@ import XCTest
 /// (the Browse row and a group heading on the Actions page), and a word he asks to be renamed
 /// must not quietly stop a test from finding the thing. The names the tests use are spelled in
 /// the app beside the views: `tab.*`, `browse.<section>`, `note.<path>`, `inbox.<line>`,
-/// `note.editor`. The vault is `TestVault` in the app, which is where its titles live.
+/// `note.editor`, `list.newNote`, `new.<thing>`, `sheet.action` / `sheet.cancel`. The vault is
+/// `TestVault` in the app, which is where its titles live.
 final class ScreenTests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -106,6 +107,48 @@ final class ScreenTests: XCTestCase {
         let selected = expectation(for: NSPredicate(format: "isSelected == true"), evaluatedWith: line)
         wait(for: [selected], timeout: 10)
         XCTAssertTrue(line.isSelected, "The line was tapped and did not become the selected one.")
+    }
+
+    /// The New note screen, end to end: open it from the Projects list, press **Project**, give
+    /// it a name, press **Create**, and the new note opens in the editor with that name in it.
+    /// The screen was rebuilt in builds 185 to 191 and had never been pressed by anything but
+    /// his thumb.
+    func testTheNewNoteScreenMakesAProject() {
+        XCTAssertTrue(app.buttons["tab.browse"].waitForExistence(timeout: appears),
+                      "The tab bar never appeared.")
+        app.buttons["tab.browse"].tap()
+
+        let projects = element("browse.Projects")
+        XCTAssertTrue(projects.waitForExistence(timeout: 20), "Browse has no Projects row.")
+        projects.tap()
+
+        let newNote = element("list.newNote")
+        XCTAssertTrue(newNote.waitForExistence(timeout: 20), "The Projects list has no New note button.")
+        newNote.tap()
+
+        let projectButton = element("new.project")
+        XCTAssertTrue(projectButton.waitForExistence(timeout: 20),
+                      "The New note screen did not open, or has no Project button.")
+        projectButton.tap()
+
+        let name = element("new.name")
+        XCTAssertTrue(name.waitForExistence(timeout: 10), "The New note screen has no name field.")
+        name.tap()
+        name.typeText("Made by the screen test")
+
+        let create = element("sheet.action")
+        XCTAssertTrue(create.waitForExistence(timeout: 10), "The New note screen has no Create button.")
+        XCTAssertTrue(create.isEnabled, "Create stayed grey after a name was typed.")
+        create.tap()
+
+        // A new note is opened straight away, so the editor is the proof that it was made:
+        // it shows the file from disk, and the template puts the name in the first line.
+        let editor = app.textViews["note.editor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "Create was pressed and no note opened. The note may not have been made.")
+        let shown = editor.value as? String ?? ""
+        XCTAssertTrue(shown.contains("Made by the screen test"),
+                      "The note that opened does not carry the name that was typed. It shows: \(shown.prefix(200))")
     }
 
     /// Any element carrying that identifier, whatever kind of element SwiftUI made it.
