@@ -8,13 +8,22 @@
 
 /* Begin PBXBuildFile section */
 		156E7AB9FEFEAE96BDD7D5DB /* HowItWorks.md in Resources */ = {isa = PBXBuildFile; fileRef = 6BD311D35F38F0FEFC26141A /* HowItWorks.md */; };
+		22C9DAD4998A986F0473429B /* ParagonWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		257B573BA8DBE27CEC19DF21 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = F7C362F03D42E9BC8FBE7A65 /* ParagonCore */; };
 		3752069BA243D43F74CAC588 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = B5861B3AD6F50041A1F8A8B9 /* ParagonCore */; };
 		627482B9308CA63E70129D95 /* VersionHistory.md in Resources */ = {isa = PBXBuildFile; fileRef = E6919AFBC2371667D46DD399 /* VersionHistory.md */; };
+		71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = 972619FBA5280A0A9364E4D7 /* ParagonCore */; };
 		C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2714DD3A4254950C4A439829 /* ParagonShare.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A26DF654641CA03FC2DA1B0E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E443F4D613DDF4FD685C9FC3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3A86F7AB02F0AE0C81EA13CA;
+			remoteInfo = ParagonWidgets;
+		};
 		B352280E005DC0325DCD14CF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E443F4D613DDF4FD685C9FC3 /* Project object */;
@@ -32,6 +41,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */,
+				22C9DAD4998A986F0473429B /* ParagonWidgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -39,6 +49,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1948F57C2B6673ACAA4E203E /* Paragon.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Paragon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2714DD3A4254950C4A439829 /* ParagonShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B3B1883D9DE44B343B78C6 /* Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Core; path = Core; sourceTree = SOURCE_ROOT; };
@@ -67,9 +78,27 @@
 			path = Paragon;
 			sourceTree = "<group>";
 		};
+		FE3F513E78C0C7E220632898 /* ParagonWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			name = ParagonWidgets;
+			path = ParagonWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A05BCA72B353D0EF0C5C39C0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D3D5FC36D9B7CE315BA35EC1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -94,6 +123,7 @@
 			children = (
 				42A707B22CE1D9EF04587CDC /* Paragon */,
 				31232FE96D5ABE88FA583233 /* ParagonShare */,
+				FE3F513E78C0C7E220632898 /* ParagonWidgets */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -113,6 +143,7 @@
 			children = (
 				1948F57C2B6673ACAA4E203E /* Paragon.app */,
 				2714DD3A4254950C4A439829 /* ParagonShare.appex */,
+				1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -160,6 +191,29 @@
 			productReference = 2714DD3A4254950C4A439829 /* ParagonShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		3A86F7AB02F0AE0C81EA13CA /* ParagonWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA7AFCBB0A9840807E2090CE /* Build configuration list for PBXNativeTarget "ParagonWidgets" */;
+			buildPhases = (
+				C4DA31366BBC9C425612F521 /* Sources */,
+				A5CE4DD8DF12E503447CE8EA /* Resources */,
+				A05BCA72B353D0EF0C5C39C0 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FE3F513E78C0C7E220632898 /* ParagonWidgets */,
+			);
+			name = ParagonWidgets;
+			packageProductDependencies = (
+				972619FBA5280A0A9364E4D7 /* ParagonCore */,
+			);
+			productName = ParagonWidgets;
+			productReference = 1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		76AF015D317DBBD896B2C5D2 /* Paragon */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9966875960BD6333B341EBD9 /* Build configuration list for PBXNativeTarget "Paragon" */;
@@ -173,6 +227,7 @@
 			);
 			dependencies = (
 				3446559631FFB62AB7EA844F /* PBXTargetDependency */,
+				1EC535B0F7AA9A50892F2417 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				42A707B22CE1D9EF04587CDC /* Paragon */,
@@ -195,6 +250,10 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					0505718A6B71861742C3E58F = {
+						DevelopmentTeam = D24ENP83QQ;
+						ProvisioningStyle = Automatic;
+					};
+					3A86F7AB02F0AE0C81EA13CA = {
 						DevelopmentTeam = D24ENP83QQ;
 						ProvisioningStyle = Automatic;
 					};
@@ -223,6 +282,7 @@
 			targets = (
 				76AF015D317DBBD896B2C5D2 /* Paragon */,
 				0505718A6B71861742C3E58F /* ParagonShare */,
+				3A86F7AB02F0AE0C81EA13CA /* ParagonWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -238,6 +298,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2255219E2B352C82DA323471 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A5CE4DD8DF12E503447CE8EA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -261,9 +328,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C4DA31366BBC9C425612F521 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1EC535B0F7AA9A50892F2417 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3A86F7AB02F0AE0C81EA13CA /* ParagonWidgets */;
+			targetProxy = A26DF654641CA03FC2DA1B0E /* PBXContainerItemProxy */;
+		};
 		3446559631FFB62AB7EA844F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
@@ -382,6 +461,34 @@
 			};
 			name = Release;
 		};
+		63EC92AC4812411B6E429FE9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Config/ParagonWidgets/ParagonWidgets.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D24ENP83QQ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Config/ParagonWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Widgets;
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		99524158D64945EF98D859B6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -400,6 +507,34 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Share;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ACA13FBC8A8DFD3B6CE92988 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = App/Config/ParagonWidgets/ParagonWidgets.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = D24ENP83QQ;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Config/ParagonWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Widgets;
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -528,6 +663,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		CA7AFCBB0A9840807E2090CE /* Build configuration list for PBXNativeTarget "ParagonWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACA13FBC8A8DFD3B6CE92988 /* Debug */,
+				63EC92AC4812411B6E429FE9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -538,6 +682,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		972619FBA5280A0A9364E4D7 /* ParagonCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ParagonCore;
+		};
 		B5861B3AD6F50041A1F8A8B9 /* ParagonCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ParagonCore;
