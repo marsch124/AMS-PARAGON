@@ -2,6 +2,38 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 185 · 15 September 2026
+
+**The New note screen is rebuilt.** You called the old one a very sad entry page, and you were
+right: two blue words at the bottom with no labels at all.
+
+**Five buttons across the top: Goal, Project, Area, Resource, Capture.** The name field is under
+them, with the cursor already in it. The button you press decides everything below it.
+
+**Capture is now in the same screen.** Press it and the lower half becomes the quick capture
+screen — the same one as ever, with the chips that read your line back. So one screen answers
+"I want to put something into PARAGON", whether the thought is a project or a line you must not
+forget. Quick capture on its own is unchanged: ⇧⌘N, the menu bar, the button on Today, and the
+share sheet from other apps.
+
+**The settings are chips now, not rows of menus.** Press a chip to change it. A chip you have
+set is filled in its own colour with a solid line around it; a chip you have not set is grey
+with a dashed line — the same two states the app uses everywhere else. What you get:
+
+- **A goal** asks which kind it is (Aspiration, Long term, This year), and then for a target
+  date and the aspiration it serves. The date is picked the same way as a project deadline:
+  write it as 2031-12-01, or use the calendar.
+- **A project** asks which goal it delivers.
+- **An area** asks which area it is part of, and — new — which aspiration it serves. That was
+  missing here before; you had to open the note afterwards to set it.
+- **Everything** asks which **Template** to start from, when there is more than one.
+
+The Goal button shows the star while **Aspiration** is chosen and the target while a date is,
+so the difference between the two is on screen at the moment you choose.
+
+**The word on the capture button is Save.** It said "Caught it" for a moment after saving, and
+you asked for plain words. The line under it now says "3 saved today."
+
 ## Build 184 · 15 September 2026
 
 **The swipe looks like cards now.** There is a small gap between the screens, so while one

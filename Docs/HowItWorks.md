@@ -53,9 +53,18 @@ Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below
 
 ### Making one
 
-**⌘N** asks for a name — the cursor is already in the field, so a note is usually a name and Return. Under it are the four kinds in their own colours: **Goal**, **Project**, **Area**, **Resource**, with one line saying what the chosen one is for.
+**⌘N** opens one screen with five buttons across the top: **Goal**, **Project**, **Area**, **Resource** and **Capture**, each in its own colour. Under them is the name field with the cursor already in it, so a note is usually a name and Return, and one line says what the kind you chose is for.
 
-Under that, everything else a note can be given as it is made, all of it on screen: which template to start from, what an area is part of, a goal's horizon and target date, and the goal a project serves. Only the settings that apply to the kind you have chosen are shown.
+Under that, everything else a note can be given as it is made, drawn as chips you press. A chip you have set is filled in its own colour with a solid line around it; one you have not set is grey with a dashed line.
+
+- **Goal** — which kind of goal it is (**Aspiration**, **Long term**, **This year**), a **Target** date, and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The button at the top shows the star while Aspiration is chosen and the target while a date is.
+- **Project** — the goal it delivers.
+- **Area** — the area it is part of, and the aspiration it serves.
+- **Template** — which template to start from, when that kind has more than one.
+
+Only the chips that apply to the kind you have chosen are shown.
+
+**Capture** is the fifth button. It turns the lower half into the quick capture screen, so the same screen takes a project and a line you must not forget. See **Quick capture** below; nothing about it changes, it is only reachable from here as well.
 
 ### Renaming a note
 
@@ -76,7 +85,7 @@ An area can say which aspiration it belongs to, and a project which goal it deli
 
 ## Sub-areas
 
-**Making one.** Open the area note and click **Part of…** in the top row, then pick the area it belongs to. "Not part of another area" takes it back out. The same choices sit on the right-click menu of an area in the list (long-press on the phone), and **New note › Area** has a **Part of** picker for making one from the start.
+**Making one.** Open the area note and click **Part of…** in the top row, then pick the area it belongs to. "Not part of another area" takes it back out. The same choices sit on the right-click menu of an area in the list (long-press on the phone), and **New note › Area** has a **Part of** chip for making one from the start.
 
 A sub-area is an ordinary area note with one extra line in its frontmatter, `parent: Health`. That means it behaves like any other area:
 
@@ -728,7 +737,7 @@ A template says what it makes in its own `type:` line, so you can keep several s
 
 - **+** in the toolbar adds one. Give it a name and say what it makes; it starts as a copy of the one that kind uses now.
 - The template **named after its kind** — Project, Area, Resource, Goal — is the one used unless you choose another.
-- When a kind has more than one, **New note** grows a **Start from** picker.
+- When a kind has more than one, **New note** grows a **Template** chip.
 - Right-click a template — long-press on the phone — to **Rename** or **Delete** it. Deleting the template only removes the template; notes already made from it are untouched.
 
 ### Changing them
@@ -744,7 +753,8 @@ Open **Templates** in the sidebar, pick a file and edit it. It saves itself a mo
 ## Quick capture
 
 - ⇧⌘N opens the capture panel in the app. On the Mac there is also a panel in the menu bar.
-- On the iPhone it is the **Capture** tab.
+- **New note** (⌘N) has **Capture** as its fifth button, which gives the same screen.
+- On the iPhone it is the button at the top left of **Today**.
 - On the iPhone, Share › PARAGON sends text or a link.
 - Other apps and Shortcuts can call `amspara://capture?text=Call%20the%20bank&target=inbox`.
 

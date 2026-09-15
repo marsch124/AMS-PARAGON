@@ -1,33 +1,141 @@
 import SwiftUI
 import ParagonCore
 
-/// Making a note is nearly always "type a name and press Return", so that is what the sheet
-/// is: a name field with the cursor in it, the four kinds in their own colours, one line
-/// saying what the chosen kind is for, and everything else — templates, horizons, what it
-/// sits under — folded away behind **More**, shut every time it opens (build 119). Nothing
-/// was taken away; the nine things it used to ask are just no longer in the way of the one
-/// thing it always needs.
+/// The five things this sheet can make. Four are kinds of note; the fifth writes a line
+/// into the Inbox instead of making anything.
+///
+/// It is its own type rather than `ParaKind` because a capture is not a kind of note, and
+/// pretending it is would put it in the sidebar, the Map and the review.
+enum NewThing: String, CaseIterable, Identifiable {
+    case goal, project, area, resource, capture
+
+    var id: String { rawValue }
+
+    /// The name on the button. **"Capture", not "Quick capture"** — five buttons in one row
+    /// is not wide enough for the long name, and he agreed to the short one.
+    var name: String {
+        switch self {
+        case .goal: return "Goal"
+        case .project: return "Project"
+        case .area: return "Area"
+        case .resource: return "Resource"
+        case .capture: return "Capture"
+        }
+    }
+
+    /// The kind of note it makes. A capture has none; nothing may read this without first
+    /// asking `isCapture`.
+    var kind: ParaKind {
+        switch self {
+        case .goal: return .goal
+        case .project: return .project
+        case .area: return .area
+        case .resource: return .resource
+        case .capture: return .inbox
+        }
+    }
+
+    var isCapture: Bool { self == .capture }
+
+    /// Capture wears the **Inbox** tint, not a new colour: that is where it goes, and a tint
+    /// in this app is a claim about what a thing is (build 169).
+    var tint: Color { kind.tint }
+}
+
+/// The one door into making something: five buttons across the top — Goal, Project, Area,
+/// Resource, Capture — then the name, then everything else as chips.
+///
+/// **Build 185, and the shape is his.** His words about the old sheet: *"This is a very sad
+/// entry page. I would like to have: Goal, Project, Area, Resource, Quick Capture — all five
+/// with buttons at the top, then we can have the name field."* Pressing **Capture** swaps the
+/// lower half for the capture screen, so one sheet answers "I want to put something into
+/// PARAGON" however the thought arrives.
+///
+/// **The capture half is not written twice.** It is `QuickCaptureView` with `embedded: true`,
+/// the very view the menu bar item, ⇧⌘N and the phone's button use. Two capture screens that
+/// could answer differently is the fault build 162 fixed for "what serves what".
+///
+/// **The settings are chips, not `Picker` rows** — he chose that from a preview
+/// (https://claude.ai/artifact/67nAaem7sj89DyZGZBiXDQ). They use the app's two-state language
+/// from build 142: set is the tint filled with a solid border, not set is grey with a dashed
+/// one. A `Picker` row in a sheet reads as a form to fill in; a chip reads as a fact you can
+/// press, which is what the note header has taught him everywhere else.
 struct NewNoteSheet: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
-    @State private var kind: ParaKind = .project
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
+
+    @State private var thing: NewThing = .project
     @State private var title = ""
     @State private var horizon: GoalHorizon = .year
     @State private var target = ""
-    /// The goal this note serves: an aspiration for a dated goal, any goal for a project.
+    /// The goal this note serves: an aspiration for a dated goal or an area, any goal for a
+    /// project.
     @State private var servesGoal = ""
     @State private var parentArea = ""
     @State private var template = ""
     @FocusState private var nameFocused: Bool
 
-    private static let offered: [ParaKind] = [.goal, .project, .area, .resource]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("New \(kind.singularName)")
-                .font(.title2.bold())
-                .foregroundStyle(kind.tint)
+            thingRow
+            if thing.isCapture {
+                QuickCaptureView(embedded: true)
+            } else {
+                notePane
+            }
+        }
+        .padding(isPhone ? 14 : 20)
+        .frame(minWidth: sheetMinWidth)
+        .onAppear {
+            if case .kind(let current)? = model.section,
+               let match = NewThing.allCases.first(where: { !$0.isCapture && $0.kind == current }) {
+                thing = match
+            }
+            template = defaultTemplateName
+            // The sheet exists to be typed into. Focus does not always take in the same turn
+            // the view appears, so it is asked for again on the next one.
+            DispatchQueue.main.async { nameFocused = !thing.isCapture }
+        }
+        // Each kind has its own templates, so the choice starts again at its default.
+        .onChange(of: thing) { _, _ in template = defaultTemplateName }
+    }
 
+    /// A phone sheet may not be given a minimum width wider than the phone (build 158).
+    private var sheetMinWidth: CGFloat? { isPhone ? nil : 420 }
+
+    // MARK: The five buttons
+
+    private var thingRow: some View {
+        HStack(spacing: 6) {
+            ForEach(NewThing.allCases) { choice in
+                ThingChoice(thing: choice,
+                            chosen: thing == choice,
+                            symbol: symbol(for: choice)) { pick(choice) }
+            }
+        }
+    }
+
+    /// The Goal button shows the star while **Aspiration** is chosen below and the target
+    /// otherwise. The two are not the same thing (build 168), and the button is where he
+    /// first meets the difference.
+    private func symbol(for choice: NewThing) -> String {
+        switch choice {
+        case .goal: return horizon == .life ? ChainSymbol.aspiration : ChainSymbol.datedGoal
+        case .capture: return "tray.and.arrow.down"
+        default: return SidebarSection.kind(choice.kind).systemImage
+        }
+    }
+
+    // MARK: Making a note
+
+    private var notePane: some View {
+        VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Name")
                     .font(.caption)
@@ -38,22 +146,16 @@ struct NewNoteSheet: View {
                     .onSubmit(create)
             }
 
-            HStack(spacing: 6) {
-                ForEach(Self.offered, id: \.self) { choice in
-                    KindChoice(kind: choice, chosen: kind == choice) { pick(choice) }
-                }
-            }
-
             Text(hint)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             // No fold. He tried build 119's "More" toggle and asked for everything to be
-            // on screen at once, so the settings are simply here, under a divider.
-            if hasMoreToOffer {
+            // on screen at once (build 121), so the settings are simply here.
+            if hasSettings {
                 Divider()
-                settingsFields
+                settingsChips
             }
 
             HStack {
@@ -65,82 +167,139 @@ struct NewNoteSheet: View {
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
-        .padding(20)
-        .frame(minWidth: 380)
-        .onAppear {
-            if case .kind(let current)? = model.section, Self.offered.contains(current) {
-                kind = current
-            }
-            template = choices.first?.name ?? ""
-            // The sheet exists to be typed into. Focus does not always take in the same turn
-            // the view appears, so it is asked for again on the next one.
-            DispatchQueue.main.async { nameFocused = true }
-        }
-        // Each kind has its own templates, so the choice starts again at its default.
-        .onChange(of: kind) { _, _ in template = choices.first?.name ?? "" }
     }
 
-    /// The rest of what a note can be given as it is made. All of it visible: he asked for
-    /// nothing hidden behind a disclosure (build 121). Only the rows that apply to the
-    /// chosen kind are drawn, so it stays short without anything being folded away.
-    @ViewBuilder
-    private var settingsFields: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if kind == .goal {
-                Picker("Horizon", selection: $horizon) {
-                    ForEach(GoalHorizon.allCases, id: \.self) { h in
-                        Text(h.label).tag(h)
-                    }
-                }
+    /// What a note can be given as it is made, each one a chip you press. Only the chips that
+    /// apply to the chosen kind are drawn, so the row stays short without anything folded away.
+    private var settingsChips: some View {
+        WrappingHStack(spacing: 8, lineSpacing: 8) {
+            if thing == .goal {
+                PickerChip(name: "What kind of goal",
+                           emptyLabel: GoalWording.datedGoal,
+                           noneLabel: nil,
+                           systemImage: ChainSymbol.datedGoal,
+                           tint: ParaKind.goal.tint,
+                           options: horizonOptions,
+                           choice: horizonChoice)
                 if horizon != .life {
-                    TextField("Target date, e.g. 2028-06-30", text: $target)
-                        .textFieldStyle(.roundedBorder)
-                    if !lifeGoals.isEmpty {
-                        Picker("Serves aspiration", selection: $servesGoal) {
-                            Text("None").tag("")
-                            ForEach(lifeGoals) { goal in Text(goal.title).tag(goal.title) }
-                        }
-                    }
+                    DateChip(name: "Target",
+                             emptyLabel: "Set a target date\u{2026}",
+                             tint: ParaKind.goal.tint,
+                             text: $target)
                 }
             }
-            if kind == .project, !allGoals.isEmpty {
-                Picker("Serves goal", selection: $servesGoal) {
-                    Text("None").tag("")
-                    ForEach(allGoals) { goal in Text(goal.title).tag(goal.title) }
-                }
+            if let serves = serves {
+                PickerChip(name: serves.name,
+                           emptyLabel: serves.empty,
+                           noneLabel: "Nothing yet",
+                           systemImage: ChainSymbol.datedGoal,
+                           tint: ParaKind.goal.tint,
+                           options: serves.options,
+                           choice: $servesGoal)
             }
-            if kind == .area, !possibleParents.isEmpty {
-                Picker("Part of", selection: $parentArea) {
-                    Text("Nothing \u{2014} an area of its own").tag("")
-                    ForEach(possibleParents) { area in Text(area.displayTitle).tag(area.displayTitle) }
-                }
+            if thing == .area, !possibleParents.isEmpty {
+                PickerChip(name: "Part of another area",
+                           emptyLabel: "Part of\u{2026}",
+                           noneLabel: "An area of its own",
+                           systemImage: "arrow.turn.left.up",
+                           tint: ParaKind.area.tint,
+                           options: possibleParents.map { ChipOption(value: $0.displayTitle, label: $0.displayTitle) },
+                           choice: $parentArea)
             }
-            if choices.count > 1 {
-                Picker("Start from", selection: $template) {
-                    ForEach(choices) { file in
-                        Text(file.isDefault ? "\(file.name) (default)" : file.name).tag(file.name)
-                    }
-                }
+            if templateChoices.count > 1 {
+                PickerChip(name: "Template",
+                           emptyLabel: "Template",
+                           noneLabel: nil,
+                           systemImage: SidebarSection.templates.systemImage,
+                           tint: SidebarSection.templates.tint,
+                           options: templateOptions,
+                           choice: $template)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .lineLimit(1)
+    }
+
+    /// What the **Serves…** chip offers differs per kind, so it is settled here rather than
+    /// in the ViewBuilder (build 58).
+    private struct ServesChoice {
+        let name: String
+        let empty: String
+        let options: [ChipOption]
+    }
+
+    private var serves: ServesChoice? {
+        switch thing {
+        case .goal:
+            guard horizon != .life, !aspirations.isEmpty else { return nil }
+            return ServesChoice(name: "Serves aspiration",
+                                empty: "Serves an aspiration\u{2026}",
+                                options: goalOptions(aspirations))
+        case .project:
+            guard !allGoals.isEmpty else { return nil }
+            return ServesChoice(name: "Serves goal",
+                                empty: "Serves a goal\u{2026}",
+                                options: goalOptions(allGoals))
+        // An area holds an aspiration — the other half of "no project or area serves this",
+        // which the sheet has never been able to answer (build 134).
+        case .area:
+            guard !aspirations.isEmpty else { return nil }
+            return ServesChoice(name: "Serves aspiration",
+                                empty: "Serves an aspiration\u{2026}",
+                                options: goalOptions(aspirations))
+        default:
+            return nil
+        }
+    }
+
+    private func goalOptions(_ notes: [Note]) -> [ChipOption] {
+        notes.map { ChipOption(value: $0.title, label: $0.title, symbol: ChainSymbol.forGoal($0)) }
+    }
+
+    private var horizonOptions: [ChipOption] {
+        GoalHorizon.allCases.map {
+            ChipOption(value: $0.rawValue,
+                       label: $0 == .life ? GoalWording.aspiration : $0.label,
+                       symbol: $0 == .life ? ChainSymbol.aspiration : ChainSymbol.datedGoal)
+        }
+    }
+
+    /// A `Binding` is a statement, so it is built here and not inside the ViewBuilder
+    /// (build 58, and build 172's `ReviewRhythmStepper` for the same reason).
+    private var horizonChoice: Binding<String> {
+        Binding(get: { horizon.rawValue },
+                set: { horizon = GoalHorizon(rawValue: $0) ?? .year })
+    }
+
+    private var templateOptions: [ChipOption] {
+        templateChoices.map {
+            ChipOption(value: $0.name, label: $0.isDefault ? "\($0.name) (default)" : $0.name)
+        }
     }
 
     /// Switching kind starts the extras again: a goal picked for a project must not follow
-    /// you to an area, and the dashed panel would otherwise show a choice you never made.
-    private func pick(_ choice: ParaKind) {
-        guard choice != kind else { return }
-        kind = choice
+    /// you to an area, and a chip would otherwise show a choice you never made.
+    private func pick(_ choice: NewThing) {
+        guard choice != thing else { return }
+        thing = choice
         servesGoal = ""
         parentArea = ""
         target = ""
-        nameFocused = true
+        // The name field may not exist yet in this turn — coming back from Capture it is
+        // only being made now — so the focus is asked for on the next one (build 119).
+        DispatchQueue.main.async { nameFocused = !choice.isCapture }
     }
 
     /// The templates that make this kind of note. More than one and you get to choose.
-    private var choices: [TemplateFile] { model.templates(for: kind) }
+    private var templateChoices: [TemplateFile] {
+        thing.isCapture ? [] : model.templates(for: thing.kind)
+    }
 
-    private var lifeGoals: [Note] { model.notes.filter { $0.kind == .goal && $0.horizon == .life } }
+    private var defaultTemplateName: String { templateChoices.first?.name ?? "" }
+
+    private var aspirations: [Note] {
+        model.notes.filter { $0.kind == .goal && $0.horizon == .life && !$0.isArchived }
+    }
+
     private var allGoals: [Note] { model.notes.filter { $0.kind == .goal && !$0.isArchived } }
 
     /// Areas a new one can be made under. One level, so only the areas that are not
@@ -149,12 +308,12 @@ struct NewNoteSheet: View {
         model.index.areaTree().map(\.area).filter { !$0.isArchived }
     }
 
-    /// Whether More has anything in it at all, so it never opens onto an empty box.
-    private var hasMoreToOffer: Bool {
-        if choices.count > 1 { return true }
-        switch kind {
+    /// Whether there is anything under the divider at all, so it never opens onto nothing.
+    private var hasSettings: Bool {
+        if templateChoices.count > 1 { return true }
+        if serves != nil { return true }
+        switch thing {
         case .goal: return true
-        case .project: return !allGoals.isEmpty
         case .area: return !possibleParents.isEmpty
         default: return false
         }
@@ -163,24 +322,26 @@ struct NewNoteSheet: View {
     /// One sentence. The full description of each kind lives in the manual, which is
     /// searchable; a paragraph here was read once and skipped ever after.
     private var hint: String {
-        switch kind {
+        switch thing {
         case .project: return "An outcome with an end. Its tasks are mirrored to a Reminders list of the same name."
         case .area: return "An ongoing responsibility with a standard to keep. Its tasks go to Reminders too."
         case .goal: return horizon == .life
-            ? "Who you are becoming, with no end date. Never synced to Reminders \u{2014} the work lives in the dated goals that point at it."
-            : "A goal with a date and a measure. Not synced to Reminders; its work lives in projects."
+            ? "\(GoalWording.aspirationRule) Never synced to Reminders \u{2014} the work lives in the goals with dates that point at it."
+            : "\(GoalWording.datedGoalRule) Not synced to Reminders; its work lives in projects."
         default: return "Reference material. No dates, no Reminders \u{2014} link it from wherever it is useful with [[brackets]]."
         }
     }
 
     private func create() {
+        guard !thing.isCapture else { return }
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
+        let kind = thing.kind
         var extra: [(String, String)] = []
         if kind == .area, !parentArea.isEmpty {
             extra.append(("parent", parentArea))
         }
-        if kind == .project, !servesGoal.isEmpty {
+        if (kind == .area || kind == .project), !servesGoal.isEmpty {
             extra.append(("goal", servesGoal))
         }
         if kind == .goal {
@@ -189,40 +350,191 @@ struct NewNoteSheet: View {
             if horizon != .life, DateOnly(t) != nil { extra.append(("target", t)) }
             if horizon != .life, !servesGoal.isEmpty { extra.append(("goal", servesGoal)) }
         }
-        let chosen = choices.contains { $0.name == template } ? template : nil
+        let chosen = templateChoices.contains { $0.name == template } ? template : nil
         model.createNote(kind: kind, title: trimmed, extraFrontmatter: extra, template: chosen)
         dismiss()
     }
 }
 
-/// One of the four kinds, in its own colour. A row of these rather than a segmented picker:
-/// the colours are the same ones the sidebar and the map use, so the choice is recognised
-/// rather than read.
-private struct KindChoice: View {
-    let kind: ParaKind
+/// One of the five, in its own colour. A row of these rather than a segmented picker: the
+/// colours are the same ones the sidebar and the Map use, so the choice is recognised rather
+/// than read.
+private struct ThingChoice: View {
+    let thing: NewThing
     let chosen: Bool
+    let symbol: String
     let choose: () -> Void
 
     var body: some View {
         Button(action: choose) {
             VStack(spacing: 5) {
-                KindBadge(kind: kind, size: 16)
+                KindBadge(kind: thing.kind, size: 18, systemImage: symbol)
                     .opacity(chosen ? 1 : 0.45)
-                Text(kind.singularName.capitalized)
+                Text(thing.name)
                     .font(.caption)
                     .fontWeight(chosen ? .semibold : .regular)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .foregroundStyle(chosen ? kind.tint : Color.secondary)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(chosen ? kind.tint : Color.secondary.opacity(0.3), lineWidth: chosen ? 1.5 : 1)
+            .padding(.horizontal, 2)
+            .foregroundStyle(chosen ? thing.tint : Color.secondary)
+            .background(thing.tint.opacity(chosen ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 9))
+            .overlay(
+                RoundedRectangle(cornerRadius: 9)
+                    .strokeBorder(chosen ? thing.tint : Color.secondary.opacity(0.3),
+                                  lineWidth: chosen ? 1.5 : 1)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 8))
+            .contentShape(RoundedRectangle(cornerRadius: 9))
         }
         .buttonStyle(.plain)
-        .help("Make a \(kind.singularName)")
+        .help(thing.isCapture ? "Write a line straight into the Inbox" : "Make a \(thing.name.lowercased())")
+    }
+}
+
+// MARK: The chips
+
+/// One line in a chip's list. A struct rather than a tuple, because a `ForEach` id is a key
+/// path and a key path cannot address a tuple member (build 61).
+struct ChipOption: Identifiable {
+    let value: String
+    let label: String
+    var symbol: String? = nil
+
+    var id: String { value }
+}
+
+/// A setting you press, drawn in the app's two-state language (build 142): chosen is the
+/// tint filled with a solid border, not chosen is grey with a dashed one.
+private struct ChipLabel: View {
+    let text: String
+    let systemImage: String
+    let tint: Color
+    let isSet: Bool
+
+    var body: some View {
+        Label(text, systemImage: systemImage)
+            .font(.callout)
+            .lineLimit(1)
+            .foregroundStyle(isSet ? tint : Color.primary.opacity(0.62))
+            .padding(.horizontal, 11)
+            .padding(.vertical, 6)
+            .background(tint.opacity(isSet ? 0.16 : 0), in: Capsule())
+            .overlay(
+                Capsule().strokeBorder(isSet ? tint.opacity(0.8) : Color.secondary.opacity(0.55),
+                                       style: StrokeStyle(lineWidth: isSet ? 1.3 : 1.2,
+                                                          dash: isSet ? [] : [4, 3]))
+            )
+            .contentShape(Capsule())
+    }
+}
+
+/// One choice out of a list. A popover and not a `Menu`: `ProjectDeadlineChip` and
+/// `NoteTagsChip` are both built this way and are known to behave on both platforms, and a
+/// popover can hold a heading saying what is being chosen.
+private struct PickerChip: View {
+    /// What is being chosen. The heading of the popover, and the tooltip.
+    let name: String
+    /// The chip's words while nothing is chosen.
+    let emptyLabel: String
+    /// The first row, for choosing nothing. Nil when there must always be an answer.
+    let noneLabel: String?
+    let systemImage: String
+    let tint: Color
+    let options: [ChipOption]
+    @Binding var choice: String
+    @State private var showing = false
+
+    private var chosen: ChipOption? { options.first { $0.value == choice } }
+
+    var body: some View {
+        Button {
+            showing = true
+        } label: {
+            ChipLabel(text: chosen?.label ?? emptyLabel,
+                      systemImage: chosen?.symbol ?? systemImage,
+                      tint: tint,
+                      isSet: chosen != nil)
+        }
+        .buttonStyle(.plain)
+        .help(name)
+        .popover(isPresented: $showing) { list }
+    }
+
+    private var list: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(name)
+                .font(.subheadline.weight(.semibold))
+            ScrollView {
+                VStack(alignment: .leading, spacing: 2) {
+                    if let noneLabel {
+                        row(ChipOption(value: "", label: noneLabel))
+                    }
+                    ForEach(options) { option in
+                        row(option)
+                    }
+                }
+            }
+            .frame(maxHeight: 240)
+        }
+        .padding(14)
+        .frame(width: 290)
+        .presentationCompactAdaptation(.popover)
+    }
+
+    private func row(_ option: ChipOption) -> some View {
+        Button {
+            choice = option.value
+            showing = false
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: choice == option.value ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(choice == option.value ? tint : Color.secondary)
+                if let symbol = option.symbol {
+                    Image(systemName: symbol)
+                        .foregroundStyle(tint)
+                }
+                Text(option.label)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// A date, chosen the one way this app chooses dates: `DateChoiceView`, where the field is
+/// read and not the calendar (builds 136 and 137).
+private struct DateChip: View {
+    let name: String
+    let emptyLabel: String
+    let tint: Color
+    @Binding var text: String
+    @State private var picking = false
+
+    private var current: DateOnly? { DateOnly(text.trimmingCharacters(in: .whitespaces)) }
+
+    var body: some View {
+        Button {
+            picking = true
+        } label: {
+            ChipLabel(text: current.map { "\(name) \($0.description)" } ?? emptyLabel,
+                      systemImage: "flag.checkered",
+                      tint: tint,
+                      isSet: current != nil)
+        }
+        .buttonStyle(.plain)
+        .help(name)
+        .popover(isPresented: $picking) {
+            DateChoiceView(current: current,
+                           clearTitle: current == nil ? nil : "Clear",
+                           cancel: { picking = false }) { chosen in
+                text = chosen?.description ?? ""
+                picking = false
+            }
+        }
     }
 }
 

@@ -28,6 +28,11 @@ struct QuickCaptureView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var compact = false
+    /// Drawn inside another sheet, which already carries the heading and sets the width.
+    /// The New note sheet (build 185) passes this so its **Capture** button gives the very
+    /// same screen the menu bar item and ⇧⌘N give - never a second capture screen
+    /// that could answer differently.
+    var embedded = false
     var onSaved: (() -> Void)? = nil
 
     @State private var text = ""
@@ -48,7 +53,7 @@ struct QuickCaptureView: View {
     /// One of his extras: the empty field says hello. Picked on appear, never mid-typing.
     static let greetings = [
         "What's on your mind?",
-        "Anything to catch?",
+        "Anything to write down?",
         "Write it down before it goes.",
         "What needs to be somewhere safe?",
     ]
@@ -101,7 +106,7 @@ struct QuickCaptureView: View {
             caughtToday
             saveBar
         }
-        .padding(14)
+        .padding(embedded ? 0 : 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .overlay(alignment: .top) { flight }
     }
@@ -132,7 +137,7 @@ struct QuickCaptureView: View {
                     Button("Cancel") { dismiss() }
                         .keyboardShortcut(.cancelAction)
                 }
-                Button(confirmation == nil ? "Save" : "Caught it", action: save)
+                Button("Save", action: save)
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(!canSave)
@@ -144,17 +149,26 @@ struct QuickCaptureView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(compact ? 12 : 20)
-        .frame(width: compact ? 380 : 460)
+        .padding(embedded ? 0 : (compact ? 12 : 20))
+        .frame(width: deskWidth)
+    }
+
+    /// Nil while embedded: the sheet around it sets the width. Written out rather than a
+    /// ternary, so there is nothing for inference to settle about a `CGFloat?`.
+    private var deskWidth: CGFloat? {
+        if embedded { return nil }
+        return compact ? 380 : 460
     }
 
     // MARK: The pieces both share
 
     private var header: some View {
         HStack(spacing: 8) {
-            Label("Quick capture", systemImage: "tray.and.arrow.down")
-                .font(.headline)
-                .foregroundStyle(SidebarSection.inbox.tint)
+            if !embedded {
+                Label("Quick capture", systemImage: "tray.and.arrow.down")
+                    .font(.headline)
+                    .foregroundStyle(SidebarSection.inbox.tint)
+            }
             Spacer()
             if let confirmation {
                 Text(confirmation)
@@ -249,7 +263,7 @@ struct QuickCaptureView: View {
     @ViewBuilder
     private var caughtToday: some View {
         if model.caughtToday > 0 {
-            Text(model.caughtToday == 1 ? "1 caught today." : "\(model.caughtToday) caught today.")
+            Text(model.caughtToday == 1 ? "1 saved today." : "\(model.caughtToday) saved today.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
@@ -263,7 +277,7 @@ struct QuickCaptureView: View {
                     .foregroundStyle(.secondary)
             }
             Button(action: save) {
-                Text(confirmation == nil ? "Save" : "Caught it")
+                Text("Save")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
@@ -303,7 +317,7 @@ struct QuickCaptureView: View {
         model.capture(text: trimmed, target: target, asTask: !asNote)
         text = ""
         withAnimation(.easeOut(duration: 0.2)) {
-            confirmation = model.lastCaptureMessage ?? "Caught it"
+            confirmation = model.lastCaptureMessage ?? "Saved"
             flying = true
         }
         onSaved?()
