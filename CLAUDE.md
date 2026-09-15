@@ -2040,6 +2040,12 @@ checking it became the selected one (the 71–74 fault).
   New note sheet and by `NoteFromLinkSheet`, which still had two blue words in a corner on the
   phone and a 380pt `minWidth`. Reach for it on any new sheet.
 
+**Build 192: the New note screen, end to end** — Browse › Projects › `list.newNote`, press
+`new.project`, type into `new.name`, press `sheet.action`, and the new note opens in
+`note.editor` with the name in its text. Five tests, all green first time. `sheet.action` /
+`sheet.cancel` sit on `SheetFooter`'s buttons on both platforms, so any sheet that uses the
+footer is pressable the same way.
+
 ## Not built (by choice)
 
 - **The App Group in the developer portal**, parked by him on 15 September and explained again
@@ -2049,9 +2055,9 @@ checking it became the selected one (the 71–74 fault).
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **A filter on All actions** — his own "maybe we should make the filter function later on".
-- **More screen tests.** Four now (build 191). Candidates: the New note sheet making a note
-  from its five buttons, the Capture screen saving a line into the Inbox, and a Map box taking
-  a tap (the build 85 fault) — one or two per build, each watched to green.
+- **More screen tests.** Five now (build 192). Candidates: the Capture screen saving a line
+  into the Inbox, and a Map box taking a tap (the build 85 fault) — one or two per build, each
+  watched to green.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
