@@ -1827,6 +1827,39 @@ along, and three rounds of widget questions were spent because I never asked to 
   `.systemSmall` and the foot carries `.layoutPriority(1)`. **A message that hides its own
   explanation is worse than a shorter message.**
 
+## The App Group was never in the iPhone app (15 September 2026)
+
+**Proved, not guessed.** Settings › Widget on his iPhone said *Shared folder: Not found*, and
+the widget's own foot line said `PARAGON 179 · shared folder missing`. A TestFlight run with a
+new step, **"What the App Store actually signed"**, exported a second signed copy to disk,
+unzipped it and read the entitlements back:
+
+```
+=== PARAGON.app ===         NO APP GROUP IN THIS BUNDLE
+=== ParagonShare.appex ===  NO APP GROUP IN THIS BUNDLE
+=== ParagonWidgets.appex === NO APP GROUP IN THIS BUNDLE
+```
+
+**Apple's automatic signing silently drops an entitlement the App ID does not carry**, and the
+line that says so is filtered out of the log by `grep -E "error:|Upload|EXPORT"`. So
+`group.com.schabbauer.amspara` has been in `project.yml` and in every entitlements file since
+build 42 and in **none** of the signed iPhone builds. Consequences, both invisible until now:
+the widget (174 on) could never read anything, and the **iOS share extension's outbox has
+always fallen back to Application Support**, where the app cannot see it — so a capture from
+another app's share sheet never reached the Inbox and nothing ever said so.
+
+- **macOS is unaffected**: its group is team-prefixed and the Mac widget demonstrably works.
+  The same App ID, two different answers per platform.
+- **The fix is his, in the developer portal**: enable **App Groups** on
+  `com.schabbauer.AMSPara`, `.Share` and `.Widgets` and attach the group. Steps were given in
+  chat. `-allowProvisioningUpdates` with an Admin key did *not* do it by itself, which is the
+  assumption build 174 shipped on ("Apple should create it and enable the App Group by
+  itself") — **that assumption was wrong and cost five builds of hunting.**
+- **The step stays in the workflow.** It is `continue-on-error` and iPhone only, and it is the
+  only way to see a signed entitlement from this container. **A build that "succeeds" proves
+  nothing about what is inside it** — the same lesson as build 178's missing PlugIns check,
+  one layer deeper.
+
 ## Not built (by choice)
 
 Nothing. Saved searches were the last item and shipped in build 173.
