@@ -16,7 +16,8 @@ import XCTest
 /// (the Browse row and a group heading on the Actions page), and a word he asks to be renamed
 /// must not quietly stop a test from finding the thing. The names the tests use are spelled in
 /// the app beside the views: `tab.*`, `browse.<section>`, `note.<path>`, `inbox.<line>`,
-/// `note.editor`, `list.newNote`, `new.<thing>`, `sheet.action` / `sheet.cancel`. The vault is
+/// `note.editor`, `list.newNote`, `new.<thing>`, `sheet.action` / `sheet.cancel`,
+/// `today.capture`, `capture.text`, `capture.save`. The vault is
 /// `TestVault` in the app, which is where its titles live.
 final class ScreenTests: XCTestCase {
     private var app: XCUIApplication!
@@ -149,6 +150,39 @@ final class ScreenTests: XCTestCase {
         let shown = editor.value as? String ?? ""
         XCTAssertTrue(shown.contains("Made by the screen test"),
                       "The note that opened does not carry the name that was typed. It shows: \(shown.prefix(200))")
+    }
+
+    /// Quick capture, end to end: the button at the top left of Today, a line typed, **Save**,
+    /// and the line waiting in the Inbox. That is the whole point of the app's fastest path,
+    /// and build 158 rebuilt the screen on a Mac panel width that had pushed Save off the phone.
+    func testACaptureLandsInTheInbox() {
+        XCTAssertTrue(app.buttons["tab.today"].waitForExistence(timeout: appears),
+                      "The tab bar never appeared.")
+        app.buttons["tab.today"].tap()
+
+        let open = element("today.capture")
+        XCTAssertTrue(open.waitForExistence(timeout: 20), "Today has no Quick capture button.")
+        open.tap()
+
+        let field = app.textViews["capture.text"]
+        XCTAssertTrue(field.waitForExistence(timeout: 20), "The capture screen did not open, or has no field.")
+        field.tap()
+        field.typeText("Captured by the screen test")
+
+        let save = element("capture.save")
+        XCTAssertTrue(save.waitForExistence(timeout: 10), "The capture screen has no Save button.")
+        XCTAssertTrue(save.isEnabled, "Save stayed grey after a line was typed.")
+        save.tap()
+
+        // The screen shows "Saved" for a moment and then closes itself; the Inbox tab is
+        // behind it until it does.
+        let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
+        wait(for: [closed], timeout: 15)
+
+        app.buttons["tab.inbox"].tap()
+        let line = element("inbox.Captured by the screen test")
+        XCTAssertTrue(line.waitForExistence(timeout: 20),
+                      "The captured line is not in the Inbox. Either the capture was not written, or the Inbox did not reload.")
     }
 
     /// Any element carrying that identifier, whatever kind of element SwiftUI made it.

@@ -2,6 +2,12 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 193 · 15 September 2026
+
+**One more check on the build machine, nothing new to see.** The simulated iPhone now presses
+the Quick capture button on Today, types a line, presses **Save**, and then finds that line
+waiting in the Inbox. The fastest path through the app is pressed on every push.
+
 ## Build 192 · 15 September 2026
 
 **One more check on the build machine, nothing new to see.** The simulated iPhone now opens the

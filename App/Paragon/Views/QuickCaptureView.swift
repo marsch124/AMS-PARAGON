@@ -94,6 +94,7 @@ struct QuickCaptureView: View {
                     .focused($focused)
                     .scrollContentBackground(.hidden)
                     .font(.body)
+                    .accessibilityIdentifier("capture.text")
             }
             .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
             .padding(6)
@@ -121,6 +122,7 @@ struct QuickCaptureView: View {
                 .textFieldStyle(.roundedBorder)
                 .focused($focused)
                 .onSubmit(save)
+                .accessibilityIdentifier("capture.text")
             readBack
             addRow
             HStack {
@@ -141,6 +143,7 @@ struct QuickCaptureView: View {
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(!canSave)
+                    .accessibilityIdentifier("capture.save")
             }
             caughtToday
             if model.vault == nil {
@@ -287,6 +290,7 @@ struct QuickCaptureView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canSave)
+            .accessibilityIdentifier("capture.save")
         }
     }
 

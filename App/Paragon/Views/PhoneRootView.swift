@@ -122,6 +122,7 @@ struct PhoneRootView: View {
                             } label: {
                                 Label("Quick capture", systemImage: "tray.and.arrow.down")
                             }
+                            .accessibilityIdentifier("today.capture")
                         }
                         ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() }
                     }
