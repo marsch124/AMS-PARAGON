@@ -2,51 +2,176 @@ import SwiftUI
 import ParagonCore
 
 #if os(iOS)
-/// The iPhone layout: tabs for Today, Inbox, Browse and Capture, each tab a stack that
-/// pushes the note editor. Used when the window is compact; iPad and Mac keep the columns.
+/// The iPhone layout: five tabs you can **swipe** between — Today, Plan, Actions, Inbox and
+/// Browse — each tab a stack that pushes the note editor. Used when the window is compact;
+/// iPad and Mac keep the columns.
+///
+/// **Build 183, and he chose the shape.** He asked for the swipe of build 181 to work "on every
+/// screen, not only the time block". Two screens he reaches for all day — **Plan the day** and
+/// **All actions** — were buried inside Browse, so they became tabs of their own, and Quick
+/// capture became a button on Today rather than a fifth row in the bar.
+///
+/// **The bar is ours, not the system's, and that is the whole trick.** SwiftUI's ordinary
+/// `TabView` does not swipe; the page style swipes but draws dots instead of a bar. So the
+/// pages are a page-style `TabView` with the dots turned off, and `PhoneTabBar` below it writes
+/// to the same selection. What we give up with the system bar — the badge, the tap-to-scroll-to-
+/// top — is drawn or done here instead.
+///
+/// The drag from the **left edge** still belongs to iOS: it is *go back*, and a page view leaves
+/// it alone. That is why this is a pager and not a gesture of our own (builds 71–74).
 struct PhoneRootView: View {
     @EnvironmentObject private var model: AppModel
     @State private var tab: Tab = .today
 
-    enum Tab: Hashable {
-        case today, inbox, browse, capture
+    enum Tab: Int, Hashable, CaseIterable, Identifiable {
+        case today, plan, actions, inbox, browse
+
+        var id: Int { rawValue }
+
+        var title: String {
+            switch self {
+            case .today: return "Today"
+            case .plan: return "Plan"
+            case .actions: return "Actions"
+            case .inbox: return "Inbox"
+            case .browse: return "Browse"
+            }
+        }
+
+        var symbol: String {
+            switch self {
+            case .today: return "sun.max"
+            case .plan: return SidebarSection.timeBlocks.systemImage
+            case .actions: return SidebarSection.allActions.systemImage
+            case .inbox: return "tray"
+            case .browse: return "square.grid.2x2"
+            }
+        }
+
+        /// The section this tab stands on, or nil for Browse, which has none of its own.
+        /// Read back from `SidebarSection` rather than spelled again, so the tab and the row
+        /// it replaces cannot drift (build 168).
+        var section: SidebarSection? {
+            switch self {
+            case .today: return .today
+            case .plan: return .timeBlocks
+            case .actions: return .allActions
+            case .inbox: return .inbox
+            case .browse: return nil
+            }
+        }
     }
 
     var body: some View {
         TabView(selection: $tab) {
-            PhoneStack(section: .today, isActive: tab == .today) {
+            ForEach(Tab.allCases) { item in
+                page(for: item)
+                    .tag(item)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            PhoneTabBar(tab: $tab)
+        }
+    }
+
+    /// One page. A `switch` inside a `@ViewBuilder` is fine; a `var` would not be (build 58).
+    @ViewBuilder
+    private func page(for item: Tab) -> some View {
+        switch item {
+        case .today:
+            PhoneStack(section: item.section, isActive: tab == item) {
                 TodayView()
                     .navigationTitle("Today")
-                    .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
+                    .toolbar {
+                        // Quick capture lost its tab to Plan and Actions, so it sits here.
+                        // Leading, because Today is the root of its stack and has no back
+                        // button: the phone's bar fits a title and one control per side
+                        // (build 88).
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                model.activeSheet = .quickCapture
+                            } label: {
+                                Label("Quick capture", systemImage: "tray.and.arrow.down")
+                            }
+                        }
+                        ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() }
+                    }
             }
-            .tabItem { Label("Today", systemImage: "sun.max") }
-            .tag(Tab.today)
-
-            PhoneStack(section: .inbox, isActive: tab == .inbox) {
+        case .plan:
+            PhoneStack(section: item.section, isActive: tab == item) {
                 NoteListView()
                     .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
             }
-            .tabItem { Label("Inbox", systemImage: "tray") }
-            .badge(model.count(for: .inbox))
-            .tag(Tab.inbox)
-
-            PhoneStack(section: nil, isActive: tab == .browse) {
+        case .actions:
+            PhoneStack(section: item.section, isActive: tab == item) {
+                NoteListView()
+                    .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
+            }
+        case .inbox:
+            PhoneStack(section: item.section, isActive: tab == item) {
+                NoteListView()
+                    .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
+            }
+        case .browse:
+            PhoneStack(section: item.section, isActive: tab == item) {
                 PhoneBrowseView()
             }
-            .tabItem { Label("Browse", systemImage: "square.grid.2x2") }
-            .tag(Tab.browse)
-
-            Color.clear
-                .tabItem { Label("Capture", systemImage: "tray.and.arrow.down") }
-                .tag(Tab.capture)
         }
-        .onChange(of: tab) { old, new in
-            // The Capture tab is a button: open the capture sheet and stay on the previous tab.
-            if new == .capture {
-                model.activeSheet = .quickCapture
-                tab = old
+    }
+}
+
+/// The five tabs, drawn by us because the system's bar cannot be swiped between.
+///
+/// It keeps the system bar's habits: the tint says which tab you are on, the whole width of a
+/// tab is pressable, and the Inbox still carries its count — the badge the system bar drew for
+/// us until build 183.
+struct PhoneTabBar: View {
+    @EnvironmentObject private var model: AppModel
+    @Binding var tab: PhoneRootView.Tab
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(PhoneRootView.Tab.allCases) { item in
+                Button {
+                    tab = item
+                } label: {
+                    VStack(spacing: 2) {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: item.symbol)
+                                .font(.system(size: 19))
+                                .frame(height: 22)
+                            if item == .inbox, model.count(for: .inbox) > 0 {
+                                Text("\(model.count(for: .inbox))")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 1)
+                                    .background(Color.red, in: Capsule())
+                                    .offset(x: 12, y: -6)
+                            }
+                        }
+                        Text(item.title)
+                            .font(.system(size: 10))
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .foregroundStyle(item == tab ? Color.accentColor : Color.secondary)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.title)
             }
         }
+        .padding(.top, 7)
+        .padding(.bottom, 3)
+        // The bar has to reach down past the home indicator, which a plain background does not.
+        .background(
+            Rectangle()
+                .fill(.bar)
+                .ignoresSafeArea(edges: .bottom)
+        )
+        .overlay(alignment: .top) { Divider() }
     }
 }
 
@@ -162,7 +287,9 @@ struct PhoneBrowseView: View {
 
     private let groups: [(String, [SidebarSection])] = [
         ("Goals and PARA", [.kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]),
-        ("Plan", [.calendar, .timeBlocks, .review, .map, .allActions, .recent, .done, .deleted, .search]),
+        // Time Blocks and All actions are not here: they are tabs of their own since build
+        // 183, and a second door into one room is what build 166 argued against.
+        ("Plan", [.calendar, .review, .map, .recent, .done, .deleted, .search]),
         ("Tools", SidebarSection.tools),
     ]
 

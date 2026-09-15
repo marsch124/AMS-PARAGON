@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 183 · 15 September 2026
+
+**Five tabs on the iPhone, and you can swipe between all of them.** You asked for the swipe to
+work on every screen, not only in Time Blocks, and chose this shape.
+
+The bar now reads **Today · Plan · Actions · Inbox · Browse**. **Plan** is Plan the day and
+**Actions** is All actions — the two screens you reach for most, out of Browse and into the bar.
+Swipe sideways anywhere to move between them, or press a tab as before.
+
+**Quick capture is now the button at the top left of Today.** It lost its place in the bar to
+Plan and Actions. Everything else about capture is unchanged: the share sheet from other apps,
+and ⇧⌘N on the Mac.
+
+Time Blocks and All actions have left the Browse list, since they are tabs now. The two-page
+swipe of build 181 is gone with them — the tabs do that job, everywhere.
+
+The Mac and the iPad are untouched.
+
 ## Build 182 · 15 September 2026
 
 **The line for now is no longer red.** Your reason was the right one: in PARAGON red means

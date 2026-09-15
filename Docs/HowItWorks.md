@@ -788,18 +788,17 @@ Sync with Reminders from the phone with the button in the top right of Today and
 
 On the phone, a note's own actions — Rename, Archive and Delete — are behind the **⋯** button at the top right of the note. On the Mac they are buttons in the toolbar. The pencil is not in there: it is always on screen.
 
-The phone shows four tabs. **Today** and **Inbox** are the same lists as on the Mac. **Browse** holds everything else: Goals, Projects, Areas, Resources, Archive, Calendar, Time Blocks, Done, Review, Map, Search, and Settings with Help. **Capture** opens the capture panel. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
+The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Quick capture is the button at the top left of **Today**. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
-## Two pages on the iPhone
+## Swiping between the tabs
 
-**Plan the day** and **All actions** are one screen with two pages. Swipe sideways to go from
-one to the other; the two dots at the bottom show which page you are on. **Time Blocks** in
-**Browse** opens on the plan, **All actions** opens on the actions.
+**Swipe sideways anywhere to move between the five tabs**, in either direction: Today, Plan,
+Actions, Inbox, Browse. Pressing a tab in the bar does the same thing.
 
-The swipe starts anywhere on the screen. A drag from the very left edge still means *go back*,
-as it does everywhere in iOS.
+A drag from the very **left edge** still means *go back*, as it does everywhere in iOS, so
+going back from a note is unchanged.
 
-All actions has its own filter at the top: **All**, **With a date**, **No date** and **Next
+**Actions** has its own filter at the top: **All**, **With a date**, **No date** and **Next
 actions**.
 
 ## Widgets

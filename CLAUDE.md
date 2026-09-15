@@ -1888,6 +1888,35 @@ not today or the time is outside the drawn hours.
 - `DayScheduleView` lost its own `now` state, its refresh loop and `nowOffset(in:)` to it. Its
   `range.upperBound` is the hour *after* the last one drawn, hence `lastHour: upperBound - 1`.
 
+## Five tabs, swiped between (build 183)
+
+His ask after 181: the swipe should work *"on every screen, not only the time block"*. I put
+three shapes to him and he took **five tabs, Capture as a button**: the bar is now
+**Today · Plan · Actions · Inbox · Browse**.
+
+- **SwiftUI's ordinary `TabView` does not swipe, and its page style draws dots instead of a
+  bar.** So `PhoneRootView` is a page-style `TabView` with the dots off, and `PhoneTabBar` —
+  ours — writes to the same selection from a `.safeAreaInset(edge: .bottom)`. What the system
+  bar did for free has to be drawn here: the Inbox **badge**, the tint for the tab you are on,
+  a full-width tap target, and a background that reaches past the home indicator
+  (`Rectangle().fill(.bar).ignoresSafeArea(edges: .bottom)`, since a plain `.background` stops
+  at the safe area).
+- **Still a pager, never a gesture of ours.** The drag from the left edge is iOS's *go back*;
+  taking it would break going back from every note and nothing here could catch it
+  (builds 71–74).
+- **Build 181's `PhoneDayPages` is deleted.** A pager inside a pager makes one swipe mean two
+  things. Its two branches in `ContentView` went back to `PlannerView()` and `AllActionsView()`,
+  and `NoteListView`'s `isPhone` went with them.
+- **Time Blocks and All actions left `PhoneBrowseView.groups`**: they are tabs now, and a
+  second door into one room is what build 166 argued against.
+- **Quick capture lost its tab** and is a `ToolbarItem(placement: .topBarLeading)` on Today —
+  leading, because Today is the root of its stack and has no back button, so build 88's
+  "one control" is not breached.
+- `Tab.section` reads `SidebarSection` back rather than spelling the sections again, so a tab
+  and the row it replaced cannot drift (build 168).
+- **Untested from here**: whether a horizontal scroll inside a page (the Map's two-way scroll,
+  the Calendar's chip strip) wins its own swipe. CI compiles but never swipes.
+
 ## Not built (by choice)
 
 Nothing. Saved searches were the last item and shipped in build 173.
