@@ -68,6 +68,10 @@ jobs:
   screen-tests:
     name: Screen tests (iPhone Simulator)
     runs-on: macos-15
+    # A stuck simulator would otherwise hold the job for GitHub's six-hour default. The
+    # slowest honest run so far took fourteen minutes (build 194, a slow runner, every test
+    # two to seven times its usual time); thirty leaves room for that and stops a hang.
+    timeout-minutes: 30
     # A job of its own, so a red light says "a screen is broken" and not "the app does not
     # compile". Build 190: until now CI compiled this app and never opened a screen in it,
     # which is why builds 71-74, 85 and 114-128 all shipped green.

@@ -2049,6 +2049,15 @@ own timers needs twice the room you think** — a test that fails for its own re
 thing this suite may not do (build 190). `visibleTexts()` puts the first twenty texts on screen
 into a failure message: the nearest thing to a screenshot the log can carry.
 
+**Build 194: a Map box is tapped** — Browse › `browse.Map`, tap `map.<note path>`, and the
+note opens in `note.editor`. `MapNodeBox` carries the identifier on both its branches;
+accessibility only, since nothing that takes the box's click may be attached (build 85). The
+**aspiration's** box is the one tapped: root goals sit at the top of the layout, where a phone
+shows them without scrolling, and the test says so if the box is on the Map but off screen.
+Seven tests, all green. **The run took fourteen minutes instead of seven and every test was
+two to seven times slower** — a slow runner, not the Map (its test took 16 s). The job now has
+`timeout-minutes: 30`, so a stuck simulator can never hold it for GitHub's six-hour default.
+
 **Build 192: the New note screen, end to end** — Browse › Projects › `list.newNote`, press
 `new.project`, type into `new.name`, press `sheet.action`, and the new note opens in
 `note.editor` with the name in its text. Five tests, all green first time. `sheet.action` /
@@ -2064,8 +2073,11 @@ footer is pressable the same way.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **A filter on All actions** — his own "maybe we should make the filter function later on".
-- **More screen tests.** Six now (build 193). Left on the list: a Map box taking a tap (the
-  build 85 fault), and a Mac run of the same suite — every test so far is the phone.
+- **More screen tests.** Seven now (build 194): the vault opens, every tab, a note typed in,
+  an Inbox line selected, the New note screen, a capture to the Inbox, a Map box tapped. Left:
+  **a Mac run of the same suite** — every test so far is the phone, and builds 71–74 were
+  the Mac's `List(selection:)`. That needs a second scheme destination and identifiers on
+  the Mac's sidebar rows; the phone's `tab.*` do not exist there.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
