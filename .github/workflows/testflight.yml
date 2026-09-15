@@ -90,7 +90,9 @@ jobs:
           echo "App build number: $STAMP"
           BUILD="$STAMP.${{ github.run_number }}"
           echo "STAMP=$STAMP" >> $GITHUB_ENV
-          for plist in App/Config/Paragon/Info.plist App/Config/ParagonShare/Info.plist; do
+          # Every bundle in the app must carry the same version, or Apple refuses the upload
+          # with "bundle version does not match". The widget (build 174) is one of them.
+          for plist in App/Config/Paragon/Info.plist App/Config/ParagonShare/Info.plist App/Config/ParagonWidgets/Info.plist; do
             /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD" "$plist"
             /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.$STAMP" "$plist"
           done

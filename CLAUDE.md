@@ -1557,6 +1557,35 @@ stopped at since 157. `Core/Vault/SavedSearches.swift`, tested.
   sidebar row**: a list eats the results on a phone, and a second sidebar row would be two
   doors into one room (the argument he accepted in 166). Nothing is drawn when there are none.
 
+**Build 174: the iPhone widget.** Fifth and last of the five. A new target, which is the first
+one this project has added since the share extension.
+- **The widget cannot open the vault** — it is a security-scoped bookmark only the app resolves,
+  and a widget has milliseconds and nobody to ask. So `AppModel.writeWidgetSnapshot()` writes a
+  `WidgetSnapshot` into the App Group container on every `reload()` and the widget reads only
+  that. One writer, one reader, one small file; the widget never parses markdown and never
+  writes.
+- `Core/Vault/WidgetSnapshot.swift`, tested. **`read` returns nil on every failure**, never an
+  empty snapshot: "the app has never run here" and "nothing to do" are different answers and
+  the widget says three different sentences (missing / stale / genuinely empty). Build 100's
+  rule on a home screen.
+- **`actionsForPlanning(on:)` moved from `AppModel` into `NoteIndex`**, so the planner's Actions
+  column and the widget ask one question once. Same for `serves(_:)`. Two lists called "today's
+  actions" that could answer differently is the fault 162 fixed for "what serves what".
+- `dueForReview` and `inboxCount` are **handed in**, not worked out in Core: the rhythm lives in
+  `VaultConfig`, which the index does not carry, and a guess would disagree with the review.
+- **`WidgetLook` spells the colours and symbols again** — a widget target cannot see the app's
+  asset catalogue or `SidebarSection`. That is real drift risk; the file says so, and a change
+  to either belongs here in the same build (build 168's lesson).
+- `amspara://<title>` for the tap, never a new scheme: it is one of the four identifiers the
+  rename kept, and `handle(url:)` has resolved it since build 39.
+- **The workflow change that matters**: `App/Config/ParagonWidgets/Info.plist` was added to the
+  "Number this build" loop. Every bundle must carry the same `CFBundleVersion` or Apple refuses
+  the upload with "bundle version does not match".
+- **The risk this build carries**: `com.schabbauer.AMSPara.Widgets` is a new App ID. Export runs
+  with `-allowProvisioningUpdates` and an Admin key, so Apple should create it and enable the
+  App Group by itself — but if the TestFlight run fails on provisioning, that is the one part
+  only he can do, in the developer portal.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /
@@ -1646,7 +1675,6 @@ chat.** The free-text box does save; only the buttons and tick boxes are lost.
 
 Nothing. Saved searches were the last item and shipped in build 173.
 
-**Still open:** the iPhone widget (the fifth of the five he asked for on 14 September). It
-needs a new target, its own App ID and the App Group enabled for it in the developer portal, so
-it is the one that can fail in a way this container cannot fix — left until he is awake.
+All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
+rhythm (172), saved searches (173) and the iPhone widget (174).
 

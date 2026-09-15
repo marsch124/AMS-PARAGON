@@ -32,6 +32,10 @@ targets:
         product: ParagonCore
       - target: ParagonShare
         platformFilter: iOS
+      # iOS only, deliberately: a Mac widget would be a second thing to sign and a second
+      # thing to get wrong, and the Home Screen is where he wanted this (build 174).
+      - target: ParagonWidgets
+        platformFilter: iOS
     info:
       path: App/Config/Paragon/Info.plist
       properties:
@@ -128,6 +132,39 @@ targets:
         DEVELOPMENT_TEAM: D24ENP83QQ
         GENERATE_INFOPLIST_FILE: false
         PRODUCT_BUNDLE_IDENTIFIER: com.schabbauer.AMSPara.Share
+        SKIP_INSTALL: true
+
+  # The iPhone widget (build 174). It reads one small file out of the App Group container
+  # that the app writes on every reload; it never opens the vault, which is a
+  # security-scoped bookmark only the app can resolve.
+  ParagonWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: App/ParagonWidgets
+        type: syncedFolder
+    dependencies:
+      - package: ParagonCore
+        product: ParagonCore
+    info:
+      path: App/Config/ParagonWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: PARAGON
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: App/Config/ParagonWidgets/ParagonWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.schabbauer.amspara]
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: D24ENP83QQ
+        GENERATE_INFOPLIST_FILE: false
+        PRODUCT_BUNDLE_IDENTIFIER: com.schabbauer.AMSPara.Widgets
         SKIP_INSTALL: true
 
 schemes:

@@ -781,6 +781,29 @@ On the phone, a note's own actions — Rename, Archive and Delete — are behind
 
 The phone shows four tabs. **Today** and **Inbox** are the same lists as on the Mac. **Browse** holds everything else: Goals, Projects, Areas, Resources, Archive, Calendar, Time Blocks, Done, Review, Map, Search, and Settings with Help. **Capture** opens the capture panel. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
+## Widgets on the iPhone
+
+Two widgets for the Home Screen and the Lock Screen. Press and hold the Home Screen, press **+** at the top, search for **PARAGON**, and pick one.
+
+**Today's actions** is the same list the planner shows: everything due today or earlier, then your next actions. Each line shows the note it lives in and, under it, **what it serves** — the goal in gold, or the area in pink. It comes in three sizes; the small one shows three lines, the medium four, the large seven.
+
+**What is waiting** is four numbers: due today, overdue, waiting in the Inbox, and due for a look. A zero is grey and a number that wants you is in its own colour, so the one to read finds you first.
+
+Tapping either one opens PARAGON.
+
+### How they get their information
+
+The widget never opens your vault. It cannot: the vault is a folder you chose, and only the app itself is allowed to open it.
+
+Instead, **PARAGON writes a short summary for the widget every time it reloads** — when you tick a task, when a sync finishes, when a file arrives from iCloud — and the widget reads only that. So:
+
+- The widgets are right as of the last time the app noticed a change.
+- **Open PARAGON once after installing**, or the widget has nothing to read yet and says so.
+- If you have not opened the app today, the widget says **"Nothing since you last opened PARAGON"** rather than showing yesterday's list as though it were this morning's.
+- When there is genuinely nothing due and nothing waiting, it says that too. An empty widget and a widget with nothing to say are different things, and it never leaves you guessing which one you are looking at.
+
+Nothing is written back from the widget, and nothing about your notes leaves the phone.
+
 ## Mac and iPhone together
 
 Keep the vault in iCloud Drive and pick the same folder on both devices. iCloud carries the files across. Each device syncs with Reminders on its own.

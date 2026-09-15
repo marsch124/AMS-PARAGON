@@ -2,6 +2,9 @@ import Foundation
 import SwiftUI
 import Combine
 import ParagonCore
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 #if os(macOS)
 import AppKit
 #endif
@@ -108,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 173
+    static let number = 174
 }
 
 @MainActor
@@ -947,6 +950,47 @@ final class AppModel: ObservableObject {
         refreshSnippets()
         refreshWorkNotes()
         refreshSavedSearches()
+        writeWidgetSnapshot()
+    }
+
+    // MARK: The iPhone widget (build 174)
+
+    /// Where the app and the widget meet. **Only the App Group container** — the vault itself
+    /// is a security-scoped bookmark only this app can resolve, so there is no falling back to
+    /// Application Support here the way `outboxURL` does: a widget that cannot see the shared
+    /// container has nothing to read, and saying so is better than writing a file nobody reads.
+    static var widgetContainerURL: URL? {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID)
+    }
+
+    /// Writes what the widget draws, then asks the system to redraw it.
+    ///
+    /// Called from `reload()`, so it follows every change to the vault the app makes or notices
+    /// — a task ticked, a sync, a file arriving from iCloud. **It never throws outwards**: a
+    /// widget that could not be updated must not stop the app from opening, and the widget
+    /// itself already says when what it holds is out of date.
+    func writeWidgetSnapshot() {
+        guard let container = Self.widgetContainerURL else { return }
+        // The same expression `ReviewReport` uses, so the widget's number and the review's
+        // number are the same number.
+        let inbox = index.notes(kind: .inbox).first?.openTasks.count ?? 0
+        let snapshot = index.widgetSnapshot(inboxCount: inbox,
+                                            dueForReview: dueForReview().count)
+        do {
+            try snapshot.write(toContainer: container)
+            Self.reloadWidgets()
+        } catch {
+            log("widget snapshot not written: \(error.localizedDescription)")
+        }
+    }
+
+    /// Asks the system to redraw the widgets. **Behind `canImport`**, because WidgetKit is not
+    /// on every platform this app builds for and an `#if os(iOS)` would be a claim about the
+    /// wrong thing.
+    static func reloadWidgets() {
+#if canImport(WidgetKit)
+        WidgetCenter.shared.reloadAllTimelines()
+#endif
     }
 
     // MARK: Editing
@@ -1836,16 +1880,11 @@ final class AppModel: ObservableObject {
 
     /// What the planner offers on the right: what is due on or before the day, then the next
     /// actions that are not already in that list.
+    /// **Moved into Core in build 174** (`NoteIndex.actionsForPlanning(on:)`) so the planner's
+    /// Actions column and the iPhone widget ask the question once. This stays as the way the
+    /// app says it, and is the only caller inside the app.
     func actionsForPlanning(on day: DateOnly) -> [TaskRef] {
-        var seen = Set<String>()
-        var result: [TaskRef] = []
-        for ref in index.openTasks(dueOnOrBefore: day) where seen.insert(ref.id).inserted {
-            result.append(ref)
-        }
-        for ref in index.nextActions() where seen.insert(ref.id).inserted {
-            result.append(ref)
-        }
-        return result
+        index.actionsForPlanning(on: day)
     }
 
     /// Follows a `[[wikilink]]` or `related:` reference. Unknown titles become a new resource note.

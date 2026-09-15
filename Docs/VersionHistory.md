@@ -2,6 +2,30 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 174 · 15 September 2026
+
+**Two widgets for the iPhone.** The last of the five.
+
+Press and hold the Home Screen, press **+**, search for **PARAGON**.
+
+- **Today's actions** — everything due today or earlier, then your next actions, each with the
+  note it lives in and what it serves: the goal in gold, the area in pink. Three sizes.
+- **What is waiting** — due today, overdue, waiting in the Inbox, due for a look. A zero is
+  grey; a number that wants you is in its own colour.
+
+Tapping either opens PARAGON.
+
+**Open PARAGON once after you add a widget.** The widget cannot open your vault — only the app
+is allowed to — so instead the app writes a short summary for it every time it reloads, and the
+widget reads that. Until the app has run once there is nothing to read, and the widget says so
+rather than sitting empty.
+
+It also tells you which kind of quiet it is showing: **"Nothing since you last opened PARAGON"**
+when the summary is from an earlier day, and **"Nothing due, nothing waiting"** when the list is
+genuinely empty. Yesterday's work is never drawn as though it were this morning's.
+
+Nothing is written back from the widget, and nothing leaves the phone.
+
 ## Build 173 · 14 September 2026
 
 **Saved searches.** The last thing on the roadmap you stopped in build 157.
