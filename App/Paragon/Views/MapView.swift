@@ -688,11 +688,12 @@ struct MapNodeView: View {
         // A goal note says what kind of goal it is, in the chain's words. "Aspiration" came
         // from the horizon already; a goal with a date had no word at all and fell through to
         // the plural list name at the foot of this function (build 170).
-        if note.kind == .goal {
-            parts.append((note.horizon ?? .year) == .life ? GoalHorizon.life.label : "Goal")
-        } else if let horizon = note.horizon {
-            parts.append(horizon.label)
-        }
+        // **Build 175: every box says what it is, not only the goals.** Build 170 named the two
+        // kinds of goal and left an area reading "2 open" and a project "5 open / due ...",
+        // which say how much work is in them but never what they are. His screenshot showed it:
+        // the check he marked was about goals, and the goals were right all along.
+        parts.append(kindWord(for: note))
+        if note.kind != .goal, let horizon = note.horizon { parts.append(horizon.label) }
         // **Through `NoteStatus`, not the raw word.** This was the one place build 165 missed,
         // so the Map alone still said "Achieved" where every other screen says "Done".
         if note.noteStatus != .active { parts.append(note.noteStatus.label) }
@@ -702,8 +703,22 @@ struct MapNodeView: View {
         }
         if let due = note.dueDate { parts.append("due \(due)") }
         if let target = note.targetDate { parts.append("by \(target)") }
-        if parts.isEmpty { parts.append(note.isArchived ? "Archived" : String(note.kind.displayName.dropLast())) }
         return parts.joined(separator: " · ")
+    }
+
+    /// What this note is, in one word. **`declaredKind`**, so an archived project still reads
+    /// as a project (build 141) and its `status:` says "Archived" separately rather than the
+    /// one word standing in for both.
+    private func kindWord(for note: Note) -> String {
+        switch note.declaredKind {
+        case .goal: return (note.horizon ?? .year) == .life ? GoalHorizon.life.label : "Goal"
+        case .project: return "Project"
+        case .area: return "Area"
+        case .resource: return "Resource"
+        case .inbox: return "Inbox"
+        case .daily: return "Daily note"
+        case .archive: return "Archived"
+        }
     }
 }
 
@@ -720,12 +735,16 @@ struct MapFooter: View {
             // A `WrappingHStack`, not an `HStack`: the legend gained two items in build 170
             // and a narrow window squeezes an HStack until its words break mid-word (138).
             WrappingHStack(spacing: 14, lineSpacing: 4) {
+                // **Build 175, his ask**: the boxes carry symbols and the legend carried
+                // coloured dots for four of the six, so the legend did not explain the thing
+                // it sits under. Every entry is now the symbol the box itself draws.
                 symbolLegend(ChainSymbol.aspiration, "Aspiration", ParaKind.goal.tint)
                 symbolLegend(ChainSymbol.datedGoal, "Goal with a date", ParaKind.goal.tint)
-                legend(ParaKind.area.tint, "Areas")
-                legend(ParaKind.project.tint, "Projects, their actions")
-                legend(ParaKind.resource.tint, "Resources")
-                legend(ParaKind.archive.tint, "Archive")
+                symbolLegend(ChainSymbol.area, "Areas", ParaKind.area.tint)
+                symbolLegend(ChainSymbol.project, "Projects", ParaKind.project.tint)
+                symbolLegend(ChainSymbol.task, "Their actions", ParaKind.project.tint)
+                symbolLegend(SidebarSection.kind(.resource).systemImage, "Resources", ParaKind.resource.tint)
+                symbolLegend("archivebox", "Archive", ParaKind.archive.tint)
                 Text("Solid line: sits under.  Dashed: also serves.")
                     .foregroundStyle(.secondary)
             }
@@ -755,13 +774,6 @@ struct MapFooter: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-    }
-
-    private func legend(_ color: Color, _ text: String) -> some View {
-        HStack(spacing: 4) {
-            Circle().fill(color).frame(width: 8, height: 8)
-            Text(text)
-        }
     }
 
     /// The two goal symbols, named. Colour alone cannot tell them apart — they are both gold.

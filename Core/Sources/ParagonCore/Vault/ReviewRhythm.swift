@@ -33,7 +33,7 @@ public enum ReviewLevel: String, CaseIterable, Sendable {
     public var reason: String {
         switch self {
         case .aspiration:
-            return "What you are becoming changes slowly. Once a year is enough, and more often makes it feel like a task."
+            return "What you are becoming changes slowly. Twice a year is enough, and more often makes it feel like a task."
         case .goal:
             return "A goal with a date wants a look every quarter: is it still what you want, and is anything delivering it?"
         case .project:
@@ -44,12 +44,28 @@ public enum ReviewLevel: String, CaseIterable, Sendable {
     }
 
     /// The rhythm out of the box. Each is settable per vault; see `ReviewRhythm`.
+    ///
+    /// **An aspiration is every 6 months, not every year** — his answer from the build 174
+    /// field test, and the only box on it he marked as not right.
     public var defaultDays: Int {
         switch self {
-        case .aspiration: return 365
+        case .aspiration: return 182
         case .goal: return 90
         case .project: return 7
         case .area: return 30
+        }
+    }
+
+    /// What to offer for this level. **Named lengths, not a number of days**, because that is
+    /// how a person thinks about it: he asked for "every 6 months", and a stepper counting
+    /// 30 days at a time from 365 never lands on 182 at all — a fault build 174 shipped and
+    /// build 136 had already taught ("about forty presses" for one date).
+    public var choices: [Int] {
+        switch self {
+        case .aspiration: return [90, 182, 365, 730]
+        case .goal: return [30, 90, 182, 365]
+        case .project: return [7, 14, 30]
+        case .area: return [14, 30, 90]
         }
     }
 }
@@ -141,6 +157,35 @@ public struct ReviewDue: Identifiable, Equatable, Sendable {
         if days == 0 { return "reviewed today" }
         if days == 1 { return "reviewed yesterday" }
         return "reviewed \(days) days ago"
+    }
+}
+
+public extension ReviewRhythm {
+    /// A length of time in the words a person uses. In Core, with tests, because Settings and
+    /// the review both show it and a second wording would let them disagree (build 163).
+    static func label(forDays days: Int) -> String {
+        switch days {
+        case 1: return "Every day"
+        case 7: return "Every week"
+        case 14: return "Every 2 weeks"
+        case 30: return "Every month"
+        case 90: return "Every 3 months"
+        case 182: return "Every 6 months"
+        case 365: return "Every year"
+        case 730: return "Every 2 years"
+        default: return "Every \(days) days"
+        }
+    }
+
+    /// What to offer for a level, with whatever it is set to now always among them.
+    ///
+    /// A vault set to something the list does not hold — by an older build, or by hand — must
+    /// still show one chip lit, or the screen would say nothing is chosen while something
+    /// plainly is. Same reasoning as build 152's `lengthChoices`.
+    static func choices(for level: ReviewLevel, including current: Int) -> [Int] {
+        var days = level.choices
+        if !days.contains(current) { days.append(current) }
+        return days.sorted()
     }
 }
 

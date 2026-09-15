@@ -261,17 +261,31 @@ struct ReviewRhythmStepper: View {
         )
     }
 
-    /// Big numbers need big steps. A yearly rhythm nudged one day at a time is forty presses
-    /// to move it a month — the same objection he made about the date picker in build 136.
-    private var step: Int { level == .aspiration ? 30 : (level == .goal ? 5 : 1) }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Stepper("\(level.label): every \(days.wrappedValue) days", value: days, in: 1...1095, step: step)
+        VStack(alignment: .leading, spacing: 5) {
+            Text(level.label)
+                .font(.subheadline.weight(.semibold))
+            // **Build 175: named lengths, not a stepper.** He asked for "every 6 months" and
+            // build 174's stepper counted 30 days at a time from 365, so it could not reach
+            // 182 at all. Build 136 had already taught this with the date picker: a person
+            // thinks in months, not in presses.
+            WrappingHStack(spacing: 6, lineSpacing: 5) {
+                ForEach(ReviewRhythm.choices(for: level, including: days.wrappedValue), id: \.self) { choice in
+                    // `PickChip`, not `FilterBox`: one of a set, not a tick box. Build 158
+                    // drew that line and a checkmark square here would say you may have two.
+                    PickChip(title: ReviewRhythm.label(forDays: choice),
+                             isOn: choice == days.wrappedValue,
+                             tint: ParaKind.goal.tint) {
+                        days.wrappedValue = choice
+                    }
+                }
+            }
+            .lineLimit(1)
             Text(level.reason)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(.vertical, 2)
     }
 }

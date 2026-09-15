@@ -2,6 +2,43 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 175 · 15 September 2026
+
+Everything you asked for in the field test of 170 to 173.
+
+**The Map: every box says what it is.** Build 170 named the two kinds of goal and left an area
+reading "2 open" and a project "5 open · due 2031-12-01" — which say how much work is in them
+but never what they are. Now the second line begins with **Aspiration**, **Goal**, **Project**,
+**Area** or **Resource**.
+
+**The Map legend: symbols, not coloured dots.** The boxes carry symbols and four of the six
+legend entries were plain dots, so the legend did not explain the thing it sits under. Every
+entry is now the icon the box itself draws.
+
+**The Weekly review: six steps, each saying what to do.** You said 1 and 2 were good because
+they name the action. So do the rest now:
+
+3. Read the aspirations again
+4. Check the goals are on course
+5. Give every project a next action
+6. Look over the areas
+
+**Aspirations and goals are two steps, not one.** You asked whether they could be separated,
+and they should be: they are different questions asked at different speeds — a goal every three
+months, an aspiration every six.
+
+**Due for a look says you can right-click a row.** The line under the heading now names
+**Mark reviewed** instead of leaving you to find it.
+
+**The review rhythm is set in words, not in days.** Every week, every month, every 3 months,
+every 6 months, every year. The old counter moved 30 days at a time, so from a year it could
+never reach six months at all — which is exactly what you asked for.
+
+**An aspiration is now every 6 months** out of the box, as you asked. If your own vault still
+says a year, one press on **Every 6 months** under **Settings › Review rhythm** changes it.
+
+**A line under the saved searches**, so they no longer run straight into the tick boxes.
+
 ## Build 174 · 15 September 2026
 
 **Two widgets for the iPhone.** The last of the five.

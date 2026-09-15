@@ -218,6 +218,10 @@ struct SearchView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
             .padding(.bottom, 8)
+            // His ask, with a screenshot: the saved searches ran straight into the TASKS
+            // boxes below with nothing between them, so the row read as part of the filters
+            // rather than as its own thing (build 175).
+            Divider()
         }
     }
 

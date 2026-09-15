@@ -1591,6 +1591,35 @@ one this project has added since the share extension.
   App Group by itself — but if the TestFlight run fails on provisioning, that is the one part
   only he can do, in the developer portal.
 
+**Build 175: his field test of 170–173, and the db page finally worked.**
+- **The field test recorded every tick this time** (https://claude.ai/artifact/5WYBvN73WdcQBtUtf9UyEj).
+  The difference from the pages that came back empty: **it writes to `db` on every tap, never on
+  a Submit button**, shows "Saved 09:41" so he can see it working, and carries a **Copy my
+  answers** fallback. That is the diagnosis the note under build 167 was waiting for — a preview
+  page *can* collect answers, as long as nothing waits for a final press.
+- **He marked "the line under a goal box" as not right and the goals were right all along** —
+  his screenshot showed "Aspiration", "Goal · by 2031-08-01". What he meant was the *other*
+  boxes: an area read "2 open" and a project "5 open · due …", naming the work in them and never
+  what they are. `kindWord(for:)` now leads every subtitle. **A failed check is not always the
+  thing it names; the screenshot is what said so** (builds 123–127 again, cheaply this time).
+- The Map legend was symbols for the two goals and coloured dots for the other four — my own
+  build 170 inconsistency, which he spotted. All symbols now, matching the boxes; `legend(_:_:)`
+  is gone.
+- **The review is six steps, all naming an action**, his ask ("one and two are cool because they
+  do not just list the heading"). Aspirations and dated goals are steps 3 and 4: **two questions
+  asked at different speeds**, which the rhythm itself already said.
+- **`ReviewRhythm.label(forDays:)` + `ReviewLevel.choices`, and `PickChip` instead of a
+  `Stepper`.** Build 174's stepper moved 30 days at a time, so from 365 it could never reach
+  182 — the number he asked for. **A stepper whose step cannot reach the wanted value is worse
+  than no control**, and build 136 had already taught it. `choices(for:including:)` always
+  includes the vault's current value, so no screen ever shows nothing chosen.
+- `ReviewLevel.aspiration.defaultDays` is **182**. A vault that already stored 365 keeps it —
+  told him where the one press is rather than rewriting his settings behind his back.
+- A `Divider()` under the saved searches, from his screenshot.
+- **Open, asked, not built:** a colour of its own for aspirations across the app. Gold is the
+  goal family and an aspiration is the head of it, so a second colour needs his decision before
+  any code.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

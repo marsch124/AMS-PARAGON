@@ -5,6 +5,17 @@ import ParagonCore
 struct ReviewView: View {
     @EnvironmentObject private var model: AppModel
 
+    /// The aspirations among the review's goals, and the dated goals. Two plain functions
+    /// rather than work done inside the body: a `@ViewBuilder` takes views and nothing else
+    /// (build 58).
+    private func aspirations(_ report: ReviewReport) -> [GoalHealth] {
+        report.goals.filter { ($0.note.horizon ?? .year) == .life }
+    }
+
+    private func datedGoals(_ report: ReviewReport) -> [GoalHealth] {
+        report.goals.filter { ($0.note.horizon ?? .year) != .life }
+    }
+
     var body: some View {
         let report = model.index.review(config: model.config)
         let due = model.dueForReview()
@@ -31,7 +42,7 @@ struct ReviewView: View {
             } header: {
                 Text("Due for a look")
             } footer: {
-                Text("Each level of the chain has its own rhythm: an aspiration once a year, a goal with a date every quarter, a project every week, an area every month. Change them under Settings \u{203A} Review rhythm.")
+                Text("Right-click a row (long-press on the phone) for **Mark reviewed**, and it leaves this list. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -65,12 +76,29 @@ struct ReviewView: View {
                 }
             }
 
-            Section("3. Goals") {
-                if report.goals.isEmpty {
-                    Label("No goals yet", systemImage: ChainSymbol.datedGoal)
+            // **Build 175, both from his test.** He asked for two things here: steps 3 to 5
+            // named what to *do*, the way 1 and 2 already were, and aspirations kept apart
+            // from goals — "Goals and aspirations are mixed. Is it possible to separate
+            // them?" They are two different questions, asked at different speeds (the review
+            // rhythm says so: a year against a quarter), so they are two steps.
+            Section("3. Read the aspirations again") {
+                if aspirations(report).isEmpty {
+                    Label("No aspirations yet", systemImage: ChainSymbol.aspiration)
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(report.goals) { health in
+                    ForEach(aspirations(report)) { health in
+                        GoalHealthRow(health: health)
+                            .tag(health.note.relativePath)
+                    }
+                }
+            }
+
+            Section("4. Check the goals are on course") {
+                if datedGoals(report).isEmpty {
+                    Label("No goals with a date yet", systemImage: ChainSymbol.datedGoal)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(datedGoals(report)) { health in
                         GoalHealthRow(health: health)
                             .tag(health.note.relativePath)
                     }
@@ -88,14 +116,14 @@ struct ReviewView: View {
                 }
             } header: {
                 HStack {
-                    Text("4. Projects")
+                    Text("5. Give every project a next action")
                     Spacer()
                     Button("Mark all reviewed") { model.markAllReviewed() }
                         .font(.caption)
                 }
             }
 
-            Section("5. Areas") {
+            Section("6. Look over the areas") {
                 if report.areas.isEmpty {
                     Label("No areas yet", systemImage: SidebarSection.kind(.area).systemImage)
                         .foregroundStyle(.secondary)
@@ -113,7 +141,7 @@ struct ReviewView: View {
             if !report.projectsWithoutGoal.isEmpty {
                 Section {
                     // Buttons, not tagged HealthRows: these projects are listed again under
-                    // "4. Projects", and two rows carrying the same selection tag is exactly
+                    // step 5, and two rows carrying the same selection tag is exactly
                     // what made the Inbox unselectable in builds 71 to 74.
                     ForEach(report.projectsWithoutGoal) { health in
                         Button {

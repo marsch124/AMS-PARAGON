@@ -121,6 +121,40 @@ final class ReviewRhythmTests: XCTestCase {
         XCTAssertEqual(rhythm.days(for: .area), ReviewLevel.area.defaultDays)
     }
 
+    func testAnAspirationIsLookedAtTwiceAYear() {
+        // His answer from the build 174 field test, and the one box he marked as not right.
+        XCTAssertEqual(ReviewLevel.aspiration.defaultDays, 182)
+        XCTAssertEqual(ReviewRhythm.label(forDays: 182), "Every 6 months")
+    }
+
+    func testALengthIsSaidInTheWordsAPersonUses() {
+        XCTAssertEqual(ReviewRhythm.label(forDays: 7), "Every week")
+        XCTAssertEqual(ReviewRhythm.label(forDays: 14), "Every 2 weeks")
+        XCTAssertEqual(ReviewRhythm.label(forDays: 30), "Every month")
+        XCTAssertEqual(ReviewRhythm.label(forDays: 90), "Every 3 months")
+        XCTAssertEqual(ReviewRhythm.label(forDays: 365), "Every year")
+        // Anything the list does not name still reads as something, never as blank.
+        XCTAssertEqual(ReviewRhythm.label(forDays: 45), "Every 45 days")
+    }
+
+    func testWhateverAVaultIsSetToIsAlwaysOneOfTheChoices() {
+        // Build 174 set an aspiration to 365 and stepped 30 days at a time, so 182 was
+        // unreachable. Whatever a vault holds now has to be offered, or the screen would show
+        // nothing chosen while something plainly is.
+        let odd = ReviewRhythm.choices(for: .aspiration, including: 400)
+        XCTAssertTrue(odd.contains(400))
+        XCTAssertEqual(odd, odd.sorted())
+        // The offered ones are not duplicated when the current value is already among them.
+        let normal = ReviewRhythm.choices(for: .aspiration, including: 182)
+        XCTAssertEqual(normal, ReviewLevel.aspiration.choices)
+        XCTAssertEqual(Set(normal).count, normal.count)
+        // Every level offers something, and its own default is always on the list.
+        for level in ReviewLevel.allCases {
+            XCTAssertFalse(level.choices.isEmpty)
+            XCTAssertTrue(level.choices.contains(level.defaultDays), "\(level) omits its own default")
+        }
+    }
+
     func testEveryLevelSaysWhatItIsAndWhy() {
         for level in ReviewLevel.allCases {
             XCTAssertFalse(level.label.isEmpty)

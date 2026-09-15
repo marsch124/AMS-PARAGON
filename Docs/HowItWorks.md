@@ -360,16 +360,16 @@ Each level of the chain is on its own rhythm, because they do not change at the 
 
 | Level | How often | Why |
 | --- | --- | --- |
-| Aspiration | every 365 days | What you are becoming changes slowly. More often makes it feel like a task. |
-| Goal with a date | every 90 days | Is it still what you want, and is anything delivering it? |
-| Project | every 7 days | Live work, looked at with the rest of the weekly review. |
-| Area | every 30 days | No finish line, so the question is whether the standard is still being kept. |
+| Aspiration | every 6 months | What you are becoming changes slowly. More often makes it feel like a task. |
+| Goal with a date | every 3 months | Is it still what you want, and is anything delivering it? |
+| Project | every week | Live work, looked at with the rest of the weekly review. |
+| Area | every month | No finish line, so the question is whether the standard is still being kept. |
 
-All four can be changed under **Settings › Review rhythm**. The project one is the same setting the review has always had, so there is one number for it, not two.
+All four can be changed under **Settings › Review rhythm**, where each one is a row of named lengths — every week, every month, every 6 months — rather than a count of days. The project one is the same setting the review has always had, so there is one number for it, not two.
 
 Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever marked reviewed says **never looked at** and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
 
-Press a row to open the note with the review still beside it. Right-click it for **Mark reviewed**, which writes `reviewed:` with today's date into the note. Because it is written into the note, both devices agree and it is in your backups.
+Press a row to open the note with the review still beside it. **Right-click a row** (long-press on the phone) for **Mark reviewed**, which writes `reviewed:` with today's date into the note and starts that note's rhythm again; the row then leaves the list. The line under the heading says so, so the menu is not something you have to know about. Because it is written into the note, both devices agree and it is in your backups.
 
 Work that is over is never asked about: a project you dropped, a goal you missed, anything archived. A review is a question about work you are still doing.
 
@@ -379,11 +379,14 @@ Every step is always on screen, even when it is empty — a step you have finish
 
 1. **Empty the inbox.** How many loose items are waiting. Press it to go to the Inbox and file them.
 2. **Reschedule or drop overdue tasks.** Every task whose date has passed, with the note it lives in. Tick it, move it, or drop it, straight from the row.
-3. **Goals.** One row per goal: its icon (a star for an aspiration, a target for a goal with a date), how far the work under it has come, how many projects and areas serve it, and the flags below.
-4. **Projects.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
-5. **Areas.** The same row for each area.
+3. **Read the aspirations again.** One row per aspiration. Is each one still true?
+4. **Check the goals are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
+5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
+6. **Look over the areas.** The same row for each area.
 
-Under the five steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no number.
+Aspirations and goals with a date are two steps, not one. They are different questions asked at different speeds — the review rhythm says so, a goal every three months against an aspiration every six.
+
+Under the six steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no number.
 
 ### What you can do to a row
 
@@ -420,9 +423,11 @@ Every box carries the same icon the rest of the app uses for that kind of note:
 - **Two circles, a target**, is a **goal with a target date** — what you aim at and hit on a day.
 - **A flag** is a **project**, **four squares** an **area**, **books** a **resource**, and a **ring** is one open task.
 
-The colour is the note's kind: goals gold, areas pink, projects green, resources blue, the archive grey. Because an aspiration and a goal with a date are both gold, the icon is what tells them apart — so both are named in the legend along the bottom of the Map.
+The colour is the note's kind: goals gold, areas pink, projects green, resources blue, the archive grey. Because an aspiration and a goal with a date are both gold, the icon is what tells them apart. The legend along the bottom names every one of them, with the same icon the box itself carries.
 
-Under the name, a second line says what the note is and how it stands. For a goal it begins with the word **Aspiration** or **Goal**. Then, if the note has been marked, its state — **Done**, **Missed**, **Dropped**, **On hold** or **Archived**, in the same words the rest of the app uses. Then the open task count for a project or an area, a deadline (`due`) and a target date (`by`).
+Under the name, the second line begins with **what the note is** — Aspiration, Goal, Project, Area, Resource — and then how it stands.
+
+For a goal that word is **Aspiration** or **Goal**. Then, if the note has been marked, its state — **Done**, **Missed**, **Dropped**, **On hold** or **Archived**, in the same words the rest of the app uses. Then the open task count for a project or an area, a deadline (`due`) and a target date (`by`).
 
 ### The lines between the boxes
 
@@ -580,7 +585,7 @@ button beside the field. A name is offered already, the same plain words the lin
 boxes uses; change it if you like and press **Save**. The button only appears when there is
 something to save.
 
-**Running one.** Saved searches appear as chips under the field, on the Mac and the phone.
+**Running one.** Saved searches appear as chips under the field, above a line that keeps them apart from the tick boxes below, on the Mac and the phone.
 Press one and it runs. The one you are looking at right now is filled in and has a solid
 border; the others are grey with a dashed one — the same two states every other button in the
 app uses. Press the heading **Saved searches** to fold them away.
