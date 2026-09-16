@@ -24,7 +24,9 @@ import XCTest
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
 /// one place that choice is made. What comes after is the same code; that is the point of the
-/// names. Since build 196 all seven run on both.
+/// names. Since build 196 all seven run on both, and four more run on the Mac alone: the
+/// three columns staying inside the window, and the menu bar's shortcuts, neither of which
+/// the phone has.
 final class ScreenTests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -219,11 +221,93 @@ final class ScreenTests: XCTestCase {
                       "A note opened, but not the one whose box was tapped. It shows: \(shown.prefix(200))")
     }
 
+    // MARK: The Mac only — three columns and a menu bar, which the phone does not have
+
+    #if os(macOS)
+    /// The three columns are still inside the window after a note is opened. Builds 30 and 34:
+    /// the split view grew past the window whenever a column was re-measured, and every column
+    /// looked scrolled under the toolbar. The sidebar row, the list row and the editor are each
+    /// asked whether they are wholly inside the window's frame.
+    func testTheColumnsStayInsideTheWindowWhenANoteOpens() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
+
+        let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
+        for (name, part) in [("sidebar.Projects", element("sidebar.Projects")), ("the note's row", row), ("note.editor", editor)] {
+            XCTAssertFalse(part.frame.isEmpty, "\(name) has no size after the note opened.")
+            XCTAssertTrue(window.contains(part.frame),
+                          "\(name) is not wholly inside the window after the note opened: \(part.frame) against \(window). This is the window scramble of builds 30 and 34.")
+        }
+    }
+
+    /// ⌘N opens the New note screen. In build 120 the window's own New Window item kept ⌘N,
+    /// so the key opened an empty second window and never the screen — and CI compiled the
+    /// menu green. The New note screen appearing is the proof the key reached the app.
+    func testCommandNOpensTheNewNoteScreen() {
+        go(to: .projects)
+        app.typeKey("n", modifierFlags: .command)
+
+        let projectButton = element("new.project")
+        XCTAssertTrue(projectButton.waitForExistence(timeout: 20),
+                      "⌘N was pressed and the New note screen did not open. On screen: \(visibleTexts())")
+        element("sheet.cancel").press()
+    }
+
+    /// ⇧⌘N opens Quick capture, wherever the focus is.
+    func testShiftCommandNOpensQuickCapture() {
+        go(to: .today)
+        app.typeKey("n", modifierFlags: [.command, .shift])
+
+        let field = element("capture.text")
+        XCTAssertTrue(field.waitForExistence(timeout: 20),
+                      "⇧⌘N was pressed and the capture screen did not open. On screen: \(visibleTexts())")
+        app.typeKey(.escape, modifierFlags: [])
+    }
+
+    /// ⌃⌘← goes back to the note that was open before. Build 118 chose the arrows because the
+    /// browsers' ⌘[ does not exist on a Swedish keyboard; nothing had ever pressed either.
+    func testControlCommandLeftGoesBackToThePreviousNote() {
+        go(to: .projects)
+        let project = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(project.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        project.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The project did not open.")
+        XCTAssertTrue(shows(editor, "Plan the Kungsleden trip", within: 10), "The editor does not show the project.")
+
+        go(to: .resources)
+        let resource = element("note.Resources/Packing list.md")
+        XCTAssertTrue(resource.waitForExistence(timeout: 20), "The Resources list does not show the test resource.")
+        resource.press()
+        XCTAssertTrue(shows(editor, "Packing list", within: 20), "The resource did not open. It shows: \(editorText(editor))")
+
+        app.typeKey(.leftArrow, modifierFlags: [.command, .control])
+        XCTAssertTrue(shows(editor, "Plan the Kungsleden trip", within: 20),
+                      "⌃⌘← was pressed and the editor did not go back to the project. It shows: \(editorText(editor))")
+    }
+
+    /// Waits until the editor's text contains the words.
+    private func shows(_ editor: XCUIElement, _ words: String, within timeout: TimeInterval) -> Bool {
+        let holds = expectation(for: NSPredicate(format: "value CONTAINS %@", words), evaluatedWith: editor)
+        return XCTWaiter().wait(for: [holds], timeout: timeout) == .completed
+    }
+
+    private func editorText(_ editor: XCUIElement) -> String {
+        String(((editor.value as? String) ?? "").prefix(200))
+    }
+    #endif
+
     // MARK: Where each platform keeps its way in
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, map }
+    private enum Place { case today, inbox, projects, resources, map }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -255,6 +339,7 @@ final class ScreenTests: XCTestCase {
         case .today: return ["sidebar.Today"]
         case .inbox: return ["sidebar.Inbox"]
         case .projects: return ["sidebar.Projects"]
+        case .resources: return ["sidebar.Resources"]
         case .map: return ["sidebar.Map"]
         }
     }
@@ -274,6 +359,7 @@ final class ScreenTests: XCTestCase {
         case .today: return ["tab.today"]
         case .inbox: return ["tab.inbox"]
         case .projects: return ["tab.browse", "browse.Projects"]
+        case .resources: return ["tab.browse", "browse.Resources"]
         case .map: return ["tab.browse", "browse.Map"]
         }
     }

@@ -9,6 +9,11 @@ opens a project note on the Mac and types into it, clicks a line in the Inbox, m
 from the New note screen, saves a Quick capture and finds it in the Inbox, and clicks a box on
 the Map. Nothing changes in the app.
 
+Later the same day, four checks that only the Mac can answer: the three columns are still
+inside the window after a note is opened (the "window scramble" of builds 30 and 34), ⌘N opens
+the New note screen, ⇧⌘N opens Quick capture, and ⌃⌘← goes back to the note that was open
+before. Nothing changes in the app.
+
 ## Build 195 · 16 September 2026
 
 **The build machine now presses the Mac app too.** Until now every screen check ran on a

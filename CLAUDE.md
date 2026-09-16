@@ -2108,6 +2108,22 @@ canvas) were the Mac's, and until this the suite could not see them.
   one that finds this, and a fix belongs in the test, never in the app, unless the Mac is
   genuinely not drawing the thing.
 
+**Four Mac-only tests, same day, under `#if os(macOS)`.** Things the phone does not have:
+three columns and a menu bar.
+- **The columns stay inside the window after a note opens** — builds 30/34's window scramble,
+  asked as: the sidebar row, the list row and `note.editor` each have a frame wholly inside
+  `app.windows.firstMatch.frame` (inset by 1pt for rounding). A split view that has grown past
+  the window puts the top of every column above it.
+- **⌘N opens the New note screen** (build 120: the `WindowGroup`'s New Window kept the key and
+  the sheet never opened), **⇧⌘N opens Quick capture**, and **⌃⌘← goes back** to the note open
+  before (build 118). `app.typeKey(_:modifierFlags:)` is the press; the screen appearing, or
+  the editor's `value` changing back, is the proof. Closed again with `sheet.cancel` and Escape
+  so the next test starts clean.
+- `shows(_:_:within:)` waits on `value CONTAINS` rather than reading `value` once: a note opens
+  a turn after the row is pressed.
+- `Place.resources` was added for the Back test; the test vault's resource is
+  `Resources/Packing list.md`.
+
 ## Not built (by choice)
 
 - **The App Group in the developer portal**, parked by him on 15 September and explained again
@@ -2119,9 +2135,10 @@ canvas) were the Mac's, and until this the suite could not see them.
 - **A filter on All actions** — his own "maybe we should make the filter function later on".
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
   vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
-  capture to the Inbox, a Map box pressed. Left: **Mac-only checks** — the three columns
-  standing after a note is opened (builds 30/34), and a keyboard shortcut actually reaching
-  the app (⌘N, ⌃⌘←), which CI compiles and never presses.
+  capture to the Inbox, a Map box pressed — and four on the Mac alone: the columns inside
+  the window after a note opens, ⌘N, ⇧⌘N, ⌃⌘←. Left, if wanted: the phone's swipe between
+  tabs (build 183, untested from here), and a Mac test that opens **Linked notes** in a note,
+  the exact trigger of build 30.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
