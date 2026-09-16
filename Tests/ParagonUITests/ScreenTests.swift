@@ -232,10 +232,9 @@ final class ScreenTests: XCTestCase {
     /// scrolled under the toolbar. Two checks. The sidebar row and the list row are wholly
     /// inside the window, and the editor's top left corner is (an NSTextView reports its
     /// whole document as its frame, so its bottom edge says nothing — the first run of this
-    /// test failed on exactly that). Then ⌃⌘D copies the app's own diagnostics, which carry
+    /// test failed on exactly that). Then Help › Copy Diagnostics, which carry
     /// an OVERFLOW line whenever the host view outgrew the window, and the clipboard is read
-    /// back: the app's own definition of the fault, and proof that ⌃⌘D reaches the app
-    /// (build 103: ⌥⌘D never did).
+    /// back: the app's own definition of the fault.
     func testTheWindowIsNotScrambledWhenANoteOpens() {
         go(to: .projects)
 
@@ -255,13 +254,26 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(window.contains(CGPoint(x: editor.frame.minX, y: editor.frame.minY)),
                       "The editor's top left corner is outside the window: \(editor.frame) against \(window). This is the window scramble of builds 30 and 34.")
 
+        // Help › Copy Diagnostics, by its title: a menu item cannot carry an identifier, and
+        // its title is spelled in ParagonApp beside the button. Not ⌃⌘D: with the keyboard
+        // focus in the editor that key is macOS's own Look Up, and the first run of this test
+        // pressed it and nothing reached the app.
         NSPasteboard.general.clearContents()
-        app.typeKey("d", modifierFlags: [.command, .control])
+        app.menuBars.menuBarItems["Help"].click()
+        let copyItem = app.menuBars.menuItems["Copy Diagnostics"]
+        XCTAssertTrue(copyItem.waitForExistence(timeout: 10), "The Help menu has no Copy Diagnostics item.")
+        copyItem.click()
+        // The app says "Diagnostics copied" for 2.5 s. Checked first, so that "the menu did
+        // nothing" and "the clipboard could not be read" fail with different words.
+        let banner = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS 'Diagnostics copied' OR value CONTAINS 'Diagnostics copied'")).firstMatch
+        XCTAssertTrue(banner.waitForExistence(timeout: 10),
+                      "Copy Diagnostics was chosen and the app never said Diagnostics copied. On screen: \(visibleTexts())")
         let copied = expectation(for: NSPredicate(block: { _, _ in
             (NSPasteboard.general.string(forType: .string) ?? "").contains("PARAGON build")
         }), evaluatedWith: nil)
         XCTAssertEqual(XCTWaiter().wait(for: [copied], timeout: 10), .completed,
-                       "⌃⌘D was pressed and no diagnostics reached the clipboard.")
+                       "The app said Diagnostics copied, but the test could not read them from the clipboard.")
         let report = NSPasteboard.general.string(forType: .string) ?? ""
         let overflow = report.split(separator: "\n").filter { $0.contains("OVERFLOW") }
         XCTAssertTrue(overflow.isEmpty,

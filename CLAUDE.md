@@ -2112,9 +2112,15 @@ canvas) were the Mac's, and until this the suite could not see them.
 three columns and a menu bar.
 - **The window is not scrambled after a note opens** — builds 30/34. The sidebar row and the
   list row have frames wholly inside `app.windows.firstMatch.frame`, the editor's top left
-  corner is inside it, and then **⌃⌘D copies the app's own diagnostics and the test reads the
-  clipboard** (`NSPasteboard.general`, so `import AppKit`) and fails on any `OVERFLOW` line —
-  the app's own definition of the fault, and proof that ⌃⌘D reaches the app (build 103).
+  corner is inside it, and then **Help › Copy Diagnostics is chosen from the menu bar and the
+  test reads the clipboard** (`NSPasteboard.general`, so `import AppKit`) and fails on any
+  `OVERFLOW` line — the app's own definition of the fault. The "Diagnostics copied" banner is
+  waited for first, so "the menu did nothing" and "the clipboard could not be read" fail with
+  different words. **The menu item is found by its title**, the one exception to the
+  identifier rule: an `NSMenuItem` made from a `.commands` Button carries none. **Not ⌃⌘D**:
+  the second run pressed it with the keyboard focus in the editor and nothing reached the
+  app — inside a text view that key is macOS's own Look Up. Build 103 chose it over ⌥⌘D for
+  the same family of reason; a shortcut that works in a list may not work in a text view.
   **The first run failed on the editor's frame**: an `NSTextView` reports its whole document
   as its frame (649pt tall in a 452pt window on the runner), so its bottom edge says nothing
   about the window. A frame check on a scrolling view is not a check on the window.
