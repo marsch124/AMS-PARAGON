@@ -2097,6 +2097,16 @@ canvas) were the Mac's, and until this the suite could not see them.
   Same for `note.editor`. **Find by name, never by kind**, or one platform's control type
   quietly fails the other's test.
 - Nothing else in the app changed; the build number moved because two identifiers did.
+- **Five of the seven were green on the Mac at once; two failed for the test's own reasons**,
+  and both are about what the Mac's accessibility tree says. **A static text keeps its words
+  in `label` on the phone and in `value` on the Mac**, so the capture test's "Saved" check and
+  `visibleTexts()` read both. **The Mac calls a SwiftUI group "not hittable"** when the hit
+  test at its centre lands on the text inside it, and `click()` refuses such an element, so the
+  Map test checks "on screen" as the box's frame inside the window's and presses through
+  `pressCentre()` — a coordinate click on the Mac, a plain tap on the phone. **A green phone
+  test says nothing about what the Mac's tree looks like**; the first Mac run of a test is the
+  one that finds this, and a fix belongs in the test, never in the app, unless the Mac is
+  genuinely not drawing the thing.
 
 ## Not built (by choice)
 

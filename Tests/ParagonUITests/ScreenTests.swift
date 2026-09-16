@@ -171,7 +171,11 @@ final class ScreenTests: XCTestCase {
         // screen then closes itself a moment later, and the Inbox tab is behind it until it
         // does. Each is checked on its own, with what was on screen in the message, because a
         // log is the only eye there is on this simulator.
-        let saidSaved = app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Saved'")).firstMatch
+        // `label` on the phone, `value` on the Mac: an AppKit static text keeps its words in
+        // its value and its label is empty, which is why the first Mac run of this test could
+        // never see the word (build 196).
+        let saidSaved = app.staticTexts.containing(
+            NSPredicate(format: "label BEGINSWITH 'Saved' OR value BEGINSWITH 'Saved'")).firstMatch
         let confirmed = saidSaved.waitForExistence(timeout: 10)
         // Thirty seconds, not fifteen: the screen closes itself 1.8 s after Save, but the
         // first run of this test on a cold CI simulator took longer than fifteen and failed
@@ -199,9 +203,13 @@ final class ScreenTests: XCTestCase {
         let box = element("map.Goals/Be strong and steady at seventy.md")
         XCTAssertTrue(box.waitForExistence(timeout: 30),
                       "The Map drew no box for the test aspiration. On screen: \(visibleTexts())")
-        XCTAssertTrue(box.isHittable,
-                      "The aspiration's box is on the Map but not on screen at this size, so it cannot be tapped. On screen: \(visibleTexts())")
-        box.press()
+        // "On screen" is the box's frame inside the window's, not `isHittable`: the Mac says
+        // "not hittable" of a SwiftUI group whose hit test lands on the text inside it, and
+        // said so of this box while it was plainly drawn (build 196).
+        let window = app.windows.firstMatch.frame
+        XCTAssertTrue(window.intersects(box.frame) && !box.frame.isEmpty,
+                      "The aspiration's box is on the Map but not on screen at this size, so it cannot be pressed. Box \(box.frame), window \(window). On screen: \(visibleTexts())")
+        box.pressCentre()
 
         let editor = element("note.editor")
         XCTAssertTrue(editor.waitForExistence(timeout: 20),
@@ -278,7 +286,12 @@ final class ScreenTests: XCTestCase {
     /// The first twenty texts on screen, for a failure message. The nearest thing to a
     /// screenshot that can be read back from the CI log.
     private func visibleTexts() -> String {
-        app.staticTexts.allElementsBoundByIndex.prefix(20).map { $0.label }.joined(separator: " | ")
+        // The phone keeps a text's words in `label`, the Mac in `value` (see the capture test).
+        app.staticTexts.allElementsBoundByIndex.prefix(20).map { text -> String in
+            let label = text.label
+            if !label.isEmpty { return label }
+            return (text.value as? String) ?? ""
+        }.joined(separator: " | ")
     }
 
     /// Any element carrying that identifier, whatever kind of element SwiftUI made it.
@@ -292,6 +305,17 @@ extension XCUIElement {
     func press() {
         #if os(macOS)
         click()
+        #else
+        tap()
+        #endif
+    }
+
+    /// A press on the element's centre point, for a box on a canvas. The Mac refuses `click()`
+    /// on an element it calls not hittable, and it says that of a SwiftUI group whose hit test
+    /// lands on the text inside it; a coordinate click asks no such question.
+    func pressCentre() {
+        #if os(macOS)
+        coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
         #else
         tap()
         #endif
