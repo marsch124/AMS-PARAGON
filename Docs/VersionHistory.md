@@ -2,6 +2,13 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 196 · 16 September 2026
+
+**All seven checks now run on the Mac as well as on the simulated iPhone.** The build machine
+opens a project note on the Mac and types into it, clicks a line in the Inbox, makes a project
+from the New note screen, saves a Quick capture and finds it in the Inbox, and clicks a box on
+the Map. Nothing changes in the app.
+
 ## Build 195 · 16 September 2026
 
 **The build machine now presses the Mac app too.** Until now every screen check ran on a

@@ -50,6 +50,9 @@ struct ContentView: View {
                             Label("Quick capture", systemImage: "tray.and.arrow.down")
                         }
                         .help("Capture a thought into the Inbox, today's note or a project (⇧⌘N)")
+                        // The same name the phone's Today button carries, so one screen test
+                        // opens the capture on both platforms (build 196).
+                        .accessibilityIdentifier("capture.open")
                         SyncButton()
                         #if !os(macOS)
                         Button {

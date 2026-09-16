@@ -2040,7 +2040,7 @@ checking it became the selected one (the 71–74 fault).
   New note sheet and by `NoteFromLinkSheet`, which still had two blue words in a corner on the
   phone and a 380pt `minWidth`. Reach for it on any new sheet.
 
-**Build 193: a capture, end to end** — `today.capture` on Today, `capture.text`, `capture.save`,
+**Build 193: a capture, end to end** — `today.capture` on Today (renamed `capture.open` in 196), `capture.text`, `capture.save`,
 then `tab.inbox` and the line as `inbox.<text>`. **It failed once and passed the next run with
 no app change**: the first version waited 15 s for the sheet to close itself after Save, and a
 cold CI simulator took longer than that. The wait is 30 s now, and the test checks the "Saved"
@@ -2064,6 +2064,40 @@ two to seven times slower** — a slow runner, not the Map (its test took 16 s).
 `sheet.cancel` sit on `SheetFooter`'s buttons on both platforms, so any sheet that uses the
 footer is pressable the same way.
 
+**Build 195: the same suite on the Mac, green first time.** A second CI job, **Screen tests
+(Mac)**, runs `ParagonUITests` with `-destination "platform=macOS"`: the runner is a Mac, so
+the app itself is started and clicked, no simulator. Two and a half minutes against the
+phone's seven, and **no automation permission was needed on the GitHub runner** — the one
+risk I could not check from here. The faults that cost the most (71–74's Inbox list, 85's Map
+canvas) were the Mac's, and until this the suite could not see them.
+- **One suite, two platforms.** `#if os(macOS)` in `ScreenTests.swift` picks the way in and the
+  proof a screen was drawn: the sidebar row (`sidebar.<section title>`, on `SidebarView.row`)
+  where the phone taps a tab, and `app.windows.firstMatch` where the phone has a navigation
+  bar. `XCUIElement.press()` is `click()` on the Mac and `tap()` on the phone. Everything
+  after the way in is the same code, which is what the identifiers are for.
+- The Mac's `NSTextView` carries `note.editor` through `setAccessibilityIdentifier`, the
+  phone's `UITextView` through `accessibilityIdentifier =` — two spellings of one name, both
+  in `MarkdownSyntaxEditor`.
+- The Tools group is left out of the Mac's section walk: it folds, and a folded row is not on
+  screen.
+- The `screen-tests-mac` job has the same "did the tests really run" guard and the same
+  30-minute limit as the phone's; `commit-project` waits for both.
+
+**Build 196: all seven on both.** The five phone-only tests lost their `#if os(iOS)`.
+- **`go(to:)` is the one place a test's way in is decided**, over a private `Place` enum
+  (today, inbox, projects, map). `way(to:)` under each `#if` returns the identifiers to press
+  in order: a sidebar row on the Mac; a tab, or Browse and then a row, on the phone. It waits
+  for the home first, so every test fails on the "vault did not open" step with those words,
+  never three steps later with the wrong ones.
+- **The Quick capture button is `capture.open` on both platforms** (it was `today.capture` on
+  the phone). On the Mac the button is in the window's toolbar, not on Today, so a name that
+  said "today" would have been a name that lies — the rule behind using identifiers at all.
+- The capture field is a `TextEditor` on the phone and a `TextField` on the Mac, so the tests
+  use `element("capture.text")` — any element with the name — rather than `app.textViews[…]`.
+  Same for `note.editor`. **Find by name, never by kind**, or one platform's control type
+  quietly fails the other's test.
+- Nothing else in the app changed; the build number moved because two identifiers did.
+
 ## Not built (by choice)
 
 - **The App Group in the developer portal**, parked by him on 15 September and explained again
@@ -2073,11 +2107,11 @@ footer is pressable the same way.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **A filter on All actions** — his own "maybe we should make the filter function later on".
-- **More screen tests.** Seven now (build 194): the vault opens, every tab, a note typed in,
-  an Inbox line selected, the New note screen, a capture to the Inbox, a Map box tapped. Left:
-  **a Mac run of the same suite** — every test so far is the phone, and builds 71–74 were
-  the Mac's `List(selection:)`. That needs a second scheme destination and identifiers on
-  the Mac's sidebar rows; the phone's `tab.*` do not exist there.
+- **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
+  vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
+  capture to the Inbox, a Map box pressed. Left: **Mac-only checks** — the three columns
+  standing after a note is opened (builds 30/34), and a keyboard shortcut actually reaching
+  the app (⌘N, ⌃⌘←), which CI compiles and never presses.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
