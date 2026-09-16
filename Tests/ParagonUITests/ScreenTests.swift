@@ -1,6 +1,6 @@
 import XCTest
 
-/// The screens, actually pressed.
+/// The screens, actually pressed — on a simulated iPhone and, since build 195, on the Mac.
 ///
 /// **Build 190.** Everything else in this repository is checked by a compiler or by a test over
 /// plain values. These are the first checks that open the app and touch it, which is the only
@@ -15,10 +15,16 @@ import XCTest
 /// tabs are pages of one pager, so a title such as "Projects" can be on screen twice at once
 /// (the Browse row and a group heading on the Actions page), and a word he asks to be renamed
 /// must not quietly stop a test from finding the thing. The names the tests use are spelled in
-/// the app beside the views: `tab.*`, `browse.<section>`, `note.<path>`, `inbox.<line>`,
-/// `note.editor`, `list.newNote`, `new.<thing>`, `sheet.action` / `sheet.cancel`,
-/// `today.capture`, `capture.text`, `capture.save`, `map.<path>`. The vault is
-/// `TestVault` in the app, which is where its titles live.
+/// the app beside the views: `tab.*` and `browse.<section>` on the phone, `sidebar.<section>`
+/// on the Mac, and on both `note.<path>`, `inbox.<line>`, `note.editor`, `list.newNote`,
+/// `new.<thing>`, `sheet.action` / `sheet.cancel`, `today.capture`, `capture.text`,
+/// `capture.save`, `map.<path>`. The vault is `TestVault` in the app, which is where its
+/// titles live.
+///
+/// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
+/// picks the Mac's way in — the sidebar row — where the phone taps a tab. What comes after is
+/// the same code; that is the point of the names. Tests the Mac cannot run yet sit under
+/// `#if os(iOS)` and come across one or two at a time (build 196 on).
 final class ScreenTests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -33,35 +39,39 @@ final class ScreenTests: XCTestCase {
         app.launch()
     }
 
-    /// The welcome screen has no tab bar, so this also proves the vault opened. Without it
-    /// every other test below would be testing the first-run screen and passing for the wrong
-    /// reason — which is build 179's lesson, where "I cannot open your folder" and "you have
-    /// never set this up" were the same picture.
-    func testTheAppOpensItsVaultAndDrawsTheTabBar() {
-        XCTAssertTrue(app.buttons["tab.today"].waitForExistence(timeout: appears),
-                      "The tab bar never appeared. The app is probably on the welcome screen, which means the vault did not open.")
-        for tab in Self.tabs {
-            XCTAssertTrue(app.buttons[tab].exists, "\(tab) is missing from the tab bar.")
+    // MARK: Both platforms
+
+    /// The welcome screen has neither a tab bar nor a sidebar, so this also proves the vault
+    /// opened. Without it every other test below would be testing the first-run screen and
+    /// passing for the wrong reason — build 179's lesson, where "I cannot open your folder"
+    /// and "you have never set this up" were the same picture.
+    func testTheAppOpensItsVaultAndDrawsItsHome() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared. The app is probably on the welcome screen, which means the vault did not open. On screen: \(visibleTexts())")
+        for name in Self.homeMarks {
+            XCTAssertTrue(element(name).exists, "\(name) is missing from the app's home.")
         }
     }
 
-    /// Every tab draws something and the app is still running at the end. Builds 71 to 74 left
-    /// a whole screen unusable and CI was green throughout.
-    func testEveryTabOpensItsScreen() {
-        XCTAssertTrue(app.buttons["tab.today"].waitForExistence(timeout: appears),
-                      "The tab bar never appeared.")
-        for tab in Self.tabs {
-            let button = app.buttons[tab]
-            XCTAssertTrue(button.waitForExistence(timeout: 20), "\(tab) is not on screen.")
-            button.tap()
-            XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 20),
-                          "\(tab) opened without a navigation bar, so it drew nothing.")
-            XCTAssertEqual(app.state, .runningForeground, "The app stopped running on \(tab).")
+    /// Every way in draws a screen and the app is still running at the end. Builds 71 to 74
+    /// left a whole screen unusable and CI was green throughout.
+    func testEverySectionOpensItsScreen() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared.")
+        for name in Self.sections {
+            let way = element(name)
+            XCTAssertTrue(way.waitForExistence(timeout: 20), "\(name) is not on screen.")
+            way.press()
+            XCTAssertTrue(screenIsDrawn(timeout: 20),
+                          "\(name) opened without drawing a screen. On screen: \(visibleTexts())")
+            XCTAssertEqual(app.state, .runningForeground, "The app stopped running on \(name).")
         }
-        XCTAssertTrue(app.buttons["tab.browse"].exists,
-                      "The tab bar is gone after visiting every tab.")
+        XCTAssertTrue(element(Self.home).exists, "\(Self.home) is gone after visiting every section.")
     }
 
+    // MARK: The phone only, until build 196 brings them across
+
+    #if os(iOS)
     /// Browse › Projects › the test project, then type into it. From build 114 to 128 the phone
     /// editor needed a press-and-hold before it would take a letter, three builds were spent on
     /// its layout while the fault was a gesture, and CI never knew any of it.
@@ -223,6 +233,34 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(shown.contains("Be strong and steady at seventy"),
                       "A note opened, but not the one whose box was tapped. It shows: \(shown.prefix(200))")
     }
+    #endif
+
+    // MARK: Where each platform keeps its way in
+
+    #if os(macOS)
+    /// The one thing that is always on screen once a vault is open.
+    private static let home = "sidebar.Inbox"
+    /// What the home has to show. Four rows from different groups of the sidebar.
+    private static let homeMarks = ["sidebar.Inbox", "sidebar.Goals", "sidebar.Projects", "sidebar.Map"]
+    /// The rows pressed one after another. The Tools group is left out: it folds.
+    private static let sections = ["sidebar.Inbox", "sidebar.Today", "sidebar.Calendar",
+                                   "sidebar.Time Blocks", "sidebar.Weekly review", "sidebar.Map",
+                                   "sidebar.All actions", "sidebar.Goals", "sidebar.Projects",
+                                   "sidebar.Areas", "sidebar.Resources", "sidebar.Search"]
+
+    /// A Mac window has no navigation bar; the window itself still standing is the check.
+    private func screenIsDrawn(timeout: TimeInterval) -> Bool {
+        app.windows.firstMatch.waitForExistence(timeout: timeout)
+    }
+    #else
+    private static let home = "tab.today"
+    private static let homeMarks = ["tab.today", "tab.plan", "tab.actions", "tab.inbox", "tab.browse"]
+    private static let sections = homeMarks
+
+    private func screenIsDrawn(timeout: TimeInterval) -> Bool {
+        app.navigationBars.firstMatch.waitForExistence(timeout: timeout)
+    }
+    #endif
 
     /// The first twenty texts on screen, for a failure message. The nearest thing to a
     /// screenshot that can be read back from the CI log.
@@ -234,6 +272,15 @@ final class ScreenTests: XCTestCase {
     private func element(_ identifier: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
+}
 
-    private static let tabs = ["tab.today", "tab.plan", "tab.actions", "tab.inbox", "tab.browse"]
+extension XCUIElement {
+    /// A tap on the phone, a click on the Mac — one word in a test that runs on both.
+    func press() {
+        #if os(macOS)
+        click()
+        #else
+        tap()
+        #endif
+    }
 }

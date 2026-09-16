@@ -231,6 +231,8 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         textView.string = text
         context.coordinator.textView = textView
         context.coordinator.highlight(tint: NSColor(tint))
+        // The same name the phone's text view carries, so one test finds both (build 195).
+        textView.setAccessibilityIdentifier("note.editor")
         return scrollView
     }
 

@@ -2,6 +2,16 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 195 · 16 September 2026
+
+**The build machine now presses the Mac app too.** Until now every screen check ran on a
+simulated iPhone. A second check starts PARAGON on the Mac itself, opens the vault, and clicks
+every row in the sidebar. The faults that cost the most days earlier this month were Mac
+faults — the Inbox list that could not be clicked, the Map boxes that swallowed clicks — and
+nothing had ever pressed them there.
+
+Two checks on the Mac today; the other five come across next. Nothing changes in the app.
+
 ## Build 194 · 15 September 2026
 
 **One more check on the build machine, nothing new to see.** The simulated iPhone now opens the

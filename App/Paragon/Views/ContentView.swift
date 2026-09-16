@@ -299,6 +299,9 @@ struct SidebarView: View {
         }
         .badge(model.count(for: section))
         .tag(section)
+        // "sidebar.Inbox", "sidebar.Projects" and so on: what the Mac screen tests click
+        // (build 195). Accessibility only; nothing here takes the row's click (builds 71-74).
+        .accessibilityIdentifier("sidebar.\(section.title)")
     }
 }
 

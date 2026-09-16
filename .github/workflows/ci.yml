@@ -126,10 +126,52 @@ jobs:
           name: screen-test-log
           path: test-ui.log
 
+  screen-tests-mac:
+    name: Screen tests (Mac)
+    runs-on: macos-15
+    # The runner is a Mac, so no simulator: the app itself is started and clicked. Build 195.
+    # The faults that cost this project the most were the Mac's — the Inbox list of builds
+    # 71-74 and the Map canvas of build 85 — and the phone suite cannot see either.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Press the buttons
+        run: |
+          set -o pipefail
+          xcodebuild -project Paragon.xcodeproj -scheme ParagonUITests \
+            -destination "platform=macOS" \
+            -derivedDataPath build/dd-uitests-mac \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
+            test 2>&1 | tee test-ui-mac.log | grep -E "error:|Test Case|Test Suite|XCTAssert|\*\* TEST" || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test-ui-mac.log
+      - name: Check the tests really ran
+        run: |
+          STARTED=$(grep -c "' started\.$" test-ui-mac.log || true)
+          PASSED=$(grep -c "' passed (" test-ui-mac.log || true)
+          echo "$PASSED of $STARTED test cases passed."
+          if [ "$STARTED" -lt 1 ]; then
+            echo "No test case ran at all."
+            exit 1
+          fi
+          if [ "$STARTED" != "$PASSED" ]; then
+            echo "A test case started and did not finish."
+            exit 1
+          fi
+      - name: Upload the test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-test-log-mac
+          path: test-ui-mac.log
+
   commit-project:
     name: Commit generated Xcode project
     runs-on: macos-15
-    needs: [core-tests, app-build, screen-tests]
+    needs: [core-tests, app-build, screen-tests, screen-tests-mac]
     # Only when the project definition itself changed, so a developer's local
     # signing settings in Paragon.xcodeproj are never overwritten by a pull.
     if: github.event_name == 'push'

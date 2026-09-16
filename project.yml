@@ -178,7 +178,8 @@ targets:
   # not to know it exists.
   ParagonUITests:
     type: bundle.ui-testing
-    supportedDestinations: [iOS]
+    # Both since build 195: the faults that cost the most (71-74, 85) were the Mac's.
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: Tests/ParagonUITests
     dependencies:
