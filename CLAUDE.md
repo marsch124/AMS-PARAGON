@@ -2110,10 +2110,14 @@ canvas) were the Mac's, and until this the suite could not see them.
 
 **Four Mac-only tests, same day, under `#if os(macOS)`.** Things the phone does not have:
 three columns and a menu bar.
-- **The columns stay inside the window after a note opens** — builds 30/34's window scramble,
-  asked as: the sidebar row, the list row and `note.editor` each have a frame wholly inside
-  `app.windows.firstMatch.frame` (inset by 1pt for rounding). A split view that has grown past
-  the window puts the top of every column above it.
+- **The window is not scrambled after a note opens** — builds 30/34. The sidebar row and the
+  list row have frames wholly inside `app.windows.firstMatch.frame`, the editor's top left
+  corner is inside it, and then **⌃⌘D copies the app's own diagnostics and the test reads the
+  clipboard** (`NSPasteboard.general`, so `import AppKit`) and fails on any `OVERFLOW` line —
+  the app's own definition of the fault, and proof that ⌃⌘D reaches the app (build 103).
+  **The first run failed on the editor's frame**: an `NSTextView` reports its whole document
+  as its frame (649pt tall in a 452pt window on the runner), so its bottom edge says nothing
+  about the window. A frame check on a scrolling view is not a check on the window.
 - **⌘N opens the New note screen** (build 120: the `WindowGroup`'s New Window kept the key and
   the sheet never opened), **⇧⌘N opens Quick capture**, and **⌃⌘← goes back** to the note open
   before (build 118). `app.typeKey(_:modifierFlags:)` is the press; the screen appearing, or

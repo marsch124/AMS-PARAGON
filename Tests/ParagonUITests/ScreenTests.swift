@@ -1,4 +1,7 @@
 import XCTest
+#if os(macOS)
+import AppKit
+#endif
 
 /// The screens, actually pressed — on a simulated iPhone and, since build 195, on the Mac.
 ///
@@ -224,11 +227,16 @@ final class ScreenTests: XCTestCase {
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
     #if os(macOS)
-    /// The three columns are still inside the window after a note is opened. Builds 30 and 34:
-    /// the split view grew past the window whenever a column was re-measured, and every column
-    /// looked scrolled under the toolbar. The sidebar row, the list row and the editor are each
-    /// asked whether they are wholly inside the window's frame.
-    func testTheColumnsStayInsideTheWindowWhenANoteOpens() {
+    /// The window is not scrambled after a note is opened. Builds 30 and 34: the split view
+    /// grew past the window whenever a column was re-measured, and every column looked
+    /// scrolled under the toolbar. Two checks. The sidebar row and the list row are wholly
+    /// inside the window, and the editor's top left corner is (an NSTextView reports its
+    /// whole document as its frame, so its bottom edge says nothing — the first run of this
+    /// test failed on exactly that). Then ⌃⌘D copies the app's own diagnostics, which carry
+    /// an OVERFLOW line whenever the host view outgrew the window, and the clipboard is read
+    /// back: the app's own definition of the fault, and proof that ⌃⌘D reaches the app
+    /// (build 103: ⌥⌘D never did).
+    func testTheWindowIsNotScrambledWhenANoteOpens() {
         go(to: .projects)
 
         let row = element("note.Projects/Plan the Kungsleden trip.md")
@@ -239,11 +247,25 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
 
         let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
-        for (name, part) in [("sidebar.Projects", element("sidebar.Projects")), ("the note's row", row), ("note.editor", editor)] {
+        for (name, part) in [("sidebar.Projects", element("sidebar.Projects")), ("the note's row", row)] {
             XCTAssertFalse(part.frame.isEmpty, "\(name) has no size after the note opened.")
             XCTAssertTrue(window.contains(part.frame),
                           "\(name) is not wholly inside the window after the note opened: \(part.frame) against \(window). This is the window scramble of builds 30 and 34.")
         }
+        XCTAssertTrue(window.contains(CGPoint(x: editor.frame.minX, y: editor.frame.minY)),
+                      "The editor's top left corner is outside the window: \(editor.frame) against \(window). This is the window scramble of builds 30 and 34.")
+
+        NSPasteboard.general.clearContents()
+        app.typeKey("d", modifierFlags: [.command, .control])
+        let copied = expectation(for: NSPredicate(block: { _, _ in
+            (NSPasteboard.general.string(forType: .string) ?? "").contains("PARAGON build")
+        }), evaluatedWith: nil)
+        XCTAssertEqual(XCTWaiter().wait(for: [copied], timeout: 10), .completed,
+                       "⌃⌘D was pressed and no diagnostics reached the clipboard.")
+        let report = NSPasteboard.general.string(forType: .string) ?? ""
+        let overflow = report.split(separator: "\n").filter { $0.contains("OVERFLOW") }
+        XCTAssertTrue(overflow.isEmpty,
+                      "The app's own diagnostics report an overflow after the note opened: \(overflow.joined(separator: " | "))")
     }
 
     /// ⌘N opens the New note screen. In build 120 the window's own New Window item kept ⌘N,
