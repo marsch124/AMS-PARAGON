@@ -26,6 +26,12 @@ enum SidebarSection: Hashable, Identifiable {
     case snippets
     case tags
     case search
+    /// **The aspirations, in a room of their own (build 199).** They used to be what the
+    /// row named Goals drew, which meant a dated goal had no list at all: you saw one only
+    /// after picking the aspiration above it. His words: *"the aspirations still are the
+    /// top, most important things in my life, and I'm always falling back to searching for
+    /// them."* Two rows now, one idea each.
+    case aspirations
     /// Only in the sidebar once it has been asked for; see AppModel.workRevealed.
     case work
     case kind(ParaKind)
@@ -48,6 +54,7 @@ enum SidebarSection: Hashable, Identifiable {
         case .snippets: return "Snippets"
         case .tags: return "Tags"
         case .search: return "Search"
+        case .aspirations: return "Aspirations"
         case .work: return "Work"
         case .kind(let kind): return kind.displayName
         }
@@ -71,6 +78,9 @@ enum SidebarSection: Hashable, Identifiable {
         case .snippets: return "text.append"
         case .tags: return "number"
         case .search: return "magnifyingglass"
+        // The north star you steer by. `ChainSymbol.aspiration` is the one place it is
+        // spelled; this reads it back, so the row and every chip cannot drift (build 168).
+        case .aspirations: return ChainSymbol.aspiration
         case .work: return "briefcase"
         case .kind(.daily): return "calendar"
         // **Two circles, not the star (build 168).** Until build 164 there was one goal
@@ -89,7 +99,7 @@ enum SidebarSection: Hashable, Identifiable {
         }
     }
 
-    static let all: [SidebarSection] = [.inbox, .today, .calendar, .timeBlocks, .review, .map, .allActions, .recent, .done, .deleted, .templates, .snippets, .tags, .search, .kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]
+    static let all: [SidebarSection] = [.inbox, .today, .calendar, .timeBlocks, .review, .map, .allActions, .recent, .done, .deleted, .templates, .snippets, .tags, .search, .aspirations, .kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]
 
     /// The three that are not notes: things you use *on* notes. Grouped in the sidebar under
     /// "Tools" since build 143 — his idea, and he threw out "Building blocks" for it with the
@@ -111,7 +121,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 198
+    static let number = 199
 }
 
 @MainActor
@@ -709,6 +719,9 @@ final class AppModel: ObservableObject {
         // Sections that are not a list of notes at all: they draw their own middle column.
         case .deleted?, .templates?, .snippets?, .tags?: base = []
         case .work?: base = workNotes
+        // Searching inside Aspirations searches the goal notes: the section's own list is the
+        // aspirations, and a search falls through to the ordinary note list (build 199).
+        case .aspirations?: base = notes.filter { $0.kind == .goal }
         case .today?, .review?, .map?, .timeBlocks?, .done?, .allActions?, .search?, nil: base = notes
         }
         let query = searchText.trimmingCharacters(in: .whitespaces)
@@ -731,6 +744,10 @@ final class AppModel: ObservableObject {
         case .timeBlocks: return timeBlocks.filter { $0.day == .today() }.count
         case .done: return index.tasksCompleted(on: .today()).count
         case .review: return index.review(config: config).projectsNeedingAttention.count
+        case .aspirations: return index.aspirations().count
+        // **Dated goals only**, since build 199: the row is a list of them, and a count that
+        // included the aspirations would not be the number of rows below it.
+        case .kind(.goal): return index.datedGoals().count
         case .kind(let kind): return notes.filter { $0.kind == kind }.count
         }
     }
@@ -2152,10 +2169,18 @@ final class AppModel: ObservableObject {
     }
     #endif
 
+    /// Which sidebar row a note belongs to. **One place**, so every route to a note — a
+    /// `[[link]]`, a Map box, a review row, a search result — lands in the room whose list
+    /// holds it.
+    ///
+    /// **Build 199 split the goals in two.** An aspiration belongs to **Aspirations** and a
+    /// goal with a date to **Goals**; sending either to the other room would show the note
+    /// beside a list that does not contain it.
     func sidebarSection(for note: Note) -> SidebarSection {
         switch note.kind {
         case .inbox: return .inbox
         case .daily: return .calendar
+        case .goal: return GoalWording.isAspiration(note) ? .aspirations : .kind(.goal)
         default: return .kind(note.kind)
         }
     }

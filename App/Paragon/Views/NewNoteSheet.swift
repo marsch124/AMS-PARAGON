@@ -1,20 +1,28 @@
 import SwiftUI
 import ParagonCore
 
-/// The five things this sheet can make. Four are kinds of note; the fifth writes a line
+/// The six things this sheet can make. Five are kinds of note; the sixth writes a line
 /// into the Inbox instead of making anything.
 ///
 /// It is its own type rather than `ParaKind` because a capture is not a kind of note, and
 /// pretending it is would put it in the sidebar, the Map and the review.
+///
+/// **An Aspiration is a button of its own since build 199**, his ask: *"We need a sixth
+/// button."* Before it, an aspiration was a **Goal** with a chip below reading "What kind of
+/// goal", so the one word he most wanted to reach was a setting inside something else. It
+/// writes `horizon: life`, which is what that chip wrote — no vault touched, nothing to
+/// migrate. Aspiration and Goal share `ParaKind.goal`, so nothing else in the app has to
+/// know there are two buttons.
 enum NewThing: String, CaseIterable, Identifiable {
-    case goal, project, area, resource, capture
+    case aspiration, goal, project, area, resource, capture
 
     var id: String { rawValue }
 
-    /// The name on the button. **"Capture", not "Quick capture"** — five buttons in one row
+    /// The name on the button. **"Capture", not "Quick capture"** — six buttons in one row
     /// is not wide enough for the long name, and he agreed to the short one.
     var name: String {
         switch self {
+        case .aspiration: return GoalWording.aspiration
         case .goal: return "Goal"
         case .project: return "Project"
         case .area: return "Area"
@@ -27,11 +35,20 @@ enum NewThing: String, CaseIterable, Identifiable {
     /// asking `isCapture`.
     var kind: ParaKind {
         switch self {
-        case .goal: return .goal
+        case .aspiration, .goal: return .goal
         case .project: return .project
         case .area: return .area
         case .resource: return .resource
         case .capture: return .inbox
+        }
+    }
+
+    /// The `horizon:` line a new goal note carries. Nil for everything that is not a goal.
+    var horizon: GoalHorizon? {
+        switch self {
+        case .aspiration: return .life
+        case .goal: return .year
+        default: return nil
         }
     }
 
@@ -40,6 +57,21 @@ enum NewThing: String, CaseIterable, Identifiable {
     /// Capture wears the **Inbox** tint, not a new colour: that is where it goes, and a tint
     /// in this app is a claim about what a thing is (build 169).
     var tint: Color { kind.tint }
+
+    /// The button to start on when the sheet opens from a section. **Written out rather than
+    /// matched on `kind`**: Aspiration and Goal share `.goal`, so a search by kind would land
+    /// on whichever came first in `allCases` and the Goals row would open the sheet on
+    /// Aspiration (build 199).
+    static func forSection(_ section: SidebarSection?) -> NewThing? {
+        switch section {
+        case .aspirations?: return .aspiration
+        case .kind(.goal)?: return .goal
+        case .kind(.project)?: return .project
+        case .kind(.area)?: return .area
+        case .kind(.resource)?: return .resource
+        default: return nil
+        }
+    }
 }
 
 /// The one door into making something: five buttons across the top — Goal, Project, Area,
@@ -72,7 +104,6 @@ struct NewNoteSheet: View {
 
     @State private var thing: NewThing = .project
     @State private var title = ""
-    @State private var horizon: GoalHorizon = .year
     @State private var target = ""
     /// The goal this note serves: an aspiration for a dated goal or an area, any goal for a
     /// project.
@@ -99,8 +130,7 @@ struct NewNoteSheet: View {
         // footer pushed to the foot. On the Mac the sheet takes the size of what is in it.
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         .onAppear {
-            if case .kind(let current)? = model.section,
-               let match = NewThing.allCases.first(where: { !$0.isCapture && $0.kind == current }) {
+            if let match = NewThing.forSection(model.section) {
                 thing = match
             }
             template = defaultTemplateName
@@ -113,7 +143,8 @@ struct NewNoteSheet: View {
     }
 
     /// A phone sheet may not be given a minimum width wider than the phone (build 158).
-    private var sheetMinWidth: CGFloat? { isPhone ? nil : 420 }
+    /// 480 rather than build 185's 420: six buttons across the top, not five (build 199).
+    private var sheetMinWidth: CGFloat? { isPhone ? nil : 480 }
 
     /// Written out rather than a ternary with `nil` in one arm: `.infinity` is a member of
     /// `CGFloat`, not of `CGFloat?`, and there is no compiler here to settle it.
@@ -122,8 +153,12 @@ struct NewNoteSheet: View {
         return nil
     }
 
-    // MARK: The five buttons
+    // MARK: The six buttons
 
+    /// **An `HStack`, not a `WrappingHStack`.** A chooser reads as a set of equal cells, and
+    /// build 138's wrapping layout gives every child its natural width — which would leave
+    /// six ragged buttons, some on a second line. Instead the sheet is 60pt wider on the Mac
+    /// and each label is allowed to shrink a little on the phone.
     private var thingRow: some View {
         HStack(spacing: 6) {
             ForEach(NewThing.allCases) { choice in
@@ -135,12 +170,12 @@ struct NewNoteSheet: View {
         }
     }
 
-    /// The Goal button shows the star while **Aspiration** is chosen below and the target
-    /// otherwise. The two are not the same thing (build 168), and the button is where he
-    /// first meets the difference.
+    /// The star for an aspiration, the target for a goal with a date. The two are not the
+    /// same thing (build 168), and these two buttons are where he first meets the difference.
     private func symbol(for choice: NewThing) -> String {
         switch choice {
-        case .goal: return horizon == .life ? ChainSymbol.aspiration : ChainSymbol.datedGoal
+        case .aspiration: return ChainSymbol.aspiration
+        case .goal: return ChainSymbol.datedGoal
         case .capture: return "tray.and.arrow.down"
         default: return SidebarSection.kind(choice.kind).systemImage
         }
@@ -148,8 +183,11 @@ struct NewNoteSheet: View {
 
     /// And its colour, decided with its symbol: the deeper gold goes with the star (build 189).
     private func tint(for choice: NewThing) -> Color {
-        guard choice == .goal else { return choice.tint }
-        return horizon == .life ? ChainTint.aspiration : ChainTint.datedGoal
+        switch choice {
+        case .aspiration: return ChainTint.aspiration
+        case .goal: return ChainTint.datedGoal
+        default: return choice.tint
+        }
     }
 
     // MARK: Making a note
@@ -197,21 +235,14 @@ struct NewNoteSheet: View {
     /// apply to the chosen kind are drawn, so the row stays short without anything folded away.
     private var settingsChips: some View {
         WrappingHStack(spacing: 8, lineSpacing: 8) {
+            // **The "What kind of goal" chip is gone (build 199).** The button at the top now
+            // says which kind is being made, and two controls for one state is build 165's
+            // fault. A target date belongs to a goal with a date, so it keeps the family gold.
             if thing == .goal {
-                PickerChip(name: "What kind of goal",
-                           emptyLabel: GoalWording.datedGoal,
-                           noneLabel: nil,
-                           systemImage: ChainSymbol.datedGoal,
-                           tint: horizon == .life ? ChainTint.aspiration : ChainTint.datedGoal,
-                           options: horizonOptions,
-                           choice: horizonChoice)
-                if horizon != .life {
-                    // A target date belongs to a goal with a date, so it keeps the family gold.
-                    DateChip(name: "Target",
-                             emptyLabel: "Set a target date\u{2026}",
-                             tint: ChainTint.datedGoal,
-                             text: $target)
-                }
+                DateChip(name: "Target",
+                         emptyLabel: "Set a target date\u{2026}",
+                         tint: ChainTint.datedGoal,
+                         text: $target)
             }
             if let serves = serves {
                 // The chip takes the colour of the thing it names, not of the note being made.
@@ -258,7 +289,7 @@ struct NewNoteSheet: View {
     private var serves: ServesChoice? {
         switch thing {
         case .goal:
-            guard horizon != .life, !aspirations.isEmpty else { return nil }
+            guard !aspirations.isEmpty else { return nil }
             return ServesChoice(name: "Serves aspiration",
                                 empty: "Serves an aspiration\u{2026}",
                                 options: goalOptions(aspirations))
@@ -281,21 +312,6 @@ struct NewNoteSheet: View {
 
     private func goalOptions(_ notes: [Note]) -> [ChipOption] {
         notes.map { ChipOption(value: $0.title, label: $0.title, symbol: ChainSymbol.forGoal($0)) }
-    }
-
-    private var horizonOptions: [ChipOption] {
-        GoalHorizon.allCases.map {
-            ChipOption(value: $0.rawValue,
-                       label: $0 == .life ? GoalWording.aspiration : $0.label,
-                       symbol: $0 == .life ? ChainSymbol.aspiration : ChainSymbol.datedGoal)
-        }
-    }
-
-    /// A `Binding` is a statement, so it is built here and not inside the ViewBuilder
-    /// (build 58, and build 172's `ReviewRhythmStepper` for the same reason).
-    private var horizonChoice: Binding<String> {
-        Binding(get: { horizon.rawValue },
-                set: { horizon = GoalHorizon(rawValue: $0) ?? .year })
     }
 
     private var templateOptions: [ChipOption] {
@@ -342,9 +358,8 @@ struct NewNoteSheet: View {
         switch thing {
         case .project: return "An outcome with an end. Its tasks are mirrored to a Reminders list of the same name."
         case .area: return "An ongoing responsibility with a standard to keep. Its tasks go to Reminders too."
-        case .goal: return horizon == .life
-            ? "\(GoalWording.aspirationRule) Never synced to Reminders \u{2014} the work lives in the goals with dates that point at it."
-            : "\(GoalWording.datedGoalRule) Not synced to Reminders; its work lives in projects."
+        case .aspiration: return "\(GoalWording.aspirationRule) Never synced to Reminders \u{2014} the work lives in the goals with dates that point at it."
+        case .goal: return "\(GoalWording.datedGoalRule) Not synced to Reminders; its work lives in projects."
         default: return "Reference material. No dates, no Reminders \u{2014} link it from wherever it is useful with [[brackets]]."
         }
     }
@@ -361,7 +376,7 @@ struct NewNoteSheet: View {
         if (kind == .area || kind == .project), !servesGoal.isEmpty {
             extra.append(("goal", servesGoal))
         }
-        if kind == .goal {
+        if let horizon = thing.horizon {
             extra.append(("horizon", horizon.rawValue))
             let t = target.trimmingCharacters(in: .whitespaces)
             if horizon != .life, DateOnly(t) != nil { extra.append(("target", t)) }
@@ -393,7 +408,7 @@ private struct ThingChoice: View {
                     .font(.caption)
                     .fontWeight(chosen ? .semibold : .regular)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .minimumScaleFactor(0.65)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
@@ -408,7 +423,9 @@ private struct ThingChoice: View {
             .contentShape(RoundedRectangle(cornerRadius: 9))
         }
         .buttonStyle(.plain)
-        .help(thing.isCapture ? "Write a line straight into the Inbox" : "Make a \(thing.name.lowercased())")
+        // "Make a new aspiration" rather than "Make a aspiration": six names now, and one of
+        // them starts with a vowel.
+        .help(thing.isCapture ? "Write a line straight into the Inbox" : "Make a new \(thing.name.lowercased())")
         // "new.project" and so on, for the screen tests (build 192).
         .accessibilityIdentifier("new.\(thing.rawValue)")
     }

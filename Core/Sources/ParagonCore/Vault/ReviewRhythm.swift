@@ -108,6 +108,33 @@ public struct ReviewRhythm: Equatable, Sendable {
     }
 }
 
+/// How long ago a note was last looked at, in plain words.
+///
+/// **In Core because two screens say it** — the Aspirations list and the review — and because
+/// it decides what an absence looks like. Build 199.
+public enum ReviewWording {
+    /// "Looked at today", "Looked at 12 days ago", "Looked at about 4 months ago", and for a
+    /// note nobody has ever reviewed, **"Never looked at"**.
+    ///
+    /// **Never is a sentence, not a big number** (build 141's rule, and `ReviewDue` already
+    /// keeps `daysSinceReview` optional for the same reason): "reviewed 9999 days ago" would
+    /// read as a measurement of something that never happened.
+    ///
+    /// The wording follows `DateOnly.timeLeftText(from:)` so the two never disagree about
+    /// where days become months and months become years.
+    public static func lookedAt(daysAgo days: Int?) -> String {
+        guard let days, days >= 0 else { return "Never looked at" }
+        if days == 0 { return "Looked at today" }
+        if days == 1 { return "Looked at yesterday" }
+        if days < 31 { return "Looked at \(days) days ago" }
+        let months = Int((Double(days) / 30.44).rounded())
+        if months < 12 { return months == 1 ? "Looked at about a month ago" : "Looked at about \(months) months ago" }
+        let years = Double(days) / 365.25
+        if years < 1.75 { return "Looked at about a year ago" }
+        return "Looked at about \(Int(years.rounded())) years ago"
+    }
+}
+
 /// One note and when it was last looked at.
 public struct ReviewDue: Identifiable, Equatable, Sendable {
     public var note: Note

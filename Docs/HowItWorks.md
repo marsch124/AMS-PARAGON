@@ -53,11 +53,12 @@ Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below
 
 ### Making one
 
-**⌘N** opens one screen with five buttons across the top: **Goal**, **Project**, **Area**, **Resource** and **Capture**, each in its own colour. Under them is the name field with the cursor already in it, so a note is usually a name and Return, and one line says what the kind you chose is for.
+**⌘N** opens one screen with six buttons across the top: **Aspiration**, **Goal**, **Project**, **Area**, **Resource** and **Capture**, each in its own colour. Under them is the name field with the cursor already in it, so a note is usually a name and Return, and one line says what the kind you chose is for.
 
 Under that, everything else a note can be given as it is made, drawn as chips you press. A chip you have set is filled in its own colour with a solid line around it; one you have not set is grey with a dashed line.
 
-- **Goal** — which kind of goal it is (**Aspiration**, **Long term**, **This year**), a **Target** date, and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The button at the top shows the star while Aspiration is chosen and the target while a date is.
+- **Aspiration** — the aspiration it serves is not asked for: an aspiration is the top of the chain. Only its name and its tags.
+- **Goal** — a **Target** date and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The two buttons carry the two icons: the star for an aspiration, the target for a goal with a date.
 - **Project** — the goal it delivers.
 - **Area** — the area it is part of, and the aspiration it serves.
 - **Tags** — the whole list of tags you already have, with a tick on the ones you pick and a number beside each saying how much of your vault carries it, so a tag that means the same as one you already use but is spelled differently stands out. A field at the top makes a tag that does not exist yet. It is the same list the tag button in a note's header opens.
@@ -65,7 +66,7 @@ Under that, everything else a note can be given as it is made, drawn as chips yo
 
 Only the chips that apply to the kind you have chosen are shown.
 
-**Capture** is the fifth button. It turns the lower half into the quick capture screen, so the same screen takes a project and a line you must not forget. See **Quick capture** below; nothing about it changes, it is only reachable from here as well.
+**Capture** is the last button. It turns the lower half into the quick capture screen, so the same screen takes a project and a line you must not forget. See **Quick capture** below; nothing about it changes, it is only reachable from here as well.
 
 ### Renaming a note
 
@@ -171,13 +172,17 @@ Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both s
 
 The sync button is a menu. **Show me what would change…** rehearses the entire sync on a copy of your vault and a copy of your reminders and shows the result. Nothing is touched. From that sheet you can press **Sync now** to do it for real. **Last sync report…** shows the same for the sync you ran.
 
-## Goals
+## Aspirations and Goals
 
-New › Goal creates a goal, and the **Horizon** you pick says which kind it is.
+There are **two rows in the sidebar**, because there are two different things.
 
-**Aspiration** has no date: who you want to be in some part of your life, which stays true after every goal is reached. It is the A in PARAGON, and it is never ticked off.
+**Aspirations** says what you are becoming. An aspiration has no date, because you never tick one off. It is the A in PARAGON. Press **Aspiration** at the top of the New note screen to make one.
 
-**This year** and **Long term** are dated goals: a target date, a measure of what success looks like, and the aspiration they serve, chosen in the **Serves aspiration** box. Projects and areas link to a goal with the `goal:` line. The goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Done".
+**Goals** says what you will have done, and by when. A goal has a target date, a measure of what success looks like, and the aspiration it serves, chosen in the **Serves aspiration** box. Press **Goal** at the top of the New note screen.
+
+Projects and areas link to a goal with the `goal:` line. A goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Done".
+
+Both are goal notes in your vault, so nothing was moved or rewritten. The line that tells them apart is `horizon:`, and it is the same line as before.
 
 ### How a note stands
 
@@ -202,9 +207,9 @@ up). The weekly **Review** offers the same choices when you right-click a projec
 Older words still read as they always did: `achieved` and `completed` mean Done, and `paused` and
 `someday` mean On hold. Nothing in your notes was rewritten.
 
-### The Goals screen
+### The Aspirations screen
 
-The **Goals** row lists your **aspirations**, not every goal note. Choose one and everything
+The **Aspirations** row lists your aspirations, one after another. Choose one and everything
 working towards it appears beside it, in order:
 
 - the **goals with a target date** that serve it, soonest first;
@@ -212,21 +217,38 @@ working towards it appears beside it, in order:
 - the **next action** on each project. **No next action** in orange means there is nothing on
   that project you could start.
 
-Two more groups are always there so that nothing can hide. **Nothing serves these yet** holds
-aspirations with no goal under them. **Goals with no aspiration** holds dated goals that stand on
-their own. Neither is a fault — a goal can stand alone — but a list that quietly left them out
-would be a list you cannot trust.
+Each row says how many goals serve it, **when you last looked at it** ("Looked at 12 days ago",
+or "Never looked at"), and a mark in orange when one of its goals needs attention. An
+aspiration with nothing under it yet says **Nothing serves this yet** on its own row.
+
+**There is no per cent on an aspiration, and that is deliberate.** You never finish one, so a
+figure would be a promise the idea does not make. Each goal under it keeps its own bar, where
+the number is true.
+
+### The Goals screen
+
+The **Goals** row lists **every goal that has a target date**, whether or not an aspiration
+holds it. You do not have to choose anything first. Three groups, in this order:
+
+- **Needs a look** — the goals the weekly review has something to say about: past their target
+  date, nothing serving them, no next action. It is where to start, not a fault list.
+- **By date** — the rest, soonest first.
+- **Done**, **Missed** and **Dropped** — closed, with the count on the heading. Press a heading
+  to look back.
+
+A goal with no aspiration above it carries a **Give it an aspiration** button. Right-click any
+row (press and hold on the iPhone) for the same list.
 
 Every link in the chain has its own icon: an **aspiration** is a **star** — the north star on
 PARAGON's own app icon, what you steer by and never tick off — and a **goal with a target
 date** is a **target**, what you aim at and hit on a day. A **project** is a flag, a **task**
 is a ring, and an **area** is the four squares. They are the same icons the sidebar uses: the
-sidebar row **Goals** carries the target, and the star is used for one thing only in the whole
-app — an aspiration. A note's own header shows which of the two it is.
+row named **Aspirations** carries the star, the row named **Goals** carries the target, and the
+star is used for one thing only in the whole app — an aspiration. A note's own header shows
+which of the two it is.
 
 They also have their own colours: an **aspiration is a deeper gold** and a **goal with a date**
-is the lighter gold the Goals list has always used. The sidebar row named **Goals** keeps the
-lighter one, because that row is both of them.
+is the lighter gold the Goals list has always used.
 
 A goal with no aspiration above it is marked in orange and carries a **Give it an aspiration**
 button, which opens the list of your aspirations. Nothing is wrong with such a goal — it is a
@@ -236,16 +258,16 @@ Each row shows its **measure**, its **target date with how long is left** ("in a
 or "11 days over" in orange), and a **mark when it needs attention** — the same checks the
 weekly **Review** makes, so the two screens agree.
 
-A goal you mark as **reached** leaves those lists and gathers in a **Reached** group at the
-foot, closed. Press the heading to look back. Inside an aspiration its reached goals sit under
-a small **Reached** heading below the live ones.
+A goal that has ended leaves the live lists and gathers at the foot under the name of its
+ending — **Done**, **Missed** or **Dropped** — closed, with the count beside it. Press the
+heading to look back. Inside an aspiration the same groups sit below the live goals.
 
 A goal or aspiration also shows **what changed lately**: tasks finished in the last 30 days,
 how many projects are finished, and when something last moved. When nothing can be counted the
 line is not shown at all.
 
-**All of them.** The button at the top right of the **Goals** screen opens every aspiration at
-once, as one outline: each aspiration, the goals that serve it, the projects under those, and
+**All of them.** The button at the top right of the **Aspirations** screen opens every
+aspiration at once, as one outline: each aspiration, the goals that serve it, the projects under those, and
 the next action on each. Goals with no aspiration are at the foot, so nothing is missing. Press
 it again for one at a time. On the iPhone the same button opens every row; tapping one row
 closes the rest.
@@ -256,7 +278,7 @@ where it stands. Type in the search field and the ordinary note list comes back.
 
 ### How far a goal has come
 
-Every goal shows a bar and a per cent, on its own page, in the Goals list and on its row in **Weekly review**. The figure is worked out from the projects under the goal. You never type it in.
+Every goal with a target date shows a bar and a per cent, on its own page, in the Goals list and on its row in **Weekly review**. The figure is worked out from the projects under the goal. You never type it in.
 
 Every project counts the same, whatever its size, so a project with forty small tasks does not drown one with three big ones.
 
@@ -266,7 +288,7 @@ Every project counts the same, whatever its size, so a project with forty small 
 
 **Areas are not counted.** An area is something you keep up, not something that finishes, so counting one would hold its goal below full for ever.
 
-**An aspiration counts through its goals.** Each dated goal under it brings its own figure, one share each, and those goals bring their projects.
+**An aspiration has no bar of its own.** You never finish one, so there is nothing for a per cent to mean. Each goal under it has a bar, and that is where the figure belongs.
 
 **No bar at all means there is nothing to measure yet** — no project under the goal. That is not the same as nought per cent, so the app draws nothing rather than an empty bar.
 
@@ -429,7 +451,7 @@ A goal is flagged when nothing serves it, when its target date has passed, when 
 
 The Map draws what serves what: goals at the top, then areas and projects, then open tasks and resources. Notes without a goal and archived notes sit in dashed boxes. Click a box to highlight its connections and open the note.
 
-The Map and the Goals screen answer the same question — what serves what — and they are built from the same reading of your notes, so they can never tell you different things. The difference is the shape. The Map is the picture: it shows the whole vault at once, including the parts that hang from nothing. The Goals screen is the list: one aspiration at a time, with dates, per cents and next actions a drawing has no room for.
+The Map and the Goals screen answer the same question — what serves what — and they are built from the same reading of your notes, so they can never tell you different things. The difference is the shape. The Map is the picture: it shows the whole vault at once, including the parts that hang from nothing. The **Aspirations** screen is the list: one aspiration at a time, with dates, per cents and next actions a drawing has no room for, and **Goals** is every goal with a date in one list.
 
 ### What each box says
 
@@ -805,7 +827,7 @@ Sync with Reminders from the phone with the button in the top right of Today and
 
 On the phone, a note's own actions — Rename, Archive and Delete — are behind the **⋯** button at the top right of the note. On the Mac they are buttons in the toolbar. The pencil is not in there: it is always on screen.
 
-The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Quick capture is the button at the top left of **Today**. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
+The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Quick capture is the button at the top left of **Today**. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
 ## Swiping between the tabs
 

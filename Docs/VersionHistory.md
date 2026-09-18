@@ -2,6 +2,47 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 199 · 18 September 2026
+
+**Aspirations have a room of their own.** There are now two rows in the sidebar where there
+was one.
+
+**Aspirations** is the screen you already knew: your aspirations listed, and picking one draws
+everything working towards it. **Goals** is new: **every goal that has a target date, in one
+list, without choosing anything first**. Before this, the row named Goals listed the
+aspirations, so a goal only appeared once you had picked the aspiration above it — and a goal
+that served no aspiration was hard to find at all.
+
+The Goals list has three groups:
+
+- **Needs a look** — the goals the weekly review has something to say about: past their target
+  date, nothing serving them, no next action. It is where to start, not a fault list.
+- **By date** — the rest, soonest first.
+- **Done**, **Missed** and **Dropped** — closed, with the count on the heading.
+
+Each row carries its target date and how long is left, its measure, its bar, and a **Give it an
+aspiration** button when nothing holds it. Right-click a row (press and hold on the iPhone) for
+the same choices.
+
+**The per cent is gone from an aspiration.** Your screenshot showed one reading **100% · 3
+goals · 2 goals need attention**, which cannot all be true: the figure was the average of the
+goals under it, and goals with no project yet count as nothing to measure. More than that, you
+never finish an aspiration, so a per cent on one is a promise the idea does not make. In its
+place each aspiration says **when you last looked at it** — "Looked at 12 days ago", or "Never
+looked at". Every goal under it keeps its own bar, where the number is true.
+
+**One list, not two.** The old **Nothing serves these yet** group is gone. An aspiration with
+nothing under it says so on its own row instead, which is the same news without a box around
+it.
+
+**A sixth button on the New note screen.** It is **Aspiration**, **Goal**, **Project**,
+**Area**, **Resource**, **Capture**. The "What kind of goal" chip is gone: the button at the
+top now says which kind you are making, and the star and the target sit side by side where the
+difference is easiest to see.
+
+**Nothing in your vault was moved or rewritten.** Both kinds are still goal notes, and the line
+that tells them apart is `horizon:`, exactly as before.
+
 ## Build 198 · 18 September 2026
 
 **All actions can be narrowed with tick boxes.** The screen used to have one row of four

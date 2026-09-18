@@ -225,4 +225,44 @@ final class AspirationChainTests: XCTestCase {
         XCTAssertEqual(goal.finishedProjects.map(\.note.title), ["Electrics"])
         XCTAssertTrue(goal.finishedProjects.first?.isFinished == true)
     }
+
+    // MARK: The Goals screen's own list (build 199)
+
+    /// **Every dated goal, whether or not an aspiration holds it.** Before build 199 the
+    /// sidebar row named Goals drew the aspirations, so a dated goal was only on screen once
+    /// you had picked the right aspiration above it.
+    func testDatedGoalsAreEveryLiveGoalWithADate() throws {
+        _ = try vault.createNote(kind: .goal, title: "A calm, well-run home",
+                                 extraFrontmatter: [("horizon", "life")])
+        _ = try vault.createNote(kind: .goal, title: "Finish the kitchen",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01"),
+                                                    ("goal", "A calm, well-run home")])
+        // No aspiration above it, and it must still be in the list.
+        _ = try vault.createNote(kind: .goal, title: "Run a half marathon",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-05-01")])
+        XCTAssertEqual(try index().datedGoals().map(\.title),
+                       ["Run a half marathon", "Finish the kitchen"])
+    }
+
+    func testDatedGoalsSortByTargetThenTitle() throws {
+        for (title, target) in [("Later", "2027-01-01"), ("Sooner", "2026-02-01"),
+                                ("Also sooner", "2026-02-01")] {
+            _ = try vault.createNote(kind: .goal, title: title,
+                                     extraFrontmatter: [("horizon", "year"), ("target", target)])
+        }
+        XCTAssertEqual(try index().datedGoals().map(\.title), ["Also sooner", "Sooner", "Later"])
+    }
+
+    /// A goal that is over leaves the list — it has `endedGoals()`, which the screen folds
+    /// away at the foot with its count showing.
+    func testDatedGoalsLeaveOutEndedOnes() throws {
+        _ = try vault.createNote(kind: .goal, title: "Live",
+                                 extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01")])
+        for (title, status) in [("Done", "done"), ("Missed", "missed"), ("Dropped", "dropped")] {
+            _ = try vault.createNote(kind: .goal, title: title,
+                                     extraFrontmatter: [("horizon", "year"), ("target", "2026-12-01"),
+                                                        ("status", status)])
+        }
+        XCTAssertEqual(try index().datedGoals().map(\.title), ["Live"])
+    }
 }

@@ -175,4 +175,21 @@ final class ReviewRhythmTests: XCTestCase {
         XCTAssertEqual(config.aspirationReviewDays, ReviewLevel.aspiration.defaultDays)
         XCTAssertEqual(config.areaReviewDays, ReviewLevel.area.defaultDays)
     }
+
+    // MARK: The words two screens say (build 199)
+
+    func testLookedAtSaysNeverRatherThanANumber() {
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: nil), "Never looked at")
+    }
+
+    func testLookedAtInDaysMonthsAndYears() {
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 0), "Looked at today")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 1), "Looked at yesterday")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 12), "Looked at 12 days ago")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 30), "Looked at 30 days ago")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 31), "Looked at about a month ago")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 120), "Looked at about 4 months ago")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 400), "Looked at about a year ago")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 1100), "Looked at about 3 years ago")
+    }
 }

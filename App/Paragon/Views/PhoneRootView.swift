@@ -316,7 +316,9 @@ struct PhoneBrowseView: View {
     @EnvironmentObject private var model: AppModel
 
     private let groups: [(String, [SidebarSection])] = [
-        ("Goals and PARA", [.kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]),
+        // Aspirations first, then the goals with a date: that is the order of the chain, and
+        // two rows since build 199.
+        ("Goals and PARA", [.aspirations, .kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]),
         // Time Blocks and All actions are not here: they are tabs of their own since build
         // 183, and a second door into one room is what build 166 argued against.
         ("Plan", [.calendar, .review, .map, .recent, .done, .deleted, .search]),

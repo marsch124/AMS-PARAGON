@@ -20,7 +20,8 @@ import ParagonCore
 struct AspirationsListView: View {
     @EnvironmentObject private var model: AppModel
     @State private var opened: Set<String> = []
-    /// Closed to begin with: a goal that is over is something you look back at on purpose.
+    /// Closed to begin with: an aspiration you have reached is something you look back at on
+    /// purpose. The count stays on the heading, so nothing is hidden (build 100).
     @AppStorage("goalsReachedFolded") private var endedFolded = true
     /// **One at a time**, or every aspiration at once (build 166, his ask). One key, read by
     /// this column and by the detail column, so the button and what it shows cannot disagree.
@@ -32,36 +33,51 @@ struct AspirationsListView: View {
     private var isPhone: Bool { false }
 #endif
 
-    var body: some View {
-        let chains = model.index.aspirationChains()
-        let held = chains.filter { !$0.isBare }
-        let bare = chains.filter(\.isBare)
-        let loose = model.index.goalsOutsideAnyAspiration()
-        let ended = model.index.endedGoals()
-        Group {
-            if chains.isEmpty && loose.isEmpty && ended.isEmpty {
-                EmptyStateView(title: "No goals yet",
-                               systemImage: SidebarSection.kind(.goal).systemImage,
-                               message: "An aspiration says what you are becoming. A goal with a target date says what you will have done. Make one and the chain under it appears here.",
-                               tint: ParaKind.goal.tint,
-                               actionTitle: "New goal\u{2026}") { model.activeSheet = .newNote }
-            } else if isPhone {
-                phoneList(held: held, bare: bare, loose: loose, ended: ended)
-            } else {
-                deskList(held: held, bare: bare, loose: loose, ended: ended)
-            }
+    /// Aspirations that are over. `endedGoals()` gathers both kinds of goal, so the dated ones
+    /// are dropped here — they belong to the **Goals** list, which folds them away in the same
+    /// way. Assembled outside the body (the `@ViewBuilder` rule, build 58).
+    private var ended: [(status: NoteStatus, notes: [Note])] {
+        model.index.endedGoals().compactMap { group in
+            // Written out rather than `.filter(GoalWording.isAspiration)`: there is no Swift
+            // compiler in this container to settle a bare function reference (build 168).
+            let mine = group.notes.filter { GoalWording.isAspiration($0) }
+            return mine.isEmpty ? nil : (group.status, mine)
         }
-        .navigationTitle("Goals")
     }
 
-    // MARK: The Mac — a list that fills the third column
+    var body: some View {
+        let chains = model.index.aspirationChains()
+        // `let over = ended`, never `let ended = ended`: a local shadows the property of the
+        // same name inside its own initial value (build 150).
+        let over = ended
+        Group {
+            if chains.isEmpty && over.isEmpty {
+                EmptyStateView(title: "No aspirations yet",
+                               systemImage: ChainSymbol.aspiration,
+                               message: "An aspiration says what you are becoming. It has no date, because you never tick one off. Make one, and every goal working towards it appears beside it.",
+                               tint: ChainTint.aspiration,
+                               actionTitle: "New aspiration\u{2026}") { model.activeSheet = .newNote }
+            } else if isPhone {
+                phoneList(chains: chains, ended: over)
+            } else {
+                deskList(chains: chains, ended: over)
+            }
+        }
+        .navigationTitle("Aspirations")
+    }
 
-    private func deskList(held: [AspirationChain], bare: [AspirationChain], loose: [Note],
+    // MARK: The Mac — a list that fills the middle column
+
+    /// **One list since build 199.** Before it the aspirations were split into two groups,
+    /// "Aspirations" and "Nothing serves these yet", which put the ones you had not started on
+    /// into a box of their own and read as a telling-off. The row says it instead, in one
+    /// line, and the order stays the plain alphabetical one.
+    private func deskList(chains: [AspirationChain],
                           ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List(selection: model.noteSelection) {
-            if !held.isEmpty {
+            if !chains.isEmpty {
                 Section {
-                    ForEach(held) { chain in
+                    ForEach(chains) { chain in
                         AspirationRow(chain: chain)
                             .tag(chain.note.relativePath)
                             .contextMenu { rowMenu(chain.note) }
@@ -75,39 +91,15 @@ struct AspirationsListView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if !bare.isEmpty {
-                Section("Nothing serves these yet") {
-                    ForEach(bare) { chain in
-                        AspirationRow(chain: chain)
-                            .tag(chain.note.relativePath)
-                            .contextMenu { rowMenu(chain.note) }
-                    }
-                }
-            }
-            if !loose.isEmpty {
-                Section {
-                    ForEach(loose) { note in
-                        DatedGoalRow(note: note)
-                            .tag(note.relativePath)
-                            .contextMenu { rowMenu(note) }
-                    }
-                } header: {
-                    Label("Goals with no aspiration", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                } footer: {
-                    Text(GoalWording.datedGoalRule)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
             ForEach(ended, id: \.status) { group in
                 endedSection(group.status, group.notes)
             }
         }
     }
 
-    /// A goal that is over drops out of the lists above and gathers here, closed, **under the
-    /// name of its ending** — Done, Missed or Dropped (builds 163 and 165). It is history
-    /// rather than work, but it is never hidden altogether.
+    /// An aspiration that is over drops out of the list above and gathers here, closed,
+    /// **under the name of its ending** — Done, Missed or Dropped (builds 163 and 165). It is
+    /// history rather than work, but it is never hidden altogether.
     @ViewBuilder
     private func endedSection(_ status: NoteStatus, _ notes: [Note]) -> some View {
         Section {
@@ -124,47 +116,18 @@ struct AspirationsListView: View {
     }
 
     private func endedHeader(_ status: NoteStatus, _ count: Int) -> some View {
-        Button {
-            endedFolded.toggle()
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: endedFolded ? "chevron.right" : "chevron.down")
-                    .font(.caption2)
-                Text(status.label)
-                Text("\(count)")
-                    .font(.caption2.monospacedDigit())
-                    .padding(.horizontal, 5)
-                    .background(.quaternary, in: Capsule())
-                Spacer(minLength: 0)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        GoalEndedHeader(status: status, count: count, folded: endedFolded) { endedFolded.toggle() }
     }
 
     // MARK: The phone — the chain folds open in place
 
-    private func phoneList(held: [AspirationChain], bare: [AspirationChain], loose: [Note],
+    private func phoneList(chains: [AspirationChain],
                            ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List {
-            if !held.isEmpty {
+            if !chains.isEmpty {
                 Section("Aspirations") {
-                    ForEach(held) { chain in
+                    ForEach(chains) { chain in
                         foldingRow(chain)
-                    }
-                }
-            }
-            if !bare.isEmpty {
-                Section("Nothing serves these yet") {
-                    ForEach(bare) { chain in
-                        foldingRow(chain)
-                    }
-                }
-            }
-            if !loose.isEmpty {
-                Section("Goals with no aspiration") {
-                    ForEach(loose) { note in
-                        looseRow(note)
                     }
                 }
             }
@@ -182,7 +145,7 @@ struct AspirationsListView: View {
 
     private func looseRow(_ note: Note) -> some View {
         Button {
-            model.show(section: .kind(.goal), notePath: note.relativePath)
+            model.show(section: .aspirations, notePath: note.relativePath)
         } label: {
             DatedGoalRow(note: note)
         }
@@ -218,10 +181,192 @@ struct AspirationsListView: View {
 
     @ViewBuilder
     private func rowMenu(_ note: Note) -> some View {
-        Button("Open the note") { model.show(section: .kind(.goal), notePath: note.relativePath) }
+        Button("Open the note") { model.show(section: .aspirations, notePath: note.relativePath) }
         if model.canArchive(note) {
             Button("Archive") { model.archive(note) }
         }
+    }
+}
+
+/// Every goal with a target date, in one list — the **Goals** row, build 199.
+///
+/// **Before this there was no such list.** The row named Goals drew the *aspirations*, so a
+/// goal with a date was only on screen once you had picked the aspiration above it. His words:
+/// *"I am not choosing an aspiration, no goals are visible on the Goals page."* He was right,
+/// and the split he chose fixes both halves at once: the aspirations get a room of their own,
+/// and this room is the goals.
+///
+/// Three groups, in the order you would want them:
+/// 1. **Needs a look** — the goals the review has something to say about: past their target,
+///    nothing serving them, no next action. Never a fault list, just the ones to start with.
+/// 2. **By date** — everything else, soonest first.
+/// 3. **Done / Missed / Dropped**, folded, with the count on the heading (his ask, and
+///    build 165's rule: one heading per ending, never one heading for all three).
+struct DatedGoalsListView: View {
+    @EnvironmentObject private var model: AppModel
+    @AppStorage("goalsEndedFolded") private var endedFolded = true
+#if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    private var isPhone: Bool { horizontalSizeClass == .compact }
+#else
+    private var isPhone: Bool { false }
+#endif
+
+    /// The live goals, split into the two groups. Worked out here rather than in the body,
+    /// where `let` and a loop are not allowed (build 58).
+    private var live: (wanting: [Note], rest: [Note]) {
+        var wanting: [Note] = []
+        var rest: [Note] = []
+        for note in model.index.datedGoals() {
+            if model.index.chainGoal(of: note).needsAttention { wanting.append(note) } else { rest.append(note) }
+        }
+        return (wanting, rest)
+    }
+
+    private var ended: [(status: NoteStatus, notes: [Note])] {
+        model.index.endedGoals().compactMap { group in
+            let mine = group.notes.filter { !GoalWording.isAspiration($0) }
+            return mine.isEmpty ? nil : (group.status, mine)
+        }
+    }
+
+    var body: some View {
+        // Never `let live = live`: a local shadows the property of the same name inside its
+        // own initial value (build 150).
+        let split = live
+        let over = ended
+        Group {
+            if split.wanting.isEmpty && split.rest.isEmpty && over.isEmpty {
+                EmptyStateView(title: "No goals with a date yet",
+                               systemImage: ChainSymbol.datedGoal,
+                               message: "A goal with a date says what you will have done, and by when. Make one, point projects at it, and its progress shows up here.",
+                               tint: ChainTint.datedGoal,
+                               actionTitle: "New goal\u{2026}") { model.activeSheet = .newNote }
+            } else if isPhone {
+                phoneList(live: split, ended: over)
+            } else {
+                deskList(live: split, ended: over)
+            }
+        }
+        .navigationTitle("Goals")
+    }
+
+    private func deskList(live: (wanting: [Note], rest: [Note]),
+                          ended: [(status: NoteStatus, notes: [Note])]) -> some View {
+        List(selection: model.noteSelection) {
+            if !live.wanting.isEmpty {
+                Section {
+                    ForEach(live.wanting) { note in
+                        DatedGoalRow(note: note)
+                            .tag(note.relativePath)
+                            .contextMenu { rowMenu(note) }
+                    }
+                } header: {
+                    Label("Needs a look", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                }
+            }
+            if !live.rest.isEmpty {
+                Section {
+                    ForEach(live.rest) { note in
+                        DatedGoalRow(note: note)
+                            .tag(note.relativePath)
+                            .contextMenu { rowMenu(note) }
+                    }
+                } header: {
+                    Text("By date")
+                } footer: {
+                    Text(GoalWording.datedGoalRule)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            ForEach(ended, id: \.status) { group in
+                Section {
+                    if !endedFolded {
+                        ForEach(group.notes) { note in
+                            DatedGoalRow(note: note)
+                                .tag(note.relativePath)
+                                .contextMenu { rowMenu(note) }
+                        }
+                    }
+                } header: {
+                    GoalEndedHeader(status: group.status, count: group.notes.count,
+                                    folded: endedFolded) { endedFolded.toggle() }
+                }
+            }
+        }
+    }
+
+    private func phoneList(live: (wanting: [Note], rest: [Note]),
+                           ended: [(status: NoteStatus, notes: [Note])]) -> some View {
+        List {
+            if !live.wanting.isEmpty {
+                Section("Needs a look") {
+                    ForEach(live.wanting) { note in row(note) }
+                }
+            }
+            if !live.rest.isEmpty {
+                Section("By date") {
+                    ForEach(live.rest) { note in row(note) }
+                }
+            }
+            ForEach(ended, id: \.status) { group in
+                Section {
+                    if !endedFolded {
+                        ForEach(group.notes) { note in row(note) }
+                    }
+                } header: {
+                    GoalEndedHeader(status: group.status, count: group.notes.count,
+                                    folded: endedFolded) { endedFolded.toggle() }
+                }
+            }
+        }
+    }
+
+    /// A plain `Button`, never a selection tag: a tagged row takes the click away from the
+    /// chips inside it (builds 71–74), and this row carries **Give it an aspiration**.
+    private func row(_ note: Note) -> some View {
+        Button {
+            model.show(section: .kind(.goal), notePath: note.relativePath)
+        } label: {
+            DatedGoalRow(note: note)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func rowMenu(_ note: Note) -> some View {
+        Button("Open the note") { model.show(section: .kind(.goal), notePath: note.relativePath) }
+        NoteGoalOptions(model: model, note: note)
+        if model.canArchive(note) {
+            Button("Archive") { model.archive(note) }
+        }
+    }
+}
+
+/// The folding heading both goal lists use for Done, Missed and Dropped. One view, so the two
+/// rooms cannot come to draw the same thing differently (build 168's lesson).
+struct GoalEndedHeader: View {
+    let status: NoteStatus
+    let count: Int
+    let folded: Bool
+    let toggle: () -> Void
+
+    var body: some View {
+        Button(action: toggle) {
+            HStack(spacing: 6) {
+                Image(systemName: folded ? "chevron.right" : "chevron.down")
+                    .font(.caption2)
+                Text(status.label)
+                Text("\(count)")
+                    .font(.caption2.monospacedDigit())
+                    .padding(.horizontal, 5)
+                    .background(.quaternary, in: Capsule())
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -332,10 +477,26 @@ enum GoalWording {
     static func rule(for note: Note) -> String { isAspiration(note) ? aspirationRule : datedGoalRule }
 }
 
-/// One aspiration in the list: its name, how many goals serve it, and how far they have come.
+/// One aspiration in the list: its name, how many goals serve it, when you last looked at it,
+/// and whether any of them wants attention.
+///
+/// **No per cent, since build 199, and that is the point of the build.** His screenshot of the
+/// old row read **100% · 3 goals · ⚠ 2 goals need attention**, which cannot all be true. The
+/// bar was the average of the goals under it, and three goals with no projects yet each count
+/// as nothing to measure — so the bar quietly showed the one goal that *had* a finished
+/// project and called it the whole aspiration. More than that: **you never finish an
+/// aspiration.** A per cent on one is a promise the idea does not make, and build 141 already
+/// said an absence may not look like a number. What belongs here instead is how long it has
+/// been since you last thought about it, which is the question an aspiration actually asks.
 struct AspirationRow: View {
     @EnvironmentObject private var model: AppModel
     let chain: AspirationChain
+
+    /// Days since the `reviewed:` line, or nil for one nobody has looked at yet. Worked out
+    /// here rather than in the body (the `@ViewBuilder` rule, build 58).
+    private var daysSinceLook: Int? {
+        chain.note.reviewedDate.map { DateOnly.today().days(since: $0) }
+    }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -346,14 +507,19 @@ struct AspirationRow: View {
                     .font(.headline)
                     .lineLimit(2)
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
-                    if chain.progress.fraction != nil {
-                        GoalProgressBar(progress: chain.progress, width: 56, showsCounts: false,
-                                        tint: ChainTint.aspiration)
-                    }
                     if !chain.goals.isEmpty {
                         Text(chain.goals.count == 1 ? "1 goal" : "\(chain.goals.count) goals")
-                            .foregroundStyle(ParaKind.goal.tint)
+                            .foregroundStyle(ChainTint.datedGoal)
                     }
+                    // Said on the row rather than in a group of its own: build 199 threw away
+                    // the "Nothing serves these yet" section, which put the aspirations you
+                    // had not started on into a box and read as a telling-off.
+                    if chain.isBare {
+                        Text("Nothing serves this yet")
+                            .foregroundStyle(.secondary)
+                    }
+                    Label(ReviewWording.lookedAt(daysAgo: daysSinceLook), systemImage: "eye")
+                        .foregroundStyle(.secondary)
                     if let area = chain.area {
                         Label(area.title, systemImage: ChainSymbol.area)
                             .foregroundStyle(ParaKind.area.tint)
@@ -481,7 +647,8 @@ struct GoalDetailView: View {
 
     private var header: some View {
         GoalsHeader(title: showsNote ? "Note" : (isAspiration ? GoalWording.aspiration : GoalWording.datedGoal),
-                    systemImage: showsNote ? "doc.text" : ChainSymbol.forGoal(note)) {
+                    systemImage: showsNote ? "doc.text" : ChainSymbol.forGoal(note),
+                    showsAll: model.section == .aspirations) {
             // Build 159's two-state control: it shows the state you are in, not the one you
             // would get.
             StateToggle(systemImage: "doc.text", title: "Note",
@@ -537,7 +704,7 @@ struct AspirationChainBody: View {
                 SectionLabel(title: "Areas that hold this", count: nil,
                              systemImage: ChainSymbol.area, tint: ParaKind.area.tint)
                 ForEach(chain.areas) { area in
-                    Button { model.show(section: .kind(.goal), notePath: area.relativePath) } label: {
+                    Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
                         Label(area.title, systemImage: ChainSymbol.area)
                             .foregroundStyle(ParaKind.area.tint)
                     }
@@ -548,6 +715,11 @@ struct AspirationChainBody: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// **Every row inside a chain keeps the room you are in** — `model.section`, not a fixed
+    /// one. Build 135's rule: a row inside a working screen should select, not navigate away.
+    /// Since build 199 there are two goal rooms, so naming one of them here would throw the
+    /// Aspirations list out of the middle column each time a goal under it was pressed.
+    ///
     /// The goals that are over, split by how they ended and in the order the menu offers.
     /// Worked out here rather than in the body: a `@ViewBuilder` takes views, not loops.
     private var endedGroups: [(status: NoteStatus, goals: [ChainGoal])] {
@@ -558,7 +730,7 @@ struct AspirationChainBody: View {
     }
 
     private func endedRow(_ goal: ChainGoal) -> some View {
-        Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
+        Button { model.show(section: model.section ?? .kind(.goal), notePath: goal.note.relativePath) } label: {
             HStack(spacing: 6) {
                 Image(systemName: ChainSymbol.datedGoal)
                     .font(.caption2)
@@ -601,10 +773,18 @@ struct AspirationChainBody: View {
                 }
             }
             .lineLimit(2)
-            if chain.progress.fraction != nil {
-                GoalProgressBar(progress: chain.progress, width: 200, tint: ChainTint.aspiration)
-            }
+            // **No bar here either (build 199).** An aspiration is never finished, so a per
+            // cent on one is a promise the idea does not make — and the average it was made
+            // of read 100% while two of the three goals under it wanted attention. Each goal
+            // still carries its own bar inside its own block, where the figure is true.
+            Label(ReviewWording.lookedAt(daysAgo: daysSinceLook), systemImage: "eye")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+    }
+
+    private var daysSinceLook: Int? {
+        chain.note.reviewedDate.map { DateOnly.today().days(since: $0) }
     }
 }
 
@@ -635,7 +815,7 @@ struct ChainGoalBlock: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button { model.show(section: .kind(.goal), notePath: goal.note.relativePath) } label: {
+            Button { model.show(section: model.section ?? .kind(.goal), notePath: goal.note.relativePath) } label: {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
                         Image(systemName: ChainSymbol.datedGoal)
@@ -705,7 +885,7 @@ struct ChainGoalBlock: View {
                 ChainProjectRow(project: project)
             }
             ForEach(goal.areas) { area in
-                Button { model.show(section: .kind(.goal), notePath: area.relativePath) } label: {
+                Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
                     Label(area.title, systemImage: ChainSymbol.area)
                         .font(.callout)
                         .foregroundStyle(ParaKind.area.tint)
@@ -730,7 +910,7 @@ struct ChainProjectRow: View {
 
     var body: some View {
         Button {
-            model.show(section: .kind(.goal), notePath: project.note.relativePath)
+            model.show(section: model.section ?? .kind(.goal), notePath: project.note.relativePath)
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -938,27 +1118,39 @@ struct AllAspirationsView: View {
 struct GoalsHeader<Trailing: View>: View {
     private let title: String
     private let systemImage: String
+    /// **Only the Aspirations room has All of them** (build 199). The Goals row is already one
+    /// list of every dated goal, so there is nothing for the button to open there — and a
+    /// control that does nothing where it is drawn is worse than no control (build 175).
+    private let showsAll: Bool
     private let trailing: Trailing
     @AppStorage(GoalsShowAll.key) private var showAll = false
 
     /// Written out rather than left to the memberwise initializer: a struct that mixes a
     /// property wrapper with a `@ViewBuilder` stored property is exactly where the generated
     /// one is hard to predict, and there is no Swift compiler in this container to ask.
-    init(title: String, systemImage: String, @ViewBuilder trailing: () -> Trailing) {
+    init(title: String, systemImage: String, showsAll: Bool = true,
+         @ViewBuilder trailing: () -> Trailing) {
         self.title = title
         self.systemImage = systemImage
+        self.showsAll = showsAll
         self.trailing = trailing()
     }
 
+    /// True only where the button is both offered and on, so a setting left on in the
+    /// Aspirations room cannot rename the Goals room's header.
+    private var showingAll: Bool { showsAll && showAll }
+
     var body: some View {
         HStack(spacing: 8) {
-            SectionLabel(title: showAll ? "All of them" : title, count: nil,
-                         systemImage: showAll ? "list.bullet.indent" : systemImage,
+            SectionLabel(title: showingAll ? "All of them" : title, count: nil,
+                         systemImage: showingAll ? "list.bullet.indent" : systemImage,
                          tint: ParaKind.goal.tint)
             trailing
-            StateToggle(systemImage: "list.bullet.indent", title: "All of them",
-                        isOn: showAll, tint: ParaKind.goal.tint) {
-                showAll.toggle()
+            if showsAll {
+                StateToggle(systemImage: "list.bullet.indent", title: "All of them",
+                            isOn: showAll, tint: ParaKind.goal.tint) {
+                    showAll.toggle()
+                }
             }
         }
         .padding(8)

@@ -255,7 +255,11 @@ struct SidebarView: View {
                 .buttonStyle(.plain)
                 .help(toolsFolded ? "Show Templates, Snippets and Tags" : "Hide Templates, Snippets and Tags")
             }
+            // **Two rows since build 199.** Aspirations used to be what the row named Goals
+            // drew, so a goal with a date had no list of its own and only appeared once the
+            // aspiration above it had been picked. One idea per row now.
             Section("Goals") {
+                row(.aspirations)
                 row(.kind(.goal))
             }
             Section {
@@ -461,14 +465,20 @@ struct NoteListView: View {
                 TagsView()
             } else if model.section == .search {
                 SearchView()
-            } else if model.section == .kind(.goal), !searching {
-                // Build 162, his choice from the preview: the Goals list is the aspirations,
-                // and what serves each one is drawn beside it (the Mac) or folded open under
-                // it (the phone). Searching falls through to the ordinary list, which is what
-                // a search of the vault should be.
+            } else if model.section == .aspirations, !searching {
+                // Build 162's screen, on its own row since build 199: the list is the
+                // aspirations, and what serves each one is drawn beside it (the Mac) or
+                // folded open under it (the phone). Searching falls through to the ordinary
+                // list, which is what a search of the vault should be.
                 AspirationsListView()
                     // The field has to exist here, or there would be no way to start a search
                     // in this section and the `!searching` branch above could never be taken.
+                    .searchable(text: $searchText, prompt: "Search notes")
+            } else if model.section == .kind(.goal), !searching {
+                // Build 199: every goal with a date, in one list, whether or not an
+                // aspiration holds it. His words about the screen before: *"I am not choosing
+                // an aspiration, no goals are visible on the Goals page."*
+                DatedGoalsListView()
                     .searchable(text: $searchText, prompt: "Search notes")
             } else {
                 let listed = visibleNotes
@@ -595,7 +605,9 @@ struct NoteListView: View {
                 EmptyStateView(title: "No resources yet", systemImage: "books.vertical",
                                message: "Resources are reference material: an article, a checklist, an idea you want to keep.",
                                tint: ParaKind.resource.tint, actionTitle: "New resource…") { model.activeSheet = .newNote }
-            case .kind(.goal)?:
+            // Both goal rows fall through to the ordinary note list while a search is
+            // running, so both land here (build 199).
+            case .kind(.goal)?, .aspirations?:
                 EmptyStateView(title: "No goals yet", systemImage: SidebarSection.kind(.goal).systemImage,
                                message: "Goals sit above everything else. Write what you want, then point projects and areas at it with a goal: line.",
                                tint: ParaKind.goal.tint, actionTitle: "New goal…") { model.activeSheet = .newNote }
@@ -879,6 +891,12 @@ struct DetailView: View {
     /// The same key the Goals column's button writes, so the two cannot disagree (build 166).
     @AppStorage(GoalsShowAll.key) private var goalsShowAll = false
 
+    /// Both goal rows show a goal note in this column (build 199). Assembled here rather than
+    /// repeated in the chain of `if`s below, where it is read twice.
+    private var isGoalSection: Bool {
+        model.section == .aspirations || model.section == .kind(.goal)
+    }
+
     var body: some View {
         // The colour follows the section, not the note: it is there to say which mode you are
         // in, and it stays put while you click from note to note.
@@ -915,21 +933,27 @@ struct DetailView: View {
         } else if model.section == .inbox, !model.inboxShowsNote {
             // Sorting happens in the middle column; this is where the lines can go.
             InboxFileItView()
-        } else if model.section == .kind(.goal), goalsShowAll {
+        } else if model.section == .aspirations, goalsShowAll {
             // **All of them** (build 166): the whole chain for every aspiration, in one
             // scroll. Its own header carries the button that turns it off again, in the same
             // place as every other Goals header (build 167).
             AllAspirationsView()
-        } else if model.section == .kind(.goal), let path = model.selectedNotePath,
+        } else if isGoalSection, let path = model.selectedNotePath,
                   let note = model.note(at: path), note.kind == .goal {
-            // The chain under the chosen aspiration. The note itself is one button away in
-            // its header, so nothing is lost by not opening the editor straight away.
+            // The chain under the chosen goal. `GoalDetailView` draws an aspiration and a
+            // goal with a date differently, so both rows lead here. The note itself is one
+            // button away in its header.
             GoalDetailView(note: note).id(path)
-        } else if model.section == .kind(.goal), model.selectedNotePath == nil {
+        } else if model.section == .aspirations, model.selectedNotePath == nil {
             EmptyStateView(title: "Pick an aspiration",
                            systemImage: ChainSymbol.aspiration,
                            message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each. The button at the top right shows all of them at once.",
                            tint: ChainTint.aspiration)
+        } else if model.section == .kind(.goal), model.selectedNotePath == nil {
+            EmptyStateView(title: "Pick a goal",
+                           systemImage: ChainSymbol.datedGoal,
+                           message: "A goal with a date says what you will have done, and by when. Choose one on the left to see the projects under it and the next action on each.",
+                           tint: ChainTint.datedGoal)
         } else if let path = model.selectedNotePath, model.note(at: path) != nil {
             NoteEditorView(path: path)
                 .id(path)
@@ -1011,6 +1035,8 @@ extension SidebarSection {
         case .review: return Color("ReviewTint")
         case .map: return Color("GoalTint")
         case .search: return Color("ResourceTint")
+        // The deeper gold of build 189. `ChainTint.aspiration` is where it is spelled.
+        case .aspirations: return ChainTint.aspiration
         // Its own colour, belonging to none of the PARA buckets — it is not one of them.
         case .work: return Color("ArchiveTint")
         case .kind(let kind): return kind.tint

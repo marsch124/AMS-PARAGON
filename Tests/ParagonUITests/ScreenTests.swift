@@ -383,7 +383,8 @@ final class ScreenTests: XCTestCase {
     /// The rows pressed one after another. The Tools group is left out: it folds.
     private static let sections = ["sidebar.Inbox", "sidebar.Today", "sidebar.Calendar",
                                    "sidebar.Time Blocks", "sidebar.Weekly review", "sidebar.Map",
-                                   "sidebar.All actions", "sidebar.Goals", "sidebar.Projects",
+                                   "sidebar.All actions", "sidebar.Aspirations", "sidebar.Goals",
+                                   "sidebar.Projects",
                                    "sidebar.Areas", "sidebar.Resources", "sidebar.Search"]
 
     /// One click on the sidebar row.

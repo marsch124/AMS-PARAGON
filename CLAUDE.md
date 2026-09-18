@@ -1640,6 +1640,50 @@ to him and he took the first three.
 - Three `Section(_:)` titles became `Section { } header: { } footer: { }` — a title string and a
   footer cannot be given together (build 157, third time it has come up).
 
+## Two rooms: Aspirations and Goals (build 199)
+
+His report: *"the aspirations still are the top, most important things in my life, and I'm
+always falling back to searching for them"*, and then the harder question — *"We have defined
+an aspiration as a kind of Goal that has no end date. Hm... makes me think if this is correct
+or just a computer-technicality that fits technology but not the user."* He was right. He chose
+the shape from a preview (https://claude.ai/artifact/RW25u91S57LN1UVfV6MYMf) and answered the
+three questions: a sixth button, one list, ended goals folded with the count showing.
+
+- **`SidebarSection.aspirations` is a row of its own**; `.kind(.goal)` is now a real list of
+  goals with a date (`NoteIndex.datedGoals()`, Core, tested). Before it, **the row named Goals
+  drew the aspirations**, so a dated goal appeared only after you had picked the aspiration
+  above it — his words: *"I am not choosing an aspiration, no goals are visible on the Goals
+  page."* **A row named after a thing has to be a list of that thing.**
+- **`AppModel.sidebarSection(for:)` decides which room a goal note belongs to**, so every route
+  to one — a `[[link]]`, a Map box, a review row, a search result — lands beside a list that
+  contains it. One place, as it was for `.inbox` and `.daily`.
+- **Every row *inside* a chain navigates with `model.section ?? .kind(.goal)`**, never a fixed
+  section: build 135's rule, and with two goal rooms a fixed one would throw the Aspirations
+  list out of the middle column on every press.
+- **The per cent left the aspiration, and that is the real find.** His screenshot read
+  **100% · 3 goals · ⚠ 2 goals need attention** on one row. The bar was the average of the
+  goals under it, and a goal with no project yet has *nothing to measure* — so one goal with a
+  finished project spoke for all three. Underneath that: **you never finish an aspiration**, so
+  a per cent on one is a promise the idea does not make. `ReviewWording.lookedAt(daysAgo:)`
+  (Core, tested) took its place — "Looked at 12 days ago", **"Never looked at"** for nil, never
+  a big number (build 141). **When a row shows two facts that cannot both be true, the fault is
+  usually that one of them is not a fact about that row.**
+- **One list, not two.** The **Nothing serves these yet** group is gone; the row says it. A
+  group whose members are only "the ones you have not started" reads as a telling-off, and it
+  is the same family as build 140's "Hobby or homeless?".
+- **`GoalEndedHeader` is one view used by both rooms**, and `endedGoals()` is filtered per room
+  by `GoalWording.isAspiration`. Build 168's rule: one thing drawn in two places is one view.
+- **`NewThing.aspiration` is the sixth button**, and the "What kind of goal" chip is gone —
+  two controls for one state is build 165's fault. `NewThing.forSection(_:)` is written out
+  rather than matched on `kind`, since Aspiration and Goal share `ParaKind.goal`. The row is
+  still an `HStack`, **not** a `WrappingHStack`: a chooser reads as equal cells, and wrapping
+  gives each child its natural width. The Mac sheet went 420 → 480pt for the sixth.
+- **`GoalsHeader` takes `showsAll:`.** **All of them** belongs to the Aspirations room only;
+  in the Goals room it would open nothing, and a control that does nothing where it is drawn
+  is worse than no control (build 175).
+- **Nothing in the vault changed.** Both kinds are goal notes and `horizon:` still tells them
+  apart — no migration, and every old note reads the same.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

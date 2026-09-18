@@ -166,6 +166,23 @@ public extension NoteIndex {
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
     }
 
+    /// **Every live goal that has a date, soonest first.** The Goals screen's own list
+    /// (build 199).
+    ///
+    /// Before it there was no such list. `Goals` in the sidebar drew the *aspirations*, and a
+    /// dated goal only appeared once you had picked the aspiration above it — so a goal whose
+    /// aspiration you had not thought to click was off the screen entirely. His words about
+    /// that screen: *"I am not choosing an aspiration, no goals are visible on the Goals
+    /// page."* One list, no choosing first.
+    ///
+    /// Ended and archived goals are left out; they have `endedGoals()`, which the screen
+    /// folds away at the foot with its count showing.
+    func datedGoals() -> [Note] {
+        notes(kind: .goal)
+            .filter { !$0.isArchived && !$0.isEnded && ($0.horizon ?? .year) != .life }
+            .sorted(by: NoteIndex.byTargetThenTitle)
+    }
+
     /// Dated goals with no aspiration above them. They are not a fault either — a goal can
     /// stand on its own — but they have to be drawn somewhere, or picking an aspiration would
     /// hide them (build 100's rule: an absence has to be visible).
