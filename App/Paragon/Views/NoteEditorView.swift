@@ -348,13 +348,14 @@ struct NoteEditorView: View {
                     SectionLabel(title: "Linked notes", count: linksTo.count + linkedFrom.count + notYetMade.count,
                                  systemImage: "link", tint: note.tint)
                         .font(.subheadline.weight(.medium))
+                        // Accessibility only, and it names the **row**, not the control: on
+                        // the Mac a DisclosureGroup is opened by its triangle and never by
+                        // its label, so the screen test uses this frame to find the triangle
+                        // sitting beside it. Expanding this box is what scrambled the whole
+                        // window in build 30, and nothing had ever pressed it.
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("note.links")
                 }
-                // On the group, not on the label: **the Mac does not open a DisclosureGroup
-                // when its label is clicked**, which the first run of the screen test proved
-                // by clicking it and watching nothing happen. The triangle is the control, so
-                // the name has to be on something that contains it. Accessibility only —
-                // expanding this box is what scrambled the whole window in build 30.
-                .accessibilityIdentifier("note.links")
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 Divider()
