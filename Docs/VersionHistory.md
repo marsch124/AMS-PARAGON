@@ -2,6 +2,14 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 197 · 18 September 2026
+
+**No more thick ring around the Inbox at launch.** On the Mac, the Inbox column takes the
+keyboard focus when the app opens, so that the single keys work on its lines (arrows, t, m, d).
+A focused view on the Mac is drawn with a ring in your Mac's accent colour, and that ring sat
+around the whole Inbox until you clicked somewhere else. The keys still work; the ring is gone.
+The Calendar had the same ring and loses it too.
+
 ## Build 196 · 16 September 2026
 
 **All seven checks now run on the Mac as well as on the simulated iPhone.** The build machine

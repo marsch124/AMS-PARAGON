@@ -88,6 +88,11 @@ struct InboxTriageView: View {
             }
         }
         .focusable()
+        // Keeps the keyboard focus (the single keys below need it) but not the ring the Mac
+        // draws around a focused view: at launch this column is the first thing on screen and
+        // took the focus, so a thick ring in the Mac's accent colour sat around the whole
+        // Inbox until something else was clicked (build 197).
+        .focusEffectDisabled()
         .onKeyPress(.upArrow) { move(-1) }
         .onKeyPress(.downArrow) { move(1) }
         .onKeyPress(KeyEquivalent("t")) { act { model.setDueDate($0, .today()) } }

@@ -2134,6 +2134,17 @@ three columns and a menu bar.
 - `Place.resources` was added for the Back test; the test vault's resource is
   `Resources/Packing list.md`.
 
+## The ring around the Inbox (build 197)
+
+His report: *"a rather thick yellow square around the complete inbox"* at launch, gone before
+a screenshot could be taken. **`.focusable()` on a whole column draws the Mac's focus ring
+around it** while it has keyboard focus, in the system accent colour (yellow on his Mac). Build
+66 put `.focusable()` on `InboxTriageView` so single keys reach the list, and the Inbox is the
+first screen at launch, so the ring was there every time the app opened until something else
+was clicked. `.focusEffectDisabled()` (macOS 14) keeps the focus and drops the ring; the
+Calendar's `.focusable()` got the same. **Anything given `.focusable()` for the sake of
+`.onKeyPress` needs `.focusEffectDisabled()` beside it**, or the Mac frames it.
+
 ## Not built (by choice)
 
 - **The App Group in the developer portal**, parked by him on 15 September and explained again

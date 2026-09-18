@@ -59,6 +59,7 @@ struct DayCalendarView: View {
             dayContents(day: day, overview: overview)
         }
         .focusable()
+        .focusEffectDisabled()   // the same ring as the Inbox's, build 197
         .onKeyPress(.leftArrow) { move(days: -1); return .handled }
         .onKeyPress(.rightArrow) { move(days: 1); return .handled }
         .onAppear { gridMonth = MonthRef(containing: day) }
