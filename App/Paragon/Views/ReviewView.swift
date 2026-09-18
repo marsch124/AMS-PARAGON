@@ -293,7 +293,7 @@ struct HealthRow: View {
             HStack(spacing: 8) {
                 KindBadge(kind: health.note.kind, size: 20)
                 Image(systemName: health.needsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle")
-                    .foregroundStyle(health.needsAttention ? Color.orange : health.note.tint)
+                    .rowTint(health.needsAttention ? Color.orange : health.note.tint)
                 Text(health.note.title)
                     .font(.headline)
                     .lineLimit(2)
@@ -314,7 +314,7 @@ struct HealthRow: View {
                 Label("\(health.openTaskCount) open", systemImage: "checklist")
                 if health.overdueTaskCount > 0 {
                     Label("\(health.overdueTaskCount) overdue", systemImage: "clock.badge.exclamationmark")
-                        .foregroundStyle(.red)
+                        .rowTint(.red)
                 }
                 Label("\(health.completedLast7Days) done this week", systemImage: "checkmark")
                 if let due = health.note.dueDate {
@@ -332,7 +332,7 @@ struct HealthRow: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .onHold ? Color.secondary.opacity(0.15) : Color.orange.opacity(0.18), in: Capsule())
-                            .foregroundStyle(flag == .onHold ? Color.secondary : Color.orange)
+                            .rowTint(flag == .onHold ? Color.secondary : Color.orange)
                     }
                 }
             }
@@ -379,7 +379,7 @@ struct GoalHealthRow: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(health.note.tint.opacity(0.18), in: Capsule())
-                        .foregroundStyle(health.note.tint)
+                        .rowTint(health.note.tint)
                 }
                 Spacer(minLength: 6)
                 if let days = health.daysSinceActivity {
@@ -417,7 +417,7 @@ struct GoalHealthRow: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? health.note.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
-                            .foregroundStyle(flag == .achieved ? health.note.tint : Color.orange)
+                            .rowTint(flag == .achieved ? health.note.tint : Color.orange)
                     }
                 }
             }

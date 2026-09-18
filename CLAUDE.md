@@ -1718,6 +1718,29 @@ always been used for an **overdue date** in `NoteRow`, `TaskRow` and `InboxRow`.
 older than that rule, and left alone here rather than recoloured in a build about something
 else. **Worth asking him whether overdue should be orange too**; it is his call.
 
+
+**Build 201 finished it, and the lesson is about how I checked.** 200 fixed the five row views
+I had in front of me and I told him it was done. He asked *"Do we need to check this throughout
+the app, or have you already done that?"* — and the honest answer was no: **four of the nine
+selectable lists were still wrong**, including the sidebar itself. `SidebarView.row(_:)`
+(`section.tint` on the symbol), `HealthRow` and `GoalHealthRow` in the review, and
+`SearchHitRow`.
+
+**The method, so it is never guesswork again.** Three greps, in this order:
+1. `grep -rn "List(selection:" App/Paragon/Views` — every list a row can be selected in.
+2. In each, find the rows carrying `.tag(…)`. **An untagged row never takes the selection
+   fill**, which is why `ReviewDueRow`, `TodayView`'s date line and every Section header were
+   safe and are deliberately untouched.
+3. In those rows only, look for `.foregroundStyle(` with an explicit `Color`.
+
+Nine lists, nine checks. `TaskRow` covers Today, Calendar, Done, All actions and the review's
+steps 1 and 2; `NoteRow` covers every PARA list; `TemplateRow` and `DailyNoteRow` carry no
+explicit colour at all (a `TintStripe` is a shape and keeps its tint by design).
+
+**"I fixed the ones I could see" is not the same as "I checked".** When a fault is a *class*
+rather than one screen, the build is not finished until the search that finds every instance
+has been run and written down.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

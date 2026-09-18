@@ -302,7 +302,7 @@ struct SidebarView: View {
             Text(section.title)
         } icon: {
             Image(systemName: section.systemImage)
-                .foregroundStyle(section.tint)
+                .rowTint(section.tint)
         }
         .badge(model.count(for: section))
         .tag(section)

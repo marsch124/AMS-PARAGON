@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 201 · 18 September 2026
+
+**The rest of the screens.** Build 200 fixed the lists you had in front of you. You asked
+whether the whole app had been checked, and it had not: four more places could go orange on
+orange when a row was selected.
+
+- The **sidebar** itself. Each row's little coloured symbol.
+- **Weekly review**, both kinds of row: the projects and areas, and the aspirations and goals.
+- The results in **Search Everywhere**.
+
+Every list in the app that lets you select a row has now been gone through, one by one.
+
 ## Build 200 · 18 September 2026
 
 **A selected row can be read again.** You picked an aspiration and its warning line vanished:

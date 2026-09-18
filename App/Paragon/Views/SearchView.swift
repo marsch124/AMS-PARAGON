@@ -427,7 +427,7 @@ struct SearchHitRow: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(hit.note.tint.opacity(0.18), in: Capsule())
-                        .foregroundStyle(hit.note.tint)
+                        .rowTint(hit.note.tint)
                 }
             }
             ForEach(hit.snippets.prefix(2), id: \.self) { snippet in
