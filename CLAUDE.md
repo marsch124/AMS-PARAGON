@@ -2181,21 +2181,29 @@ His own roadmap item, picked off the list. The screen had a four-way segmented `
   and `row(_:choices:)` takes `choices`, not `boxes`, so the parameter cannot shadow the
   `boxes(among:)` method beside it (build 150's `let card = card(…)`).
 
-**The Mac test that presses Linked notes** (same build). Expanding that box is the exact
-trigger of build 30's window scramble, and nothing had ever pressed it.
-- `TestVault`'s project gained one `[[Packing list]]` link, because **the Linked notes box is
-  drawn only when a note has links** — without it the test would have been pressing nothing.
-- **`note.links` is on the `DisclosureGroup`, not on its label**, because **the Mac does not
-  open a DisclosureGroup when its label is clicked**. The first run clicked the words "Linked
-  notes" and the box stayed shut — eleven of twelve passed and this one said so in its own
-  words. The triangle is the control: the test clicks the disclosure triangle inside the
-  group, or the far left of the group's row where the triangle is drawn.
-- **`note.links.open` is on the contents**, which exist only while the group is open: finding
-  them is the proof the press landed, and its absence fails with its own words rather than as
-  a later, confusing step.
-- `expectNoOverflow(after:)` is now shared by this test and build 197's. It asks the app
-  itself — Help › Copy Diagnostics, then the clipboard — because the app's `OVERFLOW` line is
-  a better judge of builds 30/34 than any frame the test could measure.
+**The Mac test that presses Linked notes: not built, after four runs.** Expanding that box is
+the exact trigger of build 30's window scramble, and nothing has ever pressed it — but on the
+Mac **nothing a test can click will open a SwiftUI `DisclosureGroup`**:
+- The **words do nothing**. Only the triangle opens it, which the first run proved by clicking
+  the label and watching the box stay shut.
+- The **group's left edge deselected the note** altogether (second run), so a guess at a
+  position can do harm, not just nothing.
+- The element **XCUITest calls the disclosure triangle has the label's own frame** — the dump
+  showed both as `(466, 298, 161, 15)` — so clicking its centre lands on the words again.
+- **8pt and 13pt to the left of that row** both missed the glyph (fourth run). Further left is
+  the note list, which is what took the note away.
+
+**Removed rather than left red**: a red light that means nothing is worse than no light at all
+(build 190). Everything else stays in place — `note.links` on the row, `note.links.open` on the
+contents (they exist only while the group is open), and the test vault's `[[Packing list]]`
+link, because **the box is drawn only when a note has links**. The window is still checked when
+a note opens, which is the same fault one step earlier. **Reopening this needs the app's side to
+change**: making the label itself open the box would fix a small Mac wart and make the test one
+line, and that is his call, not something to slip into a build about something else.
+
+`expectNoOverflow(after:)` stays, shared with build 197's test. It asks the app itself — Help ›
+Copy Diagnostics, then the clipboard — because the app's own `OVERFLOW` line is a better judge
+of builds 30/34 than any frame a test could measure.
 
 ## Not built (by choice)
 
@@ -2207,10 +2215,10 @@ trigger of build 30's window scramble, and nothing had ever pressed it.
   then every screen's top bar lives inside a scroll view.
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
   vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
-  capture to the Inbox, a Map box pressed — and five on the Mac alone: the columns inside
-  the window after a note opens, Linked notes pressed open, ⌘N, ⇧⌘N, ⌃⌘←. Left, if wanted: the phone's swipe between
-  tabs (build 183, untested from here). **Linked notes** and the window scramble are done
-  (build 198), so what is left on the Mac is the All actions filter itself.
+  capture to the Inbox, a Map box pressed — and four on the Mac alone: the columns inside
+  the window after a note opens, ⌘N, ⇧⌘N, ⌃⌘←. Left, if wanted: the phone's swipe between
+  tabs (build 183, untested from here), the All actions filter itself, and **Linked notes
+  pressed open** — which needs the app to make that label clickable first (build 198).
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
