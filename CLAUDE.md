@@ -2185,9 +2185,14 @@ His own roadmap item, picked off the list. The screen had a four-way segmented `
 trigger of build 30's window scramble, and nothing had ever pressed it.
 - `TestVault`'s project gained one `[[Packing list]]` link, because **the Linked notes box is
   drawn only when a note has links** — without it the test would have been pressing nothing.
-- `note.links` is on the label and **`note.links.open` on the contents**, which exist only
-  while the group is open: finding them is the proof the press landed, and its absence fails
-  with its own words rather than as a later, confusing step.
+- **`note.links` is on the `DisclosureGroup`, not on its label**, because **the Mac does not
+  open a DisclosureGroup when its label is clicked**. The first run clicked the words "Linked
+  notes" and the box stayed shut — eleven of twelve passed and this one said so in its own
+  words. The triangle is the control: the test clicks the disclosure triangle inside the
+  group, or the far left of the group's row where the triangle is drawn.
+- **`note.links.open` is on the contents**, which exist only while the group is open: finding
+  them is the proof the press landed, and its absence fails with its own words rather than as
+  a later, confusing step.
 - `expectNoOverflow(after:)` is now shared by this test and build 197's. It asks the app
   itself — Help › Copy Diagnostics, then the clipboard — because the app's `OVERFLOW` line is
   a better judge of builds 30/34 than any frame the test could measure.

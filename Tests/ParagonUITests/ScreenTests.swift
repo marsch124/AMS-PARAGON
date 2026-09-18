@@ -273,8 +273,16 @@ final class ScreenTests: XCTestCase {
         let links = element("note.links")
         XCTAssertTrue(links.waitForExistence(timeout: 20),
                       "The note has no Linked notes box. The test vault's project links to the resource, so it should have one. On screen: \(visibleTexts())")
-        // A coordinate click on the label, which is what opens a DisclosureGroup on the Mac.
-        links.pressCentre()
+        // **The label is not the control.** The first run of this test clicked the words
+        // "Linked notes" and the box stayed shut: on the Mac only the triangle opens a
+        // DisclosureGroup. It is the triangle inside the group when SwiftUI exposes one, and
+        // otherwise the far left of the group's own row, which is where the triangle is drawn.
+        let triangle = links.descendants(matching: .disclosureTriangle).firstMatch
+        if triangle.waitForExistence(timeout: 5) {
+            triangle.click()
+        } else {
+            links.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5)).click()
+        }
 
         // The box's contents exist only while it is open, so finding them is the proof that
         // the press landed — and it fails with its own words if it did not.
