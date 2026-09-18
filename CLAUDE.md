@@ -2145,6 +2145,53 @@ was clicked. `.focusEffectDisabled()` (macOS 14) keeps the focus and drops the r
 Calendar's `.focusable()` got the same. **Anything given `.focusable()` for the sake of
 `.onKeyPress` needs `.focusEffectDisabled()` beside it**, or the Mac frames it.
 
+## The filter on All actions (build 198)
+
+His own roadmap item, picked off the list. The screen had a four-way segmented `Picker` —
+**All / With a date / No date / Next actions** — which could hold one answer, so "overdue
+**and** important" was not a question it could be asked.
+
+- **`Core/Vault/ActionFilter.swift`, tested.** `When` (overdue/today/soon/later/noDate), `Mark`
+  (next/important), `tags`, plus `apply(to:today:)`, `tagChoices(among:including:)` and
+  `summary`. In Core for build 174's reason: **a rule that decides what you do not see has to
+  be testable.**
+- **The boxes are `FilterBox` and mean what the Search screen's boxes mean** (build 157):
+  within a row an **or**, between rows an **and**. Two screens that filter must not mean
+  different things by a tick; a test pins it.
+- **The five `When` boxes do not overlap and cover everything**, pinned by a test that asks
+  each task which boxes claim it and insists on exactly one. Overlapping boxes would make two
+  ticks show one action twice in the count.
+- **`noDate` is a box, not the absence of one.** "With a date" is the other four together, so
+  nothing the old Picker could ask was lost — and there is no second door into one room.
+- **`tagChoices` includes the ticked ones even when nothing carries them** (build 175's rule):
+  a tag whose last action another row has ruled out would otherwise lose its box and could
+  never be unticked. `#next` is left out of that row because it has its own box under Mark —
+  two controls for one state is build 165's fault.
+- **`AppModel.actionFilter` is `@Published` and deliberately not in `UserDefaults`.** It
+  survives moving between sections and is forgotten on quit: an app that opens showing a
+  filtered list with no memory of why is the trap of builds 123–127. The folded line always
+  says what is ticked (build 161), so it can never narrow in silence either.
+- **Two empty states, not one**: "Nothing open" when the vault has no open action, and "No
+  action matches" with the total and the summary when the boxes ruled everything out, plus an
+  **Untick every box** button. Build 100's rule, and build 157's `emptyMessage`.
+- The fold button and **Clear** sit in the column's own header beside its name, never in the
+  window's toolbar (build 167). Its own `@AppStorage` key per platform, folded on the phone
+  and open on the Mac (build 161).
+- `Choice` is a struct, not a tuple — a `ForEach` id is a key path (build 61, fifth time) —
+  and `row(_:choices:)` takes `choices`, not `boxes`, so the parameter cannot shadow the
+  `boxes(among:)` method beside it (build 150's `let card = card(…)`).
+
+**The Mac test that presses Linked notes** (same build). Expanding that box is the exact
+trigger of build 30's window scramble, and nothing had ever pressed it.
+- `TestVault`'s project gained one `[[Packing list]]` link, because **the Linked notes box is
+  drawn only when a note has links** — without it the test would have been pressing nothing.
+- `note.links` is on the label and **`note.links.open` on the contents**, which exist only
+  while the group is open: finding them is the proof the press landed, and its absence fails
+  with its own words rather than as a later, confusing step.
+- `expectNoOverflow(after:)` is now shared by this test and build 197's. It asks the app
+  itself — Help › Copy Diagnostics, then the clipboard — because the app's `OVERFLOW` line is
+  a better judge of builds 30/34 than any frame the test could measure.
+
 ## Not built (by choice)
 
 - **The App Group in the developer portal**, parked by him on 15 September and explained again
@@ -2153,13 +2200,12 @@ Calendar's `.focusable()` got the same. **Anything given `.focusable()` for the 
   is unaffected. Told him plainly that if he wants neither, there is no advantage.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
-- **A filter on All actions** — his own "maybe we should make the filter function later on".
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
   vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
-  capture to the Inbox, a Map box pressed — and four on the Mac alone: the columns inside
-  the window after a note opens, ⌘N, ⇧⌘N, ⌃⌘←. Left, if wanted: the phone's swipe between
-  tabs (build 183, untested from here), and a Mac test that opens **Linked notes** in a note,
-  the exact trigger of build 30.
+  capture to the Inbox, a Map box pressed — and five on the Mac alone: the columns inside
+  the window after a note opens, Linked notes pressed open, ⌘N, ⇧⌘N, ⌃⌘←. Left, if wanted: the phone's swipe between
+  tabs (build 183, untested from here). **Linked notes** and the window scramble are done
+  (build 198), so what is left on the Mac is the All actions filter itself.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).

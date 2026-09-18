@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 198 · 18 September 2026
+
+**All actions can be narrowed with tick boxes.** The screen used to have one row of four
+choices — All, With a date, No date, Next actions — and it could only answer one of them at a
+time. Now there are tick boxes in three rows: **When** (Overdue, Today, Next 7 days, Later, No
+date), **Mark** (Next action, Important) and **Tags**, listing the tags your open actions
+actually carry. Boxes in the same row mean "any of these". Boxes in different rows are all
+required together, so you can ask for overdue **and** important.
+
+Nothing the old row could ask has been lost: "With a date" is the four dated boxes together.
+
+The heading counts what is shown, for example **12 of 48**. **Clear** unticks everything. The
+button beside it folds the boxes away, and while they are folded the line under the heading
+says what is ticked, so the list is never narrowed without telling you. When the boxes rule
+everything out, the screen says how many open actions there are and which boxes hid them.
+
 ## Build 197 · 18 September 2026
 
 **No more thick ring around the Inbox at launch.** On the Mac, the Inbox column takes the

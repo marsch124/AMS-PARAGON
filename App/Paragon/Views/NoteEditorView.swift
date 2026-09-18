@@ -340,10 +340,18 @@ struct NoteEditorView: View {
                             LinkedNotesList(notes: linkedFrom)
                         }
                     }
+                    // Drawn only while the group is open, so its presence is the proof that
+                    // the press landed — what the Mac screen test waits for (build 198).
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("note.links.open")
                 } label: {
                     SectionLabel(title: "Linked notes", count: linksTo.count + linkedFrom.count + notYetMade.count,
                                  systemImage: "link", tint: note.tint)
                         .font(.subheadline.weight(.medium))
+                        // Accessibility only. Expanding this box is what made the whole window
+                        // scramble in build 30, and nothing had ever pressed it.
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("note.links")
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

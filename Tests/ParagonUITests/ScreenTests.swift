@@ -232,9 +232,7 @@ final class ScreenTests: XCTestCase {
     /// scrolled under the toolbar. Two checks. The sidebar row and the list row are wholly
     /// inside the window, and the editor's top left corner is (an NSTextView reports its
     /// whole document as its frame, so its bottom edge says nothing — the first run of this
-    /// test failed on exactly that). Then Help › Copy Diagnostics, which carry
-    /// an OVERFLOW line whenever the host view outgrew the window, and the clipboard is read
-    /// back: the app's own definition of the fault.
+    /// test failed on exactly that). Then `expectNoOverflow(after:)` asks the app itself.
     func testTheWindowIsNotScrambledWhenANoteOpens() {
         go(to: .projects)
 
@@ -254,10 +252,51 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(window.contains(CGPoint(x: editor.frame.minX, y: editor.frame.minY)),
                       "The editor's top left corner is outside the window: \(editor.frame) against \(window). This is the window scramble of builds 30 and 34.")
 
-        // Help › Copy Diagnostics, by its title: a menu item cannot carry an identifier, and
-        // its title is spelled in ParagonApp beside the button. Not ⌃⌘D: with the keyboard
-        // focus in the editor that key is macOS's own Look Up, and the first run of this test
-        // pressed it and nothing reached the app.
+        expectNoOverflow(after: "the note opened")
+    }
+
+    /// **Linked notes** is pressed open, and the window is still whole afterwards.
+    ///
+    /// This is the exact trigger of build 30's window scramble: expanding this box made the
+    /// editor report its full text height as a minimum, the split view grew to about 1300pt
+    /// inside an 821pt window, and every column looked scrolled under the toolbar. He called
+    /// it "pressing Linked Goals". Until now nothing had ever pressed it.
+    func testOpeningLinkedNotesDoesNotScrambleTheWindow() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+        XCTAssertTrue(element("note.editor").waitForExistence(timeout: 20),
+                      "The note opened without its editor.")
+
+        let links = element("note.links")
+        XCTAssertTrue(links.waitForExistence(timeout: 20),
+                      "The note has no Linked notes box. The test vault's project links to the resource, so it should have one. On screen: \(visibleTexts())")
+        // A coordinate click on the label, which is what opens a DisclosureGroup on the Mac.
+        links.pressCentre()
+
+        // The box's contents exist only while it is open, so finding them is the proof that
+        // the press landed — and it fails with its own words if it did not.
+        XCTAssertTrue(element("note.links.open").waitForExistence(timeout: 10),
+                      "Linked notes was pressed and did not open. On screen: \(visibleTexts())")
+
+        let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
+        let editor = element("note.editor")
+        XCTAssertTrue(window.contains(CGPoint(x: editor.frame.minX, y: editor.frame.minY)),
+                      "With Linked notes open the editor's top left corner is outside the window: \(editor.frame) against \(window). This is build 30's window scramble.")
+        expectNoOverflow(after: "Linked notes was opened")
+    }
+
+    /// Asks the app itself whether its window has overflowed: **Help › Copy Diagnostics**, then
+    /// the clipboard. An `OVERFLOW` line is the app's own name for builds 30 and 34's fault,
+    /// which is a better judge than any frame this test could measure.
+    ///
+    /// The menu item is found **by its title** — the one exception to the identifier rule,
+    /// since an `NSMenuItem` made from a `.commands` Button carries none. Not ⌃⌘D: with the
+    /// keyboard focus in the editor that key is macOS's own Look Up, and the first run of this
+    /// check pressed it and nothing reached the app at all.
+    private func expectNoOverflow(after what: String) {
         NSPasteboard.general.clearContents()
         app.menuBars.menuBarItems["Help"].click()
         let copyItem = app.menuBars.menuItems["Copy Diagnostics"]
@@ -277,7 +316,7 @@ final class ScreenTests: XCTestCase {
         let report = NSPasteboard.general.string(forType: .string) ?? ""
         let overflow = report.split(separator: "\n").filter { $0.contains("OVERFLOW") }
         XCTAssertTrue(overflow.isEmpty,
-                      "The app's own diagnostics report an overflow after the note opened: \(overflow.joined(separator: " | "))")
+                      "The app's own diagnostics report an overflow after \(what): \(overflow.joined(separator: " | "))")
     }
 
     /// ⌘N opens the New note screen. In build 120 the window's own New Window item kept ⌘N,

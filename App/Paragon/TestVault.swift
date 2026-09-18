@@ -53,8 +53,13 @@ enum TestVault {
                                  extraFrontmatter: [("horizon", "year"),
                                                     ("target", "2027-08-15"),
                                                     ("goal", aspiration)])
-        _ = try vault.createNote(kind: .project, title: project,
-                                 extraFrontmatter: [("goal", datedGoal)])
+        var trip = try vault.createNote(kind: .project, title: project,
+                                        extraFrontmatter: [("goal", datedGoal)])
+        // One wikilink, so the project's **Linked notes** box exists at all: it is drawn only
+        // when a note has links, and expanding it is the exact trigger of build 30's window
+        // scramble, which the Mac screen test presses (build 198).
+        trip.body += "\n\nWhat to bring: [[\(resource)]]\n"
+        _ = try vault.save(trip)
         _ = try vault.createNote(kind: .area, title: area, extraFrontmatter: [("goal", aspiration)])
         _ = try vault.createNote(kind: .resource, title: resource)
         // Through `capture`, the same path the capture screens use, so the line is exactly

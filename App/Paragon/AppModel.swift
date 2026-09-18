@@ -111,7 +111,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 197
+    static let number = 198
 }
 
 @MainActor
@@ -208,6 +208,14 @@ final class AppModel: ObservableObject {
     /// True only while "Open the Inbox note" is showing the raw note. Otherwise the Inbox's
     /// right-hand column is "File it" — a note selected elsewhere must not take it over.
     @Published var inboxShowsNote = false
+    /// Which boxes are ticked on the **All actions** screen (build 198).
+    ///
+    /// **Deliberately not stored in `UserDefaults`.** It survives moving between sections, so
+    /// coming back to the screen finds the list as you left it, and it is forgotten on quit —
+    /// an app that opens showing a filtered list, with no memory of having set it, is the
+    /// trap builds 123 to 127 were spent in. The screen's folded line always says what is
+    /// ticked, so it can never narrow the list in silence either.
+    @Published var actionFilter = ActionFilter()
     /// Saved copies of the vault, newest first.
     @Published private(set) var backups: [VaultBackup] = []
     /// The report shown in the sync sheet, and whether it was a rehearsal.
