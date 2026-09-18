@@ -509,7 +509,7 @@ struct AspirationRow: View {
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
                     if !chain.goals.isEmpty {
                         Text(chain.goals.count == 1 ? "1 goal" : "\(chain.goals.count) goals")
-                            .foregroundStyle(ChainTint.datedGoal)
+                            .rowTint(ChainTint.datedGoal)
                     }
                     // Said on the row rather than in a group of its own: build 199 threw away
                     // the "Nothing serves these yet" section, which put the aspirations you
@@ -522,18 +522,18 @@ struct AspirationRow: View {
                         .foregroundStyle(.secondary)
                     if let area = chain.area {
                         Label(area.title, systemImage: ChainSymbol.area)
-                            .foregroundStyle(ParaKind.area.tint)
+                            .rowTint(ParaKind.area.tint)
                     }
                     let wanting = chain.goalsNeedingAttention.count
                     if wanting > 0 {
                         Label(wanting == 1 ? "1 goal needs attention" : "\(wanting) goals need attention",
                               systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .rowTint(.orange)
                     }
                     if chain.needsAttention {
                         Label(chain.flags.first?.label ?? "Needs attention",
                               systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .rowTint(.orange)
                     }
                 }
                 .font(.caption)
@@ -577,16 +577,16 @@ struct DatedGoalRow: View {
                     if let target = note.targetDate {
                         let left = target.timeLeftText(from: .today())
                         Label("\(target.description) · \(left)", systemImage: "flag")
-                            .foregroundStyle(overdue(target) ? Color.orange : ParaKind.goal.tint)
+                            .rowTint(overdue(target) ? Color.orange : ParaKind.goal.tint)
                     }
                     if note.isEnded {
                         Label(note.noteStatus.label, systemImage: note.isAchieved ? "checkmark.seal" : "xmark.circle")
-                            .foregroundStyle(note.isAchieved ? ParaKind.goal.tint : Color.secondary)
+                            .rowTint(note.isAchieved ? ParaKind.goal.tint : Color.secondary)
                     } else if needsAnAspiration {
                         NoAspirationPrompt(model: model, note: note)
                     } else if health.needsAttention, let first = health.flags.first {
                         Label(first.label, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .rowTint(.orange)
                     }
                 }
                 .font(.caption)
@@ -1178,7 +1178,7 @@ struct NoAspirationPrompt: View {
         } label: {
             Label("Give it an aspiration", systemImage: "exclamationmark.triangle.fill")
                 .font(.caption)
-                .foregroundStyle(.orange)
+                .rowTint(.orange)
         }
         .menuStyle(.borderlessButton)
         .fixedSize()

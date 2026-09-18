@@ -194,7 +194,7 @@ struct InboxRow: View {
                 model.toggle(ref)
             } label: {
                 Image(systemName: "circle")
-                    .foregroundStyle(SidebarSection.inbox.tint)
+                    .rowTint(SidebarSection.inbox.tint)
             }
             .buttonStyle(.plain)
             .help("Mark as done")
@@ -212,7 +212,7 @@ struct InboxRow: View {
                 if let due = ref.task.dueDate {
                     Label(due.description, systemImage: "calendar")
                         .font(.caption2)
-                        .foregroundStyle(due < .today() ? Color.red : .secondary)
+                        .rowTint(due < .today() ? Color.red : .secondary)
                 }
             }
             Spacer(minLength: 6)

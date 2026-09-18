@@ -792,7 +792,7 @@ struct TaskRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Button(action: toggle) {
                 Image(systemName: ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"))
-                    .foregroundStyle(ref.task.isDone ? Color.secondary : tint)
+                    .rowTint(ref.task.isDone ? Color.secondary : tint)
             }
             .buttonStyle(.plain)
             VStack(alignment: .leading, spacing: 2) {
@@ -812,26 +812,26 @@ struct TaskRow: View {
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 1)
                                 .background(tint.opacity(0.2), in: Capsule())
-                                .foregroundStyle(tint)
+                                .rowTint(tint)
                         }
                     }
                 }
                 HStack(spacing: 8) {
                     if ref.task.priority > 0 {
                         Text(String(repeating: "!", count: ref.task.priority))
-                            .foregroundStyle(.orange)
+                            .rowTint(.orange)
                     }
                     if let due = ref.task.dueDate {
                         Label(due.description + (ref.task.dueTime.map { " \($0)" } ?? ""),
                               systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
-                            .foregroundStyle(due < .today() && !ref.task.isDone ? Color.red : Color.secondary)
+                            .rowTint(due < .today() && !ref.task.isDone ? Color.red : Color.secondary)
                     }
                     if let rule = ref.task.repeatRule {
                         Label(rule.label, systemImage: "repeat")
                     }
                     if showNote {
                         Label(ref.noteTitle, systemImage: noteSymbol)
-                            .foregroundStyle(tint)
+                            .rowTint(tint)
                     }
                 }
                 .font(.caption)

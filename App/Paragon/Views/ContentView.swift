@@ -836,7 +836,7 @@ struct NoteRow: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(note.tint.opacity(0.18), in: Capsule())
-                            .foregroundStyle(note.tint)
+                            .rowTint(note.tint)
                     }
                 }
                 HStack(spacing: 8) {
@@ -846,32 +846,32 @@ struct NoteRow: View {
                             .tint(note.tint)
                             .frame(width: 56)
                         Text("\(progress.done) of \(progress.total)")
-                            .foregroundStyle(note.tint)
+                            .rowTint(note.tint)
                     } else if let roll = goalProgress, roll.fraction != nil {
                         GoalProgressBar(progress: roll, width: 56, showsCounts: false, tint: note.tint)
                     } else if note.openTasks.count > 0 {
                         Label("\(note.openTasks.count)", systemImage: "checklist")
-                            .foregroundStyle(note.tint)
+                            .rowTint(note.tint)
                     }
                     if let due = note.dueDate {
                         let days = due.days(since: .today())
                         Label(days == 0 ? "Due today" : (days > 0 ? "Due in \(days) d" : "\(-days) d overdue"), systemImage: "calendar")
-                            .foregroundStyle(days < 0 ? Color.red : Color.secondary)
+                            .rowTint(days < 0 ? Color.red : Color.secondary)
                     }
                     if let horizon = note.horizon {
                         Label(horizon.label, systemImage: "scope")
-                            .foregroundStyle(note.tint)
+                            .rowTint(note.tint)
                     }
                     if let target = note.targetDate {
                         Label(target.description, systemImage: "flag.checkered")
                     }
                     if let goal = note.goal, note.kind != .goal {
                         Label(goal, systemImage: goalSymbol)
-                            .foregroundStyle(goalTint)
+                            .rowTint(goalTint)
                     }
                     if let area = note.area {
                         Label(area, systemImage: "circle.grid.2x2")
-                            .foregroundStyle(ParaKind.area.tint)
+                            .rowTint(ParaKind.area.tint)
                     }
                     if note.kind == .resource, !note.related.isEmpty {
                         Label("\(note.related.count)", systemImage: "link")

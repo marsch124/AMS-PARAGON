@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 200 · 18 September 2026
+
+**A selected row can be read again.** You picked an aspiration and its warning line vanished:
+orange writing on an orange background. The colour behind a selected row is the accent colour
+you chose in macOS System Settings, and yours is orange, so the two were the same colour.
+
+Every coloured word inside a row that can be selected now steps aside while that row is
+selected, and takes its own colour back the moment you pick another one. The rows that were
+affected: the aspirations, the goals, every note list, the task lists, and the Inbox.
+
+The coloured badge at the left of a row and the progress bar keep their colours. They are
+shapes, not writing, and a bar that changed colour when you clicked it would look like it was
+saying something about the goal.
+
 ## Build 199 · 18 September 2026
 
 **Aspirations have a room of their own.** There are now two rows in the sidebar where there

@@ -1684,6 +1684,40 @@ three questions: a sixth button, one list, ended goals folded with the count sho
 - **Nothing in the vault changed.** Both kinds are goal notes and `horizon:` still tells them
   apart — no migration, and every old note reads the same.
 
+## Orange on orange (build 200)
+
+His screenshot of the Aspirations list: *"When the aspiration is chosen, then the text cannot
+be read. The warning text is orange, and the selection also gets orange when you select it."*
+
+**The selection fill is the user's own macOS accent colour, and his is orange** — the same
+accent that drew build 197's yellow focus ring. SwiftUI turns a plain `Text` white on a
+prominent selection by itself, but **an explicit `.foregroundStyle(Color…)` wins and does not
+change**, so every tinted label in a selectable row was at the mercy of whatever accent the
+user had chosen. Orange warning text on an orange fill was simply invisible.
+
+- **`rowTint(_:)` (Theme.swift) is the one place it is decided.** It reads
+  `\.backgroundProminence` — `.increased` exactly while the row is drawn as a prominent
+  selection — and hands back `HierarchicalShapeStyle.primary` there, the inherited foreground
+  the list has already made readable against its own fill; the tint everywhere else. Written
+  out with the type name, because bare `.primary` is ambiguous with `Color.primary` (a fixed
+  dark ink, which would be worse than the bug).
+- **Only explicit colours needed it.** `.secondary` and the other hierarchical styles already
+  resolve against the row's foreground and were never broken — which is what kept the change
+  to 22 mechanical call sites in five row views: `AspirationRow`, `DatedGoalRow` (plus
+  `NoAspirationPrompt` inside it), `NoteRow`, `TaskRow`, `InboxRow`. **Look for
+  `.foregroundStyle(` with a `Color` in any new row that can be selected.**
+- **Shapes deliberately keep their tints**: `KindBadge` and `GoalProgressBar`. A badge is
+  still a visible shape, and a bar that changed colour on selection would read as a statement
+  about the goal.
+- Nothing in a detail column, a sheet, the Map or a Section header was touched: a header takes
+  no selection fill, and those columns have no selection at all.
+
+**A correction to build 167's note.** It says "red appears nowhere in the palette". That was
+true of the *warning* palette and it is still the rule for a warning — but `Color.red` has
+always been used for an **overdue date** in `NoteRow`, `TaskRow` and `InboxRow`. Three sites,
+older than that rule, and left alone here rather than recoloured in a build about something
+else. **Worth asking him whether overdue should be orange too**; it is his call.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

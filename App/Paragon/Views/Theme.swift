@@ -523,3 +523,50 @@ struct NowLine: View {
         }
     }
 }
+
+/// A colour for text inside a row of a `List(selection:)` — one that gets out of the way when
+/// the row is selected.
+///
+/// **Build 200, from his screenshot, and it is a fault of the whole app rather than one
+/// screen.** On macOS a selected row is filled with the **user's own accent colour**, and his
+/// is orange. SwiftUI turns a plain `Text` white on such a row by itself, but **an explicit
+/// `.foregroundStyle(Color…)` wins and stays exactly as it was** — so "No project or area
+/// serves this" in orange sat on an orange fill and could not be read at all. His words:
+/// *"When the aspiration is chosen, then the text cannot be read."*
+///
+/// `\.backgroundProminence` is `.increased` for precisely that state: a row drawn as a
+/// prominent selection. There the text takes the inherited foreground, which the list has
+/// already set to read against its own fill; everywhere else it takes the tint as before.
+///
+/// **Only explicit colours need this.** `.secondary` and the other hierarchical styles already
+/// resolve against the row's foreground, so they were never the problem and are left alone —
+/// which is what keeps this change small enough to be safe without a compiler here.
+///
+/// **Not applied to shapes** — `KindBadge` and `GoalProgressBar` keep their tints. A filled
+/// badge on a selected row is quieter than it was but still a shape you can see, and a bar
+/// that changed colour with selection would say something about the goal that is not true.
+private struct RowTintStyle: ViewModifier {
+    @Environment(\.backgroundProminence) private var prominence
+    let tint: Color
+
+    func body(content: Content) -> some View {
+        content.foregroundStyle(style)
+    }
+
+    /// The hierarchical style is written out with its type name: `.primary` on its own is
+    /// ambiguous between `Color.primary` (a fixed ink, dark in light mode — wrong here) and
+    /// `HierarchicalShapeStyle.primary` (the inherited foreground, which is what a prominent
+    /// selection sets). There is no Swift compiler in this container to settle an overload
+    /// (build 168), so neither is left to inference.
+    private var style: AnyShapeStyle {
+        prominence == .increased
+            ? AnyShapeStyle(HierarchicalShapeStyle.primary)
+            : AnyShapeStyle(tint)
+    }
+}
+
+extension View {
+    /// Use instead of `.foregroundStyle(_:)` for text and symbols inside a row that can be
+    /// selected. Outside such a row it is exactly `.foregroundStyle(tint)`.
+    func rowTint(_ tint: Color) -> some View { modifier(RowTintStyle(tint: tint)) }
+}
