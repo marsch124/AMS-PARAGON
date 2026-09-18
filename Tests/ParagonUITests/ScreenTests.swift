@@ -273,27 +273,31 @@ final class ScreenTests: XCTestCase {
         let links = element("note.links")
         XCTAssertTrue(links.waitForExistence(timeout: 20),
                       "The note has no Linked notes box. The test vault's project links to the resource, so it should have one. On screen: \(visibleTexts())")
-        // **The label is not the control, and guessing where the control is made it worse.**
-        // The first run clicked the words "Linked notes" and the box stayed shut: on the Mac
-        // only the triangle opens a DisclosureGroup. The second run clicked near the left
-        // edge of the group instead and deselected the note altogether. So the triangle is
-        // found as an element and picked by the row it sits on — the note has two of these
-        // boxes, Tasks and Linked notes, and the nearest one to this row is ours.
-        let triangles = app.windows.firstMatch.descendants(matching: .disclosureTriangle)
-            .allElementsBoundByIndex
-        let seen = triangles.map { "\($0.frame)" }.joined(separator: ", ")
-        guard let triangle = triangles.min(by: {
-            abs($0.frame.midY - links.frame.midY) < abs($1.frame.midY - links.frame.midY)
-        }) else {
-            XCTFail("The note draws no disclosure triangle at all. Linked notes is at \(links.frame). On screen: \(visibleTexts())")
-            return
+        // **Three runs to find the control, and this is what they showed.** Clicking the
+        // words "Linked notes" does nothing: on the Mac a DisclosureGroup is opened by its
+        // triangle alone. Clicking near the left edge of the whole group deselected the note.
+        // And the element XCUITest calls the disclosure triangle has the *label's* frame —
+        // (466, 298, 161, 15), the same rectangle as the row — so clicking its centre lands
+        // on the words again. The glyph itself is drawn just to the left of that row, which
+        // is the only place left to press.
+        //
+        // Both offsets stay inside the detail column: the column's own padding is 12pt, so
+        // anything further left would land in the note list and take the note away.
+        var opened = false
+        var tried: [String] = []
+        for dx in [-8.0, -13.0] where !opened {
+            let spot = links.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: dx, dy: links.frame.height / 2))
+            spot.click()
+            tried.append("\(dx)")
+            opened = element("note.links.open").waitForExistence(timeout: 5)
         }
-        triangle.click()
 
         // The box's contents exist only while it is open, so finding them is the proof that
-        // the press landed — and it fails with its own words if it did not.
-        XCTAssertTrue(element("note.links.open").waitForExistence(timeout: 10),
-                      "Linked notes was pressed and did not open. Clicked the triangle at \(triangle.frame); the Linked notes row is at \(links.frame); triangles in the window: \(seen). On screen: \(visibleTexts())")
+        // the press landed — and it fails with its own words, and with what it pressed, if
+        // it did not.
+        XCTAssertTrue(opened,
+                      "Linked notes did not open. Pressed \(links.frame.minX) offset by \(tried.joined(separator: " then ")), on the row at \(links.frame). On screen: \(visibleTexts())")
 
         let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
         let editor = element("note.editor")
