@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 207 · 20 September 2026
+
+**Second try at the iPhone's shared folder.** Build 206 changed how the iPhone app is built.
+Apple refused it: the method I copied from the Mac build is not allowed for the iPhone at all,
+so the iPhone half of build 206 never finished. The Mac half did, so build 206 exists for the
+Mac only.
+
+This build uses a different method with the same purpose: the iPhone app is now built in a way
+that writes its permissions into it, while still asking Apple for nothing during the build.
+
+The build log now also lists the permission files inside the app, so we can see the answer even
+when the app carries no signature yet. Before this, the log could only say "not signed" and
+tell us nothing.
+
+**Nothing in the app itself changed.** Build 205's fold headings are in this build too.
+
 ## Build 206 · 20 September 2026
 
 **The iPhone app never carried the shared folder, and it was our build, not your Apple

@@ -2448,9 +2448,22 @@ own comment read *"an unsigned build carries none"* — written about the sandbo
 and never applied one line up. So the Mac widget worked from build 178 and the iPhone's never
 did, from build 42 to 205.
 
-- iOS now carries the **same `signing:` string as macOS**. Ad-hoc asks Apple for nothing, so
-  it cannot mint the development certificates build 61 ran out of, and the export still does
-  the real signing.
+- **The word that mattered is `CODE_SIGNING_ALLOWED=NO`**, not the absence of an identity.
+  With signing *disallowed* Xcode never runs `ProcessProductPackaging`, so no `.xcent` is
+  written at all.
+- **Build 206's first attempt copied the Mac's ad-hoc identity and Apple refused it outright**:
+  `error: Ad Hoc code signing is not allowed with SDK 'iOS 26.5'`, on all three targets, 27
+  seconds in. **Ad-hoc is a Mac-only trick.** The Mac half of 206 uploaded; the iPhone half
+  never archived, so build 206 exists on the Mac only.
+- **Build 207 is the shape that should hold**: signing *allowed* but not *required*, with an
+  empty `CODE_SIGN_IDENTITY` and no profile. The packaging step runs and writes the
+  entitlements; nothing is asked of Apple, so no development certificate can be minted (build
+  61). The export still does the real signing.
+- **`codesign -d` cannot answer this question on an unsigned bundle** — it says "not signed at
+  all" and stops, so the check went quiet exactly where it mattered. The step now also finds
+  every `.xcent` in the bundle and prints it, because that file is what the packaging step
+  writes whether or not anything is signed. **A diagnostic that only works once the thing
+  works is not a diagnostic.**
 - **"What is inside the app" now reads the app's own entitlements**, not only its extensions.
   163 builds of a check that never asked about the one bundle that mattered. With the two
   steps together — the archive's entitlements and the App-Store-signed copy's — an

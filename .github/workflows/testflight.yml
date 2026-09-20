@@ -34,16 +34,20 @@ jobs:
           - label: the iPhone app
             destination: generic/platform=iOS
             archive: Paragon-iOS
-            # Ad-hoc ("-"), the same as the Mac, and build 206 is about why. Until then this
-            # was CODE_SIGNING_ALLOWED=NO — completely unsigned — on the belief that the App
-            # Store profile would supply the entitlements at export. It does not. A build with
-            # signing switched off never runs the step that writes the entitlements into the
-            # app, so there was nothing for the export to carry over, and the App Group was
-            # missing from every iPhone build from 42 to 205. The comment under the Mac's line
-            # had said exactly this since build 64 and was never applied here.
-            # Ad-hoc asks Apple for nothing, so it cannot mint the development certificates
-            # that build 61 ran out of; the export still does the real signing.
-            signing: CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO PROVISIONING_PROFILE_SPECIFIER=
+            # **`CODE_SIGNING_ALLOWED=NO` is the setting that loses the entitlements**, and
+            # that is what build 206 got wrong twice. Until 206 this line read
+            # `CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO`, on the belief that the App
+            # Store profile would supply the entitlements at export. It does not: with signing
+            # *disallowed*, Xcode never runs ProcessProductPackaging, so no `.xcent` is written
+            # and the export has nothing to carry over. The App Group was missing from every
+            # iPhone build from 42 to 205 because of this one word.
+            # 206's first attempt copied the Mac's ad-hoc identity and Apple refused it outright:
+            # "Ad Hoc code signing is not allowed with SDK 'iOS 26.5'". Ad-hoc is a Mac-only
+            # trick. So: signing stays *allowed* (the packaging step runs and writes the
+            # entitlements) but not *required*, with an empty identity and no profile — so
+            # nothing is asked of Apple and no development certificate can be minted, which is
+            # what build 61 ran the account out of. The export still does the real signing.
+            signing: CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO PROVISIONING_PROFILE_SPECIFIER=
           - label: the Mac app
             destination: generic/platform=macOS
             archive: Paragon-macOS
@@ -160,7 +164,20 @@ jobs:
           # the extensions only, so the one bundle that mattered most was never asked.
           echo "--- entitlements of the app itself ---"
           codesign -d --entitlements :- "$APP" 2>&1 | head -40 || true
-          if codesign -d --entitlements :- "$APP" 2>/dev/null | grep -qi "application-groups"; then
+          # An unsigned bundle makes `codesign -d` answer "not signed at all" and say nothing
+          # about entitlements, so the question would go unanswered exactly when it matters.
+          # The .xcent file is what ProcessProductPackaging writes, signature or not, and its
+          # presence is the direct test of whether this build wrote any entitlements at all.
+          echo "--- entitlement files written into the bundle ---"
+          found=no
+          while IFS= read -r xcent; do
+            found=yes
+            echo "$xcent"
+            plutil -p "$xcent" 2>/dev/null | head -20 || true
+          done < <(find "$APP" -name "*.xcent" 2>/dev/null)
+          [ "$found" = yes ] || echo "No .xcent anywhere in the bundle: this build wrote no entitlements."
+          if { codesign -d --entitlements :- "$APP" 2>/dev/null; find "$APP" -name "*.xcent" -exec cat {} \; 2>/dev/null; } \
+               | grep -qi "application-groups"; then
             echo "APP GROUP IS IN THE ARCHIVED APP"
           else
             echo "NO APP GROUP IN THE ARCHIVED APP"
