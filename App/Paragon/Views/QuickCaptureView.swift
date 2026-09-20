@@ -392,9 +392,9 @@ struct CaptureTagsChip: View {
                 .padding(.vertical, 4)
                 .background(Color.secondary.opacity(0.12), in: Capsule())
                 .contentShape(Capsule())
+                .helpWhenClosed("Put a tag on this, from the ones you already have", open: showing)
         }
         .buttonStyle(.plain)
-        .help("Put a tag on this, from the ones you already have")
         .popover(isPresented: $showing) {
             TagChoices(model: model,
                        title: "Tags for this capture",

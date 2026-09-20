@@ -494,9 +494,9 @@ private struct PickerChip: View {
                       systemImage: chosen?.symbol ?? systemImage,
                       tint: tint,
                       isSet: chosen != nil)
+                .helpWhenClosed(name, open: showing)
         }
         .buttonStyle(.plain)
-        .help(name)
         .popover(isPresented: $showing) { list }
     }
 
@@ -519,6 +519,12 @@ private struct PickerChip: View {
         .padding(14)
         .frame(width: 290)
         .presentationCompactAdaptation(.popover)
+        // **The gold line under the first row was macOS, not us (build 202).** A plain
+        // Button inside a popover takes keyboard focus the moment it opens, and the ring is
+        // drawn in the user's accent colour — orange on his Mac — so it read as a second
+        // selection arguing with the tick beside it. Same fault as build 197's yellow square
+        // round the Inbox, in a new place.
+        .focusEffectDisabled()
     }
 
     private func row(_ option: ChipOption) -> some View {
@@ -563,9 +569,9 @@ private struct NewNoteTagsChip: View {
                       systemImage: SidebarSection.tags.systemImage,
                       tint: SidebarSection.tags.tint,
                       isSet: !tags.isEmpty)
+                .helpWhenClosed("Tags for this note", open: showing)
         }
         .buttonStyle(.plain)
-        .help("Tags for this note")
         .popover(isPresented: $showing) {
             TagChoices(model: model, title: "Tags for this note", chosen: $tags)
         }
@@ -591,9 +597,9 @@ private struct DateChip: View {
                       systemImage: "flag.checkered",
                       tint: tint,
                       isSet: current != nil)
+                .helpWhenClosed(name, open: picking)
         }
         .buttonStyle(.plain)
-        .help(name)
         .popover(isPresented: $picking) {
             DateChoiceView(current: current,
                            clearTitle: current == nil ? nil : "Clear",

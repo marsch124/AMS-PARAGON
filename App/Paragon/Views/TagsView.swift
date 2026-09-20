@@ -273,10 +273,10 @@ struct NoteTagsChip: View {
         } label: {
             Label(title, systemImage: "number")
                 .contentShape(Rectangle())
+                .helpWhenClosed("Add or remove this note's tags", open: showing)
         }
         .buttonStyle(.plain)
         .foregroundStyle(live.tags.isEmpty ? Color.secondary : SidebarSection.tags.tint)
-        .help("Add or remove this note's tags")
         .popover(isPresented: $showing) {
             TagChoices(model: model, title: "Tags on this note", chosen: chosen)
         }
@@ -324,6 +324,9 @@ struct TagChoices: View {
         .padding(14)
         .frame(width: 300)
         .presentationCompactAdaptation(.popover)
+        // One place, so the note header, the New note sheet and the Capture screen all lose
+        // the accent-coloured focus ring on the first row together (build 202).
+        .focusEffectDisabled()
         .onAppear {
             var counts: [String: Int] = [:]
             for use in model.tagUses() { counts[use.tag.lowercased()] = use.total }

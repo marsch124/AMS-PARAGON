@@ -570,3 +570,31 @@ extension View {
     /// selected. Outside such a row it is exactly `.foregroundStyle(tint)`.
     func rowTint(_ tint: Color) -> some View { modifier(RowTintStyle(tint: tint)) }
 }
+
+/// A help tag that goes quiet while the control's own popover is open.
+///
+/// **Build 202, from his screenshot of the New note sheet.** macOS draws a help tag beside the
+/// pointer, and these chips sit one row above the sheet's footer — so the tag landed squarely
+/// on **Cancel** and **Create** and cut both words in half. While the popover is open the tag
+/// is also pure repetition: the popover's own first line already says the same word, which is
+/// build 169's rule (a label that repeats what the screen already says carries no information).
+///
+/// **The branch goes inside the button's label, never around the button.** An `if`/`else` in a
+/// `@ViewBuilder` changes that subtree's identity, and the popover is attached to the *button*
+/// — rebuilding it would close the popover the instant it opened.
+private struct HelpWhenClosed: ViewModifier {
+    let text: String
+    let open: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if open { content } else { content.help(text) }
+    }
+}
+
+extension View {
+    /// Use on a button's **label** when that button also presents a popover.
+    func helpWhenClosed(_ text: String, open: Bool) -> some View {
+        modifier(HelpWhenClosed(text: text, open: open))
+    }
+}

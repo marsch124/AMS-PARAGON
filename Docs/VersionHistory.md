@@ -2,6 +2,26 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 202 · 20 September 2026
+
+**Two things in the New note screen's pop-up lists, both from your screenshot.**
+
+**The small yellow label no longer covers the buttons.** Hovering a chip made macOS show its
+name beside the pointer, and because those chips sit just above the bottom of the screen, the
+label landed on top of **Cancel** and **Create** and cut both words in half. While the list is
+open that label also said nothing new — the list already has the same word as its heading. It
+now appears only while the list is closed.
+
+**The gold line under the first row is gone.** That was not ours: macOS gives the first button
+in a pop-up list the keyboard focus as soon as it opens and draws a ring around it in the
+accent colour you chose in System Settings, which is orange. It looked like a second choice
+arguing with the blue tick beside it. The same thing caused the yellow square around the Inbox
+in build 197.
+
+Both fixes reach every pop-up list of this kind: the **Template**, **Serves a goal** and date
+chips on the New note screen, and the tag list wherever it opens — the note header, the New
+note screen and **Quick capture**.
+
 ## Build 201 · 18 September 2026
 
 **The rest of the screens.** Build 200 fixed the lists you had in front of you. You asked

@@ -1741,6 +1741,35 @@ explicit colour at all (a `TintStripe` is a shape and keeps its tint by design).
 rather than one screen, the build is not finished until the search that finds every instance
 has been run and written down.
 
+## The pop-up list's own furniture (build 202)
+
+His screenshot of the New note sheet with the **Template** popover open: *"please analyse this
+graphic in the pop up menu - does not look good"*. Two separate faults in one picture, and
+**neither was drawn by our code**.
+
+- **A help tag on a control just above a sheet's footer lands on the footer.** `.help(name)`
+  sat beside `.popover(isPresented:)` on the same Button in five places, and macOS puts the tag
+  by the pointer — so "Template" covered **Cancel** and **Create**, both cut in half. While the
+  popover is open the tag is also pure repetition: its first line already says that word
+  (build 169). `helpWhenClosed(_:open:)` (Theme.swift) is the one place that is decided.
+  **The branch goes inside the button's *label*, never around the button** — an `if`/`else` in
+  a `@ViewBuilder` changes that subtree's identity, and the popover hangs off the button, so
+  rebuilding it would close the popover the instant it opened. `.help("")` was considered and
+  rejected: an empty tag may still draw an empty box and there is no Mac here to look.
+- **`.focusEffectDisabled()` belongs on a popover that is a list of buttons.** The gold line
+  under "Project (default)" was macOS giving the first plain Button keyboard focus on open and
+  ringing it in **his accent colour, orange** — reading as a second selection arguing with the
+  tick. **Exactly build 197's yellow square round the Inbox, one screen along**, and the rule
+  there was already written: anything that takes focus needs `.focusEffectDisabled()` beside it
+  unless the ring is wanted.
+- **Scope, decided rather than swept.** The ring is switched off in `PickerChip.list` and once
+  inside `TagChoices` — which covers the note header, the New note sheet and Capture together.
+  The **date** popovers keep theirs: `DateChoiceView` leads with a `TextField`, where a focus
+  ring is the normal, useful thing, and the two syntax-help popovers hold no buttons at all.
+- **Neither could be seen from here**, and both were read off one screenshot: the tag's words
+  matched `.help(name)`, and the line's colour matched his accent rather than anything in the
+  palette. Said as much to him rather than claiming it fixed.
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /
