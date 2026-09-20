@@ -2455,10 +2455,21 @@ did, from build 42 to 205.
   `error: Ad Hoc code signing is not allowed with SDK 'iOS 26.5'`, on all three targets, 27
   seconds in. **Ad-hoc is a Mac-only trick.** The Mac half of 206 uploaded; the iPhone half
   never archived, so build 206 exists on the Mac only.
-- **Build 207 is the shape that should hold**: signing *allowed* but not *required*, with an
-  empty `CODE_SIGN_IDENTITY` and no profile. The packaging step runs and writes the
-  entitlements; nothing is asked of Apple, so no development certificate can be minted (build
-  61). The export still does the real signing.
+- **Build 207 tried signing *allowed* but not *required*, with an empty `CODE_SIGN_IDENTITY`.
+  It did not work**, and the new check said so exactly: `No .xcent anywhere in the bundle`,
+  `NO APP GROUP IN THE ARCHIVED APP`, and `code object is not signed at all`. **Xcode writes
+  the entitlements only while it is really signing something**, so an identity that does not
+  exist is the same as no signing at all.
+- **Build 208 gives the runner a certificate of its own**: a self-signed code-signing
+  certificate in a keychain made for that run, trusted in the system keychain (the runner is
+  thrown away), used as `CODE_SIGN_IDENTITY="PARAGON Build"` with
+  `OTHER_CODE_SIGN_FLAGS=--keychain=$BUILD_KEYCHAIN`. **Apple is asked for nothing**, so
+  build 61's certificate limit is not in play, and `-exportArchive` re-signs everything with
+  the real App Store identity a few steps later.
+- **Two shell traps in that step, both avoided on purpose**: the openssl config is written
+  with `printf`, not a heredoc, because a heredoc inside a YAML block keeps the block's own
+  indentation on every line; and `CODE_SIGN_IDENTITY="PARAGON Build"` keeps its quotes,
+  because the matrix string is pasted into a shell command line and the name is two words.
 - **`codesign -d` cannot answer this question on an unsigned bundle** — it says "not signed at
   all" and stops, so the check went quiet exactly where it mattered. The step now also finds
   every `.xcent` in the bundle and prints it, because that file is what the packaging step

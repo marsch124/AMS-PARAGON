@@ -2,6 +2,29 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 208 · 20 September 2026
+
+**Third try at the iPhone's shared folder, and this time we know exactly what is wrong.**
+
+Build 207 added a check that reads the permissions out of the app before Apple ever sees it.
+It answered in one line: the iPhone app is built with **no permissions inside it at all**. So
+Apple was never removing the shared folder — it was never there. That also explains why your
+developer portal was already correct.
+
+The reason: Xcode only writes an app's permissions while it is signing it, and the iPhone app
+was built without signing. Two ways round that have now been refused — the method the Mac uses
+is not allowed for the iPhone, and leaving the signature empty changes nothing.
+
+So this build gives the machine that makes your app a throwaway certificate of its own, purely
+so that step runs. Apple is not asked for anything, nothing is registered in your account, and
+the certificate is destroyed when the build finishes. Apple still signs the app properly
+afterwards, exactly as before.
+
+**Correction to build 207's note**, which said the iPhone app was "now built in a way that
+writes its permissions into it". It was not. The log proved otherwise.
+
+**Nothing in the app itself changed.** Build 205's fold headings are in this build too.
+
 ## Build 207 · 20 September 2026
 
 **Second try at the iPhone's shared folder.** Build 206 changed how the iPhone app is built.

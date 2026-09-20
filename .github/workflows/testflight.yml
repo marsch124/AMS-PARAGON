@@ -34,20 +34,15 @@ jobs:
           - label: the iPhone app
             destination: generic/platform=iOS
             archive: Paragon-iOS
-            # **`CODE_SIGNING_ALLOWED=NO` is the setting that loses the entitlements**, and
-            # that is what build 206 got wrong twice. Until 206 this line read
-            # `CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO`, on the belief that the App
-            # Store profile would supply the entitlements at export. It does not: with signing
-            # *disallowed*, Xcode never runs ProcessProductPackaging, so no `.xcent` is written
-            # and the export has nothing to carry over. The App Group was missing from every
-            # iPhone build from 42 to 205 because of this one word.
-            # 206's first attempt copied the Mac's ad-hoc identity and Apple refused it outright:
-            # "Ad Hoc code signing is not allowed with SDK 'iOS 26.5'". Ad-hoc is a Mac-only
-            # trick. So: signing stays *allowed* (the packaging step runs and writes the
-            # entitlements) but not *required*, with an empty identity and no profile — so
-            # nothing is asked of Apple and no development certificate can be minted, which is
-            # what build 61 ran the account out of. The export still does the real signing.
-            signing: CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO PROVISIONING_PROFILE_SPECIFIER=
+            # Signed with the throwaway certificate the step above makes, because **Xcode
+            # only writes the entitlements while it is signing something**. Three shapes were
+            # tried: `CODE_SIGNING_ALLOWED=NO` (builds 42–205, wrote nothing — this is the
+            # fault), the Mac's ad-hoc `-` (build 206, Apple: "Ad Hoc code signing is not
+            # allowed with SDK 'iOS 26.5'"), and an empty identity with signing merely not
+            # required (build 207, still no `.xcent`). An identity that really exists is the
+            # only shape left. Apple is asked for nothing, so build 61's certificate limit is
+            # not in play, and `-exportArchive` re-signs it properly for the App Store.
+            signing: CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="PARAGON Build" CODE_SIGNING_REQUIRED=NO PROVISIONING_PROFILE_SPECIFIER= OTHER_CODE_SIGN_FLAGS=--keychain=$BUILD_KEYCHAIN
           - label: the Mac app
             destination: generic/platform=macOS
             archive: Paragon-macOS
@@ -123,6 +118,55 @@ jobs:
           mkdir -p "$HOME/private_keys"
           printf '%s\n' "$KEY" > "$HOME/private_keys/AuthKey_$KEY_ID.p8"
           chmod 600 "$HOME/private_keys/AuthKey_$KEY_ID.p8"
+
+      - name: Make a throwaway signing certificate
+        # Build 208, and the reason is builds 206 and 207. Xcode only writes an app's
+        # entitlements (the `.xcent`) while it is actually signing something, so an unsigned
+        # iPhone archive carries none and the App Store export has nothing to carry over —
+        # which is why the App Group has been missing from every iPhone build since 42. The
+        # Mac gets round this with the ad-hoc identity `-`; iOS refuses that outright
+        # ("Ad Hoc code signing is not allowed with SDK 'iOS 26.5'", build 206).
+        #
+        # So the runner makes a certificate of its own. **Apple is asked for nothing** — no
+        # profile, no cloud signing, so no development certificate can be minted and the
+        # account cannot run out of them again (build 61). The certificate is self-signed,
+        # lives in a keychain created for this run, and dies with the runner. Its only job is
+        # to make the packaging step run. `-exportArchive` re-signs everything properly a few
+        # steps later, which is where the real App Store identity comes from.
+        if: matrix.archive == 'Paragon-iOS'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          KEYCHAIN="$RUNNER_TEMP/paragon-build.keychain-db"
+          PASS=$(uuidgen)
+          # printf, not a heredoc: a heredoc inside this YAML block would keep the block's
+          # own indentation and put leading spaces on every line of the config.
+          printf '%s\n' \
+            '[req]' 'distinguished_name = dn' 'prompt = no' 'x509_extensions = v3' \
+            '[dn]' 'CN = PARAGON Build' \
+            '[v3]' 'basicConstraints = critical,CA:false' \
+            'keyUsage = critical,digitalSignature' \
+            'extendedKeyUsage = critical,codeSigning' > openssl.cnf
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
+            -config openssl.cnf -keyout build.key -out build.crt
+          openssl pkcs12 -export -inkey build.key -in build.crt \
+            -name "PARAGON Build" -out build.p12 -passout "pass:$PASS"
+          security create-keychain -p "$PASS" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$PASS" "$KEYCHAIN"
+          security import build.p12 -k "$KEYCHAIN" -P "$PASS" -A -T /usr/bin/codesign -T /usr/bin/security
+          # Without this, codesign asks for the keychain password and CI has nobody to ask.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$PASS" "$KEYCHAIN" >/dev/null
+          # A self-signed certificate is not a valid signing identity until it is trusted, and
+          # `find-identity -v -p codesigning` will not list it. The runner is thrown away, so
+          # trusting it in the system keychain costs nothing.
+          sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain build.crt
+          # Keep the default keychains in the search list; codesign looks up the identity by name.
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          echo "Signing identities the build can see:"
+          security find-identity -v -p codesigning
+          echo "BUILD_KEYCHAIN=$KEYCHAIN" >> $GITHUB_ENV
+          rm -f build.key build.p12 openssl.cnf
 
       - name: Archive the app
         env:
@@ -297,6 +341,10 @@ jobs:
           path: build/*.log
           if-no-files-found: ignore
 
-      - name: Remove the key
+      - name: Remove the key and the throwaway certificate
         if: always()
-        run: rm -rf "$HOME/private_keys"
+        run: |
+          rm -rf "$HOME/private_keys"
+          if [ -n "${BUILD_KEYCHAIN:-}" ]; then
+            security delete-keychain "$BUILD_KEYCHAIN" || true
+          fi
