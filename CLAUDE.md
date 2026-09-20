@@ -2574,8 +2574,16 @@ The last two from his list. Fourteen now: twelve shared or Mac-only, plus the ph
   *"Shared folder says Found in iPhone."* So the iPhone widget can read, and the share
   extension's outbox reaches the app at last — both untried by him so far, since he uses the
   widget on the Mac.
-- **The full peek carousel** on the phone (build 184): it means replacing the page view, and
-  then every screen's top bar lives inside a scroll view.
+- ~~**The full peek carousel** on the phone (build 184)~~ — **decided against, 20 September,
+  by him**: *"ok leave it."* I put the trade-off to him plainly rather than build it: a peek
+  cannot be done with Apple's page view, so it means writing the pager myself out of a
+  horizontal scroll view, and then every screen's top bar, the back arrow and the keyboard sit
+  inside that scroll view and have to be made to behave again — three or four builds, breaking
+  in places the tests cannot see. What it buys is a hint that the other screens exist, which
+  the five names along the bottom already give. **Do not reopen it without a new reason from
+  him.** The rule worth keeping: **when the cost is high and the gain is small, say so before
+  spending his builds** — he had already said "all of them please", and he was still glad to
+  be asked.
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
   vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
   capture to the Inbox, a Map box pressed — and five on the Mac alone: the columns inside
