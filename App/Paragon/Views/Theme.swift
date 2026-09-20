@@ -460,6 +460,49 @@ struct StateToggle: View {
     }
 }
 
+/// A heading you open by pressing its words (build 205).
+///
+/// **`DisclosureGroup` only opens from its small triangle.** The label itself does nothing,
+/// which is a target of about eleven points on a Mac — and it is why the screen test for
+/// build 30's window scramble had to be abandoned in build 198 after four runs: nothing a
+/// test could click would open the **Linked notes** box.
+///
+/// So the whole header is one plain `Button`: a chevron, then whatever label is handed in,
+/// with `.contentShape(Rectangle())` so the gap between them is pressable too. The caller
+/// draws the contents itself under an `if`, exactly the shape `TemplatesView` and the
+/// sidebar have used since build 93 — a `DisclosureGroup` inside a `List` drew its rows over
+/// each other there, and this replaces the last two in the app.
+///
+/// **Anything else that belongs in the header stays outside this button.** A button inside a
+/// button is the builds 71–74 fault in a new place: one press, two meanings.
+struct FoldButton<Label: View>: View {
+    @Binding var isOpen: Bool
+    /// Read aloud, so the row says what it is even though the chevron carries no words.
+    /// Not optional: an empty label would leave a screen reader with nothing to say, and a
+    /// branch around the modifier would change the button's identity for no good reason.
+    let accessibilityName: String
+    @ViewBuilder let label: () -> Label
+
+    var body: some View {
+        Button {
+            isOpen.toggle()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(isOpen ? 90 : 0))
+                label()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityName)
+        .accessibilityAddTraits(isOpen ? [.isSelected] : [])
+        .help(isOpen ? "Press to close." : "Press to open.")
+    }
+}
+
 /// The line across a day column showing where *now* is, the way every calendar app draws it
 /// (build 180). His ask: *"add an indication with a line for where we are in the day… as a
 /// normal calendar app does it."*

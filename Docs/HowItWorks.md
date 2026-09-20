@@ -557,6 +557,8 @@ Type two square brackets in any note and a list of your notes appears under the 
 
 **Coming back.** Following a link takes you to the other note; **Back** brings you here again. On the Mac it is the ‹ button at the top left of the window, or ⌃⌘←, with ⌃⌘→ to go forward again — the same as a web browser, and it remembers the whole trail, not just the last step. On the iPhone the ordinary back arrow does it.
 
+**Press the name to open it.** **Linked notes** and **Tasks** are both boxes that fold. Press anywhere on the heading — the arrow at the left turns to show whether the box is open.
+
 **Both directions.** A note's **Linked notes** section lists **Links to** — the notes this one points at — and **Linked from** — the notes that point at it. You never have to remember who mentioned what: point from wherever you happen to be writing, and the other end knows.
 
 **Linking to a note you have not written yet.** Write the link anyway. It appears under **Not made yet** in the Linked notes section, and clicking it — or ⌘-clicking the link in the text — offers to make that note there and then, with the link's own words as its title. Choose whether it should be a goal, project, area or resource and it is created, opened, and the link is a real link from that moment.

@@ -290,12 +290,15 @@ struct NoteEditorView: View {
                 Divider()
             }
             if !note.tasks.isEmpty {
-                DisclosureGroup(isExpanded: $showTasks) {
-                    TaskChecklist(note: note, beforeToggle: flushSave)
-                } label: {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        SectionLabel(title: note.openTasks.isEmpty ? "Tasks" : "Tasks, \(note.openTasks.count) open",
-                                     count: nil, systemImage: "checklist", tint: note.tint)
+                        // **The whole name opens it, not a triangle** (build 205). The
+                        // `StateToggle` beside it stays its own button, outside this one: a
+                        // button inside a button is the builds 71–74 fault in a new place.
+                        FoldButton(isOpen: $showTasks, accessibilityName: "Tasks") {
+                            SectionLabel(title: note.openTasks.isEmpty ? "Tasks" : "Tasks, \(note.openTasks.count) open",
+                                         count: nil, systemImage: "checklist", tint: note.tint)
+                        }
                         Spacer()
                         let finished = note.tasks.count - note.openTasks.count
                         if finished > 0 {
@@ -313,6 +316,9 @@ struct NoteEditorView: View {
                             }
                         }
                     }
+                    if showTasks {
+                        TaskChecklist(note: note, beforeToggle: flushSave)
+                    }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
@@ -322,39 +328,44 @@ struct NoteEditorView: View {
             let linkedFrom = notesLinking(to: note)
             let notYetMade = missingLinks(from: note)
             if !linksTo.isEmpty || !linkedFrom.isEmpty || !notYetMade.isEmpty {
-                DisclosureGroup(isExpanded: $showLinks) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if !linksTo.isEmpty {
-                            SectionLabel(title: "Links to", count: linksTo.count, systemImage: "arrow.up.right")
-                                .font(.caption)
-                            LinkedNotesList(notes: linksTo)
-                        }
-                        if !notYetMade.isEmpty {
-                            SectionLabel(title: "Not made yet", count: notYetMade.count, systemImage: "plus.circle")
-                                .font(.caption)
-                            MissingLinksList(titles: notYetMade, notePath: note.relativePath)
-                        }
-                        if !linkedFrom.isEmpty {
-                            SectionLabel(title: "Linked from", count: linkedFrom.count, systemImage: "arrow.down.left")
-                                .font(.caption)
-                            LinkedNotesList(notes: linkedFrom)
-                        }
+                VStack(alignment: .leading, spacing: 8) {
+                    // **Pressing the words opens it.** Until build 205 this was a
+                    // `DisclosureGroup`, where only the small triangle works: the label does
+                    // nothing at all on the Mac. That is why four attempts at a screen test
+                    // for build 30's window scramble failed — nothing a test could click
+                    // would open the box — and it was a real annoyance with a mouse too.
+                    // `TemplatesView` and `TagsView` have used a fold button in the header
+                    // since build 93 for a different reason; this is the same shape.
+                    FoldButton(isOpen: $showLinks, accessibilityName: "Linked notes") {
+                        SectionLabel(title: "Linked notes",
+                                     count: linksTo.count + linkedFrom.count + notYetMade.count,
+                                     systemImage: "link", tint: note.tint)
+                            .font(.subheadline.weight(.medium))
                     }
-                    // Drawn only while the group is open, so its presence is the proof that
-                    // the press landed — what the Mac screen test waits for (build 198).
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("note.links.open")
-                } label: {
-                    SectionLabel(title: "Linked notes", count: linksTo.count + linkedFrom.count + notYetMade.count,
-                                 systemImage: "link", tint: note.tint)
-                        .font(.subheadline.weight(.medium))
-                        // Accessibility only, and it names the **row**, not the control: on
-                        // the Mac a DisclosureGroup is opened by its triangle and never by
-                        // its label, so the screen test uses this frame to find the triangle
-                        // sitting beside it. Expanding this box is what scrambled the whole
-                        // window in build 30, and nothing had ever pressed it.
+                    .accessibilityIdentifier("note.links")
+                    if showLinks {
+                        VStack(alignment: .leading, spacing: 8) {
+                            if !linksTo.isEmpty {
+                                SectionLabel(title: "Links to", count: linksTo.count, systemImage: "arrow.up.right")
+                                    .font(.caption)
+                                LinkedNotesList(notes: linksTo)
+                            }
+                            if !notYetMade.isEmpty {
+                                SectionLabel(title: "Not made yet", count: notYetMade.count, systemImage: "plus.circle")
+                                    .font(.caption)
+                                MissingLinksList(titles: notYetMade, notePath: note.relativePath)
+                            }
+                            if !linkedFrom.isEmpty {
+                                SectionLabel(title: "Linked from", count: linkedFrom.count, systemImage: "arrow.down.left")
+                                    .font(.caption)
+                                LinkedNotesList(notes: linkedFrom)
+                            }
+                        }
+                        // Drawn only while the box is open, so its presence is the proof
+                        // that the press landed — what the Mac screen test waits for.
                         .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier("note.links")
+                        .accessibilityIdentifier("note.links.open")
+                    }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

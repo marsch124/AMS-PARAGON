@@ -1716,7 +1716,9 @@ user had chosen. Orange warning text on an orange fill was simply invisible.
 true of the *warning* palette and it is still the rule for a warning — but `Color.red` has
 always been used for an **overdue date** in `NoteRow`, `TaskRow` and `InboxRow`. Three sites,
 older than that rule, and left alone here rather than recoloured in a build about something
-else. **Worth asking him whether overdue should be orange too**; it is his call.
+else. **Asked him, and he chose red** (20 September 2026, one word: *"red"*). So overdue keeps
+`Color.red` in `NoteRow`, `TaskRow` and `InboxRow`, and orange stays the warning colour
+everywhere else. Settled; do not reopen it.
 
 
 **Build 201 finished it, and the lesson is about how I checked.** 200 fixed the five row views
@@ -2390,11 +2392,42 @@ contents (they exist only while the group is open), and the test vault's `[[Pack
 link, because **the box is drawn only when a note has links**. The window is still checked when
 a note opens, which is the same fault one step earlier. **Reopening this needs the app's side to
 change**: making the label itself open the box would fix a small Mac wart and make the test one
-line, and that is his call, not something to slip into a build about something else.
+line, and that is his call, not something to slip into a build about something else. **He asked
+for it in build 205**, and the test is one line.
 
 `expectNoOverflow(after:)` stays, shared with build 197's test. It asks the app itself — Help ›
 Copy Diagnostics, then the clipboard — because the app's own `OVERFLOW` line is a better judge
 of builds 30/34 than any frame a test could measure.
+
+## Pressing the words opens the box (build 205)
+
+The first of four items he approved with *"all of them please. Has good potential."*
+
+**A SwiftUI `DisclosureGroup` opens only from its triangle** — about eleven points on a Mac,
+and the label itself is dead. That is a small annoyance with a mouse and a hard stop for a
+test: build 198 spent four runs trying to press **Linked notes** open and gave up, so the
+oldest fault in this app (builds 30 and 34, the window scramble) had never once been checked
+at the moment that triggers it.
+
+- **`FoldButton` (Theme.swift)** is a chevron plus whatever label is handed in, inside one
+  plain `Button` with `.contentShape(Rectangle())` so the gap between them presses too. The
+  caller draws the contents under its own `if`. That is the shape `TemplatesView`, `TagsView`
+  and the sidebar have used since build 93 for a different reason; these were the last two
+  `DisclosureGroup`s outside a `Form`.
+- **Anything else in the header stays outside the button.** The **Hide finished**
+  `StateToggle` beside the Tasks name is its own button: a button inside a button is builds
+  71–74 in a new place — one press, two meanings.
+- `accessibilityName` is not optional. An empty `.accessibilityLabel` leaves a screen reader
+  with nothing to say, and branching around the modifier would change the button's identity.
+- **Left alone on purpose**: the `DisclosureGroup`s in `HelpView` and `SettingsView`. They sit
+  in a `Form`/`List`, where the triangle is the platform's own shape and the row is wide.
+- **`testLinkedNotesOpensAndTheWindowHolds` is back**, Mac only, and it is the one line build
+  198 said it would be: press `note.links`, wait for `note.links.open`, then
+  `expectNoOverflow(after:)` — Help › Copy Diagnostics and the clipboard, the app's own
+  judgement of builds 30/34. Twelve screen tests now.
+- **The rule: when a test cannot reach a control, that is a report about the control.** Four
+  runs went into finding a way to click an eleven-point triangle. The fix was to make the
+  thing pressable, which is what he wanted anyway.
 
 ## Not built (by choice)
 
@@ -2406,10 +2439,10 @@ of builds 30/34 than any frame a test could measure.
   then every screen's top bar lives inside a scroll view.
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
   vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
-  capture to the Inbox, a Map box pressed — and four on the Mac alone: the columns inside
-  the window after a note opens, ⌘N, ⇧⌘N, ⌃⌘←. Left, if wanted: the phone's swipe between
-  tabs (build 183, untested from here), the All actions filter itself, and **Linked notes
-  pressed open** — which needs the app to make that label clickable first (build 198).
+  capture to the Inbox, a Map box pressed — and five on the Mac alone: the columns inside
+  the window after a note opens, **Linked notes pressed open** (build 205), ⌘N, ⇧⌘N, ⌃⌘←.
+  Left, if wanted: the phone's swipe between tabs (build 183, untested from here) and the
+  All actions filter itself.
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).

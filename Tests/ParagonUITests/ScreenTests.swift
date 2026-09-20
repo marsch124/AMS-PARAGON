@@ -255,18 +255,34 @@ final class ScreenTests: XCTestCase {
         expectNoOverflow(after: "the note opened")
     }
 
-    // **Pressing Linked notes open is not tested, and four runs is why.** The box is drawn,
-    // its row carries `note.links` and its contents carry `note.links.open`, so everything a
-    // test needs is in place — but nothing this test could click would open it. Clicking the
-    // words does nothing: on the Mac only the triangle opens a DisclosureGroup. Clicking the
-    // left edge of the group deselected the note. The element XCUITest calls the disclosure
-    // triangle turned out to have the label's own frame, so clicking its centre lands on the
-    // words again, and pressing 8pt and 13pt to the left of that row missed the glyph too.
-    // Left out rather than left failing: a red light that means nothing is worse than no
-    // light at all (build 190). The window is still checked when a note opens, which is the
-    // same fault one step earlier. Reopening this needs the app's side to change — making the
-    // label itself open the box would fix a small Mac wart and make the test one line — and
-    // that is his call, not a thing to slip into a build about something else.
+    /// **Linked notes opens, and the window does not scramble.** This is the oldest fault in
+    /// the app (builds 30 and 34) and until build 205 nothing could test it: the box was a
+    /// `DisclosureGroup`, where only the small triangle opens it, and four runs in build 198
+    /// proved a test cannot reliably hit that triangle — clicking the words did nothing, and
+    /// clicking to the left of them took the note away instead. Build 205 made the whole
+    /// heading one button, so this is now the one line it always should have been.
+    ///
+    /// The test project links to the test resource, so the box is drawn; its contents carry
+    /// `note.links.open` and exist only while it is open, which is the proof the press landed.
+    func testLinkedNotesOpensAndTheWindowHolds() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+
+        XCTAssertTrue(element("note.editor").waitForExistence(timeout: 20), "The note opened without its editor.")
+
+        let heading = element("note.links")
+        XCTAssertTrue(heading.waitForExistence(timeout: 20),
+                      "The note has no Linked notes heading, although the test project links to Packing list. On screen: \(visibleTexts())")
+        heading.pressCentre()
+
+        XCTAssertTrue(element("note.links.open").waitForExistence(timeout: 20),
+                      "Linked notes was pressed and its contents never appeared. On screen: \(visibleTexts())")
+
+        expectNoOverflow(after: "Linked notes was opened")
+    }
 
     /// Asks the app itself whether its window has overflowed: **Help › Copy Diagnostics**, then
     /// the clipboard. An `OVERFLOW` line is the app's own name for builds 30 and 34's fault,

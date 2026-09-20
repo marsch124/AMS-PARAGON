@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 205 · 20 September 2026
+
+**Press the words to open a box, not just the small triangle.** In a note, **Tasks** and
+**Linked notes** each have a heading that folds open. Until now only the tiny triangle at the
+left worked, so pressing the name did nothing. The whole heading is a button now. The arrow
+still turns to show whether the box is open or closed.
+
+**Hide finished** beside the **Tasks** heading is still its own button, and works as before.
+
+**Behind the scenes: the oldest fault in this app can now be tested.** Builds 30 and 34 were
+about the window growing past its own edge, so the columns looked pushed up under the toolbar.
+Opening **Linked notes** was what set it off. The screen tests could never press that box open,
+because the triangle was too small to hit. Now that the name is a button, a test presses it on
+every push, opens **Help › Copy Diagnostics** and reads the report: if the window ever
+overflows again, the build turns red before it reaches you.
+
 ## Build 204 · 20 September 2026
 
 **The Serves goal list is sorted now.** You asked whether the options were nested correctly.
