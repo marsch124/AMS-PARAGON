@@ -288,7 +288,9 @@ struct NewNoteSheet: View {
         /// What **Add** in this list makes. **The chip already says which kind it wants**, so
         /// making one is never a second question (build 165: two controls for one state).
         /// A project serves a goal with a date; a goal and an area serve an aspiration.
-        let makes: GoalHorizon
+        /// The kinds this list can make, **the one the chip is for first** — that is the one
+        /// Return commits.
+        let makes: [GoalHorizon]
         let makePrompt: String
         let makeHint: String
     }
@@ -299,26 +301,32 @@ struct NewNoteSheet: View {
         // disappear when you had no goals yet, which is exactly when you most want to make
         // one — and the first project in a fresh vault could therefore serve nothing.
         case .goal:
+            // One kind in the list, so no headings: the popover's own title already says
+            // which (build 169 — a label that repeats the screen carries no information).
             return ServesChoice(name: "Serves aspiration",
                                 empty: "Serves an aspiration\u{2026}",
-                                options: goalOptions(aspirations),
-                                makes: .life,
+                                options: aspirationOptions(grouped: false),
+                                makes: [.life],
                                 makePrompt: "New aspiration",
                                 makeHint: GoalWording.aspirationRule)
         case .project:
+            // **Two headings, the goals with a date first** (build 204, his question about
+            // nesting). A project delivers a dated goal, so those lead — the same ordering
+            // rule `NoteGoalOptions` has followed since build 140, which this chip had never
+            // picked up: it listed every goal note in vault order, stars and targets mixed.
             return ServesChoice(name: "Serves goal",
                                 empty: "Serves a goal\u{2026}",
-                                options: goalOptions(allGoals),
-                                makes: .year,
-                                makePrompt: "New goal",
-                                makeHint: "Made without a target date; set one on the goal itself.")
+                                options: datedGoalOptions() + aspirationOptions(grouped: true),
+                                makes: [.year, .life],
+                                makePrompt: "Name a new goal or aspiration",
+                                makeHint: "A new goal has no target date yet; set one on the goal itself.")
         // An area holds an aspiration — the other half of "no project or area serves this",
         // which the sheet has never been able to answer (build 134).
         case .area:
             return ServesChoice(name: "Serves aspiration",
                                 empty: "Serves an aspiration\u{2026}",
-                                options: goalOptions(aspirations),
-                                makes: .life,
+                                options: aspirationOptions(grouped: false),
+                                makes: [.life],
                                 makePrompt: "New aspiration",
                                 makeHint: GoalWording.aspirationRule)
         default:
@@ -329,8 +337,20 @@ struct NewNoteSheet: View {
     /// Built in a plain function, never inline in the ViewBuilder: a struct carrying a
     /// closure is where Swift's inference has given up before (builds 152 and 154).
     private func makeOption(_ serves: ServesChoice) -> PickerChip.MakeOption {
-        PickerChip.MakeOption(prompt: serves.makePrompt, hint: serves.makeHint) { name in
-            makeGoal(named: name, horizon: serves.makes)
+        var actions: [PickerChip.MakeAction] = []
+        for horizon in serves.makes {
+            actions.append(makeAction(horizon))
+        }
+        return PickerChip.MakeOption(prompt: serves.makePrompt, hint: serves.makeHint, actions: actions)
+    }
+
+    /// One button. A function each, never a `.map` with a closure inside a struct init: that
+    /// is the inference cliff builds 152 and 154 both fell off.
+    private func makeAction(_ horizon: GoalHorizon) -> PickerChip.MakeAction {
+        let isAspiration = horizon == .life
+        return PickerChip.MakeAction(title: isAspiration ? "Add aspiration" : "Add goal",
+                                     symbol: isAspiration ? ChainSymbol.aspiration : ChainSymbol.datedGoal) { name in
+            makeGoal(named: name, horizon: horizon)
         }
     }
 
@@ -345,8 +365,24 @@ struct NewNoteSheet: View {
         return note.title
     }
 
-    private func goalOptions(_ notes: [Note]) -> [ChipOption] {
-        notes.map { ChipOption(value: $0.title, label: $0.title, symbol: ChainSymbol.forGoal($0)) }
+    /// **`NoteIndex` decides what is in these lists and what order they come in**, so this
+    /// picker cannot disagree with the Aspirations and Goals screens (build 162's rule). It
+    /// also fixes something nobody had reported: `allGoals` was every goal note that was not
+    /// archived, so a goal already marked **Done**, **Missed** or **Dropped** was still
+    /// offered as something new work could serve.
+    private func datedGoalOptions() -> [ChipOption] {
+        goalOptions(model.index.datedGoals(), group: "Goals with a date")
+    }
+
+    private func aspirationOptions(grouped: Bool) -> [ChipOption] {
+        goalOptions(model.index.aspirations(), group: grouped ? "Aspirations" : nil)
+    }
+
+    private func goalOptions(_ notes: [Note], group: String? = nil) -> [ChipOption] {
+        notes.map {
+            ChipOption(value: $0.title, label: $0.title, symbol: ChainSymbol.forGoal($0),
+                       group: group, tint: ChainTint.forGoal($0))
+        }
     }
 
     private var templateOptions: [ChipOption] {
@@ -374,12 +410,6 @@ struct NewNoteSheet: View {
     }
 
     private var defaultTemplateName: String { templateChoices.first?.name ?? "" }
-
-    private var aspirations: [Note] {
-        model.notes.filter { $0.kind == .goal && $0.horizon == .life && !$0.isArchived }
-    }
-
-    private var allGoals: [Note] { model.notes.filter { $0.kind == .goal && !$0.isArchived } }
 
     /// Areas a new one can be made under. One level, so only the areas that are not
     /// already sub-areas themselves.
@@ -474,6 +504,13 @@ struct ChipOption: Identifiable {
     let value: String
     let label: String
     var symbol: String? = nil
+    /// The heading this option sits under. **Nil for a list with no headings**, which is what
+    /// Template and "Part of another area" pass, so those are unchanged (build 204).
+    var group: String? = nil
+    /// Its own colour, when one option's colour is not the chip's. An aspiration is a deeper
+    /// gold than a goal with a date, and the two sit in one list here — build 189's rule that
+    /// the colour and the symbol are decided in one breath.
+    var tint: Color? = nil
 
     var id: String { value }
 }
@@ -525,15 +562,56 @@ private struct PickerChip: View {
 
     private var chosen: ChipOption? { options.first { $0.value == choice } }
 
-    /// What **Add** does, and what to call it. A struct rather than three loose parameters,
-    /// so a list that cannot be added to passes nothing at all.
+    /// What the buttons under the field do. A struct rather than loose parameters, so a list
+    /// that cannot be added to passes nothing at all.
     struct MakeOption {
         /// The placeholder in the field.
         let prompt: String
-        /// One line under it saying what will be made. Nil for none.
+        /// One line under the buttons saying what will be made. Nil for none.
         let hint: String?
+        /// **One button per kind this list can make.** Two on a project's **Serves goal**,
+        /// because that list offers both kinds to pick from — and a list that lets you choose
+        /// an aspiration has to let you make one (build 204, his question).
+        let actions: [MakeAction]
+    }
+
+    /// One button: what it is called, its symbol, and what it makes.
+    struct MakeAction: Identifiable {
+        let title: String
+        let symbol: String
         /// Makes the thing and returns the value to choose, or nil if it could not.
         let make: (String) -> String?
+
+        var id: String { title }
+    }
+
+    /// The options split under their headings, in the order they were handed over. Worked out
+    /// here rather than in the body: a `@ViewBuilder` takes views, not loops (build 58).
+    private var grouped: [OptionGroup] {
+        // `heading`, never `name`: this struct already has a `name` and a local of the same
+        // name inside it is how build 150 lost an afternoon.
+        var order: [String] = []
+        var byHeading: [String: [ChipOption]] = [:]
+        for option in options {
+            let heading = option.group ?? ""
+            if byHeading[heading] == nil { order.append(heading) }
+            byHeading[heading, default: []].append(option)
+        }
+        var groups: [OptionGroup] = []
+        for heading in order {
+            groups.append(OptionGroup(name: heading.isEmpty ? nil : heading,
+                                      options: byHeading[heading] ?? []))
+        }
+        return groups
+    }
+
+    /// A struct, not a tuple: a `ForEach` id is a key path and a key path cannot address a
+    /// tuple member (build 61, sixth time).
+    struct OptionGroup: Identifiable {
+        let name: String?
+        let options: [ChipOption]
+
+        var id: String { name ?? "" }
     }
 
     var body: some View {
@@ -562,17 +640,25 @@ private struct PickerChip: View {
                 // 140, 144, 165, 167): the answer belongs where the question is asked.
                 TextField(make.prompt, text: $draft)
                     .textFieldStyle(.roundedBorder)
-                    .onSubmit { commitDraft(make) }
+                    // Return makes the kind this list is for — the first button.
+                    .onSubmit { if let first = make.actions.first { commitDraft(first) } }
                 HStack(spacing: 6) {
-                    if let hint = make.hint {
-                        Text(hint)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                    ForEach(make.actions) { action in
+                        Button { commitDraft(action) } label: {
+                            Label(action.title, systemImage: action.symbol)
+                        }
+                        .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                     Spacer(minLength: 0)
-                    Button("Add") { commitDraft(make) }
-                        .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                // **The hint gets a line of its own.** Sharing a row with the button squeezed
+                // it until it read "Made without a target date; set one on…" — build 138, and
+                // his screenshot caught it before I did.
+                if let hint = make.hint {
+                    Text(hint)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Divider()
             }
@@ -581,15 +667,24 @@ private struct PickerChip: View {
                     if let noneLabel {
                         row(ChipOption(value: "", label: noneLabel))
                     }
-                    ForEach(options) { option in
-                        row(option)
+                    ForEach(grouped) { group in
+                        if let name = group.name {
+                            Text(name.uppercased())
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 6)
+                        }
+                        ForEach(group.options) { option in
+                            row(option)
+                        }
                     }
                 }
             }
             .frame(maxHeight: 240)
         }
         .padding(14)
-        .frame(width: 290)
+        // 320, not 290: his goal titles were cut at "Be open, curious and flexible…".
+        .frame(width: 320)
         .presentationCompactAdaptation(.popover)
         // **The gold line under the first row was macOS, not us (build 202).** A plain
         // Button inside a popover takes keyboard focus the moment it opens, and the ring is
@@ -601,9 +696,9 @@ private struct PickerChip: View {
 
     /// Makes it, chooses it, and closes the list. Nothing is opened: `makeNoteQuietly` leaves
     /// the window behind the sheet where it was.
-    private func commitDraft(_ make: MakeOption) {
+    private func commitDraft(_ action: MakeAction) {
         let name = draft.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty, let value = make.make(name) else { return }
+        guard !name.isEmpty, let value = action.make(name) else { return }
         draft = ""
         choice = value
         showing = false
@@ -619,10 +714,10 @@ private struct PickerChip: View {
                     .foregroundStyle(choice == option.value ? tint : Color.secondary)
                 if let symbol = option.symbol {
                     Image(systemName: symbol)
-                        .foregroundStyle(tint)
+                        .foregroundStyle(option.tint ?? tint)
                 }
                 Text(option.label)
-                    .lineLimit(1)
+                    .lineLimit(2)
                 Spacer(minLength: 0)
             }
             .contentShape(Rectangle())

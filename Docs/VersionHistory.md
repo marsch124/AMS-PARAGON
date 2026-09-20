@@ -2,6 +2,31 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 204 · 20 September 2026
+
+**The Serves goal list is sorted now.** You asked whether the options were nested correctly.
+They were not: the list was every goal note in the order the vault happened to hold them, with
+aspirations and goals with a date mixed together. On a project it now has two headings —
+**GOALS WITH A DATE** first, because that is what a project delivers, then **ASPIRATIONS**.
+Each is in the same order as its own screen in the sidebar.
+
+**A goal you have finished is no longer offered.** Goals marked **Done**, **Missed** or
+**Dropped** were still in the list as something new work could serve. They are gone from it.
+
+**You can now make either kind from here.** The list lets you pick an aspiration, so it now
+lets you make one: under the name field there are two buttons, **Add goal** and **Add
+aspiration**. Pressing Return still makes the kind the list is for — a goal with a date on a
+project. On a goal or an area there is one button, since only aspirations are offered there.
+
+**The line under the field was cut off.** It read "Made without a target date; set one on…"
+because it shared a row with the button. It has its own line now and says the whole sentence.
+
+**The list is wider and a long name wraps.** "Be open, curious and flexible…" was cut; it can
+use two lines now.
+
+**Each goal keeps its own colour in the list** — the deeper gold for an aspiration, the lighter
+gold for a goal with a date, the same as everywhere else.
+
 ## Build 203 · 20 September 2026
 
 **Make a goal, or an aspiration, without leaving the New note screen.** Your ask. Press

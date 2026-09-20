@@ -1802,6 +1802,35 @@ leave to go and make it.
 - `makeOption(_:)` is a plain function, not inline in the ViewBuilder: a struct carrying a
   closure is where inference has given up before (builds 152, 154).
 
+**Build 204, from one screenshot and two questions.** *"Are these options nested correctly?"*
+and *"Can we add goals and aspirations from here?"*
+
+- **No, they were not.** `allGoals` was `model.notes.filter { $0.kind == .goal && !$0.isArchived }`
+  — every goal note in vault order, stars and targets interleaved, **and ended goals
+  included**, so a goal already marked Done was offered as something new work could serve.
+  It is `model.index.datedGoals()` and `model.index.aspirations()` now: **`NoteIndex` decides
+  what is live and in what order**, so the picker cannot disagree with the two screens
+  (build 162's rule), and the two halves sit under headings with the fitting kind first —
+  which is the ordering rule `NoteGoalOptions` has followed since **build 140** and this chip
+  had simply never picked up. **When one menu learns a rule, find the other menus that ask the
+  same question.**
+- **Grouped, not nested under each aspiration.** A drawn or indented chain here would make an
+  aspiration a heading *and* a row you can choose, and a heading you can press is a shape this
+  project has gone wrong on before. Build 166's reasoning: the list carries what the drawing
+  cannot, and there is already a Map.
+- **Both kinds can be made.** `MakeOption` carries `actions: [MakeAction]`, one button each;
+  a project's list gets **Add goal** and **Add aspiration**, Return commits the first. The
+  argument is simple and worth keeping: **a list that lets you choose an aspiration has to let
+  you make one.**
+- **The hint was squeezed to "Made without a target date; set one on…"** — build 138 again,
+  sharing an `HStack` with the button. Its own line now. **He found it; I had put it there.**
+- `ChipOption` gained `group:` and `tint:`, both defaulted nil, so Template and "Part of
+  another area" are untouched. The tint is build 189's rule: an aspiration's star is the
+  deeper gold even inside a list tinted for something else.
+- The popover went 290 → 320pt and rows take two lines: his goal titles were being cut.
+- Inside `grouped`, the locals are `heading` and `byHeading`, never `name` — the struct has a
+  `name` (build 150's shadowing).
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /
