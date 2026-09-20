@@ -2,6 +2,29 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 203 · 20 September 2026
+
+**Make a goal, or an aspiration, without leaving the New note screen.** Your ask. Press
+**Serves a goal…** on a new project and the list now has a field at the top: type a name, press
+Return, and the goal is made and chosen in one go. No more cancelling the project, making the
+goal, and starting again.
+
+**Which kind it makes is already decided by the chip you pressed**, so you are never asked a
+second question:
+
+- On a **project**, **Serves a goal…** makes a goal with a date. It is made without the date —
+  set the target on the goal itself when you know it. The line under the field says so.
+- On a **goal** or an **area**, **Serves an aspiration…** makes an aspiration. An aspiration
+  has no date, so there is nothing else to fill in.
+
+**The chip no longer disappears when the list is empty.** Before, a vault with no goals yet
+showed no **Serves a goal…** button at all — which is exactly when you most want to make one.
+
+**A new aspiration now opens in Aspirations.** It opened in **Goals** before, beside a list that
+did not contain it. Left over from build 199, when the one row became two.
+
+This build also carries everything in build 202.
+
 ## Build 202 · 20 September 2026
 
 **Two things in the New note screen's pop-up lists, both from your screenshot.**

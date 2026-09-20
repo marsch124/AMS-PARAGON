@@ -1770,6 +1770,38 @@ graphic in the pop up menu - does not look good"*. Two separate faults in one pi
   matched `.help(name)`, and the line's colour matched his accent rather than anything in the
   palette. Said as much to him rather than claiming it fixed.
 
+## Making the thing you are pointing at (build 203)
+
+His two questions, in one message: *"Would it be possible to add a Goal from this picker /
+menu"* and *"Would it be possible to add or connect an Aspiration, or is this too far fetched
+/ complicated?"* Neither is far-fetched — it is **the oldest recurring fault in this project
+turned around**: 132, 134, 140, 144, 165 and 167 were all a screen that read a line nothing
+could write. This is a screen that *asks* for a note that does not exist yet and made you
+leave to go and make it.
+
+- **`PickerChip.MakeOption`** (prompt, hint, and a closure returning the value to choose). A
+  list with no `make:` is unchanged, so Template and "Part of another area" are untouched.
+  The field at the top is **the shape `TagChoices` has had since build 145** — reuse the
+  pattern he already knows rather than invent a second one.
+- **The kind is never a second question.** The chip says which: a project's **Serves a goal**
+  makes `horizon: year`, a goal's or an area's **Serves an aspiration** makes `horizon: life`.
+  Two controls for one state is build 165's fault.
+- **`AppModel.makeNoteQuietly` is `createNote` without the navigation**, and `createNote` is
+  now that plus `show(_:)`. A note made from inside a sheet must not move the window behind
+  it: he is making a project, and the goal he just named is a detail of it, not a place to go.
+- **`createNote` called `show(section: .kind(kind), …)` — a build 199 miss.** Since a goal note
+  belongs to **Aspirations** or to **Goals** by its `horizon:`, only `sidebarSection(for:)`
+  knows which, so a brand new aspiration opened in the Goals room beside a list without it.
+  `show(_:)` now. **When a section splits in two, every place that names the old one by hand
+  is part of that build** — 199 found the routes through `sidebarSection(for:)` and missed the
+  one that spelled the section out.
+- **The chip no longer hides itself when its list is empty.** `serves` used to `guard` on a
+  non-empty list, so a fresh vault offered no **Serves a goal…** at all — the one moment the
+  button is most needed. **A control that vanishes when it has nothing to offer removes the
+  only way to give it something.**
+- `makeOption(_:)` is a plain function, not inline in the ViewBuilder: a struct carrying a
+  closure is where inference has given up before (builds 152, 154).
+
 ## Done, Missed, Dropped (build 165)
 
 The last item on the roadmap, and **he changed the word**: I proposed *reached* / missed /

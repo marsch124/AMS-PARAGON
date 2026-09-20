@@ -121,7 +121,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 202
+    static let number = 203
 }
 
 @MainActor
@@ -1184,14 +1184,33 @@ final class AppModel: ObservableObject {
 
     func createNote(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
                     tags: [String] = [], template: String? = nil) {
-        guard let vault else { return }
+        guard let note = makeNoteQuietly(kind: kind, title: title, extraFrontmatter: extraFrontmatter,
+                                         tags: tags, template: template) else { return }
+        // `show(_:)`, not `show(section: .kind(kind), …)`: since build 199 a goal note belongs
+        // to **Aspirations** or to **Goals** depending on its `horizon:`, and only
+        // `sidebarSection(for:)` knows which. Naming the kind here put a brand new aspiration
+        // in the Goals room, beside a list that does not contain it.
+        show(note)
+    }
+
+    /// Makes a note and **does not go to it**, returning it instead.
+    ///
+    /// **Build 203.** A goal made from inside the New note sheet must not move the window
+    /// behind that sheet: he is in the middle of making a project, and the thing he just
+    /// named is a detail of it, not a place to go. `createNote` is this plus the navigation,
+    /// so there is still one way a note is made.
+    @discardableResult
+    func makeNoteQuietly(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
+                         tags: [String] = [], template: String? = nil) -> Note? {
+        guard let vault else { return nil }
         do {
             let note = try vault.createNote(kind: kind, title: title, extraFrontmatter: extraFrontmatter,
                                             tags: tags, template: template)
             reload()
-            show(section: .kind(kind), notePath: note.relativePath)
+            return note
         } catch {
             errorMessage = error.localizedDescription
+            return nil
         }
     }
 

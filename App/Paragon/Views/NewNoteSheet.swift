@@ -253,7 +253,8 @@ struct NewNoteSheet: View {
                            tint: servesGoal.isEmpty ? ChainTint.datedGoal
                                : ChainTint.forGoal(named: servesGoal, in: model.index),
                            options: serves.options,
-                           choice: $servesGoal)
+                           choice: $servesGoal,
+                           make: makeOption(serves))
             }
             if thing == .area, !possibleParents.isEmpty {
                 PickerChip(name: "Part of another area",
@@ -284,30 +285,64 @@ struct NewNoteSheet: View {
         let name: String
         let empty: String
         let options: [ChipOption]
+        /// What **Add** in this list makes. **The chip already says which kind it wants**, so
+        /// making one is never a second question (build 165: two controls for one state).
+        /// A project serves a goal with a date; a goal and an area serve an aspiration.
+        let makes: GoalHorizon
+        let makePrompt: String
+        let makeHint: String
     }
 
     private var serves: ServesChoice? {
         switch thing {
+        // **No `guard` on the list being empty any more (build 203).** The chip used to
+        // disappear when you had no goals yet, which is exactly when you most want to make
+        // one — and the first project in a fresh vault could therefore serve nothing.
         case .goal:
-            guard !aspirations.isEmpty else { return nil }
             return ServesChoice(name: "Serves aspiration",
                                 empty: "Serves an aspiration\u{2026}",
-                                options: goalOptions(aspirations))
+                                options: goalOptions(aspirations),
+                                makes: .life,
+                                makePrompt: "New aspiration",
+                                makeHint: GoalWording.aspirationRule)
         case .project:
-            guard !allGoals.isEmpty else { return nil }
             return ServesChoice(name: "Serves goal",
                                 empty: "Serves a goal\u{2026}",
-                                options: goalOptions(allGoals))
+                                options: goalOptions(allGoals),
+                                makes: .year,
+                                makePrompt: "New goal",
+                                makeHint: "Made without a target date; set one on the goal itself.")
         // An area holds an aspiration — the other half of "no project or area serves this",
         // which the sheet has never been able to answer (build 134).
         case .area:
-            guard !aspirations.isEmpty else { return nil }
             return ServesChoice(name: "Serves aspiration",
                                 empty: "Serves an aspiration\u{2026}",
-                                options: goalOptions(aspirations))
+                                options: goalOptions(aspirations),
+                                makes: .life,
+                                makePrompt: "New aspiration",
+                                makeHint: GoalWording.aspirationRule)
         default:
             return nil
         }
+    }
+
+    /// Built in a plain function, never inline in the ViewBuilder: a struct carrying a
+    /// closure is where Swift's inference has given up before (builds 152 and 154).
+    private func makeOption(_ serves: ServesChoice) -> PickerChip.MakeOption {
+        PickerChip.MakeOption(prompt: serves.makePrompt, hint: serves.makeHint) { name in
+            makeGoal(named: name, horizon: serves.makes)
+        }
+    }
+
+    /// Makes the aspiration or the goal and hands back its **title**, which is what a `goal:`
+    /// line carries and what `goalOptions` uses as its value — so the two cannot drift.
+    private func makeGoal(named name: String, horizon: GoalHorizon) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return nil }
+        guard let note = model.makeNoteQuietly(kind: .goal, title: trimmed,
+                                               extraFrontmatter: [("horizon", horizon.rawValue)])
+        else { return nil }
+        return note.title
     }
 
     private func goalOptions(_ notes: [Note]) -> [ChipOption] {
@@ -482,9 +517,24 @@ private struct PickerChip: View {
     let tint: Color
     let options: [ChipOption]
     @Binding var choice: String
+    /// Making one from inside the list, when this list is one that can be added to. Nil when
+    /// the choices are fixed (build 203).
+    var make: MakeOption? = nil
     @State private var showing = false
+    @State private var draft = ""
 
     private var chosen: ChipOption? { options.first { $0.value == choice } }
+
+    /// What **Add** does, and what to call it. A struct rather than three loose parameters,
+    /// so a list that cannot be added to passes nothing at all.
+    struct MakeOption {
+        /// The placeholder in the field.
+        let prompt: String
+        /// One line under it saying what will be made. Nil for none.
+        let hint: String?
+        /// Makes the thing and returns the value to choose, or nil if it could not.
+        let make: (String) -> String?
+    }
 
     var body: some View {
         Button {
@@ -504,6 +554,28 @@ private struct PickerChip: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(name)
                 .font(.subheadline.weight(.semibold))
+            if let make = make {
+                // The same shape the tag list has had since build 145: a field at the top for
+                // the one you have not made yet. His ask — *"Would it be possible to add a
+                // Goal from this picker?"* — and leaving the sheet to make it was the only
+                // answer before, which is this project's oldest recurring fault (132, 134,
+                // 140, 144, 165, 167): the answer belongs where the question is asked.
+                TextField(make.prompt, text: $draft)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit { commitDraft(make) }
+                HStack(spacing: 6) {
+                    if let hint = make.hint {
+                        Text(hint)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                    Button("Add") { commitDraft(make) }
+                        .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                Divider()
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     if let noneLabel {
@@ -525,6 +597,16 @@ private struct PickerChip: View {
         // selection arguing with the tick beside it. Same fault as build 197's yellow square
         // round the Inbox, in a new place.
         .focusEffectDisabled()
+    }
+
+    /// Makes it, chooses it, and closes the list. Nothing is opened: `makeNoteQuietly` leaves
+    /// the window behind the sheet where it was.
+    private func commitDraft(_ make: MakeOption) {
+        let name = draft.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty, let value = make.make(name) else { return }
+        draft = ""
+        choice = value
+        showing = false
     }
 
     private func row(_ option: ChipOption) -> some View {
