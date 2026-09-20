@@ -2466,10 +2466,15 @@ did, from build 42 to 205.
   `OTHER_CODE_SIGN_FLAGS=--keychain=$BUILD_KEYCHAIN`. **Apple is asked for nothing**, so
   build 61's certificate limit is not in play, and `-exportArchive` re-signs everything with
   the real App Store identity a few steps later.
-- **Two shell traps in that step, both avoided on purpose**: the openssl config is written
-  with `printf`, not a heredoc, because a heredoc inside a YAML block keeps the block's own
-  indentation on every line; and `CODE_SIGN_IDENTITY="PARAGON Build"` keeps its quotes,
-  because the matrix string is pasted into a shell command line and the name is two words.
+- **Three shell traps in that step.** Two were avoided on purpose: the openssl config is
+  written with `printf`, not a heredoc, because a heredoc inside a YAML block keeps the
+  block's own indentation on every line; and `CODE_SIGN_IDENTITY="PARAGON Build"` keeps its
+  quotes, because the matrix string is pasted into a shell command line and the name is two
+  words. The third cost build 208: **`openssl` on the runner's PATH is OpenSSL 3 from
+  Homebrew**, whose default PKCS#12 encryption the Security framework cannot read, so
+  `security import` answered `MAC verification failed during PKCS12 import (wrong
+  password?)` — **a message that blames the password and means the format**. Build 209 calls
+  `/usr/bin/openssl` (macOS's own LibreSSL) explicitly. Build 208 reached the Mac only.
 - **`codesign -d` cannot answer this question on an unsigned bundle** — it says "not signed at
   all" and stops, so the check went quiet exactly where it mattered. The step now also finds
   every `.xcent` in the bundle and prints it, because that file is what the packaging step

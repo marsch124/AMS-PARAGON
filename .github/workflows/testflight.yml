@@ -147,9 +147,14 @@ jobs:
             '[v3]' 'basicConstraints = critical,CA:false' \
             'keyUsage = critical,digitalSignature' \
             'extendedKeyUsage = critical,codeSigning' > openssl.cnf
-          openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
+          # **macOS's own openssl, never the one on PATH.** The runner's PATH openssl is
+          # OpenSSL 3 from Homebrew, whose default PKCS#12 encryption the Security framework
+          # cannot read: `security import` answers "MAC verification failed during PKCS12
+          # import (wrong password?)", which is a lie about the password (build 208). macOS
+          # ships LibreSSL at /usr/bin/openssl and it writes a bundle `security` accepts.
+          /usr/bin/openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
             -config openssl.cnf -keyout build.key -out build.crt
-          openssl pkcs12 -export -inkey build.key -in build.crt \
+          /usr/bin/openssl pkcs12 -export -inkey build.key -in build.crt \
             -name "PARAGON Build" -out build.p12 -passout "pass:$PASS"
           security create-keychain -p "$PASS" "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"

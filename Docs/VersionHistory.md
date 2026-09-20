@@ -2,6 +2,14 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 209 · 20 September 2026
+
+Build 208's new step stopped on a small technical fault of its own — the wrong version of a
+tool was used to make the throwaway certificate, and macOS could not read it. One line. Build
+208 reached the Mac; this is the same change with that line fixed.
+
+**Nothing in the app itself changed.** Build 205's fold headings are in this build too.
+
 ## Build 208 · 20 September 2026
 
 **Third try at the iPhone's shared folder, and this time we know exactly what is wrong.**
