@@ -34,15 +34,16 @@ jobs:
           - label: the iPhone app
             destination: generic/platform=iOS
             archive: Paragon-iOS
-            # Signed with the throwaway certificate the step above makes, because **Xcode
-            # only writes the entitlements while it is signing something**. Three shapes were
-            # tried: `CODE_SIGNING_ALLOWED=NO` (builds 42–205, wrote nothing — this is the
-            # fault), the Mac's ad-hoc `-` (build 206, Apple: "Ad Hoc code signing is not
-            # allowed with SDK 'iOS 26.5'"), and an empty identity with signing merely not
-            # required (build 207, still no `.xcent`). An identity that really exists is the
-            # only shape left. Apple is asked for nothing, so build 61's certificate limit is
-            # not in play, and `-exportArchive` re-signs it properly for the App Store.
-            signing: CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="PARAGON Build" CODE_SIGNING_REQUIRED=NO PROVISIONING_PROFILE_SPECIFIER= OTHER_CODE_SIGN_FLAGS=--keychain=$BUILD_KEYCHAIN
+            # Unsigned, as it always was — **but a later step now signs the bundles by hand**
+            # so the entitlements really are written into them (build 210). Four shapes of
+            # Xcode signing were tried and all four failed: `CODE_SIGNING_ALLOWED=NO` alone
+            # wrote no entitlements at all (builds 42–205, the original fault); the Mac's
+            # ad-hoc `-` is refused outright ("Ad Hoc code signing is not allowed with SDK
+            # 'iOS 26.5'", build 206); an empty identity still wrote nothing (207); and a real
+            # identity made Xcode demand a provisioning profile carrying the App Groups
+            # feature (209), which can only come from cloud signing — the thing that ran the
+            # account out of development certificates in build 61.
+            signing: CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
           - label: the Mac app
             destination: generic/platform=macOS
             archive: Paragon-macOS
@@ -120,19 +121,19 @@ jobs:
           chmod 600 "$HOME/private_keys/AuthKey_$KEY_ID.p8"
 
       - name: Make a throwaway signing certificate
-        # Build 208, and the reason is builds 206 and 207. Xcode only writes an app's
-        # entitlements (the `.xcent`) while it is actually signing something, so an unsigned
-        # iPhone archive carries none and the App Store export has nothing to carry over —
-        # which is why the App Group has been missing from every iPhone build since 42. The
-        # Mac gets round this with the ad-hoc identity `-`; iOS refuses that outright
-        # ("Ad Hoc code signing is not allowed with SDK 'iOS 26.5'", build 206).
+        # An app's entitlements are only written into it while it is being signed, and the
+        # iPhone archive has never been signed — which is why the App Group has been missing
+        # from every iPhone build since 42 (build 206). Xcode itself cannot be made to sign
+        # it without a provisioning profile from Apple (build 209), so **"Put the entitlements
+        # into the archive", below, signs the bundles by hand** and this step gives it
+        # something to sign with.
         #
-        # So the runner makes a certificate of its own. **Apple is asked for nothing** — no
-        # profile, no cloud signing, so no development certificate can be minted and the
-        # account cannot run out of them again (build 61). The certificate is self-signed,
-        # lives in a keychain created for this run, and dies with the runner. Its only job is
-        # to make the packaging step run. `-exportArchive` re-signs everything properly a few
-        # steps later, which is where the real App Store identity comes from.
+        # A self-signed certificate in a keychain made for this run, trusted in the system
+        # keychain, destroyed when the job ends. **Apple is asked for nothing** — no profile,
+        # no cloud signing — so no development certificate can be minted and the account
+        # cannot run out of them again (build 61). The signature itself is thrown away:
+        # `-exportArchive` re-signs everything with the real App Store identity a few steps
+        # later. What survives is the entitlements.
         if: matrix.archive == 'Paragon-iOS'
         run: |
           set -euo pipefail
@@ -195,6 +196,48 @@ jobs:
             ${{ matrix.signing }} \
             2>&1 | tee build/archive.log | grep -E "error:|warning:|\*\* ARCHIVE" || true
           grep -q "\*\* ARCHIVE SUCCEEDED \*\*" build/archive.log
+
+      - name: Put the entitlements into the archive
+        # Build 210, and the last step of a hunt that ran from build 206 to here.
+        #
+        # **Xcode will not build an iPhone app with an App Group unless it is handed a
+        # provisioning profile carrying that feature** — build 209 got that far and stopped:
+        # `"Paragon" requires a provisioning profile with the App Groups feature`. Fetching one
+        # at archive time means cloud signing, and every fresh runner then asks Apple for a new
+        # development certificate until the account runs out (build 61). That door is shut.
+        #
+        # So the archive stays unsigned, exactly as it always was, and this step signs the
+        # bundles afterwards with the throwaway certificate and the entitlement files the
+        # project already has. `codesign` asks no questions about profiles. The point is not
+        # the signature — `-exportArchive` throws it away and signs properly with the real App
+        # Store identity — it is that **the entitlements are now written into the binary**,
+        # which is what the export carries over and what has been missing since build 42.
+        #
+        # Innermost bundle first: codesign refuses to seal an app whose nested code is unsigned.
+        if: matrix.archive == 'Paragon-iOS'
+        run: |
+          set -euo pipefail
+          APP=$(ls -d "$PWD/build/${{ matrix.archive }}.xcarchive"/Products/Applications/*.app | head -1)
+          echo "Signing $(basename "$APP") and what is inside it."
+          sign() {
+            local bundle="$1" ents="${2:-}"
+            [ -e "$bundle" ] || { echo "  (no $bundle)"; return 0; }
+            if [ -n "$ents" ]; then
+              /usr/bin/codesign --force --timestamp=none --generate-entitlement-der \
+                --sign "PARAGON Build" --keychain "$BUILD_KEYCHAIN" \
+                --entitlements "$ents" "$bundle"
+              echo "  signed $(basename "$bundle") with $(basename "$ents")"
+            else
+              /usr/bin/codesign --force --timestamp=none \
+                --sign "PARAGON Build" --keychain "$BUILD_KEYCHAIN" "$bundle"
+              echo "  signed $(basename "$bundle")"
+            fi
+          }
+          # Frameworks carry no entitlements of their own, and there may be none at all.
+          for fw in "$APP"/Frameworks/*; do sign "$fw"; done
+          sign "$APP/PlugIns/ParagonShare.appex" App/Config/ParagonShare/ParagonShare.entitlements
+          sign "$APP/PlugIns/ParagonWidgets.appex" App/Config/ParagonWidgets/ParagonWidgets.entitlements
+          sign "$APP" App/Config/Paragon/Paragon.entitlements
 
       - name: What is inside the app
         # Build 177. His widget came up blank on the phone and nothing in the logs could say

@@ -2,6 +2,23 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 210 · 20 September 2026
+
+**Fourth try, and now we know the whole shape of the problem.**
+
+Build 209 got the furthest. Xcode read the shared folder permission for the first time — and
+then refused to build, because Apple requires a signing document for that permission which can
+only be fetched in a way that would use up the certificates on your account. That door is shut.
+
+So this build stops asking Xcode to do it. The app is built as it always was, and then the
+permissions are written into it afterwards, by hand, with the throwaway certificate. Apple
+still signs the app properly for the App Store after that, exactly as before.
+
+**What to check once this is installed on the iPhone:** PARAGON → **Settings** → **Widget** →
+the line **Shared folder**. We want it to say **Found**.
+
+**Nothing in the app itself changed.** Build 205's fold headings are in this build too.
+
 ## Build 209 · 20 September 2026
 
 Build 208's new step stopped on a small technical fault of its own — the wrong version of a

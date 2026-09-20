@@ -2460,6 +2460,18 @@ did, from build 42 to 205.
   `NO APP GROUP IN THE ARCHIVED APP`, and `code object is not signed at all`. **Xcode writes
   the entitlements only while it is really signing something**, so an identity that does not
   exist is the same as no signing at all.
+- **Build 209 got the furthest and named the real wall**: with a real identity, Xcode reads
+  the entitlement and then refuses — `"Paragon" requires a provisioning profile with the App
+  Groups feature`, on all three targets. A profile carrying that feature can only come from
+  cloud signing at archive time, which is exactly what ran the account out of development
+  certificates in build 61. **Xcode cannot be made to do this here at all.**
+- **Build 210 stops asking it to.** The archive is unsigned again, and a new step **"Put the
+  entitlements into the archive"** signs each bundle by hand with `codesign --force --sign
+  "PARAGON Build" --entitlements <the project's own file>`, innermost first (frameworks,
+  then the two `.appex`, then the `.app` — codesign refuses to seal an app whose nested code
+  is unsigned). `codesign` asks nothing about profiles. **The signature is not the point and
+  is thrown away**; `-exportArchive` re-signs with the real App Store identity. What survives
+  is the entitlements, which is what the export carries over.
 - **Build 208 gives the runner a certificate of its own**: a self-signed code-signing
   certificate in a keychain made for that run, trusted in the system keychain (the runner is
   thrown away), used as `CODE_SIGN_IDENTITY="PARAGON Build"` with
