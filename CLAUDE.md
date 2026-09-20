@@ -2544,9 +2544,10 @@ and was still wrong about which step to fix.
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
   carries the entitlement (build 210) and he ticked App Groups on
   `com.schabbauer.AMSPara.Widgets`, the one identifier that lacked it. All three signed
-  bundles carry `group.com.schabbauer.amspara`. **Still unconfirmed on the device**: whether
-  Settings › Widget says **Shared folder: Found**, and whether Share › PARAGON now reaches
-  the Inbox.
+  bundles carry `group.com.schabbauer.amspara`, and **he confirmed it on the phone**:
+  *"Shared folder says Found in iPhone."* So the iPhone widget can read, and the share
+  extension's outbox reaches the app at last — both untried by him so far, since he uses the
+  widget on the Mac.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
