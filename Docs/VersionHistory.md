@@ -2,6 +2,28 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 206 · 20 September 2026
+
+**The iPhone app never carried the shared folder, and it was our build, not your Apple
+account.** On 15 September I asked you to switch on **App Groups** in the Apple developer
+portal. Your screenshot today showed it was already switched on and had been all along, so
+that was the wrong answer.
+
+The real cause: the iPhone app was built with signing switched off. That step is the one that
+writes the app's permissions into it, so the permission to use the shared folder was never
+written. The Mac app was built a different way, which is why the Mac widget has always worked
+and the iPhone one never has. The iPhone build now does the same thing as the Mac build.
+
+**What this should fix on the iPhone, once this build is installed:**
+- **Share › PARAGON** from another app should reach the Inbox. Until now it wrote to a folder
+  the app could not see, and said nothing.
+- The **iPhone widget** should be able to read your notes.
+
+**Settings › Widget** will say whether it worked: **Shared folder: Found** is the answer we
+want.
+
+Nothing else changed. Build 205's changes are in this build too.
+
 ## Build 205 · 20 September 2026
 
 **Press the words to open a box, not just the small triangle.** In a note, **Tasks** and

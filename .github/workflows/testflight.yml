@@ -9,9 +9,11 @@ name: TestFlight
 #   ASC_KEY_P8     the whole contents of the AuthKey_XXXXXXXXXX.p8 file
 #   ASC_TEAM_ID    the ten-character Team ID from App Store Connect > Membership
 # The key must have the Admin role: App Manager cannot create signing certificates.
-# The archive is built unsigned and the export signs it for the App Store. Signing at
-# archive time signs for development, and since every runner is a fresh machine that asked
-# Apple for a new development certificate on every run until the account hit its limit.
+# The archive is signed ad-hoc ("-") and the export signs it for the App Store. Signing it
+# properly at archive time signs it for development, and every runner being a fresh machine
+# asked Apple for a new development certificate on every run until the account hit its limit
+# (build 61). Ad-hoc asks Apple for nothing and still writes the entitlements into the app,
+# which is the part an unsigned build skips (build 206).
 on:
   workflow_dispatch:
     inputs:
@@ -32,8 +34,16 @@ jobs:
           - label: the iPhone app
             destination: generic/platform=iOS
             archive: Paragon-iOS
-            # Unsigned: the App Store profile supplies the entitlements at export.
-            signing: CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+            # Ad-hoc ("-"), the same as the Mac, and build 206 is about why. Until then this
+            # was CODE_SIGNING_ALLOWED=NO — completely unsigned — on the belief that the App
+            # Store profile would supply the entitlements at export. It does not. A build with
+            # signing switched off never runs the step that writes the entitlements into the
+            # app, so there was nothing for the export to carry over, and the App Group was
+            # missing from every iPhone build from 42 to 205. The comment under the Mac's line
+            # had said exactly this since build 64 and was never applied here.
+            # Ad-hoc asks Apple for nothing, so it cannot mint the development certificates
+            # that build 61 ran out of; the export still does the real signing.
+            signing: CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO PROVISIONING_PROFILE_SPECIFIER=
           - label: the Mac app
             destination: generic/platform=macOS
             archive: Paragon-macOS
@@ -145,6 +155,16 @@ jobs:
             exit 0
           fi
           echo "App: $(basename "$APP")"
+          # Build 206: the app's own entitlements, read straight out of the archive. The App
+          # Group was missing from every iPhone build for 163 builds and this step looked at
+          # the extensions only, so the one bundle that mattered most was never asked.
+          echo "--- entitlements of the app itself ---"
+          codesign -d --entitlements :- "$APP" 2>&1 | head -40 || true
+          if codesign -d --entitlements :- "$APP" 2>/dev/null | grep -qi "application-groups"; then
+            echo "APP GROUP IS IN THE ARCHIVED APP"
+          else
+            echo "NO APP GROUP IN THE ARCHIVED APP"
+          fi
           # An iPhone app is flat and keeps its extensions in PlugIns; a Mac app keeps them in
           # Contents/PlugIns. Looking in one place only made the Mac app of build 178 report
           # "no extensions" when the question had not really been asked.
@@ -198,10 +218,11 @@ jobs:
           grep -q "\*\* EXPORT SUCCEEDED \*\*" build/export.log
 
       - name: What the App Store actually signed
-        # iPhone only, and only because there is no other way to see it. The archive is built
-        # unsigned, so `codesign -d` on it says "not signed at all"; the upload export writes
-        # nothing to disk. So this exports a second copy to a file and reads the entitlements
-        # out of the signed app and its extensions.
+        # iPhone only, and only because there is no other way to see it: the upload export
+        # writes nothing to disk. So this exports a second copy to a file and reads the
+        # entitlements out of the App-Store-signed app and its extensions. The step above
+        # reads the archive; this one reads what Apple actually put its name to, and the two
+        # together say whether an entitlement was never written or was written and dropped.
         #
         # The question it answers: **is the App Group really in the signed app?** Apple's
         # automatic signing silently drops an entitlement the App ID does not carry, and a

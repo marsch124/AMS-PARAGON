@@ -2043,11 +2043,13 @@ another app's share sheet never reached the Inbox and nothing ever said so.
 
 - **macOS is unaffected**: its group is team-prefixed and the Mac widget demonstrably works.
   The same App ID, two different answers per platform.
-- **The fix is his, in the developer portal**: enable **App Groups** on
-  `com.schabbauer.AMSPara`, `.Share` and `.Widgets` and attach the group. Steps were given in
-  chat. `-allowProvisioningUpdates` with an Admin key did *not* do it by itself, which is the
-  assumption build 174 shipped on ("Apple should create it and enable the App Group by
-  itself") — **that assumption was wrong and cost five builds of hunting.**
+- **This section's conclusion was wrong. See build 206.** It said the fix was his, in the
+  developer portal — enable **App Groups** on `com.schabbauer.AMSPara`, `.Share` and
+  `.Widgets`. On 20 September his screenshot showed App Groups **already enabled and the
+  group already ticked**. The dump above is still true; what it means is not. The cause was
+  `CODE_SIGNING_ALLOWED=NO` on the iOS archive in our own workflow: nothing ever wrote the
+  entitlement, so nothing was there to be dropped. Five days lost to a theory that put the
+  next step on him and so could not be tested.
 - **The step stays in the workflow.** It is `continue-on-error` and iPhone only, and it is the
   only way to see a signed entitlement from this container. **A build that "succeeds" proves
   nothing about what is inside it** — the same lesson as build 178's missing PlugIns check,
@@ -2429,12 +2431,56 @@ at the moment that triggers it.
   runs went into finding a way to click an eleven-point triangle. The fix was to make the
   thing pressable, which is what he wanted anyway.
 
+## The unsigned iPhone archive (build 206)
+
+**The App Group fault of 15 September was diagnosed wrong, and the wrong answer stood for
+five days.** The observation was right — the signed iPhone bundles carried no App Group, read
+back from a real export. The conclusion was not: I blamed Apple's automatic signing for
+dropping an entitlement the App ID did not carry, and asked him to enable **App Groups** in
+the developer portal. **His screenshot on 20 September showed it already enabled and the
+group already ticked.**
+
+**The real cause was in `testflight.yml`, and the file had said so since build 64.** The
+matrix built iOS with `CODE_SIGNING_ALLOWED=NO` — completely unsigned. A build with signing
+switched off never runs the step that writes the entitlements into the app, so there was
+nothing for `-exportArchive` to carry over. macOS was ad-hoc (`CODE_SIGN_IDENTITY=-`) and its
+own comment read *"an unsigned build carries none"* — written about the sandbox entitlement,
+and never applied one line up. So the Mac widget worked from build 178 and the iPhone's never
+did, from build 42 to 205.
+
+- iOS now carries the **same `signing:` string as macOS**. Ad-hoc asks Apple for nothing, so
+  it cannot mint the development certificates build 61 ran out of, and the export still does
+  the real signing.
+- **"What is inside the app" now reads the app's own entitlements**, not only its extensions.
+  163 builds of a check that never asked about the one bundle that mattered. With the two
+  steps together — the archive's entitlements and the App-Store-signed copy's — an
+  entitlement that was *never written* is now distinguishable from one that was written and
+  *dropped*. Build 177's rule, one layer down.
+
+**The lessons, and they are about how I reasoned, not about Apple.**
+- **"Apple silently drops it" is an explanation that explains anything**, which is what made
+  it comfortable. It named a mechanism that is real, fitted the evidence, and required no
+  further work from me — and it put the next step on him. **An explanation that ends with the
+  user doing something is the one to doubt hardest**, because nothing will test it until he
+  has spent his afternoon.
+- **The evidence to separate the two was one step away and I never took it.** "Missing from
+  the signed app" has two causes: never written, or written and dropped. Reading the
+  *archive's* entitlements tells them apart in three seconds, from this container, with no
+  TestFlight run and nothing asked of him.
+- **The answer was already in the file, in a comment I had written.** When two platforms are
+  built differently and only one works, the difference between them is the first place to
+  look — before any theory about a third party.
+- **He is the one who caught it**, by asking *"Are you sure that these steps work? … Please
+  confirm that you are really 100% sure."* Saying honestly that I was not is what made him
+  send the screenshot instead of spending the afternoon. **Answer that question honestly every
+  time; the hedge is what buys the evidence.**
+
 ## Not built (by choice)
 
-- **The App Group in the developer portal**, parked by him on 15 September and explained again
-  that day: it costs him five minutes and buys two iPhone-only things — Share › PARAGON from
-  another app reaching the Inbox, and the iPhone widget. He uses the widget on the Mac, which
-  is unaffected. Told him plainly that if he wants neither, there is no advantage.
+- ~~**The App Group in the developer portal**~~ — **not his to do, and never was** (build
+  206). It was already enabled on `com.schabbauer.AMSPara`. The fault was the unsigned iOS
+  archive in `testflight.yml`. Whether `.Share` and `.Widgets` also carry it is still unknown;
+  the workflow's two entitlement dumps will say, and only then is there anything to ask him.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
