@@ -2498,6 +2498,29 @@ did, from build 42 to 205.
   entitlement that was *never written* is now distinguishable from one that was written and
   *dropped*. Build 177's rule, one layer down.
 
+**It worked, and the answer was both things at once (20 September, build 210 re-run).** With
+the entitlements finally in the archive, the export failed on a *new* error — `Automatic
+signing cannot update bundle identifier "com.schabbauer.AMSPara.Widgets"` / `No profiles for
+'com.schabbauer.AMSPara.Widgets' were found`. **Apple naming one identifier is what made the
+portal ask legitimate at last.** He ticked App Groups on `.Widgets`; `.Share` and the main app
+were already ticked, which is exactly what the single-identifier error predicted. A re-run of
+the same build then printed, for all three bundles:
+
+```
+=== PARAGON.app ===          group.com.schabbauer.amspara
+=== ParagonShare.appex ===   group.com.schabbauer.amspara
+=== ParagonWidgets.appex === group.com.schabbauer.amspara
+```
+
+**No new build was needed** — the workflow was re-dispatched on the same commit, and
+`CFBundleVersion` is `<stamp>.<run number>`, so Apple accepts the second upload of build 210.
+
+**Two causes, and neither alone would have shown the other.** Our archive never wrote the
+entitlement, so nothing ever asked Apple for the capability, so the missing capability on
+`.Widgets` could never surface. **A second fault hidden behind the first is why the evidence
+read as contradictory for five days** — and why the 15 September conclusion looked reasonable
+and was still wrong about which step to fix.
+
 **The lessons, and they are about how I reasoned, not about Apple.**
 - **"Apple silently drops it" is an explanation that explains anything**, which is what made
   it comfortable. It named a mechanism that is real, fitted the evidence, and required no
@@ -2518,10 +2541,12 @@ did, from build 42 to 205.
 
 ## Not built (by choice)
 
-- ~~**The App Group in the developer portal**~~ — **not his to do, and never was** (build
-  206). It was already enabled on `com.schabbauer.AMSPara`. The fault was the unsigned iOS
-  archive in `testflight.yml`. Whether `.Share` and `.Widgets` also carry it is still unknown;
-  the workflow's two entitlement dumps will say, and only then is there anything to ask him.
+- ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
+  carries the entitlement (build 210) and he ticked App Groups on
+  `com.schabbauer.AMSPara.Widgets`, the one identifier that lacked it. All three signed
+  bundles carry `group.com.schabbauer.amspara`. **Still unconfirmed on the device**: whether
+  Settings › Widget says **Shared folder: Found**, and whether Share › PARAGON now reaches
+  the Inbox.
 - **The full peek carousel** on the phone (build 184): it means replacing the page view, and
   then every screen's top bar lives inside a scroll view.
 - **More screen tests.** Seven, on both the simulated iPhone and the Mac (build 196): the
