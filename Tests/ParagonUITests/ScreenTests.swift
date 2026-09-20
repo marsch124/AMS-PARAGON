@@ -224,6 +224,52 @@ final class ScreenTests: XCTestCase {
                       "A note opened, but not the one whose box was tapped. It shows: \(shown.prefix(200))")
     }
 
+    /// **The All actions filter really narrows the list** (build 211). The boxes are the one
+    /// control in this app that decides what you do *not* see, so a tick that quietly did
+    /// nothing — or hid everything — would be invisible until he noticed an action missing.
+    ///
+    /// The test vault has no dated task at all, so **Overdue** must empty the list completely
+    /// and the screen must say *which* kind of empty it is: `actions.noMatch`, never
+    /// `actions.nothingOpen` (build 100's rule, and build 190's — a check that cannot tell the
+    /// two apart would pass on an empty vault).
+    func testTheAllActionsFilterNarrowsTheList() {
+        go(to: .allActions)
+
+        let action = element("task.Book the night train")
+        XCTAssertTrue(action.waitForExistence(timeout: 20),
+                      "All actions does not list the test project's action. On screen: \(visibleTexts())")
+
+        openTheBoxes()
+
+        let overdue = element("actions.box.overdue")
+        XCTAssertTrue(overdue.waitForExistence(timeout: 20),
+                      "The Overdue box is not on screen. On screen: \(visibleTexts())")
+        overdue.pressCentre()
+
+        XCTAssertTrue(element("actions.noMatch").waitForExistence(timeout: 20),
+                      "Overdue was ticked and the screen did not say that nothing matches. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("task.Book the night train").exists,
+                       "Overdue was ticked and the undated action is still listed.")
+
+        let clear = element("actions.clear")
+        XCTAssertTrue(clear.waitForExistence(timeout: 20),
+                      "Clear is not offered while a box is ticked. On screen: \(visibleTexts())")
+        clear.pressCentre()
+
+        XCTAssertTrue(element("task.Book the night train").waitForExistence(timeout: 20),
+                      "Clear was pressed and the action did not come back. On screen: \(visibleTexts())")
+    }
+
+    /// The boxes start folded on the phone and open on the Mac, so this asks the screen rather
+    /// than assuming. Pressing the fold button blind would close them on the Mac.
+    private func openTheBoxes() {
+        if element("actions.box.overdue").waitForExistence(timeout: 5) { return }
+        let fold = element("actions.fold")
+        XCTAssertTrue(fold.waitForExistence(timeout: 20),
+                      "The boxes are folded and there is no button to open them. On screen: \(visibleTexts())")
+        fold.pressCentre()
+    }
+
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
     #if os(macOS)
@@ -372,11 +418,49 @@ final class ScreenTests: XCTestCase {
     }
     #endif
 
+    #if os(iOS)
+    /// **The phone's five tabs can be swiped between** (build 211). Build 183 replaced the
+    /// system tab bar with a page view and our own bar precisely so a swipe would work, and
+    /// nothing here has ever swiped: CI compiles a gesture but never makes one.
+    ///
+    /// The proof is the `isSelected` trait on the bar's buttons, not the tint — a colour is
+    /// invisible to a test. A coordinate drag rather than `swipeLeft()`, so the gesture starts
+    /// and ends where this test means it to.
+    func testTheTabsCanBeSwipedBetween() {
+        go(to: .today)
+        XCTAssertTrue(tabIsOn("tab.today", within: 20),
+                      "Today is not the tab in front to begin with. On screen: \(visibleTexts())")
+
+        swipe(from: 0.92, to: 0.08)
+        XCTAssertTrue(tabIsOn("tab.plan", within: 20),
+                      "A swipe from right to left did not move on to Plan. On screen: \(visibleTexts())")
+
+        swipe(from: 0.08, to: 0.92)
+        XCTAssertTrue(tabIsOn("tab.today", within: 20),
+                      "A swipe back from left to right did not return to Today. On screen: \(visibleTexts())")
+    }
+
+    /// Across the middle of the screen, clear of the tab bar at the foot and the navigation
+    /// bar at the top.
+    private func swipe(from startX: CGFloat, to endX: CGFloat) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: startX, dy: 0.45))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: endX, dy: 0.45))
+        start.press(forDuration: 0.05, thenDragTo: end)
+    }
+
+    private func tabIsOn(_ identifier: String, within timeout: TimeInterval) -> Bool {
+        let chosen = expectation(for: NSPredicate(format: "selected == true"),
+                                 evaluatedWith: element(identifier))
+        return XCTWaiter().wait(for: [chosen], timeout: timeout) == .completed
+    }
+
+    #endif
+
     // MARK: Where each platform keeps its way in
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map }
+    private enum Place { case today, inbox, projects, resources, map, allActions }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -411,6 +495,7 @@ final class ScreenTests: XCTestCase {
         case .projects: return ["sidebar.Projects"]
         case .resources: return ["sidebar.Resources"]
         case .map: return ["sidebar.Map"]
+        case .allActions: return ["sidebar.All actions"]
         }
     }
 
@@ -431,6 +516,7 @@ final class ScreenTests: XCTestCase {
         case .projects: return ["tab.browse", "browse.Projects"]
         case .resources: return ["tab.browse", "browse.Resources"]
         case .map: return ["tab.browse", "browse.Map"]
+        case .allActions: return ["tab.actions"]
         }
     }
 

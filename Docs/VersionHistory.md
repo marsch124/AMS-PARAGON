@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 211 · 20 September 2026
+
+**Two more checks that run on every push.** Nothing in the app looks different.
+
+- **The filter on All actions is tested.** A test ticks **Overdue**, checks that the list
+  really empties and that the screen says *No action matches* rather than *Nothing open*, then
+  presses **Clear** and checks the action comes back. Those boxes decide what you do **not**
+  see, so a tick that quietly did nothing would be invisible until you missed something.
+- **The swipe between the phone's five tabs is tested.** The tab bar was rebuilt in build 183
+  so that a swipe works, and until now nothing had ever swiped it.
+
+**Also:** the tab bar now says out loud which tab you are on, which VoiceOver should have been
+told all along.
+
 ## Build 210 · 20 September 2026
 
 **Fourth try, and now we know the whole shape of the problem.**

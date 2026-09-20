@@ -191,6 +191,10 @@ struct PhoneTabBar: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.title)
                 .accessibilityIdentifier(item.identifier)
+                // Says out loud which tab you are on. VoiceOver should have been told this
+                // all along, and it is what lets a screen test check the swipe (build 211):
+                // the tint alone is invisible to a test.
+                .accessibilityAddTraits(item == tab ? [.isSelected] : [])
             }
         }
         .padding(.top, 7)

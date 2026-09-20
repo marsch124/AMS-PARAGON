@@ -859,6 +859,11 @@ struct TaskRow: View {
         .popover(isPresented: $pickingDate) {
             TaskDatePicker(ref: ref, isPresented: $pickingDate)
         }
+        // One thing to accessibility, named by its line — the same shape `InboxRow` has had
+        // since build 191, and what lets a screen test see a list narrow (build 211).
+        // Accessibility only: nothing here may take the row's click (builds 71–74).
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("task.\(ref.task.title)")
     }
 
     /// The field shows the task the way the row does: without the #next marker, which

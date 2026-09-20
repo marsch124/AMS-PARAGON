@@ -59,6 +59,11 @@ enum TestVault {
         // when a note has links, and expanding it is the exact trigger of build 30's window
         // scramble, which the Mac screen test presses (build 198).
         trip.body += "\n\nWhat to bring: [[\(resource)]]\n"
+        // One task with a name of its own and **no date**, so the All actions filter test can
+        // name what it expects to see and what it expects a tick to hide (build 211). The
+        // project template's own task would do, but a test must not depend on the wording of a
+        // template someone may reword.
+        trip.body += "\n- [ ] \(action)\n"
         _ = try vault.save(trip)
         _ = try vault.createNote(kind: .area, title: area, extraFrontmatter: [("goal", aspiration)])
         _ = try vault.createNote(kind: .resource, title: resource)
@@ -75,5 +80,6 @@ enum TestVault {
     static let area = "Health"
     static let resource = "Packing list"
     static let inboxLine = "Call the bank about the ferry"
+    static let action = "Book the night train"
 }
 #endif

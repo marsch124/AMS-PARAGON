@@ -2539,6 +2539,32 @@ and was still wrong about which step to fix.
   send the screenshot instead of spending the afternoon. **Answer that question honestly every
   time; the hedge is what buys the evidence.**
 
+## Two more screen tests (build 211)
+
+The last two from his list. Fourteen now: twelve shared or Mac-only, plus the phone's swipe.
+
+- **`testTheAllActionsFilterNarrowsTheList`, both platforms.** Tick **Overdue**, and since the
+  test vault has no dated task at all the list must empty *and say which kind of empty*:
+  `actions.noMatch`, never `actions.nothingOpen`. **A check that could not tell those two
+  apart would pass on an empty vault** (build 190's rule, and build 100's).
+  `openTheBoxes()` asks the screen whether `actions.box.overdue` is already there rather than
+  pressing `actions.fold` blind — the boxes start folded on the phone and open on the Mac
+  (build 161), so a blind press would close them on the Mac.
+- **`testTheTabsCanBeSwipedBetween`, iOS only.** A coordinate drag across the middle at
+  `dy: 0.45`, clear of the tab bar and the navigation bar, rather than `swipeLeft()` — the
+  gesture then starts and ends where the test means it to. **The proof is the `isSelected`
+  trait, never the tint**: a colour is invisible to a test, and the bar is ours (build 183),
+  so nothing else says which page is in front.
+- **Three things the app gained so the tests could see anything at all**, and each is right on
+  its own: `TaskRow` carries `task.<title>` with `.accessibilityElement(children: .contain)`
+  (the shape `InboxRow` has had since 191; accessibility only, since nothing may take a row's
+  click — builds 71–74); the two empty states carry their own names; and `PhoneTabBar` adds
+  `.isSelected` to the tab you are on, **which VoiceOver should have been told since 183**.
+- **`TestVault` gained one task of its own**, `Book the night train`, with no date. The project
+  template's own task would have served, but **a test must not depend on the wording of a
+  template someone may reword** — the same reason every element is found by identifier and
+  never by its words (build 191).
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
@@ -2554,8 +2580,8 @@ and was still wrong about which step to fix.
   vault opens, every section, a note typed in, an Inbox line selected, the New note screen, a
   capture to the Inbox, a Map box pressed — and five on the Mac alone: the columns inside
   the window after a note opens, **Linked notes pressed open** (build 205), ⌘N, ⇧⌘N, ⌃⌘←.
-  Left, if wanted: the phone's swipe between tabs (build 183, untested from here) and the
-  All actions filter itself.
+  Build 211 added the last two he asked for: the All actions filter (both platforms) and the
+  phone's swipe between tabs. **Nothing on the list is left.**
 
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).

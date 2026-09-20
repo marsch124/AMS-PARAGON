@@ -217,6 +217,7 @@ struct AllActionsView: View {
                            systemImage: "checkmark.circle",
                            message: "No open action anywhere in the vault. Capture something in the Inbox, and it will show up here.",
                            tint: tint)
+                .accessibilityIdentifier("actions.nothingOpen")
         } else {
             EmptyStateView(title: "No action matches",
                            systemImage: "line.3.horizontal.decrease.circle",
@@ -224,6 +225,9 @@ struct AllActionsView: View {
                            tint: tint,
                            actionTitle: "Untick every box",
                            action: { model.actionFilter = ActionFilter() })
+                // The two states carry different names, because a screen test that could not
+                // tell them apart would pass on an empty vault (build 190's rule).
+                .accessibilityIdentifier("actions.noMatch")
         }
     }
 }
