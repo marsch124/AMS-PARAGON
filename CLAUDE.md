@@ -2633,6 +2633,21 @@ row — the widest thing on the screen — for something pressed once a day.
   build about that**, not in this one. If a second screen ever wants this button, that is the
   moment to share them.
 
+**A dispatch input pasted into a shell script is code, not text (22 September).** Build 214
+uploaded fine and the run still went **red**: the last step, which only writes the run summary,
+held `if [ -n "${{ github.event.inputs.notes }}" ]`. A `${{ }}` is substituted as raw text
+before bash sees the line, and that build's note carried two double quotes, so the line ended
+as `if [ -n "Build 214: "Create ... ]` — `syntax error near unexpected token 'fi'`. **Read
+every dispatch input through `env:` as `"$VAR"`**, never inline. No build number was spent on
+the fix: nothing in the app changed, so it is the docs-only precedent (a push that does not
+bump the stamp).
+
+**And the wider point: a red run does not mean a failed upload.** The log said `Uploaded
+Paragon` and `** EXPORT SUCCEEDED **` several steps above the error, and all three bundles
+printed their App Group. **Read where in the run it failed before telling him anything** —
+saying "the upload failed" here would have been false and would have cost a whole build to
+undo.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

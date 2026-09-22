@@ -371,14 +371,22 @@ jobs:
 
       - name: Say what happened
         if: success()
+        # The notes come in through `env`, never pasted into the script itself. A `${{ }}`
+        # is substituted as raw text before bash ever sees the line, so a quote or a
+        # backtick in what was typed becomes part of the *code*: build 214's note held two
+        # double quotes and the line ended as `if [ -n "Build 214: "Create ... ]`, which is
+        # a syntax error. The upload had already succeeded, so the run went red for a step
+        # that only writes a summary. Read every dispatch input as "$VAR".
+        env:
+          NOTES: ${{ github.event.inputs.notes }}
         run: |
           echo "### Sent ${{ matrix.label }} to TestFlight" >> $GITHUB_STEP_SUMMARY
           echo "PARAGON build $STAMP — the same number the app shows in the sidebar." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Apple processes it for a few minutes, then it appears in TestFlight." >> $GITHUB_STEP_SUMMARY
-          if [ -n "${{ github.event.inputs.notes }}" ]; then
+          if [ -n "$NOTES" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "What is new: ${{ github.event.inputs.notes }}" >> $GITHUB_STEP_SUMMARY
+            echo "What is new: $NOTES" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Keep the logs when something fails
