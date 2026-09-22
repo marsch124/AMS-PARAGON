@@ -22,9 +22,23 @@ struct CalendarEventRows: View {
                 Text(model.calendarAccessGranted == nil ? "Loading events…" : "No events.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } else if compact {
+                // **One list row holding every event, not one row each** (build 213). A `List`
+                // gives every row a minimum height — about 44pt on the iPhone, the size Apple
+                // treats as a comfortable target — plus its own padding above and below, so
+                // build 212's smaller text shrank the text and left the rows exactly as tall.
+                // Stacked inside a single row, the list pays that cost once and the spacing
+                // between events is ours. Each event keeps its double-tap and its menu; they
+                // simply stop being separate rows, which they never needed to be.
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(events) { event in
+                        CalendarEventRow(event: event, date: date, compact: true)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 ForEach(events) { event in
-                    CalendarEventRow(event: event, date: date, compact: compact)
+                    CalendarEventRow(event: event, date: date)
                 }
             }
         }

@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 213 · 22 September 2026
+
+**The Calendar events on Today are really shorter now.** Build 212 made the text smaller and
+the rows stayed exactly as tall, which is what you saw.
+
+The reason: a list decides how tall a row is, not the text inside it. Every row gets a minimum
+height — about the size of a comfortable finger target — plus padding above and below. The rows
+were already at that floor, so smaller text changed nothing.
+
+All the events now sit in **one** row together instead of one row each, so that padding is paid
+once rather than once per event, and the spacing between them is set by the app. Each event
+still opens in Calendar on a double tap, and still has its menu.
+
 ## Build 212 · 22 September 2026
 
 **The Calendar part of Today takes much less room.** Your ask.

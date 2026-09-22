@@ -2591,6 +2591,26 @@ His ask: *"The Calendar view is too large in the Today tab. Compact it please."*
 - `calendarOpen` is a `Binding` that flips the stored *folded* value, because `FoldButton` asks
   whether the box is open and the setting says whether it is closed. One place, written out.
 
+**Build 213, because 212 did not actually compact anything.** His report: *"Toggle works - but
+not compacted"*, and then the question that is the whole lesson — *"Why can't the rows get less
+tall?"*
+
+- **A `List` decides a row's height, not the text inside it.** Every row has a minimum height
+  (about 44pt on iPhone, a comfortable finger target) plus its own padding above and below. The
+  rows were already at that floor, so 212's smaller fonts shrank the text and left every row
+  exactly as tall. **Making the content smaller is not the same as making the row smaller.**
+- **The fix is to stop being several rows.** In compact mode `CalendarEventRows` wraps the whole
+  day in one `VStack` inside a single list row, so the list pays its padding once instead of
+  once per event and the spacing is ours. Overriding `defaultMinListRowHeight` and
+  `listRowInsets` was the other route and was refused: those numbers differ between iPhone and
+  Mac and **there is no screen here to look at**, so it would have been guessing at sizes.
+- Each event keeps its double-tap and its context menu; they were never rows that needed
+  selecting or swiping.
+- **He asked one question and it saved a build.** I had put two possible symptoms to him
+  (smaller text but tall rows, or nothing changed at all) because they have different causes;
+  his question answered it without a screenshot. **Ask which of the two it is — the two answers
+  do not share a fix** (build 177's rule, and 123–127's).
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
