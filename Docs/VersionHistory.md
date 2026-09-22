@@ -2,6 +2,29 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 215 · 22 September 2026
+
+**The four buttons on an Inbox line are a quadrant.** Your ask, and you picked shapes B and C.
+
+They used to be four small grey symbols crowded at the right of every line, with a tooltip on
+the Mac and nothing at all on the phone. Now they are four proper buttons in a square, each
+with a word under its symbol: **Today**, **Tomorrow**, **Pick a date** and **File it**.
+
+Only the line you have picked shows them, so the list itself stays short.
+
+- On the **Mac** they are in the right-hand **File it** column, under the line you are sorting
+  and above the places it can go. Everything about one line is now in one column.
+- On the **phone** there is no right-hand column, so the line you tap opens up and shows them
+  full width. Every other line stays one short row.
+
+The button for the date a line already has is filled in and outlined in orange, so the four
+buttons also tell you where the line stands. The others are grey with a dashed outline — the
+same language the app uses everywhere for on and off.
+
+**File it** holds what the old **⋯** menu held: move to a project or an area, turn into a
+note, block time, take the date off, delete. Right-click a line on the Mac, or hold it on the
+phone, for the same menu with **Rename…** on it.
+
 ## Build 214 · 22 September 2026
 
 **"Create today's note" is a small button now.** Your ask. It used to be a whole row of its

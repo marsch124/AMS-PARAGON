@@ -2648,6 +2648,47 @@ printed their App Group. **Read where in the run it failed before telling him an
 saying "the upload failed" here would have been false and would have cost a whole build to
 undo.
 
+## The Inbox quadrant (build 215)
+
+His ask, in his words: *"where the four buttons are is a bit... it leaves room for
+improvement. Maybe we could put the four buttons in a quadrant so that they can be a bit
+larger and a bit cooler."* He also asked whether he should draw it or I should — **I drew
+it**, three shapes at the real column width
+(https://claude.ai/artifact/6iM9P8KrBH2mcTSmURxdLN), and he answered **"B and C"**.
+
+- **A was the literal ask and the preview is what ruled it out.** A quadrant on *every* line
+  takes a row from about 44 to about 78 points, so half the Inbox falls off the screen — two
+  builds after he asked for Today to be made shorter. **Drawing the cost is what let him
+  choose against his own first idea without either of us spending a build on it.**
+- **B and C are one feature with two homes, never both at once.** `InboxQuadrant` is drawn by
+  the **File it** column on the Mac (which is always on screen in that section and already
+  holds the line being sorted) and inside the selected row on the phone (which has no third
+  column). Drawing both on the Mac would be one control twice on one screen — build 166's two
+  doors into one room. `InboxRow` gets the usual `isPhone` stub pair so no `#if` sits in a
+  modifier chain (build 148).
+- **The three date buttons carry build 142's two-state language**, so the quadrant also says
+  where the line stands: the one matching `dueDate` is tint-filled with a solid border, the
+  others grey and dashed. **File it keeps a solid grey border** — it opens a menu rather than
+  setting anything, so "off" is not a state it can be in and a dashed border would say
+  something untrue. Worth repeating whenever an action sits in a row of states.
+- **`InboxLineMenu` is the old `menuItems`, extracted**, so the line's context menu and the
+  quadrant's **File it** are one list (build 168). It takes `rename:` because renaming needs
+  the row's own TextField: the phone's copy passes `startEditing`, the File it column passes
+  nil and rename stays on the line's context menu. Same shape as `TaskContextMenu.onRename`,
+  which is also the proof that a custom `View` works as menu content.
+- **Each column owns its own date sheet.** `InboxFileItView` gained one `.sheet` of its own
+  rather than reaching for `InboxTriageView`'s — build 44's rule is one `.sheet` per screen,
+  not one per section.
+- **`ref.task.dueDate == today` is written out**, never `== .today()`: the left side is an
+  optional and leaning on Swift to find a static member through it is the kind of inference
+  that costs a whole build here (builds 152, 154, 168).
+- **The hint line under the heading said "⋯ rename"** and the ⋯ button no longer exists.
+  Build 159's rule: when a control goes, grep the words around it.
+- **One consequence worth knowing**: on the Mac the buttons live in the third column, so
+  pressing **Open the Inbox note** (which puts the note in that column) hides them. Picking
+  any line sets `inboxShowsNote = false` and brings them straight back, so it corrects
+  itself — but a future change to that flag has to keep that true.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

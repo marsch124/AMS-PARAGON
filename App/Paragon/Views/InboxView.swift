@@ -140,7 +140,7 @@ struct InboxTriageView: View {
             SectionLabel(title: items.count == 1 ? "1 to sort" : "\(items.count) to sort",
                          count: nil, systemImage: "tray.full", tint: SidebarSection.inbox.tint)
             Spacer()
-            Text("T today · M tomorrow · D done · ⌫ delete · ⋯ rename")
+            Text("T today · M tomorrow · D done · ⌫ delete")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }
@@ -186,44 +186,66 @@ struct InboxRow: View {
     @State private var draft = ""
     @FocusState private var fieldFocused: Bool
 
-    private var projects: [Note] { InboxItems.destinations(model) }
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    /// A plain stub, so the body never carries an `#if` in the middle of a modifier chain
+    /// (build 148's lesson).
+    private var isPhone: Bool { false }
+    #endif
 
     var body: some View {
-        HStack(spacing: 8) {
-            Button {
-                model.toggle(ref)
-            } label: {
-                Image(systemName: "circle")
-                    .rowTint(SidebarSection.inbox.tint)
-            }
-            .buttonStyle(.plain)
-            .help("Mark as done")
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Button {
+                    model.toggle(ref)
+                } label: {
+                    Image(systemName: "circle")
+                        .rowTint(SidebarSection.inbox.tint)
+                }
+                .buttonStyle(.plain)
+                .help("Mark as done")
 
-            VStack(alignment: .leading, spacing: 2) {
-                if editing {
-                    TextField("Title", text: $draft)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($fieldFocused)
-                        .onSubmit(commit)
-                } else {
-                    Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
-                        .lineLimit(2)
+                VStack(alignment: .leading, spacing: 2) {
+                    if editing {
+                        TextField("Title", text: $draft)
+                            .textFieldStyle(.roundedBorder)
+                            .focused($fieldFocused)
+                            .onSubmit(commit)
+                    } else {
+                        Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
+                            .lineLimit(2)
+                    }
+                    if let due = ref.task.dueDate {
+                        Label(due.description, systemImage: "calendar")
+                            .font(.caption2)
+                            .rowTint(due < .today() ? Color.red : .secondary)
+                    }
                 }
-                if let due = ref.task.dueDate {
-                    Label(due.description, systemImage: "calendar")
-                        .font(.caption2)
-                        .rowTint(due < .today() ? Color.red : .secondary)
-                }
+                Spacer(minLength: 6)
             }
-            Spacer(minLength: 6)
-            actions
+            // **Shape B, the phone's half.** The line you are on opens and shows the four
+            // buttons full width; every other line stays one short row, so the whole Inbox is
+            // still in view. The Mac never draws them here — its **File it** column is always
+            // on screen and carries the same quadrant, and one control drawn twice on one
+            // screen is two doors into one room (build 166).
+            if isPhone, isSelected {
+                InboxQuadrant(ref: ref,
+                              pickDate: { pickingDateFor = ref },
+                              rename: startEditing)
+                    // Lines up under the words, past the tick: the circle plus the gap.
+                    .padding(.leading, 23)
+                    .padding(.trailing, 2)
+                    .padding(.bottom, 2)
+            }
         }
         .padding(.vertical, 2)
         .contentShape(Rectangle())
         // Nothing here may take the row's click: `.draggable` and `.onTapGesture` both do, and
         // between them they cost builds 71 to 74 — a line could no longer be picked at all.
         // Renaming is on the menu instead, and a line is filed by clicking a destination.
-        .contextMenu { menuItems }
+        .contextMenu { InboxLineMenu(ref: ref, rename: startEditing) }
         // The row is one thing to accessibility, named by its line, and it says out loud
         // whether it is the selected one (build 191). That is what lets a screen test check
         // the very fault of builds 71 to 74 — a line that cannot be picked — and it is also
@@ -246,31 +268,22 @@ struct InboxRow: View {
         model.renameTask(ref, to: draft)
     }
 
-    @ViewBuilder
-    private var actions: some View {
-        HStack(spacing: 2) {
-            Button { model.setDueDate(ref, .today()) } label: { Image(systemName: "sun.max") }
-                .help("Due today")
-            Button { model.setDueDate(ref, .today().adding(days: 1)) } label: { Image(systemName: "sunrise") }
-                .help("Due tomorrow")
-            Button { pickingDateFor = ref } label: { Image(systemName: "calendar") }
-                .help("Pick a date…")
-            Menu {
-                menuItems
-            } label: {
-                Image(systemName: "ellipsis.circle")
-            }
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .help("File it somewhere")
-        }
-        .buttonStyle(.borderless)
-        .font(.callout)
-        .foregroundStyle(.secondary)
-    }
+}
 
-    @ViewBuilder
-    private var menuItems: some View {
+/// Everything else a line can have done to it. **One list, two callers** — the line's own
+/// context menu and the quadrant's **File it** button — so the two can never come to offer
+/// different things (build 168's rule about one thing drawn in two places).
+struct InboxLineMenu: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    /// Renaming needs a field to type in, and that field belongs to the line's own row. Nil
+    /// in the **File it** column, where the line on the left still carries Rename… on its
+    /// context menu.
+    var rename: (() -> Void)?
+
+    private var projects: [Note] { InboxItems.destinations(model) }
+
+    var body: some View {
         Menu("Move to") {
             ForEach(projects) { note in
                 Button(note.displayTitle) { model.moveTask(ref, to: note.relativePath) }
@@ -287,9 +300,107 @@ struct InboxRow: View {
         Button("Block time for this…") { model.blockTime(for: ref) }
         Button("Remove the date") { model.setDueDate(ref, nil) }
             .disabled(ref.task.dueDate == nil)
-        Button("Rename…") { startEditing() }
+        if let rename {
+            Button("Rename…") { rename() }
+        }
         Divider()
         Button("Delete", role: .destructive) { model.deleteTask(ref) }
+    }
+}
+
+/// The four things you do to a line, as a two-by-two of buttons with a word under each
+/// symbol. His ask, in his words: *"maybe we could put the four buttons in a quadrant so that
+/// they can be a bit larger and a bit cooler."*
+///
+/// **Two places draw it and never both at once** (he picked shapes B and C from a preview,
+/// https://claude.ai/artifact/6iM9P8KrBH2mcTSmURxdLN): the **File it** column on the Mac,
+/// where the line being sorted already lives, and inside the selected line itself on the
+/// phone, which has no third column.
+///
+/// The three date buttons use build 142's two-state language — the tint filled with a solid
+/// border for the one the line is already set to, grey with a dashed border for the others —
+/// so the quadrant also says where the line stands. **File it keeps a solid grey border**: it
+/// opens a menu rather than setting anything, so "off" is not a state it can be in, and
+/// drawing it dashed would say something untrue.
+struct InboxQuadrant: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    /// Opens the date sheet. The state lives in whichever column drew the quadrant, because
+    /// the sheet belongs to that screen (build 44: one `.sheet` per screen, never two).
+    let pickDate: () -> Void
+    var rename: (() -> Void)?
+
+    private var tint: Color { SidebarSection.inbox.tint }
+    /// Both written out rather than compared as `dueDate == .today()`: the left side is an
+    /// optional there, and leaning on Swift to find `today()` through it is the kind of
+    /// inference that costs a whole build when there is no compiler in this container.
+    private var today: DateOnly { DateOnly.today() }
+    private var tomorrow: DateOnly { DateOnly.today().adding(days: 1) }
+
+    /// A date that is neither today nor tomorrow, so the third button can light up too.
+    private var hasOtherDate: Bool {
+        guard let due = ref.task.dueDate else { return false }
+        return due != today && due != tomorrow
+    }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                button("sun.max", "Today", id: "today", isOn: ref.task.dueDate == today) {
+                    model.setDueDate(ref, today)
+                }
+                button("sunrise", "Tomorrow", id: "tomorrow", isOn: ref.task.dueDate == tomorrow) {
+                    model.setDueDate(ref, tomorrow)
+                }
+            }
+            HStack(spacing: 6) {
+                button("calendar", "Pick a date", id: "date", isOn: hasOtherDate, action: pickDate)
+                Menu {
+                    InboxLineMenu(ref: ref, rename: rename)
+                } label: {
+                    face("tray.and.arrow.down", "File it", isOn: false, dashed: false)
+                }
+                .menuIndicator(.hidden)
+                .accessibilityIdentifier("inbox.quad.file")
+            }
+        }
+        // Reaches the Menu as well, which macOS would otherwise draw with a border of its own.
+        .buttonStyle(.plain)
+    }
+
+    private func button(_ symbol: String, _ title: String, id: String,
+                        isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            face(symbol, title, isOn: isOn, dashed: true)
+        }
+        .accessibilityIdentifier("inbox.quad.\(id)")
+        .help(title)
+    }
+
+    private func face(_ symbol: String, _ title: String, isOn: Bool, dashed: Bool) -> some View {
+        VStack(spacing: 3) {
+            Image(systemName: symbol)
+                .font(.system(size: 15, weight: .medium))
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
+        .background {
+            if isOn {
+                RoundedRectangle(cornerRadius: 9).fill(tint.opacity(0.18))
+            }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 9)
+                .strokeBorder(isOn ? tint.opacity(0.75) : Color.primary.opacity(0.3),
+                              style: StrokeStyle(lineWidth: isOn ? 1.3 : 1.1,
+                                                 dash: (isOn || !dashed) ? [] : [3.5, 2.5]))
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 9))
     }
 }
 
@@ -299,6 +410,8 @@ struct InboxFileItView: View {
     @EnvironmentObject private var model: AppModel
 
     @State private var foldedAreas: Set<String> = []
+    /// The quadrant's **Pick a date**. This column's one and only sheet (build 44).
+    @State private var pickingDate: TaskRef?
 
     private var selected: TaskRef? { InboxItems.selected(model) }
     private var destinations: [Note] { InboxItems.destinations(model) }
@@ -314,6 +427,15 @@ struct InboxFileItView: View {
             selectedCard
                 .padding(.horizontal, 16)
                 .padding(.top, 10)
+            // **Shape C, the Mac's half.** The lines on the left lost their four small grey
+            // symbols; the quadrant lives here instead, right under the line it acts on and
+            // above the places that line can go, so everything you can do to one line is in
+            // one column.
+            if let ref = selected {
+                InboxQuadrant(ref: ref, pickDate: { pickingDate = ref })
+                    .padding(.horizontal, 16)
+                    .padding(.top, 10)
+            }
             SectionLabel(title: destinationsTitle, count: nil, systemImage: nil)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -345,6 +467,10 @@ struct InboxFileItView: View {
             }
             footer
                 .padding(16)
+        }
+        .sheet(item: $pickingDate) { ref in
+            TaskDatePicker(ref: ref, isPresented: Binding(get: { pickingDate != nil },
+                                                         set: { if !$0 { pickingDate = nil } }))
         }
     }
 

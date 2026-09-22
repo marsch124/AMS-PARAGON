@@ -142,7 +142,9 @@ the **pencil** that turns writing on and off.
 
 Everything you capture lands here, and the screen is built for emptying it.
 
-The middle column is the list of lines waiting to be sorted, with a capture field on top. Work down it with the buttons on each row — Today, Tomorrow, pick a date — or its **⋯** menu, which also holds **Rename…** and **New note from this line…** (a project, area or resource made out of the line).
+The middle column is the list of lines waiting to be sorted, with a capture field on top. Click a line to pick it, and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it**. The first three set the line's date, and the button for the date it already has is filled in and outlined in orange, so the four buttons also tell you where the line stands. **File it** is a menu: move the line to a project or an area, turn it into a note, block time for it, take the date off again, or delete it. To rename a line, right-click it on the Mac or hold it on the phone — the same menu opens there, with **Rename…** on it.
+
+On the Mac the four buttons are in the right-hand column, under the line you are sorting and above the places it can go, so everything about one line is in one place. On the phone there is no right-hand column, so they open up inside the line itself; every other line stays one short row.
 
 ### The keys
 
@@ -150,7 +152,7 @@ The middle column is the list of lines waiting to be sorted, with a capture fiel
 
 ### Where it goes
 
-The right-hand column shows the line you are on and everywhere it can go. Click a destination and the line moves there, and the next line is selected so you can keep going.
+The right-hand column shows the line you are on, the four buttons, and everywhere the line can go. Click a destination and the line moves there, and the next line is selected so you can keep going.
 
 The destinations are grouped into **Projects** and **Areas**, with sub-areas indented under the area they belong to and a chevron to fold a family away.
 
