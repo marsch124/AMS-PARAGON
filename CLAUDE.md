@@ -34,7 +34,12 @@ on the phone and on the Mac. **Telling him it has started is the wrong moment** 
 13 September: *"Don't wait the 5 minutes because I can take care of that myself. I would like
 to know immediately when the TestFlight workflow is done."* So: no "it is uploading", no "give
 it five minutes"; poll the run and speak when it is green (about four minutes), or say so at
-once if it fails. **Only for
+once if it fails. **But say what green actually means.** On 22 September I said build 212 was
+"in TestFlight" the moment the run went green and he answered *"Still nothing in TestFlight on
+the iPhone"* — because a green run means Apple has *received* the build, not that it is on his
+phone; Apple then processes it for five to fifteen minutes. **The line is "the upload is done,
+Apple is processing it now — look for build N in a few minutes"**, never "it is in TestFlight".
+The timing he asked for is unchanged; only the claim is. **Only for
 a push that bumped `BuildStamp.number`** — a docs-only push must not spend a TestFlight run,
 and two uploads of the same build number are refused by Apple anyway. Still give him the
 **whole URL** when he wants to watch it —
