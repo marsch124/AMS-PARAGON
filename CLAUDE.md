@@ -2717,14 +2717,19 @@ put grey buttons on that fill and 216 moved the buttons off it; both were treati
 fixed. He turned it over: the line you are on keeps its ordinary colours and the rest fade.
 
 - **`plainRowFill` is handed to every row**, which is what stops the list painting its own
-  grey. **`Color.clear` would have been wrong**: in an inset-grouped list the white card *is*
-  the row background, so a clear row shows the grey page behind it. It is
-  `Color(UIColor.secondarySystemGroupedBackground)` on iOS and **nil on macOS**, which leaves
-  the Mac's ordinary fill alone — there the third column belongs to the selected row and every
-  other list in the app marks selection the same way, so taking it off one list would be the
-  odd one out. Told him that and offered to do the Mac too.
+  fill. **The two platforms need opposite answers and that is the trap**: on iOS an
+  inset-grouped list's white card *is* the row background, so `Color.clear` there shows the
+  grey page behind the row — it is `Color(UIColor.secondarySystemGroupedBackground)`. On the
+  Mac the **list** paints the background and a row is transparent to begin with, so `.clear`
+  is the plain state and naming an `NSColor` would be guessing at a shade already there.
 - `dimmed(_:)` is `.opacity(0.45)` and only while something *is* selected, or a fresh screen
   would open with every line faded and nothing to say why.
+- **Build 218 took it to the Mac**, his ask in four words: *"do the mac too."* 217 had kept the
+  Mac's ordinary fill and said so with an offer, which is what made the ask cheap. **This is
+  the one list in the app that marks a selection this way**, deliberately: the Inbox is a
+  screen you work straight down, one line at a time, which is not what the other lists are
+  for. The screen test survives because it waits for the `isSelected` trait and never for a
+  colour (build 191) — **the reason that rule was written is exactly this kind of build.**
 - **`import UIKit` under `#if os(iOS)`.** Every other file in this target that names a
   `UIColor` imports UIKit explicitly, so this one does too rather than trusting SwiftUI to
   bring it along — there is no compiler here to find out the hard way.

@@ -80,24 +80,30 @@ struct InboxTriageView: View {
 
     #if os(iOS)
     /// The colour a row has when nothing is selected. Handing it to **every** row is what
-    /// stops the list painting its own grey over the line you are on. Named per platform
-    /// because it is a UIKit colour, and written out in one place rather than inside a
-    /// modifier chain. `Color.clear` would not do: an inset-grouped list's white card *is*
-    /// the row background, so a clear row shows the grey page behind it.
+    /// stops the list painting its own fill over the line you are on. It is named per
+    /// platform, and **the two platforms need opposite answers**: on iOS an inset-grouped
+    /// list's white card *is* the row background, so `Color.clear` there would show the grey
+    /// page behind the row.
     private var plainRowFill: Color? { Color(UIColor.secondarySystemGroupedBackground) }
     #else
-    /// nil leaves the Mac's ordinary selection fill alone. There the third column belongs to
-    /// the selected row and every other list in the app marks selection the same way, so
-    /// taking it off one list would be the odd one out.
-    private var plainRowFill: Color? { nil }
+    /// On the Mac it is the other way round: the **list** paints the background and a row is
+    /// transparent to begin with, so clear is the plain state and naming an `NSColor` would
+    /// be guessing at a shade that is already there.
+    private var plainRowFill: Color? { .clear }
     #endif
 
     /// **The line you are on stays bright and the rest step back.** His words, after build
     /// 216 moved the buttons off the fill: *"Why grey out the buttons. You should grey out
     /// the other items in the list."* He is right — a fill marks a line by covering it,
     /// which is the wrong way round when the line is the thing you are reading.
+    ///
+    /// **On both platforms since build 218** ("do the mac too"). It is the one list in the
+    /// app that marks a selection this way, and that is deliberate rather than an oversight:
+    /// the Inbox is a screen you work straight down, one line at a time, which is not what
+    /// the other lists are for. The screen test still passes because it waits for the
+    /// `isSelected` trait and never for a colour (build 191).
     private func dimmed(_ ref: TaskRef) -> Bool {
-        isPhone && model.inboxSelection != nil && ref.triageID != model.inboxSelection
+        model.inboxSelection != nil && ref.triageID != model.inboxSelection
     }
 
     private var inbox: Note? { InboxItems.note(model) }

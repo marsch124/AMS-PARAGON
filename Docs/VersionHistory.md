@@ -2,6 +2,16 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 218 · 22 September 2026
+
+**The Mac does it too.** Your ask, one line after build 217.
+
+The Inbox list on the Mac no longer paints a colour over the line you picked. The line you are
+on keeps its ordinary colours and the other lines fade, exactly as on the phone.
+
+The arrow keys still move down the list, and the right-hand column still follows the line you
+are on — the fading is what shows you which one that is.
+
 ## Build 217 · 22 September 2026
 
 **The line you are on stays normal; the other lines step back.** Your idea, and it is the
