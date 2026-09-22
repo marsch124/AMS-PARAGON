@@ -2,6 +2,17 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 216 · 22 September 2026
+
+**The grey no longer sits behind the four buttons.** Your screenshot.
+
+On the phone the line you pick gets a grey background — that is the list saying which line is
+chosen. The four buttons were drawn inside that same grey block, so the two buttons that are
+not set were grey on grey and almost impossible to see.
+
+The buttons now sit on the ordinary background, just under the line. The grey marks the line
+and nothing else.
+
 ## Build 215 · 22 September 2026
 
 **The four buttons on an Inbox line are a quadrant.** Your ask, and you picked shapes B and C.

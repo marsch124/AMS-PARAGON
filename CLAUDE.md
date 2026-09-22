@@ -2689,6 +2689,27 @@ it**, three shapes at the real column width
   any line sets `inboxShowsNote = false` and brings them straight back, so it corrects
   itself — but a future change to that flag has to keep that true.
 
+**Build 216: "Wrong area is grey."** One screenshot, and he was right. On the phone a
+selected row takes the list's own selection fill — plain grey — and build 215 had drawn the
+quadrant *inside* that row, so the two buttons that are not set (grey symbol, grey dashed
+border) sat on grey and all but vanished.
+
+- **The quadrant is now a row of its own with no `.tag`.** Build 201 had already written down
+  that an untagged row never takes the selection fill; this is the first time that fact has
+  been used on purpose rather than noticed after the event. The grey marks the line, the
+  buttons sit on the ordinary background, and `.listRowSeparator(.hidden)` keeps the pair
+  reading as one thing.
+- **`InboxRow` went back to a plain `HStack`** and lost its `isPhone` pair and its
+  `pickingDateFor` binding; `InboxTriageView` owns both now. The phone's quadrant no longer
+  passes `rename:`, so **File it** offers the same list on both platforms and Rename stays on
+  the line's context menu (long press on the phone) — which is what `Docs/HowItWorks.md`
+  already said.
+- **The lesson is about where a control is drawn, not how it is coloured.** The first
+  instinct was to give the buttons a stronger border or an opaque background of their own;
+  both would have been a second colour decision layered on top of a placement mistake. **A
+  control that is hard to read against its background is often in the wrong container.**
+  Same family as build 200's orange-on-orange, one step earlier in the chain.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

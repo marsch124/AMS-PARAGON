@@ -64,6 +64,15 @@ struct InboxTriageView: View {
     @State private var pickingDateFor: TaskRef?
     @FocusState private var captureFocused: Bool
 
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    /// A plain stub, so the body never carries an `#if` in the middle of a modifier chain
+    /// (build 148's lesson). The Mac's quadrant lives in the **File it** column instead.
+    private var isPhone: Bool { false }
+    #endif
+
     private var inbox: Note? { InboxItems.note(model) }
     private var items: [TaskRef] { InboxItems.waiting(model) }
     private var selected: TaskRef? { InboxItems.selected(model) }
@@ -81,8 +90,22 @@ struct InboxTriageView: View {
                 header
                 List(selection: $model.inboxSelection) {
                     ForEach(items, id: \.triageID) { ref in
-                        InboxRow(ref: ref, pickingDateFor: $pickingDateFor)
+                        InboxRow(ref: ref)
                             .tag(ref.triageID)
+                        // **The quadrant is a row of its own, and it carries no `.tag`.**
+                        // Inside the selected row it sat on the list's selection fill — plain
+                        // grey on the phone — so the two buttons that are *not* set were grey
+                        // on grey and all but invisible (his screenshot: "wrong area is
+                        // grey"). An untagged row never takes that fill (build 201), so the
+                        // grey now marks the line and the buttons sit on the ordinary
+                        // background. The separators are hidden so the pair still reads as
+                        // one thing.
+                        if isPhone, ref.triageID == model.inboxSelection {
+                            InboxQuadrant(ref: ref, pickDate: { pickingDateFor = ref })
+                                // Lines up under the words, past the tick.
+                                .padding(.leading, 23)
+                                .listRowSeparator(.hidden)
+                        }
                     }
                 }
             }
@@ -181,64 +204,38 @@ struct InboxTriageView: View {
 struct InboxRow: View {
     @EnvironmentObject private var model: AppModel
     let ref: TaskRef
-    @Binding var pickingDateFor: TaskRef?
     @State private var editing = false
     @State private var draft = ""
     @FocusState private var fieldFocused: Bool
 
-    #if os(iOS)
-    @Environment(\.horizontalSizeClass) private var sizeClass
-    private var isPhone: Bool { sizeClass == .compact }
-    #else
-    /// A plain stub, so the body never carries an `#if` in the middle of a modifier chain
-    /// (build 148's lesson).
-    private var isPhone: Bool { false }
-    #endif
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Button {
-                    model.toggle(ref)
-                } label: {
-                    Image(systemName: "circle")
-                        .rowTint(SidebarSection.inbox.tint)
-                }
-                .buttonStyle(.plain)
-                .help("Mark as done")
+        HStack(spacing: 8) {
+            Button {
+                model.toggle(ref)
+            } label: {
+                Image(systemName: "circle")
+                    .rowTint(SidebarSection.inbox.tint)
+            }
+            .buttonStyle(.plain)
+            .help("Mark as done")
 
-                VStack(alignment: .leading, spacing: 2) {
-                    if editing {
-                        TextField("Title", text: $draft)
-                            .textFieldStyle(.roundedBorder)
-                            .focused($fieldFocused)
-                            .onSubmit(commit)
-                    } else {
-                        Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
-                            .lineLimit(2)
-                    }
-                    if let due = ref.task.dueDate {
-                        Label(due.description, systemImage: "calendar")
-                            .font(.caption2)
-                            .rowTint(due < .today() ? Color.red : .secondary)
-                    }
+            VStack(alignment: .leading, spacing: 2) {
+                if editing {
+                    TextField("Title", text: $draft)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($fieldFocused)
+                        .onSubmit(commit)
+                } else {
+                    Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
+                        .lineLimit(2)
                 }
-                Spacer(minLength: 6)
+                if let due = ref.task.dueDate {
+                    Label(due.description, systemImage: "calendar")
+                        .font(.caption2)
+                        .rowTint(due < .today() ? Color.red : .secondary)
+                }
             }
-            // **Shape B, the phone's half.** The line you are on opens and shows the four
-            // buttons full width; every other line stays one short row, so the whole Inbox is
-            // still in view. The Mac never draws them here — its **File it** column is always
-            // on screen and carries the same quadrant, and one control drawn twice on one
-            // screen is two doors into one room (build 166).
-            if isPhone, isSelected {
-                InboxQuadrant(ref: ref,
-                              pickDate: { pickingDateFor = ref },
-                              rename: startEditing)
-                    // Lines up under the words, past the tick: the circle plus the gap.
-                    .padding(.leading, 23)
-                    .padding(.trailing, 2)
-                    .padding(.bottom, 2)
-            }
+            Spacer(minLength: 6)
         }
         .padding(.vertical, 2)
         .contentShape(Rectangle())
