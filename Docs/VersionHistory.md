@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 212 · 22 September 2026
+
+**The Calendar part of Today takes much less room.** Your ask.
+
+- Each event is now **one line**: the time, the name, and the place after it, in smaller type.
+  It used to put the place on a second line under the name, which made the section about twice
+  as tall as it needed to be.
+- **Press the word Calendar in that heading to fold the events away.** The number beside it
+  still says how many there are, so nothing goes missing quietly. Press it again to bring them
+  back. The phone and the Mac remember this separately.
+
+**The Calendar screen and the daily note are unchanged** — they keep the roomy rows, because
+those screens are about the day itself.
+
 ## Build 211 · 20 September 2026
 
 **Two more checks that run on every push.** Nothing in the app looks different.

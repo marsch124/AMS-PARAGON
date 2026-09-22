@@ -4,6 +4,25 @@ import ParagonCore
 /// Everything due today or overdue, plus undated tasks marked `!!` or `!!!`.
 struct TodayView: View {
     @EnvironmentObject private var model: AppModel
+    // Open by default, and its own key per platform, so folding it on the phone cannot
+    // fold it on the Mac (build 161's pair). Build 121 still holds: the fold is one press
+    // away and the count stays in the heading, so the day's events can never go missing
+    // without saying so.
+    @AppStorage("todayCalendarFolded") private var deskCalendarFolded = false
+    @AppStorage("todayCalendarFoldedPhone") private var phoneCalendarFolded = false
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    /// A plain stub, so the body never carries an `#if` in the middle of a modifier chain
+    /// (build 148's lesson, and build 160's about this pair).
+    private var isPhone: Bool { false }
+    #endif
+
+    private var calendarFolded: Binding<Bool> {
+        isPhone ? $phoneCalendarFolded : $deskCalendarFolded
+    }
 
     var body: some View {
         let index = model.index
@@ -33,8 +52,20 @@ struct TodayView: View {
                 .listRowSeparator(.hidden)
             }
             if model.showsCalendarEvents {
-                Section("Calendar") {
-                    CalendarEventRows(date: today)
+                Section {
+                    // **The message is never folded away.** With Calendar access off, the
+                    // body is the only thing that says why there are no events, and hiding a
+                    // reason behind a chevron is build 100's fault in a new place.
+                    if !calendarFolded.wrappedValue || model.calendarAccessGranted == false {
+                        CalendarEventRows(date: today, compact: true)
+                    }
+                } header: {
+                    FoldButton(isOpen: calendarOpen, accessibilityName: "Calendar") {
+                        SectionLabel(title: "Calendar",
+                                     count: model.events(on: today).count,
+                                     systemImage: SidebarSection.calendar.systemImage,
+                                     tint: SidebarSection.calendar.tint)
+                    }
                 }
             }
             Section {
@@ -70,6 +101,13 @@ struct TodayView: View {
             }
         }
         .task(id: today) { await model.loadEvents(for: today) }
+    }
+
+    /// `FoldButton` asks whether the box is **open**; the stored value says whether it is
+    /// folded, so the two are the same question read the other way round.
+    private var calendarOpen: Binding<Bool> {
+        Binding(get: { !calendarFolded.wrappedValue },
+                set: { calendarFolded.wrappedValue = !$0 })
     }
 
     private func rows(_ refs: [TaskRef]) -> some View {

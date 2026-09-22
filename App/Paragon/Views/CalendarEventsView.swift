@@ -6,6 +6,10 @@ import ParagonCore
 struct CalendarEventRows: View {
     @EnvironmentObject private var model: AppModel
     let date: DateOnly
+    /// One line per event instead of two, in smaller type — for Today, where the day's events
+    /// share a screen with everything else (build 212). The Calendar section and the daily
+    /// note keep the roomy rows: those screens are about the day itself.
+    var compact = false
 
     var body: some View {
         if model.calendarAccessGranted == false {
@@ -20,7 +24,7 @@ struct CalendarEventRows: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(events) { event in
-                    CalendarEventRow(event: event, date: date)
+                    CalendarEventRow(event: event, date: date, compact: compact)
                 }
             }
         }
@@ -31,21 +35,34 @@ struct CalendarEventRow: View {
     @EnvironmentObject private var model: AppModel
     let event: CalendarEvent
     let date: DateOnly
+    var compact = false
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: compact ? 6 : 8) {
             Circle()
                 .fill(event.color)
-                .frame(width: 8, height: 8)
+                .frame(width: compact ? 6 : 8, height: compact ? 6 : 8)
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 3 }
             Text(event.timeLabel(on: date))
-                .font(.callout.monospacedDigit())
+                .font(compact ? .caption.monospacedDigit() : .callout.monospacedDigit())
                 .foregroundStyle(.secondary)
-                .frame(minWidth: 96, alignment: .leading)
+                .frame(minWidth: compact ? 74 : 96, alignment: .leading)
+            // **Compact puts the place on the same line as the name**, after a middle dot,
+            // rather than under it: a second line is what made this section twice as tall as
+            // it needed to be on Today. The name is what you read; the place follows it and
+            // gives way first when the row runs out of width.
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
                     Text(event.title)
+                        .font(compact ? .callout : .body)
                         .lineLimit(1)
+                    if let location = event.location, compact {
+                        Text("· \(location)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .layoutPriority(-1)
+                    }
                     if event.isTimeBlock {
                         Text("block")
                             .font(.caption2)
@@ -54,7 +71,7 @@ struct CalendarEventRow: View {
                             .background(event.color.opacity(0.18), in: Capsule())
                     }
                 }
-                if let location = event.location {
+                if let location = event.location, !compact {
                     Text(location)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -66,6 +83,7 @@ struct CalendarEventRow: View {
                 model.openInCalendar(event)
             } label: {
                 Image(systemName: "arrow.up.forward.app")
+                    .font(compact ? .caption : .body)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)

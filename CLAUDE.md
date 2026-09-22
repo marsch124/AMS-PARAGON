@@ -2565,6 +2565,27 @@ The last two from his list. Fourteen now: twelve shared or Mac-only, plus the ph
   template someone may reword** — the same reason every element is found by identifier and
   never by its words (build 191).
 
+## Today's Calendar section is compact (build 212)
+
+His ask: *"The Calendar view is too large in the Today tab. Compact it please."*
+
+- **`CalendarEventRow` gained `compact`**, and only `TodayView` passes it. The same view in two
+  sizes, the shape `DailyNoteRow(preview:)` (78) and `QuickCaptureView(embedded:)` (185)
+  already have — **not a second row view**, which is how two screens come to drift (build 168).
+  The **Calendar section and the daily note keep the roomy rows on purpose**: those screens are
+  about the day itself, and it is Today where the events share the space with everything else.
+- **The second line was the real cost.** A place under the name doubled the height of every
+  row. Compact puts it on the same line after a middle dot, with `.layoutPriority(-1)` so the
+  place is what gives way when the row runs out of width — never the name (build 138's family:
+  decide what squeezes before the column does it for you).
+- **The section folds, and the count stays in the heading** — `FoldButton` (build 205) around a
+  `SectionLabel`. Open by default and its own `@AppStorage` key per platform (builds 121, 161).
+- **The "Calendar access is off" message is never folded away.** With access off, that body is
+  the only thing that says why the day looks empty; hiding a reason behind a chevron is build
+  100's fault in a new place. So the fold is ignored while `calendarAccessGranted == false`.
+- `calendarOpen` is a `Binding` that flips the stored *folded* value, because `FoldButton` asks
+  whether the box is open and the setting says whether it is closed. One place, written out.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
