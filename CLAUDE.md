@@ -2710,6 +2710,25 @@ border) sat on grey and all but vanished.
   control that is hard to read against its background is often in the wrong container.**
   Same family as build 200's orange-on-orange, one step earlier in the chain.
 
+**Build 217, and he had the better idea.** After 216 he wrote: *"No. Why grey out the
+buttons. You should grey out the other items in the list."* **A selection fill marks a line by
+covering it, which is the wrong way round when the line is the thing you are reading.** 215
+put grey buttons on that fill and 216 moved the buttons off it; both were treating the fill as
+fixed. He turned it over: the line you are on keeps its ordinary colours and the rest fade.
+
+- **`plainRowFill` is handed to every row**, which is what stops the list painting its own
+  grey. **`Color.clear` would have been wrong**: in an inset-grouped list the white card *is*
+  the row background, so a clear row shows the grey page behind it. It is
+  `Color(UIColor.secondarySystemGroupedBackground)` on iOS and **nil on macOS**, which leaves
+  the Mac's ordinary fill alone — there the third column belongs to the selected row and every
+  other list in the app marks selection the same way, so taking it off one list would be the
+  odd one out. Told him that and offered to do the Mac too.
+- `dimmed(_:)` is `.opacity(0.45)` and only while something *is* selected, or a fresh screen
+  would open with every line faded and nothing to say why.
+- **`import UIKit` under `#if os(iOS)`.** Every other file in this target that names a
+  `UIColor` imports UIKit explicitly, so this one does too rather than trusting SwiftUI to
+  bring it along — there is no compiler here to find out the hard way.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

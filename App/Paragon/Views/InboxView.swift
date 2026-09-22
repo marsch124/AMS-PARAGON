@@ -1,5 +1,10 @@
 import SwiftUI
 import ParagonCore
+#if os(iOS)
+// For the row colour below. Every other file here that names a UIColor imports UIKit
+// explicitly, so this one does too rather than relying on SwiftUI to bring it along.
+import UIKit
+#endif
 
 /// What the Inbox screen is working with. Both columns read it from here.
 /// `@MainActor` because everything here touches `AppModel`, which is main-actor bound.
@@ -73,6 +78,28 @@ struct InboxTriageView: View {
     private var isPhone: Bool { false }
     #endif
 
+    #if os(iOS)
+    /// The colour a row has when nothing is selected. Handing it to **every** row is what
+    /// stops the list painting its own grey over the line you are on. Named per platform
+    /// because it is a UIKit colour, and written out in one place rather than inside a
+    /// modifier chain. `Color.clear` would not do: an inset-grouped list's white card *is*
+    /// the row background, so a clear row shows the grey page behind it.
+    private var plainRowFill: Color? { Color(UIColor.secondarySystemGroupedBackground) }
+    #else
+    /// nil leaves the Mac's ordinary selection fill alone. There the third column belongs to
+    /// the selected row and every other list in the app marks selection the same way, so
+    /// taking it off one list would be the odd one out.
+    private var plainRowFill: Color? { nil }
+    #endif
+
+    /// **The line you are on stays bright and the rest step back.** His words, after build
+    /// 216 moved the buttons off the fill: *"Why grey out the buttons. You should grey out
+    /// the other items in the list."* He is right — a fill marks a line by covering it,
+    /// which is the wrong way round when the line is the thing you are reading.
+    private func dimmed(_ ref: TaskRef) -> Bool {
+        isPhone && model.inboxSelection != nil && ref.triageID != model.inboxSelection
+    }
+
     private var inbox: Note? { InboxItems.note(model) }
     private var items: [TaskRef] { InboxItems.waiting(model) }
     private var selected: TaskRef? { InboxItems.selected(model) }
@@ -92,18 +119,16 @@ struct InboxTriageView: View {
                     ForEach(items, id: \.triageID) { ref in
                         InboxRow(ref: ref)
                             .tag(ref.triageID)
-                        // **The quadrant is a row of its own, and it carries no `.tag`.**
-                        // Inside the selected row it sat on the list's selection fill — plain
-                        // grey on the phone — so the two buttons that are *not* set were grey
-                        // on grey and all but invisible (his screenshot: "wrong area is
-                        // grey"). An untagged row never takes that fill (build 201), so the
-                        // grey now marks the line and the buttons sit on the ordinary
-                        // background. The separators are hidden so the pair still reads as
-                        // one thing.
+                            .listRowBackground(plainRowFill)
+                            .opacity(dimmed(ref) ? 0.45 : 1)
+                        // The quadrant is a row of its own and carries no `.tag`, so it can
+                        // never take a selection fill (build 201) and a press on it never
+                        // means "pick a different line".
                         if isPhone, ref.triageID == model.inboxSelection {
                             InboxQuadrant(ref: ref, pickDate: { pickingDateFor = ref })
                                 // Lines up under the words, past the tick.
                                 .padding(.leading, 23)
+                                .listRowBackground(plainRowFill)
                                 .listRowSeparator(.hidden)
                         }
                     }

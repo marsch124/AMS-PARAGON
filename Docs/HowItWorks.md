@@ -144,7 +144,7 @@ Everything you capture lands here, and the screen is built for emptying it.
 
 The middle column is the list of lines waiting to be sorted, with a capture field on top. Click a line to pick it, and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it**. The first three set the line's date, and the button for the date it already has is filled in and outlined in orange, so the four buttons also tell you where the line stands. **File it** is a menu: move the line to a project or an area, turn it into a note, block time for it, take the date off again, or delete it. To rename a line, right-click it on the Mac or hold it on the phone — the same menu opens there, with **Rename…** on it.
 
-On the Mac the four buttons are in the right-hand column, under the line you are sorting and above the places it can go, so everything about one line is in one place. On the phone there is no right-hand column, so they open up inside the line itself; every other line stays one short row.
+On the Mac the four buttons are in the right-hand column, under the line you are sorting and above the places it can go, so everything about one line is in one place; the line you picked is highlighted in the list. On the phone there is no right-hand column, so the buttons appear just under the line you tapped, and the other lines fade so the one you are working on stands out.
 
 ### The keys
 

@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 217 · 22 September 2026
+
+**The line you are on stays normal; the other lines step back.** Your idea, and it is the
+better one.
+
+Until now the Inbox marked the line you had picked by painting a grey block over it. That is
+the wrong way round: the line you are reading is the one that should look normal.
+
+On the phone there is no grey block any more. The line you pick keeps its ordinary colours,
+and the other lines are faded. The four buttons under your line are on the ordinary
+background too.
+
+The Mac keeps the selection colour it has always had, because there the right-hand column
+belongs to the selected line and every other list in the app marks a selection the same way.
+Say the word if you want the Mac to fade the other lines as well.
+
 ## Build 216 · 22 September 2026
 
 **The grey no longer sits behind the four buttons.** Your screenshot.
