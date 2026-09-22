@@ -2,6 +2,15 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 214 · 22 September 2026
+
+**"Create today's note" is a small button now.** Your ask. It used to be a whole row of its
+own, as wide as the screen, for something you press once a day.
+
+It now sits at the right of a short heading that says **TODAY'S NOTE**, and it says one word:
+**Create** while there is no note for today, **Open** once there is. The tasks from today's
+note that have no date still sit under it, as before.
+
 ## Build 213 · 22 September 2026
 
 **The Calendar events on Today are really shorter now.** Build 212 made the text smaller and

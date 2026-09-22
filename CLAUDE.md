@@ -2611,6 +2611,28 @@ tall?"*
   his question answered it without a screenshot. **Ask which of the two it is — the two answers
   do not share a fix** (build 177's rule, and 123–127's).
 
+**Build 214: the day's note is a button in a heading, not a row.** His ask, in his words:
+*"Could you please compact into a small button: Create todays note."* It was a full-width list
+row — the widest thing on the screen — for something pressed once a day.
+
+- **It moved into the section's own header**, beside `SectionLabel("Today's note")`: build
+  167's rule, a control that governs a section belongs in that section's header. A header row
+  is about two thirds the height of a list row, and the standalone row is gone with it.
+- **The button says one word** — **Create** or **Open** — because the heading beside it carries
+  the noun, and repeating it is build 169's fault. The whole sentence survives as
+  `.accessibilityLabel` and as the Mac's tooltip: **build 159's rule, that a control which
+  shrinks hands its words to the row it sits in rather than losing them.**
+- **`.textCase(nil)` on the header.** A `List` uppercases a section header's text itself, which
+  would have left the button reading CREATE. `SectionLabel` uppercases its own words, so the
+  heading is unchanged and only the button reads as an ordinary word. Worth remembering for any
+  future control put in a Section header.
+- No symbol on the heading: the button already carries the calendar, and two of one symbol side
+  by side says nothing twice (build 164's reason for taking `TintStripe` off the Goals rows).
+- `HeaderActionButton` is private to `TodayView.swift`. `ChipLabel` is the nearest existing
+  shape but is `private` inside `NewNoteSheet.swift`; **moving it into Theme.swift belongs in a
+  build about that**, not in this one. If a second screen ever wants this button, that is the
+  moment to share them.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

@@ -69,15 +69,26 @@ struct TodayView: View {
                 }
             }
             Section {
-                Button {
-                    model.openDailyNote(for: today)
-                } label: {
-                    Label(model.todayNote == nil ? "Create today's note" : "Open today's note", systemImage: "calendar")
-                        .foregroundStyle(ParaKind.daily.tint)
-                }
                 if !fromTodayNote.isEmpty {
                     rows(fromTodayNote)
                 }
+            } header: {
+                HStack(spacing: 8) {
+                    // No symbol on the heading: the button beside it already carries the
+                    // calendar, and two of one symbol in a row says nothing twice.
+                    SectionLabel(title: "Today's note")
+                    HeaderActionButton(title: model.todayNote == nil ? "Create" : "Open",
+                                       spokenTitle: model.todayNote == nil
+                                            ? "Create today's note" : "Open today's note",
+                                       systemImage: "calendar",
+                                       tint: ParaKind.daily.tint) {
+                        model.openDailyNote(for: today)
+                    }
+                }
+                // A `List` uppercases a section header's text for us, which would leave the
+                // button saying CREATE. `SectionLabel` uppercases its own words, so the
+                // heading is unchanged and only the button reads as an ordinary word.
+                .textCase(nil)
             }
             if !nextActions.isEmpty {
                 Section("Next actions") { rows(nextActions) }
@@ -115,5 +126,37 @@ struct TodayView: View {
             TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                 .tag(ref.notePath)
         }
+    }
+}
+
+/// A short button beside a section's own name, in the shape the header controls elsewhere
+/// already have (build 167: a control that governs a section belongs in that section's
+/// header, not in the window's toolbar).
+///
+/// It carries one word, because the heading next to it carries the noun. The whole
+/// sentence is still said out loud and shown as the Mac's tooltip — build 159's rule: a
+/// control that shrinks hands its words to the row it sits in, it does not lose them.
+private struct HeaderActionButton: View {
+    let title: String
+    let spokenTitle: String
+    let systemImage: String
+    let tint: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.caption.weight(.semibold))
+                .lineLimit(1)
+                .foregroundStyle(tint)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
+                .overlay(Capsule().strokeBorder(tint.opacity(0.55), lineWidth: 1))
+                // The tap area is the label, so the padding goes inside it (build 186).
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(spokenTitle)
+        .help(spokenTitle)
     }
 }
