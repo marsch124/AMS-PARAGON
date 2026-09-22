@@ -2,6 +2,16 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 219 · 22 September 2026
+
+**The date row is gone from Today.** Your ask.
+
+It was a whole row saying "Tuesday, 22 September" and how many tasks were due. The title at
+the top of the screen already says **Today**, and the **Due today** section below names the
+same tasks, so the row was repeating what the screen already told you.
+
+Tell me if you miss the date itself and I will put it somewhere smaller.
+
 ## Build 218 · 22 September 2026
 
 **The Mac does it too.** Your ask, one line after build 217.

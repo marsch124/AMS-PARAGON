@@ -334,7 +334,7 @@ engine there and shows `SyncReportView` through `AppSheet.syncReport`
 count) and `EmptyStateView` (icon, title, sentence, one action button).
 `NoteListView.emptyList(searching:)` shows a per-section empty state instead
 of the list; `DetailView` uses `EmptyStateView` too. `TintStripe`/`KindBadge`
-stay in ContentView. TodayView opens with the date and a due count.
+stay in ContentView. (TodayView's date-and-due-count row went in build 219.)
 
 ## Live markdown editor (build 47)
 
@@ -2733,6 +2733,20 @@ fixed. He turned it over: the line you are on keeps its ordinary colours and the
 - **`import UIKit` under `#if os(iOS)`.** Every other file in this target that names a
   `UIColor` imports UIKit explicitly, so this one does too rather than trusting SwiftUI to
   bring it along — there is no compiler here to find out the hard way.
+
+**Build 219: the date row left Today.** He marked it on a screenshot and wrote one word,
+**"Delete."**
+
+- **The orange rectangle in that screenshot was his own marking, not the app.** Worth saying,
+  because three builds earlier an orange line *was* ours (build 202's focus ring) and it took
+  a grep to be sure: nothing in `TodayView` draws a border, the app has **no `AccentColor` in
+  its asset catalogue**, and the tab bar in the same picture is the system blue. **Check
+  whether a colour in a screenshot is even in the palette before hunting for it in the code.**
+- The row held two facts the screen already carried: the large title says **Today**, and the
+  **Due today** section names and counts the same tasks. Same family as build 169's chip that
+  repeated what the screen already said — only this one cost a full-width list row.
+- The stale sentence under build 46 ("TodayView opens with the date and a due count") was
+  fixed in the same push. Build 159's rule: when a thing goes, grep the notes for its words.
 
 ## Not built (by choice)
 

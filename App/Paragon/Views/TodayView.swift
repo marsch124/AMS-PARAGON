@@ -38,19 +38,11 @@ struct TodayView: View {
             .filter { $0.dueDate == nil }
             .map { TaskRef(notePath: todayNotePath ?? "", noteTitle: "Today's note", task: $0) }
 
+        // **No date row (build 219).** It held "Tuesday, 22 September" and a count of what
+        // was due, and it was a full-width list row for two facts the screen already
+        // carries: the title above it says **Today**, and the **Due today** section below
+        // names and counts the same tasks. He marked it on a screenshot and wrote "Delete".
         List(selection: model.noteSelection) {
-            Section {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
-                        .font(.title3.weight(.semibold))
-                    Spacer()
-                    let open = overdue.count + dueToday.count
-                    Text(open == 0 ? "Nothing due" : "\(open) due")
-                        .font(.callout)
-                        .foregroundStyle(overdue.isEmpty ? .secondary : Color.red)
-                }
-                .listRowSeparator(.hidden)
-            }
             if model.showsCalendarEvents {
                 Section {
                     // **The message is never folded away.** With Calendar access off, the
