@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 220 · 23 September 2026
+
+**The date is back on Today, as a short grey line.** You picked this shape.
+
+It sits under the title and above **CALENDAR**, in small grey text: *Wednesday, 23 September*.
+It is about a third of the height of the row that build 219 removed, because it is no longer a
+row in the list at all — a row has a smallest height whatever is written in it, so a small line
+has to sit outside the list.
+
+The count of what is due did not come back. The **Due today** section names those tasks a few
+lines further down.
+
 ## Build 219 · 22 September 2026
 
 **The date row is gone from Today.** Your ask.
@@ -10,7 +22,7 @@ It was a whole row saying "Tuesday, 22 September" and how many tasks were due. T
 the top of the screen already says **Today**, and the **Due today** section below names the
 same tasks, so the row was repeating what the screen already told you.
 
-Tell me if you miss the date itself and I will put it somewhere smaller.
+The date itself came back one build later, as a short grey line — see build 220.
 
 ## Build 218 · 22 September 2026
 

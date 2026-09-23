@@ -38,69 +38,79 @@ struct TodayView: View {
             .filter { $0.dueDate == nil }
             .map { TaskRef(notePath: todayNotePath ?? "", noteTitle: "Today's note", task: $0) }
 
-        // **No date row (build 219).** It held "Tuesday, 22 September" and a count of what
-        // was due, and it was a full-width list row for two facts the screen already
-        // carries: the title above it says **Today**, and the **Due today** section below
-        // names and counts the same tasks. He marked it on a screenshot and wrote "Delete".
-        List(selection: model.noteSelection) {
-            if model.showsCalendarEvents {
+        // **The date is one short grey line, outside the List (builds 219 and 220).** 219
+        // deleted the row it used to live in, because a full-width list row for a date and a
+        // count repeated what the screen already said. He then asked for the date itself
+        // back, and picked this shape. **It has to sit outside the `List` to be small at
+        // all**: inside one it would be a row again, and a row has a minimum height whatever
+        // is written in it — build 213's whole lesson. The count did not come back: the
+        // **Due today** section names those tasks a few lines further down.
+        VStack(alignment: .leading, spacing: 0) {
+            Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, Theme.gutter + 6)
+                .padding(.bottom, Theme.tight)
+            List(selection: model.noteSelection) {
+                if model.showsCalendarEvents {
+                    Section {
+                        // **The message is never folded away.** With Calendar access off, the
+                        // body is the only thing that says why there are no events, and hiding a
+                        // reason behind a chevron is build 100's fault in a new place.
+                        if !calendarFolded.wrappedValue || model.calendarAccessGranted == false {
+                            CalendarEventRows(date: today, compact: true)
+                        }
+                    } header: {
+                        FoldButton(isOpen: calendarOpen, accessibilityName: "Calendar") {
+                            SectionLabel(title: "Calendar",
+                                         count: model.events(on: today).count,
+                                         systemImage: SidebarSection.calendar.systemImage,
+                                         tint: SidebarSection.calendar.tint)
+                        }
+                    }
+                }
                 Section {
-                    // **The message is never folded away.** With Calendar access off, the
-                    // body is the only thing that says why there are no events, and hiding a
-                    // reason behind a chevron is build 100's fault in a new place.
-                    if !calendarFolded.wrappedValue || model.calendarAccessGranted == false {
-                        CalendarEventRows(date: today, compact: true)
+                    if !fromTodayNote.isEmpty {
+                        rows(fromTodayNote)
                     }
                 } header: {
-                    FoldButton(isOpen: calendarOpen, accessibilityName: "Calendar") {
-                        SectionLabel(title: "Calendar",
-                                     count: model.events(on: today).count,
-                                     systemImage: SidebarSection.calendar.systemImage,
-                                     tint: SidebarSection.calendar.tint)
+                    HStack(spacing: 8) {
+                        // No symbol on the heading: the button beside it already carries the
+                        // calendar, and two of one symbol in a row says nothing twice.
+                        SectionLabel(title: "Today's note")
+                        HeaderActionButton(title: model.todayNote == nil ? "Create" : "Open",
+                                           spokenTitle: model.todayNote == nil
+                                                ? "Create today's note" : "Open today's note",
+                                           systemImage: "calendar",
+                                           tint: ParaKind.daily.tint) {
+                            model.openDailyNote(for: today)
+                        }
+                    }
+                    // A `List` uppercases a section header's text for us, which would leave the
+                    // button saying CREATE. `SectionLabel` uppercases its own words, so the
+                    // heading is unchanged and only the button reads as an ordinary word.
+                    .textCase(nil)
+                }
+                if !nextActions.isEmpty {
+                    Section("Next actions") { rows(nextActions) }
+                }
+                if !overdue.isEmpty {
+                    Section("Overdue") { rows(overdue) }
+                }
+                Section("Due today") {
+                    if dueToday.isEmpty {
+                        Text(overdue.isEmpty && nextActions.isEmpty
+                             ? "Nothing is due today. Give a task a date, or pick a next action in a project."
+                             : "Nothing else is due today.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        rows(dueToday)
                     }
                 }
-            }
-            Section {
-                if !fromTodayNote.isEmpty {
-                    rows(fromTodayNote)
+                if !important.isEmpty {
+                    Section("Important, no date") { rows(important) }
                 }
-            } header: {
-                HStack(spacing: 8) {
-                    // No symbol on the heading: the button beside it already carries the
-                    // calendar, and two of one symbol in a row says nothing twice.
-                    SectionLabel(title: "Today's note")
-                    HeaderActionButton(title: model.todayNote == nil ? "Create" : "Open",
-                                       spokenTitle: model.todayNote == nil
-                                            ? "Create today's note" : "Open today's note",
-                                       systemImage: "calendar",
-                                       tint: ParaKind.daily.tint) {
-                        model.openDailyNote(for: today)
-                    }
-                }
-                // A `List` uppercases a section header's text for us, which would leave the
-                // button saying CREATE. `SectionLabel` uppercases its own words, so the
-                // heading is unchanged and only the button reads as an ordinary word.
-                .textCase(nil)
-            }
-            if !nextActions.isEmpty {
-                Section("Next actions") { rows(nextActions) }
-            }
-            if !overdue.isEmpty {
-                Section("Overdue") { rows(overdue) }
-            }
-            Section("Due today") {
-                if dueToday.isEmpty {
-                    Text(overdue.isEmpty && nextActions.isEmpty
-                         ? "Nothing is due today. Give a task a date, or pick a next action in a project."
-                         : "Nothing else is due today.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                } else {
-                    rows(dueToday)
-                }
-            }
-            if !important.isEmpty {
-                Section("Important, no date") { rows(important) }
             }
         }
         .task(id: today) { await model.loadEvents(for: today) }

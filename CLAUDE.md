@@ -2748,6 +2748,20 @@ fixed. He turned it over: the line you are on keeps its ordinary colours and the
 - The stale sentence under build 46 ("TodayView opens with the date and a due count") was
   fixed in the same push. Build 159's rule: when a thing goes, grep the notes for its words.
 
+**Build 220: the date comes back, one grey line, outside the `List`.** He asked what *"put
+the date back somewhere small"* meant — **a fair question about my own words**, and the answer
+had to be three drawn options, not a phrase. He took **A**, a short grey line under the title.
+
+- **It is outside the `List` on purpose, and that is the whole point.** Inside one it would be
+  a row again, and a row has a smallest height whatever is written in it (build 213). So
+  `TodayView.body` is now a `VStack` holding the line and then the `List`.
+- The due count did **not** come back: **Due today** names those tasks a few lines down, and
+  repeating them is what 219 removed.
+- **"Somewhere smaller" was the fault, not the plan.** The language rule at the top of this
+  file is about names on screen, and it is just as true of what I write to him in chat and in
+  `Docs/VersionHistory.md` — the 219 entry said it too and has been rewritten. **Offer shapes,
+  not adjectives.**
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
