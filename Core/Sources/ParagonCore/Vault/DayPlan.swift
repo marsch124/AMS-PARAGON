@@ -135,16 +135,12 @@ public enum DayPlan {
     }
 
     /// The lines inside `## Plan`, and where they sit in the body.
+    ///
+    /// Build 223 moved the finding itself into `MarkdownSection`, so `## Plan` and
+    /// `## Looking back` cannot come to disagree about where a section stops. The behaviour
+    /// here is unchanged, and `DayPlanTests` is what says so.
     private static func section(of body: String) -> (lines: [String], range: Range<Int>?) {
-        let lines = body.components(separatedBy: "\n")
-        guard let start = lines.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces).lowercased() == heading.lowercased() })
-        else { return ([], nil) }
-        var end = start + 1
-        while end < lines.count, !lines[end].trimmingCharacters(in: .whitespaces).hasPrefix("## ") {
-            end += 1
-        }
-        let inside = (start + 1)..<end
-        return (Array(lines[inside]), inside)
+        MarkdownSection.find(heading, in: body)
     }
 
     /// Sorted by start and renumbered, which is the only order a plan is ever held in.

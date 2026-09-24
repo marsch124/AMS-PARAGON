@@ -2821,6 +2821,49 @@ before build 170. Found by `grep`, not by memory.
   drag, which starts on a long press and does not fight a scroll view the way build 152's raw
   `DragGesture` would, so the target is on both platforms. CI compiles but never drags.
 
+**Build 223: Close the day.** Third of the four, and the first new screen in a while, so it
+followed the pattern this project keeps proving: **a drawing before any code**
+(https://claude.ai/artifact/NrbS7bxiaBin21sLjwzvEg, three shapes at real column widths). He took
+**A** and the heading `## Looking back`.
+- **Why not B or C, in his own reasoning as much as mine.** B put a new box at the foot of
+  **Today** — the screen builds 213, 214 and 219 were all about shortening. C was a sidebar row,
+  which on the phone means inside **Browse**, two taps away every evening. **A is the only one
+  that can be *finished***, which is the whole point of closing a day.
+- **`Core/Vault/DayLog.swift`** (tested) owns the section, the way `DayPlan` owns `## Plan`.
+  Build 146's rule: anything that decides the shape of a stored value belongs in Core.
+  **Empty text removes the heading as well** — a heading with nothing under it is a promise the
+  note does not keep, the same reasoning as `setStatus(.active)` removing the line (build 165).
+  A new section goes at the **end**: a plan is read before the work, looking back is written
+  after it.
+- **`Core/Markdown/MarkdownSection.swift` is `DayPlan`'s own section finder, extracted.** Two
+  copies of a markdown parser is how two parts of this app came to disagree about one file
+  (build 168). Safe to do in this build because Core has tests: `DayPlanTests` is what says the
+  behaviour did not move.
+- **The tests assert fragments and structure, never one exact whole body.** `Note.body` comes
+  back through `Frontmatter.parse`, so a byte-for-byte assertion would fail for that reason
+  rather than for the code under test — the shape `DayPlanTests` already uses.
+- **Counts, not two more lists.** **Done** already lists what you finished, day by day; drawing
+  the same names here would be a second door into one room (build 166). The number is what an
+  evening needs.
+- **The leftovers are real `TaskRow`s** (build 149), so a tick ticks the task in its own note and
+  the task menu comes free. Safe here: no `List(selection:)` (builds 71–74). **Move all** is
+  build 221's `moveTasks`, which is why 221 came first.
+- **Undated tasks are deliberately left out.** A task with no date was never promised to today,
+  so it did not "not happen".
+- **Done saves the line; Cancel does not** — and the tick boxes and **Tomorrow** buttons have
+  already written when they were pressed. Said out loud in the manual, because a footer that
+  means different things to different controls on one screen is worth spelling out.
+- The button sits **beside the date at the top of Today**, not in the window's toolbar
+  (build 167). Build 220's date line left the right half of that row empty, so it cost no new
+  furniture. `SidebarSection.review.tint`, because looking back at a day is the same idea as the
+  weekly review and inventing a tenth colour is what build 180 refused to do.
+- **A screen test, dull on purpose**: open it, check it drew, close it. What it really proves is
+  that a brand new view builds on both platforms — the one thing CI could not see. `pressCentre`,
+  never `press`, for a plain-styled button (build 196). Fifteen now.
+- `saveLookingBack` **will not make a daily note for an empty line**, and writes nothing when the
+  words have not changed: `save` would otherwise stamp the file and send it round iCloud for
+  nothing.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

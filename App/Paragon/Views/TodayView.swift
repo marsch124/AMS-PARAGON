@@ -46,11 +46,25 @@ struct TodayView: View {
         // is written in it — build 213's whole lesson. The count did not come back: the
         // **Due today** section names those tasks a few lines further down.
         VStack(alignment: .leading, spacing: 0) {
-            Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Theme.gutter + 6)
-                .padding(.bottom, Theme.tight)
+            // **Close the day sits beside the date, not in the window's toolbar.** A control
+            // that governs a column belongs in that column next to its own name (build 167),
+            // and the date row build 220 put here is that name. It costs no new furniture: the
+            // right half of that row was empty.
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                HeaderActionButton(title: "Close the day",
+                                   spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
+                                   systemImage: "moon",
+                                   tint: SidebarSection.review.tint) {
+                    model.activeSheet = .closeDay
+                }
+                .accessibilityIdentifier("today.closeDay")
+            }
+            .padding(.horizontal, Theme.gutter + 6)
+            .padding(.bottom, Theme.tight)
             List(selection: model.noteSelection) {
                 if model.showsCalendarEvents {
                     Section {

@@ -2,6 +2,38 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 223 · 24 September 2026
+
+**Close the day.** Your ask, and you picked this shape from the drawing.
+
+There is a **Close the day** button at the top of **Today**, beside the date. It opens one
+screen that you work down and finish:
+
+- **What you finished today**, as a number. The **Done** screen already lists the names, so they
+  are not listed twice here.
+- **What did not happen**: everything still open that was due today or earlier. Each line has a
+  **Tomorrow** button, and there is a **Move all to tomorrow** button under them. The lines are
+  real tasks — tick one off if you did it after all.
+- **How was today?** One line, if you feel like it.
+
+Your line goes into today's daily note under a heading called **Looking back**:
+
+```
+## Looking back
+
+Good morning, slow afternoon. The saddle can wait.
+```
+
+It is ordinary text. Nothing reads it, nothing counts it, and it never turns into a task. You
+can write it, change it, or clear it — clearing it takes the heading away too, so the note is
+left as it was.
+
+**Done** saves that line. **Cancel** does not. The tick boxes and the **Tomorrow** buttons have
+already saved when you press them, so they do not wait for **Done**.
+
+Tasks with no date are not in the list. A task that was never promised to today did not fail to
+happen.
+
 ## Build 222 · 24 September 2026
 
 **Drag an action onto an hour in Plan.** Your ask.

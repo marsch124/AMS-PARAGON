@@ -115,13 +115,15 @@ enum AppSheet: String, Identifiable {
     case syncReport
     /// A `[[link]]` was clicked that names no note yet; the sheet offers to make it.
     case noteFromLink
+    /// The evening step: what you finished, what did not happen, one line about the day.
+    case closeDay
 
     var id: String { rawValue }
 }
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 222
+    static let number = 223
 }
 
 @MainActor
@@ -1957,6 +1959,39 @@ final class AppModel: ObservableObject {
             let existed = vault.dailyNoteExists(for: day)
             let note = try vault.dailyNote(for: day)
             guard save(note.settingPlanBlocks(blocks)) else { return }
+            if !existed { reload() }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: Looking back on a day
+
+    /// The line he wrote about a day, or an empty string.
+    ///
+    /// **Never writes.** Asking what a day says must not bring a daily note into being, which is
+    /// the same rule `planBlocks(for:)` follows.
+    func lookingBack(for day: DateOnly) -> String {
+        guard let vault, let note = note(at: vault.dailyNotePath(for: day)) else { return "" }
+        return note.lookingBack
+    }
+
+    /// Writes it, and makes the daily note only when there is something to write.
+    ///
+    /// Pressing **Done** in `CloseDayView` without typing anything must not leave a file behind,
+    /// so nothing to say plus no note yet is simply nothing to do. Writing the same words twice
+    /// is nothing to do either: `save` would otherwise stamp the file and send it round iCloud
+    /// for no change at all.
+    func saveLookingBack(_ text: String, for day: DateOnly) {
+        flushPendingEdits()
+        guard let vault else { return }
+        let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existed = vault.dailyNoteExists(for: day)
+        guard !clean.isEmpty || existed else { return }
+        do {
+            let note = try vault.dailyNote(for: day)
+            guard note.lookingBack != clean else { return }
+            guard save(note.settingLookingBack(clean)) else { return }
             if !existed { reload() }
         } catch {
             errorMessage = error.localizedDescription

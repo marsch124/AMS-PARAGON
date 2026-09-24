@@ -270,6 +270,37 @@ final class ScreenTests: XCTestCase {
         fold.pressCentre()
     }
 
+    /// The evening step opens, draws itself, and closes again. Dull on purpose (build 190):
+    /// what it really proves is that `CloseDayView` builds at all, on both platforms, which is
+    /// the one thing CI could not see about a brand new screen.
+    ///
+    /// `pressCentre` rather than `press`: the Mac refuses `click()` on an element it calls not
+    /// hittable, and it says that of a plain-styled button whose hit test lands on the label
+    /// inside it (build 196). A coordinate press asks no such question.
+    func testCloseTheDayOpensAndCloses() {
+        go(to: .today)
+
+        let open = element("today.closeDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Close the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+
+        let screen = element("closeDay.screen")
+        XCTAssertTrue(screen.waitForExistence(timeout: 20),
+                      "Close the day did not open. On screen: \(visibleTexts())")
+
+        // Both footer buttons, so "the sheet opened empty" and "the sheet opened" fail with
+        // different words.
+        XCTAssertTrue(element("sheet.action").waitForExistence(timeout: 10),
+                      "Close the day opened without its Done button. On screen: \(visibleTexts())")
+        let cancel = element("sheet.cancel")
+        XCTAssertTrue(cancel.exists, "Close the day opened without its Cancel button.")
+
+        cancel.pressCentre()
+        XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
+                      "Cancel was pressed and Close the day stayed on screen.")
+    }
+
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
     #if os(macOS)

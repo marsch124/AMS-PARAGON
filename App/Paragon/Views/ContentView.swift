@@ -81,6 +81,9 @@ struct ContentView: View {
             case .noteFromLink:
                 NoteFromLinkSheet()
                     .environmentObject(model)
+            case .closeDay:
+                CloseDayView()
+                    .environmentObject(model)
             case .settings:
                 NavigationStack {
                     SettingsView()
