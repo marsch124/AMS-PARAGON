@@ -2883,6 +2883,50 @@ icons for this functionality in the Mac app."*
   result was a heading three lines tall above a one-line list. **Wrapping correctly is not the
   same as fitting**, and on a phone the difference is the whole screen.
 
+**Build 225: plan the week — and the drawing's real job was to report what already existed.**
+He asked for "seven days side by side so you can spread the work before the week starts". Before
+drawing anything I went to look, and **Calendar → Week has been a full week screen since long
+before this**: seven day sections, real `TaskRow`s, a drop target on every day heading, the
+weekly note, week arrows. **So the page led with what was there** and asked the narrower
+question — what is it missing? — which is the only reason the answer is one build and not four.
+He chose **C** (https://claude.ai/artifact/NP3XCcxXPQmVT3iCXhXESh) and both recommendations.
+- **Drawing A is what ruled A out.** Seven columns in a Mac window leave each day about two
+  words wide, and a phone cannot have them at all — so it would have been two week screens to
+  keep working for ever. Same use of a preview as build 215's quadrant: **drawing the cost is
+  what lets him choose against his own first idea without spending a build.**
+- **`WeekTray` is dashed and grey with no tint.** Dashed already means "loose, not connected"
+  everywhere here (`StateToggle` off, `ReadChip`, an unlinked Map box) and that is exactly what
+  an undated task is. Orange would have claimed they were plan blocks (build 152); a colour is
+  a claim (build 180).
+- **It is capped at twelve and says how many more.** A vault holds hundreds of undated tasks and
+  an uncapped wrapping row would push the days off the bottom — build 213's lesson one layer up.
+  **Nothing is drawn when the tray is empty**, and that is *not* build 203's vanishing control:
+  there is no way to put something into the tray from here, so an empty one offers nothing.
+- **A task inside a daily note is left out**, even with no date: it is already on that day by
+  being written there and is listed below, so including it would draw one task twice on one
+  screen. A *dated* next action is left out for the same reason — it is already on the strip.
+  The drawing said "next actions and tasks with no date"; the built rule is the half the two
+  agree on, and the manual says so.
+- **`WeekStrip`'s cells are not buttons.** They are a count and a drop target; a cell that
+  looked pressable and did nothing would be worse than no control (build 175). An empty day
+  shows **–**, never **0** (build 141: a zero reads as an answer).
+- `undated.filter(next) + undated.filter(!next)`, **never a `sorted` with a comparator that
+  returns false for ties**: Swift's sort is not stable, so the rest of the order would be
+  unspecified.
+- **The way in is a `Week` button on Plan, not a sidebar row** (build 166), and that is where
+  this build got interesting. On the Mac `show(section:)` is the whole job. **On the phone a
+  section change pushes nothing** — `PhoneStack` only pushes for a note, a template, or the
+  work request — so the button would have done nothing at all, which is build 175's fault
+  in the place it costs most.
+  - `AppModel.SectionRequest` is a **counter**, never a latch: build 122's exact lesson from
+    `workRevealed`, where the second long press did nothing because a Bool only changes once.
+  - `PhoneRootView` chooses the Browse tab on the request; `PhoneStack` pushes the screen.
+    **The push handler is the one in that file with no `isActive` guard**, and it has to be:
+    the request comes from another tab, so Browse is not on screen when it lands.
+- **The screen test is what would have caught it**: it presses `plan.week` and waits for
+  `week.strip` **on both platforms**, so a button that navigates only on the Mac fails the run
+  rather than reaching him. `Place.plan` is new. Sixteen tests.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

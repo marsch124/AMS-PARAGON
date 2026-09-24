@@ -123,7 +123,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 224
+    static let number = 225
 }
 
 @MainActor
@@ -2126,6 +2126,29 @@ final class AppModel: ObservableObject {
     /// pass from inside the detail column is what scrambled the window.
     func show(_ note: Note) {
         show(section: sidebarSection(for: note), notePath: note.relativePath)
+    }
+
+    /// A section the phone should push, and how many times it has been asked for.
+    ///
+    /// **A count, never a latch.** The Mac's three columns watch `section`, so setting it is
+    /// the whole job there. On the phone a screen exists only once it has been pushed, and a
+    /// flag that is only ever set once fires the first time and then sits there — exactly the
+    /// fault build 122 found with `workRevealed`, where the second long press did nothing.
+    struct SectionRequest: Equatable {
+        var section: SidebarSection
+        var count: Int
+    }
+
+    @Published private(set) var sectionRequest = SectionRequest(section: .inbox, count: 0)
+
+    /// Show a section, from anywhere, on either machine.
+    ///
+    /// `show` alone is enough on the Mac. The phone also needs the Browse tab chosen and the
+    /// screen pushed, which is what the request is for — the **Week** button on **Plan**
+    /// (build 225) is the first control that asks for a section from a different tab.
+    func openSection(_ target: SidebarSection) {
+        sectionRequest = SectionRequest(section: target, count: sectionRequest.count + 1)
+        show(section: target, notePath: nil)
     }
 
     func show(section target: SidebarSection, notePath: String?) {

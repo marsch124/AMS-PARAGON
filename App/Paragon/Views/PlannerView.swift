@@ -143,6 +143,20 @@ struct PlannerDayView: View {
             }
             .fixedSize()
             .help("Add a block to this day's plan")
+            // **The way in to the week, and deliberately not a sidebar row of its own.**
+            // Calendar → Week has been a full week screen since long before build 225, and a
+            // second row pointing at it would be two doors into one room (build 166). What it
+            // lacked was a short way in from where the day is already being planned.
+            Button {
+                model.calendarMode = .week
+                model.selectedWeek = WeekRef(containing: day)
+                model.openSection(.calendar)
+            } label: {
+                Label("Week", systemImage: "calendar")
+            }
+            .fixedSize()
+            .accessibilityIdentifier("plan.week")
+            .help("Plan the whole week: spread work across the seven days")
             Button {
                 sheet = .calendarBlocks
             } label: {

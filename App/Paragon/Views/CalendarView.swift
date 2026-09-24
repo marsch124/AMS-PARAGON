@@ -398,7 +398,148 @@ struct DailyNoteRow: View {
     }
 }
 
-/// Seven days with what is due and what got done, plus the weekly note.
+/// The work waiting to be put on a day, as tiles you drag onto the strip below or onto any
+/// day's heading.
+///
+/// **Dashed and grey, with no tint of its own.** Dashed already means "loose, not connected"
+/// everywhere in this app — `StateToggle` off, a `ReadChip`, a Map box that is not linked — and
+/// that is exactly what a task with no date is. Orange would have been a claim that these are
+/// plan blocks (build 152), and a colour is a claim (build 180).
+///
+/// **Nothing at all is drawn when there is nothing waiting.** A heading with no tiles under it
+/// would take a strip of the screen to say nothing. This is not build 203's vanishing control:
+/// there is no way to put something *into* the tray from here, so an empty one offers nothing.
+private struct WeekTray: View {
+    let items: [TaskRef]
+
+    /// Enough to plan a week from without the tray becoming the screen. A vault can hold
+    /// hundreds of undated tasks, and an uncapped wrapping row would push the days off the
+    /// bottom — build 213's lesson about what a list costs, one layer up.
+    private static let shown = 12
+
+    var body: some View {
+        if !items.isEmpty {
+            // One container, not a loose pair: a `body` that returns two views relies on a
+            // custom view being transparent to the enclosing stack, and there is no screen
+            // here to check that it laid out the way it reads.
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack(spacing: 8) {
+                        SectionLabel(title: "To place", count: items.count)
+                        Spacer(minLength: 0)
+                        if items.count > Self.shown {
+                            Text("\(items.count - Self.shown) more not shown")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    WrappingHStack(spacing: 6, lineSpacing: 6) {
+                        ForEach(Array(items.prefix(Self.shown))) { ref in
+                            tile(ref)
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("week.tray")
+                Divider()
+            }
+        }
+    }
+
+    private func tile(_ ref: TaskRef) -> some View {
+        HStack(spacing: 5) {
+            Text(ref.task.title)
+                .lineLimit(1)
+            Text(ref.noteTitle)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+        }
+        .font(.caption)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 7)
+                .strokeBorder(Color.secondary.opacity(0.5),
+                              style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 7))
+        .draggable(TaskTransfer(ref))
+        .help("Drag this onto a day")
+    }
+}
+
+/// The seven days as one row of small cells: the week at a glance, and seven drop targets.
+///
+/// It is deliberately **not** a row of buttons. Each cell is a count and a place to drop a
+/// task; a cell that looked pressable and then did nothing is worse than no control at all
+/// (build 175). The day list below is where a day is worked in detail — this is the summary,
+/// which is why one day appearing in both places is not two lists.
+private struct WeekStrip: View {
+    @EnvironmentObject private var model: AppModel
+    let days: [DayOverview]
+
+    private static let dayLetter: DateFormatter = {
+        let f = DateFormatter()
+        f.setLocalizedDateFormatFromTemplate("EEE")
+        return f
+    }()
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 5) {
+                ForEach(days) { day in
+                    cell(day)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("week.strip")
+            Divider()
+        }
+    }
+
+    private func cell(_ day: DayOverview) -> some View {
+        let isToday = day.date == .today()
+        let tint = SidebarSection.calendar.tint
+        return VStack(spacing: 2) {
+            Text(name(day.date))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            // A dash, never a 0: an empty day is a day with room in it, not a score
+            // (build 141's rule about a number that reads as an answer).
+            Text(day.due.isEmpty ? "–" : "\(day.due.count)")
+                .font(.callout.weight(day.due.isEmpty ? .regular : .semibold))
+                // Both arms name their type: a bare `.primary` is ambiguous with
+                // `Color.primary`, and there is no compiler here to settle it (build 200).
+                .foregroundStyle(day.due.isEmpty
+                                 ? AnyShapeStyle(HierarchicalShapeStyle.tertiary)
+                                 : AnyShapeStyle(Color.primary))
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 5)
+        .background(RoundedRectangle(cornerRadius: 8)
+            .fill(isToday ? tint.opacity(0.14) : Color.clear))
+        .overlay(RoundedRectangle(cornerRadius: 8)
+            .strokeBorder(isToday ? tint.opacity(0.55) : Color.secondary.opacity(0.25)))
+        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .acceptsTaskDrop { ref in model.setDueDate(ref, day.date) }
+        .help("Drop a task here to give it this day")
+    }
+
+    private func name(_ date: DateOnly) -> String {
+        guard let real = date.date() else { return date.description }
+        return Self.dayLetter.string(from: real)
+    }
+}
+
+/// Seven days with what is due and what got done, plus the weekly note — and, since build 225,
+/// a tray of unplaced work above a seven-cell strip you can drop it on.
 struct WeekOverviewView: View {
     @EnvironmentObject private var model: AppModel
 
@@ -407,6 +548,26 @@ struct WeekOverviewView: View {
         f.setLocalizedDateFormatFromTemplate("EEE d MMM")
         return f
     }()
+
+    /// The work waiting to be put on a day: every open task with **no date**, next actions
+    /// first because those are the ones you most want to place.
+    ///
+    /// **A task inside a daily note is left out even when it has no date.** It is already on a
+    /// day by being written there, and the seven sections below list it — so including it would
+    /// draw one task twice on one screen (build 166's two doors, in miniature).
+    ///
+    /// A dated next action is left out too: it is already on the strip. The drawing offered
+    /// "next actions and tasks with no date"; showing a dated one here would be the same task
+    /// in two places, so the rule is the one the two halves agree on.
+    private var toPlace: [TaskRef] {
+        let undated = model.index.openTasks().filter {
+            $0.task.dueDate == nil && model.note(at: $0.notePath)?.kind != .daily
+        }
+        let next = Set(model.index.nextActions().map(\.id))
+        // Partitioned rather than sorted: Swift's sort is not stable, so a comparator that
+        // returns false for every tie leaves the rest of the order unspecified.
+        return undated.filter { next.contains($0.id) } + undated.filter { !next.contains($0.id) }
+    }
 
     var body: some View {
         let overview = model.index.weekOverview(for: model.selectedWeek)
@@ -424,6 +585,15 @@ struct WeekOverviewView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             Divider()
+            // Two strips above the seven days, which is what build 225 is. The week screen
+            // already listed the days and already took a task dropped on a day heading; what
+            // it could not do was **show the week at once** or give you anything to spread
+            // **from**. He chose this shape over seven columns from a drawing
+            // (https://claude.ai/artifact/NP3XCcxXPQmVT3iCXhXESh): seven columns leave each day
+            // about two words wide on a Mac and cannot exist at all on a phone, which would
+            // have meant two week screens to keep working for ever.
+            WeekTray(items: toPlace)
+            WeekStrip(days: overview.days)
             List(selection: model.noteSelection) {
                 Section {
                     Button {

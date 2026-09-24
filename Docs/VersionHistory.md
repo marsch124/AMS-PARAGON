@@ -2,6 +2,30 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 225 · 24 September 2026
+
+**Plan the week.** The last of the four you picked, and you chose this shape from the drawing.
+
+A week screen was already in the app — **Calendar**, then **Week** — with all seven days and
+what is due on each. What it could not do was show the week at once, or give you anything to
+spread from. Both are there now:
+
+- **To place**, at the top: every open task that has no date yet, next actions first, as dashed
+  tiles. It shows the first twelve and says how many more there are, and it is not drawn at all
+  when nothing is waiting.
+- **A row of seven cells** under it, one per day, each with the number of tasks due on it.
+  Today's cell is marked.
+
+**Drag a tile onto a cell** and the task gets that day. You can still drop on a day's heading
+further down, and drag a task from one day to another.
+
+**A quicker way in**: the **Week** button at the top of the **Plan** screen. There is no new row
+in the sidebar and no new tab — the screen already existed, and a second door into one room is
+what we have avoided elsewhere.
+
+A task written inside a daily note is never in the tray. It is already on that day by being
+written there, and it is listed under that day below.
+
 ## Build 224 · 24 September 2026
 
 **The two overdue buttons are icons now.** Your ask, from the iPhone.

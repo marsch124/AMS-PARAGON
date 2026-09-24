@@ -101,6 +101,13 @@ struct PhoneRootView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             PhoneTabBar(tab: $tab)
         }
+        // A section asked for from another tab — the **Week** button on **Plan** is the first
+        // (build 225). Browse is the tab that can hold any section, so the request chooses it
+        // here and `PhoneStack` pushes the screen in the same turn.
+        .onChange(of: model.sectionRequest) { _, request in
+            guard request.count > 0, tab != .browse else { return }
+            tab = .browse
+        }
     }
 
     /// One page. A `switch` inside a `@ViewBuilder` is fine; a `var` would not be (build 58).
@@ -283,6 +290,14 @@ struct PhoneStack<Content: View>: View {
         .onChange(of: model.workRequests) { _, _ in
             guard isActive, section == nil else { return }
             if path.last != .section(.work) { path.append(.section(.work)) }
+        }
+        // **No `isActive` guard here, unlike every other handler in this stack.** The request
+        // arrives from a different tab, so Browse is not on screen yet when it lands; the
+        // screen is pushed onto this stack and `PhoneRootView` switches to it in the same
+        // turn. A guard would have made the button do nothing at all the first time.
+        .onChange(of: model.sectionRequest) { _, request in
+            guard self.section == nil, request.count > 0 else { return }
+            if path.last != .section(request.section) { path.append(.section(request.section)) }
         }
         // Hiding is still a change of the flag, and only ever in one direction.
         .onChange(of: model.workRevealed) { _, revealed in

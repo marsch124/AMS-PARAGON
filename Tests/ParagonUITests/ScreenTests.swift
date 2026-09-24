@@ -301,6 +301,27 @@ final class ScreenTests: XCTestCase {
                       "Cancel was pressed and Close the day stayed on screen.")
     }
 
+    /// **Week** on the Plan screen opens Calendar → Week, and that screen draws the two strips
+    /// build 225 added: the tray of unplaced work and the seven-day row you drop it on.
+    ///
+    /// Dull on purpose (build 190). What it proves is that a screen reached through a button
+    /// that changes two pieces of model state at once really arrives, on both platforms — and
+    /// that `WeekTray` draws, which it only does when something is waiting. The test vault's
+    /// `Book the night train` has no date, so there is always one tile.
+    func testTheWeekButtonOpensTheWeekWithItsTray() {
+        go(to: .plan)
+
+        let week = element("plan.week")
+        XCTAssertTrue(week.waitForExistence(timeout: 20),
+                      "The Plan screen has no Week button. On screen: \(visibleTexts())")
+        week.pressCentre()
+
+        XCTAssertTrue(element("week.strip").waitForExistence(timeout: 20),
+                      "Week opened without its seven-day strip. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("week.tray").waitForExistence(timeout: 10),
+                      "The week has an undated task but drew no tray. On screen: \(visibleTexts())")
+    }
+
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
     #if os(macOS)
@@ -491,7 +512,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -527,6 +548,7 @@ final class ScreenTests: XCTestCase {
         case .resources: return ["sidebar.Resources"]
         case .map: return ["sidebar.Map"]
         case .allActions: return ["sidebar.All actions"]
+        case .plan: return ["sidebar.Time Blocks"]
         }
     }
 
@@ -548,6 +570,7 @@ final class ScreenTests: XCTestCase {
         case .resources: return ["tab.browse", "browse.Resources"]
         case .map: return ["tab.browse", "browse.Map"]
         case .allActions: return ["tab.actions"]
+        case .plan: return ["tab.plan"]
         }
     }
 
