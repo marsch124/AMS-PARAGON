@@ -327,7 +327,11 @@ The screen has three parts:
 - **Calendar** on the right: what is already booked that day, read from Apple Calendar.
 - **Time blocks** beside it: your own blocks. They hang on the same hours as the calendar, so
   you can see whether a block lands inside something already booked. Two things at the same
-  time stand side by side at half the width, so nothing is hidden behind anything else.
+  time stand side by side at half the width, so nothing is hidden behind anything else. **Drag an
+  action from the Actions column onto an hour here** and it becomes a block of one hour at that
+  hour, named after the task. Nothing is asked first: drag its edge to make it longer, or
+  right-click it to remove it. The task keeps its own tick box in the Actions column — a block
+  says when you mean to do the work, it does not do the work.
 
 On the iPhone the parts are one page instead: the day's hours first, the actions under them.
 

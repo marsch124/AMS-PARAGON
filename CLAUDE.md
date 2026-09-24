@@ -2796,6 +2796,31 @@ daily-review shaped anywhere, and `setDueDate` took one ref at a time.
   break that test. **A fixture's emptiness can be a fixture.** Note it before adding data to
   `TestVault`.
 
+**Build 222: the planner's hours take a task.** `DayScheduleView` has had `acceptsTaskDrop` on
+each hour since build 61 and `PlannerView` never did — the same drift as the Map's vocabulary
+before build 170. Found by `grep`, not by memory.
+- **Only the Time blocks lane.** `lane(…takesDrops:)` defaults to false, so the Calendar lane is
+  untouched: it is read only by design (build 33), and a target that accepts a drop and then
+  does nothing is worse than none (build 175).
+- **`HourDrop` is a `ViewModifier`**, because a modifier chain cannot be branched on a `Bool`
+  (build 148's `CalendarBlocksLink`) and it takes `active:` plus a plain closure — never an
+  optional closure threaded through `.map`, which is where inference has given up twice
+  (builds 152, 154).
+- **The hour grid became hour cells** of exactly `hourHeight`. That is the layout the even
+  `Spacer`s already drew, and it is now something a task can land on. The cells are **first** in
+  the `ZStack`, so a card still keeps its own click (builds 71–74), and `NowLine` stays last with
+  hit testing off.
+- **`blockOut` makes a plan block, never a Time Block** (build 147), so it calls `addPlanBlock`
+  rather than `savePlanBlock`: with no previous block and no calendar wanted, that async path
+  reduces to this one write. `#next` is stripped from the title exactly as `blockTime` strips it
+  (build 174); his own tags stay, because those carry information.
+- **No sheet on a drop.** The drag is finished when you let go, or it is slower than the ⊕ button
+  already there, and the card can be dragged and resized afterwards (build 152). The flash
+  message says what happened instead of asking first — build 221's reasoning, one screen along.
+- **Untested from here on the phone**: `.draggable` plus `.dropDestination` is the system's own
+  drag, which starts on a long press and does not fight a scroll view the way build 152's raw
+  `DragGesture` would, so the target is on both platforms. CI compiles but never drags.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

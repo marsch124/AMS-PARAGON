@@ -20,6 +20,19 @@ import ParagonCore
 /// A block is deliberately **not** a calendar event and **not** a task. It says where he means
 /// to be, and it is a line in the daily note under `## Plan`. Nothing here writes to Apple
 /// Calendar — that is `TimeBlocksView`, and it is reached from the header button.
+/// The name a plan block takes from a task.
+///
+/// `#next` is a mark, not part of the name, so it comes off — exactly as `blockTime` strips it
+/// for an Apple Calendar block (build 174's rule). His own tags stay: those carry information.
+///
+/// **One place, because there are two ways in.** The ⊕ button in the Actions column has written
+/// the raw title since build 149, so a dropped task and a pressed ⊕ would have put different
+/// words into the daily note for the same task (build 168's rule).
+private func planBlockTitle(from task: TaskItem) -> String {
+    Note.removingTag(Note.nextActionTag, from: task.title)
+        .trimmingCharacters(in: .whitespaces)
+}
+
 struct PlannerView: View {
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -174,7 +187,8 @@ struct PlannerDayView: View {
             hours
             lane(title: "Calendar", tint: SidebarSection.calendar.tint, placements: placedEvents)
             Divider()
-            lane(title: "Time blocks", tint: Theme.planBlockTint, placements: placedBlocks)
+            lane(title: "Time blocks", tint: Theme.planBlockTint, placements: placedBlocks,
+                 takesDrops: true)
         }
     }
 
@@ -197,7 +211,11 @@ struct PlannerDayView: View {
     /// Items are placed with `.offset` inside a top-leading stack, **never `.position`**: a
     /// positioned view claims its parent's whole size and swallows every click in it (build 85).
     /// Their width comes from `GeometryReader`, because two things at the same hour share it.
-    private func lane(title: String, tint: Color, placements: [PlannerPlacement]) -> some View {
+    /// `takesDrops` belongs to the **Time blocks** lane alone. The Calendar lane is read only —
+    /// nothing in PARAGON writes to Apple Calendar without being asked (build 33) — and a target
+    /// that accepts a drop and then does nothing is worse than no target (build 175).
+    private func lane(title: String, tint: Color, placements: [PlannerPlacement],
+                      takesDrops: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionLabel(title: title, count: nil, tint: tint)
                 .padding(.horizontal, 8)
@@ -206,9 +224,18 @@ struct PlannerDayView: View {
             GeometryReader { geometry in
                 ZStack(alignment: .topLeading) {
                     VStack(spacing: 0) {
-                        ForEach(firstHour...lastHour, id: \.self) { _ in
-                            Divider()
-                            Spacer(minLength: 0)
+                        ForEach(firstHour...lastHour, id: \.self) { hour in
+                            VStack(spacing: 0) {
+                                Divider()
+                                Spacer(minLength: 0)
+                            }
+                            // Each hour is its own cell of exactly `hourHeight`, which is the
+                            // same layout the even spacers drew and is now a thing a task can
+                            // be dropped on. The cells are first in the `ZStack`, so a card
+                            // always keeps its own click (builds 71-74).
+                            .frame(height: hourHeight)
+                            .modifier(HourDrop(active: takesDrops,
+                                               perform: { ref in blockOut(ref, at: hour) }))
                         }
                     }
                     .frame(height: laneHeight)
@@ -349,6 +376,28 @@ struct PlannerDayView: View {
     private func nextFreeStart() -> Int {
         guard let last = blocks.map(\.end).max() else { return 9 * 60 }
         return min(last, lastHour * 60)
+    }
+
+    /// A task dragged from the **Actions** column becomes an hour's block at the hour it was
+    /// dropped on. The Calendar section's day has taken task drops since build 61; the planner,
+    /// the newer screen, never had it — the same drift as the Map's vocabulary before build 170.
+    ///
+    /// **It makes a plan block, never a Time Block.** Build 147 keeps those two apart on
+    /// purpose: a plan block is a `TB:` line in the daily note and never leaves PARAGON, and
+    /// whether a block is also in Apple Calendar stays his choice, per block, from the card
+    /// (build 151). So this calls `addPlanBlock` rather than `savePlanBlock`: with no previous
+    /// block and no calendar wanted, that whole async path reduces to this one write.
+    ///
+    /// **No sheet.** The point of the drag is that it is finished when you let go; a sheet would
+    /// make it slower than the ⊕ button that is already there. The card can be dragged and
+    /// resized afterwards (build 152), and the message says what happened rather than asking
+    /// first — the same reasoning as build 221's overdue buttons.
+    private func blockOut(_ ref: TaskRef, at hour: Int) {
+        let title = planBlockTitle(from: ref.task)
+        guard !title.isEmpty else { return }
+        let start = hour * 60
+        model.addPlanBlock(PlanBlock(start: start, end: start + 60, title: title), on: day)
+        model.flash("Added to your plan at \(PlanBlock.clock(start)).")
     }
 
     private func startNewBlock(at start: Int, titled title: String = "") {
@@ -499,6 +548,26 @@ struct PlannerDayView: View {
         let wanted = draftInCalendar
         Task { await model.savePlanBlock(made, on: day, replacing: previous, inAppleCalendar: wanted) }
         sheet = nil
+    }
+}
+
+/// One hour of a lane as a drop target, or plainly itself.
+///
+/// A `ViewModifier` rather than an `if` in the middle of a modifier chain — the shape build 148
+/// settled on, since a chain cannot be branched and an optional closure passed down through
+/// `.map` is where this project has watched inference give up before (builds 152, 154).
+private struct HourDrop: ViewModifier {
+    let active: Bool
+    let perform: (TaskRef) -> Void
+
+    func body(content: Content) -> some View {
+        if active {
+            content
+                .contentShape(Rectangle())
+                .acceptsTaskDrop(perform)
+        } else {
+            content
+        }
     }
 }
 
@@ -796,9 +865,10 @@ struct PlannerActionsView: View {
                     HStack(alignment: .top, spacing: 6) {
                         TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                         Button {
-                            model.addPlanBlock(PlanBlock(start: nextFreeStart(),
-                                                         end: nextFreeStart() + 60,
-                                                         title: ref.task.title),
+                            let start = nextFreeStart()
+                            model.addPlanBlock(PlanBlock(start: start,
+                                                         end: start + 60,
+                                                         title: planBlockTitle(from: ref.task)),
                                                on: day)
                         } label: {
                             Image(systemName: "plus.circle")

@@ -2,6 +2,28 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 222 · 24 September 2026
+
+**Drag an action onto an hour in Plan.** Your ask.
+
+On the **Plan** screen, pick up a row in the **Actions** column and drop it on an hour in the
+**Time blocks** lane. It becomes a block of one hour at that hour, named after the task.
+
+Nothing is asked first, because the drag is finished when you let go. Drag the grip at the foot
+of the block to make it longer or shorter, drag the block itself to move it, right-click it to
+remove it.
+
+It makes a **plan block**, not a Time Block in Apple Calendar. Those stay two different things,
+as they have since build 147: a plan block is a `TB:` line in that day's daily note and never
+leaves PARAGON. If you want one block in Apple Calendar as well, right-click it and tick
+**In Apple Calendar**, exactly as before.
+
+The **Calendar** lane beside it takes no drops. It shows what is already booked and the app
+never writes there on its own.
+
+The task itself does not change. A block says when you mean to do the work; the task keeps its
+own tick box in the **Actions** column.
+
 ## Build 221 · 24 September 2026
 
 **Move every overdue task in one press.** Your ask.
