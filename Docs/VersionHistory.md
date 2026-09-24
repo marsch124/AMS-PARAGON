@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 224 · 24 September 2026
+
+**The two overdue buttons are icons now.** Your ask, from the iPhone.
+
+They were **Move to today** and **Move to tomorrow** in words, which took two lines on the phone
+and pushed the list down. They are now two small buttons: a **sun** for today, a **sunrise** for
+tomorrow.
+
+They are the same two pictures the Inbox already uses for those dates, so there is nothing new
+to learn. The words are still there for VoiceOver, and on the Mac they appear when you rest the
+pointer on a button.
+
 ## Build 223 · 24 September 2026
 
 **Close the day.** Your ask, and you picked this shape from the drawing.

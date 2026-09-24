@@ -2864,6 +2864,25 @@ followed the pattern this project keeps proving: **a drawing before any code**
   words have not changed: `save` would otherwise stamp the file and send it round iCloud for
   nothing.
 
+**Build 224: the overdue buttons are icons, and he named the precedent himself.** From one
+iPhone screenshot of build 222: *"I think it would be somewhat crowded if we have several items
+that need to be moved to today or tomorrow. Can we make them with icons instead? We have some
+icons for this functionality in the Mac app."*
+- **He was pointing at `InboxQuadrant`** (build 215), which has drawn `sun.max` for today and
+  `sunrise` for tomorrow since then — with the words beside them, which is how he learnt them.
+  So the answer was not to design an icon but to **find the one already in the app**: two screens
+  that set the same date may not use different pictures for it (build 168).
+- **`HeaderActionButton.title` became optional**, beside the `systemImage` build 221 made
+  optional. The words are not lost, they move: `spokenTitle` is the accessibility label and the
+  Mac's tooltip, which is build 159's rule about a control that shrinks.
+- **No two-state language here.** These are actions, not states — the same reason build 215's
+  **File it** keeps a solid border while the three date buttons carry the tint-or-dashed pair.
+- The manual sentence naming the two words was rewritten in the same push (build 159 again).
+- **The layout was working as drawn; it was still wrong.** The `WrappingHStack` did exactly its
+  job — the second button moved to its own line rather than squeezing (build 138) — and the
+  result was a heading three lines tall above a one-line list. **Wrapping correctly is not the
+  same as fitting**, and on a phone the difference is the whole screen.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

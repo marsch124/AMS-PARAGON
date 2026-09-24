@@ -119,13 +119,19 @@ struct TodayView: View {
                         // `.textCase(nil)` keeps a `List` from shouting them (build 214).
                         WrappingHStack(spacing: 8, lineSpacing: 6) {
                             SectionLabel(title: "Overdue", count: overdue.count)
-                            HeaderActionButton(title: "Move to today",
-                                               spokenTitle: "Move every overdue task to today",
+                            // **The Inbox's own two symbols, not new ones.** `InboxQuadrant`
+                            // has drawn `sun.max` for today and `sunrise` for tomorrow since
+                            // build 215, with the words beside them, so these are already
+                            // learnt — and two screens that set a date must not use different
+                            // pictures for it (build 168). The words live on as the spoken
+                            // label and the Mac's tooltip (build 159).
+                            HeaderActionButton(spokenTitle: "Move every overdue task to today",
+                                               systemImage: "sun.max",
                                                tint: ParaKind.daily.tint) {
                                 model.moveTasks(overdue, to: today)
                             }
-                            HeaderActionButton(title: "Move to tomorrow",
-                                               spokenTitle: "Move every overdue task to tomorrow",
+                            HeaderActionButton(spokenTitle: "Move every overdue task to tomorrow",
+                                               systemImage: "sunrise",
                                                tint: ParaKind.daily.tint) {
                                 model.moveTasks(overdue, to: today.adding(days: 1))
                             }
@@ -177,7 +183,9 @@ struct TodayView: View {
 /// loud and shown as the Mac's tooltip — build 159's rule: a control that shrinks hands its
 /// words to the row it sits in, it does not lose them.
 private struct HeaderActionButton: View {
-    let title: String
+    /// Nil for a button that is only its symbol. One of `title` and `systemImage` is always
+    /// given; a button with neither would be an invisible press.
+    var title: String?
     let spokenTitle: String
     /// Optional: two buttons side by side with one symbol between them would be two icons
     /// that look alike, which is usually a sign one of them should not be there (build 154).
@@ -207,10 +215,12 @@ private struct HeaderActionButton: View {
     /// button, so an `if` changing the subtree's identity costs nothing here — unlike the
     /// popovers build 202 had to keep still.
     @ViewBuilder private var label: some View {
-        if let systemImage {
+        if let title, let systemImage {
             Label(title, systemImage: systemImage)
-        } else {
+        } else if let title {
             Text(title)
+        } else if let systemImage {
+            Image(systemName: systemImage)
         }
     }
 }
