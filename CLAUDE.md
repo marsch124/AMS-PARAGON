@@ -2762,6 +2762,40 @@ had to be three drawn options, not a phrase. He took **A**, a short grey line un
   `Docs/VersionHistory.md` — the 219 entry said it too and has been rewritten. **Offer shapes,
   not adjectives.**
 
+## A day you can tidy in one press (build 221 on)
+
+He asked what to do next — *"I am inspired to make even more improvements… in order to make my
+day more efficient and in harmony"* — so I looked for gaps rather than offering adjectives, and
+put four to him. **He took all four**, one build each, smallest first: **221** move the overdue
+in one press, **222** drag an action into the plan, **223** close the day, **224** plan the week.
+The gaps were found by reading the code, not by memory: `grep` showed the planner's lanes carry
+no `acceptsTaskDrop` (only `DayScheduleView` does, since build 61), there is nothing
+daily-review shaped anywhere, and `setDueDate` took one ref at a time.
+
+**Build 221: `AppModel.moveTasks(_:to:)`, and two buttons in the Overdue heading.**
+- **A separate name, never a second `setDueDate`.** One ref and an array is exactly the overload
+  Swift settles by inference, and there is no compiler here (build 168).
+- **It goes through `vault.saveEach`**, the shape `reorder` has used since build 99: overdue
+  tasks are spread over many notes, a note that changed on disk is re-read and the change
+  re-applied, and what could not be written is **named in one message** instead of one alert per
+  note. The refs are grouped per note first, so three overdue lines in one project are one
+  write. `replace(task:)` matches by `^t` id or title and searches when lines moved, so the
+  closure is safe to run twice.
+- **No confirmation, on purpose.** He asked for *one press*, and a date is not a deletion. What
+  replaces the confirmation is the message afterwards — "6 tasks moved." through `flash`, whose
+  capsule is a root overlay in `ContentView` and so shows on any screen. **When an action is
+  wide but reversible, report it rather than ask about it.**
+- **`HeaderActionButton.systemImage` became optional** so the pair carries words only: two
+  buttons sharing one `arrow.right` would be build 154's two icons that look alike. Its doc
+  comment said "carries one word" and was rewritten in the same edit (build 159's rule).
+- The header is a **`WrappingHStack`** (build 138: a heading plus two buttons in a narrow column
+  squeezes until words break mid-word) with **`.textCase(nil)`** (build 214).
+- **No screen test, and the reason is load-bearing.** The test vault deliberately has **no dated
+  task at all** — build 211's All actions test proves "Overdue" empties the list by it — so there
+  is no Overdue section to press, and giving the vault a dated task to reach this button would
+  break that test. **A fixture's emptiness can be a fixture.** Note it before adding data to
+  `TestVault`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

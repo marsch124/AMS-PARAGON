@@ -95,7 +95,29 @@ struct TodayView: View {
                     Section("Next actions") { rows(nextActions) }
                 }
                 if !overdue.isEmpty {
-                    Section("Overdue") { rows(overdue) }
+                    Section {
+                        rows(overdue)
+                    } header: {
+                        // A `WrappingHStack`, never a plain one: a heading and two buttons in a
+                        // narrow middle column would squeeze until the words broke mid-word
+                        // (build 138). The buttons govern this section, so they belong in its
+                        // own header rather than the window's toolbar (build 167), and
+                        // `.textCase(nil)` keeps a `List` from shouting them (build 214).
+                        WrappingHStack(spacing: 8, lineSpacing: 6) {
+                            SectionLabel(title: "Overdue", count: overdue.count)
+                            HeaderActionButton(title: "Move to today",
+                                               spokenTitle: "Move every overdue task to today",
+                                               tint: ParaKind.daily.tint) {
+                                model.moveTasks(overdue, to: today)
+                            }
+                            HeaderActionButton(title: "Move to tomorrow",
+                                               spokenTitle: "Move every overdue task to tomorrow",
+                                               tint: ParaKind.daily.tint) {
+                                model.moveTasks(overdue, to: today.adding(days: 1))
+                            }
+                        }
+                        .textCase(nil)
+                    }
                 }
                 Section("Due today") {
                     if dueToday.isEmpty {
@@ -135,19 +157,24 @@ struct TodayView: View {
 /// already have (build 167: a control that governs a section belongs in that section's
 /// header, not in the window's toolbar).
 ///
-/// It carries one word, because the heading next to it carries the noun. The whole
-/// sentence is still said out loud and shown as the Mac's tooltip — build 159's rule: a
-/// control that shrinks hands its words to the row it sits in, it does not lose them.
+/// It carries as few words as the heading beside it allows — one where the heading already
+/// carries the noun (**Create** under *Today's note*), two or three where it has to say what
+/// it will do (**Move to tomorrow** under *Overdue*). The whole sentence is still said out
+/// loud and shown as the Mac's tooltip — build 159's rule: a control that shrinks hands its
+/// words to the row it sits in, it does not lose them.
 private struct HeaderActionButton: View {
     let title: String
     let spokenTitle: String
-    let systemImage: String
+    /// Optional: two buttons side by side with one symbol between them would be two icons
+    /// that look alike, which is usually a sign one of them should not be there (build 154).
+    /// The words already say where the tasks are going, so the pair over **Overdue** has none.
+    var systemImage: String?
     let tint: Color
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: systemImage)
+            label
                 .font(.caption.weight(.semibold))
                 .lineLimit(1)
                 .foregroundStyle(tint)
@@ -160,5 +187,16 @@ private struct HeaderActionButton: View {
         .buttonStyle(.plain)
         .accessibilityLabel(spokenTitle)
         .help(spokenTitle)
+    }
+
+    /// Views only, so the `@ViewBuilder` rule holds (build 58). Nothing hangs off this
+    /// button, so an `if` changing the subtree's identity costs nothing here — unlike the
+    /// popovers build 202 had to keep still.
+    @ViewBuilder private var label: some View {
+        if let systemImage {
+            Label(title, systemImage: systemImage)
+        } else {
+            Text(title)
+        }
     }
 }

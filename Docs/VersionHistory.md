@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 221 · 24 September 2026
+
+**Move every overdue task in one press.** Your ask.
+
+The **Overdue** heading on **Today** now carries two buttons: **Move to today** and **Move to
+tomorrow**. One press gives every task in that list the new date. Before this you had to set a
+date on each task on its own.
+
+Nothing is deleted and nothing is asked first. A date is not a loss — every task is still
+there, and you can move them again. A short message at the foot of the screen says how many
+moved, so nothing happens in silence. If a note cannot be written the app says so and names how
+many, rather than leaving you to notice.
+
 ## Build 220 · 23 September 2026
 
 **The date is back on Today, as a short grey line.** You picked this shape.

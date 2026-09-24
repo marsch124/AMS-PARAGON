@@ -121,7 +121,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 220
+    static let number = 221
 }
 
 @MainActor
@@ -1408,6 +1408,53 @@ final class AppModel: ObservableObject {
         if date == nil { task.dueTime = nil }
         guard note.replace(task: task) else { return }
         save(note)
+    }
+
+    /// Moves many tasks to one date in a single pass — the **Move to today** and **Move to
+    /// tomorrow** buttons over Today's **Overdue** list.
+    ///
+    /// A separate name rather than a second `setDueDate`: an overload for a single ref and an
+    /// array is exactly the kind of thing Swift settles by inference, and there is no compiler
+    /// in the container that writes this (build 168).
+    ///
+    /// Overdue tasks are spread over many notes, so it goes through `saveEach`, which re-reads
+    /// and re-applies a note that changed on disk meanwhile (build 99). The refs are grouped
+    /// per note first: three overdue lines in one project are one write, not three.
+    /// `replace(task:)` finds each line by its `^t` id, else by its title, and searches when
+    /// lines have moved, so the closure is safe to run again on a fresh copy.
+    ///
+    /// **No confirmation, on purpose.** He asked for one press, and a date is not a deletion:
+    /// every task is still there and can be moved again. The message afterwards says how many
+    /// moved, so nothing happens in silence.
+    func moveTasks(_ refs: [TaskRef], to date: DateOnly) {
+        flushPendingEdits()
+        guard let vault, !refs.isEmpty else { return }
+        var byNote: [String: [TaskRef]] = [:]
+        for ref in refs { byNote[ref.notePath, default: []].append(ref) }
+        let touched = byNote.keys.compactMap { note(at: $0) }
+        let result = vault.saveEach(touched) { note in
+            guard let wanted = byNote[note.relativePath] else { return nil }
+            var updated = note
+            var changed = false
+            for ref in wanted {
+                var task = ref.task
+                task.dueDate = date
+                if updated.replace(task: task) { changed = true }
+            }
+            return changed ? updated : nil
+        }
+        reload()
+        if result.isComplete {
+            let moved = refs.filter { result.saved.contains($0.notePath) }.count
+            flash(moved == 1 ? "1 task moved." : "\(moved) tasks moved.")
+        } else {
+            // One message for the lot, the shape `reorder` has used since build 99: a
+            // per-note alert meant a stack of identical ones on a folder that was playing up.
+            log("could not re-date: \(result.failed)")
+            errorMessage = result.failed.count == 1
+                ? "One note could not be written, so some tasks still have their old date."
+                : "\(result.failed.count) notes could not be written, so some tasks still have their old date."
+        }
     }
 
     func setRepeat(_ ref: TaskRef, _ rule: RepeatRule?) {
