@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 226 · 28 September 2026
+
+**Two faults on the Plan screen, from your screenshot.** Both were mine.
+
+- **The day's name fits again.** Build 225 added the **Week** button to the top row, and that
+  left too little room: on the iPhone the name was squeezed to "Mon-day…" and the count under
+  it to "no block…". Now, when everything does not fit on one row, the name takes a line of its
+  own and the buttons go on the line below.
+- **Short events no longer print on top of each other.** An event of 25 or 40 minutes was drawn
+  with two lines of text, which is taller than its own place on the hours — so "Swim 40" was
+  written across the next event. A short event or block is now one line: its start time and
+  its name. Nothing can spill out of its box any more.
+
+Also written into the manual: on the iPhone the **Actions** list is below the hours, so use the
+**+** beside an action to put it on the plan, rather than dragging it up the page.
+
 ## Build 225 · 24 September 2026
 
 **Plan the week.** The last of the four you picked, and you chose this shape from the drawing.

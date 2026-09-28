@@ -2927,6 +2927,30 @@ He chose **C** (https://claude.ai/artifact/NP3XCcxXPQmVT3iCXhXESh) and both reco
   `week.strip` **on both platforms**, so a button that navigates only on the Mac fails the run
   rather than reaching him. `Place.plan` is new. Sixteen tests.
 
+**His field test of 225, and build 226.** The week tray → day cell drag **works on the
+iPhone** (his words: *"The week test worked out fine"*) — the one thing CI could not check.
+The other drag I asked him to test could not be done at all, and that was my fault:
+- **I asked him to test a phone drag without looking at the phone layout.** On the iPhone
+  `PlannerView` stacks the whole day (06–23, about 800 points) **above** the Actions list, so an
+  action can only reach an hour by being dragged up the entire page. He found the screen and
+  asked *"Where do I find the actions?"*. **Before asking him to test anything on the phone,
+  read how that screen is laid out on the phone.** The phone's real path is the **+** beside an
+  action (build 149), and the manual now says so.
+- **"Mon-day…" was build 225's fault.** Every control in the Plan header is `.fixedSize()`, so
+  when **Week** joined the row the only thing that could give way was the day's name, which
+  hyphenated and truncated. Build 138 exactly. The header is now a **`ViewThatFits(in:
+  .horizontal)`**: one row when it fits, the name above the buttons when it does not — on any
+  width, with no `isPhone`, because the ⇧⌘P window can be narrow too. The name is
+  `.lineLimit(1)` in both, since `ViewThatFits` measures the single-line width. **When a build
+  adds a button to a row of fixed-size controls, find what in that row is allowed to shrink.**
+- **Short cards printed on top of each other** ("Swim 40" across "06:40 – 07:05"). Older than
+  225: `PlanCardFace` drew two lines whatever its height and **sized its own background**, so on
+  a 25- or 40-minute slot (18–29 points at 44 per hour) it grew past the frame the lane gave it,
+  and nothing clipped it. It now takes `height:` and `startTime:`, draws **one line under 40
+  points** (start and name, the way a calendar app does), **fills the frame it is given** with
+  `maxHeight: .infinity` before the background, and is **clipped** to its rounded box. **A view
+  that paints its own background must be told its size, or it paints its own size instead.**
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

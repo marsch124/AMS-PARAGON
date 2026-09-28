@@ -353,6 +353,11 @@ The screen has three parts:
   says when you mean to do the work, it does not do the work.
 
 On the iPhone the parts are one page instead: the day's hours first, the actions under them.
+So on the iPhone the actions are **below** the hours — scroll down past the evening to reach
+them. Dragging one up onto an hour is not practical there; press the **+** beside an action
+instead, which makes a one-hour block at the next free hour, and tap the block to change its
+time. A short event or block — under about three quarters of an hour — is drawn on one line,
+with its start time and its name.
 
 The **Week** button at the top of the day opens **Calendar › Week**, where you spread work
 across the seven days. The **calendar** button beside it leads to the other kind of block, the

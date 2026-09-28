@@ -114,18 +114,45 @@ struct PlannerDayView: View {
 
     // MARK: Header
 
+    /// **One row when it fits, two when it does not** (build 226). Build 225 added **Week** to a
+    /// row of fixed-size buttons, and the only thing left that could give way was the day's
+    /// name — so on the phone it was squeezed to "Mon-day…" and the count to "no block…".
+    /// Build 138's fault exactly, and mine. `ViewThatFits` tries the single row first and falls
+    /// back to the name above the buttons, on any width and with no `isPhone` in it — the ⇧⌘P
+    /// window can be narrow too.
     private var header: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(dayTitle)
-                    .font(.headline)
-                    .lineLimit(2)
-                Text(summary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                titleBlock
+                Spacer(minLength: 6)
+                controls
             }
-            Spacer(minLength: 6)
+            VStack(alignment: .leading, spacing: 8) {
+                titleBlock
+                controls
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    /// One line each, never two: `ViewThatFits` measures the single-line width, so the row is
+    /// only chosen when the whole name fits beside the buttons — and when it does not, the name
+    /// gets a line of its own and still needs only one.
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(dayTitle)
+                .font(.headline)
+                .lineLimit(1)
+            Text(summary)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+    }
+
+    private var controls: some View {
+        HStack(spacing: 10) {
             HStack(spacing: 2) {
                 Button { move(-1) } label: { Image(systemName: "chevron.left") }
                     .help("The day before")
@@ -166,8 +193,6 @@ struct PlannerDayView: View {
             .fixedSize()
             .help("The other kind of block: real events in Apple Calendar")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
     }
 
     private var dayTitle: String {
@@ -297,7 +322,8 @@ struct PlannerDayView: View {
 
     /// An event from Apple Calendar. Read only: nothing here writes to the calendar.
     private func item(_ placed: PlannerPlacement, tint: Color, x: CGFloat, width: CGFloat) -> some View {
-        PlanCardFace(title: placed.title, time: placed.time, tint: tint, filled: false)
+        PlanCardFace(title: placed.title, time: placed.time, startTime: placed.startTime,
+                     height: placed.height, tint: tint, filled: false)
             .frame(width: width, height: placed.height)
             .offset(x: x, y: placed.top)
     }
@@ -588,40 +614,84 @@ private struct HourDrop: ViewModifier {
 // MARK: The cards
 
 /// What a block or an event looks like. One view for both lanes, so they cannot drift apart.
+///
+/// **It is told its height and draws to fit it** (build 226). It used to draw the time and the
+/// name on two lines whatever room it had, and nothing clipped it — so a 25- or 40-minute event
+/// was taller than its own slot and printed its name over the next card. His screenshot showed
+/// "Swim 40" written across "06:40 – 07:05".
 private struct PlanCardFace: View {
     let title: String
     let time: String
+    /// Only the start, for a card too short for two lines.
+    let startTime: String
+    /// The height the lane gives this card, which decides one line or two.
+    let height: CGFloat
     let tint: Color
     let filled: Bool
     var alsoAnEvent: Bool = false
 
+    /// Two caption lines and the padding come to about 38 points, so anything shorter gets
+    /// one line: the start and the name, the way a calendar app draws a short event.
+    private static let twoLineHeight: CGFloat = 40
+
+    private var oneLine: Bool { height < Self.twoLineHeight }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            HStack(spacing: 3) {
-                Text(time)
+        content
+            .padding(.horizontal, 6)
+            .padding(.vertical, oneLine ? 2 : 4)
+            // Fill exactly the slot the lane hands over. The face used to size itself, which is
+            // how its background grew past the slot on a short event.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(tint.opacity(filled ? 0.18 : 0.12), in: RoundedRectangle(cornerRadius: 7))
+            .overlay(
+                RoundedRectangle(cornerRadius: 7)
+                    .strokeBorder(tint.opacity(filled ? 0.5 : 0.28), lineWidth: 1)
+            )
+            // Whatever happens inside, nothing reaches the next card.
+            .clipShape(RoundedRectangle(cornerRadius: 7))
+    }
+
+    /// Views only, so the `@ViewBuilder` rule holds (build 58).
+    @ViewBuilder private var content: some View {
+        if oneLine {
+            HStack(spacing: 4) {
+                Text(startTime)
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(tint.opacity(0.85))
+                    .fixedSize()
                 if alsoAnEvent {
-                    Image(systemName: "calendar")
-                        .font(.caption2)
-                        .foregroundStyle(SidebarSection.calendar.tint)
+                    calendarMark
                 }
+                Text(title)
+                    .font(.caption.weight(filled ? .semibold : .regular))
+                    .foregroundStyle(tint)
+                    .lineLimit(1)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 3) {
+                    Text(time)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(tint.opacity(0.85))
+                    if alsoAnEvent {
+                        calendarMark
+                    }
+                    Spacer(minLength: 0)
+                }
+                Text(title)
+                    .font(.caption.weight(filled ? .semibold : .regular))
+                    .foregroundStyle(tint)
+                    .lineLimit(3)
                 Spacer(minLength: 0)
             }
-            Text(title)
-                .font(.caption.weight(filled ? .semibold : .regular))
-                .foregroundStyle(tint)
-                .lineLimit(3)
-            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(tint.opacity(filled ? 0.18 : 0.12), in: RoundedRectangle(cornerRadius: 7))
-        .overlay(
-            RoundedRectangle(cornerRadius: 7)
-                .strokeBorder(tint.opacity(filled ? 0.5 : 0.28), lineWidth: 1)
-        )
+    }
+
+    private var calendarMark: some View {
+        Image(systemName: "calendar")
+            .font(.caption2)
+            .foregroundStyle(SidebarSection.calendar.tint)
     }
 }
 
@@ -674,6 +744,7 @@ private struct PlanBlockCard: View {
     @ViewBuilder
     private var face: some View {
         let card = PlanCardFace(title: block.title, time: liveTime,
+                                startTime: PlanBlock.clock(liveStart), height: height,
                                 tint: Theme.planBlockTint, filled: true, alsoAnEvent: inCalendar)
         if canDrag {
             card
@@ -822,6 +893,7 @@ private struct PlannerPlacement: Identifiable {
     var title: String { span.title }
     var block: PlanBlock? { span.block }
     var time: String { "\(PlanBlock.clock(span.start)) \u{2013} \(PlanBlock.clock(span.end))" }
+    var startTime: String { PlanBlock.clock(span.start) }
 }
 
 // MARK: The actions
