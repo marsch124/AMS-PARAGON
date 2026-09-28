@@ -352,11 +352,13 @@ The screen has three parts:
   right-click it to remove it. The task keeps its own tick box in the Actions column — a block
   says when you mean to do the work, it does not do the work.
 
-On the iPhone the parts are one page instead: the day's hours first, the actions under them.
-So on the iPhone the actions are **below** the hours — scroll down past the evening to reach
-them. Dragging one up onto an hour is not practical there; press the **+** beside an action
-instead, which makes a one-hour block at the next free hour, and tap the block to change its
-time. A short event or block — under about three quarters of an hour — is drawn on one line,
+On the iPhone the parts are one page instead. At the top, above the hours, the actions are
+shown again as small dashed tiles under **Actions**, and they stay there while the hours scroll
+under them. **Scroll to the hour you want, hold a tile, and drag it onto that hour** in the
+**Time blocks** lane. Up to six tiles are shown; the line beside the heading says how many more
+there are. The full **Actions** list is still at the foot of the page, below the evening, for
+ticking a task off, the task menu and the **+** button (which makes a one-hour block at the next
+free hour). Tap a block to change its time. A short event or block — under about three quarters of an hour — is drawn on one line,
 with its start time and its name.
 
 The **Week** button at the top of the day opens **Calendar › Week**, where you spread work

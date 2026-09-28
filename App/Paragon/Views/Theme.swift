@@ -641,3 +641,91 @@ extension View {
         modifier(HelpWhenClosed(text: text, open: open))
     }
 }
+
+/// Tasks as small tiles you drag onto something: a day on the week screen (build 225), an hour
+/// on the phone's **Plan** screen (build 227).
+///
+/// **One view in two places** (build 168). His field test of 225 proved this shape drags on the
+/// iPhone — the one thing CI can never check — so when Plan needed a way to drag an action onto
+/// an hour, the answer was to reuse it rather than draw a second tray that might not.
+///
+/// **Dashed and grey, with no tint of its own.** Dashed already means "loose, not connected"
+/// everywhere in this app — `StateToggle` off, a `ReadChip`, a Map box that is not linked — and
+/// that is exactly what a task not yet placed is. Orange would have been a claim that these are
+/// plan blocks (build 152), and a colour is a claim (build 180).
+///
+/// **Nothing at all is drawn when there is nothing waiting.** A heading with no tiles under it
+/// would take a strip of the screen to say nothing. This is not build 203's vanishing control:
+/// there is no way to put something *into* the tray from here, so an empty one offers nothing.
+struct TaskTray: View {
+    let items: [TaskRef]
+    let title: String
+    /// What a tile is for, as the Mac's tooltip and the spoken hint.
+    let dropHint: String
+    /// A line under the heading, for a screen where dragging is not obvious. Nil on the week.
+    var caption: String?
+    /// How many tiles before "N more not shown". Enough to plan from without the tray becoming
+    /// the screen: a vault can hold hundreds of undated tasks, and an uncapped wrapping row would
+    /// push everything else off the bottom — build 213's lesson about what a list costs.
+    var shown = 12
+    var identifier: String
+
+    var body: some View {
+        if !items.isEmpty {
+            // One container, not a loose pair: a `body` that returns two views relies on a
+            // custom view being transparent to the enclosing stack, and there is no screen
+            // here to check that it laid out the way it reads.
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack(spacing: 8) {
+                        SectionLabel(title: title, count: items.count)
+                        Spacer(minLength: 0)
+                        if items.count > shown {
+                            Text("\(items.count - shown) more not shown")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    if let caption {
+                        Text(caption)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    WrappingHStack(spacing: 6, lineSpacing: 6) {
+                        ForEach(Array(items.prefix(shown))) { ref in
+                            tile(ref)
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier(identifier)
+                Divider()
+            }
+        }
+    }
+
+    private func tile(_ ref: TaskRef) -> some View {
+        HStack(spacing: 5) {
+            Text(ref.task.title)
+                .lineLimit(1)
+            Text(ref.noteTitle)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+        }
+        .font(.caption)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 7)
+                .strokeBorder(Color.secondary.opacity(0.5),
+                              style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 7))
+        .draggable(TaskTransfer(ref))
+        .help(dropHint)
+    }
+}

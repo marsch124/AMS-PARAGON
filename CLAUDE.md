@@ -2951,6 +2951,23 @@ The other drag I asked him to test could not be done at all, and that was my fau
   `maxHeight: .infinity` before the background, and is **clipped** to its rounded box. **A view
   that paints its own background must be told its size, or it paints its own size instead.**
 
+**Build 227: the tray is on Plan too, and it was the promise I had not kept.** His words:
+*"The actions I was supposed to drag into Plan the Day are still on the bottom. We were to
+change that, right?"* Build 226 only put the **+** into the manual; the layout was untouched.
+- **`WeekTray` became `TaskTray` in `Theme.swift`** (title, `dropHint`, optional `caption`,
+  `shown`, `identifier`). The week screen passes what it had before; the phone's `PlannerView`
+  pins one above its `ScrollView` with `actionsForPlanning(on: plannerDay)`, capped at **6**
+  because a pinned strip eats the phone's height. **Reused, not redrawn, because his test of 225
+  is the only proof a drag works on the iPhone**, and a new tray would have had none.
+- **Outside the `ScrollView`, on purpose**: that is what keeps it on screen while the hours move,
+  so a drag is always a short one. No `ScrollViewReader` jump to the current hour — scrolling
+  first and dragging second is what the caption says.
+- The full Actions list stays at the foot: ticks, task menu, ⊕. One action in both places is a
+  place-to-drag-from and a place-to-work, not two doors into one room (build 166).
+- **No screen test**: the test vault has no dated task and no next action, so `actionsForPlanning`
+  is empty and the tray draws nothing. Build 221's note — the fixture's emptiness is itself a
+  fixture — still holds.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

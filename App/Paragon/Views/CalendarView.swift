@@ -398,79 +398,6 @@ struct DailyNoteRow: View {
     }
 }
 
-/// The work waiting to be put on a day, as tiles you drag onto the strip below or onto any
-/// day's heading.
-///
-/// **Dashed and grey, with no tint of its own.** Dashed already means "loose, not connected"
-/// everywhere in this app — `StateToggle` off, a `ReadChip`, a Map box that is not linked — and
-/// that is exactly what a task with no date is. Orange would have been a claim that these are
-/// plan blocks (build 152), and a colour is a claim (build 180).
-///
-/// **Nothing at all is drawn when there is nothing waiting.** A heading with no tiles under it
-/// would take a strip of the screen to say nothing. This is not build 203's vanishing control:
-/// there is no way to put something *into* the tray from here, so an empty one offers nothing.
-private struct WeekTray: View {
-    let items: [TaskRef]
-
-    /// Enough to plan a week from without the tray becoming the screen. A vault can hold
-    /// hundreds of undated tasks, and an uncapped wrapping row would push the days off the
-    /// bottom — build 213's lesson about what a list costs, one layer up.
-    private static let shown = 12
-
-    var body: some View {
-        if !items.isEmpty {
-            // One container, not a loose pair: a `body` that returns two views relies on a
-            // custom view being transparent to the enclosing stack, and there is no screen
-            // here to check that it laid out the way it reads.
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 7) {
-                    HStack(spacing: 8) {
-                        SectionLabel(title: "To place", count: items.count)
-                        Spacer(minLength: 0)
-                        if items.count > Self.shown {
-                            Text("\(items.count - Self.shown) more not shown")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    WrappingHStack(spacing: 6, lineSpacing: 6) {
-                        ForEach(Array(items.prefix(Self.shown))) { ref in
-                            tile(ref)
-                        }
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier("week.tray")
-                Divider()
-            }
-        }
-    }
-
-    private func tile(_ ref: TaskRef) -> some View {
-        HStack(spacing: 5) {
-            Text(ref.task.title)
-                .lineLimit(1)
-            Text(ref.noteTitle)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .lineLimit(1)
-        }
-        .font(.caption)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .overlay(
-            RoundedRectangle(cornerRadius: 7)
-                .strokeBorder(Color.secondary.opacity(0.5),
-                              style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
-        )
-        .contentShape(RoundedRectangle(cornerRadius: 7))
-        .draggable(TaskTransfer(ref))
-        .help("Drag this onto a day")
-    }
-}
-
 /// The seven days as one row of small cells: the week at a glance, and seven drop targets.
 ///
 /// It is deliberately **not** a row of buttons. Each cell is a count and a place to drop a
@@ -592,7 +519,8 @@ struct WeekOverviewView: View {
             // (https://claude.ai/artifact/NP3XCcxXPQmVT3iCXhXESh): seven columns leave each day
             // about two words wide on a Mac and cannot exist at all on a phone, which would
             // have meant two week screens to keep working for ever.
-            WeekTray(items: toPlace)
+            TaskTray(items: toPlace, title: "To place", dropHint: "Drag this onto a day",
+                     identifier: "week.tray")
             WeekStrip(days: overview.days)
             List(selection: model.noteSelection) {
                 Section {

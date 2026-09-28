@@ -34,6 +34,8 @@ private func planBlockTitle(from task: TaskItem) -> String {
 }
 
 struct PlannerView: View {
+    @EnvironmentObject private var model: AppModel
+
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     private var isPhone: Bool { sizeClass == .compact }
@@ -43,12 +45,28 @@ struct PlannerView: View {
 
     var body: some View {
         if isPhone {
-            // One scroll for the whole page, never two inside each other (build 127).
-            ScrollView {
-                VStack(spacing: 0) {
-                    PlannerDayView(scrolls: false)
-                    Divider().padding(.vertical, 10)
-                    PlannerActionsView(scrolls: false)
+            VStack(spacing: 0) {
+                // **The actions, pinned above the hours** (build 227). On the phone the whole
+                // day — about 800 points — stood above the Actions list, so an action could only
+                // reach an hour by being dragged up the entire page, and his test of build 222
+                // found no way to do it at all. The tray stays put while the hours scroll under
+                // it: scroll to the hour, then drag. It is the week screen's own tray, which his
+                // test of 225 proved drags on the iPhone. The full list stays at the foot for
+                // ticking, the task menu and the ⊕ button — the tray is for placing, the list for
+                // working, which is why one action in both is not two doors into one room.
+                TaskTray(items: model.actionsForPlanning(on: model.plannerDay),
+                         title: "Actions",
+                         dropHint: "Drag this onto an hour",
+                         caption: "Hold one, then drag it onto an hour under Time blocks.",
+                         shown: 6,
+                         identifier: "plan.tray")
+                // One scroll for the whole page, never two inside each other (build 127).
+                ScrollView {
+                    VStack(spacing: 0) {
+                        PlannerDayView(scrolls: false)
+                        Divider().padding(.vertical, 10)
+                        PlannerActionsView(scrolls: false)
+                    }
                 }
             }
         } else {

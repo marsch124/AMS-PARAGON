@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 227 · 28 September 2026
+
+**On the iPhone, the actions sit above the hours now.** You were right: on **Plan** the
+**Actions** list was still at the very bottom, below the evening, so an action could not be
+dragged onto an hour.
+
+- At the top of **Plan**, above the hours, the day's actions are shown as small dashed tiles —
+  the same tiles as **To place** on the week screen, which you tested and which drag well.
+- They stay in place while the hours scroll under them. **Scroll to the hour, hold a tile, and
+  drag it onto that hour under Time blocks.** It becomes a one-hour block there.
+- Six tiles are shown; the heading says how many more there are.
+- The full **Actions** list stays at the foot of the page, for ticking tasks off and for the
+  **+** button.
+
+The Mac is unchanged: there the actions already have their own column beside the hours.
+
 ## Build 226 · 28 September 2026
 
 **Two faults on the Plan screen, from your screenshot.** Both were mine.
