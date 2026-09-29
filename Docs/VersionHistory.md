@@ -2,6 +2,17 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 231 · 29 September 2026
+
+**Save is no longer hidden by the keyboard.** Your report from build 230: on the iPhone, the
+keyboard covered **Save** and **Cancel** on the capture screen.
+
+- The field you type in stays at the top, and **Save** and **Cancel** stay just above the
+  keyboard.
+- The rows of buttons in between (**Today**, **Tomorrow**, **Date…**, where the line goes, and
+  **A task** / **A note**) now scroll when there is not enough room for all of them.
+- Drag those rows down to put the keyboard away.
+
 ## Build 230 · 29 September 2026
 
 **A + on Today, like the other tabs.** Your idea.

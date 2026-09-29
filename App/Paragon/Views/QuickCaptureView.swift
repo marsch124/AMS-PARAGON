@@ -99,12 +99,26 @@ struct QuickCaptureView: View {
             .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
             .padding(6)
             .background(Color.secondary.opacity(0.09), in: RoundedRectangle(cornerRadius: 12))
-            readBack
-            addRow
-            intoRow
-            asRow
-            Spacer(minLength: 0)
-            caughtToday
+            // **The chips scroll; the field and Save do not** (build 231, his report: *"the
+            // virtual iphone keyboard is in the way for the Save and cancel button"*). With the
+            // keyboard up there is about half a screen left, and inside the New note screen
+            // the row of kinds sits above all this too — so a column of fixed-height pieces
+            // ran out of room and **Save** ended up under the keyboard. The field stays on top
+            // because it is what you are typing in; **Save** stays at the foot because it is
+            // what you press next; everything between them gives way. The field is kept out
+            // of this `ScrollView` on purpose: a text view inside a scroll view is one scroll
+            // inside another (build 127). Dragging the chips down puts the keyboard away.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    readBack
+                    addRow
+                    intoRow
+                    asRow
+                    caughtToday
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .scrollDismissesKeyboard(.interactively)
             saveBar
         }
         .padding(embedded ? 0 : 14)

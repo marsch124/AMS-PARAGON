@@ -3020,6 +3020,17 @@ The identifier stays `capture.open`: pressing it still reaches the capture scree
 the screen tests mean by it. Kept out of build 229 on purpose, so a change after 229 points at
 one thing.
 
+**Build 231: the keyboard covered Save.** His test of 230: on the phone's capture screen *"the
+virtual iphone keyboard is in the way for the Save and cancel button"*. `QuickCaptureView.
+phoneBody` was one column of fixed-height pieces — field (min 110pt), read-back, three chip
+rows, the day's count, the save bar — and 230 put the New note screen's row of kinds above it.
+With the keyboard up there is about half a screen, so the column overflowed and the save bar
+went under the keyboard. The chip rows (and the count) now sit in a `ScrollView` between the
+field and the save bar, with `.scrollDismissesKeyboard(.interactively)`. **The field stays
+outside that scroll view on purpose** — a text view inside a scroll view is build 127's nested
+scroll. **Any phone screen with a text field has to be checked with the keyboard up** (build
+160's rule), and a screen that gains a row above it (230) has to be checked again.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
