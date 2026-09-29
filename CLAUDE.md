@@ -3012,6 +3012,14 @@ the same.
   layout (`NSView._layoutWithObservationTracking` → `_crashOnException`), with no frame of ours.
   Not looked into yet; it has not come back since.
 
+**Build 230: Today's + is the others' +.** His ask: Plan, Actions and Inbox had a **+** top
+left, Today had a Quick capture button, and one button in one place is easier. The **+** opens
+`.newNote`, and `NewThing.forSection(.today)` is now `.capture`, so it lands on the capture half
+of the same screen — which also changes the Mac's Today **+** the same way (⇧⌘N is untouched).
+The identifier stays `capture.open`: pressing it still reaches the capture screen, which is what
+the screen tests mean by it. Kept out of build 229 on purpose, so a change after 229 points at
+one thing.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

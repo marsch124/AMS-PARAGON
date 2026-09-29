@@ -64,6 +64,10 @@ enum NewThing: String, CaseIterable, Identifiable {
     /// Aspiration (build 199).
     static func forSection(_ section: SidebarSection?) -> NewThing? {
         switch section {
+        // Today's **+** starts on Capture (build 230, his ask): Today is where the day's loose
+        // ends turn up, so the quickest thing is the first thing offered. The other five are
+        // one press away at the top of the same screen.
+        case .today?: return .capture
         case .aspirations?: return .aspiration
         case .kind(.goal)?: return .goal
         case .kind(.project)?: return .project

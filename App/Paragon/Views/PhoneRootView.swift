@@ -119,15 +119,21 @@ struct PhoneRootView: View {
                 TodayView()
                     .navigationTitle("Today")
                     .toolbar {
-                        // Quick capture lost its tab to Plan and Actions, so it sits here.
-                        // Leading, because Today is the root of its stack and has no back
-                        // button: the phone's bar fits a title and one control per side
-                        // (build 88).
+                        // The same **+** as Plan, Actions and Inbox (build 230, his ask), so
+                        // every tab has one button in one place. It opens the New note screen
+                        // with **Capture** already chosen (`NewThing.forSection(.today)`), so a
+                        // quick line is still one press away. Leading, because Today is the
+                        // root of its stack and has no back button: the phone's bar fits a
+                        // title and one control per side (build 88).
+                        //
+                        // Still named `capture.open` for the screen tests: pressing it still
+                        // opens the capture screen, which is what that name has always meant.
                         ToolbarItem(placement: .topBarLeading) {
                             Button {
-                                model.activeSheet = .quickCapture
+                                model.activeSheet = .newNote
                             } label: {
-                                Label("Quick capture", systemImage: "tray.and.arrow.down")
+                                Label("New", systemImage: "plus.circle.fill")
+                                    .foregroundStyle(SidebarSection.today.tint)
                             }
                             .accessibilityIdentifier("capture.open")
                         }

@@ -2,6 +2,17 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 230 · 29 September 2026
+
+**A + on Today, like the other tabs.** Your idea.
+
+- The button at the top left of **Today** is now the same **+** as on **Plan**, **Actions** and
+  **Inbox**.
+- On **Today** it opens the **New note** screen with **Capture** already chosen, so a quick
+  line is still one press away. The other kinds are at the top of the same screen.
+- On the Mac, the **+** on **Today** starts on **Capture** too. ⇧⌘N still opens Quick capture
+  directly.
+
 ## Build 229 · 29 September 2026
 
 **A likely cause of the two iPhone crashes, fixed.** Both crashes came right after **Quick

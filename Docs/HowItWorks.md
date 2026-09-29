@@ -818,7 +818,7 @@ Open **Templates** in the sidebar, pick a file and edit it. It saves itself a mo
 
 - ⇧⌘N opens the capture panel in the app. On the Mac there is also a panel in the menu bar.
 - **New note** (⌘N) has **Capture** as its fifth button, which gives the same screen.
-- On the iPhone it is the button at the top left of **Today**.
+- On the iPhone it is the **+** at the top left of **Today**. It opens the **New note** screen with **Capture** already chosen. The **+** on the other tabs opens the same screen, starting on the kind that fits that tab.
 - On the iPhone, Share › PARAGON sends text or a link.
 - Other apps and Shortcuts can call `amspara://capture?text=Call%20the%20bank&target=inbox`.
 
@@ -864,7 +864,7 @@ Sync with Reminders from the phone with the button in the top right of Today and
 
 On the phone, a note's own actions — Rename, Archive and Delete — are behind the **⋯** button at the top right of the note. On the Mac they are buttons in the toolbar. The pencil is not in there: it is always on screen.
 
-The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Quick capture is the button at the top left of **Today**. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
+The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Every tab except **Browse** has a **+** at the top left. On **Today** it opens **Capture**, for a quick line into the Inbox. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
 ## Swiping between the tabs
 
