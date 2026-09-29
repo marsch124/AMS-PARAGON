@@ -54,12 +54,14 @@ jobs:
           session = requests.Session()
           session.headers["Authorization"] = f"Bearer {token}"
 
-          def get(path, **params):
+          def get(path, must=True, **params):
               response = session.get(base + path, params=params, timeout=60)
               if response.status_code != 200:
                   print(f"App Store Connect answered {response.status_code} for {path}:")
                   print(response.text[:2000])
-                  sys.exit(1)
+                  if must:
+                      sys.exit(1)
+                  return None
               return response.json()
 
           apps = get("/v1/apps", **{"filter[bundleId]": os.environ["BUNDLE_ID"]})["data"]
@@ -83,8 +85,10 @@ jobs:
                             "appPlatform", "devicePlatform", "buildBundleId"):
                   if attributes.get(field) is not None:
                       print(f"  {field}: {attributes[field]}")
-              log = get(f"/v1/betaFeedbackCrashSubmissions/{submission['id']}/crashLog")
-              text = (log.get("data") or {}).get("attributes", {}).get("logText") or ""
+              # Apple keeps no log for some reports (older ones especially). That report is
+              # still listed, with its date and comment, and the run carries on.
+              log = get(f"/v1/betaFeedbackCrashSubmissions/{submission['id']}/crashLog", must=False)
+              text = ((log or {}).get("data") or {}).get("attributes", {}).get("logText") or ""
               name = f"crash-reports/{number}-{(attributes.get('createdDate') or 'unknown')[:19].replace(':', '')}.txt"
               with open(name, "w") as handle:
                   handle.write(json.dumps(attributes, indent=2) + "\n\n" + text)
