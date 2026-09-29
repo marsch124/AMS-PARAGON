@@ -26,7 +26,7 @@ targets:
         type: syncedFolder
       # The built-in manual (Help window on the Mac, Settings › Help on iOS): How it works,
       # Words in PARAGON (build 228) and the version history. A new file here needs the
-      # project regenerated, which a change to this file is what triggers.
+      # project regenerated, and a change to this file is what triggers that.
       - path: Docs
         buildPhase: resources
     dependencies:
