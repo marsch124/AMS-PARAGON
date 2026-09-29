@@ -317,6 +317,22 @@ struct SidebarView: View {
 
 struct NoteListView: View {
     @EnvironmentObject private var model: AppModel
+    /// The section this list always shows, whatever `model.section` says (build 229).
+    ///
+    /// **Nil on the Mac**, where one middle column follows the sidebar. **Set on the iPhone**,
+    /// because there the pager keeps the Plan, Actions and Inbox pages alive side by side — and
+    /// until build 229 all three drew `model.section`, so every change of tab rebuilt three
+    /// pages into the same screen at once (three planners, three Inbox lists sharing one
+    /// selection). That is the prime suspect for the two crashes on 28 and 29 September, which
+    /// both came right after Quick capture closed and the tab changed.
+    let fixed: SidebarSection?
+
+    init(fixed: SidebarSection? = nil) {
+        self.fixed = fixed
+    }
+
+    /// What this list is showing: its own section on the phone, the sidebar's on the Mac.
+    private var shown: SidebarSection? { fixed ?? model.section }
     /// Kept in the view, not the model: the toolbar search field writes to it while redrawing.
     @State private var searchText = ""
     @State private var noteToTrash: Note?
@@ -332,8 +348,8 @@ struct NoteListView: View {
     /// Areas are a two-level list: each area followed by its sub-areas unless it is folded.
     /// While searching, and for every other section, the plain flat list.
     private var visibleNotes: [Note] {
-        let listed = model.notes(in: model.section, matching: searchText)
-        guard model.section == .kind(.area), !searching else { return listed }
+        let listed = model.notes(in: shown, matching: searchText)
+        guard shown == .kind(.area), !searching else { return listed }
         return model.index.areaTree().flatMap { branch in
             foldedAreas.contains(branch.area.relativePath) ? [branch.area] : branch.all
         }
@@ -341,7 +357,7 @@ struct NoteListView: View {
 
     /// The areas a given area is arranged among: the top-level areas, or its parent's children.
     private func siblings(of note: Note) -> [Note] {
-        guard model.section == .kind(.area), !searching else { return visibleNotes }
+        guard shown == .kind(.area), !searching else { return visibleNotes }
         guard let parent = model.index.parentArea(of: note) else {
             return model.index.areaTree().map(\.area)
         }
@@ -351,8 +367,8 @@ struct NoteListView: View {
     /// Maps a drag in the visible list onto the row's own family, so a sub-area is arranged
     /// among its siblings and a drop that would take it out of the family is left alone.
     private func move(_ listed: [Note], from source: IndexSet, to destination: Int) {
-        guard model.section == .kind(.area), !searching else {
-            guard case .kind(let kind) = model.section else { return }
+        guard shown == .kind(.area), !searching else {
+            guard case .kind(let kind) = shown else { return }
             model.reorder(kind, from: source, to: destination)
             return
         }
@@ -377,7 +393,7 @@ struct NoteListView: View {
 
     /// True while the Areas list is showing its two levels and this area has sub-areas.
     private func foldable(_ note: Note) -> Bool {
-        model.section == .kind(.area) && !searching && !model.index.subAreas(of: note).isEmpty
+        shown == .kind(.area) && !searching && !model.index.subAreas(of: note).isEmpty
     }
 
     private func noteRow(_ note: Note) -> some View {
@@ -393,7 +409,7 @@ struct NoteListView: View {
                 }
                 .buttonStyle(.plain)
                 .help(foldedAreas.contains(note.relativePath) ? "Show the sub-areas" : "Hide the sub-areas")
-            } else if model.section == .kind(.area), !searching {
+            } else if shown == .kind(.area), !searching {
                 Spacer().frame(width: 14)
             }
             NoteRow(note: note,
@@ -431,19 +447,19 @@ struct NoteListView: View {
 
     var body: some View {
         Group {
-            if model.section == .inbox {
+            if shown == .inbox {
                 // One inbox note means a list of notes would be a list of one; sort the
                 // captured lines here instead.
                 InboxTriageView()
-            } else if model.section == .today {
+            } else if shown == .today {
                 TodayView()
-            } else if model.section == .calendar {
+            } else if shown == .calendar {
                 CalendarView()
-            } else if model.section == .review {
+            } else if shown == .review {
                 ReviewView()
-            } else if model.section == .map {
+            } else if shown == .map {
                 MapView()
-            } else if model.section == .timeBlocks {
+            } else if shown == .timeBlocks {
                 #if os(iOS)
                 // No third column on the phone, so the section is the whole planner. Build 181
                 // made it page one of a pair; build 183 gave it a tab of its own instead, and
@@ -454,21 +470,21 @@ struct NoteListView: View {
                 // actions are the middle column and the two lanes are the detail column.
                 PlannerActionsView()
                 #endif
-            } else if model.section == .done {
+            } else if shown == .done {
                 DoneView()
-            } else if model.section == .allActions {
+            } else if shown == .allActions {
                 AllActionsView()
-            } else if model.section == .deleted {
+            } else if shown == .deleted {
                 DeletedView()
-            } else if model.section == .templates {
+            } else if shown == .templates {
                 TemplatesView()
-            } else if model.section == .snippets {
+            } else if shown == .snippets {
                 SnippetsView()
-            } else if model.section == .tags {
+            } else if shown == .tags {
                 TagsView()
-            } else if model.section == .search {
+            } else if shown == .search {
                 SearchView()
-            } else if model.section == .aspirations, !searching {
+            } else if shown == .aspirations, !searching {
                 // Build 162's screen, on its own row since build 199: the list is the
                 // aspirations, and what serves each one is drawn beside it (the Mac) or
                 // folded open under it (the phone). Searching falls through to the ordinary
@@ -477,7 +493,7 @@ struct NoteListView: View {
                     // The field has to exist here, or there would be no way to start a search
                     // in this section and the `!searching` branch above could never be taken.
                     .searchable(text: $searchText, prompt: "Search notes")
-            } else if model.section == .kind(.goal), !searching {
+            } else if shown == .kind(.goal), !searching {
                 // Build 199: every goal with a date, in one list, whether or not an
                 // aspiration holds it. His words about the screen before: *"I am not choosing
                 // an aspiration, no goals are visible on the Goals page."*
@@ -500,7 +516,7 @@ struct NoteListView: View {
                     }
                 }
                 .searchable(text: $searchText, prompt: "Search notes")
-                .onChange(of: model.section) { _, _ in searchText = "" }
+                .onChange(of: shown) { _, _ in searchText = "" }
                 .confirmationDialog("Delete \u{201C}\(noteToTrash?.displayTitle ?? "")\u{201D}?",
                                     isPresented: Binding(get: { noteToTrash != nil }, set: { if !$0 { noteToTrash = nil } }),
                                     presenting: noteToTrash) { note in
@@ -511,9 +527,9 @@ struct NoteListView: View {
                 }
             }
         }
-        .navigationTitle(model.section?.title ?? "Notes")
+        .navigationTitle(shown?.title ?? "Notes")
         .toolbar {
-            if model.section == .recent {
+            if shown == .recent {
                 ToolbarItem {
                     Button("Clear") { model.clearRecentNotes() }
                         .help("Empty the Recent list")
@@ -522,7 +538,7 @@ struct NoteListView: View {
             // Over the list it adds to, rather than away at the right by the search field.
             ToolbarItem(placement: .navigation) {
                 Button {
-                    if model.section == .work { makingWorkNote = true } else { model.activeSheet = .newNote }
+                    if shown == .work { makingWorkNote = true } else { model.activeSheet = .newNote }
                 } label: {
                     // He chose this from a preview of six
                     // (https://claude.ai/code/artifact/77a48898-bbb1-4e3a-aeff-499b098721c7):
@@ -531,12 +547,12 @@ struct NoteListView: View {
                     // section's own — the same tint `ModeAccent` lays over the detail column
                     // (build 107) — so the button says which list it will add to.
                     Label("New note", systemImage: "plus.circle.fill")
-                        .foregroundStyle(model.section?.tint ?? Color.accentColor)
+                        .foregroundStyle(shown?.tint ?? Color.accentColor)
                 }
                 .help("New note in this section (⌘N)")
                 .accessibilityIdentifier("list.newNote")
             }
-            if model.section == .work {
+            if shown == .work {
                 ToolbarItem {
                     Button("Hide") { model.hideWork() }
                         .help("Put the Work section away until you ask for it again")
@@ -564,7 +580,7 @@ struct NoteListView: View {
         }
         #if os(macOS)
         // The map wants room for its diagram; every other section is a list.
-        .navigationSplitViewColumnWidth(min: model.section == .map ? 420 : 220, ideal: model.section == .map ? 720 : 280)
+        .navigationSplitViewColumnWidth(min: shown == .map ? 420 : 220, ideal: shown == .map ? 720 : 280)
         #endif
     }
 
@@ -595,7 +611,7 @@ struct NoteListView: View {
                            systemImage: "magnifyingglass",
                            message: "No note in this section matches what you typed. Search Everywhere (⇧⌘F) looks inside every note and task.")
         } else {
-            switch model.section {
+            switch shown {
             case .kind(.project)?:
                 EmptyStateView(title: "No projects yet", systemImage: "flag",
                                message: "A project is something with an end: a race, a move, a report. Give it an outcome and a first task.",

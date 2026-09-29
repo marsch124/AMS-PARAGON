@@ -2,11 +2,26 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 229 · 29 September 2026
+
+**A likely cause of the two iPhone crashes, fixed.** Both crashes came right after **Quick
+capture** closed and you moved to another tab.
+
+- On the iPhone, the **Plan**, **Actions** and **Inbox** pages are kept ready side by side so
+  you can swipe between them. Until now, each of the three drew "whatever screen is current"
+  rather than its own. So every change of tab rebuilt all three pages into the same screen at
+  once — three copies of **Plan**, or three Inbox lists sharing one selection.
+- Now each page always shows its own screen. The same goes for a screen opened from **Browse**.
+- You should see no difference, except perhaps smoother switching between tabs.
+
+This is the most likely cause, but it is not proven. If PARAGON crashes again, press **Share**
+in the crash window. I can now read Apple's report directly.
+
 ## Build 228 · 29 September 2026
 
 **Words in PARAGON.** Your idea: a place that explains the app's own words.
 
-- A new page in Help lists about fifty words — *Aspiration*, *Goal*, *Plan block*, *Next action*,
+- A new page in Help lists 58 words — *Aspiration*, *Goal*, *Plan block*, *Next action*,
   *Looking back* and the rest — each with one or two plain sentences.
 - They are in groups: what you aim for, your notes, how a note stands, tasks, planning your day
   and week, getting things in, looking after the whole, tools, and behind the scenes.

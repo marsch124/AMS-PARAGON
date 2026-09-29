@@ -136,17 +136,26 @@ struct PhoneRootView: View {
             }
         case .plan:
             PhoneStack(section: item.section, isActive: tab == item) {
-                NoteListView()
+                // Its own section, never "whatever is current" (build 229): the pager keeps
+                // every page alive, so a list that followed `model.section` became a copy of
+                // whichever page was in front.
+                NoteListView(fixed: item.section)
                     .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
             }
         case .actions:
             PhoneStack(section: item.section, isActive: tab == item) {
-                NoteListView()
+                // Its own section, never "whatever is current" (build 229): the pager keeps
+                // every page alive, so a list that followed `model.section` became a copy of
+                // whichever page was in front.
+                NoteListView(fixed: item.section)
                     .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
             }
         case .inbox:
             PhoneStack(section: item.section, isActive: tab == item) {
-                NoteListView()
+                // Its own section, never "whatever is current" (build 229): the pager keeps
+                // every page alive, so a list that followed `model.section` became a copy of
+                // whichever page was in front.
+                NoteListView(fixed: item.section)
                     .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
             }
         case .browse:
@@ -424,7 +433,7 @@ struct PhoneSectionScreen: View {
     let section: SidebarSection
 
     var body: some View {
-        NoteListView()
+        NoteListView(fixed: section)
             .onAppear { if model.section != section { model.section = section } }
     }
 }

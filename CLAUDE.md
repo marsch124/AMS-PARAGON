@@ -2987,6 +2987,31 @@ something you read**, and Help already has a search field. Settings keeps one ro
   is only useful while it is complete, and build 159's rule — grep the docs when a name changes —
   applies to it too.
 
+**Build 229: every phone page drew the current section, and that is the crash suspect.** Two
+iPhone crashes (28 and 29 September), both right after **Quick capture** closed and the tab
+changed. No report reached App Store Connect yet, so the cause is **not proven**. Reading the path
+found a real fault regardless: `PhoneRootView` gave **Plan**, **Actions** and **Inbox** each a
+bare `NoteListView()`, which branches on `model.section` — and a page-style `TabView` keeps every
+page alive. So each tab change rebuilt three pages into the same screen at once: three
+`PlannerView`s (with three sets of drop targets), or three `InboxTriageView`s whose
+`List(selection:)` shared `model.inboxSelection`. A pushed `PhoneSectionScreen` in **Browse** did
+the same.
+- `NoteListView(fixed:)`: `shown` is `fixed ?? model.section`, and all 31 reads inside the struct
+  go through it. The Mac passes nothing and behaves exactly as before. Written-out `init`, since
+  the struct's `private @State` properties make a synthesised memberwise init private.
+- **Any view the pager hosts must render its own content, never "the current section".** The
+  pager keeps pages alive precisely so they can be swiped to, which is also what makes a shared
+  source of truth draw everywhere at once.
+- **The Crash reports workflow** (`.github/workflows/crash-reports.yml`, dispatch only) reads
+  TestFlight crash reports from App Store Connect with the upload's own key and prints them in
+  the job log. **Apple keeps no log for some reports** (both from 20 September answer 404); the
+  run lists them and carries on. A report can take a while to appear after he presses **Share**.
+  The same file is on `main` in AMS-WatchLater-App, AMS-Packing-App, AMS-Instructions,
+  AMS-Workout-Sync-iOS and AMS-Coffee, with each app's bundle id.
+- **The Mac crash of 22 September (build 211)** is in that list: an exception during AppKit
+  layout (`NSView._layoutWithObservationTracking` → `_crashOnException`), with no frame of ours.
+  Not looked into yet; it has not come back since.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
