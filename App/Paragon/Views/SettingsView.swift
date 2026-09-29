@@ -162,12 +162,17 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            #if !os(macOS)
             Section("Help") {
+                #if os(macOS)
+                // The Mac's manual is its own window, reached from the Help menu. Only the list
+                // of words gets a row here too, so it can be found from both places (build 228).
+                WordsWindowButton()
+                #else
                 NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks").navigationTitle("How it works") }
+                NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words").navigationTitle("Words") }
                 NavigationLink("Version history") { HelpDocument(fileName: "VersionHistory").navigationTitle("Version history") }
+                #endif
             }
-            #endif
 
             Section("Quick capture") {
                 #if os(macOS)

@@ -2968,6 +2968,25 @@ change that, right?"* Build 226 only put the **+** into the manual; the layout w
   is empty and the tray draws nothing. Build 221's note — the fixture's emptiness is itself a
   fixture — still holds.
 
+**Build 228: Words in PARAGON.** His idea — *"we could create a definition toggle with all the
+various definitions throughout the complete app… It's getting rather complicated, right?"* He
+said Settings; I suggested Help and he agreed: **Settings is for choices, a list of meanings is
+something you read**, and Help already has a search field. Settings keeps one row that opens it.
+- `Docs/Words.md`, grouped under `##` headings so `HelpDocument` draws it with folds and search
+  like the manual. One bullet per word: `**Word** — one or two sentences`.
+- `HelpView.Page.words` sits between the manual and the history (enum order is the Mac's
+  segmented order). Mac: **Help › Words in PARAGON** and `WordsWindowButton` in Settings, which
+  opens the Help window because Mac Settings is its own window. iPhone: a `NavigationLink` in
+  Settings › Help. The Settings `Help` section is no longer iOS only.
+- **Work notes are deliberately not in it** — the same reason they are not in `HowItWorks.md`
+  (build 112): the page is visible to anyone looking over his shoulder.
+- `project.yml`'s Docs comment was changed on purpose: a new file in `Docs/` only reaches the
+  committed project when CI regenerates it, and a change to `project.yml` is what triggers that.
+  **So the next local push needs `git pull --rebase` first.**
+- **When a build adds a word he will see, add it to `Docs/Words.md` in the same build.** The list
+  is only useful while it is complete, and build 159's rule — grep the docs when a name changes —
+  applies to it too.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

@@ -4,6 +4,8 @@ PARAGON is a plain-text project and life management app. Everything you write is
 
 Every heading below opens and closes, so this page is a contents list you drill into rather than a wall of text. The box at the top searches it: type a word and only the parts that mention it are shown, already opened.
 
+If a word is unclear, **Words in PARAGON** explains each of the app's own words in one or two sentences. On the Mac it is in the **Help** menu, and at the top of this window. On the iPhone it is in **Settings**, under **Help**.
+
 Throughout: **right-click** on the Mac is **long-press** on the iPhone. Where this page says one, the other works on the other device.
 
 ## The idea

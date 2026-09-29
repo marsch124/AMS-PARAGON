@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 228 · 29 September 2026
+
+**Words in PARAGON.** Your idea: a place that explains the app's own words.
+
+- A new page in Help lists about fifty words — *Aspiration*, *Goal*, *Plan block*, *Next action*,
+  *Looking back* and the rest — each with one or two plain sentences.
+- They are in groups: what you aim for, your notes, how a note stands, tasks, planning your day
+  and week, getting things in, looking after the whole, tools, and behind the scenes.
+- The search field at the top finds a word. **Open all** shows the whole list.
+- **On the Mac:** **Help › Words in PARAGON**, or the **Words** button at the top of the Help
+  window. **Settings** also has a **Words in PARAGON** button under **Help**.
+- **On the iPhone:** **Settings**, then **Words in PARAGON** under **Help**.
+
 ## Build 227 · 28 September 2026
 
 **On the iPhone, the actions sit above the hours now.** You were right: on **Plan** the

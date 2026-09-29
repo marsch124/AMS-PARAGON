@@ -102,7 +102,18 @@ struct HelpMenuButtons: View {
     var body: some View {
         Button("How PARAGON Works") { openWindow(id: "help", value: HelpView.Page.howItWorks) }
             .keyboardShortcut("?", modifiers: [.command])
+        Button("Words in PARAGON") { openWindow(id: "help", value: HelpView.Page.words) }
         Button("Version History") { openWindow(id: "help", value: HelpView.Page.versionHistory) }
+    }
+}
+
+/// The Mac's Settings row for the list of words. Settings is its own window there, so the row
+/// opens the Help window on that page rather than pushing a screen (build 228).
+struct WordsWindowButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Words in PARAGON") { openWindow(id: "help", value: HelpView.Page.words) }
     }
 }
 #endif

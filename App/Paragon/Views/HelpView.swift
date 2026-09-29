@@ -6,6 +6,10 @@ import SwiftUI
 struct HelpView: View {
     enum Page: String, CaseIterable, Identifiable, Codable, Hashable {
         case howItWorks = "How it works"
+        /// The app's own words, one or two sentences each (build 228). His idea: *"It's getting
+        /// rather complicated, right?"* It lives in Help, not Settings, because Settings is for
+        /// choices and this is something you read — Settings only carries a row that opens it.
+        case words = "Words"
         case versionHistory = "Version history"
 
         var id: String { rawValue }
@@ -14,6 +18,7 @@ struct HelpView: View {
             switch self {
             case .howItWorks: return "HowItWorks"
             case .versionHistory: return "VersionHistory"
+            case .words: return "Words"
             }
         }
     }
