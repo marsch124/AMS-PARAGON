@@ -14,6 +14,7 @@
 		3752069BA243D43F74CAC588 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = B5861B3AD6F50041A1F8A8B9 /* ParagonCore */; };
 		627482B9308CA63E70129D95 /* VersionHistory.md in Resources */ = {isa = PBXBuildFile; fileRef = E6919AFBC2371667D46DD399 /* VersionHistory.md */; };
 		71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = 972619FBA5280A0A9364E4D7 /* ParagonCore */; };
+		C202C2E162F6A9616899BDAE /* Words.md in Resources */ = {isa = PBXBuildFile; fileRef = 37E5572E0E65566F6BC49B8C /* Words.md */; };
 		C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2714DD3A4254950C4A439829 /* ParagonShare.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -60,6 +61,7 @@
 		1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1948F57C2B6673ACAA4E203E /* Paragon.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Paragon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2714DD3A4254950C4A439829 /* ParagonShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		37E5572E0E65566F6BC49B8C /* Words.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Words.md; sourceTree = "<group>"; };
 		446EED97021901C80DE8243E /* ScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTests.swift; sourceTree = "<group>"; };
 		55B3B1883D9DE44B343B78C6 /* Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Core; path = Core; sourceTree = SOURCE_ROOT; };
 		6BD311D35F38F0FEFC26141A /* HowItWorks.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HowItWorks.md; sourceTree = "<group>"; };
@@ -173,6 +175,7 @@
 			children = (
 				6BD311D35F38F0FEFC26141A /* HowItWorks.md */,
 				E6919AFBC2371667D46DD399 /* VersionHistory.md */,
+				37E5572E0E65566F6BC49B8C /* Words.md */,
 			);
 			path = Docs;
 			sourceTree = "<group>";
@@ -346,6 +349,7 @@
 			files = (
 				156E7AB9FEFEAE96BDD7D5DB /* HowItWorks.md in Resources */,
 				627482B9308CA63E70129D95 /* VersionHistory.md in Resources */,
+				C202C2E162F6A9616899BDAE /* Words.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
