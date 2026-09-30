@@ -36,20 +36,27 @@ struct StartDayView: View {
     /// different lists of "today's actions".
     private var actions: [TaskRef] { model.actionsForPlanning(on: day) }
 
+    /// Marked **First** in last night's **Close the day** (build 236): his choice was a mark,
+    /// not a block, and the mark's whole job is to put these at the top of this screen.
+    private var marked: [TaskRef] { model.firstPicks.split(actions, on: day).first }
+
+    /// Everything else, in the planner's order; the three groups below are drawn from this.
+    private var unmarked: [TaskRef] { model.firstPicks.split(actions, on: day).rest }
+
     private var overdue: [TaskRef] {
-        actions.filter { ref in
+        unmarked.filter { ref in
             guard let due = ref.task.dueDate else { return false }
             return due < day
         }
     }
 
     private var dueToday: [TaskRef] {
-        actions.filter { $0.task.dueDate == day }
+        unmarked.filter { $0.task.dueDate == day }
     }
 
     /// Next actions with no date on or before today — the rest of what the planner offers.
     private var nextOnes: [TaskRef] {
-        actions.filter { ref in
+        unmarked.filter { ref in
             guard let due = ref.task.dueDate else { return true }
             return due > day
         }
@@ -68,7 +75,7 @@ struct StartDayView: View {
     /// In the order the list shows them, so the earliest block goes to the first one picked
     /// from the top.
     private var pickedRefs: [TaskRef] {
-        (overdue + dueToday + nextOnes).filter { picked.contains($0.id) }
+        (marked + overdue + dueToday + nextOnes).filter { picked.contains($0.id) }
     }
 
     var body: some View {
@@ -86,6 +93,7 @@ struct StartDayView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                        group("Marked first last evening", marked)
                         group("Overdue", overdue)
                         group("Due today", dueToday)
                         group("Next actions", nextOnes)
@@ -102,6 +110,7 @@ struct StartDayView: View {
         // One name the screen test can wait for (build 190). Accessibility only.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("startDay.screen")
+        .onAppear { model.loadFirstPicks() }
         .frame(minWidth: isPhone ? nil : 480, minHeight: isPhone ? nil : 420)
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
     }
@@ -302,15 +311,28 @@ struct StartDayView: View {
 
 /// **Pick** / **Picked**, in build 142's two-state language: picked is the tint filled with a
 /// solid border, not picked is grey with a dashed one — the same as `FilterBox` (build 157).
-private struct PickButton: View {
+/// **Close the day** uses it too, as **First** (build 236), so the two screens mark things the
+/// same way.
+struct PickButton: View {
     let isOn: Bool
     let tint: Color
+    var onTitle = "Picked"
+    var offTitle = "Pick"
     let action: () -> Void
+
+    init(isOn: Bool, tint: Color, onTitle: String = "Picked", offTitle: String = "Pick",
+         action: @escaping () -> Void) {
+        self.isOn = isOn
+        self.tint = tint
+        self.onTitle = onTitle
+        self.offTitle = offTitle
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
             // The padding goes **inside** the label: a Button's tap area is its label (build 186).
-            Text(isOn ? "Picked" : "Pick")
+            Text(isOn ? onTitle : offTitle)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
                 .padding(.horizontal, 10)

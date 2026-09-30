@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 236 · 30 September 2026
+
+**Close the day is fuller.** Your choices: one page, the counts and what they went towards,
+and **First** only marks an action for the morning.
+
+- **What you did today**: how many tasks you finished, and what they went towards, for example
+  "★ Healthy body · 2 tasks" or "Bathroom renovation · 1 task".
+- **Did not happen**: each task now has **Day…** beside **Tomorrow**, to move it to any date.
+- **Tomorrow**: tomorrow's calendar events and what is waiting for tomorrow. Press **First**
+  beside the ones that should come first.
+- In the morning, **Start the day** shows those at the top, under **Marked first last evening**.
+- The marks are kept in your vault, so a mark made on the iPhone in the evening is also on the
+  Mac in the morning.
+
 ## Build 235 · 30 September 2026
 
 **Add new actions while you start the day.** Your idea: the morning, with coffee and a fresh

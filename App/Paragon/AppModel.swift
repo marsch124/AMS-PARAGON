@@ -125,7 +125,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 235
+    static let number = 236
 }
 
 @MainActor
@@ -1997,6 +1997,30 @@ final class AppModel: ObservableObject {
             if !existed { reload() }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    // MARK: First for tomorrow (build 236)
+
+    /// The actions marked **First** in **Close the day**, read from the vault. Read again each
+    /// time one of the two screens opens, so a mark made on the other device is seen.
+    @Published private(set) var firstPicks = FirstPicks()
+
+    func loadFirstPicks() {
+        firstPicks = vault?.firstPicks() ?? FirstPicks()
+    }
+
+    /// Marks or unmarks one action for a day, and forgets the days that are over.
+    func toggleFirst(_ ref: TaskRef, on day: DateOnly) {
+        guard let vault else { return }
+        var picks = vault.firstPicks()
+        picks.toggle(ref, on: day)
+        picks.dropDays(before: DateOnly.today())
+        do {
+            try vault.saveFirstPicks(picks)
+            firstPicks = picks
+        } catch {
+            errorMessage = "Could not keep the mark: \(error.localizedDescription)"
         }
     }
 

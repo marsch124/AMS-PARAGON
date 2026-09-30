@@ -3114,6 +3114,26 @@ with the coffee and with the fresh brain."* He asked me to design it.
   `startDay.pick.Water the plants` to read **Picked** (or carry `isSelected`). Both are
   accepted because a Mac button's words are its label and it may not report the trait.
 
+**Build 236: Close the day, fuller.** His ask: *"We should be proud of everything we have done,
+and we should be able to move stuff around for tomorrow and the nice start."* Chosen from a
+drawing of two shapes (https://claude.ai/artifact/DAuGkev2WtZqotkZR36qTA): **A, one page**;
+**First only marks** (no block); **counts and what they served**, not every task by name.
+- `Core/Vault/DayClosing.swift` (tested in `DayClosingTests`): `ServedCount` +
+  `NoteIndex.servedCounts(of:)` — grouped through `serves(_:)` (build 174), so a task counts
+  towards what the planner shows it serving; a task whose note serves nothing counts towards
+  its own note. `FirstPick` / `FirstPicks` in `.ams-para/first.json`, keyed by note path and
+  **task title**, never `TaskRef.id` (that carries the line number). **Not a `#first` tag**: it
+  would travel into Reminders and stay on the line after the morning.
+- `AppModel.firstPicks` / `loadFirstPicks()` / `toggleFirst(_:on:)`; both screens reload the
+  marks when they open, so a mark from the other device is seen. Old days are dropped on write.
+- `CloseDayView`: **What you did today** (the green count once, then `ServedRow`s in the
+  chain's own symbols and tints), **Did not happen** (`LeftoverRow`: **Tomorrow** + **Day…**
+  popover with `DateChoiceView`), **Tomorrow** (`CalendarEventRows(compact:)` for tomorrow,
+  then `actionsForPlanning(on: tomorrow)` minus today's leftovers, dated ones plus marked ones
+  plus at most six next actions, each with a **First** `PickButton`), **How was today?**.
+- `PickButton` left `StartDayView` as a shared view with `onTitle`/`offTitle`.
+- `StartDayView` draws **Marked first last evening** above Overdue, via `FirstPicks.split`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

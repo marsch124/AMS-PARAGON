@@ -38,18 +38,36 @@ struct CloseDayView: View {
     /// with no date was never promised to this day, so it did not "not happen".
     private var leftovers: [TaskRef] { model.index.openTasks(dueOnOrBefore: day) }
 
+    private var tomorrow: DateOnly { day.adding(days: 1) }
+
+    private var finished: [TaskRef] { model.index.tasksCompleted(on: day) }
+
+    /// Tomorrow's list is the planner's own question for tomorrow (build 174) — the same list
+    /// **Start the day** will show in the morning — **without today's leftovers**, which are
+    /// drawn above with their own buttons. Pressing **Tomorrow** on one moves it down here.
+    private var tomorrowActions: [TaskRef] {
+        let left = Set(leftovers.map(\.id))
+        return model.actionsForPlanning(on: tomorrow).filter { !left.contains($0.id) }
+    }
+
+    /// Everything dated tomorrow, then at most this many next actions: one per project would
+    /// otherwise push the line about the day off the bottom of a phone (build 213's lesson).
+    /// An action already marked **First** is always shown, so a mark can always be taken off.
+    private let nextActionsShown = 6
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             heading
             Divider()
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    counts
+                VStack(alignment: .leading, spacing: 18) {
+                    whatYouDid
                     if leftovers.isEmpty {
                         allClear
                     } else {
                         didNotHappen
                     }
+                    tomorrowSection
                     lookingBackField
                 }
                 .padding(isPhone ? 14 : 20)
@@ -67,10 +85,12 @@ struct CloseDayView: View {
         .frame(minWidth: isPhone ? nil : 480)
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         .onAppear {
+            model.loadFirstPicks()
             guard !loaded else { return }
             lookingBack = model.lookingBack(for: day)
             loaded = true
         }
+        .task { await model.loadEvents(for: tomorrow) }
     }
 
     /// Written out rather than a ternary with `nil` in one arm: `.infinity` is a member of
@@ -95,18 +115,88 @@ struct CloseDayView: View {
         .padding(.vertical, 12)
     }
 
-    /// **Counts, not two more lists.** The **Done** screen already lists what you finished, day
-    /// by day, and drawing the same names here would be a second door into one room (build 166).
-    /// The number is what an evening needs: it says the day had something in it.
-    private var counts: some View {
-        WrappingHStack(spacing: 8, lineSpacing: 8) {
-            CountPill(text: pillText(model.index.tasksCompleted(on: day).count, "finished today"),
+    /// **Build 236: be proud of the day** — his words. He chose the count and what the work
+    /// served over every task by name: **Done** already lists the names, and a list of twelve
+    /// lines reads as a report, while "Healthy body · 3" reads as a day that went somewhere.
+    /// `NoteIndex.servedCounts(of:)` (Core, tested) decides the grouping.
+    @ViewBuilder
+    private var whatYouDid: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(title: "What you did today")
+            // The count once, as the green capsule it has been since build 223; the section
+            // headings below carry their own counts, so the old row of two capsules would only
+            // have repeated them (build 169).
+            CountPill(text: pillText(finished.count, "finished today"),
                       systemImage: "checkmark.circle", tint: .green)
-            if !leftovers.isEmpty {
-                CountPill(text: "\(leftovers.count) did not happen",
-                          systemImage: "exclamationmark.circle", tint: .orange)
+            if finished.isEmpty {
+                Text("No task was ticked off today.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(model.index.servedCounts(of: finished)) { served in
+                    ServedRow(served: served)
+                }
             }
         }
+    }
+
+    /// Tomorrow's calendar, then what is waiting, each with a **First** mark. The mark only
+    /// marks — his choice: no block is made, and **Start the day** shows the marked ones at the
+    /// top in the morning. Stored in the vault (`FirstPicks`, Core), so a mark made on the phone
+    /// tonight is on the Mac tomorrow.
+    private var tomorrowSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(title: "Tomorrow · " + (tomorrow.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+                                                 ?? tomorrow.description))
+            if model.showsCalendarEvents {
+                CalendarEventRows(date: tomorrow, compact: true)
+            }
+            if tomorrowShown.isEmpty {
+                Text("Nothing is waiting for tomorrow yet.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("Mark what comes first. Start the day shows it at the top tomorrow morning.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                ForEach(tomorrowShown) { ref in
+                    HStack(alignment: .top, spacing: 8) {
+                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                        PickButton(isOn: model.firstPicks.isFirst(ref, on: tomorrow), tint: tint,
+                                   onTitle: "First", offTitle: "First") {
+                            model.toggleFirst(ref, on: tomorrow)
+                        }
+                        .accessibilityIdentifier("closeDay.first.\(ref.task.title)")
+                    }
+                }
+                if tomorrowHidden > 0 {
+                    Text(tomorrowHidden == 1 ? "…and 1 more next action." : "…and \(tomorrowHidden) more next actions.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    /// Dated for tomorrow, and every marked one, always; then the first few next actions.
+    private var tomorrowShown: [TaskRef] {
+        let all = tomorrowActions
+        let dated = all.filter { isForTomorrow($0) }
+        let marked = all.filter { !isForTomorrow($0) && model.firstPicks.isFirst($0, on: tomorrow) }
+        let others = all.filter { !isForTomorrow($0) && !model.firstPicks.isFirst($0, on: tomorrow) }
+        return dated + marked + Array(others.prefix(nextActionsShown))
+    }
+
+    /// Dated tomorrow (or earlier and not a leftover). A next action dated next week is still
+    /// only a next action here.
+    private func isForTomorrow(_ ref: TaskRef) -> Bool {
+        guard let due = ref.task.dueDate else { return false }
+        return due <= tomorrow
+    }
+
+    private var tomorrowHidden: Int {
+        max(0, tomorrowActions.count - tomorrowShown.count)
     }
 
     /// "1 task finished today", never "1 tasks".
@@ -135,24 +225,7 @@ struct CloseDayView: View {
             // of tasks, because a second one only repeats work and then drifts. Its `.draggable`
             // is safe: this is not a `List(selection:)` (builds 71 to 74).
             ForEach(leftovers) { ref in
-                HStack(alignment: .top, spacing: 8) {
-                    TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
-                    Button {
-                        model.moveTasks([ref], to: day.adding(days: 1))
-                    } label: {
-                        // The padding goes **inside** the label: a Button's tap area is its
-                        // label, and padding put outside only moves it (build 186).
-                        Text("Tomorrow")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(tint)
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 3)
-                            .overlay(Capsule().strokeBorder(tint.opacity(0.55), lineWidth: 1))
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .help("Move this to tomorrow")
-                }
+                LeftoverRow(ref: ref, today: day, tint: tint)
             }
             if leftovers.count > 1 {
                 Button("Move all \(leftovers.count) to tomorrow") {
@@ -211,5 +284,99 @@ struct CountPill: View {
             .padding(.vertical, 5)
             .background(Capsule().fill(tint.opacity(0.12)))
             .overlay(Capsule().strokeBorder(tint.opacity(0.45)))
+    }
+}
+
+/// One thing the day's finished tasks went towards, with how many.
+///
+/// The goal's own star or target and its gold (`ChainSymbol` / `ChainTint`, build 189), an
+/// area's pink, or the note's own kind: the same pictures and colours the rest of the app uses
+/// for the same things (build 168).
+private struct ServedRow: View {
+    @EnvironmentObject private var model: AppModel
+    let served: ServedCount
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: symbol)
+                .foregroundStyle(tint)
+                .frame(width: 18)
+            Text(served.title)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(tint)
+                .lineLimit(2)
+            Text(served.count == 1 ? "1 task" : "\(served.count) tasks")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var symbol: String {
+        switch served.kind {
+        case .goal: return ChainSymbol.forGoal(named: served.title, in: model.index)
+        case .area: return ChainSymbol.area
+        case .note(let kind): return SidebarSection.kind(kind).systemImage
+        }
+    }
+
+    private var tint: Color {
+        switch served.kind {
+        case .goal: return ChainTint.forGoal(named: served.title, in: model.index)
+        case .area: return ParaKind.area.tint
+        case .note(let kind): return kind.tint
+        }
+    }
+}
+
+/// A task that did not happen, with **Tomorrow** and **Day…** beside it.
+///
+/// Its own view because **Day…** needs a popover of its own, and a popover is state that
+/// belongs to one row (build 83's reason for `MapNodeBox`).
+private struct LeftoverRow: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    let today: DateOnly
+    let tint: Color
+    @State private var choosingDay = false
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 6) {
+            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+            Button {
+                model.moveTasks([ref], to: today.adding(days: 1))
+            } label: {
+                // The padding goes **inside** the label: a Button's tap area is its label, and
+                // padding put outside only moves it (build 186).
+                capsule("Tomorrow", colour: tint)
+            }
+            .buttonStyle(.plain)
+            .help("Move this to tomorrow")
+            Button {
+                choosingDay = true
+            } label: {
+                capsule("Day…", colour: .secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Move this to another day")
+            .popover(isPresented: $choosingDay) {
+                DateChoiceView(current: today.adding(days: 1), cancel: { choosingDay = false }) { chosen in
+                    choosingDay = false
+                    if let chosen { model.moveTasks([ref], to: chosen) }
+                }
+                .padding()
+                .frame(minWidth: 280)
+            }
+        }
+    }
+
+    private func capsule(_ title: String, colour: Color) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(colour)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 3)
+            .overlay(Capsule().strokeBorder(colour.opacity(0.55), lineWidth: 1))
+            .contentShape(Capsule())
     }
 }

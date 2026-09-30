@@ -320,15 +320,26 @@ The per cent never says 100 until everything really is finished, and never says 
   day at that time. Press it and **Close the day** opens. The first time you turn it on, the
   iPhone or the Mac asks whether PARAGON may send notifications; if you said no, Settings says
   so in orange and tells you where to change it. Turn the switch off and the reminder stops.
-- **Close the day** is one screen you work down and finish. It says how many tasks you finished
-  today, lists everything still open that was due today or earlier with a **Tomorrow** button on
-  each and a **Move all to tomorrow** under them, and gives you one line to say how the day was.
-  Those lines are real tasks, so you can tick one off if you did it after all.
-  Your line is kept in that day's daily note under a heading called **Looking back**. It is
-  ordinary text: nothing reads it, nothing counts it, it never becomes a task. Clear it and the
-  heading goes too. **Done** saves the line; **Cancel** does not — but the tick boxes and the
-  **Tomorrow** buttons save as soon as you press them. Tasks with no date are not in the list,
-  because a task that was never promised to today did not fail to happen.
+- **Close the day** is one page you work down and finish. From the top:
+  - **What you did today**: how many tasks you finished, and what they went towards — an
+    aspiration, a goal, an area, or the project itself — with how many for each. The names of
+    the tasks are on the **Done** screen.
+  - **Did not happen**: everything still open that was due today or earlier. Each has a
+    **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is
+    under them. These are real tasks, so you can tick one off if you did it after all. Tasks
+    with no date are not here, because a task that was never promised to today did not fail
+    to happen.
+  - **Tomorrow**: tomorrow's calendar events, then what is waiting — everything dated tomorrow
+    (including what you just moved there) and a few next actions. Press **First** beside the
+    ones that should come first. That only marks them: in the morning, **Start the day** shows
+    them at the top under **Marked first last evening**. No block is made. Press **First** again
+    to take the mark off. The marks are kept in the vault, so a mark made on the iPhone is also
+    there on the Mac.
+  - **How was today?**: one line, kept in that day's daily note under a heading called
+    **Looking back**. It is ordinary text: nothing reads it, nothing counts it, it never becomes
+    a task. Clear it and the heading goes too.
+  **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
+  **First** save as soon as you press them.
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
 - **Done** lists what you completed, day by day, for the last 30 days.
 - **Calendar** lets you pick a day, week or month. The day view can show a month grid with week numbers and a dot under every day that holds something — green for tasks due, red if one is overdue, blue for calendar events, grey for a day that already has a note. Under the grid is the day itself: its events, what is due, what got done, and a button to open or create the daily note. The grid is off to begin with, because the day itself is what the screen is for: press the **calendar** button in the day's top row to show it, and press it again to put it away. The button is lit while the grid is showing, and the app remembers your choice. Move with the arrows, the Today button, or the left and right arrow keys. Drop a task on a day to give it that date.
