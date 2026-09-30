@@ -3163,6 +3163,14 @@ so his wording on one heading would have been untrue of the actions: **Tomorrow'
 events · <date>** over the events (only when calendar events are shown), **Waiting for
 tomorrow** over the actions. **When a user renames a heading, check what else sits under it.**
 
+**Build 240: Pick and First go in front of the row.** Testing 239 he pressed the tick circle
+to pick two actions and marked them done. `TaskRow` draws its circle first, so a control put
+*after* the row is the second thing a thumb meets. He chose **B** over hiding the circle:
+`PickButton(large: true)` (fixed `largeWidth` 76, so **Pick**/**Picked** do not jump) sits
+before `TaskRow` in `StartDayView.row` and in Close the day's **Waiting for tomorrow**; "In the
+plan at" became a two-line caption in the same width. **A control that sits beside a task's
+tick must come before it and be bigger than it**, or the tick takes the press.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

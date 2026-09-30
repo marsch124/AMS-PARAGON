@@ -101,7 +101,7 @@ struct StartDayView: View {
                     if actions.isEmpty {
                         nothingToPick
                     } else {
-                        Text("Pick the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today.")
+                        Text("Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. The circle marks a task as done.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -282,18 +282,28 @@ struct StartDayView: View {
     }
 
     /// A real `TaskRow` (build 149: a tick here ticks the task in its own note), with the pick
-    /// beside it. The pick is **not** a circle: the task's own tick box is the circle, and two
-    /// circles side by side would be two controls that look alike (build 154).
+    /// **in front of it**. The pick is **not** a circle: the task's own tick box is the circle,
+    /// and two circles side by side would be two controls that look alike (build 154).
+    ///
+    /// **Build 240: the pick comes first, and larger.** With **Pick** at the far right, the first
+    /// thing his thumb met on each row was the tick circle, and in testing 239 he ticked two
+    /// actions *done* while trying to pick them. He chose this shape (B) over hiding the tick:
+    /// the morning is also when he notices something is already done.
     private func row(_ ref: TaskRef) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+        HStack(alignment: .top, spacing: 12) {
             if let start = plannedAt[planBlockTitle(from: ref.task)] {
-                Text("In the plan at \(PlanBlock.clock(start))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 3)
+                VStack(spacing: 0) {
+                    Text("In plan")
+                        .font(.caption2)
+                    Text(PlanBlock.clock(start))
+                        .font(.caption.monospacedDigit())
+                }
+                .foregroundStyle(.secondary)
+                .frame(width: PickButton.largeWidth)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("In the plan at \(PlanBlock.clock(start))")
             } else {
-                PickButton(isOn: picked.contains(pickKey(ref)), tint: tint) {
+                PickButton(isOn: picked.contains(pickKey(ref)), tint: tint, large: true) {
                     if picked.contains(pickKey(ref)) {
                         picked.remove(pickKey(ref))
                     } else {
@@ -302,6 +312,7 @@ struct StartDayView: View {
                 }
                 .accessibilityIdentifier("startDay.pick.\(ref.task.title)")
             }
+            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
         }
     }
 
@@ -335,20 +346,26 @@ struct StartDayView: View {
 /// **Pick** / **Picked**, in build 142's two-state language: picked is the tint filled with a
 /// solid border, not picked is grey with a dashed one — the same as `FilterBox` (build 157).
 /// **Close the day** uses it too, as **First** (build 236), so the two screens mark things the
-/// same way.
+/// same way. `large` (build 240) is the size used in front of a task row: bigger than the tick
+/// circle beside it, and one width for both words so the rows line up and nothing jumps when
+/// **Pick** becomes **Picked**.
 struct PickButton: View {
+    static let largeWidth: CGFloat = 76
+
     let isOn: Bool
     let tint: Color
     var onTitle = "Picked"
     var offTitle = "Pick"
+    var large = false
     let action: () -> Void
 
     init(isOn: Bool, tint: Color, onTitle: String = "Picked", offTitle: String = "Pick",
-         action: @escaping () -> Void) {
+         large: Bool = false, action: @escaping () -> Void) {
         self.isOn = isOn
         self.tint = tint
         self.onTitle = onTitle
         self.offTitle = offTitle
+        self.large = large
         self.action = action
     }
 
@@ -356,10 +373,12 @@ struct PickButton: View {
         Button(action: action) {
             // The padding goes **inside** the label: a Button's tap area is its label (build 186).
             Text(isOn ? onTitle : offTitle)
-                .font(.caption.weight(.semibold))
+                .font(large ? .callout.weight(.semibold) : .caption.weight(.semibold))
+                .lineLimit(1)
                 .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 3)
+                .frame(width: large ? PickButton.largeWidth - 16 : nil)
+                .padding(.horizontal, large ? 8 : 10)
+                .padding(.vertical, large ? 6 : 3)
                 .background(Capsule().fill(isOn ? tint.opacity(0.24) : Color.clear))
                 .overlay(border)
                 .contentShape(Capsule())

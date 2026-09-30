@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 240 · 30 September 2026
+
+**Pick and First are now on the left, and larger.** You pressed the round circle to pick two
+actions, and they were marked done. That was my design fault: the circle came first on each
+row, and **Pick** was far away on the right.
+
+- In **Start the day**, **Pick** is now the first thing on each row, before the circle. It is
+  larger, and **Pick** and **Picked** have the same width, so the row does not jump.
+- In **Close the day**, **First** is moved the same way.
+- The line above each list now says to press **Pick** (or **First**) on the left.
+- The circle still marks a task as done, as everywhere else in PARAGON. To undo it, press it
+  again on the **Done** screen.
+
 ## Build 239 · 30 September 2026
 
 **Clearer headings in Close the day.** Your wish. The part about tomorrow now has two headings:

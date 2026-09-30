@@ -303,12 +303,13 @@ The per cent never says 100 until everything really is finished, and never says 
 - **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top are **Start the day** (a cup) and **Close the day** (a moon): the morning step and the evening step. On a narrow screen only the two pictures are shown.
 
 - **Start the day** shows what is overdue, what is due today, and your next actions. Press
-  **Pick** beside the two or three that matter most, then press the button at the bottom
+  **Pick** at the left of the two or three that matter most (the round circle after it marks
+  the task as done, as everywhere else), then press the button at the bottom
   (it says **Plan 2 actions**, for example). Each one goes into today's plan as a one-hour
   block, in the free time left today: after the time it is now, and never on top of a block
   you already have or a calendar event. Nothing is placed after midnight; if not all of them
   fit, a message says how many did. An action already in today's plan says **In the plan at**
-  and the time, instead of **Pick**. The blocks are ordinary plan blocks — move them or make
+  and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make
   them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
   At the top there is a field, **Add an action for today**, with a **+** beside it. Type
   something that came to mind and press **+** (or Return). It goes to the Inbox, dated today,
@@ -327,7 +328,7 @@ The per cent never says 100 until everything really is finished, and never says 
     with no date are not here, because a task that was never promised to today did not fail
     to happen.
   - **Tomorrow's calendar events**, with tomorrow's date, then **Waiting for tomorrow**:
-    everything dated tomorrow (including what you just moved there) and a few next actions. Press **First** beside the
+    everything dated tomorrow (including what you just moved there) and a few next actions. Press **First** at the left of the
     ones that should come first. That only marks them: in the morning, **Start the day** shows
     them at the top under **Marked first last evening**. No block is made. Press **First** again
     to take the mark off. The marks are kept in the vault, so a mark made on the iPhone is also

@@ -164,18 +164,20 @@ struct CloseDayView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
-                Text("Mark what comes first. Start the day shows it at the top tomorrow morning.")
+                Text("Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ForEach(tomorrowShown) { ref in
-                    HStack(alignment: .top, spacing: 8) {
-                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                    // **First** in front of the row, larger (build 240): the tick circle came
+                    // first before, and a press meant for the mark finished the task instead.
+                    HStack(alignment: .top, spacing: 12) {
                         PickButton(isOn: model.firstPicks.isFirst(ref, on: tomorrow), tint: tint,
-                                   onTitle: "First", offTitle: "First") {
+                                   onTitle: "First", offTitle: "First", large: true) {
                             model.toggleFirst(ref, on: tomorrow)
                         }
                         .accessibilityIdentifier("closeDay.first.\(ref.task.title)")
+                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                     }
                 }
                 if tomorrowHidden > 0 {
