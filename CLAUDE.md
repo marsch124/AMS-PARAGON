@@ -3083,6 +3083,23 @@ asked for with "1 and 2 please" (234 is the evening reminder).
 - Screen test `testStartTheDayOpensAndCloses`, dull on purpose: the test vault has no dated
   task and no next action (build 221's fixture), so it shows "Nothing is waiting".
 
+**Build 234: the evening reminder.** `App/Paragon/EveningReminder.swift`: one repeating
+`UNCalendarNotificationTrigger` (id `paragon.closeTheDay`), planted from **Settings › Evening
+reminder** (`EveningReminderSection`, `@AppStorage` keys `eveningReminderOn` /
+`eveningReminderMinutes`, default 21:00), and re-planted at every launch so the switch and the
+schedule cannot disagree.
+- **The delegate is set by `ReminderAppDelegate` through `@UIApplicationDelegateAdaptor` /
+  `@NSApplicationDelegateAdaptor`** — the app's first delegate adaptor — because a press can
+  start the app from cold and the delegate has to exist before launch finishes, earlier than
+  SwiftUI makes `AppModel`.
+- A press bumps `openRequests`, **a count** (build 122), and `ContentView` answers it with
+  `.onReceive`, which also delivers the current value on subscribing — that is what catches the
+  cold start. It opens `.closeDay` through `afterUpdate`.
+- `willPresent` returns `.banner` so it shows while PARAGON is in front.
+- Notifications refused: Settings says so in orange and names where to change it (build 100).
+- Per device: the setting is `UserDefaults`, not the vault, so the phone and the Mac each have
+  their own switch and time. Deliberate — the reminder is about where he is, not the notes.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

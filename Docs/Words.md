@@ -54,6 +54,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **To place** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
 - **Start the day** — the cup button on **Today**. You pick the two or three actions that matter most, and each one goes into today's plan as a one-hour block.
 - **Close the day** — the moon button on **Today**. It counts what you finished, shows what did not happen, and asks one line about the day.
+- **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
 - **Looking back** — the part of a daily note where that one line is kept.
 
 ## Getting things in

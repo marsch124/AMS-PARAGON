@@ -310,6 +310,11 @@ The per cent never says 100 until everything really is finished, and never says 
   fit, a message says how many did. An action already in today's plan says **In the plan at**
   and the time, instead of **Pick**. The blocks are ordinary plan blocks — move them or make
   them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
+- **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the
+  day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a
+  day at that time. Press it and **Close the day** opens. The first time you turn it on, the
+  iPhone or the Mac asks whether PARAGON may send notifications; if you said no, Settings says
+  so in orange and tells you where to change it. Turn the switch off and the reminder stops.
 - **Close the day** is one screen you work down and finish. It says how many tasks you finished
   today, lists everything still open that was due today or earlier with a **Tomorrow** button on
   each and a **Move all to tomorrow** under them, and gives you one line to say how the day was.

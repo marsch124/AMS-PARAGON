@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 234 · 30 September 2026
+
+**An evening reminder to close the day.**
+
+- In **Settings**, there is a new part called **Evening reminder**. Turn on **Remind me to close
+  the day** and choose a time. It starts at 21:00.
+- At that time each day, PARAGON sends one notification. Press it, and **Close the day** opens.
+- The first time you turn it on, the iPhone or the Mac asks if PARAGON may send notifications.
+  Press **Allow**. If notifications are off, **Settings** says so in orange and tells you where
+  to turn them on.
+- It works on the iPhone and on the Mac. Each one has its own switch and time.
+
 ## Build 233 · 30 September 2026
 
 **Start the day.** The morning partner of **Close the day**.

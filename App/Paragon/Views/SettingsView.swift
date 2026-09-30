@@ -174,6 +174,8 @@ struct SettingsView: View {
                 #endif
             }
 
+            EveningReminderSection()
+
             Section("Quick capture") {
                 #if os(macOS)
                 Toggle("Show capture panel in the menu bar", isOn: $showMenuBarItem)
@@ -368,5 +370,62 @@ struct WidgetStatusSection: View {
     private func refresh() {
         folderFound = model.widgetFolderFound
         snapshot = model.widgetSnapshotOnDisk()
+    }
+}
+
+/// **Settings › Evening reminder** (build 234): a switch and a time. Pressing the reminder opens
+/// **Close the day**.
+///
+/// Its own view, because building the time's `Binding` is a statement and a `@ViewBuilder` takes
+/// views only (build 58).
+struct EveningReminderSection: View {
+    @ObservedObject private var reminder = EveningReminder.shared
+    @AppStorage(EveningReminder.onKey) private var isOn = false
+    @AppStorage(EveningReminder.minutesKey) private var minutes = EveningReminder.defaultMinutes
+
+    var body: some View {
+        Section("Evening reminder") {
+            Toggle("Remind me to close the day", isOn: $isOn)
+                .accessibilityIdentifier("settings.eveningReminder")
+            if isOn {
+                DatePicker("At", selection: time, displayedComponents: .hourAndMinute)
+            }
+            if isOn && reminder.allowed == false {
+                // Build 100's rule: a switch that is on and does nothing must say why.
+                Text(blockedText)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("One notification a day. Press it to open Close the day.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .onAppear { reminder.refreshPermission() }
+        .onChange(of: isOn) { _, on in reminder.update(on: on, minutes: minutes) }
+        .onChange(of: minutes) { _, value in reminder.update(on: isOn, minutes: value) }
+    }
+
+    private var blockedText: String {
+        #if os(macOS)
+        return "Notifications for PARAGON are turned off. Turn them on in System Settings › Notifications › PARAGON."
+        #else
+        return "Notifications for PARAGON are turned off. Turn them on in the iPhone's Settings › Notifications › PARAGON."
+        #endif
+    }
+
+    /// Minutes since midnight shown as a time of day, today's date standing in for any day.
+    private var time: Binding<Date> {
+        Binding(
+            get: {
+                let midnight = Calendar.current.startOfDay(for: Date())
+                return midnight.addingTimeInterval(TimeInterval(minutes * 60))
+            },
+            set: { date in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+                minutes = (parts.hour ?? 21) * 60 + (parts.minute ?? 0)
+            }
+        )
     }
 }

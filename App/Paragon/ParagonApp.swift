@@ -4,6 +4,13 @@ import ParagonCore
 @main
 struct ParagonApp: App {
     @StateObject private var model = AppModel()
+    // Only so the evening reminder's delegate is in place before launch finishes: a press on
+    // the notification can start the app from cold (build 234).
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(ReminderAppDelegate.self) private var reminderDelegate
+    #else
+    @NSApplicationDelegateAdaptor(ReminderAppDelegate.self) private var reminderDelegate
+    #endif
     @AppStorage("showMenuBarItem") private var showMenuBarItem = true
     static let plannerWindowID = "planner"
 
