@@ -60,8 +60,10 @@ struct CloseDayView: View {
             heading
             Divider()
             ScrollView {
+                // Build 237, his order: the three things to act on first — what was left over,
+                // tomorrow, and the line about today — and what the day achieved at the foot,
+                // where it can be read at leisure once the work is done.
                 VStack(alignment: .leading, spacing: 18) {
-                    whatYouDid
                     if leftovers.isEmpty {
                         allClear
                     } else {
@@ -69,6 +71,8 @@ struct CloseDayView: View {
                     }
                     tomorrowSection
                     lookingBackField
+                    Divider()
+                    whatYouDid
                 }
                 .padding(isPhone ? 14 : 20)
                 .frame(maxWidth: .infinity, alignment: .leading)

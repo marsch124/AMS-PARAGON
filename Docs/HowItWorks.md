@@ -321,9 +321,6 @@ The per cent never says 100 until everything really is finished, and never says 
   iPhone or the Mac asks whether PARAGON may send notifications; if you said no, Settings says
   so in orange and tells you where to change it. Turn the switch off and the reminder stops.
 - **Close the day** is one page you work down and finish. From the top:
-  - **What you did today**: how many tasks you finished, and what they went towards — an
-    aspiration, a goal, an area, or the project itself — with how many for each. The names of
-    the tasks are on the **Done** screen.
   - **Did not happen**: everything still open that was due today or earlier. Each has a
     **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is
     under them. These are real tasks, so you can tick one off if you did it after all. Tasks
@@ -338,6 +335,9 @@ The per cent never says 100 until everything really is finished, and never says 
   - **How was today?**: one line, kept in that day's daily note under a heading called
     **Looking back**. It is ordinary text: nothing reads it, nothing counts it, it never becomes
     a task. Clear it and the heading goes too.
+  - **What you did today**: how many tasks you finished, and what they went towards — an
+    aspiration, a goal, an area, or the project itself — with how many for each. The names of
+    the tasks are on the **Done** screen.
   **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
   **First** save as soon as you press them.
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.

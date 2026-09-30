@@ -3134,6 +3134,10 @@ drawing of two shapes (https://claude.ai/artifact/DAuGkev2WtZqotkZR36qTA): **A, 
 - `PickButton` left `StartDayView` as a shared view with `onTitle`/`offTitle`.
 - `StartDayView` draws **Marked first last evening** above Overdue, via `FirstPicks.split`.
 
+**Build 237: What you did today moved to the foot of Close the day**, his ask the same hour 236
+landed: *"This way, I can focus on what was left over, what to do tomorrow, and how was today
+entry."* The things to act on first, the look back last, under a `Divider`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

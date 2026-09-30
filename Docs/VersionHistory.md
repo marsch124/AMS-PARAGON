@@ -2,6 +2,12 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 237 · 30 September 2026
+
+**Close the day: what you did today is now at the bottom.** Your wish. The page now starts with
+what you act on: **Did not happen**, then **Tomorrow**, then **How was today?**. **What you did
+today** follows at the foot of the page.
+
 ## Build 236 · 30 September 2026
 
 **Close the day is fuller.** Your choices: one page, the counts and what they went towards,
