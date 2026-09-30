@@ -77,4 +77,24 @@ final class CaptureReadingTests: XCTestCase {
         XCTAssertEqual(CaptureReading.line("Order part no#4 today", settingTags: ["parts"]),
                        "Order part no#4 today #parts")
     }
+
+    // MARK: Dated for the day (build 235)
+
+    func testAnUndatedLineIsDatedForTheDay() {
+        let day = DateOnly("2026-09-30")!
+        let line = CaptureReading.line("Call the plumber #home", datedIfUndated: day)
+        XCTAssertEqual(line, "Call the plumber #home >2026-09-30")
+        XCTAssertEqual(CaptureReading(line: line).dueDate, day)
+        XCTAssertEqual(CaptureReading(line: line).title, "Call the plumber #home")
+    }
+
+    func testADateHeTypedIsLeftAlone() {
+        let day = DateOnly("2026-09-30")!
+        XCTAssertEqual(CaptureReading.line("Call the plumber >2026-10-02", datedIfUndated: day),
+                       "Call the plumber >2026-10-02")
+    }
+
+    func testAnEmptyLineStaysEmpty() {
+        XCTAssertEqual(CaptureReading.line("   ", datedIfUndated: DateOnly("2026-09-30")!), "")
+    }
 }

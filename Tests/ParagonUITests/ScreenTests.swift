@@ -316,6 +316,26 @@ final class ScreenTests: XCTestCase {
         let screen = element("startDay.screen")
         XCTAssertTrue(screen.waitForExistence(timeout: 20),
                       "Start the day did not open. On screen: \(visibleTexts())")
+
+        // Build 235: a line typed into the field and added with + lands in the list, dated
+        // today, and arrives already picked. The proof is the button's word (**Picked**) or its
+        // `isSelected` trait — never its colour (build 191). Either is accepted because a Mac
+        // button carries its words as its label and may not report the trait the phone does.
+        let field = element("startDay.newAction")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Water the plants")
+        let add = element("startDay.add")
+        XCTAssertTrue(add.isEnabled, "The + stayed grey after a line was typed.")
+        add.pressCentre()
+        let pick = element("startDay.pick.Water the plants")
+        XCTAssertTrue(pick.waitForExistence(timeout: 20),
+                      "The added action did not appear in the list. On screen: \(visibleTexts())")
+        let chosen = expectation(
+            for: NSPredicate(format: "label == 'Picked' OR value == 'Picked' OR isSelected == true"),
+            evaluatedWith: pick)
+        wait(for: [chosen], timeout: 10)
         XCTAssertTrue(element("sheet.action").waitForExistence(timeout: 10),
                       "Start the day opened without its Done button. On screen: \(visibleTexts())")
         let cancel = element("sheet.cancel")

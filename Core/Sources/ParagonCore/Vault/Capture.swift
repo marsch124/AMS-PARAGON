@@ -271,6 +271,21 @@ public extension CaptureReading {
     }
 }
 
+public extension CaptureReading {
+    /// The line with a due date of `day` added, **unless it already names a date** (build 235,
+    /// the **+** on **Start the day**).
+    ///
+    /// Something typed in the morning is meant for today, so the screen dates it — which is also
+    /// what puts it into the list under **Due today** where it can be picked. A date he typed
+    /// himself (`>2026-10-02`) wins and is left alone. Read with the task parser, like
+    /// everything else here, so "already has a date" means what the note will mean by it.
+    static func line(_ line: String, datedIfUndated day: DateOnly) -> String {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, CaptureReading(line: trimmed).dueDate == nil else { return trimmed }
+        return trimmed + " >" + day.description
+    }
+}
+
 public extension CaptureItem {
     /// This capture read back, exactly as the note will read it.
     var reading: CaptureReading { CaptureReading(line: lineText) }

@@ -18,6 +18,9 @@ struct StartDayView: View {
     /// The picked actions, by `TaskRef.id`. Nothing is picked when the screen opens: choosing
     /// what matters is the whole point, and a screen that chose for him would skip it.
     @State private var picked: Set<String> = []
+    /// What is being typed into the **+** field at the top (build 235).
+    @State private var newAction = ""
+    @FocusState private var newActionFocused: Bool
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -75,6 +78,7 @@ struct StartDayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     counts
+                    addField
                     if actions.isEmpty {
                         nothingToPick
                     } else {
@@ -151,13 +155,80 @@ struct StartDayView: View {
         }
     }
 
+    /// **Build 235, his idea: the morning is when new things come to mind**, so the screen has to
+    /// take them. One field and a **+**, the shape of the add-a-task bar in a note (build 142).
+    ///
+    /// **It goes to the Inbox, dated today**, through the ordinary capture path — the same line
+    /// **Capture** would write, so it is filed later the usual way and nothing new is invented.
+    /// The date is what puts it under **Due today** here, and a date he typed himself wins
+    /// (`CaptureReading.line(_:datedIfUndated:)`, Core, tested). **It arrives already picked**:
+    /// typing it here is the choosing.
+    ///
+    /// The field keeps its focus after **+**, so a second and a third can follow without a tap.
+    private var addField: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                TextField("Add an action for today", text: $newAction)
+                    .textFieldStyle(.plain)
+                    .focused($newActionFocused)
+                    .submitLabel(.done)
+                    .onSubmit { addAction() }
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
+                    .accessibilityIdentifier("startDay.newAction")
+                Button {
+                    addAction()
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(canAdd ? tint : Color.secondary.opacity(0.5))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!canAdd)
+                .accessibilityLabel("Add this action for today and pick it")
+                .accessibilityIdentifier("startDay.add")
+                .help("Add this action for today and pick it")
+            }
+            Text("Goes to the Inbox, dated today, and is picked for your plan.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var canAdd: Bool {
+        !newAction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Captures the line, then finds it in the refreshed list and picks it. `capture` reloads
+    /// the model before it returns, so the new line is already in `actionsForPlanning`; it is
+    /// the one ref that was not there before and carries the title just written.
+    private func addAction() {
+        let line = CaptureReading.line(newAction, datedIfUndated: day)
+        guard !line.isEmpty else { return }
+        let title = CaptureReading(line: line).title
+        let before = Set(actions.map(\.id))
+        model.capture(text: line, target: .inbox)
+        newAction = ""
+        newActionFocused = true
+        if let ref = model.actionsForPlanning(on: day)
+            .first(where: { !before.contains($0.id) && $0.task.title == title }) {
+            picked.insert(ref.id)
+        } else {
+            // A date he typed for another day: the line is safe in the Inbox, it just does not
+            // belong on today's list — say so rather than let it vanish (build 100).
+            model.flash("Saved to the Inbox. It has another date, so it is not in today's list.")
+        }
+    }
+
     /// Nothing due and no next action is worth saying in words. An empty list under a heading
     /// reads as a screen that failed to load (build 100).
     private var nothingToPick: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Nothing is waiting for today.")
                 .font(.callout.weight(.semibold))
-            Text("No task is due today or overdue, and no note has a next action.")
+            Text("No task is due today or overdue, and no note has a next action. Add one above with +.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

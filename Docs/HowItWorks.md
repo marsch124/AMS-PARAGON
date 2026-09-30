@@ -310,6 +310,11 @@ The per cent never says 100 until everything really is finished, and never says 
   fit, a message says how many did. An action already in today's plan says **In the plan at**
   and the time, instead of **Pick**. The blocks are ordinary plan blocks — move them or make
   them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
+  At the top there is a field, **Add an action for today**, with a **+** beside it. Type
+  something that came to mind and press **+** (or Return). It goes to the Inbox, dated today,
+  and appears in the list already picked. The field stays ready for the next one. If you type
+  your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the
+  Inbox but not shown in today's list.
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the
   day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a
   day at that time. Press it and **Close the day** opens. The first time you turn it on, the

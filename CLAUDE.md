@@ -3100,6 +3100,20 @@ schedule cannot disagree.
 - Per device: the setting is `UserDefaults`, not the vault, so the phone and the Mac each have
   their own switch and time. Deliberate — the reminder is about where he is, not the notes.
 
+**Build 235: a + on Start the day.** His words: *"this is a time for thought and to start up
+with the coffee and with the fresh brain."* He asked me to design it.
+- **One field and a +**, the add-a-task bar's shape. It goes through the **ordinary capture
+  path to the Inbox** — nothing new invented, and it is filed later the usual way.
+- **Dated today unless he typed a date**: `CaptureReading.line(_:datedIfUndated:)` (Core,
+  tested), read with the task parser. The date is what puts it under **Due today** here.
+- **It arrives already picked.** `addAction` notes the ids before, captures (`capture`
+  reloads synchronously), then picks the one new ref with the same title. A line dated for
+  another day is not in the list, and a flash says so (build 100).
+- The field keeps focus after +, so several can be typed in a row.
+- `testStartTheDayOpensAndCloses` now types "Water the plants", presses +, and waits for
+  `startDay.pick.Water the plants` to read **Picked** (or carry `isSelected`). Both are
+  accepted because a Mac button's words are its label and it may not report the trait.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

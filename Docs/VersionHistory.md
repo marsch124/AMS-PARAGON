@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 235 · 30 September 2026
+
+**Add new actions while you start the day.** Your idea: the morning, with coffee and a fresh
+mind, is when new things come up.
+
+- At the top of **Start the day** there is now a field, **Add an action for today**, with a
+  **+** beside it.
+- Type what came to mind and press **+** (or Return). It goes to the Inbox, dated today.
+- It appears in the list at once, under **Due today**, and it is already **Picked**.
+- The field stays ready, so you can add the next one straight away.
+- If you type your own date, for example `>2026-10-02`, that date is kept. The action is saved
+  to the Inbox, but it is not shown in today's list.
+
 ## Build 234 · 30 September 2026
 
 **An evening reminder to close the day.**
