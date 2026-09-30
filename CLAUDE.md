@@ -3050,6 +3050,13 @@ them out mid-transition. Build 229's `NoteListView(fixed:)` was a real fault but
   carries no identifier of ours. `ScreenTests.tabTitles` spells the five titles, so a renamed tab
   means changing that dictionary. The swipe test became `testATabPressedComesToTheFront`: the
   swipe no longer exists, so the test asks what the bar now does.
+- **Confirmed on his iPhone, 30 September**: *"232 test 1-2 OK"* — no crash when moving between
+  tabs after **Quick capture**, and a long sentence typed into a note stayed whole.
+- **`testANoteCanBeOpenedAndTypedIn` failed once on 232's first CI run** and passed on the one
+  re-run: the editor showed "---Typed by the screen" and lost " test. " — typing interrupted
+  about when the 600 ms autosave fires. First failure in dozens of runs; he typed a long sentence
+  on his phone without loss. If it fails again, it is real: suspect the editor being rebuilt
+  after `saveText` reloads the model, not the runner.
 - **Read the crash report before the second fix.** 229 was a fix on a guess, made while the
   reports were not yet in Apple's list. It was a real fault and still the wrong one. Once the
   workflow could read the reports, the frame named the cause in one look.
