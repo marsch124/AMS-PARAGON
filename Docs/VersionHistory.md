@@ -2,6 +2,14 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 241 · 30 September 2026
+
+**New colours for the morning and the evening.** Your wish.
+
+- **Start the day** is now orange, with a filled cup and a stronger border, so it stands out
+  at the top of **Today**. The **Start the day** screen uses the same orange.
+- **Close the day** is now dark lilac. The **Close the day** screen uses the same colour.
+
 ## Build 240 · 30 September 2026
 
 **Pick and First are now on the left, and larger.** You pressed the round circle to pick two

@@ -32,7 +32,7 @@ struct CloseDayView: View {
     #endif
 
     private var day: DateOnly { DateOnly.today() }
-    private var tint: Color { SidebarSection.review.tint }
+    private var tint: Color { Theme.eveningTint }
 
     /// Still open and dated today or earlier. Undated tasks are deliberately left out: a task
     /// with no date was never promised to this day, so it did not "not happen".

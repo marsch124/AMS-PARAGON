@@ -32,6 +32,14 @@ enum Theme {
     /// Projects, blue Resources, teal the review, gold Goals, grey the Archive. The time of
     /// day is not one of those things, so it may not wear one of their colours.
     static let nowTint = Color("NowTint")
+
+    /// **Start the day** and **Close the day**, his colours (build 241): a clear orange for
+    /// the morning and a dark lilac for the evening. The button on Today and the screen it
+    /// opens use the same one, so the two cannot drift (build 168). The lilac is redder and
+    /// darker than the Calendar's violet, so the evening button does not read as a calendar
+    /// thing.
+    static let morningTint = Color("MorningTint")
+    static let eveningTint = Color("EveningTint")
 }
 
 /// A quiet heading above a group, used instead of the default list section titles

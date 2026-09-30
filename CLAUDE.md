@@ -3179,6 +3179,14 @@ pressed in between. `lastWritten` (the shown text of our own last save) is now c
 **our own save coming back never replaces what is on screen.** A slow CI simulator is where
 that gap is widest, which is why only the phone test ever saw it.
 
+**Build 241: the morning is orange, the evening dark lilac**, his ask. `Theme.morningTint`
+(`MorningTint`, #E06C00 / #FFA23A) and `Theme.eveningTint` (`EveningTint`, #6E3A86 / #C79AE0)
+colour the two Today buttons **and** the two screens they open (build 168: the button and its
+screen are one thing). The lilac is redder and darker than the Calendar's violet (#6B4EA8) on
+purpose. **Start the day** also got `cup.and.saucer.fill` and `HeaderActionButton(strong:)` —
+full-strength border and bold words, **no fill**, because a tinted fill means "on" in build
+142's two-state language and this is an action.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

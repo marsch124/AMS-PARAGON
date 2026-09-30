@@ -42,7 +42,7 @@ struct StartDayView: View {
     #endif
 
     private var day: DateOnly { DateOnly.today() }
-    private var tint: Color { SidebarSection.review.tint }
+    private var tint: Color { Theme.morningTint }
 
     /// The planner's own question (build 174), so this screen and **Plan** can never offer two
     /// different lists of "today's actions".
@@ -162,7 +162,7 @@ struct StartDayView: View {
 
     /// A cup, not a sunrise: `sunrise` already means **Tomorrow** on the Inbox's buttons and over
     /// **Overdue** (builds 215 and 224), and one symbol with two meanings is build 168's fault.
-    static let symbol = "cup.and.saucer"
+    static let symbol = "cup.and.saucer.fill"
 
     private var counts: some View {
         WrappingHStack(spacing: 8, lineSpacing: 8) {

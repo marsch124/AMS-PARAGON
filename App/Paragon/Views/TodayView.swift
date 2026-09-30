@@ -185,14 +185,15 @@ struct TodayView: View {
             HeaderActionButton(title: withWords ? "Start the day" : nil,
                                spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
                                systemImage: StartDayView.symbol,
-                               tint: SidebarSection.review.tint) {
+                               tint: Theme.morningTint,
+                               strong: true) {
                 model.activeSheet = .startDay
             }
             .accessibilityIdentifier("today.startDay")
             HeaderActionButton(title: withWords ? "Close the day" : nil,
                                spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
                                systemImage: "moon",
-                               tint: SidebarSection.review.tint) {
+                               tint: Theme.eveningTint) {
                 model.activeSheet = .closeDay
             }
             .accessibilityIdentifier("today.closeDay")
@@ -220,17 +221,22 @@ private struct HeaderActionButton: View {
     /// The words already say where the tasks are going, so the pair over **Overdue** has none.
     var systemImage: String?
     let tint: Color
+    /// A full-strength border and bolder words, for the one button on a row that should stand
+    /// out (**Start the day**, build 241). Still no fill: a tinted fill means "this is on"
+    /// in build 142's two-state language, and this is an action, not a state.
+    var strong = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             label
-                .font(.caption.weight(.semibold))
+                .font(.caption.weight(strong ? .bold : .semibold))
                 .lineLimit(1)
                 .foregroundStyle(tint)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
-                .overlay(Capsule().strokeBorder(tint.opacity(0.55), lineWidth: 1))
+                .overlay(Capsule().strokeBorder(tint.opacity(strong ? 1 : 0.55),
+                                                lineWidth: strong ? 1.5 : 1))
                 // The tap area is the label, so the padding goes inside it (build 186).
                 .contentShape(Capsule())
         }
