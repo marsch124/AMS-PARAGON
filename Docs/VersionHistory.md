@@ -2,6 +2,18 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 242 · 1 October 2026
+
+**Two repairs found by reading the last builds again during the night.** You may not have met
+either of them yet.
+
+- **The evening reminder.** If PARAGON was already open when you pressed the reminder, nothing
+  happened. The next press then opened **Close the day** for the one before. This came in with
+  build 238. Now one press opens **Close the day** at once, every time.
+- **Typing in a note after ticking a task.** Tick a task in a note and untick it again, then
+  type in the note: the note could briefly save the task as ticked. Now the note always shows
+  what is really in the file before you type.
+
 ## Build 241 · 30 September 2026
 
 **New colours for the morning and the evening.** Your wish.

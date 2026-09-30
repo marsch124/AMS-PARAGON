@@ -107,8 +107,8 @@ struct ContentView: View {
         // that started the app from cold, before this view existed.
         // The answered count lives in `EveningReminder`, so a window opened later does not
         // replay a press an earlier window already answered (build 238).
-        .onReceive(EveningReminder.shared.$openRequests) { _ in
-            guard EveningReminder.shared.takeOpenRequest() else { return }
+        .onReceive(EveningReminder.shared.$openRequests) { count in
+            guard EveningReminder.shared.takeOpenRequest(upTo: count) else { return }
             guard model.vault != nil else { return }
             model.afterUpdate { model.activeSheet = .closeDay }
         }

@@ -3187,6 +3187,17 @@ purpose. **Start the day** also got `cup.and.saucer.fill` and `HeaderActionButto
 full-strength border and bold words, **no fill**, because a tinted fill means "on" in build
 142's two-state language and this is an action.
 
+**Build 242: two faults from a night-time read-through of 237–241** (a subagent, again).
+- **`$openRequests` sends the new value in `willSet`.** Build 238 made `takeOpenRequest()` read
+  the stored property, which at that moment still holds the old count — so a reminder pressed
+  while the app was running opened nothing, and the next press answered the one before. It is
+  `takeOpenRequest(upTo:)` now, fed the value the publisher sends. **Never read a `@Published`
+  property inside its own publisher's sink; use the value handed in.** His test of 234 passed
+  because 234 compared the received value; 238's cleanup is what broke it.
+- **`lastWritten` is used once** and cleared when an outside change is accepted. Left in place,
+  tick-then-untick (which returns the file to exactly the saved text) was taken for our own echo
+  and ignored, and the next keystroke saved the stale ticked line over the file.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

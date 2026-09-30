@@ -84,11 +84,16 @@ struct NoteEditorView: View {
             // (build 240). The save clears `isDirty`, and a key pressed in the moment before
             // this runs had not set it again yet — so the editor was put back to the saved
             // text and the last letters typed were lost. The screen test caught it twice.
+            // **Used once** (build 242): left in place, a later change that happened to bring
+            // the file back to that same text — tick a task, then untick it — was taken for our
+            // echo and ignored, and the next keystroke saved the stale screen over the file.
             if shown == lastWritten {
+                lastWritten = nil
                 baseText = newValue
                 return
             }
             guard !isDirty else { return }
+            lastWritten = nil
             baseText = newValue
             if shown != text { text = shown }
         }

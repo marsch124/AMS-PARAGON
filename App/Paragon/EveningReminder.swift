@@ -37,9 +37,14 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     private var answered = 0
 
     /// True once for each press, whichever window asks first.
-    func takeOpenRequest() -> Bool {
-        guard answered < openRequests else { return false }
-        answered = openRequests
+    ///
+    /// **The count is handed in, never read from `openRequests`** (build 242). `$openRequests`
+    /// sends the new value in `willSet`, while the stored property still holds the old one, so
+    /// reading it here saw no new press — a reminder pressed while PARAGON was running opened
+    /// nothing, and the next press opened the screen for the one before.
+    func takeOpenRequest(upTo count: Int) -> Bool {
+        guard answered < count else { return false }
+        answered = count
         return true
     }
     /// Nil until asked. False when he has said no to notifications for PARAGON, which only
