@@ -866,13 +866,15 @@ On the phone, a note's own actions — Rename, Archive and Delete — are behind
 
 The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Every tab except **Browse** has a **+** at the top left. On **Today** it opens **Capture**, for a quick line into the Inbox. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
-## Swiping between the tabs
+## Moving between the tabs
 
-**Swipe sideways anywhere to move between the five tabs**, in either direction: Today, Plan,
-Actions, Inbox, Browse. Pressing a tab in the bar does the same thing.
+Press a tab in the bar at the bottom to move to it: Today, Plan, Actions, Inbox, Browse. The
+**Inbox** tab shows how many lines are waiting in the Inbox.
 
-A drag from the very **left edge** still means *go back*, as it does everywhere in iOS, so
-going back from a note is unchanged.
+You cannot swipe sideways between the tabs any more. The swipe made the app crash on the
+iPhone, so since build 232 the tabs work the same way as in Apple's own apps.
+
+A drag from the very **left edge** still means *go back*, as it does everywhere in iOS.
 
 **Actions** has its own filter at the top: **All**, **With a date**, **No date** and **Next
 actions**.

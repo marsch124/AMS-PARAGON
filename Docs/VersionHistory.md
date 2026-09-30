@@ -2,6 +2,17 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 232 · 30 September 2026
+
+**The crash when moving between tabs is fixed. Your choice: the normal iPhone tab bar.**
+
+- Apple sent me two of your crash reports. Both stopped inside the iPhone's top bar. The five
+  tabs were laid side by side so you could swipe between them, each with its own top bar, and
+  iOS sometimes lost track of which title belonged to which bar.
+- The tabs now use Apple's own tab bar. They look almost the same and are in the same order,
+  and **Inbox** still shows its number.
+- You change tab by pressing it. Swiping sideways between tabs is gone.
+
 ## Build 231 · 29 September 2026
 
 **Save is no longer hidden by the keyboard.** Your report from build 230: on the iPhone, the

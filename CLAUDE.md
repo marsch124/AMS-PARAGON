@@ -2088,7 +2088,7 @@ not today or the time is outside the drawn hours.
 - `DayScheduleView` lost its own `now` state, its refresh loop and `nowOffset(in:)` to it. Its
   `range.upperBound` is the hour *after* the last one drawn, hence `lastHour: upperBound - 1`.
 
-## Five tabs, swiped between (build 183)
+## Five tabs, swiped between (build 183; the swipe was removed in 232)
 
 His ask after 181: the swipe should work *"on every screen, not only the time block"*. I put
 three shapes to him and he took **five tabs, Capture as a button**: the bar is now
@@ -3030,6 +3030,29 @@ field and the save bar, with `.scrollDismissesKeyboard(.interactively)`. **The f
 outside that scroll view on purpose** — a text view inside a scroll view is build 127's nested
 scroll. **Any phone screen with a text field has to be checked with the keyboard up** (build
 160's rule), and a screen that gains a row above it (230) has to be checked again.
+
+**Build 232: the swipe was the crash, and the system tab bar replaced it — his choice.** The
+Crash reports workflow finally returned his two iPhone reports (builds 227 and 228, iOS 27.0).
+Both are `SIGABRT` from an `NSAssertionHandler` inside **`-[UINavigationBar layoutSubviews]`**,
+with no frame of ours. That is iOS asserting that a navigation bar's top item belongs to a
+different bar. **Build 183's page-style `TabView` held five `NavigationStack`s side by side as
+pages**, so five navigation bars lived in one scrolling pager; a slide, or a sheet closing, laid
+them out mid-transition. Build 229's `NoteListView(fixed:)` was a real fault but not this one —
+**he reported "still crashing when swiping tabs" on 231**, which is what sent me to the reports.
+- I put two options to him: the system tab bar (one build, no swipe) or one shared navigation
+  stack with the swipe kept (two or three builds, every screen's toolbar moved, a pushed note
+  covering the bar). He chose the system bar.
+- `PhoneRootView` is a plain `TabView(selection:)` with `.tabItem` and `.badge` (zero draws
+  none). `PhoneTabBar` and `pageGap` are gone. `PhoneStack` and its `isActive` logic are
+  unchanged — the system `TabView` also keeps visited tabs alive, so build 229's `fixed:` still
+  matters.
+- **The screen tests find a phone tab by its title inside `app.tabBars`** — the system bar
+  carries no identifier of ours. `ScreenTests.tabTitles` spells the five titles, so a renamed tab
+  means changing that dictionary. The swipe test became `testATabPressedComesToTheFront`: the
+  swipe no longer exists, so the test asks what the bar now does.
+- **Read the crash report before the second fix.** 229 was a fix on a guess, made while the
+  reports were not yet in Apple's list. It was a real fault and still the wrong one. Once the
+  workflow could read the reports, the frame named the cause in one look.
 
 ## Not built (by choice)
 

@@ -471,33 +471,22 @@ final class ScreenTests: XCTestCase {
     #endif
 
     #if os(iOS)
-    /// **The phone's five tabs can be swiped between** (build 211). Build 183 replaced the
-    /// system tab bar with a page view and our own bar precisely so a swipe would work, and
-    /// nothing here has ever swiped: CI compiles a gesture but never makes one.
-    ///
-    /// The proof is the `isSelected` trait on the bar's buttons, not the tint — a colour is
-    /// invisible to a test. A coordinate drag rather than `swipeLeft()`, so the gesture starts
-    /// and ends where this test means it to.
-    func testTheTabsCanBeSwipedBetween() {
+    /// **Pressing a tab puts it in front** (build 232). Until build 231 this test swiped: the
+    /// tabs were a page view with a bar of our own, and that shape crashed inside iOS's
+    /// navigation bar (two crash reports, builds 227 and 228). The system's tab bar has no
+    /// swipe, so the test now asks what that bar does — a press, and the tab selected.
+    func testATabPressedComesToTheFront() {
         go(to: .today)
         XCTAssertTrue(tabIsOn("tab.today", within: 20),
                       "Today is not the tab in front to begin with. On screen: \(visibleTexts())")
 
-        swipe(from: 0.92, to: 0.08)
+        element("tab.plan").press()
         XCTAssertTrue(tabIsOn("tab.plan", within: 20),
-                      "A swipe from right to left did not move on to Plan. On screen: \(visibleTexts())")
+                      "Plan was pressed and did not come to the front. On screen: \(visibleTexts())")
 
-        swipe(from: 0.08, to: 0.92)
+        element("tab.today").press()
         XCTAssertTrue(tabIsOn("tab.today", within: 20),
-                      "A swipe back from left to right did not return to Today. On screen: \(visibleTexts())")
-    }
-
-    /// Across the middle of the screen, clear of the tab bar at the foot and the navigation
-    /// bar at the top.
-    private func swipe(from startX: CGFloat, to endX: CGFloat) {
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: startX, dy: 0.45))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: endX, dy: 0.45))
-        start.press(forDuration: 0.05, thenDragTo: end)
+                      "Today was pressed and did not come back. On screen: \(visibleTexts())")
     }
 
     private func tabIsOn(_ identifier: String, within timeout: TimeInterval) -> Bool {
@@ -591,9 +580,25 @@ final class ScreenTests: XCTestCase {
     }
 
     /// Any element carrying that identifier, whatever kind of element SwiftUI made it.
+    ///
+    /// **The one exception is a phone tab** (build 232): the system's tab bar carries no
+    /// identifier of ours, so `tab.<name>` is looked up by the tab's title inside the tab bar
+    /// only — never anywhere else on screen, where "Plan" or "Inbox" can also be a heading.
     private func element(_ identifier: String) -> XCUIElement {
-        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+        #if os(iOS)
+        if let title = Self.tabTitles[identifier] {
+            return app.tabBars.buttons[title]
+        }
+        #endif
+        return app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
+
+    #if os(iOS)
+    /// The five tabs' titles, spelled as `PhoneRootView.Tab.title` spells them.
+    private static let tabTitles = ["tab.today": "Today", "tab.plan": "Plan",
+                                    "tab.actions": "Actions", "tab.inbox": "Inbox",
+                                    "tab.browse": "Browse"]
+    #endif
 }
 
 extension XCUIElement {
