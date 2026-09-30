@@ -326,8 +326,8 @@ The per cent never says 100 until everything really is finished, and never says 
     under them. These are real tasks, so you can tick one off if you did it after all. Tasks
     with no date are not here, because a task that was never promised to today did not fail
     to happen.
-  - **Tomorrow**: tomorrow's calendar events, then what is waiting — everything dated tomorrow
-    (including what you just moved there) and a few next actions. Press **First** beside the
+  - **Tomorrow's calendar events**, with tomorrow's date, then **Waiting for tomorrow**:
+    everything dated tomorrow (including what you just moved there) and a few next actions. Press **First** beside the
     ones that should come first. That only marks them: in the morning, **Start the day** shows
     them at the top under **Marked first last evening**. No block is made. Press **First** again
     to take the mark off. The marks are kept in the vault, so a mark made on the iPhone is also

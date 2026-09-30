@@ -2,6 +2,13 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 239 · 30 September 2026
+
+**Clearer headings in Close the day.** Your wish. The part about tomorrow now has two headings:
+
+- **Tomorrow's calendar events · Thu 1 Oct** above tomorrow's events.
+- **Waiting for tomorrow** above the actions with the **First** buttons.
+
 ## Build 238 · 30 September 2026
 
 **Four small repairs to the new morning and evening screens.** I found them by reading the new

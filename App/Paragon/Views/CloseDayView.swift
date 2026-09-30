@@ -150,11 +150,15 @@ struct CloseDayView: View {
     /// tonight is on the Mac tomorrow.
     private var tomorrowSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title: "Tomorrow · " + (tomorrow.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-                                                 ?? tomorrow.description))
+            // Two headings, his ask (build 239): "Tomorrow" alone did not say that the rows under
+            // it were calendar events, and one heading over both the events and the actions
+            // could only be true of one of them.
             if model.showsCalendarEvents {
+                SectionLabel(title: "Tomorrow's calendar events · " + tomorrowText)
                 CalendarEventRows(date: tomorrow, compact: true)
             }
+            SectionLabel(title: "Waiting for tomorrow")
+                .padding(.top, model.showsCalendarEvents ? 8 : 0)
             if tomorrowShown.isEmpty {
                 Text("Nothing is waiting for tomorrow yet.")
                     .font(.callout)
@@ -181,6 +185,12 @@ struct CloseDayView: View {
                 }
             }
         }
+    }
+
+    /// "Thu 1 Oct", the same short form as the date at the top of the sheet.
+    private var tomorrowText: String {
+        tomorrow.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+            ?? tomorrow.description
     }
 
     /// Dated for tomorrow, and every marked one, always; then the first few next actions.

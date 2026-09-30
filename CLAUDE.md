@@ -3157,6 +3157,12 @@ ship is worth one build**.
 - Minor, done in the same build: the permission answer re-reads `UserDefaults` before planting
   (on-then-off no longer leaves a reminder), and Start the day loads today's events itself.
 
+**Build 239: two headings for tomorrow in Close the day**, his ask: *"I would like the heading to
+say 'Tomorrow's calendar events' and then the date."* The section held events **and** actions,
+so his wording on one heading would have been untrue of the actions: **Tomorrow's calendar
+events · <date>** over the events (only when calendar events are shown), **Waiting for
+tomorrow** over the actions. **When a user renames a heading, check what else sits under it.**
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
