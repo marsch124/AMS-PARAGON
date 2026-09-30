@@ -195,9 +195,10 @@ struct CloseDayView: View {
 /// One fact about the day as a capsule.
 ///
 /// Its own small view rather than the review's `ReviewStat`: that one is built around a week's
-/// report and its worries. If a third screen ever wants this shape, that is the moment to move
-/// it into `Theme.swift` and share them — the note build 214 left about `HeaderActionButton`.
-private struct CountPill: View {
+/// report and its worries. **Start the day** (build 233) is its second user, so it is no longer
+/// private to this file. If a third screen ever wants it, that is the moment to move it into
+/// `Theme.swift` — the note build 214 left about `HeaderActionButton`.
+struct CountPill: View {
     let text: String
     let systemImage: String
     let tint: Color

@@ -301,6 +301,31 @@ final class ScreenTests: XCTestCase {
                       "Cancel was pressed and Close the day stayed on screen.")
     }
 
+    /// **Start the day** (build 233) opens and closes. The test vault has no dated task and no
+    /// next action — a fixture other tests rely on (build 221) — so the screen shows its
+    /// "Nothing is waiting" words and the test does not pick anything. What it really proves is
+    /// that a brand new view builds and opens on both platforms (build 190).
+    func testStartTheDayOpensAndCloses() {
+        go(to: .today)
+
+        let open = element("today.startDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Start the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+
+        let screen = element("startDay.screen")
+        XCTAssertTrue(screen.waitForExistence(timeout: 20),
+                      "Start the day did not open. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("sheet.action").waitForExistence(timeout: 10),
+                      "Start the day opened without its Done button. On screen: \(visibleTexts())")
+        let cancel = element("sheet.cancel")
+        XCTAssertTrue(cancel.exists, "Start the day opened without its Cancel button.")
+
+        cancel.pressCentre()
+        XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
+                      "Cancel was pressed and Start the day stayed on screen.")
+    }
+
     /// **Week** on the Plan screen opens Calendar → Week, and that screen draws the two strips
     /// build 225 added: the tray of unplaced work and the seven-day row you drop it on.
     ///

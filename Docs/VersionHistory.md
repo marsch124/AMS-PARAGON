@@ -2,6 +2,19 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 233 · 30 September 2026
+
+**Start the day.** The morning partner of **Close the day**.
+
+- On **Today**, beside the date, there is a new button with a cup: **Start the day**. On the
+  iPhone the two buttons show only their pictures, because the words do not fit beside the date.
+- It shows what is overdue, what is due today, and your next actions.
+- Press **Pick** beside the two or three that matter most. Then press the button at the bottom,
+  for example **Plan 2 actions**.
+- Each one becomes a one-hour block in today's plan, in the free time left today. It is never
+  put before the time it is now, or on top of a block or a calendar event you already have.
+- An action that is already in today's plan says **In the plan at 10:00** instead of **Pick**.
+
 ## Build 232 · 30 September 2026
 
 **The crash when moving between tabs is fixed. Your choice: the normal iPhone tab bar.**

@@ -117,13 +117,15 @@ enum AppSheet: String, Identifiable {
     case noteFromLink
     /// The evening step: what you finished, what did not happen, one line about the day.
     case closeDay
+    /// The morning step: pick the few actions that matter today and put them in the plan.
+    case startDay
 
     var id: String { rawValue }
 }
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 232
+    static let number = 233
 }
 
 @MainActor
@@ -2000,6 +2002,39 @@ final class AppModel: ObservableObject {
 
     func addPlanBlock(_ block: PlanBlock, on day: DateOnly) {
         savePlan(planBlocks(for: day) + [block], for: day)
+    }
+
+    /// **Start the day** (build 233): the actions he picked become one-hour plan blocks in the
+    /// free time left today, earliest first, and the answer is how many fitted.
+    ///
+    /// Free means clear of the plan's own blocks and of the calendar's timed events; all-day
+    /// events take no hours. The search starts now, not at the top of the day — a block placed
+    /// at 09:00 when it is already 11:00 would be a plan for a morning that has gone. One write
+    /// for all of them, through `savePlan`, so the daily note is touched once.
+    @discardableResult
+    func planActions(_ refs: [TaskRef], on day: DateOnly) -> Int {
+        let titles = refs.map { planBlockTitle(from: $0.task) }.filter { !$0.isEmpty }
+        guard !titles.isEmpty, let midnight = day.date() else { return 0 }
+        let existing = planBlocks(for: day)
+        var busy = existing.map { $0.start..<max($0.start + 1, $0.end) }
+        let calendar = Calendar.current
+        for event in events(on: day) where !event.isAllDay {
+            let start = Int(event.start.timeIntervalSince(midnight) / 60)
+            let end = Int(event.end.timeIntervalSince(midnight) / 60)
+            let clamped = max(0, start)..<max(max(0, start) + 1, min(24 * 60, end))
+            busy.append(clamped)
+        }
+        var from = 6 * 60
+        if day == DateOnly.today() {
+            let now = calendar.dateComponents([.hour, .minute], from: Date())
+            from = max(from, (now.hour ?? 0) * 60 + (now.minute ?? 0))
+        }
+        let starts = DayPlan.freeStarts(count: titles.count, length: 60, from: from,
+                                        until: 24 * 60, busy: busy)
+        guard !starts.isEmpty else { return 0 }
+        let added = zip(starts, titles).map { PlanBlock(start: $0, end: $0 + 60, title: $1) }
+        savePlan(existing + added, for: day)
+        return added.count
     }
 
     func removePlanBlock(_ block: PlanBlock, on day: DateOnly) {

@@ -51,17 +51,23 @@ struct TodayView: View {
             // and the date row build 220 put here is that name. It costs no new furniture: the
             // right half of that row was empty.
             HStack(alignment: .firstTextBaseline, spacing: 8) {
+                // The date keeps its width first, so what gives way is the buttons' words and
+                // never the date breaking over two lines (build 138).
                 Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .layoutPriority(1)
                 Spacer(minLength: 8)
-                HeaderActionButton(title: "Close the day",
-                                   spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
-                                   systemImage: "moon",
-                                   tint: SidebarSection.review.tint) {
-                    model.activeSheet = .closeDay
+                // **Start the day and Close the day are a pair** (build 233), so they sit side by
+                // side. On a phone the date and both names do not fit on one line, and a row that
+                // wraps is three lines tall above a short list (build 224). So `ViewThatFits`
+                // keeps the words when there is room and falls back to the two symbols, whose
+                // names stay as the spoken title and the Mac's tooltip (build 159).
+                ViewThatFits(in: .horizontal) {
+                    dayButtons(withWords: true)
+                    dayButtons(withWords: false)
                 }
-                .accessibilityIdentifier("today.closeDay")
             }
             .padding(.horizontal, Theme.gutter + 6)
             .padding(.bottom, Theme.tight)
@@ -170,6 +176,28 @@ struct TodayView: View {
             TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                 .tag(ref.notePath)
         }
+    }
+
+    /// The morning and evening buttons. A function, not a `var` with an argument, and views
+    /// only inside it (build 58).
+    private func dayButtons(withWords: Bool) -> some View {
+        HStack(spacing: 6) {
+            HeaderActionButton(title: withWords ? "Start the day" : nil,
+                               spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
+                               systemImage: StartDayView.symbol,
+                               tint: SidebarSection.review.tint) {
+                model.activeSheet = .startDay
+            }
+            .accessibilityIdentifier("today.startDay")
+            HeaderActionButton(title: withWords ? "Close the day" : nil,
+                               spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
+                               systemImage: "moon",
+                               tint: SidebarSection.review.tint) {
+                model.activeSheet = .closeDay
+            }
+            .accessibilityIdentifier("today.closeDay")
+        }
+        .fixedSize()
     }
 }
 

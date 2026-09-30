@@ -1,0 +1,264 @@
+import SwiftUI
+import ParagonCore
+
+/// The morning step, the partner of **Close the day** (build 233): what is overdue, what is due
+/// today and your next actions, and you pick the few that matter most. Those go into today's
+/// plan as one-hour blocks, in the free time left in the day.
+///
+/// **The same shape as `CloseDayView` on purpose** — a sheet you open, work down and finish,
+/// through the app's single `.sheet` (build 44). Two screens that are a pair should look like
+/// one.
+///
+/// **It makes plan blocks, never Time Blocks** (build 147): a `TB:` line in the daily note that
+/// stays in PARAGON. Whether a block is also in Apple Calendar is still his choice, per block,
+/// on **Plan** (build 151).
+struct StartDayView: View {
+    @EnvironmentObject private var model: AppModel
+
+    /// The picked actions, by `TaskRef.id`. Nothing is picked when the screen opens: choosing
+    /// what matters is the whole point, and a screen that chose for him would skip it.
+    @State private var picked: Set<String> = []
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
+
+    private var day: DateOnly { DateOnly.today() }
+    private var tint: Color { SidebarSection.review.tint }
+
+    /// The planner's own question (build 174), so this screen and **Plan** can never offer two
+    /// different lists of "today's actions".
+    private var actions: [TaskRef] { model.actionsForPlanning(on: day) }
+
+    private var overdue: [TaskRef] {
+        actions.filter { ref in
+            guard let due = ref.task.dueDate else { return false }
+            return due < day
+        }
+    }
+
+    private var dueToday: [TaskRef] {
+        actions.filter { $0.task.dueDate == day }
+    }
+
+    /// Next actions with no date on or before today — the rest of what the planner offers.
+    private var nextOnes: [TaskRef] {
+        actions.filter { ref in
+            guard let due = ref.task.dueDate else { return true }
+            return due > day
+        }
+    }
+
+    /// The titles already in today's plan, so an action that is already there says so instead
+    /// of offering to go in a second time.
+    private var plannedAt: [String: Int] {
+        var result: [String: Int] = [:]
+        for block in model.planBlocks(for: day) where result[block.title] == nil {
+            result[block.title] = block.start
+        }
+        return result
+    }
+
+    /// In the order the list shows them, so the earliest block goes to the first one picked
+    /// from the top.
+    private var pickedRefs: [TaskRef] {
+        (overdue + dueToday + nextOnes).filter { picked.contains($0.id) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            heading
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    counts
+                    if actions.isEmpty {
+                        nothingToPick
+                    } else {
+                        Text("Pick the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        group("Overdue", overdue)
+                        group("Due today", dueToday)
+                        group("Next actions", nextOnes)
+                    }
+                }
+                .padding(isPhone ? 14 : 20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Divider()
+            SheetFooter(actionTitle: actionTitle, tint: tint,
+                        cancel: { close() }, act: { finish() })
+                .padding(isPhone ? 14 : 20)
+        }
+        // One name the screen test can wait for (build 190). Accessibility only.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("startDay.screen")
+        .frame(minWidth: isPhone ? nil : 480, minHeight: isPhone ? nil : 420)
+        .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
+    }
+
+    /// Says what the press will do: with nothing picked it only closes the screen.
+    private var actionTitle: String {
+        switch picked.count {
+        case 0: return "Done"
+        case 1: return "Plan 1 action"
+        default: return "Plan \(picked.count) actions"
+        }
+    }
+
+    /// Written out rather than a ternary with `nil` in one arm (build 199).
+    private var fillOnPhone: CGFloat? {
+        if isPhone { return CGFloat.infinity }
+        return nil
+    }
+
+    private var heading: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Label("Start the day", systemImage: StartDayView.symbol)
+                .font(.headline)
+                .foregroundStyle(tint)
+            Spacer(minLength: 0)
+            Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+                 ?? day.description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, isPhone ? 14 : 20)
+        .padding(.vertical, 12)
+    }
+
+    /// A cup, not a sunrise: `sunrise` already means **Tomorrow** on the Inbox's buttons and over
+    /// **Overdue** (builds 215 and 224), and one symbol with two meanings is build 168's fault.
+    static let symbol = "cup.and.saucer"
+
+    private var counts: some View {
+        WrappingHStack(spacing: 8, lineSpacing: 8) {
+            if !overdue.isEmpty {
+                CountPill(text: "\(overdue.count) overdue",
+                          systemImage: "exclamationmark.circle", tint: .orange)
+            }
+            CountPill(text: "\(dueToday.count) due today",
+                      systemImage: "calendar", tint: tint)
+            if !picked.isEmpty {
+                CountPill(text: "\(picked.count) picked",
+                          systemImage: "checkmark.circle", tint: .green)
+            }
+        }
+    }
+
+    /// Nothing due and no next action is worth saying in words. An empty list under a heading
+    /// reads as a screen that failed to load (build 100).
+    private var nothingToPick: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Nothing is waiting for today.")
+                .font(.callout.weight(.semibold))
+            Text("No task is due today or overdue, and no note has a next action.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// One group, drawn only when it has something in it — the counts above already say when a
+    /// group is empty, so an empty heading here would say nothing twice.
+    @ViewBuilder
+    private func group(_ title: String, _ refs: [TaskRef]) -> some View {
+        if !refs.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(title: title, count: refs.count)
+                ForEach(refs) { ref in
+                    row(ref)
+                }
+            }
+        }
+    }
+
+    /// A real `TaskRow` (build 149: a tick here ticks the task in its own note), with the pick
+    /// beside it. The pick is **not** a circle: the task's own tick box is the circle, and two
+    /// circles side by side would be two controls that look alike (build 154).
+    private func row(_ ref: TaskRef) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+            if let start = plannedAt[planBlockTitle(from: ref.task)] {
+                Text("In the plan at \(PlanBlock.clock(start))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 3)
+            } else {
+                PickButton(isOn: picked.contains(ref.id), tint: tint) {
+                    if picked.contains(ref.id) {
+                        picked.remove(ref.id)
+                    } else {
+                        picked.insert(ref.id)
+                    }
+                }
+                .accessibilityIdentifier("startDay.pick.\(ref.task.title)")
+            }
+        }
+    }
+
+    /// With nothing picked, **Done** only closes. Otherwise one write puts every pick into the
+    /// plan, and the message says how many fitted — never silently fewer than he asked for
+    /// (build 100's rule).
+    private func finish() {
+        let refs = pickedRefs
+        if !refs.isEmpty {
+            let placed = model.planActions(refs, on: day)
+            model.flash(message(placed: placed, asked: refs.count))
+        }
+        close()
+    }
+
+    private func message(placed: Int, asked: Int) -> String {
+        if placed == 0 {
+            return "No free hour is left today, so nothing was added to your plan."
+        }
+        if placed < asked {
+            return "\(placed) of \(asked) fitted in your plan. The rest had no free hour left today."
+        }
+        return placed == 1 ? "Added 1 action to today's plan." : "Added \(placed) actions to today's plan."
+    }
+
+    private func close() {
+        model.activeSheet = nil
+    }
+}
+
+/// **Pick** / **Picked**, in build 142's two-state language: picked is the tint filled with a
+/// solid border, not picked is grey with a dashed one — the same as `FilterBox` (build 157).
+private struct PickButton: View {
+    let isOn: Bool
+    let tint: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            // The padding goes **inside** the label: a Button's tap area is its label (build 186).
+            Text(isOn ? "Picked" : "Pick")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 3)
+                .background(Capsule().fill(isOn ? tint.opacity(0.24) : Color.clear))
+                .overlay(border)
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? [.isSelected] : [])
+    }
+
+    @ViewBuilder
+    private var border: some View {
+        if isOn {
+            Capsule().strokeBorder(tint, lineWidth: 1.3)
+        } else {
+            Capsule().strokeBorder(Color.primary.opacity(0.45),
+                                   style: StrokeStyle(lineWidth: 1.2, dash: [3, 3]))
+        }
+    }
+}

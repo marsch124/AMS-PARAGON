@@ -3061,6 +3061,28 @@ them out mid-transition. Build 229's `NoteListView(fixed:)` was a real fault but
   reports were not yet in Apple's list. It was a real fault and still the wrong one. Once the
   workflow could read the reports, the frame named the cause in one look.
 
+**Build 233: Start the day**, the morning partner of Close the day, and the first of two he
+asked for with "1 and 2 please" (234 is the evening reminder).
+- **`DayPlan.freeStarts(count:length:from:until:busy:)` (Core, tested)** decides where the
+  blocks land: from the next quarter hour after now, five-minute steps so a block can start
+  the moment a meeting ends, never past midnight, each placed block busy for the next.
+  `AppModel.planActions(_:on:)` gathers `busy` from the plan and the timed calendar events
+  and writes all of them in **one** `savePlan`. Fewer placed than picked is reported, never
+  silent (build 100).
+- **The list is `actionsForPlanning(on:)`**, the planner's own question (build 174), split into
+  Overdue / Due today / Next actions. Real `TaskRow`s (build 149). **Nothing is picked when it
+  opens** — choosing is the point.
+- **The pick is a Pick/Picked capsule, not a circle**: the task's own tick is the circle
+  (build 154). Two-state language as `FilterBox`.
+- **The symbol is `cup.and.saucer`, not `sunrise`**: sunrise already means *Tomorrow*
+  (builds 215, 224), build 168's rule.
+- `planBlockTitle(from:)` in PlannerView.swift is no longer private: this is its third way in.
+  `CountPill` (CloseDayView.swift) likewise has a second user now.
+- On Today the two buttons sit in a `ViewThatFits`: words when there is room, symbols only on a
+  phone. The date has `.layoutPriority(1)` so the words give way, not the date.
+- Screen test `testStartTheDayOpensAndCloses`, dull on purpose: the test vault has no dated
+  task and no next action (build 221's fixture), so it shows "Nothing is waiting".
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

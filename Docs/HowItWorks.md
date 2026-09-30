@@ -300,8 +300,16 @@ The per cent never says 100 until everything really is finished, and never says 
 
 ## Today, Calendar, daily and weekly notes
 
-- **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top is **Close the day**, which opens the evening step.
+- **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top are **Start the day** (a cup) and **Close the day** (a moon): the morning step and the evening step. On a narrow screen only the two pictures are shown.
 
+- **Start the day** shows what is overdue, what is due today, and your next actions. Press
+  **Pick** beside the two or three that matter most, then press the button at the bottom
+  (it says **Plan 2 actions**, for example). Each one goes into today's plan as a one-hour
+  block, in the free time left today: after the time it is now, and never on top of a block
+  you already have or a calendar event. Nothing is placed after midnight; if not all of them
+  fit, a message says how many did. An action already in today's plan says **In the plan at**
+  and the time, instead of **Pick**. The blocks are ordinary plan blocks — move them or make
+  them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
 - **Close the day** is one screen you work down and finish. It says how many tasks you finished
   today, lists everything still open that was due today or earlier with a **Tomorrow** button on
   each and a **Move all to tomorrow** under them, and gives you one line to say how the day was.

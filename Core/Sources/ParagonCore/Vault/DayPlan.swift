@@ -143,6 +143,35 @@ public enum DayPlan {
         MarkdownSection.find(heading, in: body)
     }
 
+    /// Where new blocks of `length` minutes can go, earliest first, without touching anything
+    /// already in the day (build 233, **Start the day**).
+    ///
+    /// `busy` is minutes since midnight: the plan's own blocks and the calendar's timed events.
+    /// The search starts at `from`, rounded up to the next quarter hour, and walks in five-minute
+    /// steps, so a block can begin the moment a meeting ends at 10:40. Each block found counts as
+    /// busy for the next one, and nothing is placed that would run past `until`. **Fewer starts
+    /// than asked for is an answer, not a failure** — the caller says how many fitted.
+    ///
+    /// In Core, with tests, because it decides where lines land in the daily note (build 146).
+    public static func freeStarts(count: Int, length: Int, from: Int, until: Int,
+                                  busy: [Range<Int>]) -> [Int] {
+        guard count > 0, length > 0 else { return [] }
+        var taken = busy.filter { !$0.isEmpty }
+        var cursor = ((max(0, from) + 14) / 15) * 15
+        var starts: [Int] = []
+        while starts.count < count, cursor + length <= until {
+            let slot = cursor..<(cursor + length)
+            if let clash = taken.filter({ $0.overlaps(slot) }).map(\.upperBound).max() {
+                cursor = ((clash + 4) / 5) * 5
+            } else {
+                starts.append(cursor)
+                taken.append(slot)
+                cursor += length
+            }
+        }
+        return starts
+    }
+
     /// Sorted by start and renumbered, which is the only order a plan is ever held in.
     private static func numbered(_ blocks: [PlanBlock]) -> [PlanBlock] {
         blocks.sorted { $0.start == $1.start ? $0.end < $1.end : $0.start < $1.start }

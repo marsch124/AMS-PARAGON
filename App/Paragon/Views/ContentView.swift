@@ -84,6 +84,9 @@ struct ContentView: View {
             case .closeDay:
                 CloseDayView()
                     .environmentObject(model)
+            case .startDay:
+                StartDayView()
+                    .environmentObject(model)
             case .settings:
                 NavigationStack {
                     SettingsView()

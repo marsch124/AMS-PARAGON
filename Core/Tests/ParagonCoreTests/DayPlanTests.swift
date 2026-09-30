@@ -216,4 +216,33 @@ final class DayPlanTests: XCTestCase {
         XCTAssertNil(DayPlan.block(in: "Just a sentence about 09:30 and nothing else"))
         XCTAssertNil(DayPlan.block(in: "## Plan"))
     }
+
+    // MARK: Free starts (build 233)
+
+    func testFreeStartsBeginAtTheNextQuarterHour() {
+        let starts = DayPlan.freeStarts(count: 2, length: 60, from: 7 * 60 + 5, until: 24 * 60, busy: [])
+        XCTAssertEqual(starts, [7 * 60 + 15, 8 * 60 + 15])
+    }
+
+    func testFreeStartsStepAroundWhatIsAlreadyThere() {
+        // A meeting 09:00-10:40 and a block 11:00-12:00.
+        let busy = [540..<640, 660..<720]
+        let starts = DayPlan.freeStarts(count: 3, length: 60, from: 9 * 60, until: 24 * 60, busy: busy)
+        // 10:40 leaves only twenty minutes before the block, so the first fits after it.
+        XCTAssertEqual(starts, [720, 780, 840])
+    }
+
+    func testFreeStartsCanStartTheMomentSomethingEnds() {
+        let starts = DayPlan.freeStarts(count: 1, length: 30, from: 9 * 60, until: 24 * 60, busy: [540..<640])
+        XCTAssertEqual(starts, [640])
+    }
+
+    func testFreeStartsNeverRunPastTheEndOfTheDay() {
+        let starts = DayPlan.freeStarts(count: 3, length: 60, from: 22 * 60 + 10, until: 24 * 60, busy: [])
+        XCTAssertEqual(starts, [22 * 60 + 15])
+    }
+
+    func testFreeStartsAskedForNothingGiveNothing() {
+        XCTAssertEqual(DayPlan.freeStarts(count: 0, length: 60, from: 0, until: 24 * 60, busy: []), [])
+    }
 }
