@@ -15,6 +15,10 @@ row, and **Pick** was far away on the right.
 - The circle still marks a task as done, as everywhere else in PARAGON. To undo it, press it
   again on the **Done** screen.
 
+**Letters no longer get lost while you type in a note.** PARAGON saves a note a moment after
+you stop typing. If you started typing again at that exact moment, the last few letters could
+disappear. The automatic test on the iPhone found this twice. It is fixed.
+
 ## Build 239 · 30 September 2026
 
 **Clearer headings in Close the day.** Your wish. The part about tomorrow now has two headings:

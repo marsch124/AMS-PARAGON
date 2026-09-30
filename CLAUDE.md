@@ -3171,6 +3171,14 @@ before `TaskRow` in `StartDayView.row` and in Close the day's **Waiting for tomo
 plan at" became a two-line caption in the same width. **A control that sits beside a task's
 tick must come before it and be bigger than it**, or the tick takes the press.
 
+**Build 240 also: the lost letters were real.** `testANoteCanBeOpenedAndTypedIn` failed a
+second time ("---Typed by the screen tes"), and build 232's note had said a second failure
+means a real fault. `write(_:)` clears `isDirty`; the model then publishes the saved text, and
+`onChange(of: storedText)` — seeing nothing dirty — put the editor back to it, wiping any key
+pressed in between. `lastWritten` (the shown text of our own last save) is now checked first:
+**our own save coming back never replaces what is on screen.** A slow CI simulator is where
+that gap is widest, which is why only the phone test ever saw it.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

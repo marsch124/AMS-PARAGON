@@ -25,6 +25,9 @@ struct NoteEditorView: View {
     @State private var vaultPath: String?
     /// The note's real text (markers included) that the shown text was made from.
     @State private var baseText = ""
+    /// The shown text of the last save this editor made itself. When the model hands that same
+    /// text back, it is our own save coming home, not a change from outside (build 240).
+    @State private var lastWritten: String?
     @AppStorage("editorMode") private var mode: EditorMode = .edit
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -76,9 +79,17 @@ struct NoteEditorView: View {
             // The file changed (a sync assigned markers, another device edited it). While
             // nothing is being typed, follow it; the shown text often does not change at all
             // because only hidden markers moved.
+            let shown = TaskIDMasking.hidden(in: newValue)
+            // **Our own save coming back is never a reason to replace what is on screen**
+            // (build 240). The save clears `isDirty`, and a key pressed in the moment before
+            // this runs had not set it again yet — so the editor was put back to the saved
+            // text and the last letters typed were lost. The screen test caught it twice.
+            if shown == lastWritten {
+                baseText = newValue
+                return
+            }
             guard !isDirty else { return }
             baseText = newValue
-            let shown = TaskIDMasking.hidden(in: newValue)
             if shown != text { text = shown }
         }
         .confirmationDialog("Delete \u{201C}\(note?.displayTitle ?? "")\u{201D}?", isPresented: $confirmTrash) {
@@ -585,6 +596,7 @@ struct NoteEditorView: View {
 
     /// Puts the hidden markers back and saves.
     private func write(_ shown: String) {
+        lastWritten = shown
         model.saveText(TaskIDMasking.restored(shown, from: baseText), forNoteAt: path)
         isDirty = false
         baseText = model.note(at: path)?.text ?? baseText
