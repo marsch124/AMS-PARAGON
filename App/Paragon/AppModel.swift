@@ -125,7 +125,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 237
+    static let number = 238
 }
 
 @MainActor
@@ -2042,11 +2042,19 @@ final class AppModel: ObservableObject {
         let existing = planBlocks(for: day)
         var busy = existing.map { $0.start..<max($0.start + 1, $0.end) }
         let calendar = Calendar.current
+        // **Clock minutes, never seconds since midnight divided by 60** (build 238): on the two
+        // days a year the clocks change, those differ by an hour after 03:00, and a block would
+        // land on top of a meeting. An event that started yesterday starts at 0; one that ends
+        // tomorrow ends at midnight.
+        func clockMinutes(_ date: Date, orIfOtherDay fallback: Int) -> Int {
+            guard calendar.isDate(date, inSameDayAs: midnight) else { return fallback }
+            let parts = calendar.dateComponents([.hour, .minute], from: date)
+            return (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+        }
         for event in events(on: day) where !event.isAllDay {
-            let start = Int(event.start.timeIntervalSince(midnight) / 60)
-            let end = Int(event.end.timeIntervalSince(midnight) / 60)
-            let clamped = max(0, start)..<max(max(0, start) + 1, min(24 * 60, end))
-            busy.append(clamped)
+            let start = event.start < midnight ? 0 : clockMinutes(event.start, orIfOtherDay: 24 * 60)
+            let end = clockMinutes(event.end, orIfOtherDay: 24 * 60)
+            busy.append(start..<max(start + 1, end))
         }
         var from = 6 * 60
         if day == DateOnly.today() {

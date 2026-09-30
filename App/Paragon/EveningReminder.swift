@@ -31,6 +31,17 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
 
     /// How many times a reminder has been pressed since launch.
     @Published private(set) var openRequests = 0
+    /// How many of those have been answered. **Kept here, not in a view** (build 238): a view's
+    /// `@State` starts again at 0 in every new window, so closing the Mac window and clicking the
+    /// Dock icon replayed the last press and opened **Close the day** by itself.
+    private var answered = 0
+
+    /// True once for each press, whichever window asks first.
+    func takeOpenRequest() -> Bool {
+        guard answered < openRequests else { return false }
+        answered = openRequests
+        return true
+    }
     /// Nil until asked. False when he has said no to notifications for PARAGON, which only
     /// **System Settings** (Mac) or **Settings** (iPhone) can change — so Settings says so.
     @Published private(set) var allowed: Bool?
@@ -59,7 +70,13 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 self.allowed = granted
-                if granted { self.plant(minutes: minutes) }
+                // The answer can arrive after the switch was turned off again, or after the time
+                // was changed once more; plant only what Settings says now (build 238).
+                let defaults = UserDefaults.standard
+                guard granted, defaults.bool(forKey: Self.onKey) else { return }
+                let now = defaults.object(forKey: Self.minutesKey) as? Int ?? minutes
+                self.center.removePendingNotificationRequests(withIdentifiers: [Self.requestID])
+                self.plant(minutes: now)
             }
         }
     }

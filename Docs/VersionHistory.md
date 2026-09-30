@@ -2,6 +2,24 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 238 · 30 September 2026
+
+**Four small repairs to the new morning and evening screens.** I found them by reading the new
+code again carefully. You may not have met any of them yet.
+
+- On the Mac, **Close the day** could open by itself after you pressed the evening reminder once
+  and later closed and reopened the window. It now opens once for each press.
+- In **Start the day**, ticking off a repeating task could move a **Picked** mark onto the wrong
+  task in the same note. Picks now stay with their own task.
+- In **Start the day**, an action typed with another date (for example `>2026-10-05`) now says,
+  in orange under the field, that it went to the Inbox but not into today's list. Before, that
+  message was hidden behind the sheet on the iPhone.
+- On the two days a year when the clocks change (the next one is 25 October), **Start the day**
+  could place a block one hour wrong, on top of a meeting. That is fixed.
+- **Start the day** now reads today's calendar fresh when it opens.
+- In **Settings › Evening reminder**, turning the switch on and quickly off again no longer leaves
+  a reminder behind.
+
 ## Build 237 · 30 September 2026
 
 **Close the day: what you did today is now at the bottom.** Your wish. The page now starts with

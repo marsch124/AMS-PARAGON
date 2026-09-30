@@ -9,9 +9,6 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
     @State private var showingImporter = false
-    /// How many presses on the evening reminder have been answered (build 234). Compared with
-    /// `EveningReminder.openRequests`, a count, so every press opens the screen once.
-    @State private var remindersAnswered = 0
 
     /// iPhone (and a narrow iPad window): tabs instead of three columns.
     private var isCompact: Bool {
@@ -108,9 +105,10 @@ struct ContentView: View {
         // A press on the evening reminder opens **Close the day** (build 234). `onReceive` also
         // hands over the current count when it starts listening, which is what catches a press
         // that started the app from cold, before this view existed.
-        .onReceive(EveningReminder.shared.$openRequests) { count in
-            guard count > remindersAnswered else { return }
-            remindersAnswered = count
+        // The answered count lives in `EveningReminder`, so a window opened later does not
+        // replay a press an earlier window already answered (build 238).
+        .onReceive(EveningReminder.shared.$openRequests) { _ in
+            guard EveningReminder.shared.takeOpenRequest() else { return }
             guard model.vault != nil else { return }
             model.afterUpdate { model.activeSheet = .closeDay }
         }

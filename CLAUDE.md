@@ -3138,6 +3138,25 @@ drawing of two shapes (https://claude.ai/artifact/DAuGkev2WtZqotkZR36qTA): **A, 
 landed: *"This way, I can focus on what was left over, what to do tomorrow, and how was today
 entry."* The things to act on first, the look back last, under a `Divider`.
 
+**Build 238: a read-through of 233–236 found four real faults** (a subagent read the diff; no
+compiler here). Nothing he had reported — **looking again at a batch of new screens after they
+ship is worth one build**.
+- **`remindersAnswered` was `@State` in `ContentView`**, so every new window started at 0 and
+  replayed the last reminder press (closing the Mac window and clicking the Dock icon opened
+  **Close the day** again). The answered count now lives in `EveningReminder.takeOpenRequest()`.
+  **A count a view compares against has to live beside the count, not in the view.**
+- **Start the day's picks were keyed by `TaskRef.id`** (path + line). Ticking a repeating task
+  there writes the next occurrence below and moves later lines, so a pick could point at the
+  wrong task. `pickKey` = path + title, as `FirstPick` already did. Same lesson as build 236,
+  one screen earlier: **never keep a user's choice by line number.**
+- **`model.flash` sits under a sheet on the phone**, so "saved with another date" was never
+  seen. It is now a caption inside the sheet. **A sheet's messages belong in the sheet.**
+- **`planActions` turned events into minutes as seconds since midnight / 60**, an hour out after
+  03:00 on the day the clocks change. Now `dateComponents([.hour, .minute])`, with 0 / 1440 for
+  an event that starts yesterday or ends tomorrow.
+- Minor, done in the same build: the permission answer re-reads `UserDefaults` before planting
+  (on-then-off no longer leaves a reminder), and Start the day loads today's events itself.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

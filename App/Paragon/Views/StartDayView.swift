@@ -15,12 +15,24 @@ import ParagonCore
 struct StartDayView: View {
     @EnvironmentObject private var model: AppModel
 
-    /// The picked actions, by `TaskRef.id`. Nothing is picked when the screen opens: choosing
+    /// The picked actions, by note path and title (`pickKey`). Nothing is picked when the screen opens: choosing
     /// what matters is the whole point, and a screen that chose for him would skip it.
     @State private var picked: Set<String> = []
     /// What is being typed into the **+** field at the top (build 235).
     @State private var newAction = ""
     @FocusState private var newActionFocused: Bool
+    /// Said under the field when a line typed with another day's date went to the Inbox but not
+    /// into this list. **Inside the sheet**, because the app's own message line sits under it and
+    /// the sheet covers that on a phone (build 238).
+    @State private var addNote: String?
+
+    /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating task
+    /// here writes its next occurrence on the line below, moving every later task in that note —
+    /// a pick kept by line would then point at the wrong task. Path and title are what
+    /// `FirstPick` has used since build 236.
+    private func pickKey(_ ref: TaskRef) -> String {
+        ref.notePath + "\n" + ref.task.title
+    }
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -75,7 +87,7 @@ struct StartDayView: View {
     /// In the order the list shows them, so the earliest block goes to the first one picked
     /// from the top.
     private var pickedRefs: [TaskRef] {
-        (marked + overdue + dueToday + nextOnes).filter { picked.contains($0.id) }
+        (marked + overdue + dueToday + nextOnes).filter { picked.contains(pickKey($0)) }
     }
 
     var body: some View {
@@ -111,6 +123,9 @@ struct StartDayView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("startDay.screen")
         .onAppear { model.loadFirstPicks() }
+        // Today's events are what the blocks are fitted around, so read them fresh here rather
+        // than trust whatever Today loaded earlier (build 238).
+        .task { await model.loadEvents(for: day) }
         .frame(minWidth: isPhone ? nil : 480, minHeight: isPhone ? nil : 420)
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
     }
@@ -200,9 +215,16 @@ struct StartDayView: View {
                 .accessibilityIdentifier("startDay.add")
                 .help("Add this action for today and pick it")
             }
-            Text("Goes to the Inbox, dated today, and is picked for your plan.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            if let addNote {
+                Text(addNote)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("Goes to the Inbox, dated today, and is picked for your plan.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -223,11 +245,12 @@ struct StartDayView: View {
         newActionFocused = true
         if let ref = model.actionsForPlanning(on: day)
             .first(where: { !before.contains($0.id) && $0.task.title == title }) {
-            picked.insert(ref.id)
+            picked.insert(pickKey(ref))
+            addNote = nil
         } else {
             // A date he typed for another day: the line is safe in the Inbox, it just does not
             // belong on today's list — say so rather than let it vanish (build 100).
-            model.flash("Saved to the Inbox. It has another date, so it is not in today's list.")
+            addNote = "Saved to the Inbox. It has another date, so it is not in today's list."
         }
     }
 
@@ -270,11 +293,11 @@ struct StartDayView: View {
                     .foregroundStyle(.secondary)
                     .padding(.top, 3)
             } else {
-                PickButton(isOn: picked.contains(ref.id), tint: tint) {
-                    if picked.contains(ref.id) {
-                        picked.remove(ref.id)
+                PickButton(isOn: picked.contains(pickKey(ref)), tint: tint) {
+                    if picked.contains(pickKey(ref)) {
+                        picked.remove(pickKey(ref))
                     } else {
-                        picked.insert(ref.id)
+                        picked.insert(pickKey(ref))
                     }
                 }
                 .accessibilityIdentifier("startDay.pick.\(ref.task.title)")
