@@ -2,6 +2,11 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 245 · 1 October 2026
+
+**The moon on Close the day is filled**, your wish, so the lilac shows as clearly as the
+orange cup on **Start the day**. The **Close the day** screen uses the same filled moon.
+
 ## Build 244 · 1 October 2026
 
 **Send one in 10 seconds now answers.** You pressed it on the iPhone and nothing at all

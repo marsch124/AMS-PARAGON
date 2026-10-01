@@ -192,7 +192,7 @@ struct TodayView: View {
             .accessibilityIdentifier("today.startDay")
             HeaderActionButton(title: withWords ? "Close the day" : nil,
                                spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
-                               systemImage: "moon",
+                               systemImage: CloseDayView.symbol,
                                tint: Theme.eveningTint) {
                 model.activeSheet = .closeDay
             }

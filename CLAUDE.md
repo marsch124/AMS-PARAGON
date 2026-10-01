@@ -3217,6 +3217,10 @@ all, and "nothing came" could not be told from "nothing was sent". `EveningRemin
 `.list`, or a notification shown in front is not kept and the check could never find it.
 **A button whose effect comes later must say at once that it was pressed.**
 
+**Build 245: `moon.fill`**, his ask ("more colored"). `CloseDayView.symbol` is the one place,
+used by the Today button and the screen's heading, the same shape as `StartDayView.symbol`.
+`strong:` was left off on purpose: build 241 made the morning the one that stands out.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

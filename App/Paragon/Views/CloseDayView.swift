@@ -104,9 +104,13 @@ struct CloseDayView: View {
         return nil
     }
 
+    /// Filled, like the morning's cup (build 245): an outline in a toolbar-sized button carries
+    /// almost none of its tint (build 156). One place, so the button and this heading agree.
+    static let symbol = "moon.fill"
+
     private var heading: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Label("Close the day", systemImage: "moon")
+            Label("Close the day", systemImage: Self.symbol)
                 .font(.headline)
                 .foregroundStyle(tint)
             Spacer(minLength: 0)
