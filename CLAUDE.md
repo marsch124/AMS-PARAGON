@@ -21,6 +21,11 @@ reason behind it holds: he runs GitHub, TestFlight and the app in English, so bu
 screen names and field names are always quoted exactly as they appear there — *New Note*,
 *Horizon*, *Aspiration*, *Serves…*, *Set a deadline…*, *Review*, *Run workflow*, *Update*.
 Plain short sentences matter more than the language.
+**Two things never to ask him (1 October 2026, his words: "If you don't need that information,
+you are to do the work, and I am not"):** which build he is running — the Crash reports
+workflow, TestFlight and his screenshots all say so, and a question about it is me not having
+looked — and whether he has sent a crash report. Run the workflow, read what is there, and work
+from that. If a report is not at Apple, say what is known without it and carry on.
 Communicate in short, friendly, concrete steps. He cannot run
 Terminal commands. Since build 56 both apps come from TestFlight.
 **Since 13 September 2026 I start the TestFlight upload myself.** He asked for it — "Now I
