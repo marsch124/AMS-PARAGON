@@ -319,8 +319,11 @@ The per cent never says 100 until everything really is finished, and never says 
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the
   day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a
   day at that time. Press it and **Close the day** opens. The first time you turn it on, the
-  iPhone or the Mac asks whether PARAGON may send notifications; if you said no, Settings says
-  so in orange and tells you where to change it. Turn the switch off and the reminder stops.
+  iPhone or the Mac asks whether PARAGON may send notifications. Under the time, Settings says
+  when the next reminder will come, for example "Next reminder: today at 21:00". If no reminder
+  can come, it says why in orange and where to change it. **Send one in 10 seconds** sends the
+  same notification once, so you can try it without waiting for the evening. Turn the switch
+  off and the reminder stops.
 - **Close the day** is one page you work down and finish. From the top:
   - **Did not happen**: everything still open that was due today or earlier. Each has a
     **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is

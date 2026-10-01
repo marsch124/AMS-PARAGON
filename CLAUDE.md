@@ -3198,6 +3198,18 @@ full-strength border and bold words, **no fill**, because a tinted fill means "o
   tick-then-untick (which returns the file to exactly the saved text) was taken for our own echo
   and ignored, and the next keystroke saved the stale ticked line over the file.
 
+**Build 243: the reminder says whether it is planned.** His test of 242: set to 13:10 on the
+Mac, nothing came, and Settings showed the ordinary grey line. **That line was drawn whenever
+permission was not `false`** — so "never asked" (`notDetermined`, which plants nothing) and
+"allowed but style None" looked exactly like "all fine". Build 100's rule, missed in 234.
+- `EveningReminder.Permission` (notAsked / refused / silent / allowed) and `nextReminder`, read
+  back from `getPendingNotificationRequests` → `nextTriggerDate()`. **Settings shows what the
+  system holds, never what the switch hopes.**
+- **Send one in 10 seconds**: its own id (`paragon.closeTheDay.test`) so it can never remove the
+  daily one; `didReceive` answers both ids. Testing a daily reminder should not mean waiting
+  for a time of day.
+- **Not detectable from here: a Focus mode** holds banners back and the app cannot see it.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

@@ -390,29 +390,66 @@ struct EveningReminderSection: View {
             if isOn {
                 DatePicker("At", selection: time, displayedComponents: .hourAndMinute)
             }
-            if isOn && reminder.allowed == false {
-                // Build 100's rule: a switch that is on and does nothing must say why.
-                Text(blockedText)
+            if isOn, let problem = problemText {
+                // Build 100's rule: a switch that is on and does nothing must say why. Since
+                // build 243 that includes "never asked", which used to look like "all fine".
+                Text(problem)
                     .font(.caption)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("One notification a day. Press it to open Close the day.")
+                if reminder.permission == .notAsked {
+                    Button("Allow notifications") { reminder.update(on: true, minutes: minutes) }
+                }
+            } else if isOn {
+                Text(nextText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            Text("One notification a day. Press it to open Close the day.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button("Send one in 10 seconds") { reminder.sendTest() }
+                .accessibilityIdentifier("settings.eveningReminder.test")
         }
         .onAppear { reminder.refreshPermission() }
         .onChange(of: isOn) { _, on in reminder.update(on: on, minutes: minutes) }
         .onChange(of: minutes) { _, value in reminder.update(on: isOn, minutes: value) }
     }
 
-    private var blockedText: String {
+    private var settingsPlace: String {
         #if os(macOS)
-        return "Notifications for PARAGON are turned off. Turn them on in System Settings › Notifications › PARAGON."
+        return "System Settings › Notifications › PARAGON"
         #else
-        return "Notifications for PARAGON are turned off. Turn them on in the iPhone's Settings › Notifications › PARAGON."
+        return "the iPhone's Settings › Notifications › PARAGON"
         #endif
+    }
+
+    /// Why the switch is on and nothing will appear, or nil when all is well.
+    private var problemText: String? {
+        switch reminder.permission {
+        case .refused?:
+            return "Notifications for PARAGON are turned off. Turn them on in \(settingsPlace)."
+        case .silent?:
+            return "Notifications for PARAGON are allowed, but set to None, so nothing appears. Choose Banners in \(settingsPlace)."
+        case .notAsked?:
+            return "PARAGON has not been allowed to send notifications yet, so no reminder is planned."
+        case nil:
+            return nil
+        case .allowed?:
+            return reminder.nextReminder == nil
+                ? "No reminder is planned yet. Turn the switch off and on again."
+                : nil
+        }
+    }
+
+    /// "Next reminder: today at 13:10", read back from the system's own list.
+    private var nextText: String {
+        guard let next = reminder.nextReminder else { return "Checking…" }
+        let calendar = Calendar.current
+        let day = calendar.isDateInToday(next) ? "today"
+            : calendar.isDateInTomorrow(next) ? "tomorrow"
+            : next.formatted(date: .abbreviated, time: .omitted)
+        return "Next reminder: \(day) at \(next.formatted(date: .omitted, time: .shortened))"
     }
 
     /// Minutes since midnight shown as a time of day, today's date standing in for any day.

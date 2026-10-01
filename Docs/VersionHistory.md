@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 243 · 1 October 2026
+
+**Settings now shows whether the evening reminder will really come.** You set it to 13:10 and
+nothing appeared. Before this build, Settings looked the same whether a reminder was planned
+or not.
+
+- Under the time it now says **Next reminder: today at 13:10** (or tomorrow). That line is
+  read back from the Mac or the iPhone itself, so it shows what is really planned.
+- If nothing can come, it says why, in orange: notifications are turned off, they are set to
+  **None**, or PARAGON was never allowed to send them. In the last case there is an
+  **Allow notifications** button.
+- **Send one in 10 seconds** sends the reminder once, straight away, so you can test it
+  without waiting.
+
 ## Build 242 · 1 October 2026
 
 **Two repairs found by reading the last builds again during the night.** You may not have met

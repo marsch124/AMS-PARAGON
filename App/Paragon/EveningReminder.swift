@@ -28,6 +28,9 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     static let defaultMinutes = 21 * 60
 
     private static let requestID = "paragon.closeTheDay"
+    /// The one-off from **Send one in 10 seconds** (build 243). Its own id, so it can never
+    /// replace or remove the daily one.
+    private static let testID = "paragon.closeTheDay.test"
 
     /// How many times a reminder has been pressed since launch.
     @Published private(set) var openRequests = 0
@@ -47,9 +50,23 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
         answered = count
         return true
     }
-    /// Nil until asked. False when he has said no to notifications for PARAGON, which only
-    /// **System Settings** (Mac) or **Settings** (iPhone) can change — so Settings says so.
-    @Published private(set) var allowed: Bool?
+    /// What the system says PARAGON may do (build 243). Before it, "never asked" and "allowed"
+    /// both drew the ordinary grey line, so a switch that had planted nothing looked fine.
+    enum Permission {
+        /// The question has never been answered. Nothing is planted until it is.
+        case notAsked
+        /// He said no. Only **System Settings** (Mac) or **Settings** (iPhone) can change it.
+        case refused
+        /// Allowed, but the style is **None**, so nothing ever appears on screen.
+        case silent
+        case allowed
+    }
+
+    /// Nil until the system has answered.
+    @Published private(set) var permission: Permission?
+    /// When the daily reminder will next come, read back from the system's own list. Nil when
+    /// nothing is planted — which is the thing Settings has to be able to say (build 243).
+    @Published private(set) var nextReminder: Date?
 
     private var center: UNUserNotificationCenter { UNUserNotificationCenter.current() }
 
@@ -65,16 +82,18 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
             plant(minutes: minutes)
         } else {
             center.removePendingNotificationRequests(withIdentifiers: [Self.requestID])
+            refreshSchedule()
         }
     }
 
     /// What the switch and the time picker call.
     func update(on: Bool, minutes: Int) {
         center.removePendingNotificationRequests(withIdentifiers: [Self.requestID])
+        refreshSchedule()
         guard on else { return }
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
-                self.allowed = granted
+                self.refreshPermission()
                 // The answer can arrive after the switch was turned off again, or after the time
                 // was changed once more; plant only what Settings says now (build 238).
                 let defaults = UserDefaults.standard
@@ -88,27 +107,60 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
 
     func refreshPermission() {
         center.getNotificationSettings { settings in
-            let status = settings.authorizationStatus
+            let answer: Permission
+            switch settings.authorizationStatus {
+            case .notDetermined: answer = .notAsked
+            case .denied: answer = .refused
+            default:
+                answer = (settings.alertSetting == .disabled || settings.alertStyle == UNAlertStyle.none)
+                    ? .silent : .allowed
+            }
+            DispatchQueue.main.async { self.permission = answer }
+        }
+        refreshSchedule()
+    }
+
+    /// Reads the planted reminder back from the system, so Settings says what is really there
+    /// rather than what the switch hopes is there.
+    func refreshSchedule() {
+        let id = Self.requestID
+        center.getPendingNotificationRequests { requests in
+            let trigger = requests.first { $0.identifier == id }?.trigger as? UNCalendarNotificationTrigger
+            let next = trigger?.nextTriggerDate()
+            DispatchQueue.main.async { self.nextReminder = next }
+        }
+    }
+
+    /// **Send one in 10 seconds**: the same notification, once, so the reminder can be tried
+    /// without waiting for the evening. Pressing it opens **Close the day** like the real one.
+    func sendTest() {
+        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
-                switch status {
-                case .notDetermined: self.allowed = nil
-                case .denied: self.allowed = false
-                default: self.allowed = true
-                }
+                self.refreshPermission()
+                guard granted else { return }
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+                self.center.add(UNNotificationRequest(identifier: Self.testID,
+                                                      content: Self.content(), trigger: trigger))
             }
         }
     }
 
-    private func plant(minutes: Int) {
+    private static func content() -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = "Close the day"
         content.body = "What did you finish today, and what moves to tomorrow?"
         content.sound = .default
+        return content
+    }
+
+    private func plant(minutes: Int) {
         var when = DateComponents()
         when.hour = minutes / 60
         when.minute = minutes % 60
         let trigger = UNCalendarNotificationTrigger(dateMatching: when, repeats: true)
-        center.add(UNNotificationRequest(identifier: Self.requestID, content: content, trigger: trigger))
+        center.add(UNNotificationRequest(identifier: Self.requestID, content: Self.content(), trigger: trigger)) { _ in
+            DispatchQueue.main.async { self.refreshSchedule() }
+        }
     }
 
     // MARK: UNUserNotificationCenterDelegate
@@ -124,7 +176,8 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        if response.notification.request.identifier == Self.requestID {
+        let id = response.notification.request.identifier
+        if id == Self.requestID || id == Self.testID {
             DispatchQueue.main.async { self.openRequests += 1 }
         }
         completionHandler()
