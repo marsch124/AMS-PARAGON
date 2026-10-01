@@ -322,7 +322,9 @@ The per cent never says 100 until everything really is finished, and never says 
   iPhone or the Mac asks whether PARAGON may send notifications. Under the time, Settings says
   when the next reminder will come, for example "Next reminder: today at 21:00". If no reminder
   can come, it says why in orange and where to change it. **Send one in 10 seconds** sends the
-  same notification once, so you can try it without waiting for the evening. Turn the switch
+  same notification once, so you can try it without waiting for the evening. Below the button
+  it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac
+  delivered it. Turn the switch
   off and the reminder stops.
 - **Close the day** is one page you work down and finish. From the top:
   - **Did not happen**: everything still open that was due today or earlier. Each has a

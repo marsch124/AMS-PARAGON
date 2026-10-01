@@ -2,6 +2,16 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 244 · 1 October 2026
+
+**Send one in 10 seconds now answers.** You pressed it on the iPhone and nothing at all
+happened, not even on the button. Now:
+
+- The button is greyed out while the test is running.
+- Below it, it says **Sent. It should appear at 13:52:10.**
+- 15 seconds later it says whether the iPhone or the Mac really delivered it, or why it could
+  not be sent.
+
 ## Build 243 · 1 October 2026
 
 **Settings now shows whether the evening reminder will really come.** You set it to 13:10 and

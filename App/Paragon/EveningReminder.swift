@@ -64,6 +64,29 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
 
     /// Nil until the system has answered.
     @Published private(set) var permission: Permission?
+
+    /// What **Send one in 10 seconds** has done so far (build 244). Before it, the button gave
+    /// no answer at all, so "nothing came" could not be told apart from "nothing was sent".
+    enum TestState {
+        case asking
+        /// Handed to the system; it should appear at this time.
+        case waiting(Date)
+        /// The system says it delivered it at this time.
+        case delivered(Date)
+        /// Handed over, but the system never delivered it.
+        case notDelivered
+        case notAllowed
+        case failed(String)
+    }
+
+    @Published private(set) var test: TestState?
+
+    var isTesting: Bool {
+        switch test {
+        case .asking?, .waiting?: return true
+        default: return false
+        }
+    }
     /// When the daily reminder will next come, read back from the system's own list. Nil when
     /// nothing is planted — which is the thing Settings has to be able to say (build 243).
     @Published private(set) var nextReminder: Date?
@@ -133,14 +156,48 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
 
     /// **Send one in 10 seconds**: the same notification, once, so the reminder can be tried
     /// without waiting for the evening. Pressing it opens **Close the day** like the real one.
+    ///
+    /// Every step is reported in `test`, and 15 seconds later the system's own list of delivered
+    /// notifications is read, so Settings can say whether it came (build 244).
     func sendTest() {
+        test = .asking
+        center.removeDeliveredNotifications(withIdentifiers: [Self.testID])
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 self.refreshPermission()
-                guard granted else { return }
+                guard granted else {
+                    self.test = .notAllowed
+                    return
+                }
                 let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
-                self.center.add(UNNotificationRequest(identifier: Self.testID,
-                                                      content: Self.content(), trigger: trigger))
+                let request = UNNotificationRequest(identifier: Self.testID,
+                                                    content: Self.content(), trigger: trigger)
+                self.center.add(request) { error in
+                    let message = error?.localizedDescription
+                    DispatchQueue.main.async {
+                        if let message {
+                            self.test = .failed(message)
+                            return
+                        }
+                        self.test = .waiting(Date().addingTimeInterval(10))
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { self.checkTest() }
+                    }
+                }
+            }
+        }
+    }
+
+    /// Asks the system whether the test was delivered.
+    private func checkTest() {
+        let id = Self.testID
+        center.getDeliveredNotifications { notes in
+            let when = notes.first { $0.request.identifier == id }?.date
+            DispatchQueue.main.async {
+                if let when {
+                    self.test = .delivered(when)
+                } else {
+                    self.test = .notDelivered
+                }
             }
         }
     }
@@ -170,7 +227,9 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound])
+        // `.list` as well (build 244): without it a notification shown while PARAGON is in front
+        // is not kept in Notification Center, so the test could never find it delivered.
+        completionHandler([.banner, .list, .sound])
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter,

@@ -409,7 +409,14 @@ struct EveningReminderSection: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Button("Send one in 10 seconds") { reminder.sendTest() }
+                .disabled(reminder.isTesting)
                 .accessibilityIdentifier("settings.eveningReminder.test")
+            if let line = testLine {
+                Text(line.text)
+                    .font(.caption)
+                    .foregroundStyle(line.isProblem ? Color.orange : Color.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .onAppear { reminder.refreshPermission() }
         .onChange(of: isOn) { _, on in reminder.update(on: on, minutes: minutes) }
@@ -439,6 +446,33 @@ struct EveningReminderSection: View {
             return reminder.nextReminder == nil
                 ? "No reminder is planned yet. Turn the switch off and on again."
                 : nil
+        }
+    }
+
+    private var device: String {
+        #if os(macOS)
+        return "the Mac"
+        #else
+        return "the iPhone"
+        #endif
+    }
+
+    /// What the test button has done, so a press always gets an answer (build 244).
+    private var testLine: (text: String, isProblem: Bool)? {
+        guard let test = reminder.test else { return nil }
+        switch test {
+        case .asking:
+            return ("Sending…", false)
+        case .waiting(let due):
+            return ("Sent. It should appear at \(due.formatted(date: .omitted, time: .standard)).", false)
+        case .delivered(let at):
+            return ("Delivered by \(device) at \(at.formatted(date: .omitted, time: .standard)). If you did not see it, a Focus mode such as Do Not Disturb may be holding it back.", false)
+        case .notDelivered:
+            return ("It was sent, but \(device) did not deliver it. Check \(settingsPlace).", true)
+        case .notAllowed:
+            return ("It could not be sent: PARAGON is not allowed to send notifications. Turn them on in \(settingsPlace).", true)
+        case .failed(let message):
+            return ("It could not be sent: \(message)", true)
         }
     }
 

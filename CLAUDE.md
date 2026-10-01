@@ -3210,6 +3210,13 @@ permission was not `false`** — so "never asked" (`notDetermined`, which plants
   for a time of day.
 - **Not detectable from here: a Focus mode** holds banners back and the app cannot see it.
 
+**Build 244: the test button answers.** On the phone **Send one in 10 seconds** gave no sign at
+all, and "nothing came" could not be told from "nothing was sent". `EveningReminder.TestState`
+(asking / waiting / delivered / notDelivered / notAllowed / failed) is shown under the button;
+15 s after `add` succeeds it reads `getDeliveredNotifications`. `willPresent` now also returns
+`.list`, or a notification shown in front is not kept and the check could never find it.
+**A button whose effect comes later must say at once that it was pressed.**
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
