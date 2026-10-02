@@ -29,6 +29,9 @@ struct NoteEditorView: View {
     /// text back, it is our own save coming home, not a change from outside (build 240).
     @State private var lastWritten: String?
     @AppStorage("editorMode") private var mode: EditorMode = .edit
+    /// The settings block at the top folded out of the editor (build 246). One setting for
+    /// every note: he asked to compress "this area of each note", not one at a time.
+    @AppStorage("frontmatterFolded") private var frontmatterFolded = false
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     private var isPhone: Bool { sizeClass == .compact }
@@ -47,8 +50,25 @@ struct NoteEditorView: View {
 
     private var note: Note? { model.note(at: path) }
     private var storedText: String { note?.text ?? "" }
-    /// What the editor shows: the note's text with the `^t` sync markers hidden.
-    private var displayText: String { TaskIDMasking.hidden(in: storedText) }
+    /// What the editor shows: the note's text with the `^t` sync markers hidden, and the
+    /// settings block folded away when he has asked for that.
+    private var displayText: String { shown(from: storedText, folded: frontmatterFolded) }
+
+    private func shown(from stored: String, folded: Bool) -> String {
+        let masked = TaskIDMasking.hidden(in: stored)
+        return folded ? FrontmatterFold.body(of: masked) : masked
+    }
+
+    /// The whole text to write, from what the editor shows. The settings block comes from
+    /// `baseText`, the latest copy of the file, so a line a button wrote while the block was
+    /// folded (**Serves…**, **Tags…**) is kept rather than overwritten by an older copy.
+    private func wholeText(from shown: String, folded: Bool) -> String {
+        let unfolded = folded ? FrontmatterFold.joined(head: FrontmatterFold.head(of: baseText), body: shown) : shown
+        return TaskIDMasking.restored(unfolded, from: baseText)
+    }
+
+    /// Only drawn while there is a block to fold and the text is being edited.
+    private var hasFrontmatter: Bool { FrontmatterFold.head(of: storedText) != nil }
 
     var body: some View {
         Group {
@@ -66,7 +86,7 @@ struct NoteEditorView: View {
             pendingSave?.cancel()
             pendingSave = nil
             if isDirty {
-                let unsaved = TaskIDMasking.restored(text, from: baseText)
+                let unsaved = wholeText(from: text, folded: frontmatterFolded)
                 let openedIn = vaultPath
                 isDirty = false
                 model.afterUpdate {
@@ -79,7 +99,7 @@ struct NoteEditorView: View {
             // The file changed (a sync assigned markers, another device edited it). While
             // nothing is being typed, follow it; the shown text often does not change at all
             // because only hidden markers moved.
-            let shown = TaskIDMasking.hidden(in: newValue)
+            let shown = shown(from: newValue, folded: frontmatterFolded)
             // **Our own save coming back is never a reason to replace what is on screen**
             // (build 240). The save clears `isDirty`, and a key pressed in the moment before
             // this runs had not set it again yet — so the editor was put back to the saved
@@ -96,6 +116,19 @@ struct NoteEditorView: View {
             lastWritten = nil
             baseText = newValue
             if shown != text { text = shown }
+        }
+        .onChange(of: frontmatterFolded) { wasFolded, _ in
+            // What is on screen was shaped by the old setting, so it is saved with that
+            // before the editor is given the new shape.
+            pendingSave?.cancel()
+            pendingSave = nil
+            if isDirty {
+                lastWritten = nil
+                model.saveText(wholeText(from: text, folded: wasFolded), forNoteAt: path)
+                isDirty = false
+                baseText = model.note(at: path)?.text ?? baseText
+            }
+            text = displayText
         }
         .confirmationDialog("Delete \u{201C}\(note?.displayTitle ?? "")\u{201D}?", isPresented: $confirmTrash) {
             Button("Delete", role: .destructive) {
@@ -221,6 +254,7 @@ struct NoteEditorView: View {
             // The editor takes whatever height is left and never asks for more. Without this
             // guard, expanding a disclosure above it made the text editor report its full
             // text height as a minimum, and the window's content grew past the window.
+            frontmatterRow
             GeometryReader { geo in
                 editorPane(scrolls: true)
                     .frame(width: geo.size.width, height: geo.size.height)
@@ -254,6 +288,7 @@ struct NoteEditorView: View {
                 //
                 // Preview and Split are untouched: `MarkdownPreview` is itself a scroll view
                 // and needs a height handed to it.
+                frontmatterRow
                 if mode == .edit {
                     editorPane(scrolls: false)
                         .frame(minHeight: 320)
@@ -388,6 +423,31 @@ struct NoteEditorView: View {
                 Divider()
             }
         }
+    }
+
+    /// One line above the text: a fold for the settings block (build 246). `FoldButton`,
+    /// the shape every other fold in the app has had since build 205. Drawn only while there
+    /// is a block to fold and the text is being edited; the Read view never shows the block.
+    @ViewBuilder private var frontmatterRow: some View {
+        if mode == .edit && hasFrontmatter {
+            HStack {
+                FoldButton(isOpen: frontmatterOpen, accessibilityName: "Settings block at the top of the note") {
+                    Text(frontmatterFolded ? "Settings block hidden" : "Settings block")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityIdentifier("note.frontmatter")
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            Divider()
+        }
+    }
+
+    /// `FoldButton` asks whether the box is open; the setting says whether it is folded.
+    private var frontmatterOpen: Binding<Bool> {
+        Binding(get: { !frontmatterFolded }, set: { frontmatterFolded = !$0 })
     }
 
     /// The markdown itself: the raw text, or the rendered version.
@@ -599,10 +659,10 @@ struct NoteEditorView: View {
         if isDirty { write(text) }
     }
 
-    /// Puts the hidden markers back and saves.
+    /// Puts the hidden markers and the folded block back and saves.
     private func write(_ shown: String) {
         lastWritten = shown
-        model.saveText(TaskIDMasking.restored(shown, from: baseText), forNoteAt: path)
+        model.saveText(wholeText(from: shown, folded: frontmatterFolded), forNoteAt: path)
         isDirty = false
         baseText = model.note(at: path)?.text ?? baseText
     }

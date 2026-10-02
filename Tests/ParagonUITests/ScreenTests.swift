@@ -96,6 +96,34 @@ final class ScreenTests: XCTestCase {
                       "The editor did not take the typing. It shows: \(shown.prefix(200))")
     }
 
+    /// The settings block at the top of a note can be folded away and comes back (build 246).
+    /// The editor's text is the proof: `type:` is in it, then not, then in it again.
+    func testTheSettingsBlockCanBeFoldedAway() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Projects list does not show the test project.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The note opened without its editor.")
+        XCTAssertTrue(editorHolds(editor, "type:", within: 10),
+                      "The editor does not show the settings block to begin with: \(String(((editor.value as? String) ?? "").prefix(200)))")
+
+        let fold = element("note.frontmatter")
+        XCTAssertTrue(fold.waitForExistence(timeout: 10),
+                      "There is no fold button above the text.")
+        fold.pressCentre()
+        XCTAssertTrue(editorLacks(editor, "type:", within: 10),
+                      "The settings block is still shown after the fold was pressed.")
+
+        fold.pressCentre()
+        XCTAssertTrue(editorHolds(editor, "type:", within: 10),
+                      "The settings block did not come back after the second press.")
+    }
+
     /// A line in the Inbox can be picked by tapping it. Builds 71 to 74 attached a drag and a
     /// tap to the row, each of which took the click, and no line could be selected at all —
     /// the very thing this asks.
@@ -629,6 +657,18 @@ final class ScreenTests: XCTestCase {
     /// **The one exception is a phone tab** (build 232): the system's tab bar carries no
     /// identifier of ours, so `tab.<name>` is looked up by the tab's title inside the tab bar
     /// only — never anywhere else on screen, where "Plan" or "Inbox" can also be a heading.
+    /// Waits until the editor's text contains the words, on either platform.
+    private func editorHolds(_ editor: XCUIElement, _ words: String, within timeout: TimeInterval) -> Bool {
+        let holds = expectation(for: NSPredicate(format: "value CONTAINS %@", words), evaluatedWith: editor)
+        return XCTWaiter().wait(for: [holds], timeout: timeout) == .completed
+    }
+
+    /// Waits until the editor's text no longer contains the words.
+    private func editorLacks(_ editor: XCUIElement, _ words: String, within timeout: TimeInterval) -> Bool {
+        let lacks = expectation(for: NSPredicate(format: "NOT (value CONTAINS %@)", words), evaluatedWith: editor)
+        return XCTWaiter().wait(for: [lacks], timeout: timeout) == .completed
+    }
+
     private func element(_ identifier: String) -> XCUIElement {
         #if os(iOS)
         if let title = Self.tabTitles[identifier] {

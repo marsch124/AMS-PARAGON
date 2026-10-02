@@ -387,6 +387,11 @@ struct EveningReminderSection: View {
         Section("Evening reminder") {
             Toggle("Remind me to close the day", isOn: $isOn)
                 .accessibilityIdentifier("settings.eveningReminder")
+                // On the switch, not on the Section (build 246): a modifier on a `Section`
+                // is applied to each row, so the system was asked once per row.
+                .onAppear { reminder.refreshPermission() }
+                .onChange(of: isOn) { _, on in reminder.update(on: on, minutes: minutes) }
+                .onChange(of: minutes) { _, value in reminder.update(on: isOn, minutes: value) }
             if isOn {
                 DatePicker("At", selection: time, displayedComponents: .hourAndMinute)
             }
@@ -418,9 +423,6 @@ struct EveningReminderSection: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .onAppear { reminder.refreshPermission() }
-        .onChange(of: isOn) { _, on in reminder.update(on: on, minutes: minutes) }
-        .onChange(of: minutes) { _, value in reminder.update(on: isOn, minutes: value) }
     }
 
     private var settingsPlace: String {

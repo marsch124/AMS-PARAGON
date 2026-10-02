@@ -110,7 +110,17 @@ struct ContentView: View {
         .onReceive(EveningReminder.shared.$openRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(upTo: count) else { return }
             guard model.vault != nil else { return }
-            model.afterUpdate { model.activeSheet = .closeDay }
+            // A screen already open as a sheet is closed first and **Close the day** opens a
+            // turn later (build 246): swapping one sheet for another in a single update is
+            // the kind of mid-transition change iOS has crashed on before (build 232).
+            model.afterUpdate {
+                if model.activeSheet == nil {
+                    model.activeSheet = .closeDay
+                } else {
+                    model.activeSheet = nil
+                    model.afterUpdate { model.activeSheet = .closeDay }
+                }
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
