@@ -119,6 +119,11 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(editorLacks(editor, "type:", within: 10),
                       "The settings block is still shown after the fold was pressed.")
 
+        // Asked for again before the second press: on the Mac the first run found the row,
+        // folded with it, and then could not resolve it for the coordinate click a moment
+        // later. Waiting says whether the row is really gone or was only being redrawn.
+        XCTAssertTrue(fold.waitForExistence(timeout: 10),
+                      "The fold button is gone after folding. On screen: \(visibleTexts())")
         fold.pressCentre()
         XCTAssertTrue(editorHolds(editor, "type:", within: 10),
                       "The settings block did not come back after the second press.")
