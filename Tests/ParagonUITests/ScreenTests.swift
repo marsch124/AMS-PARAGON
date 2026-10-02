@@ -116,8 +116,13 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(fold.waitForExistence(timeout: 10),
                       "There is no fold button above the text.")
         fold.pressCentre()
+        // The editor has to still be there: a wait on "the text no longer contains" is also
+        // true of an editor that has gone, and on the Mac the second run ended with
+        // "No note open" on screen, which only this check can tell apart from a fold.
+        XCTAssertTrue(editor.waitForExistence(timeout: 5),
+                      "The note closed when the fold was pressed. On screen: \(visibleTexts())")
         XCTAssertTrue(editorLacks(editor, "type:", within: 10),
-                      "The settings block is still shown after the fold was pressed.")
+                      "The settings block is still shown after the fold was pressed: \(String(((editor.value as? String) ?? "").prefix(200)))")
 
         // Asked for again before the second press: on the Mac the first run found the row,
         // folded with it, and then could not resolve it for the coordinate click a moment
@@ -670,7 +675,7 @@ final class ScreenTests: XCTestCase {
 
     /// Waits until the editor's text no longer contains the words.
     private func editorLacks(_ editor: XCUIElement, _ words: String, within timeout: TimeInterval) -> Bool {
-        let lacks = expectation(for: NSPredicate(format: "NOT (value CONTAINS %@)", words), evaluatedWith: editor)
+        let lacks = expectation(for: NSPredicate(format: "exists == YES AND NOT (value CONTAINS %@)", words), evaluatedWith: editor)
         return XCTWaiter().wait(for: [lacks], timeout: timeout) == .completed
     }
 
