@@ -3260,6 +3260,23 @@ text in the buttons completely."* The `ViewThatFits` from build 233 (words when 
 gone; `dayButtons` is a plain `var`. `HeaderActionButton.title` stays optional for the Overdue
 pair, which still carries words.
 
+**Build 247's four red Mac runs were the test's click, not the fold — and the app's own log
+is what said so.** `testTheSettingsBlockCanBeFoldedAway` pressed `note.frontmatter` with
+`pressCentre()` and the note closed ("No note open"). The Mac reported a wrong frame for a
+short `FoldButton` sitting in an `HStack` with a `Spacer`: the centre point landed at
+(469.5, 209.5), twelve points left of the divider, **in the note list**, and a click on the
+list's empty part deselects the note — build 198's "the group's left edge deselected the note"
+again. What settled it was `diagnosticsTail()` in the test: **Help › Copy Diagnostics** read
+back on failure, whose `mouseDown at … on SwiftUIOutlineListView` line named the view the
+click hit. Three lessons:
+- **A test's "the note closed" can be the test's own click.** Before touching the app, put the
+  app's click log into the failure message; it costs one run and answers the question.
+- **A short button beside a `Spacer` gets a wrong accessibility frame on the Mac.** The fold is
+  now the whole line (`.frame(maxWidth: .infinity, alignment: .leading)` inside the label), and
+  the test presses with `press()` when `isHittable`, `pressCentre()` otherwise.
+- **`editorLacks` must require `exists == YES`**: "the text no longer contains X" is also true
+  of an editor that has gone, which is how the first run's pass was vacuous.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
