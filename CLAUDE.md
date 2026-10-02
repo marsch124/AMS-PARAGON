@@ -3255,6 +3255,11 @@ toggle so that I can compress this area of each note."*
   and the `let shown = shown(…)` shadow in place, because the script stopped at its first
   check and the `git commit` on the next line ran regardless. Chain with `&&`.
 
+**Build 247: the two Today buttons are symbols only, everywhere.** His ask: *"take away the
+text in the buttons completely."* The `ViewThatFits` from build 233 (words when they fit) is
+gone; `dayButtons` is a plain `var`. `HeaderActionButton.title` stays optional for the Overdue
+pair, which still carries words.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

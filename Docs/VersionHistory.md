@@ -2,6 +2,12 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 247 · 2 October 2026
+
+**Start the day and Close the day are symbols only**, your wish: the orange cup and the lilac
+moon, with no words beside them, on the Mac as well as the iPhone. Hold the pointer over one
+on the Mac and its name appears.
+
 ## Build 246 · 2 October 2026
 
 **The settings block at the top of a note can be folded away.** Your wish. Above the text
