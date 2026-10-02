@@ -119,8 +119,16 @@ final class ScreenTests: XCTestCase {
         // The editor has to still be there: a wait on "the text no longer contains" is also
         // true of an editor that has gone, and on the Mac the second run ended with
         // "No note open" on screen, which only this check can tell apart from a fold.
-        XCTAssertTrue(editor.waitForExistence(timeout: 5),
-                      "The note closed when the fold was pressed. On screen: \(visibleTexts())")
+        let stillOpen = editor.waitForExistence(timeout: 5)
+        #if os(macOS)
+        // The app's own log names the view each click landed on and the moment the note was
+        // deselected, which is the one thing that tells a stray click from a fault in the fold.
+        let why = stillOpen ? "" : " The app's log: \(diagnosticsTail())"
+        #else
+        let why = ""
+        #endif
+        XCTAssertTrue(stillOpen,
+                      "The note closed when the fold was pressed. On screen: \(visibleTexts())\(why)")
         XCTAssertTrue(editorLacks(editor, "type:", within: 10),
                       "The settings block is still shown after the fold was pressed: \(String(((editor.value as? String) ?? "").prefix(200)))")
 
@@ -494,6 +502,22 @@ final class ScreenTests: XCTestCase {
         let overflow = report.split(separator: "\n").filter { $0.contains("OVERFLOW") }
         XCTAssertTrue(overflow.isEmpty,
                       "The app's own diagnostics report an overflow after \(what): \(overflow.joined(separator: " | "))")
+    }
+
+    /// The last lines of **Help › Copy Diagnostics**, for a failure message. Same menu dance
+    /// as `expectNoOverflow`; no assertions of its own, so it never changes which check fails.
+    private func diagnosticsTail() -> String {
+        NSPasteboard.general.clearContents()
+        app.menuBars.menuBarItems["Help"].click()
+        let copyItem = app.menuBars.menuItems["Copy Diagnostics"]
+        guard copyItem.waitForExistence(timeout: 10) else { return "(no Copy Diagnostics item)" }
+        copyItem.click()
+        let copied = expectation(for: NSPredicate(block: { _, _ in
+            (NSPasteboard.general.string(forType: .string) ?? "").contains("PARAGON build")
+        }), evaluatedWith: nil)
+        guard XCTWaiter().wait(for: [copied], timeout: 10) == .completed else { return "(clipboard empty)" }
+        let report = NSPasteboard.general.string(forType: .string) ?? ""
+        return report.split(separator: "\n").suffix(40).joined(separator: " | ")
     }
 
     /// ⌘N opens the New note screen. In build 120 the window's own New Window item kept ⌘N,
