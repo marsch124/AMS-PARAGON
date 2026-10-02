@@ -21,6 +21,10 @@ reason behind it holds: he runs GitHub, TestFlight and the app in English, so bu
 screen names and field names are always quoted exactly as they appear there — *New Note*,
 *Horizon*, *Aspiration*, *Serves…*, *Set a deadline…*, *Review*, *Run workflow*, *Update*.
 Plain short sentences matter more than the language.
+**The app's name is written PARAGON, in capitals, everywhere he reads it** (2 October 2026,
+his words: *"Please write Paragon with capitals. PARAGON"*): chat, docs, version history,
+artifact titles, session titles. Code names (`ParagonCore`, `ParagonApp`, `App/Paragon/`) are
+unchanged; those are identifiers, not prose.
 **Two things never to ask him (1 October 2026, his words: "If you don't need that information,
 you are to do the work, and I am not"):** which build he is running — the Crash reports
 workflow, TestFlight and his screenshots all say so, and a question about it is me not having
