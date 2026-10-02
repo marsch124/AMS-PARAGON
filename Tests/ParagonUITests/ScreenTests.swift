@@ -115,7 +115,9 @@ final class ScreenTests: XCTestCase {
         let fold = element("note.frontmatter")
         XCTAssertTrue(fold.waitForExistence(timeout: 10),
                       "There is no fold button above the text.")
-        fold.pressCentre()
+        // A click on the button itself when the Mac will take one, the centre point only
+        // otherwise: the app's log showed the centre point landing in the note list.
+        if fold.isHittable { fold.press() } else { fold.pressCentre() }
         // The editor has to still be there: a wait on "the text no longer contains" is also
         // true of an editor that has gone, and on the Mac the second run ended with
         // "No note open" on screen, which only this check can tell apart from a fold.
@@ -137,7 +139,7 @@ final class ScreenTests: XCTestCase {
         // later. Waiting says whether the row is really gone or was only being redrawn.
         XCTAssertTrue(fold.waitForExistence(timeout: 10),
                       "The fold button is gone after folding. On screen: \(visibleTexts())")
-        fold.pressCentre()
+        if fold.isHittable { fold.press() } else { fold.pressCentre() }
         XCTAssertTrue(editorHolds(editor, "type:", within: 10),
                       "The settings block did not come back after the second press.")
     }

@@ -430,15 +430,16 @@ struct NoteEditorView: View {
     /// is a block to fold and the text is being edited; the Read view never shows the block.
     @ViewBuilder private var frontmatterRow: some View {
         if mode == .edit && hasFrontmatter {
-            HStack {
-                FoldButton(isOpen: frontmatterOpen, accessibilityName: "Settings block at the top of the note") {
-                    Text(frontmatterFolded ? "Settings block hidden" : "Settings block")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityIdentifier("note.frontmatter")
-                Spacer(minLength: 0)
+            // The whole line is the button, not a label with a spacer after it: the Mac's
+            // accessibility frame for a short button here pointed the screen test's click
+            // into the note list, which deselected the note (build 247's first three runs).
+            FoldButton(isOpen: frontmatterOpen, accessibilityName: "Settings block at the top of the note") {
+                Text(frontmatterFolded ? "Settings block hidden" : "Settings block")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .accessibilityIdentifier("note.frontmatter")
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
             Divider()
