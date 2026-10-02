@@ -52,9 +52,9 @@ struct NoteEditorView: View {
     private var storedText: String { note?.text ?? "" }
     /// What the editor shows: the note's text with the `^t` sync markers hidden, and the
     /// settings block folded away when he has asked for that.
-    private var displayText: String { shown(from: storedText, folded: frontmatterFolded) }
+    private var displayText: String { shownText(from: storedText, folded: frontmatterFolded) }
 
-    private func shown(from stored: String, folded: Bool) -> String {
+    private func shownText(from stored: String, folded: Bool) -> String {
         let masked = TaskIDMasking.hidden(in: stored)
         return folded ? FrontmatterFold.body(of: masked) : masked
     }
@@ -99,7 +99,7 @@ struct NoteEditorView: View {
             // The file changed (a sync assigned markers, another device edited it). While
             // nothing is being typed, follow it; the shown text often does not change at all
             // because only hidden markers moved.
-            let shown = shown(from: newValue, folded: frontmatterFolded)
+            let shown = shownText(from: newValue, folded: frontmatterFolded)
             // **Our own save coming back is never a reason to replace what is on screen**
             // (build 240). The save clears `isDirty`, and a key pressed in the moment before
             // this runs had not set it again yet — so the editor was put back to the saved

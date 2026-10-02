@@ -2,6 +2,21 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 246 · 2 October 2026
+
+**The settings block at the top of a note can be folded away.** Your wish. Above the text
+there is now a line, **Settings block**. Press it and the lines between the two `---` are
+hidden while you write; the line then says **Settings block hidden**. Press it again to bring
+them back. Nothing in the file changes, and the choice holds for every note until you change
+it.
+
+Two small things for the evening reminder, from a read-through of the code:
+
+- If a reminder is pressed while another screen is already open in front, that screen is
+  closed first and **Close the day** opens a moment later.
+- Settings asks the iPhone or the Mac about notifications once when it opens, not once for
+  every row.
+
 ## Build 245 · 1 October 2026
 
 **The moon on Close the day is filled**, your wish, so the lilac shows as clearly as the

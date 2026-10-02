@@ -51,6 +51,8 @@ Useful keys: `status` (active, on hold, done, missed, dropped — see **How a no
 
 Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, and **Tags…** for `tags`.
 
+You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
+
 Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below.
 
 ### Making one

@@ -21,6 +21,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way.
 - **Daily note** — one note for each day. It holds that day's plan, tasks and **Looking back**.
 - **Weekly note** — one note for each week.
+- **Settings block** — the lines between the two `---` at the top of a note, such as `type: project` and `tags: [sport]`. The buttons at the top of the note write into it. The **Settings block** line above the text folds it away.
 
 ## How a note stands
 

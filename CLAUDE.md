@@ -3226,6 +3226,31 @@ all, and "nothing came" could not be told from "nothing was sent". `EveningRemin
 used by the Today button and the screen's heading, the same shape as `StartDayView.symbol`.
 `strong:` was left off on purpose: build 241 made the morning the one that stands out.
 
+**Build 246: the settings block folds.** His ask, from a pasted frontmatter block: *"make a
+toggle so that I can compress this area of each note."*
+- `FrontmatterFold` (Core, tested): `head(of:)` / `body(of:)` / `joined(head:body:)`, the same
+  rule `MarkdownHighlight` dims by, and head + body is always the whole text. **The file is
+  never changed; only what the editor shows is.**
+- `NoteEditorView`: `@AppStorage("frontmatterFolded")`, one setting for all notes. `displayText`
+  goes through `shownText(from:folded:)` and every save through `wholeText(from:folded:)`,
+  which takes the block from **`baseText`** — the latest copy of the file — so a line a chip
+  wrote while folded (**Serves…**, **Tags…**) survives the next save. `.onChange(of:
+  frontmatterFolded)` saves with the **old** setting before reshaping the text; saving with the
+  new one would have doubled the block.
+- The row is a `FoldButton` (`note.frontmatter`), drawn only in Edit and only when there is a
+  block (build 225: nothing to fold is not a vanishing control). Screen test
+  `testTheSettingsBlockCanBeFoldedAway` on both platforms; `editorHolds` / `editorLacks` are
+  the two-platform waits (`shows` is Mac-only).
+- **"Settings block"** is the word on screen and in `Docs/Words.md`; the manual says
+  "frontmatter" in its reference lines and both words now sit in the same paragraph.
+- Also in 246, from the crash read-through of 243 (no report at Apple; nothing proven):
+  `ContentView` closes an open sheet before presenting **Close the day**, and
+  `EveningReminderSection`'s `onAppear`/`onChange` sit on the Toggle, not the Section.
+- **A multi-step edit script that asserts must run its asserts before it writes anything, and
+  the commit must wait for the script.** The first push of 246 went out with the docs missing
+  and the `let shown = shown(…)` shadow in place, because the script stopped at its first
+  check and the `git commit` on the next line ran regardless. Chain with `&&`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
