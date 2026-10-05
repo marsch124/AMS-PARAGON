@@ -97,10 +97,8 @@ final class ScreenTests: XCTestCase {
     }
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).
-    /// The editor's text is the proof: `type:` is in it, then not, then in it again.
-    /// Build 248: the **time?** button on a task row writes `~45m` into the note. The button
-    /// and the choice are pressed the way the fold is: on the element when the Mac will take
-    /// it, at its centre otherwise (build 247).
+    /// Build 248: the **time?** button on a task row writes `~45m` into the note. Both the
+    /// button and the choice are pressed at the middle of their frames (`pressAtItsPlace`).
     func testATaskCanBeGivenATime() {
         go(to: .projects)
 
@@ -113,20 +111,35 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(editor.waitForExistence(timeout: 20),
                       "The note opened without its editor.")
 
+        // The row first: it is found the way every row is (build 211), and its frame says
+        // whether the task box is on screen at all. Build 249's first run found the button but
+        // the phone could not work out where it was, so both frames go into every message.
+        let row2 = element("task.Book the night train")
+        XCTAssertTrue(row2.waitForExistence(timeout: 10),
+                      "The note's task box has no row for the test task. On screen: \(visibleTexts())")
         let time = element("task.time.Book the night train")
         XCTAssertTrue(time.waitForExistence(timeout: 10),
                       "The task row has no time button. On screen: \(visibleTexts())")
-        if time.isHittable { time.press() } else { time.pressCentre() }
+        let whereItIs = "row \(row2.frame), button \(time.frame), window \(app.windows.firstMatch.frame)"
+        XCTAssertFalse(time.frame.isEmpty, "The time button has no size on screen: \(whereItIs)")
+        pressAtItsPlace(time)
 
         let choice = element("time.choice.45")
-        XCTAssertTrue(choice.waitForExistence(timeout: 10),
-                      "Pressing the time button did not show the choices. On screen: \(visibleTexts())")
-        if choice.isHittable { choice.press() } else { choice.pressCentre() }
+        let opened = choice.waitForExistence(timeout: 10)
+        #if os(macOS)
+        let why = opened ? "" : " The app's log: \(diagnosticsTail())"
+        #else
+        let why = ""
+        #endif
+        XCTAssertTrue(opened,
+                      "Pressing the time button did not show the choices (\(whereItIs)). On screen: \(visibleTexts())\(why)")
+        pressAtItsPlace(choice)
 
         XCTAssertTrue(editorHolds(editor, "Book the night train ~45m", within: 10),
                       "The note does not carry the time: \(String(((editor.value as? String) ?? "").suffix(200)))")
     }
 
+    /// The editor's text is the proof: `type:` is in it, then not, then in it again.
     func testTheSettingsBlockCanBeFoldedAway() {
         go(to: .projects)
 
@@ -708,6 +721,20 @@ final class ScreenTests: XCTestCase {
 
     /// The first twenty texts on screen, for a failure message. The nearest thing to a
     /// screenshot that can be read back from the CI log.
+    /// A press at the element's middle, worked out from its frame in the app's own
+    /// coordinates. Neither platform is then asked whether the element is "hittable" — the
+    /// question the phone could not answer for the time button (build 249's first run).
+    private func pressAtItsPlace(_ target: XCUIElement) {
+        let frame = target.frame
+        let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+        let point = origin.withOffset(CGVector(dx: frame.midX, dy: frame.midY))
+        #if os(macOS)
+        point.click()
+        #else
+        point.tap()
+        #endif
+    }
+
     private func visibleTexts() -> String {
         // The phone keeps a text's words in `label`, the Mac in `value` (see the capture test).
         app.staticTexts.allElementsBoundByIndex.prefix(20).map { text -> String in
