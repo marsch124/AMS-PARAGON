@@ -3329,8 +3329,9 @@ past the working day is said in grey, and only "does not fit before midnight" is
    of about 420, centred, so about 67 points are cut off on *each* side: the time button sat
    at x 980 in a window ending at 962. His own window is wider, which is why it has not been
    seen. Something in the note screen demands that width (suspect the header's chip row or a
-   `.fixedSize()`); find it with Help › Copy Diagnostics at a narrow window. The Mac half of
-   the test goes through the task menu (**How long › 45 min**) until then.
+   `.fixedSize()`); find it with Help › Copy Diagnostics at a narrow window. Until then the
+   Mac half of the test only checks that the button exists. A right-click on the row did not
+   bring the task menu up in the test either (run 308), so that route is no way round it.
 
 ## Not built (by choice)
 
