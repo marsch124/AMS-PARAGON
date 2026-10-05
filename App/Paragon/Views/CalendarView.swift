@@ -447,6 +447,15 @@ private struct WeekStrip: View {
                                  ? AnyShapeStyle(HierarchicalShapeStyle.tertiary)
                                  : AnyShapeStyle(Color.primary))
                 .monospacedDigit()
+            // The task times added up (build 251). Grey whatever the total: he keeps leisure
+            // tasks here too, so a long day is a fact, not a warning — the rule build 249 set
+            // for the working day. Nothing at all when no time is written, never "0 min".
+            Text(day.plannedMinutes > 0 ? TaskTime.label(day.plannedMinutes) : " ")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .monospacedDigit()
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 5)
@@ -519,6 +528,10 @@ struct WeekOverviewView: View {
             // (https://claude.ai/artifact/NP3XCcxXPQmVT3iCXhXESh): seven columns leave each day
             // about two words wide on a Mac and cannot exist at all on a phone, which would
             // have meant two week screens to keep working for ever.
+            // **The goal for the week first** (build 251): what the week is about, above the
+            // work to spread over it. His choice from the drawing of the three Sunsama ideas
+            // (https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX).
+            WeekGoalBox(week: model.selectedWeek)
             TaskTray(items: toPlace, title: "To place", dropHint: "Drag this onto a day",
                      identifier: "week.tray")
             WeekStrip(days: overview.days)
@@ -661,5 +674,98 @@ struct MonthDayCell: View {
         .background(isSelected ? ParaKind.daily.tint.opacity(0.20) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
         .accessibilityLabel("\(day.date.description), \(day.due.count) due, \(day.completed.count) done")
+    }
+}
+
+/// The goal for the week, at the top of the week screen (build 251).
+///
+/// **Set, it is gold with a solid border; not set, it is grey and dashed** — build 142's two
+/// states, and gold because a week's goal is the goal family's colour. Pressing it turns it
+/// into a field in place; Return or **Done** saves, **Cancel** puts it back. An empty field
+/// saved removes the goal. No sheet: one line does not need a screen of its own.
+struct WeekGoalBox: View {
+    @EnvironmentObject private var model: AppModel
+    let week: WeekRef
+    @State private var editing = false
+    @State private var draft = ""
+    @FocusState private var focused: Bool
+
+    private var goal: String? { model.weekGoal(for: week) }
+    private var tint: Color { ParaKind.goal.tint }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Group {
+                if editing {
+                    editor
+                } else {
+                    shown
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            Divider()
+        }
+        // A different week is a different goal: never carry a half-typed one across.
+        .onChange(of: week) { _, _ in editing = false }
+    }
+
+    private var shown: some View {
+        Button {
+            draft = goal ?? ""
+            editing = true
+            DispatchQueue.main.async { focused = true }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Goal for this week")
+                    .font(.caption2.weight(.semibold))
+                    .textCase(.uppercase)
+                    .foregroundStyle(goal == nil ? Color.secondary : tint)
+                Text(goal ?? "What is this week about? Press to write it.")
+                    .font(goal == nil ? .callout : .callout.weight(.semibold))
+                    .foregroundStyle(goal == nil ? Color.secondary : Color.primary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(RoundedRectangle(cornerRadius: 10).fill(goal == nil ? Color.clear : tint.opacity(0.10)))
+            .overlay(border)
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("week.goal")
+        .help("Press to write what this week is about")
+    }
+
+    @ViewBuilder
+    private var border: some View {
+        if goal == nil {
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(Color.secondary.opacity(0.5), style: StrokeStyle(lineWidth: 1.2, dash: [4, 3]))
+        } else {
+            RoundedRectangle(cornerRadius: 10).strokeBorder(tint, lineWidth: 1.3)
+        }
+    }
+
+    private var editor: some View {
+        HStack(spacing: 8) {
+            TextField("What is this week about?", text: $draft)
+                .textFieldStyle(.roundedBorder)
+                .focused($focused)
+                .submitLabel(.done)
+                .onSubmit(save)
+                .accessibilityIdentifier("week.goal.field")
+            Button("Cancel") { editing = false }
+            Button("Done", action: save)
+                .fontWeight(.semibold)
+                .accessibilityIdentifier("week.goal.done")
+        }
+    }
+
+    private func save() {
+        model.setWeekGoal(draft, for: week)
+        editing = false
     }
 }

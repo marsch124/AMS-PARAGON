@@ -66,6 +66,19 @@ struct TodayView: View {
             }
             .padding(.horizontal, Theme.gutter + 6)
             .padding(.bottom, Theme.tight)
+            // **The goal for this week, one line under the date** (build 251), outside the
+            // `List` for the same reason the date is (build 220). Nothing at all when no goal is
+            // written: an empty line asking for one every morning would be a nag, and the week
+            // screen is where it is written.
+            if let weekGoal = model.weekGoal(for: .current()) {
+                (Text("This week: ").fontWeight(.semibold).foregroundColor(ParaKind.goal.tint)
+                    + Text(weekGoal))
+                    .font(.caption)
+                    .lineLimit(2)
+                    .padding(.horizontal, Theme.gutter + 6)
+                    .padding(.bottom, Theme.tight)
+                    .accessibilityIdentifier("today.weekGoal")
+            }
             List(selection: model.noteSelection) {
                 if model.showsCalendarEvents {
                     Section {

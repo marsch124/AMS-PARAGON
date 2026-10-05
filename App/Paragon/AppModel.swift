@@ -125,7 +125,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 250
+    static let number = 251
 }
 
 @MainActor
@@ -1920,6 +1920,29 @@ final class AppModel: ObservableObject {
     var todayNote: Note? {
         guard let vault else { return nil }
         return note(at: vault.dailyNotePath(for: .today()))
+    }
+
+    /// The goal for a week (build 251), read from that week's note.
+    func weekGoal(for week: WeekRef) -> String? {
+        index.weekGoal(for: week)
+    }
+
+    /// Writes the goal for a week into its weekly note as `focus:`, or removes the line when
+    /// the text is empty. **An empty goal never makes a weekly note**: asking nothing must not
+    /// leave a file behind (the same rule as `planBlocks(for:)`, build 147).
+    func setWeekGoal(_ text: String, for week: WeekRef) {
+        flushPendingEdits()
+        guard let vault else { return }
+        let value = WeekGoal.cleaned(text)
+        guard value != (weekGoal(for: week) ?? "") else { return }
+        if value.isEmpty && !vault.weeklyNoteExists(for: week) { return }
+        do {
+            let note = try vault.weeklyNote(for: week)
+            let updated = WeekGoal.setting(value, on: self.note(at: note.relativePath) ?? note)
+            if save(updated) { reload() }
+        } catch {
+            errorMessage = "Could not write the goal for the week: \(error.localizedDescription)"
+        }
     }
 
     /// Shows the weekly note for a week, creating the file when it does not exist yet.

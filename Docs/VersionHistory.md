@@ -2,6 +2,21 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 251 · 6 October 2026
+
+**A goal for the week.** The second of the three ideas from Sunsama.
+
+- **Calendar › Week** has a new box at the top: **Goal for this week**. Press it, write one
+  line, for example "The garden before winter", and press Return or **Done**. The box turns
+  gold. Save an empty line to take the goal away.
+- **Today** shows the goal in one line under the date: **This week:** and your line. When no
+  goal is written, nothing is shown.
+- The goal is kept in the week's note as `focus: …`, so it is in your notes like everything
+  else and you can also write it there.
+- The seven day cells on **Week** now show the task times added up under the number, for
+  example **2 h 30**. It is grey, also on a long day: you keep leisure tasks here too, so a
+  full day is not a warning.
+
 ## Build 250 · 6 October 2026
 
 **A note is no longer cut off in a narrow Mac window.** The line at the top of a note holds

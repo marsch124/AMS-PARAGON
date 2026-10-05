@@ -353,9 +353,15 @@ The per cent never says 100 until everything really is finished, and never says 
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
 - **Done** lists what you completed, day by day, for the last 30 days.
 - **Calendar** lets you pick a day, week or month. The day view can show a month grid with week numbers and a dot under every day that holds something — green for tasks due, red if one is overdue, blue for calendar events, grey for a day that already has a note. Under the grid is the day itself: its events, what is due, what got done, and a button to open or create the daily note. The grid is off to begin with, because the day itself is what the screen is for: press the **calendar** button in the day's top row to show it, and press it again to put it away. The button is lit while the grid is showing, and the app remembers your choice. Move with the arrows, the Today button, or the left and right arrow keys. Drop a task on a day to give it that date.
-- **Calendar › Week** is where you plan a week. At the top is **To place**: every open task
+- **Calendar › Week** is where you plan a week. At the very top is **Goal for this week**:
+  one line that says what the week is about. Press the box, write the line, and press Return
+  or **Done**. An empty box is grey and dashed; a written goal is gold. Save an empty line to
+  remove the goal. It is kept in the week's note as `focus: …`, and **Today** shows it in one
+  line under the date. Below the goal is **To place**: every open task
   with no date yet, next actions first, drawn as dashed tiles. Under it is a row of seven small
-  cells, one per day, each with the number of tasks due on it — today's cell is marked. **Drag a
+  cells, one per day, each with the number of tasks due on it — today's cell is marked. Under
+  the number is the total of their task times, for example **2 h 30**; a task with no time
+  adds nothing. **Drag a
   tile onto a cell** and the task gets that day. You can drag onto a day's heading further down
   as well, and you can drag a task from one day to another the same way.
   The tray shows the first twelve and says how many more there are. It is not drawn at all when

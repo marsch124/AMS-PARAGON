@@ -482,6 +482,43 @@ final class ScreenTests: XCTestCase {
                       "The week has an undated task but drew no tray. On screen: \(visibleTexts())")
     }
 
+    /// Build 251: a goal for the week is written on the week screen and shown on Today.
+    /// Pressed at the button's own place (`press(_:at:)`, build 249), and the button is looked
+    /// for among buttons, never any element.
+    func testAGoalForTheWeekCanBeWritten() {
+        go(to: .plan)
+        let week = element("plan.week")
+        XCTAssertTrue(week.waitForExistence(timeout: 20),
+                      "The Plan screen has no Week button. On screen: \(visibleTexts())")
+        week.pressCentre()
+
+        let goal = app.buttons.matching(identifier: "week.goal").firstMatch
+        XCTAssertTrue(goal.waitForExistence(timeout: 20),
+                      "The week screen has no goal box. On screen: \(visibleTexts())")
+        let goalFrame = goal.frame
+        guard Self.isOnScreen(goalFrame) else {
+            XCTFail("The goal box has no place on screen: \(goalFrame)")
+            return
+        }
+        press(goal, at: goalFrame)
+
+        let field = element("week.goal.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing the goal box did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Rest and the garden\n")
+
+        let written = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@",
+                                  "Rest and the garden", "Rest and the garden")).firstMatch
+        XCTAssertTrue(written.waitForExistence(timeout: 10),
+                      "The goal was not shown after Return. On screen: \(visibleTexts())")
+
+        go(to: .today)
+        XCTAssertTrue(element("today.weekGoal").waitForExistence(timeout: 20),
+                      "Today does not show the goal for this week. On screen: \(visibleTexts())")
+    }
+
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
     #if os(macOS)

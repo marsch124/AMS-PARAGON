@@ -3344,6 +3344,18 @@ header is a `WrappingHStack` now (no `Spacer`, `.frame(maxWidth: .infinity, alig
 because a wrapping row measures each item at its natural width. The Mac half of
 `testATaskCanBeGivenATime` presses the button again and first asserts it is inside the window.
 
+**Build 251: the goal for the week.** `Core/Vault/WeekGoal.swift` (tested in `WeekGoalTests`):
+`focus:` in the weekly note's frontmatter, one line (`cleaned` joins line breaks), an empty
+goal removes the line, `NoteIndex.weekGoal(for:)`, and `DayOverview.plannedMinutes` (only
+written times count — never a guessed hour). **Frontmatter, not the template's `## Focus`
+section**: that section ships with the placeholder "What matters most this week?", which
+would have read as a goal. `AppModel.setWeekGoal` never makes a weekly note for an empty goal.
+`WeekGoalBox` (CalendarView.swift) is edited in place, no sheet; Today shows **This week:**
+outside the `List` (build 220's reason) and nothing when unset (a daily nag would be wrong).
+**The week strip's hours are grey even on a long day**, against the drawing's orange
+Wednesday: his leisure-tasks rule from build 249 came after the drawing. Screen test
+`testAGoalForTheWeekCanBeWritten`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
