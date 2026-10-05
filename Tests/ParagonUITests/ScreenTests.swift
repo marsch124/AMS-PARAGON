@@ -508,11 +508,13 @@ final class ScreenTests: XCTestCase {
         field.press()
         field.typeText("Rest and the garden\n")
 
-        let written = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@",
-                                  "Rest and the garden", "Rest and the garden")).firstMatch
-        XCTAssertTrue(written.waitForExistence(timeout: 10),
-                      "The goal was not shown after Return. On screen: \(visibleTexts())")
+        // The field closing is the sign Return was taken. **No search over every element for
+        // the words**: on the Mac that query timed out after two minutes (build 251's first
+        // run). Today's line below is the proof the goal was saved.
+        let closed = NSPredicate(format: "exists == NO")
+        let gone = expectation(for: closed, evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The field stayed open after Return. On screen: \(visibleTexts())")
 
         go(to: .today)
         XCTAssertTrue(element("today.weekGoal").waitForExistence(timeout: 20),
