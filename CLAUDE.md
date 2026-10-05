@@ -3318,6 +3318,20 @@ past the working day is said in grey, and only "does not fit before midnight" is
   at once and counts as 1 h, which the foot of the screen says.
 - Settings › Tasks › **Working day ends** (`WorkdayEndRow`, clock parts both ways).
 
+**Four CI runs for one new screen test, and what each one taught** (`testATaskCanBeGivenATime`):
+1. `app.descendants(matching: .any).matching(identifier:)` found an element **with no frame**
+   carrying the button's name — SwiftUI puts the identifier on a wrapper as well as on a
+   button that has a `.popover`. Look for such a button among `app.buttons`.
+2. On the Mac, `app.coordinate(withNormalizedOffset: .zero)` has **no position**: an offset
+   from it came out as infinity and XCTest threw. Press at the element's own middle there.
+3. **The Mac's note column is clipped at narrow widths — an older layout fault, not fixed yet.**
+   In the 900-point test window the detail column's content is 556 points wide in a column
+   of about 420, centred, so about 67 points are cut off on *each* side: the time button sat
+   at x 980 in a window ending at 962. His own window is wider, which is why it has not been
+   seen. Something in the note screen demands that width (suspect the header's chip row or a
+   `.fixedSize()`); find it with Help › Copy Diagnostics at a narrow window. The Mac half of
+   the test goes through the task menu (**How long › 45 min**) until then.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
