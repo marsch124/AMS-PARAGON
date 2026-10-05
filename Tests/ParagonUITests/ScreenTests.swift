@@ -117,14 +117,21 @@ final class ScreenTests: XCTestCase {
         let row2 = element("task.Book the night train")
         XCTAssertTrue(row2.waitForExistence(timeout: 10),
                       "The note's task box has no row for the test task. On screen: \(visibleTexts())")
-        let time = element("task.time.Book the night train")
+        // **Among buttons, never "any element"** (build 249's second run): the name also lands
+        // on an element with no frame at all — a wrapper SwiftUI makes around the button for its
+        // popover — and `firstMatch` over every kind of element picked that one.
+        let named = app.descendants(matching: .any).matching(identifier: "task.time.Book the night train")
+        let time = app.buttons.matching(identifier: "task.time.Book the night train").firstMatch
         XCTAssertTrue(time.waitForExistence(timeout: 10),
-                      "The task row has no time button. On screen: \(visibleTexts())")
-        let whereItIs = "row \(row2.frame), button \(time.frame), window \(app.windows.firstMatch.frame)"
-        XCTAssertFalse(time.frame.isEmpty, "The time button has no size on screen: \(whereItIs)")
+                      "The task row has no time button (\(named.count) elements carry its name). On screen: \(visibleTexts())")
+        let whereItIs = "row \(row2.frame), button \(time.frame), window \(app.windows.firstMatch.frame), \(named.count) named"
+        guard !time.frame.isNull, !time.frame.isEmpty else {
+            XCTFail("The time button has no place on screen: \(whereItIs)")
+            return
+        }
         pressAtItsPlace(time)
 
-        let choice = element("time.choice.45")
+        let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
         let opened = choice.waitForExistence(timeout: 10)
         #if os(macOS)
         let why = opened ? "" : " The app's log: \(diagnosticsTail())"
@@ -133,6 +140,10 @@ final class ScreenTests: XCTestCase {
         #endif
         XCTAssertTrue(opened,
                       "Pressing the time button did not show the choices (\(whereItIs)). On screen: \(visibleTexts())\(why)")
+        guard opened, !choice.frame.isNull, !choice.frame.isEmpty else {
+            XCTFail("The 45 min choice has no place on screen: \(choice.frame)")
+            return
+        }
         pressAtItsPlace(choice)
 
         XCTAssertTrue(editorHolds(editor, "Book the night train ~45m", within: 10),
