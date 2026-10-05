@@ -2,6 +2,23 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 249 · 5 October 2026
+
+**Start the day uses the task times.**
+
+- **It asks for the time first.** Press **Pick** on a task that has no time, and the time
+  choices open on that button. Choosing a time also picks the task.
+- **It adds up what you picked.** At the bottom of the screen: how much you picked, how much
+  free time is left before your working day ends, and whether it fits. Your calendar events
+  and the blocks already in your plan are left out of the free time.
+- **The working day is not a wall.** You keep your leisure tasks here too. When the picks go
+  past the end of the working day, the line says so in grey, for example "45 min goes past
+  16:00, into the evening". Only when the picks do not fit before midnight does it turn orange.
+- **Each block is as long as its task.** **Plan** makes a 15-minute block for a 15-minute
+  task, not one hour. A task with no time still gets one hour. If a long task does not fit,
+  the shorter ones after it are still placed.
+- **Settings › Tasks › Working day ends** sets the time. It starts at 16:00.
+
 ## Build 248 · 5 October 2026
 
 **A task can say how long it takes.** The first of the three ideas from Sunsama. On the right

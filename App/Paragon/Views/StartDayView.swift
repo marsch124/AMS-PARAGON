@@ -25,6 +25,12 @@ struct StartDayView: View {
     /// into this list. **Inside the sheet**, because the app's own message line sits under it and
     /// the sheet covers that on a phone (build 238).
     @State private var addNote: String?
+    /// Settings › Tasks › **Use task times** (build 248).
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
+    /// The pick whose time is being asked for (build 249, his answer: **ask for the time
+    /// first**). Pressing **Pick** on a task with no time opens the choices on that button, and
+    /// choosing one picks it. By `pickKey`, for the reason that key exists.
+    @State private var askingTimeFor: String?
 
     /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating task
     /// here writes its next occurrence on the line below, moving every later task in that note —
@@ -101,7 +107,7 @@ struct StartDayView: View {
                     if actions.isEmpty {
                         nothingToPick
                     } else {
-                        Text("Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. The circle marks a task as done.")
+                        Text(instructions)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -115,6 +121,11 @@ struct StartDayView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             Divider()
+            if useTaskTimes && !picked.isEmpty {
+                fitLine
+                    .padding(.horizontal, isPhone ? 14 : 20)
+                    .padding(.top, 10)
+            }
             SheetFooter(actionTitle: actionTitle, tint: tint,
                         cancel: { close() }, act: { finish() })
                 .padding(isPhone ? 14 : 20)
@@ -128,6 +139,71 @@ struct StartDayView: View {
         .task { await model.loadEvents(for: day) }
         .frame(minWidth: isPhone ? nil : 480, minHeight: isPhone ? nil : 420)
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
+    }
+
+    private var instructions: String {
+        if useTaskTimes {
+            return "Press Pick on the left of what matters today. A task with no time asks for one first. Each one goes into your plan as a block of its own length, in the free time left today. The circle marks a task as done."
+        }
+        return "Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. The circle marks a task as done."
+    }
+
+    /// **Does it fit?** (build 249) The picked times added up, against the free time left in the
+    /// working day and in the whole day. **The working day is a measure, never a wall**: he keeps
+    /// leisure tasks here too, so going past it is said in grey, and only a day with no room left
+    /// before midnight is orange (`DayFit`, Core, tested).
+    private var fitLine: some View {
+        let fit = model.dayFit(for: pickedRefs, on: day)
+        let end = PlanBlock.clock(model.workdayEnds)
+        let untimed = pickedRefs.filter { $0.task.minutes == nil }.count
+        return VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text("Picked")
+                Spacer()
+                Text(TaskTime.total(fit.picked))
+                    .fontWeight(.semibold)
+                    .monospacedDigit()
+            }
+            HStack {
+                Text(fit.freeInWorkday > 0 ? "Free until \(end)" : "Free this evening")
+                Spacer()
+                Text(TaskTime.total(fit.freeInWorkday > 0 ? fit.freeInWorkday : fit.freeToday))
+                    .monospacedDigit()
+            }
+            Text(verdictText(fit.verdict, end: end, workdayLeft: fit.freeInWorkday > 0))
+                .fontWeight(.semibold)
+                .foregroundStyle(verdictColor(fit.verdict))
+                .fixedSize(horizontal: false, vertical: true)
+            if untimed > 0 {
+                Text(untimed == 1 ? "One pick has no time and counts as 1 h." : "\(untimed) picks have no time and count as 1 h each.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("startDay.fit")
+    }
+
+    private func verdictText(_ verdict: DayFit.Verdict, end: String, workdayLeft: Bool) -> String {
+        switch verdict {
+        case .fitsWorkday:
+            return "It fits before \(end)."
+        case .runsIntoEvening(let minutes):
+            return workdayLeft
+                ? "\(TaskTime.total(minutes)) goes past \(end), into the evening."
+                : "It fits this evening."
+        case .tooMuch(let minutes):
+            return "\(TaskTime.total(minutes)) more than the rest of today holds."
+        }
+    }
+
+    private func verdictColor(_ verdict: DayFit.Verdict) -> Color {
+        switch verdict {
+        case .fitsWorkday: return .green
+        case .runsIntoEvening: return .secondary
+        case .tooMuch: return .orange
+        }
     }
 
     /// Says what the press will do: with nothing picked it only closes the screen.
@@ -290,7 +366,8 @@ struct StartDayView: View {
     /// actions *done* while trying to pick them. He chose this shape (B) over hiding the tick:
     /// the morning is also when he notices something is already done.
     private func row(_ ref: TaskRef) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        let key = pickKey(ref)
+        return HStack(alignment: .top, spacing: 12) {
             if let start = plannedAt[planBlockTitle(from: ref.task)] {
                 VStack(spacing: 0) {
                     Text("In plan")
@@ -303,17 +380,38 @@ struct StartDayView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("In the plan at \(PlanBlock.clock(start))")
             } else {
-                PickButton(isOn: picked.contains(pickKey(ref)), tint: tint, large: true) {
-                    if picked.contains(pickKey(ref)) {
-                        picked.remove(pickKey(ref))
-                    } else {
-                        picked.insert(pickKey(ref))
-                    }
+                PickButton(isOn: picked.contains(key), tint: tint, large: true) {
+                    pressPick(ref, key: key)
                 }
                 .accessibilityIdentifier("startDay.pick.\(ref.task.title)")
+                .popover(isPresented: timeQuestion(for: key)) {
+                    TaskTimeChoices(ref: ref, tint: tint) {
+                        picked.insert(key)
+                        askingTimeFor = nil
+                    }
+                    .presentationCompactAdaptation(.popover)
+                }
             }
             TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
         }
+    }
+
+    /// Unpicks, picks, or — for a task with no time while task times are on — asks for the time
+    /// first, and the chosen time is what picks it (build 249, his answer).
+    private func pressPick(_ ref: TaskRef, key: String) {
+        if picked.contains(key) {
+            picked.remove(key)
+        } else if useTaskTimes && ref.task.minutes == nil {
+            askingTimeFor = key
+        } else {
+            picked.insert(key)
+        }
+    }
+
+    /// A plain function, never a `Binding` built inside the row's view builder (build 58).
+    private func timeQuestion(for key: String) -> Binding<Bool> {
+        Binding(get: { askingTimeFor == key },
+                set: { open in if !open && askingTimeFor == key { askingTimeFor = nil } })
     }
 
     /// With nothing picked, **Done** only closes. Otherwise one write puts every pick into the
@@ -330,10 +428,10 @@ struct StartDayView: View {
 
     private func message(placed: Int, asked: Int) -> String {
         if placed == 0 {
-            return "No free hour is left today, so nothing was added to your plan."
+            return "No free time is left today, so nothing was added to your plan."
         }
         if placed < asked {
-            return "\(placed) of \(asked) fitted in your plan. The rest had no free hour left today."
+            return "\(placed) of \(asked) fitted in your plan. The rest had no free time left today."
         }
         return placed == 1 ? "Added 1 action to today's plan." : "Added \(placed) actions to today's plan."
     }

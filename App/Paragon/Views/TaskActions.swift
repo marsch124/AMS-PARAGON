@@ -196,6 +196,14 @@ enum TaskTimeSetting {
     static let key = "useTaskTimes"
 }
 
+/// Settings › Tasks › **Working day ends** (build 249), minutes since midnight. 16:00 was his
+/// answer. A plain enum, not a static on the main-actor `AppModel`, so a view's
+/// `@AppStorage` can name it from anywhere.
+enum WorkdaySetting {
+    static let key = "workdayEndMinutes"
+    static let defaultEnd = 16 * 60
+}
+
 /// How long a task takes, on the right of a task row (build 248): "45 min" when it has a time,
 /// a dashed **time?** when it has none. Pressing it opens the choices.
 ///

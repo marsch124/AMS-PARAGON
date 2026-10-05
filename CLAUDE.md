@@ -3301,6 +3301,23 @@ dropped. A bare `~` and `~5` are left alone. `TaskTime.label` ("1 h 30") is for 
   Settings › Tasks. Off hides everything; the `~45m` in the files stays.
 - Screen test `testATaskCanBeGivenATime`.
 
+**Build 249: Start the day uses the times.** He added one thing after the plan was agreed:
+*"I also keep my leisure tasks here - so we need to be able to add tasks after 16:00"*. So
+**the working day is a measure, never a wall**: blocks are still placed until midnight, going
+past the working day is said in grey, and only "does not fit before midnight" is orange.
+- Core, tested in `DayFitTests`: `DayPlan.freeStarts(lengths:from:until:busy:)` (one answer
+  per block, nil when it does not fit; a long one left out does not stop a short one after it;
+  the search only moves forward so the first pick stays first), `DayPlan.freeMinutes`, and
+  `DayFit` with its three verdicts.
+- `AppModel.planningBusy(on:)` / `planningStart(on:)` were pulled out of `planActions` so the
+  sum and the placing use **one** busy list. `planLength(of:)` is the task's time, or 60 when
+  it has none or **Use task times** is off. `workdayEnds` reads `WorkdaySetting.key`
+  (`TaskActions.swift`, a plain enum so `@AppStorage` can name it outside the main actor).
+- **Ask first**: `pressPick` opens `TaskTimeChoices` as a popover on the **Pick** button when
+  the task has no time; choosing a time is what picks it. A line added with **+** is picked
+  at once and counts as 1 h, which the foot of the screen says.
+- Settings › Tasks › **Working day ends** (`WorkdayEndRow`, clock parts both ways).
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

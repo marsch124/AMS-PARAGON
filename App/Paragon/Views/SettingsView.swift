@@ -32,6 +32,9 @@ struct SettingsView: View {
                 Text("Each task can say how long it takes, for example 45 minutes. Off, no task shows a time and nothing asks for one. Times already written in your notes stay there.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if useTaskTimes {
+                    WorkdayEndRow()
+                }
                 Toggle("Hide finished tasks in notes", isOn: $hideFinishedTasks)
                 Text("Done and cancelled tasks stay in the file and in the editor; this only hides them from the checklist. A finished task with open subtasks is always shown.")
                     .font(.caption)
@@ -504,6 +507,40 @@ struct EveningReminderSection: View {
             set: { date in
                 let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
                 minutes = (parts.hour ?? 21) * 60 + (parts.minute ?? 0)
+            }
+        )
+    }
+}
+
+/// Settings › Tasks › **Working day ends** (build 249). **Start the day** says whether what you
+/// picked fits before this time. It is a measure, never a wall: blocks still go into the
+/// evening, because he keeps his leisure tasks in PARAGON too.
+///
+/// Its own view, because building the time's `Binding` is a statement and a `@ViewBuilder`
+/// takes only views (build 58) — the shape `EveningReminderSection` already has.
+struct WorkdayEndRow: View {
+    @AppStorage(WorkdaySetting.key) private var minutes = WorkdaySetting.defaultEnd
+
+    var body: some View {
+        DatePicker("Working day ends", selection: time, displayedComponents: .hourAndMinute)
+            .accessibilityIdentifier("settings.workdayEnds")
+        Text("Start the day says whether what you pick fits before this time. Tasks can still be planned after it.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+    }
+
+    /// Clock parts both ways, never seconds since midnight (build 238): on the day the clocks
+    /// change those differ by an hour.
+    private var time: Binding<Date> {
+        Binding(
+            get: {
+                let midnight = Calendar.current.startOfDay(for: Date())
+                return Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60,
+                                             second: 0, of: midnight) ?? midnight
+            },
+            set: { date in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+                minutes = (parts.hour ?? 16) * 60 + (parts.minute ?? 0)
             }
         )
     }

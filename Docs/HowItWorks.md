@@ -112,7 +112,7 @@ Tasks are ordinary list lines inside the notes:
 - `- [-] Cancelled` and `- [>] Moved to another day`
 - `>2026-09-10` sets a date, `>2026-09-10T14:30` a date with a time
 - `!`, `!!`, `!!!` set the priority
-- `~45m`, `~1h` or `~1h30m` says how long the task takes. The small button on the right of every task row writes it for you: it shows **time?** while there is none. **Settings › Tasks › Use task times** hides all of it.
+- `~45m`, `~1h` or `~1h30m` says how long the task takes. **Start the day** asks for it before it plans a task, adds up what you picked, and **Plan** makes each block that long. The small button on the right of every task row writes it for you: it shows **time?** while there is none. **Settings › Tasks › Use task times** hides all of it.
 - `#tag` adds a tag
 - an indented `- [ ]` under a task is a subtask
 - `^t3cd432` at the end is the marker the app uses to match the task with its reminder. The editor hides it, so you will only see it in another editor. If it ever goes missing, the next sync puts it back.

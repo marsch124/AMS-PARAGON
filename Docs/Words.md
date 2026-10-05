@@ -38,6 +38,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Due date** — the day a task should be done. Written `>2026-09-29` on the task line.
 - **Overdue** — a task whose due date has passed. Its date is shown in red.
 - **Task time** — how long a task takes, like `~45m` on the task line. The small button on the right of a task sets it; it says **time?** while there is none. **Use task times** in Settings turns it on and off.
+- **Working day ends** — the time in Settings that **Start the day** measures your picks against. 16:00 to begin with. Tasks can still be planned after it; it is a measure, not a limit.
 - **Important** — one, two or three `!` on a task line. More marks mean more important.
 - **Repeat** — a task that comes back after you tick it, like `@repeat(weekly)`.
 - **Subtask** — a task indented under another task.

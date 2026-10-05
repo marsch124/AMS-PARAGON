@@ -125,7 +125,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 248
+    static let number = 249
 }
 
 @MainActor
@@ -2038,8 +2038,10 @@ final class AppModel: ObservableObject {
         savePlan(planBlocks(for: day) + [block], for: day)
     }
 
-    /// **Start the day** (build 233): the actions he picked become one-hour plan blocks in the
-    /// free time left today, earliest first, and the answer is how many fitted.
+    /// **Start the day** (build 233): the actions he picked become plan blocks in the free time
+    /// left today, earliest first, and the answer is how many fitted. Each block is as long as
+    /// its task's time since build 249 (`planLength(of:)`); a block that does not fit is left
+    /// out without stopping the shorter ones after it.
     ///
     /// Free means clear of the plan's own blocks and of the calendar's timed events; all-day
     /// events take no hours. The search starts now, not at the top of the day — a block placed
@@ -2047,10 +2049,60 @@ final class AppModel: ObservableObject {
     /// for all of them, through `savePlan`, so the daily note is touched once.
     @discardableResult
     func planActions(_ refs: [TaskRef], on day: DateOnly) -> Int {
-        let titles = refs.map { planBlockTitle(from: $0.task) }.filter { !$0.isEmpty }
-        guard !titles.isEmpty, let midnight = day.date() else { return 0 }
+        let wanted = refs.compactMap { ref -> (title: String, length: Int)? in
+            let title = planBlockTitle(from: ref.task)
+            return title.isEmpty ? nil : (title, planLength(of: ref.task))
+        }
+        guard !wanted.isEmpty, day.date() != nil else { return 0 }
         let existing = planBlocks(for: day)
-        var busy = existing.map { $0.start..<max($0.start + 1, $0.end) }
+        let starts = DayPlan.freeStarts(lengths: wanted.map { $0.length }, from: planningStart(on: day),
+                                        until: 24 * 60, busy: planningBusy(on: day))
+        var added: [PlanBlock] = []
+        for (item, start) in zip(wanted, starts) {
+            guard let start else { continue }
+            added.append(PlanBlock(start: start, end: start + item.length, title: item.title))
+        }
+        guard !added.isEmpty else { return 0 }
+        savePlan(existing + added, for: day)
+        return added.count
+    }
+
+    /// **Build 249: a block is as long as its task's time**, one hour when it has none or when
+    /// **Use task times** is off (the length every block had from build 233 to 248).
+    func planLength(of task: TaskItem) -> Int {
+        guard usesTaskTimes, let minutes = task.minutes else { return 60 }
+        return minutes
+    }
+
+    /// Settings › Tasks › **Use task times** (build 248), read where no view can hand it in.
+    var usesTaskTimes: Bool {
+        UserDefaults.standard.object(forKey: TaskTimeSetting.key) as? Bool ?? true
+    }
+
+    /// Settings › **Working day ends**, minutes since midnight. 16:00 unless he changed it.
+    /// **A measure, never a wall** (build 249): blocks still go into the evening, because he
+    /// keeps his leisure tasks here as well.
+    var workdayEnds: Int {
+        UserDefaults.standard.object(forKey: WorkdaySetting.key) as? Int ?? WorkdaySetting.defaultEnd
+    }
+
+    /// Where planning starts on a day: 06:00, or now when the day is today — a block placed at
+    /// 09:00 when it is already 11:00 would be a plan for a morning that has gone.
+    func planningStart(on day: DateOnly) -> Int {
+        var from = 6 * 60
+        if day == DateOnly.today() {
+            let now = Calendar.current.dateComponents([.hour, .minute], from: Date())
+            from = max(from, (now.hour ?? 0) * 60 + (now.minute ?? 0))
+        }
+        return from
+    }
+
+    /// What is already taken on a day, in minutes since midnight: the plan's blocks and the
+    /// timed calendar events. **One list for placing and for adding up** (build 249), so the
+    /// sum in **Start the day** and where **Plan** puts the blocks cannot disagree.
+    func planningBusy(on day: DateOnly) -> [Range<Int>] {
+        guard let midnight = day.date() else { return [] }
+        var busy = planBlocks(for: day).map { $0.start..<max($0.start + 1, $0.end) }
         let calendar = Calendar.current
         // **Clock minutes, never seconds since midnight divided by 60** (build 238): on the two
         // days a year the clocks change, those differ by an hour after 03:00, and a block would
@@ -2066,17 +2118,14 @@ final class AppModel: ObservableObject {
             let end = clockMinutes(event.end, orIfOtherDay: 24 * 60)
             busy.append(start..<max(start + 1, end))
         }
-        var from = 6 * 60
-        if day == DateOnly.today() {
-            let now = calendar.dateComponents([.hour, .minute], from: Date())
-            from = max(from, (now.hour ?? 0) * 60 + (now.minute ?? 0))
-        }
-        let starts = DayPlan.freeStarts(count: titles.count, length: 60, from: from,
-                                        until: 24 * 60, busy: busy)
-        guard !starts.isEmpty else { return 0 }
-        let added = zip(starts, titles).map { PlanBlock(start: $0, end: $0 + 60, title: $1) }
-        savePlan(existing + added, for: day)
-        return added.count
+        return busy
+    }
+
+    /// The sum at the foot of **Start the day** (build 249).
+    func dayFit(for refs: [TaskRef], on day: DateOnly) -> DayFit {
+        let picked = refs.reduce(0) { $0 + planLength(of: $1.task) }
+        return DayFit(picked: picked, from: planningStart(on: day), workdayEnds: workdayEnds,
+                      busy: planningBusy(on: day))
     }
 
     func removePlanBlock(_ block: PlanBlock, on day: DateOnly) {

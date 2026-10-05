@@ -172,6 +172,62 @@ public enum DayPlan {
         return starts
     }
 
+    /// Like `freeStarts(count:length:…)`, but each block has **its own length** (build 249: a
+    /// task's time). One answer per length, in order: a start, or nil when that block found no
+    /// room before `until`. A block that does not fit does not stop the ones after it — a long
+    /// task left out must not keep a short one out of a gap that still holds it.
+    ///
+    /// The search only moves forward, as before: the first one picked gets the earliest start,
+    /// and a later pick is never put in front of an earlier one.
+    public static func freeStarts(lengths: [Int], from: Int, until: Int,
+                                  busy: [Range<Int>]) -> [Int?] {
+        var taken = busy.filter { !$0.isEmpty }
+        var cursor = ((max(0, from) + 14) / 15) * 15
+        var result: [Int?] = []
+        for length in lengths {
+            guard length > 0 else { result.append(nil); continue }
+            var probe = cursor
+            var found: Int?
+            while probe + length <= until {
+                let slot = probe..<(probe + length)
+                if let clash = taken.filter({ $0.overlaps(slot) }).map(\.upperBound).max() {
+                    probe = ((clash + 4) / 5) * 5
+                } else {
+                    found = probe
+                    break
+                }
+            }
+            if let start = found {
+                taken.append(start..<(start + length))
+                cursor = start + length
+            }
+            result.append(found)
+        }
+        return result
+    }
+
+    /// The minutes between `from` and `until` that nothing in `busy` covers (build 249). Busy
+    /// ranges may overlap each other and may reach outside the window; both are handled.
+    public static func freeMinutes(from: Int, until: Int, busy: [Range<Int>]) -> Int {
+        guard until > from else { return 0 }
+        // Built from two numbers checked first: a `Range` whose start is past its end traps,
+        // and a busy range wholly outside the window would make exactly that.
+        let clipped: [Range<Int>] = busy.compactMap { range in
+            let low = max(range.lowerBound, from)
+            let high = min(range.upperBound, until)
+            return high > low ? low..<high : nil
+        }
+        .sorted { $0.lowerBound < $1.lowerBound }
+        var covered = 0
+        var reach = from
+        for range in clipped {
+            let start = max(range.lowerBound, reach)
+            if range.upperBound > start { covered += range.upperBound - start }
+            reach = max(reach, range.upperBound)
+        }
+        return (until - from) - covered
+    }
+
     /// Sorted by start and renumbered, which is the only order a plan is ever held in.
     private static func numbered(_ blocks: [PlanBlock]) -> [PlanBlock] {
         blocks.sorted { $0.start == $1.start ? $0.end < $1.end : $0.start < $1.start }
