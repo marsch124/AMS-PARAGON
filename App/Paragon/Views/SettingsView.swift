@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var backupToRestore: VaultBackup?
     @AppStorage("showMenuBarItem") private var showMenuBarItem = true
     @AppStorage("hideFinishedTasks") private var hideFinishedTasks = false
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     var body: some View {
         Form {
@@ -26,6 +27,11 @@ struct SettingsView: View {
             }
 
             Section("Tasks") {
+                Toggle("Use task times", isOn: $useTaskTimes)
+                    .accessibilityIdentifier("settings.useTaskTimes")
+                Text("Each task can say how long it takes, for example 45 minutes. Off, no task shows a time and nothing asks for one. Times already written in your notes stay there.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Toggle("Hide finished tasks in notes", isOn: $hideFinishedTasks)
                 Text("Done and cancelled tasks stay in the file and in the editor; this only hides them from the checklist. A finished task with open subtasks is always shown.")
                     .font(.caption)

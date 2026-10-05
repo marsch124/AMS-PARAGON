@@ -68,6 +68,7 @@ struct TaskContextMenu: View {
     @Binding var pickingDate: Bool
     var onAddSubtask: (() -> Void)?
     var onRename: (() -> Void)?
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     private var note: Note? { model.note(at: ref.notePath) }
     private var inboxPath: String { model.vault?.config.inboxFile ?? "Inbox.md" }
@@ -103,6 +104,19 @@ struct TaskContextMenu: View {
             Button("Pick a date…") { pickingDate = true }
             if ref.task.dueDate != nil {
                 Button("Remove date") { model.setDueDate(ref, nil) }
+            }
+        }
+        if useTaskTimes {
+            Menu("How long") {
+                ForEach(TaskTime.choices, id: \.self) { value in
+                    Button(ref.task.minutes == value ? "✓ \(TaskTime.label(value))" : TaskTime.label(value)) {
+                        model.setMinutes(ref, value)
+                    }
+                }
+                if ref.task.minutes != nil {
+                    Divider()
+                    Button("No time") { model.setMinutes(ref, nil) }
+                }
             }
         }
         Menu("Repeat") {
@@ -172,5 +186,99 @@ struct TaskDatePicker: View {
             model.setDueDate(ref, chosen)
             isPresented = false
         }
+    }
+}
+
+/// The switch in **Settings › Tasks** (build 248). His own ask: task times must be something he
+/// can turn off. Off, no row shows a time and nothing asks for one; the `~45m` already written
+/// in a note stays there untouched.
+enum TaskTimeSetting {
+    static let key = "useTaskTimes"
+}
+
+/// How long a task takes, on the right of a task row (build 248): "45 min" when it has a time,
+/// a dashed **time?** when it has none. Pressing it opens the choices.
+///
+/// Build 142's two states: set is a solid border, not set is grey and dashed. The popover is on
+/// this button, never a second one on the row (the row already carries the date popover), and
+/// its help tag goes inside the label so it does not cover the choices (build 202).
+struct TaskTimeButton: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    let tint: Color
+    @State private var choosing = false
+
+    private var spoken: String {
+        guard let minutes = ref.task.minutes else { return "Set how long this takes" }
+        return "Takes " + TaskTime.label(minutes)
+    }
+
+    var body: some View {
+        Button { choosing = true } label: {
+            Group {
+                if let minutes = ref.task.minutes {
+                    Text(TaskTime.label(minutes))
+                        .fontWeight(.medium)
+                        .rowTint(Color.primary)
+                } else {
+                    Text("time?")
+                        .rowTint(Color.secondary)
+                }
+            }
+            .font(.caption)
+            .monospacedDigit()
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .overlay(
+                Capsule().strokeBorder(Color.secondary.opacity(ref.task.minutes == nil ? 0.55 : 0.7),
+                                       style: StrokeStyle(lineWidth: 1, dash: ref.task.minutes == nil ? [3, 2] : []))
+            )
+            .contentShape(Capsule())
+            .helpWhenClosed("How long this task takes", open: choosing)
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .accessibilityLabel(Text(spoken))
+        .accessibilityIdentifier("task.time.\(ref.task.title)")
+        .popover(isPresented: $choosing) {
+            TaskTimeChoices(ref: ref, tint: tint) { choosing = false }
+                .presentationCompactAdaptation(.popover)
+        }
+    }
+}
+
+/// The choices behind a task's time button: the eight times, and **No time** when one is set.
+struct TaskTimeChoices: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    let tint: Color
+    let done: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("How long does \u{201C}\(ref.task.title)\u{201D} take?")
+                .font(.callout)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+            WrappingHStack(spacing: 6, lineSpacing: 6) {
+                ForEach(TaskTime.choices, id: \.self) { value in
+                    PickChip(title: TaskTime.label(value), isOn: ref.task.minutes == value, tint: tint) {
+                        model.setMinutes(ref, value)
+                        done()
+                    }
+                    .accessibilityIdentifier("time.choice.\(value)")
+                }
+            }
+            if ref.task.minutes != nil {
+                Button("No time") {
+                    model.setMinutes(ref, nil)
+                    done()
+                }
+                .font(.caption)
+            }
+        }
+        .padding(14)
+        .frame(width: 270, alignment: .leading)
+        .focusEffectDisabled()
     }
 }

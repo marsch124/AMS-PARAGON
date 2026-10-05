@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 248 · 5 October 2026
+
+**A task can say how long it takes.** The first of the three ideas from Sunsama. On the right
+of every task row there is a small button. It says **time?** while the task has no time, with
+a dashed border. Press it and choose: 10 min, 15 min, 30 min, 45 min, 1 h, 1 h 30, 2 h or
+3 h. The button then shows the time, for example **45 min**. Choose **No time** to take it
+away.
+
+- In the note the time is written on the task line as `~45m`, `~1h` or `~1h30m`, the same way
+  a date is written as `>2026-10-06`. You can also type it there yourself.
+- The task menu (right-click on the Mac, long press on the iPhone) has the same choices under
+  **How long**.
+- The time is not sent to Reminders. The reminder keeps the task's name only.
+- **Settings › Tasks › Use task times** turns it all off. Then no task shows a time and nothing
+  asks for one. Times already in your notes stay there.
+
+Next build: **Start the day** adds up the times you pick, asks for a time when a task has
+none, and says whether it all fits before 16:00.
+
 ## Build 247 · 2 October 2026
 
 **Start the day and Close the day are symbols only**, your wish: the orange cup and the lilac

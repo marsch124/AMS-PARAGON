@@ -125,7 +125,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 247
+    static let number = 248
 }
 
 @MainActor
@@ -1459,6 +1459,16 @@ final class AppModel: ObservableObject {
                 ? "One note could not be written, so some tasks still have their old date."
                 : "\(result.failed.count) notes could not be written, so some tasks still have their old date."
         }
+    }
+
+    /// How long a task takes, written as `~45m` on its line (build 248). Nil removes it.
+    func setMinutes(_ ref: TaskRef, _ minutes: Int?) {
+        flushPendingEdits()
+        guard var note = note(at: ref.notePath) else { return }
+        var task = ref.task
+        task.minutes = minutes
+        guard task.minutes != ref.task.minutes, note.replace(task: task) else { return }
+        save(note)
     }
 
     func setRepeat(_ ref: TaskRef, _ rule: RepeatRule?) {

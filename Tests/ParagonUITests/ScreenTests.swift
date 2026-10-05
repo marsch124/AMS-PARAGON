@@ -98,6 +98,35 @@ final class ScreenTests: XCTestCase {
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).
     /// The editor's text is the proof: `type:` is in it, then not, then in it again.
+    /// Build 248: the **time?** button on a task row writes `~45m` into the note. The button
+    /// and the choice are pressed the way the fold is: on the element when the Mac will take
+    /// it, at its centre otherwise (build 247).
+    func testATaskCanBeGivenATime() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Projects list does not show the test project.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The note opened without its editor.")
+
+        let time = element("task.time.Book the night train")
+        XCTAssertTrue(time.waitForExistence(timeout: 10),
+                      "The task row has no time button. On screen: \(visibleTexts())")
+        if time.isHittable { time.press() } else { time.pressCentre() }
+
+        let choice = element("time.choice.45")
+        XCTAssertTrue(choice.waitForExistence(timeout: 10),
+                      "Pressing the time button did not show the choices. On screen: \(visibleTexts())")
+        if choice.isHittable { choice.press() } else { choice.pressCentre() }
+
+        XCTAssertTrue(editorHolds(editor, "Book the night train ~45m", within: 10),
+                      "The note does not carry the time: \(String(((editor.value as? String) ?? "").suffix(200)))")
+    }
+
     func testTheSettingsBlockCanBeFoldedAway() {
         go(to: .projects)
 

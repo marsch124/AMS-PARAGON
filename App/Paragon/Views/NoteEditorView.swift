@@ -859,6 +859,7 @@ struct TaskRow: View {
     @State private var renaming = false
     @State private var draft = ""
     @FocusState private var fieldFocused: Bool
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     /// Tasks take the colour of the note they live in.
     private var tint: Color {
@@ -927,6 +928,17 @@ struct TaskRow: View {
                 .foregroundStyle(.secondary)
             }
             Spacer()
+            // How long it takes (build 248). A finished task keeps its time as plain words and
+            // asks for nothing: "time?" on a ticked line would be a question with no use.
+            if useTaskTimes && !renaming {
+                if !ref.task.isDone {
+                    TaskTimeButton(ref: ref, tint: tint)
+                } else if let minutes = ref.task.minutes {
+                    Text(TaskTime.label(minutes))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
         .contentShape(Rectangle())
         .draggable(TaskTransfer(ref))
@@ -1273,6 +1285,7 @@ private struct TaskSyntaxHelp: View {
         Row(code: ">2026-09-10", meaning: "A date"),
         Row(code: ">2026-09-10T14:30", meaning: "A date and a time"),
         Row(code: "!  !!  !!!", meaning: "Priority, lowest to highest"),
+        Row(code: "~45m  ~1h30m", meaning: "How long it takes"),
         Row(code: "#tag", meaning: "A tag"),
         Row(code: "@repeat(weekly)", meaning: "Comes back every week. Also 2w, monthly, yearly"),
     ]

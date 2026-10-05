@@ -3277,6 +3277,30 @@ click hit. Three lessons:
 - **`editorLacks` must require `exists == YES`**: "the text no longer contains X" is also true
   of an editor that has gone, which is how the first run's pass was vacuous.
 
+## Task times (build 248 on)
+
+He asked what Sunsama had that PARAGON could use, and took three ideas from a drawing
+(https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX): a time on each task, a goal for the week,
+and a focus timer. His answers: **the working day ends at 16:00**, the choices are **10, 15,
+30, 45 min, 1 h, 1 h 30, 2 h, 3 h**, **Start the day asks for a time** before it plans a task
+without one, there is a **Use task times** switch in Settings, and **task times come first**.
+Planned order: 248 time on tasks, 249 Start the day sums and asks, 250 the week goal, 251 the
+focus timer, 252 its notice and the Mac menu bar, 253 planned and worked in Close the day.
+
+**Build 248.** `Core/Markdown/TaskTime.swift` (tested in `TaskTimeTests`): `~45m`, `~1h`,
+`~1h30m` on the task line, lifted out of the title by the parser like a date, written after
+the priority and before the date. `TaskItem.minutes`. The first marker counts; a second is
+dropped. A bare `~` and `~5` are left alone. `TaskTime.label` ("1 h 30") is for a button,
+`TaskTime.total` ("2 h 30 min") for a sum. `MarkdownHighlight` dims it like a date.
+- **Not sent to Reminders**: the reminder's title is `task.title`, which no longer holds it, and
+  the reconcile path sets fields one by one, so a reminder edit never clears it.
+- `TaskTimeButton` sits on the right of every `TaskRow` (so Start the day, Today, notes, the
+  planner all get it at once), a popover with `PickChip`s; **How long** in `TaskContextMenu`.
+  A done task shows its time as plain grey words and asks nothing.
+- `TaskTimeSetting.key` = `useTaskTimes`, default on, read by `TaskRow`, `TaskContextMenu` and
+  Settings › Tasks. Off hides everything; the `~45m` in the files stays.
+- Screen test `testATaskCanBeGivenATime`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

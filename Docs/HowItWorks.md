@@ -112,6 +112,7 @@ Tasks are ordinary list lines inside the notes:
 - `- [-] Cancelled` and `- [>] Moved to another day`
 - `>2026-09-10` sets a date, `>2026-09-10T14:30` a date with a time
 - `!`, `!!`, `!!!` set the priority
+- `~45m`, `~1h` or `~1h30m` says how long the task takes. The small button on the right of every task row writes it for you: it shows **time?** while there is none. **Settings › Tasks › Use task times** hides all of it.
 - `#tag` adds a tag
 - an indented `- [ ]` under a task is a subtask
 - `^t3cd432` at the end is the marker the app uses to match the task with its reminder. The editor hides it, so you will only see it in another editor. If it ever goes missing, the next sync puts it back.
@@ -123,6 +124,7 @@ The task box under the note header shows the same tasks as a checklist. Ticking 
 Right-click any task, anywhere in the app — long-press on the phone — for the task menu:
 
 - **Reschedule**: Today, Tomorrow, Next Monday, In a week, Pick a date, Remove date.
+- **How long**: 10 min, 15 min, 30 min, 45 min, 1 h, 1 h 30, 2 h or 3 h, or **No time**. Only there while **Use task times** is on in Settings.
 - **Repeat**: every day, week, 2 weeks, month, 3 months or year. When you tick a repeating task, the next one appears below it with the next date. In the file this is `@repeat(weekly)`.
 - **Make this the next action** (in a project): the task gets a `#next` tag and a badge, and Today lists it under "Next actions". One per project.
 - **Block time for this…**: opens Time Blocks with the title filled in.

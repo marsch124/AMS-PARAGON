@@ -25,6 +25,8 @@ public struct TaskItem: Equatable, Sendable {
     public var tags: [String]
     /// `@repeat(weekly)`: when the task is completed, a new open copy is created for the next date.
     public var repeatRule: RepeatRule?
+    /// `~45m`: how long the task takes, in minutes (build 248). Nil when no time is written.
+    public var minutes: Int?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
     public var indent: String
@@ -42,6 +44,7 @@ public struct TaskItem: Equatable, Sendable {
                 doneStamp: String? = nil,
                 tags: [String] = [],
                 repeatRule: RepeatRule? = nil,
+                minutes: Int? = nil,
                 id: String? = nil,
                 indent: String = "",
                 bullet: String = "-",
@@ -55,6 +58,7 @@ public struct TaskItem: Equatable, Sendable {
         self.doneStamp = doneStamp
         self.tags = tags
         self.repeatRule = repeatRule
+        self.minutes = minutes.flatMap { $0 > 0 ? $0 : nil }
         self.id = id
         self.indent = indent
         self.bullet = bullet
@@ -121,6 +125,7 @@ public struct TaskItem: Equatable, Sendable {
     public var serialized: String {
         var parts: [String] = [title.trimmingCharacters(in: .whitespaces)]
         if priority > 0 { parts.append(String(repeating: "!", count: priority)) }
+        if let minutes, let token = TaskTime.token(minutes) { parts.append(token) }
         if let dueDate { parts.append(">\(dueDate)" + (dueTime.map { "T\($0)" } ?? "")) }
         if let repeatRule { parts.append("@repeat(\(repeatRule))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
@@ -241,6 +246,7 @@ public enum TaskParser {
         var dueTime: TimeOfDay?
         var priority = 0
         var repeatRule: RepeatRule?
+        var minutes: Int?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
@@ -254,11 +260,13 @@ public enum TaskParser {
             rest = restNS.replacingCharacters(in: due.range, with: " ")
         }
         rest = extract(priorityRegex, from: rest) { priority = max(priority, $0.count) }
+        rest = extractTime(from: rest) { minutes = minutes ?? $0 }
 
         let title = collapseWhitespace(rest)
         let tags = allCaptures(tagRegex, in: title)
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
-                        doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, id: id, indent: indent, bullet: bullet, lineIndex: lineIndex)
+                        doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
+                        indent: indent, bullet: bullet, lineIndex: lineIndex)
     }
 
     /// Parses every task line in a body, ignoring fenced code blocks. Indented tasks below another
@@ -304,6 +312,22 @@ public enum TaskParser {
             found(ns.substring(with: m.range(at: 1)))
             out = out.replacingCharacters(in: m.range, with: " ") as NSString
         }
+        return out as String
+    }
+
+    /// Lifts every `~45m` out of the text. The first one counts; a second is dropped rather
+    /// than left in the title, the way a second date would be. A bare `~` is left alone.
+    private static func extractTime(from text: String, _ found: (Int) -> Void) -> String {
+        let ns = text as NSString
+        let matches = TaskTime.regex.matches(in: text, range: NSRange(location: 0, length: ns.length))
+        var out = ns
+        var values: [Int] = []
+        for m in matches.reversed() {
+            guard let value = TaskTime.minutes(inMatch: m, of: ns) else { continue }
+            values.append(value)
+            out = out.replacingCharacters(in: m.range, with: " ") as NSString
+        }
+        if let first = values.last { found(first) }
         return out as String
     }
 
