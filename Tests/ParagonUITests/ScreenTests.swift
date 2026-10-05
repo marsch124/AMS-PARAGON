@@ -98,7 +98,7 @@ final class ScreenTests: XCTestCase {
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).
     /// Build 248: the **time?** button on a task row writes `~45m` into the note. Both the
-    /// button and the choice are pressed at the middle of their frames (`pressAtItsPlace`).
+    /// button and the choice are pressed at the middle of their frames (`press(_:at:)`).
     func testATaskCanBeGivenATime() {
         go(to: .projects)
 
@@ -125,11 +125,12 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(time.waitForExistence(timeout: 10),
                       "The task row has no time button (\(named.count) elements carry its name). On screen: \(visibleTexts())")
         let whereItIs = "row \(row2.frame), button \(time.frame), window \(app.windows.firstMatch.frame), \(named.count) named"
-        guard !time.frame.isNull, !time.frame.isEmpty else {
+        let timeFrame = time.frame
+        guard Self.isOnScreen(timeFrame) else {
             XCTFail("The time button has no place on screen: \(whereItIs)")
             return
         }
-        pressAtItsPlace(time)
+        press(time, at: timeFrame)
 
         let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
         let opened = choice.waitForExistence(timeout: 10)
@@ -140,11 +141,15 @@ final class ScreenTests: XCTestCase {
         #endif
         XCTAssertTrue(opened,
                       "Pressing the time button did not show the choices (\(whereItIs)). On screen: \(visibleTexts())\(why)")
-        guard opened, !choice.frame.isNull, !choice.frame.isEmpty else {
-            XCTFail("The 45 min choice has no place on screen: \(choice.frame)")
-            return
+        guard opened else { return }
+        // Measured once and used once (build 249's third run): reading `frame` twice asks the
+        // app twice, and a popover can answer differently the second time.
+        let choiceFrame = choice.frame
+        if Self.isOnScreen(choiceFrame) {
+            press(choice, at: choiceFrame)
+        } else {
+            choice.press()
         }
-        pressAtItsPlace(choice)
 
         XCTAssertTrue(editorHolds(editor, "Book the night train ~45m", within: 10),
                       "The note does not carry the time: \(String(((editor.value as? String) ?? "").suffix(200)))")
@@ -735,14 +740,22 @@ final class ScreenTests: XCTestCase {
     /// A press at the element's middle, worked out from its frame in the app's own
     /// coordinates. Neither platform is then asked whether the element is "hittable" — the
     /// question the phone could not answer for the time button (build 249's first run).
-    private func pressAtItsPlace(_ target: XCUIElement) {
-        let frame = target.frame
-        let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
-        let point = origin.withOffset(CGVector(dx: frame.midX, dy: frame.midY))
+    private static func isOnScreen(_ frame: CGRect) -> Bool {
+        !frame.isNull && !frame.isEmpty && !frame.isInfinite
+            && frame.midX.isFinite && frame.midY.isFinite
+    }
+
+    /// **The Mac measures from the element, the phone from the app** (build 249's third run).
+    /// On the Mac the application element has no position of its own, so an offset from its
+    /// corner came out as infinity and XCTest threw; the element's own middle is a real point.
+    /// On the phone the app's corner is the screen's, and that is what avoids asking the phone
+    /// whether the button is "hittable" — the question it could not answer in the first run.
+    private func press(_ target: XCUIElement, at frame: CGRect) {
         #if os(macOS)
-        point.click()
+        target.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
         #else
-        point.tap()
+        let origin = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+        origin.withOffset(CGVector(dx: frame.midX, dy: frame.midY)).tap()
         #endif
     }
 
