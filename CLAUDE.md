@@ -3284,8 +3284,9 @@ He asked what Sunsama had that PARAGON could use, and took three ideas from a dr
 and a focus timer. His answers: **the working day ends at 16:00**, the choices are **10, 15,
 30, 45 min, 1 h, 1 h 30, 2 h, 3 h**, **Start the day asks for a time** before it plans a task
 without one, there is a **Use task times** switch in Settings, and **task times come first**.
-Planned order: 248 time on tasks, 249 Start the day sums and asks, 250 the week goal, 251 the
-focus timer, 252 its notice and the Mac menu bar, 253 planned and worked in Close the day.
+Planned order: 248 time on tasks, 249 Start the day sums and asks, then (after build 250's
+layout fix) 251 the week goal, 252 the focus timer, 253 its notice and the Mac menu bar,
+254 planned and worked in Close the day.
 
 **Build 248.** `Core/Markdown/TaskTime.swift` (tested in `TaskTimeTests`): `~45m`, `~1h`,
 `~1h30m` on the task line, lifted out of the title by the parser like a date, written after
@@ -3329,9 +3330,19 @@ past the working day is said in grey, and only "does not fit before midnight" is
    of about 420, centred, so about 67 points are cut off on *each* side: the time button sat
    at x 980 in a window ending at 962. His own window is wider, which is why it has not been
    seen. Something in the note screen demands that width (suspect the header's chip row or a
-   `.fixedSize()`); find it with Help › Copy Diagnostics at a narrow window. Until then the
-   Mac half of the test only checks that the button exists. A right-click on the row did not
-   bring the task menu up in the test either (run 308), so that route is no way round it.
+   `.fixedSize()`); find it with Help › Copy Diagnostics at a narrow window. A right-click on
+   the row did not bring the task menu up in the test either (run 308).
+
+**Build 250: the culprit was `NoteHeader`.** An `HStack` of kind, name chip, Status, Serves…,
+Deadline, Tags and the List label, none of which shrink, so its sum was the column's smallest
+width. Because build 34's `tameSplitViewColumns` sets `sizingOptions = []` on the column's
+hosting view, AppKit no longer hears that minimum: it gives the column its narrower width and
+SwiftUI lays the content out at its own minimum, centred, clipped both sides. **On the Mac a
+row of things that will not shrink is not squeezed, it is cut off — and on both sides.** The
+header is a `WrappingHStack` now (no `Spacer`, `.frame(maxWidth: .infinity, alignment:
+.leading)` so the band stays full width), and the name chip has `.frame(maxWidth: 260)`
+because a wrapping row measures each item at its natural width. The Mac half of
+`testATaskCanBeGivenATime` presses the button again and first asserts it is inside the window.
 
 ## Not built (by choice)
 

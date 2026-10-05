@@ -125,16 +125,15 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(time.waitForExistence(timeout: 10),
                       "The task row has no time button (\(named.count) elements carry its name). On screen: \(visibleTexts())")
         let whereItIs = "row \(row2.frame), button \(time.frame), window \(app.windows.firstMatch.frame), \(named.count) named"
+        // **Both platforms press the button** since build 250. Before it the Mac's note column
+        // was wider than its window at 900 points and the button sat past the window's edge
+        // (x 980 in a window ending at 962); the header row now wraps, so the row fits. If the
+        // button is off the window again, that is the fault this check is here to catch.
         #if os(macOS)
-        // **On the Mac the button is only checked for, not pressed** (build 249's fourth and
-        // fifth runs). In the test's 900-point window the note's column asks for more width
-        // than it has and is cut off at both sides: the button sat at x 980 in a window ending
-        // at 962, so nothing can click it, and a right-click on the row did not bring the task
-        // menu up either. That is an older layout fault, written down in CLAUDE.md to be fixed
-        // on its own; the press and the written `~45m` are proved on the iPhone below. Once
-        // the column fits, the iPhone half can run here unchanged.
-        XCTAssertTrue(time.exists, "The task row has no time button: \(whereItIs)")
-        #else
+        let window = app.windows.firstMatch.frame
+        XCTAssertTrue(window.contains(time.frame),
+                      "The time button is outside the window, so the note column is too wide again: \(whereItIs)")
+        #endif
         let timeFrame = time.frame
         guard Self.isOnScreen(timeFrame) else {
             XCTFail("The time button has no place on screen: \(whereItIs)")
@@ -143,8 +142,15 @@ final class ScreenTests: XCTestCase {
         press(time, at: timeFrame)
 
         let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
-        XCTAssertTrue(choice.waitForExistence(timeout: 10),
-                      "Pressing the time button did not show the choices (\(whereItIs)). On screen: \(visibleTexts())")
+        let opened = choice.waitForExistence(timeout: 10)
+        #if os(macOS)
+        let why = opened ? "" : " The app's log: \(diagnosticsTail())"
+        #else
+        let why = ""
+        #endif
+        XCTAssertTrue(opened,
+                      "Pressing the time button did not show the choices (\(whereItIs)). On screen: \(visibleTexts())\(why)")
+        guard opened else { return }
         // Measured once and used once (build 249's third run): reading `frame` twice asks the
         // app twice, and a popover can answer differently the second time.
         let choiceFrame = choice.frame
@@ -156,7 +162,6 @@ final class ScreenTests: XCTestCase {
 
         XCTAssertTrue(editorHolds(editor, "Book the night train ~45m", within: 10),
                       "The note does not carry the time: \(String(((editor.value as? String) ?? "").suffix(200)))")
-        #endif
     }
 
     /// The editor's text is the proof: `type:` is in it, then not, then in it again.

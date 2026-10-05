@@ -2,6 +2,15 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 250 · 6 October 2026
+
+**A note is no longer cut off in a narrow Mac window.** The line at the top of a note holds
+the kind, the name, **Status**, **Serves…**, **Deadline**, **Tags** and the Reminders list. On
+a project that line was wider than the note's column when the window was narrow, and the Mac
+then cut off both edges of the whole note, including the **time?** buttons on the right. The
+line now continues on a second row when there is not enough room, so the note always fits.
+A very long note name is shortened with "…" in the middle.
+
 ## Build 249 · 5 October 2026
 
 **Start the day uses the task times.**

@@ -719,7 +719,14 @@ struct NoteHeader: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
+        // **A row that wraps, not an `HStack`** (build 250). On a project the kind, the name,
+        // Status, Serves…, Deadline, Tags and the List label want about 556 points on one
+        // line. An `HStack` of things that will not shrink makes that the column's smallest
+        // width, and on the Mac a narrower column then drew the whole note at 556 points,
+        // centred, with about 67 cut off on each side — the time button on every task row
+        // was among what disappeared. Build 138's `WrappingHStack` moves whole items to a
+        // second line instead.
+        WrappingHStack(spacing: 12, lineSpacing: 6) {
             // A goal note says which of the two it is: the star for an aspiration, the
             // target for a goal with a date (build 168). Every other kind has one symbol.
             Label(note.kind == .daily ? "Daily note" : note.kind.displayName,
@@ -733,6 +740,9 @@ struct NoteHeader: View {
                         .fontWeight(.semibold)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                        // A wrapping row measures each item at its natural width, so a very
+                        // long name would still be wider than the column on its own line.
+                        .frame(maxWidth: 260)
                         .foregroundStyle(note.tint)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
@@ -779,7 +789,6 @@ struct NoteHeader: View {
                 // could not answer.
                 NoteTagsChip(model: model, note: note)
             }
-            Spacer()
             if note.kind.isTaskKind {
                 Label(note.isSyncEnabled && !note.isArchived ? "List: \(listName(for: note))" : "Not synced",
                       systemImage: "arrow.triangle.2.circlepath")
@@ -788,6 +797,9 @@ struct NoteHeader: View {
         .font(.caption)
         .foregroundStyle(.secondary)
         .lineLimit(1)
+        // The wrapping row is only as wide as its longest line; the tinted band is the
+        // column's width, as it was.
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(note.tint.opacity(0.10))
