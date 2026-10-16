@@ -224,12 +224,25 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isContinuousSpellCheckingEnabled = true
+        // No grey word suggestions while typing (build 252). macOS shows one by putting the
+        // suggested words into the text itself and holding the keyboard in a loop of its own
+        // until you accept or refuse it. When SwiftUI resized the editor during that loop, the
+        // text and its layout disagreed and PARAGON crashed (16 October, build 251). Spelling
+        // is still checked and underlined.
+        textView.inlinePredictionType = .no
+        // A sum's answer in grey ("120+35=" then 155) goes down the same path and has a switch
+        // of its own.
+        if #available(macOS 15.0, *) {
+            textView.mathExpressionCompletionType = .no
+        }
         textView.textContainerInset = NSSize(width: 12, height: 12)
         textView.drawsBackground = false
         scrollView.drawsBackground = false
         scrollView.hasVerticalScroller = true
         textView.string = text
         context.coordinator.textView = textView
+        context.coordinator.styledTint = tint
+        context.coordinator.styledScheme = context.environment.colorScheme
         context.coordinator.highlight(tint: NSColor(tint))
         // The same name the phone's text view carries, so one test finds both (build 195).
         textView.setAccessibilityIdentifier("note.editor")
@@ -242,8 +255,8 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         context.coordinator.linkDraft = $linkDraft
         context.coordinator.openLink = openLink
         context.coordinator.onLinkKey = onLinkKey
-        // A title picked from the list: written in here, where the text view is, so undo and
-        // the cursor behave as they would for typing.
+        // A title picked from the list: written in here, where the text view is, so the cursor
+        // lands after it. Undo starts again from here (build 252), as after any outside change.
         if let completion, !context.coordinator.applying {
             // Writing the text sends the delegate off through its callbacks, and anything that
             // published state from there would be publishing inside a SwiftUI update — which
@@ -252,6 +265,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             context.coordinator.applying = true
             let done = WikiLinks.completing(textView.string, draft: completion.draft, with: completion.title)
             textView.string = done.text
+            // Setting the string records nothing, so earlier typing would be undone at places
+            // that have moved. An undo may only ever touch the text it was recorded on.
+            context.coordinator.history.removeAllActions()
             textView.setSelectedRange(NSRange(location: min(done.cursor, (done.text as NSString).length), length: 0))
             context.coordinator.highlight(tint: NSColor(tint))
             let finished = done.text
@@ -264,13 +280,44 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             return
         }
         // Only when the text really came from somewhere else, so typing is never interrupted.
+        // Not held back under a half-typed accent either: `textDidChange` copies the screen
+        // into the binding first, so a difference here is always a real outside change (a
+        // tick, the fold, a sync), and skipping it let the next key write the old screen back
+        // over it — the settings block could be lost (build 252's review).
+        var replaced = false
         if textView.string != text {
             let selected = textView.selectedRange()
             textView.string = text
+            context.coordinator.history.removeAllActions()
             let length = (text as NSString).length
             textView.setSelectedRange(NSRange(location: min(selected.location, length), length: 0))
+            replaced = true
         }
-        context.coordinator.highlight(tint: NSColor(tint))
+        // Restyled only when something it depends on changed. This runs on every SwiftUI
+        // update, often in the middle of the window's layout, and restyling the whole text
+        // there for nothing is a change to the text storage at the worst possible moment
+        // (build 252). Typing restyles itself, in `textDidChange`.
+        let scheme = context.environment.colorScheme
+        if replaced || context.coordinator.styledTint != tint || context.coordinator.styledScheme != scheme {
+            context.coordinator.styledTint = tint
+            context.coordinator.styledScheme = scheme
+            context.coordinator.highlight(tint: NSColor(tint))
+        }
+    }
+
+    /// The note is closing. Its undo history goes with it, and the text view may not call
+    /// back into a coordinator that is about to be gone.
+    static func dismantleNSView(_ scrollView: NSScrollView, coordinator: Coordinator) {
+        if let textView = scrollView.documentView as? LinkingTextView {
+            textView.breakUndoCoalescing()
+            // Without the delegate it would fall back to the window's history, the very one it
+            // must never point into once it is freed. Nothing it does on its way out is recorded.
+            textView.allowsUndo = false
+            textView.onCommandClick = nil
+            textView.delegate = nil
+        }
+        coordinator.history.removeAllActions()
+        coordinator.textView = nil
     }
 
     @MainActor
@@ -282,6 +329,17 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         /// True while a chosen title is being written in: nothing is reported meanwhile.
         var applying = false
         weak var textView: NSTextView?
+        /// This editor's own undo history. Without it the text view kept its typing in the
+        /// window's history, which outlives the editor: every note opens a fresh one
+        /// (`.id(path)`), so ⌘Z after leaving a note asked a text view that was already gone
+        /// to undo its typing, and PARAGON crashed (16 October, build 251).
+        let history = UndoManager()
+
+        func undoManager(for view: NSTextView) -> UndoManager? { history }
+        /// The tint and the light or dark look the text was last styled with, so an update
+        /// that changes nothing restyles nothing — and a switch to dark mode still does.
+        var styledTint: Color?
+        var styledScheme: ColorScheme?
 
         init(text: Binding<String>, linkDraft: Binding<LinkDraftOnScreen?>,
              openLink: @escaping (String) -> Void, onLinkKey: @escaping (LinkKey) -> Bool) {
@@ -306,7 +364,13 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let textView else { return }
+            // Copied first, always: if AppKit finishes a half-typed accent without telling us,
+            // the note already holds what the screen shows, and nothing is lost.
             if text.wrappedValue != textView.string { text.wrappedValue = textView.string }
+            // A half-typed accent (´ then e) is marked text, and AppKit keeps its own marking
+            // on it. It is not restyled or measured until the letter is finished, which calls
+            // this again.
+            guard !textView.hasMarkedText() else { return }
             highlight(tint: nil)
             reportDraft()
         }
@@ -359,6 +423,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         func highlight(tint: NSColor?) {
             guard let textView, let storage = textView.textStorage else { return }
             if let tint { lastTint = tint }
+            // Restyling would wipe the marking AppKit keeps on a half-typed accent. The next
+            // `textDidChange`, when the letter is finished, styles everything.
+            guard !textView.hasMarkedText() else { return }
             MarkdownAttributes.apply(to: storage, text: textView.string, tint: lastTint,
                                      primary: .labelColor, secondary: .secondaryLabelColor, faint: .tertiaryLabelColor)
             textView.typingAttributes = MarkdownAttributes.base(color: .labelColor)

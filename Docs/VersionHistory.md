@@ -2,6 +2,36 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 252 · 16 October 2026
+
+**Two Mac crashes in a note are fixed.** Both happened on the morning of 16 October, three
+minutes apart, and both were in the text of a note.
+
+- **⌘Z after leaving a note.** Undo kept your typing in one list for the whole window, and
+  that list stayed after the note was closed. When you had opened another note, ⌘Z tried to
+  undo typing in a note that was no longer there, and PARAGON stopped. Now every note has its
+  own undo. ⌘Z undoes what you typed in the note you are in, and nothing else. When anything
+  other than your typing changes the note while it is open — your other device, **Settings
+  block**, a tick or a new task in the task box, a button at the top of the note, or a title
+  picked from the `[[` list — its undo starts again from that point.
+- **Undo right after typing is saved correctly.** If you pressed ⌘Z within about half a
+  second of typing, the save that was still waiting wrote the words you had just undone into
+  the file, although the screen no longer showed them. A letter typed and deleted quickly did
+  the same. The waiting save is now dropped when the text is back to what the file holds.
+- **The grey word suggestions while you type.** On the Mac, macOS can show the next words in
+  grey after the cursor. To do that it puts the words into the text itself and waits for Tab
+  or the next key. If PARAGON changed the size of the note screen at that moment, for example
+  when the autosave put a new task line in the list above the text, the text and its layout
+  no longer agreed and PARAGON stopped. The grey suggestions are now switched off in notes and
+  templates, and so is the grey answer the Mac can show after a sum such as "120+35=". Spelling
+  is still checked and underlined as before.
+- **A half-typed accent is left alone.** When you type ´ and then e to get é, the ´ waits in
+  the text until the letter is finished. PARAGON no longer restyles the text during that
+  moment.
+- **Less work while you type.** PARAGON used to restyle the whole note every time anything
+  on the screen changed, even when the text had not changed. Now it restyles only when the
+  text or the note's colour really changed. The note looks the same.
+
 ## Build 251 · 6 October 2026
 
 **A goal for the week.** The second of the three ideas from Sunsama.

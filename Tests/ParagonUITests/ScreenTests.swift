@@ -674,6 +674,60 @@ final class ScreenTests: XCTestCase {
                       "⌃⌘← was pressed and the editor did not go back to the project. It shows: \(editorText(editor))")
     }
 
+    /// ⌘Z after leaving a note (build 252). Up to build 251 the typing went into the window's
+    /// undo history, which outlives the editor — every note opens a fresh one — so ⌘Z in the
+    /// next note asked a text view that was already gone, and PARAGON crashed (16 October).
+    /// Each editor now keeps its own history. Two proofs: ⌘Z still undoes typing in the note
+    /// you are in, and after leaving it the app is still running and the next note was not
+    /// touched by the key.
+    func testUndoWorksInANoteAndStaysWithIt() {
+        go(to: .projects)
+        let project = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(project.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        project.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The project did not open.")
+        editor.press()
+        // Into the body on a line of its own, never the settings block: the autosave rewrites a
+        // settings line as `key: value`, which counts as a change from outside and restarts
+        // the note's undo by design — and the press may well land at the end of one.
+        app.typeKey(.downArrow, modifierFlags: .command)
+        editor.typeText("\nUndo me. ")
+        XCTAssertTrue(shows(editor, "Undo me.", within: 10),
+                      "The editor did not take the typing. It ends: \(editorEnd(editor))")
+        app.typeKey("z", modifierFlags: .command)
+        XCTAssertTrue(editorLacks(editor, "Undo me.", within: 10),
+                      "⌘Z in the note did not undo the typing. It ends: \(editorEnd(editor))")
+
+        editor.typeText("Leave me. ")
+        XCTAssertTrue(shows(editor, "Leave me.", within: 10),
+                      "The editor did not take the second typing. It ends: \(editorEnd(editor))")
+
+        go(to: .resources)
+        let resource = element("note.Resources/Packing list.md")
+        XCTAssertTrue(resource.waitForExistence(timeout: 20), "The Resources list does not show the test resource.")
+        resource.press()
+        // "Packing list" is in the project too (its `[[Packing list]]` link), so the switch is
+        // proved by what only the project holds.
+        XCTAssertTrue(editorLacks(editor, "Book the night train", within: 20),
+                      "The resource did not open; the editor still shows the project. It shows: \(editorText(editor))")
+
+        // Into the resource's own text, so ⌘Z is asked of the new editor and not of the note
+        // list. Build 251 crashed either way: both fell through to the window's history.
+        editor.press()
+        let before = editor.value as? String ?? ""
+        app.typeKey("z", modifierFlags: .command)
+        app.typeKey("z", modifierFlags: .command)
+
+        XCTAssertTrue(editor.waitForExistence(timeout: 10),
+                      "⌘Z was pressed after leaving a note and the editor is gone. App state: \(app.state.rawValue).")
+        XCTAssertEqual(app.state, .runningForeground, "PARAGON stopped after ⌘Z was pressed in the next note.")
+        XCTAssertTrue(editorLacks(editor, "Book the night train", within: 10),
+                      "After ⌘Z the editor no longer shows the resource. It shows: \(editorText(editor))")
+        XCTAssertEqual(editor.value as? String ?? "", before,
+                       "⌘Z in the next note changed that note's text. It ends: \(editorEnd(editor))")
+    }
+
     /// Waits until the editor's text contains the words.
     private func shows(_ editor: XCUIElement, _ words: String, within timeout: TimeInterval) -> Bool {
         let holds = expectation(for: NSPredicate(format: "value CONTAINS %@", words), evaluatedWith: editor)
@@ -682,6 +736,11 @@ final class ScreenTests: XCTestCase {
 
     private func editorText(_ editor: XCUIElement) -> String {
         String(((editor.value as? String) ?? "").prefix(200))
+    }
+
+    /// The last 200 characters: where a test's own typing lands, after the settings block.
+    private func editorEnd(_ editor: XCUIElement) -> String {
+        String(((editor.value as? String) ?? "").suffix(200))
     }
     #endif
 

@@ -3356,6 +3356,75 @@ outside the `List` (build 220's reason) and nothing when unset (a daily nag woul
 Wednesday: his leisure-tasks rule from build 249 came after the drawing. Screen test
 `testAGoalForTheWeekCanBeWritten`.
 
+## Two Mac crashes in the editor (build 252)
+
+He pasted one crash report from build 251. **The Crash reports workflow had a second one from
+the same Mac three minutes earlier**, with a different cause — run the workflow before
+designing a fix, even when he has pasted a report, because the one he pasted may not be the
+only one.
+
+- **08:36, ⌘Z: `EXC_BAD_ACCESS` in `-[_NSUndoStack popAndInvoke]`**, reached from the Edit
+  menu's key equivalent. The `NSTextView` registered its typing in the **window's** undo
+  manager, and every note opens a fresh editor (`NoteEditorView(path:).id(path)`), so the
+  history outlived the text view it pointed at. ⌘Z in the next note invoked a freed object.
+  Fix: `Coordinator.history`, an `UndoManager` per editor returned from
+  `undoManager(for:)` (the `NSTextViewDelegate` method), emptied in `dismantleNSView`, and
+  emptied again whenever the text is replaced from outside (`textView.string = …` records
+  nothing, so older typing would be undone at places that have moved). `dismantleNSView` also
+  sets `allowsUndo = false`, because once the delegate is nil the text view falls back to the
+  window's history. **A side effect he will meet**: ticking a task in the note's own task box,
+  any header chip, or the autosave rewriting a settings line (`key: value`, trimmed) is an
+  outside change and restarts undo — the manual says so. Found by the review in the same
+  build and fixed: `scheduleSave`'s early return (text back to what the file holds) never
+  cancelled `pendingSave`, so ⌘Z within 600 ms of typing, or a letter typed and deleted,
+  saved the undone text while the screen did not show it. Screen test
+  `testUndoWorksInANoteAndStaysWithIt` (Mac): undo works inside the note, and ⌘Z after leaving
+  it keeps the app running.
+- **08:39, typing: an uncaught `NSRangeException` from `NSRLEArray objectAtRunIndex:length:`
+  in `NSLayoutManager _fillLayoutHoleAtIndex`**, under `NSTextView sizeToFit` ←
+  `NSScrollView setFrameSize` ← SwiftUI's `AppKitPlatformViewHost` layout ← a display-cycle
+  flush running **inside `NSCorrectionPanel _interceptEvents`**, the nested event loop macOS
+  14+ spins while it shows an **inline prediction** (the grey words after the caret). The
+  prediction is marked text inside the text storage; during that loop our 600 ms autosave
+  could land, change the height of what sits above the editor, and resize the scroll view,
+  while `updateNSView` restyled the whole storage on **every** SwiftUI update. Fixes, all in
+  `MarkdownSyntaxEditor.swift`: `textView.inlinePredictionType = .no` (macOS 14) and
+  `mathExpressionCompletionType = .no` (macOS 15, behind `#available`; a sum's answer in grey
+  is shown by the same `showCompletionForCandidate`), which remove the **prediction** way into
+  the loop — **not the loop itself**: an autocorrection bubble still runs `NSCorrectionPanel
+  _interceptEvents` (public `showCorrectionIndicator`, macOS 10.7), with no evidence it is
+  unsafe. A later report with `_interceptEvents` and no `_showInlinePrediction` frame is that
+  path; the switch then is `isAutomaticSpellingCorrectionEnabled = false`, his choice since it
+  costs spelling help; `textDidChange` copies into the binding **first** and then stops while
+  `hasMarkedText()` (binding-first loses nothing if AppKit commits marked text without a
+  following `didChangeText`; a lone ´ may sit in the file for a moment, which is what the
+  screen shows), and `highlight` does nothing under marked text. **`updateNSView` still
+  replaces the string under marked text, deliberately.** A first version skipped it, and the
+  review found the cost: with the binding copied first, a difference there is always a real
+  outside change (a tick, the fold, a sync), and skipping it let the next key write the old
+  screen back over it — the fold toggled under a pending ´ could delete or double the settings
+  block. **A guard that holds back an outside change has to say when the change is applied
+  later; if nothing does, it is a data-loss bug.** `updateNSView` restyles only
+  when it replaced the text, the tint changed (`styledTint`, a SwiftUI `Color`, which is
+  Equatable where a converted `NSColor` is not reliably so) or the light/dark look changed
+  (`styledScheme`, from `context.environment.colorScheme` — before, the restyle on every
+  update covered an appearance switch by accident). Of the three, **only the prediction
+  switch is on the crash's stack**; the review rated the other two hardening, not the fix.
+- **Build 211's Mac crash (22 September) is the same family, not proven the same fault.** Its
+  thread 0 matches frame for frame up to the layout recursion, at the same depth in the view
+  tree, and the editor is the only `NSViewRepresentable` in the app — but it carries no
+  exception backtrace and no `NSCorrectionPanel`: it ran from the main loop 43 seconds after
+  the Mac woke. The weak point is the same (SwiftUI resizing the hosted text view while its
+  storage was being restyled on every update); the trigger was not a prediction.
+- **The phone's editor is not changed.** The iOS coordinator has the same unguarded shape
+  (no `markedTextRange` check, restyle on every `updateUIView`), but no iPhone crash points
+  there, and the phone editor's history (builds 123–128) says not to touch it on a guess. The
+  `scheduleSave` fix is in `NoteEditorView`, so it reaches the phone too, harmlessly.
+- **The ⌃⌘← screen test is blind in one place**: it proves the resource opened with "Packing
+  list", which the project also holds (its `[[Packing list]]` link). The new undo test proves
+  the switch by what only the project holds ("Book the night train"); the old test was left
+  alone so a build about crashes changes no test that was already green.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

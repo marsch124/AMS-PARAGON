@@ -642,6 +642,12 @@ struct NoteEditorView: View {
 
     private func scheduleSave(_ newValue: String) {
         guard newValue != displayText else {
+            // Back to exactly what the file holds: ⌘Z straight after typing, ⇧⌘Z straight
+            // after ⌘Z, or a letter typed and deleted. The save still waiting from the last
+            // key would write the older text over it, and the screen would never show it
+            // (build 252).
+            pendingSave?.cancel()
+            pendingSave = nil
             isDirty = false
             return
         }

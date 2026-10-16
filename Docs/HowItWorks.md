@@ -53,6 +53,8 @@ Several of these have a button at the top of the note as well, and it writes the
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
+**⌘Z** undoes your typing in the note you are in. Each note has its own undo, so after you open another note, ⌘Z does not reach back into the one you left. When anything other than your typing changes the note while it is open — your other device, **Settings block**, a tick or a new task in the task box, a button at the top of the note, or a title picked from the `[[` list — its undo starts again from that point. On the Mac, the grey word suggestions macOS can show after the cursor, and the grey answer after a sum such as "120+35=", are switched off in notes, because they made PARAGON crash. Spelling is still checked and underlined.
+
 Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below.
 
 ### Making one
