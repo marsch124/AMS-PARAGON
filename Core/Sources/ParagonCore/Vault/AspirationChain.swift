@@ -84,9 +84,10 @@ public extension DateOnly {
 public struct ChainProject: Identifiable, Equatable, Sendable {
     public var note: Note
     public var openTaskCount: Int
-    /// The task tagged `#next`, else the first open top-level task, else nil.
+    /// `Note.nextThing`: the task tagged `#next`, else the first open top-level task, else the
+    /// first open subtask under a ticked task, else nil (build 254).
     public var nextAction: TaskItem?
-    /// True when the project is live and has no open task at all. That is a real finding for
+    /// True when the project is live and has nothing open to do. That is a real finding for
     /// the review: a project nobody can act on.
     public var hasNothingToDo: Bool
     public var isFinished: Bool
@@ -97,9 +98,10 @@ public struct ChainProject: Identifiable, Equatable, Sendable {
         self.note = note
         let open = note.tasks.filter { !$0.isDone && !$0.isSubtask && $0.status != .cancelled }
         self.openTaskCount = open.count
-        self.nextAction = note.nextAction ?? open.first
+        let next = note.nextThing
+        self.nextAction = next
         self.isFinished = note.isFinishedProject
-        self.hasNothingToDo = !note.isFinishedProject && open.isEmpty
+        self.hasNothingToDo = !note.isFinishedProject && next == nil
     }
 }
 

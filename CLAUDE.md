@@ -3508,7 +3508,14 @@ the push is still worth running after it** — it found two behaviour faults CI 
   which applied them to the whole list and wrote `order:` into notes nobody touched.
   `mover(for:)` returns nil while searching, in every section.
 - **An open subtask under a ticked task is the next thing**, after the top-level rule, so a box
-  can no longer say "All 3 finished" beside "1 overdue".
+  can no longer say "All 3 finished" beside "1 overdue". **`Note.nextThing` (Core) is the one
+  rule**, used by `ProjectLine`, `ChainProject` (whose `hasNothingToDo` is now "no next thing")
+  and `NoteIndex.nextActions()`. The first push taught it to the Projects list alone, and the
+  254 review caught the Goals screen saying "No next action" for the same project — **when one
+  screen learns a rule, every screen asking that question is part of the build** (162, 168).
+  A subtask under a cancelled task is not counted. The box hides its progress bar when the next
+  thing is a subtask (`openCount > 0`), or it would show a full "1 of 1" beside "Next:".
+- `setEmoji` writes nothing when the emoji is unchanged.
 - The **Not linked to an aspiration** footer adds the `Serves` fix when a goal name was not
   found; `Docs/HowItWorks.md` names the **Archived** group and says the sidebar number counts
   on-hold projects (it said "still running", which on hold is not).

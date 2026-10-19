@@ -11,7 +11,8 @@ The build number is shown at the bottom of the sidebar. Newest first.
   **Home, boat and travel**. Press one, and it shows in the project's tile in the **Projects**
   list, in a green frame.
 - **Or type any emoji** takes any other one. On the Mac, Control-Command-Space shows every
-  emoji there is. **Remove emoji** takes it away again.
+  emoji there is. Once an emoji is set, the button shows it; press it to pick another one or
+  to choose **Remove emoji**.
 - The emoji is kept in the note as `emoji: 🎒`, so it shows on the iPhone too.
 
 **Four fixes to the Projects list from build 253**, found by a second check of the code:
@@ -22,7 +23,9 @@ The build number is shown at the bottom of the sidebar. Newest first.
 - **Dragging a project while a search is shown** could move the wrong project and change the
   order of projects you had not touched. Dragging is now off while a search is shown.
 - **A ticked task with an open subtask under it** made the box say "All 3 finished" and "No
-  next action". The box now names the open subtask as the next thing.
+  next action". The box now names the open subtask as the next thing, and so do the Goals and
+  Aspirations screens and **Plan**, so all of them give the same answer. A subtask under a
+  task you called off (`- [-]`) is not counted.
 - **Not linked to an aspiration**: the note under the group now also says what to do when a
   goal name could not be found (right-click the project › **Serves**).
 

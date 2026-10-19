@@ -118,13 +118,20 @@ struct ProjectsListView: View {
     private func footerText(for group: ProjectGroup) -> String? {
         switch group.heading {
         case .notLinked:
-            let advice = "Their goal has no aspiration yet. In Goals, press Give it an aspiration under that goal."
-            // A dashed goal name cannot be fixed in Goals: there is no such goal there (build
-            // 254, from the review of 253). It needs the project's own Serves.
-            guard group.lines.contains(where: \.goalIsMissing) else { return advice }
-            return advice + (isPhone
-                ? " A goal name with a dashed line was not found: press and hold the project and choose Serves."
-                : " A goal name with a dashed line was not found: right-click the project and choose Serves.")
+            // Two reasons can put a project here, and each needs its own fix: a goal with no
+            // aspiration is fixed in Goals, a goal name that was not found (dashed) only with
+            // the project's own Serves (build 254, from the reviews of 253 and 254). Each
+            // sentence is said only when a project in the group needs it.
+            var parts: [String] = []
+            if group.lines.contains(where: { !$0.goalIsMissing }) {
+                parts.append("Their goal has no aspiration yet. In Goals, press Give it an aspiration under that goal.")
+            }
+            if group.lines.contains(where: \.goalIsMissing) {
+                parts.append(isPhone
+                    ? "A goal name with a dashed line was not found: press and hold the project and choose Serves."
+                    : "A goal name with a dashed line was not found: right-click the project and choose Serves.")
+            }
+            return parts.isEmpty ? nil : parts.joined(separator: " ")
         case .noGoal:
             return isPhone
                 ? "Press and hold a project and choose Serves to give it a goal."
@@ -403,9 +410,12 @@ struct ProjectBox: View {
         }
     }
 
+    /// Only while a top-level task is still open. When the next thing is a subtask under a
+    /// ticked task, a full "1 of 1 finished" bar beside it would make the box look finished —
+    /// the very signal build 253 was made to remove.
     private var showsProgress: Bool {
         guard case .next = line.need else { return false }
-        return line.total > 0
+        return line.total > 0 && line.openCount > 0
     }
 
     /// The short facts, assembled here rather than in the body, where a loop and `var` are not

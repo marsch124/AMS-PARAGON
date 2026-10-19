@@ -124,7 +124,8 @@ rounded card.
 - **What it needs**, in one line:
   - **Next:** and the task to do next. That is the open task marked `#next`, or else the first
     open task in the note. When every task is ticked but a subtask under one of them is still
-    open, it is that subtask. The `#next` itself is not shown there.
+    open, it is that subtask. The Goals and Aspirations screens and **Plan** use the same rule.
+    The `#next` itself is not shown there.
   - **All 15 finished** (or **Its one task is finished**) and a grey **No next action**: every
     task is ticked, but the project still says it is active. Either mark it done, or write its
     next task. The grey is on purpose; the weekly review is where this is asked with orange.
@@ -166,7 +167,9 @@ Press one and it is set.
 
 - **Or type any emoji** takes any other emoji. On the Mac, Control-Command-Space shows every
   emoji there is. Only the first emoji you type is kept; words are not.
-- **Remove emoji** takes it away again. The tile then shows the project flag in a dashed frame.
+- Once an emoji is set, the button at the top of the project shows the emoji itself instead of
+  **Emoji…**. Press it to pick another one, or to reach **Remove emoji**, which takes it away
+  again. The tile then shows the project flag in a dashed frame.
 - The emoji is kept in the note's settings block as `emoji: 🎒`, so it travels with the note to
   the iPhone and back. You can also write that line yourself.
 

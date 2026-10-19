@@ -15,7 +15,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **PARA** — the four kinds of note the app is built on: Projects, Areas, Resources and Archive.
 - **Project** — work with an end, like "Renovate the bathroom". Shown in green. It is finished when you mark it **Done**.
 - **Deadline** — the date a project should be finished by. Set it with **Set a deadline…** at the top of the project.
-- **Next:** — on a project's box in the **Projects** list: the task to do next. That is the task marked `#next`, or else the first open task.
+- **Next:** — on a project's box in the **Projects** list: the task to do next. That is the task marked `#next`, or else the first open task. When every task is ticked but a subtask under one of them is still open, it is that subtask.
 - **No next action** — on a project's box: every task is ticked, but the project is still active. Mark it done, or write its next task.
 - **No tasks yet** — on a project's box: the project has no tasks at all.
 - **Not linked to an aspiration** — a group in the **Projects** list: the projects serve a goal, but that goal has no aspiration above it, or no goal with that name can be found.

@@ -1931,16 +1931,17 @@ final class AppModel: ObservableObject {
         reload()
     }
 
-    /// A project's own deadline, written as `due:`. Nothing in the app wrote that line before
-    /// build 132, so the review's "past its due date" check had never once been able to fire
-    /// and "due after its goal" would have been born dead.
     /// A project's own emoji (build 254). Nil removes the line rather than writing `emoji:`:
     /// a note that says nothing has no emoji, and that is what a new note looks like.
     func setEmoji(_ emoji: String?, on note: Note) {
         flushPendingEdits()
         guard var updated = self.note(at: note.relativePath) else { return }
-        if let emoji = emoji.flatMap(ProjectEmoji.cleaned) {
-            updated.frontmatter.set(ProjectEmoji.key, emoji)
+        let cleaned = emoji.flatMap(ProjectEmoji.cleaned)
+        // Pressing the emoji already chosen writes nothing: a save moves the file's date,
+        // clears the review's "no changes lately" and sends the note round iCloud for nothing.
+        guard cleaned != updated.emoji || (cleaned == nil && updated.frontmatter.string(ProjectEmoji.key) != nil) else { return }
+        if let cleaned {
+            updated.frontmatter.set(ProjectEmoji.key, cleaned)
         } else {
             updated.frontmatter.remove(ProjectEmoji.key)
         }
@@ -1948,6 +1949,9 @@ final class AppModel: ObservableObject {
         reload()
     }
 
+    /// A project's own deadline, written as `due:`. Nothing in the app wrote that line before
+    /// build 132, so the review's "past its due date" check had never once been able to fire
+    /// and "due after its goal" would have been born dead.
     func setDeadline(_ note: Note, _ date: DateOnly?) {
         flushPendingEdits()
         guard var updated = self.note(at: note.relativePath) else { return }

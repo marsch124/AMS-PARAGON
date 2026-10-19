@@ -125,6 +125,21 @@ final class ProjectGroupsTests: XCTestCase {
         XCTAssertEqual(lines.first?.overdueCount, 1)
         XCTAssertEqual(lines.first?.done, 1, "The counts stay top-level, as Note.progress has them")
         XCTAssertEqual(lines.first?.total, 1)
+
+        // One rule on every screen: the Goals chain and the planner name the same subtask, so
+        // the Goals screen no longer says "No next action" for this project.
+        let chained = ChainProject(note: roof)
+        XCTAssertEqual(chained.nextAction?.title, next.title)
+        XCTAssertFalse(chained.hasNothingToDo)
+        XCTAssertEqual(NoteIndex(notes: [roof]).nextActions().map(\.task.title), [next.title])
+    }
+
+    func testASubtaskUnderACancelledTaskIsNotTheNextThing() {
+        let shed = project("Build a shed", body: "- [-] Build it\n    - [ ] Buy wood\n")
+        XCTAssertNil(shed.nextThing, "That branch was called off")
+        let line = NoteIndex(notes: [shed]).projectGroups([shed], today: today).flatMap(\.lines).first
+        XCTAssertEqual(line?.need, .noTasks)
+        XCTAssertTrue(ChainProject(note: shed).hasNothingToDo)
     }
 
     func testOnlyLateThingsAskForALook() {

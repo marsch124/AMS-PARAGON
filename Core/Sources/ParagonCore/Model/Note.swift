@@ -412,6 +412,29 @@ public struct Note: Equatable, Identifiable, Sendable {
         tasks.first { !$0.isDone && !$0.isSubtask && $0.tags.contains(Self.nextActionTag) }
     }
 
+    /// What to do next in this note: the open top-level task tagged `#next`, else the first open
+    /// top-level task, else — when every top-level task is ticked — the first open subtask under
+    /// a **ticked** one. Nil when there is nothing open to do.
+    ///
+    /// **One rule for every screen that asks** (build 254): the Projects list, the chain on the
+    /// Goals and Aspirations screens, and the planner's next actions. Before it the Projects list
+    /// alone learned the subtask step, and the same project read "Next: Pay the invoice" there
+    /// and an orange "No next action" on the Goals screen. A subtask under a *cancelled* task is
+    /// left out: that branch was called off.
+    public var nextThing: TaskItem? { Self.nextThing(in: tasks) }
+
+    /// `nextThing` over tasks already parsed, for a caller that has them in hand.
+    public static func nextThing(in tasks: [TaskItem]) -> TaskItem? {
+        let open = tasks.filter { !$0.isDone && !$0.isSubtask }
+        if let tagged = open.first(where: { $0.tags.contains(nextActionTag) }) { return tagged }
+        if let first = open.first { return first }
+        let ticked = Set(tasks.filter { $0.status == .done }.map(\.lineIndex))
+        return tasks.first { task in
+            guard task.isSubtask, !task.isDone, let parent = task.parentLineIndex else { return false }
+            return ticked.contains(parent)
+        }
+    }
+
     /// Done and total counts of top-level tasks, cancelled ones left out.
     public var progress: (done: Int, total: Int) {
         let top = tasks.filter { !$0.isSubtask && $0.status != .cancelled }
