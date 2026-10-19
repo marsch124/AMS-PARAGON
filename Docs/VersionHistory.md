@@ -2,6 +2,34 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 253 · 19 October 2026
+
+**The Projects list is grouped, and each project is a box that says what it needs.**
+
+- **Groups.** Each project sits under the aspiration it works towards, with a gold band and the
+  star. A project that serves a goal with a date lands under that goal's aspiration. Then come
+  **Not linked to an aspiration** (the goal has no aspiration yet) and **Projects with no
+  goal**. At the bottom: **Done**, **Missed** and **Dropped**, folded, with the number in each.
+  Press a heading to fold the group or open it again.
+- **Boxes.** Each project is a box with a green tile, its name on up to two lines, and one line
+  that says what it needs:
+  - **Next:** and the task to do next — the one marked `#next`, or else the first open task;
+  - **All 5 finished** and a grey **No next action**, when every task is ticked but the project
+    is still active;
+  - **No tasks yet**.
+- **Small pills** under it: the goal it serves (left out when the heading already says it),
+  the next task's time and date, **On hold**, the deadline, and the first two tags.
+- **Red** is only for a date that has passed: an overdue task or a passed deadline. **Due
+  after its goal** is orange. When a group holds a project like that, its heading shows an
+  orange ⚠ and how many.
+- **Right-click a project** (press and hold on the iPhone) for four new lines: **Mark done**,
+  **Mark missed**, **Mark dropped** and **Put on hold**, and **Set active** to bring one back.
+  Before, this was only possible inside the note or in the weekly review.
+- **The sidebar's number beside Projects** now counts only the projects still running.
+- **Your own order stays.** Drag a project up or down inside its group. It never leaves the
+  group, and the projects in the other groups keep their places.
+- A search in Projects still shows the plain list, as before.
+
 ## Build 252 · 16 October 2026
 
 **Two Mac crashes in a note are fixed.** Both happened on the morning of 16 October, three

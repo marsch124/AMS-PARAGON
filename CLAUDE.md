@@ -3425,6 +3425,62 @@ only one.
   the switch by what only the project holds ("Book the night train"); the old test was left
   alone so a build about crashes changes no test that was already green.
 
+## The Projects list, grouped (build 253 on)
+
+His words: *"The project list is a bit boring … I need to get inspired by the app so that I feel
+like using it."* Then *"you are the designer"*, and he approved a drawing
+(https://claude.ai/artifact/4ByhCcS4cA5kYYNH41b6ap). Three builds: **253** groups and boxes,
+**254** his own emoji in the tile (`emoji:` frontmatter, an **Emoji…** chip), **255** the small
+weekly bars, "last task finished …" and the band at the top. The focus timer (256–258) follows,
+in the look of the Time and Focus page (https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX) —
+he said he loves that page's design.
+
+**Build 253.** The fault under "boring" was a real one: seven of his nine projects had every
+task ticked and still said Active, so each showed a full bar and "1 of 1" and looked finished.
+Core already knew (`ProjectHealth.noNextAction`); the list never asked.
+- `Core/Vault/ProjectGroups.swift` (tested in `ProjectGroupsTests`): `ProjectLine` (one box:
+  `Need` = next task / all finished / no tasks, counts, overdue, goal, deadline, the late flags,
+  and the wording), `ProjectGroup` (aspiration / not linked / no goal / one per ending),
+  `NoteIndex.aspiration(above:)` and `projectGroups(_:today:)`, and `ProjectOrder`.
+- **Grouped by aspiration, not by area**: it answers "what is this for?", and a project's area
+  can only be set by dragging on the Map today. Aspirations come in `aspirations()` order, so
+  this list and the Aspirations room agree; an ended aspiration with live projects under it
+  still gets its group (build 100: work must not vanish).
+- **"No next action" is calm grey**, never orange, and `needsALook` ignores it: true of most of
+  his projects, and a screen of orange would be a telling-off (build 132's rule). Orange ⚠ on a
+  heading counts only the late things — an overdue task, a passed deadline, due after its goal.
+- **`nextTitle` strips `#next`** through `WidgetSnapshot.widgetTitle` (build 174's rule): the box
+  shows the task *because* of that tag. It is internal to Core, hence the property.
+- **A drag never leaves its group, and the other groups keep their slots.** `ProjectOrder.moving`
+  lets the group's projects trade places among the slots they already hold in the whole list;
+  numbering one group from 10 would collide with the next group and scramble the **File it**
+  column and the **Move to** menu, which list projects in this order. `Array.move(fromOffsets:)`
+  is SwiftUI's, so `ProjectOrder.moved` is written out in Core and pinned by a test.
+- `AppModel.projectGroups` is worked out in `notes`' `didSet`, never in a body: every project's
+  tasks are parsed. `count(for: .kind(.project))` counts only live projects, so the sidebar
+  number is the work in the list (the Goals row's build 199 reasoning).
+- `ProjectsView.swift`: `ProjectsListView` (one `List(selection:)` for both platforms, a `.tag`
+  on each box — nothing in a box takes a click, which is what keeps a tagged row safe, builds
+  71–74), `ProjectGroupHeader` (the whole line folds, build 205; `.textCase(nil)`, build 214),
+  `ProjectBox`, `ProjectPill`/`ProjectFact`, `ProjectProgress`, `ProjectTile`. The box is framed
+  on the Mac only: on the phone the inset-grouped section's card is the box already.
+- **The four status lines on the right-click menu** — **Mark done/missed/dropped**, **Put on
+  hold**, **Set active** — because a list that says "All 15 finished" has to be able to answer
+  itself. The fields-nothing-could-write rule turned round: a screen that *shows* a fact needs
+  the control that changes it within reach.
+- `NoteStatus.systemImage` (GoalsView.swift) is now the one place the status symbols are
+  spelled; `NoteStatusChip` reads it.
+- Folding is two `@AppStorage` strings of group ids: live groups open by default, ended groups
+  folded by default (as in both goal rooms).
+- `askingToTrash(_:)` in `NoteListView` is the one delete question for the flat list and this
+  one.
+- Screen test `testProjectsSitUnderTheAspirationTheyServe`, both platforms: the heading is
+  found among **buttons** by `projects.group.aspiration:` (build 249), the box's
+  `project.next.<path>` reads "Next: …" (its label is set explicitly, one sentence, so both
+  platforms read it the same), and the heading folds the group and opens it again. It checks
+  "Next:" and never the task's words: the first open task is the project template's own
+  (build 211).
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

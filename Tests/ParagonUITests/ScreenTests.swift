@@ -21,8 +21,8 @@ import AppKit
 /// the app beside the views: `tab.*` and `browse.<section>` on the phone, `sidebar.<section>`
 /// on the Mac, and on both `note.<path>`, `inbox.<line>`, `note.editor`, `list.newNote`,
 /// `new.<thing>`, `sheet.action` / `sheet.cancel`, `capture.open`, `capture.text`,
-/// `capture.save`, `map.<path>`. The vault is `TestVault` in the app, which is where its
-/// titles live.
+/// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`. The vault is
+/// `TestVault` in the app, which is where its titles live.
 ///
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
@@ -519,6 +519,42 @@ final class ScreenTests: XCTestCase {
         go(to: .today)
         XCTAssertTrue(element("today.weekGoal").waitForExistence(timeout: 20),
                       "Today does not show the goal for this week. On screen: \(visibleTexts())")
+    }
+
+    /// The Projects list in groups (build 253). The test project serves a goal with a date,
+    /// which serves the test aspiration, so it must sit under that aspiration's heading; its box
+    /// must say what it needs next; and pressing the heading folds the group away and back.
+    /// The heading is found **among buttons**, never "any element" (build 249's second run).
+    func testProjectsSitUnderTheAspirationTheyServe() {
+        go(to: .projects)
+
+        let heading = app.buttons
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "projects.group.aspiration:"))
+            .firstMatch
+        XCTAssertTrue(heading.waitForExistence(timeout: 20),
+                      "The Projects list has no aspiration heading. On screen: \(visibleTexts())")
+        XCTAssertTrue(heading.label.contains("Be strong and steady at seventy"),
+                      "The heading is not the test aspiration. It says: \(heading.label)")
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 10),
+                      "The Projects list does not show the test project. On screen: \(visibleTexts())")
+        // "Next:" and not the task's words: the first open task is the project template's own,
+        // and a test must not depend on how a template is worded (build 211).
+        let next = element("project.next.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(next.waitForExistence(timeout: 10),
+                      "The project's box does not say what it needs. On screen: \(visibleTexts())")
+        XCTAssertTrue(next.label.hasPrefix("Next: "),
+                      "The box has open tasks and does not name the next one. It says: \(next.label)")
+
+        if heading.isHittable { heading.press() } else { heading.pressCentre() }
+        let folded = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: row)
+        XCTAssertEqual(XCTWaiter().wait(for: [folded], timeout: 10), .completed,
+                       "The heading was pressed and the group did not fold. On screen: \(visibleTexts())")
+
+        if heading.isHittable { heading.press() } else { heading.pressCentre() }
+        XCTAssertTrue(row.waitForExistence(timeout: 10),
+                      "The heading was pressed again and the project did not come back. On screen: \(visibleTexts())")
     }
 
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have

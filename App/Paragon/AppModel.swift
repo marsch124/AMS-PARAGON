@@ -125,17 +125,24 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 252
+    static let number = 253
 }
 
 @MainActor
 final class AppModel: ObservableObject {
     @Published private(set) var vault: Vault?
     @Published private(set) var notes: [Note] = [] {
-        didSet { index = NoteIndex(notes: notes) }
+        didSet {
+            index = NoteIndex(notes: notes)
+            projectGroups = index.projectGroups(notes.filter { $0.kind == .project })
+        }
     }
     /// Rebuilt whenever `notes` changes, so views never build it during a redraw.
     @Published private(set) var index = NoteIndex(notes: [])
+    /// The Projects list in its groups (build 253), worked out once per change of the notes and
+    /// never in a view's body: every project's tasks are parsed to say what it needs, and the
+    /// list is redrawn on every change the model publishes.
+    @Published private(set) var projectGroups: [ProjectGroup] = []
     @Published var section: SidebarSection? = .inbox {
         didSet { if section != oldValue { log("section -> \(section.map(\.title) ?? "nil")"); tameSoon() } }
     }
@@ -752,6 +759,9 @@ final class AppModel: ObservableObject {
         // **Dated goals only**, since build 199: the row is a list of them, and a count that
         // included the aspirations would not be the number of rows below it.
         case .kind(.goal): return index.datedGoals().count
+        // **The projects still running**, since build 253: Done, Missed and Dropped fold away
+        // at the foot of the list, and a count that included them would not be the work in it.
+        case .kind(.project): return notes.filter { $0.kind == .project && !$0.isEnded && !$0.isArchived }.count
         case .kind(let kind): return notes.filter { $0.kind == kind }.count
         }
     }
@@ -1601,10 +1611,24 @@ final class AppModel: ObservableObject {
     /// The same for one row of a nested list: sub-areas are numbered among themselves,
     /// so arranging a family never disturbs the areas around it.
     func reorder(_ listed: [Note], from source: IndexSet, to destination: Int) {
-        flushPendingEdits()
-        guard let vault else { return }
         var listed = listed
         listed.move(fromOffsets: source, toOffset: destination)
+        arrange(listed)
+    }
+
+    /// A drag inside one group of the Projects list (build 253). The group's projects trade
+    /// places among the slots they already hold in the whole list, so the other groups — and the
+    /// Inbox's **File it** column and the **Move to** menu, which list projects in this order —
+    /// keep theirs.
+    func reorderProjects(in group: [Note], from source: IndexSet, to destination: Int) {
+        let whole = notes.filter { $0.kind == .project }
+        arrange(ProjectOrder.moving(group, within: whole, from: source, to: destination))
+    }
+
+    /// Writes `order:` in tens down `listed`, into every note whose number changes.
+    private func arrange(_ listed: [Note]) {
+        flushPendingEdits()
+        guard let vault else { return }
         var wanted: [String: Int] = [:]
         for (index, note) in listed.enumerated() where note.sortOrder != (index + 1) * 10 {
             wanted[note.relativePath] = (index + 1) * 10

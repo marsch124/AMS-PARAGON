@@ -522,12 +522,21 @@ struct NoteListView: View {
                 // an aspiration, no goals are visible on the Goals page."*
                 DatedGoalsListView()
                     .searchable(text: $searchText, prompt: "Search notes")
+            } else if shown == .kind(.project), !searching, !model.projectGroups.isEmpty {
+                // Build 253, his ask: *"The project list is a bit boring."* Each project is a
+                // box under the aspiration it works towards, saying what it needs next. A
+                // search falls through to the ordinary list below, as in both goal rooms, and
+                // so does an empty vault, to "No projects yet".
+                askingToTrash(ProjectsListView(rename: { startRenaming($0) },
+                                               trash: { noteToTrash = $0 }))
+                    .searchable(text: $searchText, prompt: "Search notes")
             } else {
                 let listed = visibleNotes
                 if listed.isEmpty {
                     emptyList(searching: !searchText.trimmingCharacters(in: .whitespaces).isEmpty)
                         .searchable(text: $searchText, prompt: "Search notes")
                 } else {
+                askingToTrash(
                 List(selection: model.noteSelection) {
                     ForEach(listed) { note in
                         noteRow(note)
@@ -540,13 +549,7 @@ struct NoteListView: View {
                 }
                 .searchable(text: $searchText, prompt: "Search notes")
                 .onChange(of: shown) { _, _ in searchText = "" }
-                .confirmationDialog("Delete \u{201C}\(noteToTrash?.displayTitle ?? "")\u{201D}?",
-                                    isPresented: Binding(get: { noteToTrash != nil }, set: { if !$0 { noteToTrash = nil } }),
-                                    presenting: noteToTrash) { note in
-                    Button("Delete", role: .destructive) { model.trash(note) }
-                } message: { _ in
-                    Text("It goes to the Deleted list, where you can put it back.")
-                }
+                )
                 }
             }
         }
@@ -610,6 +613,19 @@ struct NoteListView: View {
     private func startRenaming(_ note: Note) {
         renameDraft = note.displayTitle
         noteToRename = note
+    }
+
+    /// The question before a note goes to the Deleted list. One function, because the flat list
+    /// and the grouped Projects list (build 253) both ask it and must ask it the same way.
+    private func askingToTrash<Content: View>(_ content: Content) -> some View {
+        content
+            .confirmationDialog("Delete \u{201C}\(noteToTrash?.displayTitle ?? "")\u{201D}?",
+                                isPresented: Binding(get: { noteToTrash != nil }, set: { if !$0 { noteToTrash = nil } }),
+                                presenting: noteToTrash) { note in
+                Button("Delete", role: .destructive) { model.trash(note) }
+            } message: { _ in
+                Text("It goes to the Deleted list, where you can put it back.")
+            }
     }
 
     private func commitRename() {

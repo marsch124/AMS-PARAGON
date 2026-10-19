@@ -91,6 +91,65 @@ A name another note already uses is refused. In Apple Reminders the list follows
 
 An area can say which aspiration it belongs to, and a project which goal it delivers: **Serves…** at the top of the note, or right-click it in the list. A project is offered the dated goals first, an area the aspirations first. That is what makes Endurance the home of "an endurance athlete still racing at seventy" rather than leaving the aspiration floating on its own. An area is allowed to serve nothing — it is a standard you keep up, not a path to an outcome — so the review never asks about an area without one.
 
+## The Projects list
+
+The **Projects** list groups your projects by what they work towards.
+
+- **Under an aspiration.** A project that serves an aspiration, or serves a goal with a date
+  that serves an aspiration, sits under that aspiration's heading. The heading has a gold band
+  and the star. The aspirations come in the same order as in **Aspirations**.
+- **Not linked to an aspiration.** The project serves a goal, but that goal has no aspiration
+  yet, or the `goal:` line names a goal that cannot be found (drawn with a dashed line). To fix
+  the first, go to **Goals** and press **Give it an aspiration** under the goal.
+- **Projects with no goal.** No `goal:` line at all. Right-click the project (press and hold
+  on the iPhone) › **Serves** to give it one. This is not an error; the list only says so.
+- **Done**, **Missed** and **Dropped** at the bottom, folded at first. An empty group is not
+  shown.
+
+Press a heading to fold the group or to open it again. The heading always shows how many
+projects it holds.
+
+### What a box says
+
+Each project is a box. On the Mac it has a thin green frame; on the iPhone each group is one
+rounded card.
+
+- The **tile** on the left is green while the project is running or done, and grey when it is
+  on hold, missed, dropped or archived.
+- The **name**, on up to two lines.
+- **What it needs**, in one line:
+  - **Next:** and the task to do next. That is the open task marked `#next`, or else the first
+    open task in the note. The `#next` itself is not shown there.
+  - **All 15 finished** (or **Its one task is finished**) and a grey **No next action**: every
+    task is ticked, but the project still says it is active. Either mark it done, or write its
+    next task. The grey is on purpose; the weekly review is where this is asked with orange.
+  - **No tasks yet**.
+- The **goal** it serves, in gold, with its star or target. It is left out when the project
+  serves the heading's aspiration directly, because the heading already says it.
+- **Pills**: a small bar with "2 of 6 finished", the next task's time and date, **On hold**,
+  the deadline ("Deadline in 11 days"), and the first two tags.
+
+**Red** is only for a date that has passed: the next task's date, the deadline, or "2 overdue"
+(open tasks in the project whose date has passed). **Due after its goal** is orange: the
+project's deadline is later than its goal's target date. A heading shows an orange ⚠ and a
+number when a project in it has one of these. "No next action" is never orange.
+
+### What you can do from the list
+
+- **Click** a project to open it, as before.
+- **Right-click** (press and hold on the iPhone): **Rename…**, **Serves**, **Set active**,
+  **Mark done**, **Mark missed**, **Mark dropped**, **Put on hold**, **Archive** and **Move to
+  Trash…**. Only the lines that would change something are shown. A project you mark done
+  moves into **Done** at the bottom.
+- **Drag** a project up or down inside its group to arrange it by hand. A drag never moves a
+  project into another group, and the projects in the other groups keep their places. The
+  order is written into the note as `order:`, so the Mac and the iPhone agree.
+- Drop a task from another list onto a project to move the task into it.
+- **Search** in Projects shows the plain list of every project, as before.
+
+The number beside **Projects** in the sidebar counts only the projects still running; Done,
+Missed and Dropped are left out.
+
 ## Sub-areas
 
 **Making one.** Open the area note and click **Part of…** in the top row, then pick the area it belongs to. "Not part of another area" takes it back out. The same choices sit on the right-click menu of an area in the list (long-press on the phone), and **New note › Area** has a **Part of** chip for making one from the start.

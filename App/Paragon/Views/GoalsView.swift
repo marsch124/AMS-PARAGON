@@ -1017,16 +1017,7 @@ struct NoteStatusChip: View {
                 set: { model.setStatus($0, for: live) })
     }
 
-    private func symbol(for status: NoteStatus) -> String {
-        switch status {
-        case .active: return "circle"
-        case .onHold: return "pause.circle"
-        case .done: return "checkmark.circle.fill"
-        case .missed: return "xmark.circle"
-        case .dropped: return "minus.circle"
-        case .archived: return "archivebox"
-        }
-    }
+    private func symbol(for status: NoteStatus) -> String { status.systemImage }
 
     /// Done is the note's own colour because it is the good ending. Missed is orange, the
     /// colour this app already uses for "look at this". **Dropped is grey on purpose** — it is
@@ -1183,5 +1174,20 @@ struct NoAspirationPrompt: View {
         .menuStyle(.borderlessButton)
         .fixedSize()
         .help("This goal hangs under no aspiration. Choose the one it is in service of.")
+    }
+}
+
+extension NoteStatus {
+    /// The symbol for each way a note can stand. One place, because the status chip, the
+    /// Projects list's headings and its On hold pill all draw them (build 253, build 168's rule).
+    var systemImage: String {
+        switch self {
+        case .active: return "circle"
+        case .onHold: return "pause.circle"
+        case .done: return "checkmark.circle.fill"
+        case .missed: return "xmark.circle"
+        case .dropped: return "minus.circle"
+        case .archived: return "archivebox"
+        }
     }
 }
