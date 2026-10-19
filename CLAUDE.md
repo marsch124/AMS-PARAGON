@@ -3524,6 +3524,28 @@ the push is still worth running after it** — it found two behaviour faults CI 
   the Mac also the tile's label in the list. The phone stops at the editor, since getting back
   out of a pushed note is not what the test is about.
 
+**Build 255: the weekly bars and the band.** The last of the three Projects builds.
+- `Core/Vault/WeeklyFinished.swift` (tested in `WeeklyFinishedTests`): `counts` for eight
+  **calendar weeks** (`WeekRef`, Monday to Sunday, the weekly notes' weeks — never "the last
+  seven days"), `lastFinished`, `caption(today:)`, `bandHead`/`bandWeek`/`bandText`, `spoken`,
+  `agoText(days:)` (the same steps as `timeLeftText` and `lookedAt`), `lookText`.
+- **Only what the file can prove**: a task counts on its `@done(…)` day; ticked with no stamp
+  has no day and is left out. Subtasks count, cancelled tasks do not. **No dated finish at all
+  is `isEmpty`, and then nothing is drawn** — a row of empty bars would say "you did nothing"
+  when the truth is "the file cannot say" (build 141). An old finish beyond eight weeks still
+  gives flat bars and "last task finished about a year ago", which is true.
+- **The caption switches at two weeks**: moving → "6 finished in 8 weeks", quiet → "last task
+  finished …". That rule came from reading the drawing's three examples, not from him; change
+  it freely if he asks.
+- `ProjectLine.weekly` is worked out in `init` with the tasks already parsed, so it rides the
+  same `projectGroupsDay` refresh as the late flags (build 254). `ProjectGroup.weekly(of:)` and
+  `needsALookCount(of:)` add the list up for the band.
+- `WeekBars` iterates `counts.indices`, never `enumerated()` (build 61). The band sits **above
+  the `List`** in a `VStack` (build 220's reason) with a `Divider`.
+- `TaskRow`'s tick carries `task.tick.<title>`. Mac test `testATickedTaskShowsInTheWeeklyBars`:
+  no band before, tick the test task in the note, then band and box bars in the list. Mac only:
+  the phone's way back out of a pushed note is not what the test is about.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

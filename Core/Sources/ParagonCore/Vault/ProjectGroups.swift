@@ -46,6 +46,8 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
     public var goal: Note?
     /// The `goal:` line names something that cannot be found. Drawn dashed: not connected.
     public var goalIsMissing: Bool
+    /// Tasks finished in each of the last eight weeks, and when the last one was (build 255).
+    public var weekly: WeeklyFinished
     /// The project's own `due:` date.
     public var deadline: DateOnly?
     public var deadlinePassed: Bool
@@ -88,6 +90,7 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
         } else {
             need = .noTasks
         }
+        weekly = WeeklyFinished(tasks: tasks, today: today)
         overdueCount = tasks.filter { task in
             guard !task.isDone, let due = task.dueDate else { return false }
             return due < today
@@ -186,6 +189,16 @@ public struct ProjectGroup: Identifiable, Equatable, Sendable {
 
     /// How many of its projects want a look. Shown on the heading, so a folded group still says.
     public var needsALookCount: Int { lines.filter(\.needsALook).count }
+
+    /// The whole list's weekly bars, for the band at its top (build 255).
+    public static func weekly(of groups: [ProjectGroup]) -> WeeklyFinished {
+        WeeklyFinished.combined(groups.flatMap(\.lines).map(\.weekly))
+    }
+
+    /// How many projects in the whole list want a look, for the same band.
+    public static func needsALookCount(of groups: [ProjectGroup]) -> Int {
+        groups.reduce(0) { $0 + $1.needsALookCount }
+    }
 
     public static let notLinkedTitle = "Not linked to an aspiration"
     public static let noGoalTitle = "Projects with no goal"

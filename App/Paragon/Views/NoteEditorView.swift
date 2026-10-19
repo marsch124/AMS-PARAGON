@@ -908,6 +908,8 @@ struct TaskRow: View {
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
             }
             .buttonStyle(.plain)
+            // For the screen tests (build 255): the tick a test presses to finish a task.
+            .accessibilityIdentifier("task.tick.\(ref.task.title)")
             VStack(alignment: .leading, spacing: 2) {
                 if renaming {
                     TextField("Task", text: $draft)

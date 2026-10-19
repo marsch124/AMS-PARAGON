@@ -33,6 +33,46 @@ struct ProjectsListView: View {
 #endif
 
     var body: some View {
+        VStack(spacing: 0) {
+            band
+            groupedList
+        }
+    }
+
+    /// The line above the list (build 255): the whole list's weekly bars, how many tasks were
+    /// finished in eight weeks and this week, and how many projects want a look. **Outside the
+    /// `List`**, so it is not a row with a row's smallest height (build 220's reason). Nothing
+    /// is drawn when no finished task carries a date and nothing is late.
+    @ViewBuilder
+    private var band: some View {
+        let weekly = ProjectGroup.weekly(of: model.projectGroups)
+        let look = ProjectGroup.needsALookCount(of: model.projectGroups)
+        if !weekly.isEmpty || look > 0 {
+            WrappingHStack(spacing: 9, lineSpacing: 4) {
+                if let head = weekly.bandHead {
+                    WeekBars(weekly: weekly, barWidth: 6)
+                    Text(head)
+                        .fontWeight(.semibold)
+                    Text(weekly.bandWeek)
+                        .foregroundStyle(.secondary)
+                }
+                if look > 0 {
+                    Label(WeeklyFinished.lookText(look), systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                }
+            }
+            .font(.caption)
+            .lineLimit(1)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("projects.band")
+            Divider()
+        }
+    }
+
+    private var groupedList: some View {
         List(selection: model.noteSelection) {
             ForEach(model.projectGroups) { group in
                 Section {
@@ -312,6 +352,22 @@ struct ProjectBox: View {
                     .foregroundStyle(isOver ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
                 need
                 goalLine
+                if !line.weekly.isEmpty {
+                    // Build 255: the tasks finished each week, newest on the right, and one
+                    // line saying how much or since when. Nothing at all when no finished task
+                    // carries a date: empty bars would say "you did nothing" (build 141).
+                    HStack(spacing: 6) {
+                        WeekBars(weekly: line.weekly)
+                        if let caption = line.weekly.caption(today: DateOnly.today()) {
+                            Text(caption)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("project.weekly.\(line.id)")
+                }
                 if !facts.isEmpty || showsProgress {
                     WrappingHStack(spacing: 6, lineSpacing: 4) {
                         if showsProgress {
@@ -458,6 +514,35 @@ struct ProjectBox: View {
             facts.append(ProjectFact(id: "moreTags", text: "+\(tags.count - 2)", tint: SidebarSection.tags.tint))
         }
         return facts
+    }
+}
+
+/// Small bars, one per week for the last eight weeks, newest on the right (build 255). A week
+/// with nothing finished is a short grey stub, so the row keeps its shape. Shapes keep their
+/// colour on a selected row (build 200).
+struct WeekBars: View {
+    let weekly: WeeklyFinished
+    var barWidth: CGFloat = 4
+    var height: CGFloat = 16
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 2) {
+            // Over the indices, never `enumerated()`: a `ForEach` id is a key path, and a key
+            // path cannot reach into a tuple (build 61).
+            ForEach(weekly.counts.indices, id: \.self) { index in
+                bar(weekly.counts[index])
+            }
+        }
+        .frame(height: height, alignment: .bottom)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(weekly.spoken)
+    }
+
+    private func bar(_ count: Int) -> some View {
+        RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+            .fill(count == 0 ? Color.secondary.opacity(0.3) : ParaKind.project.tint)
+            .frame(width: barWidth,
+                   height: count == 0 ? 2 : max(3, height * CGFloat(count) / CGFloat(weekly.biggest)))
     }
 }
 

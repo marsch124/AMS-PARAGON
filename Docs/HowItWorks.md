@@ -111,6 +111,10 @@ The **Projects** list groups your projects by what they work towards.
 Press a heading to fold the group or to open it again. The heading always shows how many
 projects it holds.
 
+Above the groups, one line speaks for the whole list: bars for all projects together, how many
+tasks were finished in the last eight weeks and this week ("14 tasks finished in 8 weeks · 2
+this week"), and, when any project is late, "⚠ 1 needs a look" in orange.
+
 ### What a box says
 
 Each project is a box. On the Mac it has a thin green frame; on the iPhone each group is one
@@ -132,6 +136,12 @@ rounded card.
   - **No tasks yet**.
 - The **goal** it serves, in gold, with its star or target. It is left out when the project
   serves the heading's aspiration directly, because the heading already says it.
+- **Weekly bars**: eight small green bars, the tasks finished in each of the last eight weeks,
+  with this week on the right. A week is Monday to Sunday, as in the weekly notes. A task
+  counts on the day in its `@done(…)` mark; subtasks count too. Beside the bars, while the
+  project is moving, "6 finished in 8 weeks"; once nothing has been finished for two weeks,
+  "last task finished about a month ago". A project where no finished task carries a date
+  shows no bars.
 - **Pills**: a small bar with "2 of 6 finished", the next task's time and date, **On hold**,
   the deadline ("Deadline in 11 days"), and the first two tags.
 

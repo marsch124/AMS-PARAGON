@@ -22,8 +22,9 @@ import AppKit
 /// on the Mac, and on both `note.<path>`, `inbox.<line>`, `note.editor`, `list.newNote`,
 /// `new.<thing>`, `sheet.action` / `sheet.cancel`, `capture.open`, `capture.text`,
 /// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`,
-/// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`. The vault is `TestVault` in the
-/// app, which is where its titles live.
+/// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`, `task.tick.<title>`,
+/// `projects.band`, `project.weekly.<path>`. The vault is `TestVault` in the app, which is
+/// where its titles live.
 ///
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
@@ -612,6 +613,39 @@ final class ScreenTests: XCTestCase {
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
     #if os(macOS)
+    /// Build 255: a task ticked in a project shows in the Projects list. The test vault has no
+    /// finished task at all, so before the tick the list has no band and the box no bars; after
+    /// it, both. Mac only because the way back from a note to the list is one sidebar click
+    /// here, and finding the phone's back arrow is not what this test is about.
+    func testATickedTaskShowsInTheWeeklyBars() {
+        go(to: .projects)
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        XCTAssertFalse(element("projects.band").exists,
+                       "The band is drawn before any task was finished, so it is saying something the file cannot.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The project did not open.")
+        let tick = app.buttons.matching(identifier: "task.tick.Book the night train").firstMatch
+        XCTAssertTrue(tick.waitForExistence(timeout: 10),
+                      "The note's task box has no tick for the test task. On screen: \(visibleTexts())")
+        let tickFrame = tick.frame
+        guard Self.isOnScreen(tickFrame) else {
+            XCTFail("The tick has no place on screen: \(tickFrame)")
+            return
+        }
+        press(tick, at: tickFrame)
+        XCTAssertTrue(editorHolds(editor, "[x] Book the night train", within: 10),
+                      "The tick did not finish the task. It ends: \(editorEnd(editor))")
+
+        go(to: .projects)
+        XCTAssertTrue(element("projects.band").waitForExistence(timeout: 10),
+                      "A task was finished and the list has no band at the top. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("project.weekly.Projects/Plan the Kungsleden trip.md").waitForExistence(timeout: 10),
+                      "A task was finished and the project's box has no weekly bars. On screen: \(visibleTexts())")
+    }
+
     /// The window is not scrambled after a note is opened. Builds 30 and 34: the split view
     /// grew past the window whenever a column was re-measured, and every column looked
     /// scrolled under the toolbar. Two checks. The sidebar row and the list row are wholly

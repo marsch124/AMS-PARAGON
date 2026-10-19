@@ -2,6 +2,23 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 255 · 20 October 2026
+
+**Small weekly bars in the Projects list**, so you can see which projects are moving.
+
+- **Each project's box** has eight small green bars: the tasks you finished in each of the
+  last eight weeks, with this week on the right. A week with nothing finished is a short grey
+  line.
+- Beside the bars, one line. While a project is moving it says how much, for example
+  "6 finished in 8 weeks". When nothing has been finished for two weeks, it says since when,
+  for example "last task finished about a month ago".
+- **At the top of the list**, one line for all projects together, for example "14 tasks
+  finished in 8 weeks · 2 this week", with bars for the whole list. When a project is late,
+  the same line says "⚠ 1 needs a look" in orange.
+- A week is Monday to Sunday, the same weeks as your weekly notes. A task counts on the day in
+  its `@done(…)` mark, so a task ticked in PARAGON or in Apple Reminders counts. Subtasks count
+  too. A project where no finished task has a date shows no bars at all.
+
 ## Build 254 · 20 October 2026
 
 **Your own emoji on each project.**
