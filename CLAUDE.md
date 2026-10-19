@@ -3481,6 +3481,42 @@ Core already knew (`ProjectHealth.noNextAction`); the list never asked.
   "Next:" and never the task's words: the first open task is the project template's own
   (build 211).
 
+**Build 254: his own emoji, and four faults the review of 253 found.** The review ran after
+253 had shipped, because the first attempt hit a usage limit; CI was green and he wants the
+upload when it is. That order is fine for small faults, but **a review that cannot run before
+the push is still worth running after it** — it found two behaviour faults CI could never see.
+- `Core/Model/ProjectEmoji.swift` (tested in `ProjectEmojiTests`): `emoji:` in the settings
+  block, `cleaned(_:)` keeps the **first emoji** and nothing else (a bare digit, `#` or `*` is
+  an "emoji" to Unicode only as the start of a keycap, so alone it is refused), `Note.emoji`,
+  and `groups`, the 24 choices from the drawing, **spelled as escapes** so the variation
+  selector that turns 🖨 ⌨ 🗂 ✈ into emoji cannot be lost by an editor. A test checks every
+  choice is one `Character` and survives `cleaned`, and that a keycap starting with `#`
+  survives the settings block's quoting.
+- `AppModel.setEmoji(_:on:)` removes the line for nil, never writes `emoji:` (build 165's rule
+  for `status:`). `ProjectEmojiChip` sits right after the kind in `NoteHeader`, projects only;
+  `EmojiChoices` is its popover, with `.presentationCompactAdaptation(.popover)` like the tag
+  list and `.focusEffectDisabled()` on the grid only — the field keeps its ring (build 202).
+  `ProjectTile` takes `emoji:`: a solid frame when set, dashed when not (build 142's language).
+  The tile is one accessibility element whose label is the emoji, `project.tile.<path>`.
+- **A cache that compares against today has to know which today.** `projectGroups` was worked
+  out in `notes`' `didSet` with `.today()` at that moment, so a Mac left open overnight kept
+  yesterday's late flags while the same box drew its dates live. `projectGroupsDay` +
+  `refreshProjectGroups()`, and the 10 s `checkForExternalChanges` works them out again once
+  the date has moved. **Any cached value built from `.today()` needs the same.**
+- **The flat list's drag was wrong while searching**, older than 253 but now the only way a
+  Projects search draws: `.onMove` handed offsets in the filtered list to `reorder(kind:)`,
+  which applied them to the whole list and wrote `order:` into notes nobody touched.
+  `mover(for:)` returns nil while searching, in every section.
+- **An open subtask under a ticked task is the next thing**, after the top-level rule, so a box
+  can no longer say "All 3 finished" beside "1 overdue".
+- The **Not linked to an aspiration** footer adds the `Serves` fix when a goal name was not
+  found; `Docs/HowItWorks.md` names the **Archived** group and says the sidebar number counts
+  on-hold projects (it said "still running", which on hold is not).
+- Screen test `testAProjectCanBeGivenAnEmoji`, both platforms: **Emoji…** found among buttons
+  and pressed at its frame (build 249), `emoji.choice.🎒`, then `emoji: 🎒` in the editor; on
+  the Mac also the tile's label in the list. The phone stops at the editor, since getting back
+  out of a pushed note is not what the test is about.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

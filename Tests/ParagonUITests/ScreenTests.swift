@@ -21,8 +21,9 @@ import AppKit
 /// the app beside the views: `tab.*` and `browse.<section>` on the phone, `sidebar.<section>`
 /// on the Mac, and on both `note.<path>`, `inbox.<line>`, `note.editor`, `list.newNote`,
 /// `new.<thing>`, `sheet.action` / `sheet.cancel`, `capture.open`, `capture.text`,
-/// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`. The vault is
-/// `TestVault` in the app, which is where its titles live.
+/// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`,
+/// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`. The vault is `TestVault` in the
+/// app, which is where its titles live.
 ///
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
@@ -555,6 +556,57 @@ final class ScreenTests: XCTestCase {
         if heading.isHittable { heading.press() } else { heading.pressCentre() }
         XCTAssertTrue(row.waitForExistence(timeout: 10),
                       "The heading was pressed again and the project did not come back. On screen: \(visibleTexts())")
+    }
+
+    /// A project's own emoji (build 254): **Emoji…** at the top of the project, one choice in
+    /// its list, and `emoji: 🎒` in the settings block. Pressed the way the time button is
+    /// (build 249): found among buttons, pressed at the middle of its frame. On the Mac the
+    /// Projects list is then asked whether its tile shows the emoji; the phone would have to
+    /// find its way back out of the note first, and that is not what this test is about.
+    func testAProjectCanBeGivenAnEmoji() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Projects list does not show the test project.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The note opened without its editor.")
+
+        let chip = app.buttons.matching(identifier: "note.emoji").firstMatch
+        XCTAssertTrue(chip.waitForExistence(timeout: 10),
+                      "The project has no Emoji… button at the top. On screen: \(visibleTexts())")
+        let chipFrame = chip.frame
+        guard Self.isOnScreen(chipFrame) else {
+            XCTFail("The Emoji… button has no place on screen: \(chipFrame)")
+            return
+        }
+        press(chip, at: chipFrame)
+
+        let backpack = app.buttons.matching(identifier: "emoji.choice.\u{1F392}").firstMatch
+        let opened = backpack.waitForExistence(timeout: 10)
+        XCTAssertTrue(opened,
+                      "Pressing Emoji… did not show the choices. On screen: \(visibleTexts())")
+        guard opened else { return }
+        let choiceFrame = backpack.frame
+        if Self.isOnScreen(choiceFrame) {
+            press(backpack, at: choiceFrame)
+        } else {
+            backpack.press()
+        }
+
+        XCTAssertTrue(editorHolds(editor, "emoji: \u{1F392}", within: 10),
+                      "The note's settings block does not carry the emoji: \(String(((editor.value as? String) ?? "").prefix(200)))")
+
+        #if os(macOS)
+        go(to: .projects)
+        let tile = element("project.tile.Projects/Plan the Kungsleden trip.md")
+        let shown = expectation(for: NSPredicate(format: "label == %@", "\u{1F392}"), evaluatedWith: tile)
+        XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed,
+                       "The project's tile in the list does not show the emoji. It says: \(tile.label)")
+        #endif
     }
 
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have

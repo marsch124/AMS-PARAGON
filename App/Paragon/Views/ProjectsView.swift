@@ -118,7 +118,13 @@ struct ProjectsListView: View {
     private func footerText(for group: ProjectGroup) -> String? {
         switch group.heading {
         case .notLinked:
-            return "Their goal has no aspiration yet. In Goals, press Give it an aspiration under that goal."
+            let advice = "Their goal has no aspiration yet. In Goals, press Give it an aspiration under that goal."
+            // A dashed goal name cannot be fixed in Goals: there is no such goal there (build
+            // 254, from the review of 253). It needs the project's own Serves.
+            guard group.lines.contains(where: \.goalIsMissing) else { return advice }
+            return advice + (isPhone
+                ? " A goal name with a dashed line was not found: press and hold the project and choose Serves."
+                : " A goal name with a dashed line was not found: right-click the project and choose Serves.")
         case .noGoal:
             return isPhone
                 ? "Press and hold a project and choose Serves to give it a goal."
@@ -288,7 +294,8 @@ struct ProjectBox: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
-            ProjectTile(status: line.status)
+            ProjectTile(status: line.status, emoji: line.note.emoji)
+                .accessibilityIdentifier("project.tile.\(line.id)")
             VStack(alignment: .leading, spacing: 5) {
                 // `strikethrough` while it is still a `Text`, before `lineLimit` makes it a view.
                 Text(line.note.title)
@@ -508,26 +515,173 @@ struct ProjectProgress: View {
     }
 }
 
-/// The square at the left of a box: the project flag, dashed (build 254 lets him put his own
-/// emoji there). Green while the project is running or done, grey when it is on hold, missed,
+/// The square at the left of a box: his own emoji in a solid frame (build 254), or the project
+/// flag in a dashed one until he picks one — dashed means "not set yet" everywhere in PARAGON
+/// (build 142). Green while the project is running or done, grey when it is on hold, missed,
 /// dropped or archived.
 struct ProjectTile: View {
     let status: NoteStatus
+    var emoji: String? = nil
 
     private var tint: Color {
         status == .active || status == .done ? ParaKind.project.tint : Color.secondary
     }
 
     var body: some View {
-        Image(systemName: ChainSymbol.project)
-            .font(.system(size: 14, weight: .semibold))
-            .rowTint(tint)
+        mark
             .frame(width: 34, height: 34)
-            .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(tint.opacity(emoji == nil ? 0.10 : 0.16),
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(tint.opacity(0.6), style: StrokeStyle(lineWidth: 1.2, dash: [3, 2]))
+                    .strokeBorder(tint.opacity(0.6),
+                                  style: StrokeStyle(lineWidth: 1.2, dash: emoji == nil ? [3, 2] : []))
             )
-            .accessibilityHidden(true)
+            // One element saying what is in the tile, so a screen test can read the emoji.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(emoji ?? "Project")
+    }
+
+    @ViewBuilder
+    private var mark: some View {
+        if let emoji {
+            Text(emoji)
+                .font(.system(size: 19))
+        } else {
+            Image(systemName: ChainSymbol.project)
+                .font(.system(size: 14, weight: .semibold))
+                .rowTint(tint)
+        }
+    }
+}
+
+/// **Emoji…** in a project's header (build 254): grey and dashed until one is picked, then the
+/// emoji itself in a green frame. Pressing it opens `EmojiChoices`. It writes `emoji:` in the
+/// settings block, so the choice travels with the note to the other device.
+struct ProjectEmojiChip: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+    @State private var picking = false
+
+    /// Read back from the model rather than kept: choosing saves and reloads, and the copy
+    /// handed to this view a moment ago is then one behind (build 144's `NoteTagsChip`).
+    private var live: Note { model.note(at: note.relativePath) ?? note }
+
+    var body: some View {
+        let emoji = live.emoji
+        Button { picking = true } label: {
+            chipFace(emoji)
+                .helpWhenClosed("Choose an emoji for this project. It is shown in the Projects list.",
+                                open: picking)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(emoji.map { "Emoji \($0)" } ?? "Choose an emoji")
+        .accessibilityIdentifier("note.emoji")
+        .popover(isPresented: $picking) {
+            EmojiChoices(current: emoji) { chosen in
+                model.setEmoji(chosen, on: live)
+                picking = false
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func chipFace(_ emoji: String?) -> some View {
+        Group {
+            if let emoji {
+                Text(emoji)
+            } else {
+                Label("Emoji\u{2026}", systemImage: "face.smiling")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2)
+        .overlay(
+            Capsule().strokeBorder((emoji == nil ? Color.secondary : ParaKind.project.tint).opacity(0.6),
+                                   style: StrokeStyle(lineWidth: 1, dash: emoji == nil ? [3, 2] : []))
+        )
+        .contentShape(Capsule())
+    }
+}
+
+/// The list **Emoji…** opens: four rows of choices, a field for any other emoji, and **Remove
+/// emoji** when one is set. The choices are `ProjectEmoji.groups` (Core, tested).
+struct EmojiChoices: View {
+    let current: String?
+    let choose: (String?) -> Void
+    @State private var typed = ""
+
+    private var typedEmoji: String? { ProjectEmoji.cleaned(typed) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Emoji for this project")
+                .font(.subheadline.weight(.semibold))
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(ProjectEmoji.groups) { group in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(group.title)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 4) {
+                            ForEach(group.emoji, id: \.self) { emoji in
+                                choice(emoji)
+                            }
+                        }
+                    }
+                }
+            }
+            // A list of buttons: the first would otherwise take keyboard focus and be ringed
+            // in his accent colour, reading as a second choice (build 202). The field below
+            // keeps its ring, which is useful there.
+            .focusEffectDisabled()
+            HStack(spacing: 6) {
+                TextField("Or type any emoji", text: $typed)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(useTyped)
+                Button("Use", action: useTyped)
+                    .disabled(typedEmoji == nil)
+            }
+            #if os(macOS)
+            Text("Control-Command-Space shows every emoji there is.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            #endif
+            if current != nil {
+                Button("Remove emoji", role: .destructive) { choose(nil) }
+                    .accessibilityIdentifier("emoji.remove")
+            }
+        }
+        .padding(14)
+        .frame(width: 290)
+        // A small list beside the button on the phone too, as the tag list is, rather than a
+        // whole sheet for 24 emoji.
+        .presentationCompactAdaptation(.popover)
+    }
+
+    private func choice(_ emoji: String) -> some View {
+        let chosen = emoji == current
+        return Button { choose(emoji) } label: {
+            Text(emoji)
+                .font(.title2)
+                .frame(width: 38, height: 38)
+                .background(chosen ? ParaKind.project.tint.opacity(0.2) : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(chosen ? ParaKind.project.tint : Color.clear, lineWidth: 1.2)
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(emoji)
+        .accessibilityAddTraits(chosen ? [.isSelected] : [])
+        .accessibilityIdentifier("emoji.choice.\(emoji)")
+    }
+
+    private func useTyped() {
+        guard let emoji = typedEmoji else { return }
+        choose(emoji)
     }
 }

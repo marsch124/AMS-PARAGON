@@ -406,6 +406,18 @@ struct NoteListView: View {
         model.reorder(family, from: IndexSet(integer: index), to: to)
     }
 
+    /// Nil while searching (build 254, from the review of 253). The list then holds only the
+    /// matches, and a drag's positions were written onto the whole list: dragging D above B in
+    /// a search showing B and D moved B to the top and left D where it was, and rewrote the
+    /// `order:` line of notes nobody had touched. Since build 253 a search is the only way the
+    /// Projects section shows this list.
+    private func mover(for listed: [Note]) -> ((IndexSet, Int) -> Void)? {
+        guard !searching else { return nil }
+        return { source, destination in
+            move(listed, from: source, to: destination)
+        }
+    }
+
     private func fold(_ note: Note) {
         if foldedAreas.contains(note.relativePath) {
             foldedAreas.remove(note.relativePath)
@@ -542,10 +554,8 @@ struct NoteListView: View {
                         noteRow(note)
                     }
                     // Drag a note up or down to arrange the list; the position is written into
-                    // the note as `order:` so both devices agree.
-                    .onMove { source, destination in
-                        move(listed, from: source, to: destination)
-                    }
+                    // the note as `order:` so both devices agree. Not while searching.
+                    .onMove(perform: mover(for: listed))
                 }
                 .searchable(text: $searchText, prompt: "Search notes")
                 .onChange(of: shown) { _, _ in searchText = "" }

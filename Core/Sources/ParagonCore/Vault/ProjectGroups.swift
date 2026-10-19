@@ -22,7 +22,8 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
     /// What the project needs, in the order the box says it.
     public enum Need: Equatable, Sendable {
         /// At least one open task. The task is the one tagged `#next`, else the first open one —
-        /// the same rule `ChainProject` and the planner use.
+        /// the same rule `ChainProject` and the planner use — else, when every top-level task is
+        /// ticked, the first open subtask.
         case next(TaskItem)
         /// It has tasks and every one is finished. Two true facts at once: the work is done, and
         /// the project is still open. The box says both.
@@ -78,7 +79,11 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
         total = top.count
         openCount = open.count
         let tagged = open.first { $0.tags.contains(Note.nextActionTag) }
-        if let next = tagged ?? open.first {
+        // An open subtask under a ticked task is still work to do (build 254, from the review
+        // of 253). Without it the box said "All 3 finished" and "No next action" while the same
+        // box counted that subtask as overdue. It comes last: the top-level rule is unchanged.
+        let openSubtask = tasks.first { $0.isSubtask && !$0.isDone }
+        if let next = tagged ?? open.first ?? openSubtask {
             need = .next(next)
         } else if total > 0 {
             need = .allFinished(count: total)

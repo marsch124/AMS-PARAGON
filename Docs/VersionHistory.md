@@ -2,6 +2,30 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 254 · 20 October 2026
+
+**Your own emoji on each project.**
+
+- Open a project and press **Emoji…** at the top, right after **Projects**. A small list opens
+  with 24 emoji in four rows: **Make and build**, **Apps and screens**, **Body and sport**, and
+  **Home, boat and travel**. Press one, and it shows in the project's tile in the **Projects**
+  list, in a green frame.
+- **Or type any emoji** takes any other one. On the Mac, Control-Command-Space shows every
+  emoji there is. **Remove emoji** takes it away again.
+- The emoji is kept in the note as `emoji: 🎒`, so it shows on the iPhone too.
+
+**Four fixes to the Projects list from build 253**, found by a second check of the code:
+
+- **A Mac left open overnight** showed yesterday's late marks until some note changed: a red
+  date on a box, but no "1 overdue" beside it and no orange ⚠ on the heading. The list now
+  looks again within a few seconds of midnight.
+- **Dragging a project while a search is shown** could move the wrong project and change the
+  order of projects you had not touched. Dragging is now off while a search is shown.
+- **A ticked task with an open subtask under it** made the box say "All 3 finished" and "No
+  next action". The box now names the open subtask as the next thing.
+- **Not linked to an aspiration**: the note under the group now also says what to do when a
+  goal name could not be found (right-click the project › **Serves**).
+
 ## Build 253 · 19 October 2026
 
 **The Projects list is grouped, and each project is a box that says what it needs.**

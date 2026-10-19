@@ -113,6 +113,20 @@ final class ProjectGroupsTests: XCTestCase {
         XCTAssertEqual(line("Never mind").need, .noTasks, "Nothing left but a cancelled task is no tasks, never 0 of 0")
     }
 
+    /// Build 254, from the review of 253: a ticked task with an open subtask under it is not
+    /// "all finished". The box names the subtask, and its overdue count agrees with it.
+    func testAnOpenSubtaskIsStillTheNextThing() {
+        let roof = project("Fix the roof", body: "- [x] Order the tiles\n    - [ ] Pay the invoice >2026-10-10\n")
+        let lines = NoteIndex(notes: [roof]).projectGroups([roof], today: today).flatMap(\.lines)
+        guard case .next(let next) = lines.first?.need else {
+            return XCTFail("An open subtask must be the next thing, not 'all finished'")
+        }
+        XCTAssertTrue(next.title.hasPrefix("Pay the invoice"))
+        XCTAssertEqual(lines.first?.overdueCount, 1)
+        XCTAssertEqual(lines.first?.done, 1, "The counts stay top-level, as Note.progress has them")
+        XCTAssertEqual(lines.first?.total, 1)
+    }
+
     func testOnlyLateThingsAskForALook() {
         let dated = goal("Walk the Kungsleden", target: "2027-08-15")
         let overdue = project("Overdue task", goal: dated.title, body: "- [ ] Call the bank >2026-10-10\n")

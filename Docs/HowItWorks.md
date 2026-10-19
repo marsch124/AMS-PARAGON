@@ -47,9 +47,9 @@ tags: [sport, training]
 ---
 ```
 
-Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
+Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `emoji` (a project's own emoji, see **The Projects list**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
-Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, and **Tags…** for `tags`.
+Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`.
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -100,11 +100,13 @@ The **Projects** list groups your projects by what they work towards.
   and the star. The aspirations come in the same order as in **Aspirations**.
 - **Not linked to an aspiration.** The project serves a goal, but that goal has no aspiration
   yet, or the `goal:` line names a goal that cannot be found (drawn with a dashed line). To fix
-  the first, go to **Goals** and press **Give it an aspiration** under the goal.
+  the first, go to **Goals** and press **Give it an aspiration** under the goal. To fix the
+  second, right-click the project (press and hold on the iPhone) › **Serves** and choose a goal.
 - **Projects with no goal.** No `goal:` line at all. Right-click the project (press and hold
   on the iPhone) › **Serves** to give it one. This is not an error; the list only says so.
 - **Done**, **Missed** and **Dropped** at the bottom, folded at first. An empty group is not
-  shown.
+  shown. A project that says `status: archived` but is still in the Projects folder gets an
+  **Archived** group at the very end.
 
 Press a heading to fold the group or to open it again. The heading always shows how many
 projects it holds.
@@ -114,12 +116,15 @@ projects it holds.
 Each project is a box. On the Mac it has a thin green frame; on the iPhone each group is one
 rounded card.
 
-- The **tile** on the left is green while the project is running or done, and grey when it is
-  on hold, missed, dropped or archived.
+- The **tile** on the left shows the project's own emoji, in a green frame. Until you pick one
+  it shows the project flag in a dashed frame. The frame is green while the project is running
+  or done, and grey when it is on hold, missed, dropped or archived. See **Your own emoji**
+  below.
 - The **name**, on up to two lines.
 - **What it needs**, in one line:
   - **Next:** and the task to do next. That is the open task marked `#next`, or else the first
-    open task in the note. The `#next` itself is not shown there.
+    open task in the note. When every task is ticked but a subtask under one of them is still
+    open, it is that subtask. The `#next` itself is not shown there.
   - **All 15 finished** (or **Its one task is finished**) and a grey **No next action**: every
     task is ticked, but the project still says it is active. Either mark it done, or write its
     next task. The grey is on purpose; the weekly review is where this is asked with orange.
@@ -145,10 +150,25 @@ number when a project in it has one of these. "No next action" is never orange.
   project into another group, and the projects in the other groups keep their places. The
   order is written into the note as `order:`, so the Mac and the iPhone agree.
 - Drop a task from another list onto a project to move the task into it.
-- **Search** in Projects shows the plain list of every project, as before.
+- **Search** in Projects shows the plain list of every project, as before. While a search is
+  shown, projects cannot be dragged: the list then holds only the matches, so a new order could
+  not be worked out for the rest.
 
-The number beside **Projects** in the sidebar counts only the projects still running; Done,
-Missed and Dropped are left out.
+The number beside **Projects** in the sidebar counts every project except those marked Done,
+Missed, Dropped or archived. A project on hold is counted.
+
+### Your own emoji
+
+Each project can have its own emoji, shown in its tile in the list. Open the project and press
+**Emoji…** at the top, right after **Projects**. A small list opens with 24 emoji in four rows:
+**Make and build**, **Apps and screens**, **Body and sport**, and **Home, boat and travel**.
+Press one and it is set.
+
+- **Or type any emoji** takes any other emoji. On the Mac, Control-Command-Space shows every
+  emoji there is. Only the first emoji you type is kept; words are not.
+- **Remove emoji** takes it away again. The tile then shows the project flag in a dashed frame.
+- The emoji is kept in the note's settings block as `emoji: 🎒`, so it travels with the note to
+  the iPhone and back. You can also write that line yourself.
 
 ## Sub-areas
 

@@ -18,7 +18,8 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Next:** — on a project's box in the **Projects** list: the task to do next. That is the task marked `#next`, or else the first open task.
 - **No next action** — on a project's box: every task is ticked, but the project is still active. Mark it done, or write its next task.
 - **No tasks yet** — on a project's box: the project has no tasks at all.
-- **Not linked to an aspiration** — a group in the **Projects** list: the projects serve a goal, but that goal has no aspiration above it.
+- **Not linked to an aspiration** — a group in the **Projects** list: the projects serve a goal, but that goal has no aspiration above it, or no goal with that name can be found.
+- **Emoji** — a project's own emoji, shown in its tile in the **Projects** list. Set it with **Emoji…** at the top of the project. It is kept as `emoji:` in the settings block.
 - **Projects with no goal** — a group in the **Projects** list and in the weekly review: projects with no **Serves** line at all. Not an error.
 - **Due after its goal** — a project whose deadline is later than its goal's target date. Shown in orange.
 - **Area** — a part of life you keep looking after and that never finishes, like "Health" or "Home". Shown in pink.

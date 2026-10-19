@@ -125,7 +125,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 253
+    static let number = 254
 }
 
 @MainActor
@@ -134,7 +134,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var notes: [Note] = [] {
         didSet {
             index = NoteIndex(notes: notes)
-            projectGroups = index.projectGroups(notes.filter { $0.kind == .project })
+            refreshProjectGroups()
         }
     }
     /// Rebuilt whenever `notes` changes, so views never build it during a redraw.
@@ -143,6 +143,11 @@ final class AppModel: ObservableObject {
     /// never in a view's body: every project's tasks are parsed to say what it needs, and the
     /// list is redrawn on every change the model publishes.
     @Published private(set) var projectGroups: [ProjectGroup] = []
+    /// The day `projectGroups` was worked out for. Its late flags — an overdue task, a passed
+    /// deadline — compare against it, so the 10 s poll works the groups out again once the
+    /// date has moved (build 254, from the review of 253: a Mac left open overnight showed
+    /// yesterday's flags beside today's dates until some note changed).
+    private var projectGroupsDay = DateOnly.today()
     @Published var section: SidebarSection? = .inbox {
         didSet { if section != oldValue { log("section -> \(section.map(\.title) ?? "nil")"); tameSoon() } }
     }
@@ -940,6 +945,7 @@ final class AppModel: ObservableObject {
     /// Reloads when files changed on disk (iCloud, the iPhone, another editor), checking every
     /// few seconds. A dirty editor keeps its text; its save then meets the conflict check.
     func checkForExternalChanges() {
+        if DateOnly.today() != projectGroupsDay { refreshProjectGroups() }
         guard vault != nil, !isSyncing else { return }
         fetchCloudFiles()
         // Notes still coming from iCloud need another look even though nothing on disk has
@@ -1625,6 +1631,11 @@ final class AppModel: ObservableObject {
         arrange(ProjectOrder.moving(group, within: whole, from: source, to: destination))
     }
 
+    private func refreshProjectGroups() {
+        projectGroupsDay = DateOnly.today()
+        projectGroups = index.projectGroups(notes.filter { $0.kind == .project }, today: projectGroupsDay)
+    }
+
     /// Writes `order:` in tens down `listed`, into every note whose number changes.
     private func arrange(_ listed: [Note]) {
         flushPendingEdits()
@@ -1923,6 +1934,20 @@ final class AppModel: ObservableObject {
     /// A project's own deadline, written as `due:`. Nothing in the app wrote that line before
     /// build 132, so the review's "past its due date" check had never once been able to fire
     /// and "due after its goal" would have been born dead.
+    /// A project's own emoji (build 254). Nil removes the line rather than writing `emoji:`:
+    /// a note that says nothing has no emoji, and that is what a new note looks like.
+    func setEmoji(_ emoji: String?, on note: Note) {
+        flushPendingEdits()
+        guard var updated = self.note(at: note.relativePath) else { return }
+        if let emoji = emoji.flatMap(ProjectEmoji.cleaned) {
+            updated.frontmatter.set(ProjectEmoji.key, emoji)
+        } else {
+            updated.frontmatter.remove(ProjectEmoji.key)
+        }
+        guard save(updated) else { return }
+        reload()
+    }
+
     func setDeadline(_ note: Note, _ date: DateOnly?) {
         flushPendingEdits()
         guard var updated = self.note(at: note.relativePath) else { return }
