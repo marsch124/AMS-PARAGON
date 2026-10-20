@@ -24,7 +24,8 @@ import AppKit
 /// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`,
 /// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`, `task.tick.<title>`,
 /// `projects.band`, `project.weekly.<path>`, `focus.start`, `focus.bar`, `focus.pause`,
-/// `focus.stop`. The vault is `TestVault` in the app, which is where its titles live.
+/// `focus.stop`, and on the Mac `focus.menuBar` (a status item). The vault is `TestVault` in the
+/// app, which is where its titles live.
 ///
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
@@ -592,6 +593,12 @@ final class ScreenTests: XCTestCase {
 
         XCTAssertTrue(element("focus.bar").waitForExistence(timeout: 10),
                       "Focus on this was pressed and no timer bar appeared. On screen: \(visibleTexts())")
+        #if os(macOS)
+        // The clock in the menu bar (build 257): there while the clock runs, gone after Stop.
+        let menuBarClock = app.statusItems.matching(identifier: "focus.menuBar").firstMatch
+        XCTAssertTrue(menuBarClock.waitForExistence(timeout: 10),
+                      "The clock is running and the menu bar does not show it. Status items: \(statusItemNames())")
+        #endif
 
         let pause = app.buttons.matching(identifier: "focus.pause").firstMatch
         XCTAssertTrue(pause.waitForExistence(timeout: 10), "The timer bar has no Pause button.")
@@ -617,7 +624,20 @@ final class ScreenTests: XCTestCase {
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("focus.bar"))
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
                        "Stop was pressed and the timer bar is still there. On screen: \(visibleTexts())")
+        #if os(macOS)
+        let menuBarGone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: menuBarClock)
+        XCTAssertEqual(XCTWaiter().wait(for: [menuBarGone], timeout: 10), .completed,
+                       "The clock was stopped and the menu bar still shows it. Status items: \(statusItemNames())")
+        #endif
     }
+
+    #if os(macOS)
+    /// What the menu bar holds for this app, for a failure message: name and words of each item.
+    private func statusItemNames() -> String {
+        let items = app.statusItems.allElementsBoundByIndex.map { "[\($0.identifier)] \($0.label) \($0.title)" }
+        return items.isEmpty ? "none" : items.joined(separator: ", ")
+    }
+    #endif
 
     /// A project's own emoji (build 254): **Emoji…** at the top of the project, one choice in
     /// its list, and `emoji: 🎒` in the settings block. Pressed the way the time button is

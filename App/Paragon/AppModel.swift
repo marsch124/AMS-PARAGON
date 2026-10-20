@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 256
+    static let number = 257
 }
 
 @MainActor
@@ -2382,7 +2382,25 @@ final class AppModel: ObservableObject {
     /// his notes. Saved on every change, so closing the app never loses it — the drawing's
     /// test was exactly that: "Start a timer, close the app, open it again."
     @Published private(set) var focus: FocusSession? {
-        didSet { saveFocus() }
+        didSet {
+            saveFocus()
+            focusChanged()
+        }
+    }
+
+    #if os(macOS)
+    /// The running clock in the Mac's menu bar (build 257).
+    private lazy var focusStatusItem = FocusStatusItem(model: self)
+    #endif
+
+    /// Everything outside the window that follows the clock (build 257): the notice when the
+    /// planned time is up, and on the Mac the clock in the menu bar. Both are planted again from
+    /// the session's dates on every change, so they can never disagree with the bar.
+    private func focusChanged() {
+        FocusNotice.plan(for: focus) { [weak self] message in self?.flash(message) }
+        #if os(macOS)
+        focusStatusItem.show(focus)
+        #endif
     }
 
     private static let focusKey = "focusSession"
@@ -2395,6 +2413,10 @@ final class AppModel: ObservableObject {
     private func loadFocus() {
         guard let data = defaults.data(forKey: Self.focusKey) else { return }
         focus = try? JSONDecoder().decode(FocusSession.self, from: data)
+        // Said out loud rather than trusted to `didSet`, which is called from `init`'s own
+        // methods but is easy to break by moving a line: a clock left running when the app
+        // closed has to be back in the menu bar, and its notice planted, at launch.
+        focusChanged()
     }
 
     private func saveFocus() {

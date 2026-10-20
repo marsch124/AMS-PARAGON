@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 257 · 20 October 2026
+
+**The notice when the planned time is up, and the clock in the Mac menu bar.** Part 3 of
+PARAGON Time and Focus, second step.
+
+- **One notice when the time is up.** When the task has a time, such as **45 min**, or the
+  clock runs on a block from **Plan the day**, a notice comes when you have worked that long:
+  "The time you planned, 45 min, is up. The clock keeps running until you press Stop." It
+  comes once, with the ordinary notification sound, and also when PARAGON is closed.
+- **Paused time does not count.** A pause moves the notice later. Going on after the time is
+  up brings no second notice.
+- The first time a clock with a time starts, PARAGON asks whether it may send notices. It is
+  the same permission as the evening reminder: if the evening reminder reaches you, this notice
+  will too.
+- **On the Mac, the time shows in the menu bar**, next to the system clock: a small orange dot
+  and the time, for example "● 23:14". The dot is grey while the clock is paused. Click it for
+  **Pause** (or **Go on**), **Stop…** and **Show PARAGON**. It goes away when the clock stops.
+- Next: build 258 brings **Planned and worked** in **Close the day**.
+
 ## Build 256 · 20 October 2026
 
 **The focus timer**, part 3 of PARAGON Time and Focus.

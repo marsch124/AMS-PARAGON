@@ -3625,6 +3625,31 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
     `repairOverflow` (build 34) sets the split view to the whole window and would cover the bar if
     it ever fires while a clock runs.
 
+**Build 257: the notice and the menu bar clock.**
+- `FocusSession.secondsUntilPlanned(at:)` (Core, tested): nil with no planned time, while
+  paused, or once the planned time is reached. That last one is what makes the notice come
+  **once**: going on after the time is up plants nothing.
+- `App/Paragon/FocusNotice.swift`: one `UNTimeIntervalNotificationTrigger`, id
+  `paragon.focus.timeUp`, **planted again on every change to `focus`** (`focusChanged()` in its
+  `didSet`, and said out loud after `loadFocus()`), so a pause removes it and **Go on** puts it
+  back at the right moment. A stop also removes a delivered one. `EveningReminder` stays the one
+  delegate, so it shows while PARAGON is in front. Asking for permission happens here, the first
+  time a clock with a time starts; a `generation` counter drops a system answer that arrives
+  after a newer change. **Never asked under `TestVault`**: on the phone the question covers the
+  screen. When notices are off it **says so once per launch** through `flash` (build 100), not
+  on every start.
+- `App/Paragon/FocusMenuBar.swift` (Mac only): **an `NSStatusItem` of our own, not a second
+  `MenuBarExtra`**. Whether a SwiftUI menu bar label really ticks each second cannot be seen from
+  here; a status item's title set by a `.common`-mode `Timer` is certain. The dot is an
+  `NSImage` symbol in `PlanTint` (grey while paused), the time is plain title text so the system
+  colours it for a light or dark menu bar, `monospacedDigitSystemFont` at the menu bar's size.
+  Menu: the task, **Pause**/**Go on**, **Stop…** (shows the window first, since the question is
+  asked there), **Show PARAGON** (the window holding an `NSSplitView`, so not Settings or Help).
+  Shown whatever **Show capture panel in the menu bar** says.
+- Mac screen test: `focus.menuBar` among `app.statusItems` while the clock runs, gone after
+  Stop. **First time this suite looks at the menu bar**; if it fails, the message lists every
+  status item it found, which says whether the identifier or the query is wrong.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

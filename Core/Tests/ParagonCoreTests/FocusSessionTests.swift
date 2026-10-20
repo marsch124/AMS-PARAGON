@@ -29,6 +29,25 @@ final class FocusSessionTests: XCTestCase {
         XCTAssertEqual(session.runs.count, 2, "A second pause changes nothing")
     }
 
+    func testTheNoticeWaitsForThePlannedTimeAndComesOnce() {
+        var session = FocusSession(notePath: "Projects/Shed.md", taskTitle: "Call the bank",
+                                   title: "Call the bank", plannedMinutes: 15, startedAt: at(20, 9, 0))
+        XCTAssertEqual(session.secondsUntilPlanned(at: at(20, 9, 0)), 900)
+        XCTAssertEqual(session.secondsUntilPlanned(at: at(20, 9, 10)), 300)
+        session.pause(at: at(20, 9, 10))
+        XCTAssertNil(session.secondsUntilPlanned(at: at(20, 9, 30)), "No notice while the clock is paused")
+        session.resume(at: at(20, 9, 30))
+        XCTAssertEqual(session.secondsUntilPlanned(at: at(20, 9, 30)), 300, "The pause is not counted")
+        XCTAssertNil(session.secondsUntilPlanned(at: at(20, 9, 35)), "The time is up now")
+        session.pause(at: at(20, 9, 40))
+        session.resume(at: at(20, 9, 50))
+        XCTAssertNil(session.secondsUntilPlanned(at: at(20, 9, 50)), "Going on after the time is up plants nothing again")
+
+        let unplanned = FocusSession(notePath: nil, taskTitle: "Read", title: "Read", plannedMinutes: nil,
+                                     startedAt: at(20, 9, 0))
+        XCTAssertNil(unplanned.secondsUntilPlanned(at: at(20, 9, 0)), "No time planned, no notice")
+    }
+
     func testTheClockOnTheBar() {
         XCTAssertEqual(FocusSession.clock(0), "0:00")
         XCTAssertEqual(FocusSession.clock(249), "4:09")

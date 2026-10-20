@@ -587,6 +587,32 @@ sits at the foot of the window. It has two round buttons:
   was started, not by counting, so it is right when you open the app again. Each device has its
   own clock: one started on the iPhone does not show on the Mac.
 
+### When the planned time is up
+
+When the task has a time, such as **45 min**, or the clock runs on a block from **Plan the
+day**, one notice comes when that much work time has passed. It comes even when PARAGON is
+closed, with the ordinary notification sound, once.
+
+- Paused time does not count: a pause moves the notice later. Going on after the time is up
+  brings no second notice.
+- The clock does not stop by itself. Press the stop button when you are done.
+- The first time a clock with a planned time starts, PARAGON asks whether it may send notices.
+  It is the same permission as the evening reminder. If notices are off for PARAGON (**System
+  Settings › Notifications** on the Mac, **Settings › Notifications** on the iPhone), no notice
+  comes, and PARAGON says so once, at the foot of the screen, when a clock starts.
+- When the clock stops, a notice still lying in Notification Center is taken away.
+
+### In the Mac menu bar
+
+While a clock runs, the Mac's menu bar shows it next to the system clock: a small orange dot
+and the time, for example "● 23:14". The dot is grey while the clock is paused. It is there
+whatever **Show capture panel in the menu bar** says; that setting is only about quick capture.
+
+Click it for a short menu: the task, **Pause** (or **Go on**), **Stop…** and **Show PARAGON**.
+**Stop…** brings the PARAGON window forward, because the question is asked there. If you have
+closed the window, click PARAGON in the Dock to open it again. The time goes away from the menu
+bar when the clock stops.
+
 ### Stopping it
 
 PARAGON says how long you worked, for example "You worked 52 minutes on Write the offer for the

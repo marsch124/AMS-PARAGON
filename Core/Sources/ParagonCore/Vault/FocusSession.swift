@@ -76,6 +76,17 @@ public struct FocusSession: Codable, Equatable, Sendable {
         runningSince = now
     }
 
+    /// Seconds of work left before the planned time is reached, or nil when there is nothing to
+    /// wait for: no time was planned, the clock is paused, or the planned time has already been
+    /// reached. The notice when the time is up (build 257) is planted from this, so a pause takes
+    /// it away and **Go on** puts it back at the right moment. Once the planned time has passed,
+    /// going on plants nothing: the notice comes once.
+    public func secondsUntilPlanned(at now: Date) -> TimeInterval? {
+        guard let planned = plannedMinutes, planned > 0, !isPaused else { return nil }
+        let left = TimeInterval(planned * 60) - workedSeconds(at: now)
+        return left > 0 ? left : nil
+    }
+
     /// The open task this session was started on, found again in `tasks`: by its `^t` id
     /// first, else by its exact title **and** the date it had. Nil when it is gone — renamed,
     /// moved, ticked elsewhere — and then **Done** must say so rather than tick another task.
