@@ -86,6 +86,8 @@ struct PlannerView: View {
 /// The detail column: the day's header and its two lanes.
 struct PlannerDayView: View {
     @EnvironmentObject private var model: AppModel
+    /// False in the Mac's separate Plan the day window, which has no timer bar (build 256).
+    @Environment(\.focusBarShown) private var focusBarShown
     /// False when a parent is already scrolling, so the phone never nests two scroll views.
     var scrolls: Bool = true
 
@@ -312,7 +314,7 @@ struct PlannerDayView: View {
                                               Task { await model.setInAppleCalendar(wanted, for: block, on: day) }
                                           },
                                           openEvent: openEventAction(for: block),
-                                          focus: { model.startFocus(onBlock: block) })
+                                          focus: focusAction(for: block))
                         } else {
                             item(placed, tint: tint, x: box.x, width: box.width)
                         }
@@ -351,6 +353,13 @@ struct PlannerDayView: View {
     /// "Open in Calendar", but only when the block really has a copy out there. Written as a
     /// function rather than a `map` on the optional: a closure that returns a closure is the
     /// kind of thing Swift's inference gives up on, and there is no compiler in this container.
+    /// **Focus on this** for a block's menu, or nil where no timer bar can be seen. A function
+    /// for the same reason as `openEventAction(for:)` below.
+    private func focusAction(for block: PlanBlock) -> (() -> Void)? {
+        guard focusBarShown else { return nil }
+        return { model.startFocus(onBlock: block) }
+    }
+
     private func openEventAction(for block: PlanBlock) -> (() -> Void)? {
         guard let event = model.calendarBlock(for: block, on: day) else { return nil }
         return { model.openInCalendar(event) }
@@ -744,8 +753,9 @@ private struct PlanBlockCard: View {
     let setInCalendar: (Bool) -> Void
     /// Set only when the block really has a copy in Apple Calendar.
     let openEvent: (() -> Void)?
-    /// **Focus on this**: start the clock on the block (build 256).
-    let focus: () -> Void
+    /// **Focus on this**: start the clock on the block (build 256). Nil where no timer bar is
+    /// drawn — the Mac's separate Plan the day window.
+    let focus: (() -> Void)?
 
     @GestureState private var shift: CGFloat = 0
     @GestureState private var stretch: CGFloat = 0
@@ -781,10 +791,12 @@ private struct PlanBlockCard: View {
 
     @ViewBuilder
     private var menu: some View {
-        Button(action: focus) {
-            Label("Focus on this", systemImage: "timer")
+        if let focus {
+            Button(action: focus) {
+                Label("Focus on this", systemImage: "timer")
+            }
+            Divider()
         }
-        Divider()
         Button("Edit\u{2026}", action: edit)
         // A tick, not "Add to Apple Calendar": a control says which state you are in, never the
         // state you would get (build 142).

@@ -81,6 +81,8 @@ struct ParagonApp: App {
         Window("Plan the day", id: ParagonApp.plannerWindowID) {
             PlannerView()
                 .environmentObject(model)
+                // This window has no timer bar, so no Focus on this (build 256).
+                .environment(\.focusBarShown, false)
                 .frame(minWidth: 720, minHeight: 480)
         }
         .defaultSize(width: 900, height: 620)

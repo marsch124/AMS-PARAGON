@@ -68,6 +68,9 @@ struct TaskContextMenu: View {
     @Binding var pickingDate: Bool
     var onAddSubtask: (() -> Void)?
     var onRename: (() -> Void)?
+    /// Handed in by the row, which can read where it is drawn; a context menu is built outside
+    /// the row's own hierarchy (build 256).
+    var offersFocus: Bool = true
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     private var note: Note? { model.note(at: ref.notePath) }
@@ -95,7 +98,7 @@ struct TaskContextMenu: View {
     ]
 
     var body: some View {
-        if !ref.task.isDone {
+        if offersFocus, model.canFocus(on: ref) {
             // First in the menu, as in the drawing (build 256): start the clock on this task.
             Button {
                 model.startFocus(on: ref)
@@ -223,11 +226,23 @@ struct TaskTimeButton: View {
     @EnvironmentObject private var model: AppModel
     let ref: TaskRef
     let tint: Color
+    /// False where no timer bar is drawn (build 256).
+    var offersFocus: Bool = true
     @State private var choosing = false
 
     private var spoken: String {
         guard let minutes = ref.task.minutes else { return "Set how long this takes" }
         return "Takes " + TaskTime.label(minutes)
+    }
+
+    /// Focus on this for the list, or nil where it is not offered. A function, not a ternary
+    /// with a closure in one arm (builds 152, 154).
+    private func focusAction() -> (() -> Void)? {
+        guard offersFocus, model.canFocus(on: ref) else { return nil }
+        return {
+            choosing = false
+            model.startFocus(on: ref)
+        }
     }
 
     var body: some View {
@@ -260,10 +275,7 @@ struct TaskTimeButton: View {
         .popover(isPresented: $choosing) {
             TaskTimeChoices(ref: ref, tint: tint,
                             done: { choosing = false },
-                            focus: {
-                                choosing = false
-                                model.startFocus(on: ref)
-                            })
+                            focus: focusAction())
                 .presentationCompactAdaptation(.popover)
         }
     }
@@ -302,7 +314,7 @@ struct TaskTimeChoices: View {
                 }
                 .font(.caption)
             }
-            if let focus, !ref.task.isDone {
+            if let focus, model.canFocus(on: ref) {
                 Divider()
                 Button(action: focus) {
                     Label("Focus on this", systemImage: "timer")

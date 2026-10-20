@@ -562,8 +562,9 @@ final class ScreenTests: XCTestCase {
     /// The focus timer (build 256): **Focus on this** under a task's time button starts the
     /// clock and the bar appears; **Pause** turns into **Go on** and back; **Stop** takes the
     /// bar away. A clock stopped inside half a minute writes nothing and asks nothing, so the
-    /// test needs no long wait — what a longer one writes under `## Worked` is pinned in Core
-    /// (`FocusSessionTests`). Everything pressed is found among buttons (build 249).
+    /// test needs no long wait; on a slow runner the question may come, and is answered. What a
+    /// longer clock writes under `## Worked` is pinned in Core (`FocusSessionTests`). Everything
+    /// pressed is found among buttons (build 249).
     func testAFocusTimerStartsPausesAndStops() {
         go(to: .projects)
 
@@ -606,6 +607,13 @@ final class ScreenTests: XCTestCase {
         let stop = app.buttons.matching(identifier: "focus.stop").firstMatch
         XCTAssertTrue(stop.waitForExistence(timeout: 10), "The timer bar has no Stop button.")
         if stop.isHittable { stop.press() } else { stop.pressCentre() }
+        // On a slow runner one stretch can reach half a minute, and then Stop rightly asks its
+        // one question (review of build 256). Answer it rather than fail for the test's own
+        // reasons (build 190): the bar has to go either way.
+        let notDone = app.buttons.matching(identifier: "focus.notDone").firstMatch
+        if notDone.waitForExistence(timeout: 5) {
+            if notDone.isHittable { notDone.press() } else { notDone.pressCentre() }
+        }
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("focus.bar"))
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
                        "Stop was pressed and the timer bar is still there. On screen: \(visibleTexts())")

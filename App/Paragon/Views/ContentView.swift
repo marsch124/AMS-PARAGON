@@ -89,9 +89,12 @@ struct ContentView: View {
             case .closeDay:
                 CloseDayView()
                     .environmentObject(model)
+                    // No timer bar inside a sheet, so no Focus on this either (build 256).
+                    .environment(\.focusBarShown, false)
             case .startDay:
                 StartDayView()
                     .environmentObject(model)
+                    .environment(\.focusBarShown, false)
             case .focusStop:
                 FocusStopView()
                     .environmentObject(model)
@@ -163,7 +166,8 @@ struct ContentView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(.regularMaterial, in: Capsule())
-                    .padding(.bottom, 16)
+                    // Above the focus timer's bar while a clock runs, never over it (build 256).
+                    .padding(.bottom, model.focus == nil ? 16 : 72)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .task {
                         try? await Task.sleep(for: .seconds(2.5))

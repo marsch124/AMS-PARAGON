@@ -9,15 +9,18 @@ The build number is shown at the bottom of the sidebar. Newest first.
 - **Start it** with **Focus on this**: at the bottom of the list the **time?** button on a task
   opens, first on a task's right-click menu (press and hold on the iPhone), and on a block in
   **Plan the day**.
-- **A dark bar** shows the task and the time, for example "23:14 of 45 min". On the iPhone it
-  sits above the tabs on every screen; on the Mac at the foot of the window. **Pause** stops the
-  clock (the button then says **Go on**), and **Stop** ends it.
+- **A bar** shows the task and the time, for example "23:14 of 45 min". On the iPhone it sits
+  above the tabs on every screen; on the Mac at the foot of the window. The round button with
+  two bars pauses the clock (press it again to go on), and the one with a square stops it.
 - **The clock keeps going when PARAGON is closed.** Open the app again and the time is right.
 - **When you stop**, one question: **Done, tick it off** or **Not done yet**. Either way the time
   goes into today's daily note under a new heading, **Worked**, one line per stretch between
-  pauses, for example `- 08:02-08:54 Write the offer for the shed`.
-- A clock stopped within half a minute writes nothing. Starting a new clock while one runs stops
-  the first one and writes its time down.
+  pauses, for example `- 08:02-08:54 Write the offer for the shed`. **Don't save the time** is
+  there for a clock that was left running by mistake.
+- A stretch under half a minute writes nothing. Starting a new clock while one runs stops the
+  first one and writes its time down.
+- **Focus on this** is not offered in **Start the day**, **Close the day**, the Mac's separate
+  **Plan the day** window, or on a task in a work note.
 - Next: build 257 brings the notice when the planned time is up, and the time in the Mac menu
   bar. Build 258 brings **Planned and worked** in **Close the day**.
 

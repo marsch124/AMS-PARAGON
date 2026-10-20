@@ -3589,8 +3589,32 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
   action only a right-click reveals is one nobody finds (build 74), and it is what lets a
   screen test press it. Start the day's time question leaves it out.
 - Screen test `testAFocusTimerStartsPausesAndStops`, both platforms: start from the time list,
-  the bar appears, **Pause** becomes **Go on** and back, **Stop** inside half a minute takes the
-  bar away with nothing to ask.
+  the bar appears, **Pause** becomes **Go on** and back, **Stop** takes the bar away. **It answers
+  the stop question if it comes**: a stretch on a slow runner can reach half a minute, and then
+  the question is right — a test may not fail for its own reasons (build 190).
+- **The review before it shipped found six real faults**, all fixed in 256:
+  - **Work notes**: `canFocus(on:)` refuses a work task. The bar shows the title on every screen
+    and the time goes into the ordinary daily note, so it would show through after Hide (112).
+  - **Where the bar is not drawn**, no Focus on this: `EnvironmentValues.focusBarShown` is false
+    in the two day sheets and the Mac's ⇧⌘P window; `TaskRow` reads it and hands it to
+    `TaskTimeButton(offersFocus:)` and `TaskContextMenu(offersFocus:)` (a context menu is built
+    outside the row's hierarchy), and `PlannerDayView` to a plan block's menu.
+  - **Done ticks only the task it started on**: `FocusSession.taskID` (`^t`) and `taskDue`, and
+    `task(in:)` finds it by id, else by exact words **and** date, else nothing — and then says
+    so. A title alone could tick a repeating task's next copy or another task with the same words.
+  - **Time is never thrown away**: `writeWorked` returns `(minutes, complete)` and skips lines
+    already in a note; when a day fails the clock is kept, paused, and a new clock does not start.
+  - **A clock left running**: over `FocusSession.forgottenAfter` (12 h) it is not written when a
+    new one starts, and the stop question warns and offers **Don't save the time**
+    (`discardFocus`), so a weekend does not become days of 00:00–24:00 lines.
+  - **Changing vault** writes the running clock into the old vault first.
+  - Smaller: the bar steps aside while the phone's keyboard is up (`KeyboardWatch`, a
+    `ViewModifier` so no `#if` sits in a modifier chain), the Mac's flash message sits above the
+    bar, the stop message states the per-stretch rule, an empty `## Worked` gets one blank line.
+  - **Known, not fixed**: a stretch running across a clock change (02:00–03:00 on a DST night) is
+    written an hour off, because a span is its start's wall-clock minute plus its length.
+    `repairOverflow` (build 34) sets the split view to the whole window and would cover the bar if
+    it ever fires while a clock runs.
 
 ## Not built (by choice)
 

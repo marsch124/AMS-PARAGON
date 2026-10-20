@@ -566,17 +566,23 @@ today's daily note, so you can see later how long things really took.
   this** at the bottom of the list. Or right-click the task (press and hold on the iPhone) and
   choose **Focus on this**, the first line of the menu.
 - A block in **Plan the day** has **Focus on this** on its right-click menu too.
+- **Focus on this** is not offered inside **Start the day** and **Close the day**, nor in the
+  Mac's separate **Plan the day** window (⇧⌘P), because the bar cannot be seen there. Nor is it
+  offered on a task in a work note.
 - Only one clock runs at a time. Starting a new one stops the one running and writes its time
-  down first, as not done.
+  down first, as not done. A clock that had run for more than 12 hours is stopped without
+  writing anything: it was almost certainly left running.
 
 ### While it runs
 
-A dark bar shows the task and the time: "23:14 of 45 min" when the task has a time, or just
-"23:14". On the iPhone it sits above the tabs on every screen; on the Mac at the foot of the
-window.
+A bar shows the task and the time: "23:14 of 45 min" when the task has a time, or just "23:14".
+It is dark on a light screen and light in dark mode, with a small orange dot. On the iPhone it
+sits above the tabs on every screen, and steps aside while the keyboard is up; on the Mac it
+sits at the foot of the window. It has two round buttons:
 
-- **Pause** stops the clock; the button turns into **Go on**. Paused time is not counted.
-- **Stop** ends it and asks one question.
+- The **pause** button (two bars) stops the clock; it then shows a triangle, which goes on.
+  Paused time is not counted.
+- The **stop** button (a square) ends it and asks one question.
 - The clock keeps going when PARAGON is closed or the device sleeps. It works from the time it
   was started, not by counting, so it is right when you open the app again. Each device has its
   own clock: one started on the iPhone does not show on the Mac.
@@ -586,10 +592,13 @@ window.
 PARAGON says how long you worked, for example "You worked 52 minutes on Write the offer for the
 shed. You planned 45 min." Then:
 
-- **Done, tick it off** ticks the task in its note.
-- **Not done yet** leaves the task open.
+- **Done, tick it off** ticks the task in its note. If the task can no longer be found there —
+  renamed, moved or already ticked — the time is still saved and nothing else is ticked.
+- **Not done yet** leaves the task open. For a block from **Plan the day** this answer is called
+  **Save the time**, since a block cannot be ticked.
+- **Don't save the time** writes nothing, for a clock that was left running by mistake.
 
-Either way, the time is written into today's daily note under a heading **Worked**, one line for
+The first two write the time into today's daily note under a heading **Worked**, one line for
 each stretch between pauses:
 
 ```
@@ -600,9 +609,11 @@ each stretch between pauses:
 
 The heading is made the first time, above **Looking back** when that is there. PARAGON only adds
 lines; a line you change or delete by hand stays as you left it. Each stretch is rounded to whole
-minutes, so the lines add up to what the question said. A clock stopped within half a minute
-writes nothing and asks nothing. A stretch that runs past midnight is written on both days.
-In **Read** mode these lines are drawn as an ordinary list, not as plan blocks.
+minutes, so the lines add up to what the question said. A stretch under half a minute is no
+line, so when no stretch reached half a minute nothing is written and nothing is asked. A
+stretch that runs past midnight is written on both days. If the time cannot be written, the
+clock is kept, paused, so you can press stop again later. In **Read** mode these lines are
+drawn as an ordinary list, not as plan blocks.
 
 ## Weekly review
 

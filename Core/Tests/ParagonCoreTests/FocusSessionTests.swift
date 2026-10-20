@@ -83,6 +83,37 @@ final class FocusSessionTests: XCTestCase {
         XCTAssertEqual(plain.addingWorkedSpans([]), plain, "Nothing to add changes nothing")
     }
 
+    func testAnEmptySectionGetsOneBlankLineNotTwo() {
+        let day = Note(relativePath: "Calendar/2026-10-20.md", kind: .daily,
+                       text: "---\ntitle: 2026-10-20\n---\n## Worked\n\n## Looking back\n\nFine.\n")
+        let added = day.addingWorkedSpans([WorkedSpan(start: 482, end: 534, title: "Write the offer")])
+        XCTAssertTrue(added.body.hasPrefix("## Worked\n\n- 08:02-08:54 Write the offer\n\n## Looking back"),
+                      "One blank line on each side: \(added.body)")
+    }
+
+    func testDoneFindsTheRightTaskOrNone() {
+        let tasks = Note(relativePath: "Projects/Boat.md", kind: .project, text: """
+            ---
+            title: Boat
+            ---
+            - [ ] Paint the hull >2026-10-20
+            - [ ] Paint the hull >2026-10-27
+            - [ ] Call the yard ^t1a2b3c
+            - [x] Sand it
+
+            """).tasks
+        func session(_ title: String, id: String? = nil, due: DateOnly? = nil) -> FocusSession {
+            FocusSession(notePath: "Projects/Boat.md", taskTitle: title, title: title, plannedMinutes: nil,
+                         startedAt: at(20, 8, 0), taskID: id, taskDue: due)
+        }
+        XCTAssertEqual(session("Paint the hull", due: DateOnly(year: 2026, month: 10, day: 27)).task(in: tasks)?.dueDate,
+                       DateOnly(year: 2026, month: 10, day: 27), "The date tells two tasks with the same words apart")
+        XCTAssertEqual(session("Renamed by hand", id: "t1a2b3c").task(in: tasks)?.title, "Call the yard",
+                       "The id finds a task whose words have changed")
+        XCTAssertNil(session("Sand it").task(in: tasks), "A task already ticked is not ticked again")
+        XCTAssertNil(session("Gone").task(in: tasks), "Nothing matches, so nothing is ticked")
+    }
+
     func testAWorkedLineIsReadLiberally() {
         XCTAssertEqual(WorkLog.span(in: "- 8:02 – 8:54 Write the offer"), WorkedSpan(start: 482, end: 534, title: "Write the offer"))
         XCTAssertEqual(WorkLog.span(in: "08:02-08:54 No bullet")?.title, "No bullet")

@@ -795,6 +795,12 @@ final class AppModel: ObservableObject {
             errorMessage = error.localizedDescription
             return
         }
+        // A clock running on the old vault is written there first: its lines belong to that
+        // vault's daily note, and Done must never tick a task in another one.
+        if let running = focus, vault != nil {
+            _ = writeWorked(running, at: Date())
+            focus = nil
+        }
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = scoped ? url : nil
         storeBookmark(for: url)
@@ -816,6 +822,10 @@ final class AppModel: ObservableObject {
             return
         }
         flushPendingEdits()
+        if let running = focus {
+            _ = writeWorked(running, at: Date())
+            focus = nil
+        }
         autoSyncTask?.cancel()
         autoSyncTask = nil
         securityScopedURL?.stopAccessingSecurityScopedResource()
@@ -2367,7 +2377,6 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// A short, non-modal message in the bottom banner.
     // MARK: The focus timer (build 256)
 
     /// The one session running on this device, or nil. Kept in the settings rather than the
@@ -2393,11 +2402,20 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Whether **Focus on this** is offered for a task: an open one, and **never in a work
+    /// note**. The bar shows the title on every screen and the time is written into the ordinary
+    /// daily note, so a work task would show through after **Hide** (build 112: hidden has to
+    /// mean hidden).
+    func canFocus(on ref: TaskRef) -> Bool {
+        !ref.task.isDone && !(vault?.isWorkPath(ref.notePath) ?? false)
+    }
+
     /// **Focus on this** on a task.
     func startFocus(on ref: TaskRef) {
+        guard canFocus(on: ref) else { return }
         beginFocus(FocusSession(notePath: ref.notePath, taskTitle: ref.task.title,
                                 title: planBlockTitle(from: ref.task), plannedMinutes: ref.task.minutes,
-                                startedAt: Date()))
+                                startedAt: Date(), taskID: ref.task.id, taskDue: ref.task.dueDate))
     }
 
     /// **Focus on this** on a block in the day's plan. A block is not a task, so nothing can be
@@ -2409,11 +2427,21 @@ final class AppModel: ObservableObject {
 
     /// A second timer never runs beside the first: the one running is stopped and its time
     /// written down, as "not done", and the message says so rather than losing it in silence.
+    /// Two exceptions, both from the review of build 256. A clock that has run for more than
+    /// twelve hours was left running, and a day of 00:00–24:00 lines is not written without
+    /// asking. And when its time cannot be written, it is **kept** and the new clock does not
+    /// start — the measured time is never thrown away.
     private func beginFocus(_ session: FocusSession) {
         if let running = focus {
-            let written = writeWorked(running, at: Date())
-            if written > 0 {
-                flash("\(written) min on \(running.title) written under Worked.")
+            let now = Date()
+            if running.workedSeconds(at: now) > FocusSession.forgottenAfter {
+                flash("The clock on \(running.title) had run for over 12 hours, so its time was not written.")
+            } else {
+                let result = writeWorked(running, at: now)
+                guard result.complete else { return }
+                if result.minutes > 0 {
+                    flash("\(result.minutes) min on \(running.title) written under Worked.")
+                }
             }
         }
         focus = session
@@ -2436,7 +2464,9 @@ final class AppModel: ObservableObject {
         let spans = WorkLog.spans(from: session.runs, title: session.title)
         if spans.isEmpty {
             focus = nil
-            flash("Stopped. Under a minute, so nothing was written.")
+            // Each stretch between pauses is written on its own, so the rule is per stretch —
+            // three stretches of 25 seconds write nothing, though the clock showed 1:15.
+            flash("Stopped. No stretch reached half a minute, so nothing was written.")
             return
         }
         afterUpdate { self.activeSheet = .focusStop }
@@ -2444,42 +2474,67 @@ final class AppModel: ObservableObject {
 
     /// The answer to the stop question. The time is written either way; **Done** also ticks the
     /// task off in its note.
+    ///
+    /// **When the time cannot be written, the clock is kept**, paused, so Stop can be pressed
+    /// again later; nothing measured is thrown away. **Done ticks only the task the clock was
+    /// started on** (`FocusSession.task(in:)`: its id, else its words and date), and says so
+    /// when that task cannot be found rather than ticking another one.
     func finishFocus(done: Bool) {
         guard let session = focus else { return }
-        _ = writeWorked(session, at: Date())
-        if done, let path = session.notePath, let note = note(at: path),
-           let task = note.tasks.first(where: { !$0.isDone && $0.title == session.taskTitle }) {
-            toggle(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
+        activeSheet = nil
+        let result = writeWorked(session, at: Date())
+        guard result.complete else { return }
+        if done, let path = session.notePath {
+            if let note = note(at: path), let task = session.task(in: note.tasks) {
+                toggle(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
+            } else {
+                flash("The time is saved. \(session.title) was not found in its note, so nothing was ticked.")
+            }
         }
+        focus = nil
+    }
+
+    /// The third answer: the clock was left running by mistake. Nothing is written.
+    func discardFocus() {
         focus = nil
         activeSheet = nil
     }
 
     /// Writes a session's stretches under `## Worked`, each in its own day's note, making the
-    /// note when there is none. Returns the minutes written.
+    /// note when there is none. Lines already in a note are not written twice, so trying again
+    /// after a day failed adds only what is missing. `complete` is false when a day could not
+    /// be written; the error message says why.
     @discardableResult
-    private func writeWorked(_ session: FocusSession, at now: Date) -> Int {
+    private func writeWorked(_ session: FocusSession, at now: Date) -> (minutes: Int, complete: Bool) {
         flushPendingEdits()
-        guard let vault else { return 0 }
+        guard let vault else { return (0, false) }
         let dated = WorkLog.spans(from: session.allRuns(endingAt: now), title: session.title)
         var written = 0
+        var complete = true
         var made = false
         for day in Set(dated.map(\.day)).sorted() {
             let spans = dated.filter { $0.day == day }.map(\.span)
             do {
                 let existed = vault.dailyNoteExists(for: day)
                 let note = try vault.dailyNote(for: day)
-                guard save(note.addingWorkedSpans(spans)) else { continue }
+                let already = note.workedSpans
+                let fresh = spans.filter { !already.contains($0) }
+                guard save(note.addingWorkedSpans(fresh)) else {
+                    complete = false
+                    continue
+                }
                 written += spans.reduce(0) { $0 + $1.minutes }
                 if !existed { made = true }
             } catch {
-                errorMessage = error.localizedDescription
+                complete = false
+                errorMessage = error.localizedDescription + " The clock is kept: press Stop again later."
             }
         }
         if made { reload() }
-        return written
+        return (written, complete)
     }
 
+    /// A short, non-modal message in the bottom banner.
     func flash(_ message: String) {
         lastCaptureMessage = message
     }

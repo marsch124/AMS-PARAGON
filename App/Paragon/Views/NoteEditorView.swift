@@ -874,6 +874,9 @@ struct TaskChecklist: View {
 
 struct TaskRow: View {
     @EnvironmentObject private var model: AppModel
+    /// False inside the two day sheets and the Mac's planner window, where no timer bar is
+    /// drawn: Focus on this is then left out of both the time list and the menu (build 256).
+    @Environment(\.focusBarShown) private var focusBarShown
     let ref: TaskRef
     let showNote: Bool
     var onAddSubtask: (() -> Void)? = nil
@@ -957,7 +960,7 @@ struct TaskRow: View {
             // asks for nothing: "time?" on a ticked line would be a question with no use.
             if useTaskTimes && !renaming {
                 if !ref.task.isDone {
-                    TaskTimeButton(ref: ref, tint: tint)
+                    TaskTimeButton(ref: ref, tint: tint, offersFocus: focusBarShown)
                 } else if let minutes = ref.task.minutes {
                     Text(TaskTime.label(minutes))
                         .font(.caption)
@@ -969,7 +972,8 @@ struct TaskRow: View {
         .draggable(TaskTransfer(ref))
         .contextMenu {
             TaskContextMenu(ref: ref, showNote: showNote, pickingDate: $pickingDate,
-                            onAddSubtask: onAddSubtask, onRename: startRenaming)
+                            onAddSubtask: onAddSubtask, onRename: startRenaming,
+                            offersFocus: focusBarShown)
         }
         .popover(isPresented: $pickingDate) {
             TaskDatePicker(ref: ref, isPresented: $pickingDate)

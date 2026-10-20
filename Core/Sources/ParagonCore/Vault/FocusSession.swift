@@ -25,6 +25,12 @@ public struct FocusSession: Codable, Equatable, Sendable {
     public var notePath: String?
     /// The task's title exactly as the note has it, so **Done, tick it off** can find it again.
     public var taskTitle: String
+    /// The task's `^t` id when it has one: the surest way to find it again, since two tasks can
+    /// share a title (build 256's review).
+    public var taskID: String?
+    /// The task's date when the clock started, so a repeating task's next copy — same title,
+    /// a later date — is never taken for it.
+    public var taskDue: DateOnly?
     /// What the bar shows and what is written under `## Worked`: the title without `#next`.
     public var title: String
     /// The task's own time, or the plan block's length. Nil when it has none.
@@ -34,9 +40,12 @@ public struct FocusSession: Codable, Equatable, Sendable {
     /// When the stretch now running began. Nil while paused.
     public var runningSince: Date?
 
-    public init(notePath: String?, taskTitle: String, title: String, plannedMinutes: Int?, startedAt: Date) {
+    public init(notePath: String?, taskTitle: String, title: String, plannedMinutes: Int?, startedAt: Date,
+                taskID: String? = nil, taskDue: DateOnly? = nil) {
         self.notePath = notePath
         self.taskTitle = taskTitle
+        self.taskID = taskID
+        self.taskDue = taskDue
         self.title = title
         self.plannedMinutes = plannedMinutes
         self.runs = []
@@ -66,6 +75,22 @@ public struct FocusSession: Codable, Equatable, Sendable {
         guard runningSince == nil else { return }
         runningSince = now
     }
+
+    /// The open task this session was started on, found again in `tasks`: by its `^t` id
+    /// first, else by its exact title **and** the date it had. Nil when it is gone — renamed,
+    /// moved, ticked elsewhere — and then **Done** must say so rather than tick another task.
+    public func task(in tasks: [TaskItem]) -> TaskItem? {
+        let open = tasks.filter { !$0.isDone }
+        if let id = taskID, let byID = open.first(where: { $0.id == id }) { return byID }
+        let sameTitle = open.filter { $0.title == taskTitle && $0.dueDate == taskDue }
+        // Two open tasks with the same words and the same date cannot be told apart, so
+        // neither is ticked.
+        return sameTitle.count == 1 ? sameTitle.first : nil
+    }
+
+    /// A clock that has run longer than this was almost certainly left running, and its time
+    /// is not written down without being asked (build 256's review).
+    public static let forgottenAfter: TimeInterval = 12 * 3600
 
     /// The clock on the bar: "4:09", "23:14", "1:02:05".
     public static func clock(_ seconds: TimeInterval) -> String {
@@ -189,11 +214,15 @@ public enum WorkLog {
             while at > range.lowerBound, lines[at - 1].trimmingCharacters(in: .whitespaces).isEmpty {
                 at -= 1
             }
-            // An empty section gets a blank line under its heading, and one before a heading
-            // that follows straight after — the shape the section is made in below.
-            let empty = at == range.lowerBound
-            let headingFollows = empty && at < lines.count
-            lines.insert(contentsOf: (empty ? [""] : []) + added + (headingFollows ? [""] : []), at: at)
+            if at == range.lowerBound {
+                // An empty section — nothing in it, or only blank lines — is given the shape the
+                // section is made in below: a blank line, the lines, and a blank line before a
+                // heading that follows. Its own blank lines are replaced, not added to.
+                let headingFollows = range.upperBound < lines.count
+                lines.replaceSubrange(range, with: [""] + added + (headingFollows ? [""] : []))
+            } else {
+                lines.insert(contentsOf: added, at: at)
+            }
         } else {
             let lookingBack = MarkdownSection.find(DayLog.heading, in: note.body).range
             if let lookingBack {

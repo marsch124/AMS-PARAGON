@@ -62,7 +62,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan the day**.
 - **Now line** — the thin blue line that shows the time right now.
 - **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **time?** button opens, and first on a task's right-click menu.
-- **Focus timer** — a clock on one task while you work. A dark bar shows it, with **Pause** and **Stop**.
+- **Focus timer** — a clock on one task while you work. A bar at the foot of the screen shows it, with a pause button and a stop button.
 - **Worked** — a heading in the daily note where the focus timer writes how long you worked: one line for each stretch, like `- 08:02-08:54 Write the offer`.
 - **Week** — **Calendar › Week**: the seven days of a week, with what is due on each.
 - **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**.
