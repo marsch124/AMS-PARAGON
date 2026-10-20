@@ -3542,6 +3542,12 @@ the push is still worth running after it** — it found two behaviour faults CI 
   `needsALookCount(of:)` add the list up for the band.
 - `WeekBars` iterates `counts.indices`, never `enumerated()` (build 61). The band sits **above
   the `List`** in a `VStack` (build 220's reason) with a `Divider`.
+- **The review of 255, before it shipped**: the quiet caption beside the bars was `.lineLimit(1)`
+  in an `HStack` beside 46 fixed points of bars, so at the Mac's 280-point middle column
+  "last task finished about a month ago" was cut — the cut part being the fact. Two lines now,
+  `.fixedSize(horizontal: false, vertical: true)`. **A caption beside something fixed-width has
+  to be measured against the narrowest column it lives in** (build 138's family). Also: a stamp
+  in a later week now counts for nothing, not even as `lastFinished`; the band draws its "·".
 - `TaskRow`'s tick carries `task.tick.<title>`. Mac test `testATickedTaskShowsInTheWeeklyBars`:
   no band before, tick the test task in the note, then band and box bars in the list. Mac only:
   the phone's way back out of a pushed note is not what the test is about.

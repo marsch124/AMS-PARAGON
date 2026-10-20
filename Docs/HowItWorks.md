@@ -113,7 +113,8 @@ projects it holds.
 
 Above the groups, one line speaks for the whole list: bars for all projects together, how many
 tasks were finished in the last eight weeks and this week ("14 tasks finished in 8 weeks · 2
-this week"), and, when any project is late, "⚠ 1 needs a look" in orange.
+this week"), and "⚠ 1 needs a look" in orange when a project has a date that has passed or
+a deadline after its goal's target date.
 
 ### What a box says
 

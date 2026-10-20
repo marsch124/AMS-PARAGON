@@ -44,10 +44,14 @@ public struct WeeklyFinished: Equatable, Sendable {
         let thisMonday = WeekRef(containing: today).monday
         for task in tasks where task.status == .done {
             guard let stamp = task.doneStamp, let day = DateOnly(String(stamp.prefix(10))) else { continue }
-            if last.map({ day > $0 }) ?? true { last = day }
             let monday = WeekRef(containing: day).monday
             let back = thisMonday.days(since: monday, calendar: WeekRef.calendar) / 7
-            guard back >= 0, back < Self.weeks else { continue }
+            // A stamp in a later week (typed by hand, or from a device whose clock is ahead) is
+            // left out altogether: counted nowhere, it must not be "the last task finished" either,
+            // or a box would say "last task finished today" over empty bars (review of 255).
+            guard back >= 0 else { continue }
+            if last.map({ day > $0 }) ?? true { last = day }
+            guard back < Self.weeks else { continue }
             counts[Self.weeks - 1 - back] += 1
         }
         self.init(counts: counts, lastFinished: last)

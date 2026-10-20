@@ -11,10 +11,12 @@ The build number is shown at the bottom of the sidebar. Newest first.
   line.
 - Beside the bars, one line. While a project is moving it says how much, for example
   "6 finished in 8 weeks". When nothing has been finished for two weeks, it says since when,
-  for example "last task finished about a month ago".
+  for example "last task finished about a month ago". A line that does not fit goes on to a
+  second line instead of being cut.
 - **At the top of the list**, one line for all projects together, for example "14 tasks
-  finished in 8 weeks · 2 this week", with bars for the whole list. When a project is late,
-  the same line says "⚠ 1 needs a look" in orange.
+  finished in 8 weeks · 2 this week", with bars for the whole list. When a project has a date
+  that has passed, or a deadline after its goal's target date, the same line says "⚠ 1 needs a
+  look" in orange.
 - A week is Monday to Sunday, the same weeks as your weekly notes. A task counts on the day in
   its `@done(…)` mark, so a task ticked in PARAGON or in Apple Reminders counts. Subtasks count
   too. A project where no finished task has a date shows no bars at all.

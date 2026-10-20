@@ -53,7 +53,7 @@ struct ProjectsListView: View {
                     WeekBars(weekly: weekly, barWidth: 6)
                     Text(head)
                         .fontWeight(.semibold)
-                    Text(weekly.bandWeek)
+                    Text("\u{00B7} " + weekly.bandWeek)
                         .foregroundStyle(.secondary)
                 }
                 if look > 0 {
@@ -359,10 +359,14 @@ struct ProjectBox: View {
                     HStack(spacing: 6) {
                         WeekBars(weekly: line.weekly)
                         if let caption = line.weekly.caption(today: DateOnly.today()) {
+                            // Two lines, never cut: at the Mac's usual column width "last task
+                            // finished about a month ago" is wider than the room beside the bars,
+                            // and the cut part is the fact (review of build 255, build 138).
                             Text(caption)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                                .lineLimit(1)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     .accessibilityElement(children: .combine)

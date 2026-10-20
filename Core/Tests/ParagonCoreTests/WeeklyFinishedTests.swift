@@ -46,6 +46,14 @@ final class WeeklyFinishedTests: XCTestCase {
         XCTAssertEqual(long.caption(today: today), "last task finished about a year ago")
     }
 
+    func testAStampInALaterWeekCountsForNothing() {
+        let ahead = WeeklyFinished(tasks: tasks("- [x] From the future @done(2026-10-27 08:00)\n"), today: today)
+        XCTAssertTrue(ahead.isEmpty, "Not in any bar, so not the last task finished either")
+        XCTAssertNil(ahead.caption(today: today))
+        let laterToday = WeeklyFinished(tasks: tasks("- [x] Later this week @done(2026-10-21 08:00)\n"), today: today)
+        XCTAssertEqual(laterToday.thisWeek, 1, "A later day in this week is still this week")
+    }
+
     func testNothingDatedMeansNothingToDraw() {
         let none = WeeklyFinished(tasks: tasks("- [x] Ticked with no stamp\n- [ ] Open\n"), today: today)
         XCTAssertTrue(none.isEmpty)
