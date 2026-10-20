@@ -3838,6 +3838,15 @@ and every wait has a limit.**
   config, tags, saved searches and first picks may never be asked for.
 - The 0x8badf00d check that would prove the diagnosis is on his phone (Settings › Privacy &
   Security › Analytics & Improvements › Analytics Data). Not asked: the fix does not depend on it.
+- **Confirmed by him, 20 October**: *"261 updates perfectly on the iPhone. New page on Mac >
+  Yellow text > Sync OK"* — the app started at once, a note made on the Mac showed as the
+  orange **still coming from iCloud** line (he reads that orange as yellow), and then arrived by
+  itself. When he says "yellow text", that is `VaultWarningBar`.
+- **CI**: `testStartTheDayOpensAndCloses` failed once on 261's first run (the added action was
+  on screen and picked, but `startDay.pick.…` was not found within 20 s, on a runner whose first
+  test took 118 s) and passed on the next run with no change to that screen. First failure; if
+  it fails again, treat it as real and look at the `.popover` on that button (build 249: SwiftUI
+  puts the identifier on a wrapper too).
 
 ## Not built (by choice)
 
