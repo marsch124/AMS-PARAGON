@@ -137,8 +137,10 @@ struct ContentView: View {
                 // The focus clock's question is open, or waiting for a screen to close (build
                 // 257's review): swapping it for Close the day would lose it, and with it the
                 // stopped clock's time.
+                // Kept, not lost: Close the day opens once the question is answered or closed.
+                // A message would sit under the question's sheet on the phone (build 238).
                 guard !model.focusQuestionPending else {
-                    model.flash("Close the day did not open: the focus clock's question is open. Answer it first.")
+                    model.openCloseDayAfterFocusQuestion()
                     return
                 }
                 if model.activeSheet == nil {
@@ -212,10 +214,17 @@ struct ContentView: View {
 
 /// The Mac's mark on the main window, for the menu bar clock's **Show PARAGON** (build 257).
 /// A modifier, so no `#if` sits in the middle of `ContentView`'s chain (build 148).
+///
+/// **An overlay, never a background.** A background's platform view is put in front of the
+/// content's in `contentView.subviews`, and `tameSplitViewColumns` and `repairOverflow` take
+/// `contentView.subviews.first` to be the split view's host: as a background the marker
+/// switched off build 34's fix and silenced the OVERFLOW line the screen tests read, with
+/// every test still green (build 257's third review). Zero-sized and click-through, so an
+/// overlay takes nothing from the window.
 private struct MainWindowMarking: ViewModifier {
     func body(content: Content) -> some View {
         #if os(macOS)
-        content.background(MainWindowMarker().frame(width: 0, height: 0))
+        content.overlay(MainWindowMarker().frame(width: 0, height: 0))
         #else
         content
         #endif

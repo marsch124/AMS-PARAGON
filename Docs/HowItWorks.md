@@ -622,8 +622,8 @@ Click it for a short menu: the task, how long you planned (when the task has a t
 - **Stop…** does the same, because the question is asked in that window. After **Stop…** the dot
   is grey and the time stays until you answer the question. Then it goes away.
 - While the question is open, **Pause**, **Go on** and **Stop…** are grey and cannot be pressed.
-  If the evening reminder is pressed then, **Close the day** does not open: answer the question
-  first.
+  If the evening reminder is pressed then, **Close the day** opens after you have answered the
+  question.
 - If another screen is open in PARAGON, such as **New Note** or **Close the day**, **Stop…**
   stops the clock but does not close that screen. The question comes when you close it.
 

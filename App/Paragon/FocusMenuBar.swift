@@ -167,8 +167,9 @@ final class FocusStatusItem: NSObject {
         } else if let open = model?.openMainWindow {
             open()
         } else {
-            // No main window has been drawn since launch, so `ContentView` never handed in
-            // `openWindow`: ask the way a Dock click does, which opens the main window.
+            // No PARAGON view of any kind has appeared since launch, so nothing could hand in
+            // `openWindow`. Ask the way a Dock click does: with no window visible, that opens
+            // the main one.
             NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL,
                                                configuration: NSWorkspace.OpenConfiguration())
         }
@@ -181,7 +182,8 @@ final class FocusStatusItem: NSObject {
     }
 }
 
-/// An empty, zero-sized view `ContentView` carries on the Mac, so the menu bar clock can tell
+/// An empty, zero-sized view `ContentView` carries as an **overlay** on the Mac (a background
+/// would go first in the window's subviews and switch off build 34's fix), so the menu bar clock can tell
 /// the main window from Settings, Help and the planner window — on the welcome screen too, where
 /// there is no split view to look for (build 257's second review). It takes no clicks and asks
 /// for no size: anything that claims a size in that window is builds 30 and 34 again.

@@ -202,7 +202,10 @@ final class AppModel: ObservableObject {
     @Published var errorMessage: String?
     /// SwiftUI only presents one sheet reliably per view, so all sheets go through this.
     @Published var activeSheet: AppSheet? {
-        didSet { askWaitingStopQuestion() }
+        didSet {
+            askWaitingStopQuestion()
+            openWaitingCloseDay()
+        }
     }
     @Published private(set) var lastCaptureMessage: String?
     @Published var selectedDate = DateOnly.today()
@@ -2410,6 +2413,26 @@ final class AppModel: ObservableObject {
     /// **Pause** / **Go on** do nothing.
     var focusQuestionPending: Bool {
         activeSheet == .focusStop || stopQuestionWaiting
+    }
+
+    /// The evening reminder was pressed while the focus clock's question was open or waiting
+    /// (build 257): **Close the day** opens once that question is out of the way, rather than
+    /// swapping it away or being lost.
+    private var closeDayAfterFocusQuestion = false
+
+    func openCloseDayAfterFocusQuestion() {
+        closeDayAfterFocusQuestion = true
+    }
+
+    /// A turn after a sheet closes, and after a waiting stop question has had its turn: the
+    /// stop question is queued first, so when it opens this finds a sheet and waits again.
+    private func openWaitingCloseDay() {
+        guard activeSheet == nil, closeDayAfterFocusQuestion else { return }
+        afterUpdate {
+            guard self.activeSheet == nil, self.closeDayAfterFocusQuestion, self.vault != nil else { return }
+            self.closeDayAfterFocusQuestion = false
+            self.activeSheet = .closeDay
+        }
     }
 
     private func askWaitingStopQuestion() {

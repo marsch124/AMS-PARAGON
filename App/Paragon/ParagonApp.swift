@@ -87,19 +87,23 @@ struct ParagonApp: App {
                 // This window has no timer bar, so no Focus on this (build 256).
                 .environment(\.focusBarShown, false)
                 .frame(minWidth: 720, minHeight: 480)
+                .modifier(HandsInMainWindowOpener(model: model))
         }
         .defaultSize(width: 900, height: 620)
         MenuBarExtra("PARAGON quick capture", systemImage: "tray.and.arrow.down", isInserted: $showMenuBarItem) {
             QuickCaptureView(compact: true)
                 .environmentObject(model)
+                .modifier(HandsInMainWindowOpener(model: model))
         }
         .menuBarExtraStyle(.window)
         Settings {
             SettingsView()
                 .environmentObject(model)
+                .modifier(HandsInMainWindowOpener(model: model))
         }
         WindowGroup("PARAGON Help", id: "help", for: HelpView.Page.self) { page in
             HelpView(page: page.wrappedValue ?? .howItWorks)
+                .modifier(HandsInMainWindowOpener(model: model))
         }
         .defaultSize(width: 720, height: 640)
         #endif
@@ -131,6 +135,23 @@ struct WordsWindowButton: View {
 #endif
 
 #if os(macOS)
+/// Every Mac scene hands `openWindow` to the model, not only the main window (build 257's third
+/// review): a launch that brings back only **Plan the day** or Help has no main window, and the
+/// menu bar clock's **Show PARAGON** must still be able to open one. A Dock click would not:
+/// it opens a window only when none is visible.
+struct HandsInMainWindowOpener: ViewModifier {
+    let model: AppModel
+    @Environment(\.openWindow) private var openWindow
+
+    func body(content: Content) -> some View {
+        content.onAppear {
+            if model.openMainWindow == nil {
+                model.openMainWindow = { [openWindow] in openWindow(id: ParagonApp.mainWindowID) }
+            }
+        }
+    }
+}
+
 /// Opens the planner window from the Go menu. Its own view because `openWindow` is read from
 /// the environment, which a `View` has and the `App` struct does not — the same shape as
 /// `HelpMenuButtons`.

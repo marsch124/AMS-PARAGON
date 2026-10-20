@@ -3660,21 +3660,29 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
   `focusQuestionPending`), **Show PARAGON**. Shown whatever **Show capture panel in the menu
   bar** says.
 - **Show PARAGON finds the main window by `MainWindowMarker`**, a zero-sized, click-through
-  `NSViewRepresentable` that `ContentView` carries in its background (through the
+  `NSViewRepresentable` that `ContentView` carries as an **overlay** (through the
   `MainWindowMarking` modifier) — on the welcome screen too, where there is no split view to
   look for. It unhides PARAGON, searches windows that are visible **or minimized** (not
   `canBecomeMain`, which is false for a minimized one and so opened a second main window), and
-  only then calls `model.openMainWindow` (the `WindowGroup` has `id: "main"`; `ContentView`
-  hands `openWindow` in) or, before any `ContentView` has appeared, asks
+  only then calls `model.openMainWindow` (the `WindowGroup` has `id: "main"`; **every** Mac
+  scene hands `openWindow` in through `HandsInMainWindowOpener`, because a launch can bring back
+  only **Plan the day** or Help) or, when no PARAGON view has appeared at all, asks
   `NSWorkspace.openApplication` for the app itself, which is what a Dock click does.
+- **Never put a platform view in `ContentView`'s background.** `tameSplitViewColumns` and
+  `repairOverflow` take `contentView.subviews.first` to be the split view's host, and a
+  background's view goes first. The marker's first push did exactly that: build 34's fix was
+  switched off and the OVERFLOW line the screen tests read went silent, with CI green. Found by
+  the third review from the layout dump in an old CI log, not by a test. **A green test that
+  reads a diagnostic is only as good as the diagnostic's own assumptions.**
 - **The menu bar is the first control outside every sheet**, and that is what the review of
   257 found twice. **Go on** while the stop question was open would run the clock behind the
   sheet and write a stretch the question never showed: `pauseFocus`/`resumeFocus` refuse while
   `focusQuestionPending`. **Stop…** while **New Note** or **Close the day** was open would have
   swapped that sheet for the question and lost what was typed: `stopFocus` now sets
   `stopQuestionWaiting`, and `activeSheet`'s `didSet` asks the question a turn after that sheet
-  closes (build 246's shape). The evening reminder's press does not open **Close the day** while
-  `focusQuestionPending`: it would swap the question away. **Any new control outside the window
+  closes (build 246's shape). The evening reminder's press while `focusQuestionPending` is kept
+  (`closeDayAfterFocusQuestion`) and **Close the day** opens a turn after the question's sheet
+  closes, never swapped in over it; a message would have sat under the sheet on the phone. **Any new control outside the window
   has to be checked against every sheet the window can show.** A second review of the fixes
   found six more, all about window states nobody draws: minimized, hidden, closed, no vault,
   never opened since launch. **For a control outside the window, list the window's states as
