@@ -382,8 +382,21 @@ struct PlannerDayView: View {
         CGFloat(minutes - firstHour * 60) / 60 * hourHeight
     }
 
+    /// The smallest a card is drawn: one line of words. A 3- or 5-minute block is far shorter
+    /// than that on an hour of 44 points.
+    private let shortestCard: CGFloat = 22
+
     private func height(forMinutes minutes: Int) -> CGFloat {
-        max(22, CGFloat(minutes) / 60 * hourHeight)
+        max(shortestCard, CGFloat(minutes) / 60 * hourHeight)
+    }
+
+    /// Where a span's card **ends on screen**, in minutes: a short block's card reaches past its
+    /// own end, so the next block would be drawn over it. Lanes are shared by this end, not the
+    /// written one, so short blocks sit side by side instead of covering each other (build 260,
+    /// when 3 and 5 minutes became choices).
+    private func drawnEnd(of span: PlannerSpan) -> Int {
+        let shortest = Int((shortestCard / hourHeight * 60).rounded(.up))
+        return max(span.end, span.start + shortest)
     }
 
     private var placedEvents: [PlannerPlacement] {
@@ -407,7 +420,8 @@ struct PlannerDayView: View {
     }
 
     /// Spans that overlap share the width. Sorted by start, then greedily given the first lane
-    /// whose last item has finished; a gap with nothing running closes the group off.
+    /// whose last item has finished; a gap with nothing running closes the group off. "Finished"
+    /// is where its card ends on screen (`drawnEnd`), so a short card is never covered.
     private func place(_ spans: [PlannerSpan]) -> [PlannerPlacement] {
         var result: [PlannerPlacement] = []
         var group: [(span: PlannerSpan, lane: Int)] = []
@@ -427,12 +441,13 @@ struct PlannerDayView: View {
         }
 
         for span in spans.sorted(by: { $0.start == $1.start ? $0.end < $1.end : $0.start < $1.start }) {
+            let end = drawnEnd(of: span)
             if let latest = laneEnds.max(), span.start >= latest { flush() }
             if let free = laneEnds.firstIndex(where: { $0 <= span.start }) {
-                laneEnds[free] = span.end
+                laneEnds[free] = end
                 group.append((span, free))
             } else {
-                laneEnds.append(span.end)
+                laneEnds.append(end)
                 group.append((span, laneEnds.count - 1))
             }
         }

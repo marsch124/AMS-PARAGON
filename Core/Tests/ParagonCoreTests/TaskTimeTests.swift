@@ -52,6 +52,8 @@ final class TaskTimeTests: XCTestCase {
     }
 
     func testWords() {
+        XCTAssertEqual(TaskTime.label(3), "3 min")
+        XCTAssertEqual(TaskTime.token(5), "~5m")
         XCTAssertEqual(TaskTime.label(10), "10 min")
         XCTAssertEqual(TaskTime.label(60), "1 h")
         XCTAssertEqual(TaskTime.label(90), "1 h 30")

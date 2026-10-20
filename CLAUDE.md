@@ -3724,6 +3724,9 @@ planned time is up and the time in the Mac menu bar, **258** fixes from his fiel
   `allNotes()` waiting for iCloud on the main thread (the Inbox stub is read with no budget at
   all, and a failed stub read does not use up `cloudFetchesPerLoad`), killed by iOS's launch
   watchdog. Fix only once the device is known.
+- **His answers, 20 October**: the notification at the planned time **works**; the iPhone **does**
+  show **10 min** now, so (a) was only iCloud's delay and needs no fix; the crash at start was
+  **on the iPhone**, so (b) is the launch watchdog suspect and is the next build.
 
 **Build 259: Planned and worked**, the last part of the Time and Focus drawing.
 - `Core/Vault/PlannedAndWorked.swift` (tested in `PlannedAndWorkedTests`): rows from today's
@@ -3748,6 +3751,14 @@ planned time is up and the time in the Mac menu bar, **258** fixes from his fiel
   uppercase like `SectionLabel`. A running or paused clock is named under the table: its time is
   not in the note until Stop.
 - On-screen text says **focus timer**, the word in `Docs/Words.md`.
+
+**Build 260: 3 min and 5 min**, his ask after 259. `TaskTime.choices` gained 3 and 5 (the
+parser always read `~3m`; `testRoundTripsEveryChoice` covers the new ones). **The planner had
+to change with it**: a card is never drawn under 22 points (`shortestCard`), which is 30 minutes
+on a 44-point hour, so a 3-minute block followed by one five minutes later was drawn underneath
+it. `place(_:)` now shares lanes by `drawnEnd(of:)` — where a card ends on screen — so short
+cards sit side by side. **When a choice makes a value much smaller, check every place that draws
+it at its true size.**
 
 ## Not built (by choice)
 

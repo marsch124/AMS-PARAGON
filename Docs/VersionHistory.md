@@ -2,6 +2,15 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 260 · 20 October 2026
+
+**3 min and 5 min for small tasks.**
+
+- The **time?** button and **How long** on a task now also offer **3 min** and **5 min**.
+- **Plan the day**: a very short block is drawn one line tall, which is taller than its time.
+  Before, the next block was drawn over it. Now short blocks that would cover each other sit
+  side by side.
+
 ## Build 259 · 20 October 2026
 
 **Planned and worked in Close the day.** The last part of PARAGON Time and Focus.

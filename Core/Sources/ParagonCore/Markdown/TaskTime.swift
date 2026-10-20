@@ -6,8 +6,9 @@ import Foundation
 /// title stays clean in every list, in Reminders and in a plan block. **One place decides the
 /// wording**, so the button on a row, the menu and the totals in **Start the day** cannot drift.
 public enum TaskTime {
-    /// The times offered on screen, in minutes. He asked for 10 to be added to the drawn set.
-    public static let choices: [Int] = [10, 15, 30, 45, 60, 90, 120, 180]
+    /// The times offered on screen, in minutes. He asked for 10 to be added to the drawn set,
+    /// and for 3 and 5 for the small things (build 260).
+    public static let choices: [Int] = [3, 5, 10, 15, 30, 45, 60, 90, 120, 180]
 
     /// `(?<!\S)~(1h)?(30m)?(?!\S)`. Both groups are optional in the pattern, so a bare `~` also
     /// matches it — `minutes(inMatch:of:)` refuses that, and so does every caller.
