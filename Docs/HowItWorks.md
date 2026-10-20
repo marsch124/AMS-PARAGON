@@ -555,6 +555,55 @@ drawn as a block in its own orange, not as ordinary text.
 
 Time Blocks are the one thing the app writes to Calendar. They are blocks of time you reserve, separate from tasks. Add one in the Time Blocks section: it becomes an ordinary event in the calendar chosen under "Time blocks go to", and shows on all your devices. Click a block to edit it, right-click (long-press on the phone) to open it in Calendar or delete it. Nothing else in your calendars is ever changed.
 
+## The focus timer
+
+A clock you start on one task while you work on it. When you stop it, the time goes into
+today's daily note, so you can see later how long things really took.
+
+### Starting it
+
+- Press the **time?** button on a task (or its time, such as **45 min**) and choose **Focus on
+  this** at the bottom of the list. Or right-click the task (press and hold on the iPhone) and
+  choose **Focus on this**, the first line of the menu.
+- A block in **Plan the day** has **Focus on this** on its right-click menu too.
+- Only one clock runs at a time. Starting a new one stops the one running and writes its time
+  down first, as not done.
+
+### While it runs
+
+A dark bar shows the task and the time: "23:14 of 45 min" when the task has a time, or just
+"23:14". On the iPhone it sits above the tabs on every screen; on the Mac at the foot of the
+window.
+
+- **Pause** stops the clock; the button turns into **Go on**. Paused time is not counted.
+- **Stop** ends it and asks one question.
+- The clock keeps going when PARAGON is closed or the device sleeps. It works from the time it
+  was started, not by counting, so it is right when you open the app again. Each device has its
+  own clock: one started on the iPhone does not show on the Mac.
+
+### Stopping it
+
+PARAGON says how long you worked, for example "You worked 52 minutes on Write the offer for the
+shed. You planned 45 min." Then:
+
+- **Done, tick it off** ticks the task in its note.
+- **Not done yet** leaves the task open.
+
+Either way, the time is written into today's daily note under a heading **Worked**, one line for
+each stretch between pauses:
+
+```
+## Worked
+- 08:02-08:54 Write the offer for the shed
+- 09:05-09:15 Call the bank
+```
+
+The heading is made the first time, above **Looking back** when that is there. PARAGON only adds
+lines; a line you change or delete by hand stays as you left it. Each stretch is rounded to whole
+minutes, so the lines add up to what the question said. A clock stopped within half a minute
+writes nothing and asks nothing. A stretch that runs past midnight is written on both days.
+In **Read** mode these lines are drawn as an ordinary list, not as plan blocks.
+
 ## Weekly review
 
 The review is a walk you do once a week, in order, from the top of the screen down.

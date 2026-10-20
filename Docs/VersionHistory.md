@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 256 · 20 October 2026
+
+**The focus timer**, part 3 of PARAGON Time and Focus.
+
+- **Start it** with **Focus on this**: at the bottom of the list the **time?** button on a task
+  opens, first on a task's right-click menu (press and hold on the iPhone), and on a block in
+  **Plan the day**.
+- **A dark bar** shows the task and the time, for example "23:14 of 45 min". On the iPhone it
+  sits above the tabs on every screen; on the Mac at the foot of the window. **Pause** stops the
+  clock (the button then says **Go on**), and **Stop** ends it.
+- **The clock keeps going when PARAGON is closed.** Open the app again and the time is right.
+- **When you stop**, one question: **Done, tick it off** or **Not done yet**. Either way the time
+  goes into today's daily note under a new heading, **Worked**, one line per stretch between
+  pauses, for example `- 08:02-08:54 Write the offer for the shed`.
+- A clock stopped within half a minute writes nothing. Starting a new clock while one runs stops
+  the first one and writes its time down.
+- Next: build 257 brings the notice when the planned time is up, and the time in the Mac menu
+  bar. Build 258 brings **Planned and worked** in **Close the day**.
+
 ## Build 255 · 20 October 2026
 
 **Small weekly bars in the Projects list**, so you can see which projects are moving.

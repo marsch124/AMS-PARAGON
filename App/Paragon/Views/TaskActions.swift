@@ -95,6 +95,15 @@ struct TaskContextMenu: View {
     ]
 
     var body: some View {
+        if !ref.task.isDone {
+            // First in the menu, as in the drawing (build 256): start the clock on this task.
+            Button {
+                model.startFocus(on: ref)
+            } label: {
+                Label("Focus on this", systemImage: "timer")
+            }
+            Divider()
+        }
         Menu("Reschedule") {
             Button("Today") { model.setDueDate(ref, .today()) }
             Button("Tomorrow") { model.setDueDate(ref, DateOnly.today().adding(days: 1)) }
@@ -249,7 +258,12 @@ struct TaskTimeButton: View {
         .accessibilityLabel(Text(spoken))
         .accessibilityIdentifier("task.time.\(ref.task.title)")
         .popover(isPresented: $choosing) {
-            TaskTimeChoices(ref: ref, tint: tint) { choosing = false }
+            TaskTimeChoices(ref: ref, tint: tint,
+                            done: { choosing = false },
+                            focus: {
+                                choosing = false
+                                model.startFocus(on: ref)
+                            })
                 .presentationCompactAdaptation(.popover)
         }
     }
@@ -261,6 +275,10 @@ struct TaskTimeChoices: View {
     let ref: TaskRef
     let tint: Color
     let done: () -> Void
+    /// **Focus on this** under the times (build 256), from a task row's time button only: the
+    /// drawing put it on the right-click menu, and an action only a right-click reveals is one
+    /// nobody finds (build 74). Start the day's question about a time leaves it out.
+    var focus: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -283,6 +301,18 @@ struct TaskTimeChoices: View {
                     done()
                 }
                 .font(.caption)
+            }
+            if let focus, !ref.task.isDone {
+                Divider()
+                Button(action: focus) {
+                    Label("Focus on this", systemImage: "timer")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(Theme.planBlockTint)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("focus.start")
+                .help("Start a clock on this task. When you stop it, the time goes into today's note under Worked.")
             }
         }
         .padding(14)

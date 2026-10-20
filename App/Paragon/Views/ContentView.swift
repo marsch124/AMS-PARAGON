@@ -42,6 +42,11 @@ struct ContentView: View {
                 } detail: {
                     DetailView()
                 }
+                // The focus timer's bar at the foot of the window (build 256). Nothing at all
+                // while no timer runs, so the window is exactly as before.
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    FocusBar()
+                }
                 .toolbar {
                     ToolbarItemGroup {
                         Button {
@@ -86,6 +91,9 @@ struct ContentView: View {
                     .environmentObject(model)
             case .startDay:
                 StartDayView()
+                    .environmentObject(model)
+            case .focusStop:
+                FocusStopView()
                     .environmentObject(model)
             case .settings:
                 NavigationStack {

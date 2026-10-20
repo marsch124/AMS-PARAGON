@@ -49,6 +49,9 @@ struct MarkdownPreview: View {
         var result: [Block] = []
         var codeLines: [String]?
         var paragraph: [String] = []
+        // Under `## Worked` a line such as `- 08:02-08:54 Write the offer` is what the timer
+        // measured, not a plan block, and must not be drawn in the plan's orange (build 256).
+        var inWorked = false
 
         func flushParagraph() {
             if !paragraph.isEmpty {
@@ -86,7 +89,7 @@ struct MarkdownPreview: View {
             }
             // A plan line carries no bullet since build 152, so without this it would be swept
             // into a paragraph with the line above it and the two drawn on one row.
-            if let plan = DayPlan.block(in: line) {
+            if !inWorked, let plan = DayPlan.block(in: line) {
                 flushParagraph()
                 result.append(.planBlock(plan))
                 continue
@@ -94,7 +97,9 @@ struct MarkdownPreview: View {
             let level = Self.headingLevel(trimmed)
             if level > 0 {
                 flushParagraph()
-                result.append(.heading(level: level, text: String(trimmed.dropFirst(level)).trimmingCharacters(in: .whitespaces)))
+                let text = String(trimmed.dropFirst(level)).trimmingCharacters(in: .whitespaces)
+                if level <= 2 { inWorked = level == 2 && text.lowercased() == "worked" }
+                result.append(.heading(level: level, text: text))
                 continue
             }
             if trimmed == "---" || trimmed == "***" || trimmed == "___" {

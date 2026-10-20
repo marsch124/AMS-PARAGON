@@ -311,7 +311,8 @@ struct PlannerDayView: View {
                                           setInCalendar: { wanted in
                                               Task { await model.setInAppleCalendar(wanted, for: block, on: day) }
                                           },
-                                          openEvent: openEventAction(for: block))
+                                          openEvent: openEventAction(for: block),
+                                          focus: { model.startFocus(onBlock: block) })
                         } else {
                             item(placed, tint: tint, x: box.x, width: box.width)
                         }
@@ -743,6 +744,8 @@ private struct PlanBlockCard: View {
     let setInCalendar: (Bool) -> Void
     /// Set only when the block really has a copy in Apple Calendar.
     let openEvent: (() -> Void)?
+    /// **Focus on this**: start the clock on the block (build 256).
+    let focus: () -> Void
 
     @GestureState private var shift: CGFloat = 0
     @GestureState private var stretch: CGFloat = 0
@@ -778,6 +781,10 @@ private struct PlanBlockCard: View {
 
     @ViewBuilder
     private var menu: some View {
+        Button(action: focus) {
+            Label("Focus on this", systemImage: "timer")
+        }
+        Divider()
         Button("Edit\u{2026}", action: edit)
         // A tick, not "Add to Apple Calendar": a control says which state you are in, never the
         // state you would get (build 142).

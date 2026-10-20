@@ -119,13 +119,15 @@ enum AppSheet: String, Identifiable {
     case closeDay
     /// The morning step: pick the few actions that matter today and put them in the plan.
     case startDay
+    /// The focus timer was stopped: one question, is the task done (build 256).
+    case focusStop
 
     var id: String { rawValue }
 }
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 255
+    static let number = 256
 }
 
 @MainActor
@@ -311,6 +313,9 @@ final class AppModel: ObservableObject {
         #else
         restoreVault()
         #endif
+        // After the screen tests have wiped the settings, so a test never inherits a clock a
+        // test before it left running.
+        loadFocus()
         fetchCloudFiles(force: true)
         #if os(macOS)
         terminationObserver = NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
@@ -2363,6 +2368,118 @@ final class AppModel: ObservableObject {
     }
 
     /// A short, non-modal message in the bottom banner.
+    // MARK: The focus timer (build 256)
+
+    /// The one session running on this device, or nil. Kept in the settings rather than the
+    /// vault: a clock is about where he is, and only the finished lines under `## Worked` are
+    /// his notes. Saved on every change, so closing the app never loses it — the drawing's
+    /// test was exactly that: "Start a timer, close the app, open it again."
+    @Published private(set) var focus: FocusSession? {
+        didSet { saveFocus() }
+    }
+
+    private static let focusKey = "focusSession"
+
+    private func loadFocus() {
+        guard let data = defaults.data(forKey: Self.focusKey) else { return }
+        focus = try? JSONDecoder().decode(FocusSession.self, from: data)
+    }
+
+    private func saveFocus() {
+        if let focus, let data = try? JSONEncoder().encode(focus) {
+            defaults.set(data, forKey: Self.focusKey)
+        } else {
+            defaults.removeObject(forKey: Self.focusKey)
+        }
+    }
+
+    /// **Focus on this** on a task.
+    func startFocus(on ref: TaskRef) {
+        beginFocus(FocusSession(notePath: ref.notePath, taskTitle: ref.task.title,
+                                title: planBlockTitle(from: ref.task), plannedMinutes: ref.task.minutes,
+                                startedAt: Date()))
+    }
+
+    /// **Focus on this** on a block in the day's plan. A block is not a task, so nothing can be
+    /// ticked off at the end; its length is what was planned.
+    func startFocus(onBlock block: PlanBlock) {
+        beginFocus(FocusSession(notePath: nil, taskTitle: block.title, title: block.title,
+                                plannedMinutes: block.minutes, startedAt: Date()))
+    }
+
+    /// A second timer never runs beside the first: the one running is stopped and its time
+    /// written down, as "not done", and the message says so rather than losing it in silence.
+    private func beginFocus(_ session: FocusSession) {
+        if let running = focus {
+            let written = writeWorked(running, at: Date())
+            if written > 0 {
+                flash("\(written) min on \(running.title) written under Worked.")
+            }
+        }
+        focus = session
+    }
+
+    func pauseFocus() {
+        focus?.pause(at: Date())
+    }
+
+    func resumeFocus() {
+        focus?.resume(at: Date())
+    }
+
+    /// **Stop**: the clock stops at once, then one question. A stretch under half a minute is
+    /// no line, so there is nothing to ask about and nothing is written.
+    func stopFocus() {
+        guard var session = focus else { return }
+        session.pause(at: Date())
+        focus = session
+        let spans = WorkLog.spans(from: session.runs, title: session.title)
+        if spans.isEmpty {
+            focus = nil
+            flash("Stopped. Under a minute, so nothing was written.")
+            return
+        }
+        afterUpdate { self.activeSheet = .focusStop }
+    }
+
+    /// The answer to the stop question. The time is written either way; **Done** also ticks the
+    /// task off in its note.
+    func finishFocus(done: Bool) {
+        guard let session = focus else { return }
+        _ = writeWorked(session, at: Date())
+        if done, let path = session.notePath, let note = note(at: path),
+           let task = note.tasks.first(where: { !$0.isDone && $0.title == session.taskTitle }) {
+            toggle(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
+        }
+        focus = nil
+        activeSheet = nil
+    }
+
+    /// Writes a session's stretches under `## Worked`, each in its own day's note, making the
+    /// note when there is none. Returns the minutes written.
+    @discardableResult
+    private func writeWorked(_ session: FocusSession, at now: Date) -> Int {
+        flushPendingEdits()
+        guard let vault else { return 0 }
+        let dated = WorkLog.spans(from: session.allRuns(endingAt: now), title: session.title)
+        var written = 0
+        var made = false
+        for day in Set(dated.map(\.day)).sorted() {
+            let spans = dated.filter { $0.day == day }.map(\.span)
+            do {
+                let existed = vault.dailyNoteExists(for: day)
+                let note = try vault.dailyNote(for: day)
+                guard save(note.addingWorkedSpans(spans)) else { continue }
+                written += spans.reduce(0) { $0 + $1.minutes }
+                if !existed { made = true }
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+        if made { reload() }
+        return written
+    }
+
     func flash(_ message: String) {
         lastCaptureMessage = message
     }

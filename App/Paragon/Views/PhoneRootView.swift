@@ -66,6 +66,11 @@ struct PhoneRootView: View {
         TabView(selection: $tab) {
             ForEach(Tab.allCases) { item in
                 page(for: item)
+                    // The focus timer's bar, above the tabs on every page (build 256). Nothing
+                    // while no timer runs.
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        FocusBar()
+                    }
                     .tabItem { Label(item.title, systemImage: item.symbol) }
                     // Zero draws no badge, so only the Inbox ever shows a number.
                     .badge(item == .inbox ? model.count(for: .inbox) : 0)

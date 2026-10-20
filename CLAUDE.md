@@ -3552,6 +3552,46 @@ the push is still worth running after it** — it found two behaviour faults CI 
   no band before, tick the test task in the note, then band and box bars in the list. Mac only:
   the phone's way back out of a pushed note is not what the test is about.
 
+## The focus timer (build 256 on)
+
+Part 3 of PARAGON Time and Focus (https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX), in the
+look of that page, which he said he loves. **256** the timer, **257** the notice when the
+planned time is up and the time in the Mac menu bar, **258** Planned and worked in Close the day.
+
+**Build 256.**
+- `Core/Vault/FocusSession.swift` (tested in `FocusSessionTests`): `FocusSession` (Codable:
+  closed `runs` plus `runningSince`; `workedSeconds(at:)`, `pause`, `resume`, `clock`),
+  `WorkedSpan`, `DatedSpan`, and `WorkLog`, which owns `## Worked` in the daily note.
+  **A session is dates, never a counter**, so it is right after the app was closed or the Mac
+  slept; nothing in the model ticks, `TimelineView` redraws the bar each second.
+- **Each stretch between pauses is one line**, starting on its own minute and lasting its
+  length rounded to the minute, so the lines add up to exactly what the stop question says.
+  Under half a minute is no line, and then nothing is asked. A stretch past midnight is split
+  and written on both days (`24:00` is a valid end). **`WorkLog` only adds**: a line he edits
+  stays; the section is made above `## Looking back` when there is one, else at the end.
+- **The worked lines look like plan lines** (`- 08:02-08:54 Title`), and `MarkdownPreview` draws
+  any such line as an orange plan block. It now tracks `inWorked` and leaves lines under
+  `## Worked` as an ordinary list. **A new line shape has to be checked against every reader
+  that already recognises a similar one** (build 153's family).
+- The running session lives in `UserDefaults` (`focusSession`), per device — a clock is about
+  where he is, only the finished lines are notes. `loadFocus()` runs **after** `TestVault`
+  wipes the settings, or a test could inherit a clock left by the one before.
+- `AppModel.startFocus(on:)` / `startFocus(onBlock:)` / `pauseFocus` / `resumeFocus` /
+  `stopFocus` / `finishFocus(done:)`. A second start stops the first and writes it, as not
+  done, and says so. **Done, tick it off** finds the task by its exact title in its note.
+- `FocusBar` (FocusViews.swift): `.safeAreaInset(edge: .bottom)` on the `NavigationSplitView`
+  on the Mac and on each tab's page on the phone; nothing at all while no clock runs. Ink
+  background with the page colour on it (`.foregroundStyle(.background)`), so it is dark in
+  light mode and light in dark mode, as drawn. `FocusStopView` is `AppSheet.focusStop`, the
+  window's one sheet (build 44).
+- **Focus on this** is first on `TaskContextMenu`, on a plan block's menu, **and** at the foot
+  of the time button's list (`TaskTimeChoices(focus:)`), which the drawing did not have: an
+  action only a right-click reveals is one nobody finds (build 74), and it is what lets a
+  screen test press it. Start the day's time question leaves it out.
+- Screen test `testAFocusTimerStartsPausesAndStops`, both platforms: start from the time list,
+  the bar appears, **Pause** becomes **Go on** and back, **Stop** inside half a minute takes the
+  bar away with nothing to ask.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

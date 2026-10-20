@@ -23,8 +23,8 @@ import AppKit
 /// `new.<thing>`, `sheet.action` / `sheet.cancel`, `capture.open`, `capture.text`,
 /// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`,
 /// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`, `task.tick.<title>`,
-/// `projects.band`, `project.weekly.<path>`. The vault is `TestVault` in the app, which is
-/// where its titles live.
+/// `projects.band`, `project.weekly.<path>`, `focus.start`, `focus.bar`, `focus.pause`,
+/// `focus.stop`. The vault is `TestVault` in the app, which is where its titles live.
 ///
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
@@ -557,6 +557,58 @@ final class ScreenTests: XCTestCase {
         if heading.isHittable { heading.press() } else { heading.pressCentre() }
         XCTAssertTrue(row.waitForExistence(timeout: 10),
                       "The heading was pressed again and the project did not come back. On screen: \(visibleTexts())")
+    }
+
+    /// The focus timer (build 256): **Focus on this** under a task's time button starts the
+    /// clock and the bar appears; **Pause** turns into **Go on** and back; **Stop** takes the
+    /// bar away. A clock stopped inside half a minute writes nothing and asks nothing, so the
+    /// test needs no long wait — what a longer one writes under `## Worked` is pinned in Core
+    /// (`FocusSessionTests`). Everything pressed is found among buttons (build 249).
+    func testAFocusTimerStartsPausesAndStops() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
+
+        let time = app.buttons.matching(identifier: "task.time.Book the night train").firstMatch
+        XCTAssertTrue(time.waitForExistence(timeout: 10),
+                      "The task row has no time button. On screen: \(visibleTexts())")
+        let timeFrame = time.frame
+        guard Self.isOnScreen(timeFrame) else {
+            XCTFail("The time button has no place on screen: \(timeFrame)")
+            return
+        }
+        press(time, at: timeFrame)
+
+        let start = app.buttons.matching(identifier: "focus.start").firstMatch
+        XCTAssertTrue(start.waitForExistence(timeout: 10),
+                      "The time button's list has no Focus on this. On screen: \(visibleTexts())")
+        let startFrame = start.frame
+        if Self.isOnScreen(startFrame) { press(start, at: startFrame) } else { start.press() }
+
+        XCTAssertTrue(element("focus.bar").waitForExistence(timeout: 10),
+                      "Focus on this was pressed and no timer bar appeared. On screen: \(visibleTexts())")
+
+        let pause = app.buttons.matching(identifier: "focus.pause").firstMatch
+        XCTAssertTrue(pause.waitForExistence(timeout: 10), "The timer bar has no Pause button.")
+        if pause.isHittable { pause.press() } else { pause.pressCentre() }
+        let paused = expectation(for: NSPredicate(format: "label == %@", "Go on"), evaluatedWith: pause)
+        XCTAssertEqual(XCTWaiter().wait(for: [paused], timeout: 10), .completed,
+                       "Pause was pressed and the button did not turn into Go on. It says: \(pause.label)")
+        if pause.isHittable { pause.press() } else { pause.pressCentre() }
+        let going = expectation(for: NSPredicate(format: "label == %@", "Pause"), evaluatedWith: pause)
+        XCTAssertEqual(XCTWaiter().wait(for: [going], timeout: 10), .completed,
+                       "Go on was pressed and the button did not turn back into Pause. It says: \(pause.label)")
+
+        let stop = app.buttons.matching(identifier: "focus.stop").firstMatch
+        XCTAssertTrue(stop.waitForExistence(timeout: 10), "The timer bar has no Stop button.")
+        if stop.isHittable { stop.press() } else { stop.pressCentre() }
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("focus.bar"))
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "Stop was pressed and the timer bar is still there. On screen: \(visibleTexts())")
     }
 
     /// A project's own emoji (build 254): **Emoji…** at the top of the project, one choice in
