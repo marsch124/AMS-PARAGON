@@ -368,6 +368,13 @@ struct WidgetStatusSection: View {
                 refresh()
             }
             .disabled(!folderFound)
+            if !model.notesWaitingForCloud.isEmpty {
+                // Build 261: the widget is not written from part of the vault.
+                Text("Not written while \(model.notesWaitingForCloud.count) notes are still coming from iCloud: it would show only part of your vault.")
+                    .font(.caption)
+                    .foregroundStyle(Color.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Text(explanation)
                 .font(.caption)
                 .foregroundStyle(Color.secondary)

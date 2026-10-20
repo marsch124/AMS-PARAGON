@@ -162,8 +162,18 @@ public extension Vault {
             note = try dailyNote(for: today)
         case .note(let path):
             // The path may come from a link another app opened: it has to be a note inside the vault.
-            if isNotePath(path), let existing = try? loadNote(relativePath: path) {
-                note = existing
+            if isNotePath(path), CloudFiles.exists(url(for: path)) {
+                // The note is there, perhaps still coming from iCloud. A capture aimed at it goes
+                // into it or nowhere: `notDownloadedYet` keeps the item in the outbox for a later
+                // try, where the Inbox would have filed it somewhere he did not ask (build 261 —
+                // a single note is no longer waited for on the main thread).
+                do {
+                    note = try loadNote(relativePath: path)
+                } catch {
+                    if (error as? VaultError) == .notDownloadedYet(path) { throw error }
+                    // Damaged, as before: the Inbox rather than losing the line.
+                    note = try inboxNote()
+                }
             } else {
                 note = try inboxNote()
             }
@@ -178,7 +188,10 @@ public extension Vault {
     }
 
     func inboxNote() throws -> Note {
-        if !FileManager.default.fileExists(atPath: url(for: config.inboxFile).path) {
+        // `CloudFiles.exists`, not `fileExists`: an Inbox that is only an iCloud stub here is
+        // still the Inbox, and a fresh one beside it would leave iCloud two to choose between
+        // (build 95's rule, missed here until build 261).
+        if !CloudFiles.exists(url(for: config.inboxFile)) {
             try Templates.inbox.write(to: url(for: config.inboxFile), atomically: true, encoding: .utf8)
         }
         return try loadNote(relativePath: config.inboxFile)

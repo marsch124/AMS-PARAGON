@@ -94,11 +94,19 @@ public extension Vault {
         var skipped: [String] = []
         let wanted = try backedUpPaths()
         for relativePath in wanted {
+            let source = url(for: relativePath)
+            // Never waits for iCloud (build 261): copying a file whose contents are not on this
+            // device would wait until they came, on the main thread. It is left out and named in
+            // skipped.txt; the signature marks it, so the next backup runs once it has arrived.
+            if CloudFiles.presence(of: source) == .away {
+                skipped.append(relativePath)
+                continue
+            }
             let destination = target.appendingPathComponent(relativePath)
             do {
                 try fm.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try? fm.removeItem(at: destination)
-                try fm.copyItem(at: url(for: relativePath), to: destination)
+                try fm.copyItem(at: source, to: destination)
             } catch {
                 // A file that has just been deleted, or that this device cannot read, must not
                 // cost every other note its backup.
@@ -171,10 +179,20 @@ public extension Vault {
         let fm = FileManager.default
         try fm.createDirectory(at: destination, withIntermediateDirectories: true)
         for relativePath in try backedUpPaths() {
+            let source = url(for: relativePath)
+            // A rehearsal never waits for iCloud (build 261). A **note** not on this device would
+            // make it rehearse part of the vault, so it refuses; any other file (an old deleted
+            // note, the other device's sync state) is left out, as a backup leaves it out.
+            if CloudFiles.presence(of: source) == .away {
+                if relativePath.lowercased().hasSuffix(".md"), kind(forRelativePath: relativePath) != nil {
+                    throw VaultError.notDownloadedYet(relativePath)
+                }
+                continue
+            }
             let target = destination.appendingPathComponent(relativePath)
             try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
             try? fm.removeItem(at: target)
-            try fm.copyItem(at: url(for: relativePath), to: target)
+            try fm.copyItem(at: source, to: target)
         }
     }
 
@@ -200,12 +218,17 @@ public extension Vault {
 
     /// Path and modification date of everything that would be backed up, so an unchanged
     /// vault is not copied twice.
+    /// A file whose contents are not on this device is marked (build 261): it is left out of the
+    /// backup, and bringing it down leaves its date alone (build 102), so without the mark the
+    /// next backup would match this one and never be made.
     private func contentSignature() throws -> String {
         try backedUpPaths().map { path in
-            let values = try? url(for: path).resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+            let source = url(for: path)
+            let values = try? source.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
             let stamp = values?.contentModificationDate?.timeIntervalSince1970 ?? 0
             let size = values?.fileSize ?? 0
-            return "\(path)@\(stamp)@\(size)"
+            let away = CloudFiles.presence(of: source) == .away ? "@away" : ""
+            return "\(path)@\(stamp)@\(size)\(away)"
         }.joined(separator: "\n")
     }
 }

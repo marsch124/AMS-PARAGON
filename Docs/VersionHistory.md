@@ -2,6 +2,29 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 261 · 20 October 2026
+
+**PARAGON no longer waits for iCloud while it starts.** This is the fix for the crash at start
+on the iPhone.
+
+- **Why it crashed, most likely:** when PARAGON started, it waited for iCloud to send notes
+  that had changed on the Mac. If that took too long, iOS stopped the app. The second start
+  worked because the notes had arrived by then. Apple has no report of it, so this is the best
+  explanation, not a proof.
+- **Now PARAGON opens at once** with the notes that are on the iPhone and fetches the rest in
+  the background, the Inbox and today's note first. They appear by themselves.
+- **While notes are still coming**, a short orange line says how many, at the top of **Today**
+  on the iPhone and at the foot of the sidebar on the Mac, with **Ask iCloud again**.
+- If the Inbox note itself has not arrived, the Inbox says **Still coming from iCloud** instead
+  of **Inbox zero**.
+- **These wait until every note is here**, and say so: the Reminders sync and its rehearsal,
+  renaming or removing a tag everywhere, and renaming a note. The widget keeps its last
+  complete picture until then.
+- **Close the day** stays open with your words in it if they cannot be saved yet.
+- A capture aimed at a note that is still coming is kept and filed later. It is no longer put
+  in the Inbox instead.
+- The daily backup now runs a few seconds after start, not during it.
+
 ## Build 260 · 20 October 2026
 
 **3 min and 5 min for small tasks.**

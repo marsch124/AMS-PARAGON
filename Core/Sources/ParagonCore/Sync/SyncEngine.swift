@@ -48,7 +48,10 @@ public final class SyncEngine {
         var state = vault.loadSyncState(deviceID: deviceID)
 
         // 1. Load notes, assign ids to tasks that have none, and give copies of an id a fresh one.
-        let allNotes = try vault.allNotes()
+        // Up to `cloudFetchesPerLoad` waits for iCloud, as before build 261. `run()` is
+        // nonisolated async, so this is off the main thread; each wait now ends after
+        // `CloudFiles.longestWait`, and a try that brings nothing still counts.
+        let allNotes = try vault.allNotes(cloudFetches: Vault.cloudFetchesPerLoad)
         for skipped in vault.skippedFiles {
             report.warnings.append("\(skipped) could not be read and was left alone.")
         }

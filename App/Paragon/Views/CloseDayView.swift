@@ -23,6 +23,9 @@ struct CloseDayView: View {
     /// `onAppear` runs again when the sheet is re-laid-out, and reading the note a second time
     /// would throw away what he has typed since.
     @State private var loaded = false
+    /// Why the words could not be saved, shown in the sheet (build 261). A sheet's messages
+    /// belong in the sheet (build 238), and closing it would have thrown the words away.
+    @State private var saveProblem: String?
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -272,14 +275,26 @@ struct CloseDayView: View {
             Text("Goes into today's daily note, under **Looking back**.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+            if let saveProblem {
+                Text(saveProblem)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
     /// **Done saves the line; Cancel does not.** The tick boxes and the Tomorrow buttons have
     /// already written their notes when they were pressed, so nothing there waits for this — the
     /// footer only decides the fate of the words in the field.
+    ///
+    /// **When the words cannot be written, the sheet stays open** and says why (build 261): a
+    /// note still coming from iCloud is no longer waited for, and closing would lose them.
     private func finish() {
-        model.saveLookingBack(lookingBack, for: day)
+        if let problem = model.saveLookingBack(lookingBack, for: day) {
+            saveProblem = problem
+            return
+        }
         close()
     }
 

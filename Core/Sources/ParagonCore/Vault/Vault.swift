@@ -151,23 +151,58 @@ public final class Vault {
 
     // MARK: Reading
 
-    public func allNotes() throws -> [Note] {
-        var result: [Note] = []
-        if CloudFiles.exists(url(for: config.inboxFile)) {
-            result.append(try loadNote(relativePath: config.inboxFile))
-        }
-        skippedFiles = []
-        notesWaitingForCloud = []
-        cloudFetchesLeft = Vault.cloudFetchesPerLoad
+    /// Every note: the Inbox first, then each PARA folder.
+    ///
+    /// **`cloudFetches` is how many notes this read may wait for iCloud to send** (build 261).
+    /// Each wait blocks the calling thread for up to `CloudFiles.longestWait`, so the default is
+    /// none, and the app's own reads (on the main thread, the first one before the first frame)
+    /// pass none: a note not on this device is named in `notesWaitingForCloud`, and the app
+    /// fetches it on another thread. Every try costs one whether or not the file comes, and the
+    /// Inbox is under the same budget. One note that cannot be read never stops the others —
+    /// the Inbox included (until 261 an Inbox iCloud had not sent emptied the whole vault).
+    ///
+    /// The budget is a local count, never state on this object: the sync engine reads the same
+    /// vault off the main thread with a budget of its own, and a shared counter could have handed
+    /// the main thread a wait.
+    public func allNotes(cloudFetches: Int = 0) throws -> [Note] {
+        var listing = Listing(budget: max(0, cloudFetches))
+        var result: [Note] = listNotes(kind: .inbox, into: &listing)
         for kind in [ParaKind.project, .area, .resource, .archive, .daily, .goal] {
-            result.append(contentsOf: try notes(kind: kind))
+            result.append(contentsOf: listNotes(kind: kind, into: &listing))
         }
+        skippedFiles = listing.skipped
+        notesWaitingForCloud = listing.waiting
+        notesBeingUpdated = listing.stale
+        cloudFetchesLeftAfterLastLoad = listing.budget
         return result
     }
 
+    /// The notes of one kind. Waits for nothing (build 261); what could not be read is added to
+    /// `notesWaitingForCloud`, `skippedFiles` and `notesBeingUpdated`.
     public func notes(kind: ParaKind) throws -> [Note] {
+        var listing = Listing(budget: 0)
+        let found = listNotes(kind: kind, into: &listing)
+        skippedFiles.append(contentsOf: listing.skipped)
+        notesWaitingForCloud.append(contentsOf: listing.waiting)
+        notesBeingUpdated.append(contentsOf: listing.stale)
+        return found
+    }
+
+    /// What one listing has found besides notes, and how many waits it has left.
+    private struct Listing {
+        var budget: Int
+        var waiting: [String] = []
+        var skipped: [String] = []
+        var stale: [String] = []
+    }
+
+    private func listNotes(kind: ParaKind, into listing: inout Listing) -> [Note] {
         if kind == .inbox {
-            return CloudFiles.exists(url(for: config.inboxFile)) ? [try loadNote(relativePath: config.inboxFile)] : []
+            let inboxURL = url(for: config.inboxFile)
+            guard CloudFiles.exists(inboxURL) else { return [] }
+            let presence: CloudFiles.Presence = fm.fileExists(atPath: inboxURL.path) ? CloudFiles.presence(of: inboxURL) : .away
+            guard let inbox = readListed(config.inboxFile, presence: presence, into: &listing) else { return [] }
+            return [inbox]
         }
         guard let folder = config.folder(for: kind) else { return [] }
         let folderURL = rootURL.appendingPathComponent(folder, isDirectory: true)
@@ -175,54 +210,28 @@ public final class Vault {
         // nothing but a hidden ".Note.md.icloud" stub, and skipping those is what made a full
         // vault look empty — no files seen, so nothing even reported as unreadable (build 104).
         guard fm.fileExists(atPath: folderURL.path),
-              let enumerator = fm.enumerator(at: folderURL, includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+              let enumerator = fm.enumerator(at: folderURL,
+                                             includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey,
+                                                                          .isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey],
                                              options: [.skipsPackageDescendants]) else { return [] }
         var result: [Note] = []
         for case let fileURL as URL in enumerator {
             let name = fileURL.lastPathComponent
             if let real = CloudFiles.realName(ofPlaceholder: name), real.lowercased().hasSuffix(".md") {
                 let target = fileURL.deletingLastPathComponent().appendingPathComponent(real)
-                CloudFiles.startDownload(target)
-                CloudFiles.startDownload(fileURL)
+                // A stub left beside its real file (a restore can copy one in) is not a note on
+                // its way: the real file is listed by itself, and naming it as waiting would
+                // keep it waiting for ever (build 261's review).
+                if fm.fileExists(atPath: target.path) { continue }
                 guard let rel = relativePath(for: target) ?? placeholderRelativePath(of: fileURL, realName: real) else { continue }
-                // Fetch a few per load; the rest are named as waiting and come next time.
-                if cloudFetchesLeft > 0, let note = try? loadNote(relativePath: rel) {
-                    cloudFetchesLeft -= 1
-                    result.append(note)
-                } else {
-                    notesWaitingForCloud.append(rel)
-                }
+                if let note = readListed(rel, presence: .away, into: &listing) { result.append(note) }
                 continue
             }
             guard !name.hasPrefix("."), fileURL.pathExtension.lowercased() == "md",
                   (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
                   let rel = relativePath(for: fileURL) else { continue }
-            // Reading a note whose contents are still in iCloud means waiting for the
-            // download, so only a few are waited for per load: the rest are asked for and
-            // reported as waiting, and the next load takes the next few. A vault that is all
-            // in the cloud therefore fills in over a handful of reloads instead of holding
-            // everything up at once — on a phone, long enough to be killed for it (build 102).
-            if CloudFiles.isMissing(fileURL) {
-                CloudFiles.startDownload(fileURL)
-                guard cloudFetchesLeft > 0 else {
-                    notesWaitingForCloud.append(rel)
-                    continue
-                }
-                cloudFetchesLeft -= 1
-            }
-            // One unreadable file must not hide the whole vault; it is skipped and reported.
-            do {
-                result.append(try loadNote(relativePath: rel))
-            } catch {
-                // A note whose contents iCloud has not sent to this device is not a damaged
-                // note. Ask for it and report it as waiting, so the app can say "still coming"
-                // rather than draw an empty vault (build 100).
-                if CloudFiles.isMissing(fileURL) || (error as? VaultError) == .notDownloadedYet(rel) {
-                    CloudFiles.startDownload(fileURL)
-                    notesWaitingForCloud.append(rel)
-                } else {
-                    skippedFiles.append(rel)
-                }
+            if let note = readListed(rel, presence: CloudFiles.presence(of: fileURL), into: &listing) {
+                result.append(note)
             }
         }
         if kind == .daily {
@@ -235,6 +244,37 @@ public final class Vault {
             }
         }
         return result.sorted(by: Note.byArrangedOrder)
+    }
+
+    /// One note found while listing (build 261). Read when its contents are here — an older copy
+    /// counts, and is also named in `stale` so whole-vault writes can wait for the newer one —
+    /// waited for only while the listing's budget allows, and otherwise named as still coming.
+    /// A try costs one whether or not the file comes.
+    private func readListed(_ rel: String, presence: CloudFiles.Presence, into listing: inout Listing) -> Note? {
+        var waiting = false
+        if presence == .away {
+            guard listing.budget > 0 else {
+                // Asked for on every listing, as before build 261, so iCloud is still asked
+                // even if the background pass is held up.
+                CloudFiles.startDownload(url(for: rel))
+                listing.waiting.append(rel)
+                return nil
+            }
+            listing.budget -= 1
+            waiting = true
+        }
+        do {
+            let note = try readNote(relativePath: rel, presence: presence, waitingForCloud: waiting)
+            if presence == .stale { listing.stale.append(rel) }
+            return note
+        } catch {
+            if presence == .away || (error as? VaultError) == .notDownloadedYet(rel) {
+                listing.waiting.append(rel)
+            } else {
+                listing.skipped.append(rel)
+            }
+            return nil
+        }
     }
 
     // MARK: Weekly notes
@@ -283,11 +323,18 @@ public final class Vault {
         return note
     }
 
-    /// How many notes one load will wait for iCloud to send. Each one is a download, so this
-    /// is the difference between an app that fills in over a few seconds and one that stops
-    /// dead until the whole vault has come down.
+    /// How many notes a read **off the main thread** may wait for iCloud to send — the sync
+    /// engine's. The app's own reads wait for none (build 261).
     public static let cloudFetchesPerLoad = 15
-    private var cloudFetchesLeft = Vault.cloudFetchesPerLoad
+    /// What the last `allNotes(cloudFetches:)` had left of its budget, so a test can see that a
+    /// try which brought nothing was still counted. Written once at the end, never read back.
+    private(set) var cloudFetchesLeftAfterLastLoad = 0
+
+    /// Notes the last listing read from an older copy while iCloud holds a newer one (build
+    /// 261). They are shown, but a whole-vault write — a sync, a tag renamed everywhere, a note
+    /// renamed with its links — waits until they are current, or it would write over the newer
+    /// version from the old one.
+    public private(set) var notesBeingUpdated: [String] = []
 
     /// Notes `allNotes()` could not read because iCloud has not sent them to this device yet.
     /// They are not lost and not broken: a download has been asked for and they will appear.
@@ -296,25 +343,38 @@ public final class Vault {
     /// Files `allNotes()` could not read on its last run, relative to the vault.
     public private(set) var skippedFiles: [String] = []
 
-    public func loadNote(relativePath: String) throws -> Note {
+    /// Reads one note. **Never waits for iCloud unless `waitingForCloud` is true** (build 261),
+    /// and only a listing within its budget passes true. Everything else that loads one note —
+    /// a daily note opened, a capture, a re-read after a save — runs on the main thread, so a
+    /// note whose contents are not here throws `notDownloadedYet` at once, after asking iCloud
+    /// for it, and the caller says "still coming".
+    public func loadNote(relativePath: String, waitingForCloud: Bool = false) throws -> Note {
         let fileURL = url(for: relativePath)
-        var onlyInCloud = false
-        if !fm.fileExists(atPath: fileURL.path) {
-            // Only an iCloud placeholder is there. That is not "no note": the coordinated read
-            // below is precisely how the contents are fetched, so it is worth trying (build
-            // 104).
+        let presence: CloudFiles.Presence
+        if fm.fileExists(atPath: fileURL.path) {
+            presence = CloudFiles.presence(of: fileURL)
+        } else {
+            // Only an iCloud placeholder is there. That is not "no note" (build 104).
             guard CloudFiles.exists(fileURL) else { throw VaultError.noteNotFound(relativePath) }
-            CloudFiles.startDownload(fileURL)
-            onlyInCloud = true
+            presence = .away
         }
-        // Through CloudFiles.read, so a note whose contents are still in iCloud is fetched
-        // rather than declared unreadable. If iCloud cannot deliver it after all, say that —
-        // "still coming" is the truth, and it is what the caller shows the user (build 105).
+        return try readNote(relativePath: relativePath, presence: presence, waitingForCloud: waitingForCloud)
+    }
+
+    private func readNote(relativePath: String, presence: CloudFiles.Presence, waitingForCloud: Bool) throws -> Note {
+        let fileURL = url(for: relativePath)
+        if presence == .away {
+            CloudFiles.startDownload(fileURL)
+            // Not even a plain read without leave to wait: where such a file is kept under its
+            // own name, the plain read is itself the wait.
+            if !waitingForCloud { throw VaultError.notDownloadedYet(relativePath) }
+        }
         let data: Data
         do {
-            data = try CloudFiles.read(fileURL)
+            data = try CloudFiles.read(fileURL, waitingUpTo: waitingForCloud ? CloudFiles.longestWait : 0)
         } catch {
-            if onlyInCloud || CloudFiles.isMissing(fileURL) { throw VaultError.notDownloadedYet(relativePath) }
+            // "Still coming" is the truth, and it is what the caller shows (build 105).
+            if presence == .away || CloudFiles.isMissing(fileURL) { throw VaultError.notDownloadedYet(relativePath) }
             throw error
         }
         guard let text = Self.decodeText(data) else { throw VaultError.unreadable(relativePath) }

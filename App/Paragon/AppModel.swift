@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 260
+    static let number = 261
 }
 
 @MainActor
@@ -330,8 +330,9 @@ final class AppModel: ObservableObject {
         }
         #endif
         watchForExternalChanges()
-        backUpDaily()
-        purgeOldDeleted()
+        // The day's backup and the clearing of old deleted notes run a few seconds after launch,
+        // from `restoreVault` (build 261): both walk the whole vault, and the first screen needs
+        // neither.
         calendarStore.onChange = { [weak self] in
             Task { await self?.refreshEvents() }
         }
@@ -880,21 +881,97 @@ final class AppModel: ObservableObject {
     @Published private(set) var cloudDownloads: [String] = []
     private var lastCloudCheck: Date?
 
-    /// Asks iCloud for everything missing. Runs on the change poll, but at most once a minute:
-    /// a download takes longer than the poll's ten seconds anyway.
+    /// The background pass (build 261): one at a time, and how many have been started, so the
+    /// answer of a pass given up as stuck is ignored when it comes back after all.
+    private var cloudPassStarted: Date?
+    private var cloudPassNumber = 0
+
+    /// Asks iCloud for everything missing, then **waits for the notes the last read named as
+    /// still coming — on a GCD thread, never this one** (build 261). Until 261 that waiting was
+    /// in `reload()`, on the main thread and starting inside `init`, and a phone with notes
+    /// still in iCloud could wait past what iOS allows a launch. A coordinated read is what makes
+    /// iCloud bring a file down (build 101) and it leaves the file's date alone (build 102), so
+    /// the pass reloads by itself when anything came.
     ///
-    /// The walk touches every file in the vault and asks iCloud about each one, which on a
-    /// phone can take long enough for iOS to kill the app for not finishing its launch
-    /// (build 101). So it runs off the main thread and comes back with the answer.
+    /// Runs on the change poll at most once a minute, counted from the end of the last pass. A
+    /// pass still running after `passLength` plus two longest waits is taken to be stuck and a
+    /// new one may start, so one read that never returns cannot stop the asking for good.
     func fetchCloudFiles(force: Bool = false) {
         guard let vault else { return }
-        if !force, let last = lastCloudCheck, Date().timeIntervalSince(last) < 60 { return }
+        let now = Date()
+        if let started = cloudPassStarted,
+           now.timeIntervalSince(started) < CloudFiles.passLength + 2 * CloudFiles.longestWait {
+            return
+        }
+        if !force, let last = lastCloudCheck, now.timeIntervalSince(last) < 60 { return }
+        if cloudPassStarted != nil { log("an iCloud pass has not come back; starting another") }
+        cloudPassNumber += 1
+        let number = cloudPassNumber
+        cloudPassStarted = now
+        lastCloudCheck = now
+        let root: URL = vault.rootURL
+        let skipped: String = Vault.stateFolderName
+        // Plain URLs only: a `Vault` is a class the main thread changes.
+        let wanted: [URL] = cloudPassOrder(vault).map { vault.url(for: $0) }
+        let waitingAtStart: Int = notesWaitingForCloud.count
+        Task { [weak self] in
+            let asked: [String] = await AppModel.offMain { () -> [String] in
+                CloudFiles.downloadMissing(under: root, skipping: skipped)
+            }
+            self?.cloudDownloadsFound(asked, pass: number)
+            let arrived: Int = await AppModel.offMain { () -> Int in
+                CloudFiles.fetch(wanted, within: CloudFiles.passLength).count
+            }
+            self?.cloudPassFinished(number: number, arrived: arrived, waitingAtStart: waitingAtStart, root: root)
+        }
+    }
+
+    /// What the pass waits for, most wanted first: the Inbox, then today's and this week's
+    /// notes — what the first screens show — then everything else still coming, then the notes
+    /// whose newer version is not here yet.
+    private func cloudPassOrder(_ vault: Vault) -> [String] {
+        let first = [vault.config.inboxFile, vault.dailyNotePath(for: .today()),
+                     vault.weeklyNotePath(for: WeekRef(containing: .today()))]
+        let waiting = notesWaitingForCloud
+        var order = first.filter { waiting.contains($0) }
+        order += waiting.filter { !first.contains($0) }
+        order += notesBeingUpdated.filter { !order.contains($0) }
+        return order
+    }
+
+    /// Blocking file work on a GCD thread, the answer handed back. GCD, not `Task.detached`: a
+    /// coordinated read holds its thread for as long as iCloud takes, and the task pool has only
+    /// as many threads as the device has cores.
+    nonisolated private static func offMain<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
+        await withCheckedContinuation { (continuation: CheckedContinuation<T, Never>) in
+            DispatchQueue.global(qos: .utility).async {
+                continuation.resume(returning: work())
+            }
+        }
+    }
+
+    private func cloudPassFinished(number: Int, arrived: Int, waitingAtStart: Int, root: URL) {
+        // A pass given up as stuck, coming back after all: a newer one has its say.
+        guard number == cloudPassNumber else { return }
+        cloudPassStarted = nil
+        // The poll's minute counts from the END of a pass.
         lastCloudCheck = Date()
-        let root = vault.rootURL
-        let skipped = Vault.stateFolderName
-        Task.detached(priority: .utility) { [weak self] in
-            let pending = CloudFiles.downloadMissing(under: root, skipping: skipped)
-            await MainActor.run { self?.cloudDownloadsFound(pending) }
+        guard let vault else { return }
+        guard vault.rootURL == root else {
+            // Another folder was opened meanwhile, and its pass was refused while this one ran.
+            fetchCloudFiles(force: true)
+            return
+        }
+        guard arrived > 0, !isSyncing else { return }
+        let inboxWasWaiting = inboxIsComingFromCloud
+        log("iCloud sent \(arrived) note\(arrived == 1 ? "" : "s"); re-reading the vault")
+        reload()
+        // Captures kept while the Inbox was still coming can be filed now.
+        if inboxWasWaiting, !inboxIsComingFromCloud { drainOutbox() }
+        // Again at once only on real progress, so a file that reads but never lands cannot keep
+        // this going.
+        if !notesWaitingForCloud.isEmpty, notesWaitingForCloud.count < waitingAtStart {
+            fetchCloudFiles(force: true)
         }
     }
 
@@ -911,8 +988,8 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func cloudDownloadsFound(_ pending: [String]) {
-        guard pending != cloudDownloads else { return }
+    private func cloudDownloadsFound(_ pending: [String], pass: Int) {
+        guard pass == cloudPassNumber, pending != cloudDownloads else { return }
         cloudDownloads = pending
         if !pending.isEmpty { log("waiting for iCloud: \(pending.joined(separator: ", "))") }
     }
@@ -920,6 +997,34 @@ final class AppModel: ObservableObject {
     /// Notes on this device that could not be read because iCloud has not sent their contents
     /// yet. An empty list is not proof of an empty vault, and the app must say which it is.
     @Published private(set) var notesWaitingForCloud: [String] = []
+    /// Notes read from an older copy while iCloud holds a newer one (build 261). Shown as they
+    /// are; a whole-vault write waits for them.
+    @Published private(set) var notesBeingUpdated: [String] = []
+
+    /// True while the Inbox note itself has not reached this device (build 261).
+    var inboxIsComingFromCloud: Bool {
+        guard let vault else { return false }
+        return notesWaitingForCloud.contains(vault.config.inboxFile)
+    }
+
+    /// The one refusal for every write that reaches across the whole vault — a sync, its
+    /// rehearsal, a tag changed everywhere, a note renamed with its links (build 261). A note not
+    /// on this device would be left out in silence, and one read from an older copy would be
+    /// written over the newer version. Returns the reason, or nil when the vault is all here.
+    func partVaultReason(for what: String) -> String? {
+        let waiting = notesWaitingForCloud.count
+        let updating = notesBeingUpdated.count
+        if waiting > 0 {
+            return "\(waiting) note\(waiting == 1 ? " is" : "s are") still coming from iCloud, so \(what): "
+                + "it would only reach part of your vault. Try again in a moment."
+        }
+        if updating > 0 {
+            return "\(updating) note\(updating == 1 ? " is" : "s are") being updated from iCloud, so \(what): "
+                + "it would write over the newer version. Try again in a moment."
+        }
+        return nil
+    }
+
     /// Notes that could not be read for some other reason: damaged, or in an encoding this
     /// app does not understand.
     @Published private(set) var unreadableNotes: [String] = []
@@ -1026,6 +1131,15 @@ final class AppModel: ObservableObject {
             cloudWatcher.watch(vault.rootURL)
             reload()
             scheduleAutoSync()
+            // Not during launch (build 261): both walk the whole vault, and iOS stops an app that
+            // takes too long to show its first screen. `===`, so a folder changed meanwhile is
+            // left alone.
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(5))
+                guard let self, self.vault === vault else { return }
+                self.backUpDaily()
+                self.purgeOldDeleted()
+            }
         } catch {
             vaultProblem = "PARAGON could not open \(lastVaultName ?? "your vault folder"): \(error.localizedDescription)"
             log("vault did not open: \(error.localizedDescription)")
@@ -1072,9 +1186,14 @@ final class AppModel: ObservableObject {
             return
         }
         do {
-            notes = try vault.allNotes()
+            // **Never waits for iCloud** (build 261). This runs on the main thread, the first
+            // time inside `init` before the first frame, and a launch that waited for iCloud
+            // here is what iOS stopped. What is not on this device is named in
+            // `notesWaitingForCloud` and fetched by `fetchCloudFiles` on a thread of its own.
+            notes = try vault.allNotes(cloudFetches: 0)
             unreadableNotes = vault.skippedFiles
             notesWaitingForCloud = vault.notesWaitingForCloud
+            notesBeingUpdated = vault.notesBeingUpdated
             if !unreadableNotes.isEmpty { log("skipped unreadable files: \(unreadableNotes)") }
             if !notesWaitingForCloud.isEmpty { log("waiting for iCloud: \(notesWaitingForCloud.count) notes") }
         } catch {
@@ -1127,6 +1246,11 @@ final class AppModel: ObservableObject {
     /// itself already says when what it holds is out of date.
     func writeWidgetSnapshot() {
         guard let container = Self.widgetContainerURL else { return }
+        // Not while notes are still coming from iCloud (build 261): the app no longer waits for
+        // them at launch, and a widget showing an Inbox of 0 or a day with nothing due would be
+        // a read failure drawn as an absence (build 100). The widget keeps the last complete
+        // snapshot, and its foot line says when that was written.
+        guard notesWaitingForCloud.isEmpty else { return }
         // The same expression `ReviewReport` uses, so the widget's number and the review's
         // number are the same number.
         let inbox = index.notes(kind: .inbox).first?.openTasks.count ?? 0
@@ -1195,7 +1319,21 @@ final class AppModel: ObservableObject {
     /// Saves the editor's text. If the file changed on disk meanwhile, the editor's version is
     /// kept as a conflict copy next to it and the fresh file is shown, so nothing is lost.
     func saveText(_ text: String, forNoteAt path: String) {
-        guard let vault, var note = note(at: path), note.text != text else { return }
+        guard let vault else { return }
+        guard var note = note(at: path) else {
+            // The open note left the list while he typed — iCloud took its contents off this
+            // device (build 261). Returning in silence would throw the typing away, so it is
+            // kept beside the note as a copy and he is told.
+            if CloudFiles.exists(vault.url(for: path)), let kind = vault.kind(forRelativePath: path) {
+                let orphan = Note(relativePath: path, kind: kind, text: text, modifiedAt: Date())
+                if let copy = try? vault.saveConflictCopy(of: orphan) {
+                    reload()
+                    errorMessage = "\"\(orphan.displayTitle)\" is being fetched from iCloud again. What you typed is kept as \"\(copy.displayTitle)\" next to it."
+                }
+            }
+            return
+        }
+        guard note.text != text else { return }
         note.text = text
         note.modifiedAt = note.modifiedAt ?? Date()
         do {
@@ -1263,6 +1401,12 @@ final class AppModel: ObservableObject {
         let clean = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let oldTitle = note.displayTitle
         guard !clean.isEmpty, clean != oldTitle else { return }
+        // A note not here could still link to the old title, and nothing would ever say so
+        // (build 261).
+        if let reason = partVaultReason(for: "nothing was renamed") {
+            errorMessage = reason
+            return
+        }
         // A rename can touch every note in the vault, so there is a copy to fall back on.
         _ = backUp(reason: "rename")
         do {
@@ -1897,6 +2041,12 @@ final class AppModel: ObservableObject {
     func changeTag(_ old: String, to new: String?) {
         flushPendingEdits()
         guard let vault else { return }
+        // A note not here would keep the old tag while the message said every note was changed
+        // (build 261, build 100's rule).
+        if let reason = partVaultReason(for: "nothing was changed") {
+            errorMessage = reason
+            return
+        }
         guard AppModel.cleanTag(old)?.lowercased() != Note.nextActionTag else {
             errorMessage = "#\(Note.nextActionTag) is how the app marks a next action. Renaming or removing it would break that."
             return
@@ -2117,19 +2267,29 @@ final class AppModel: ObservableObject {
     /// so nothing to say plus no note yet is simply nothing to do. Writing the same words twice
     /// is nothing to do either: `save` would otherwise stamp the file and send it round iCloud
     /// for no change at all.
-    func saveLookingBack(_ text: String, for day: DateOnly) {
+    ///
+    /// **Returns the reason when the words could not be written** (build 261), and nil when they
+    /// were, or there was nothing to write. **Close the day** then stays open with the reason
+    /// inside it, so what he typed is not thrown away — likeliest when the evening reminder
+    /// starts the app and today's note has not come from iCloud yet.
+    func saveLookingBack(_ text: String, for day: DateOnly) -> String? {
         flushPendingEdits()
-        guard let vault else { return }
+        guard let vault else { return nil }
         let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let existed = vault.dailyNoteExists(for: day)
-        guard !clean.isEmpty || existed else { return }
+        guard !clean.isEmpty || existed else { return nil }
         do {
             let note = try vault.dailyNote(for: day)
-            guard note.lookingBack != clean else { return }
-            guard save(note.settingLookingBack(clean)) else { return }
+            guard note.lookingBack != clean else { return nil }
+            guard save(note.settingLookingBack(clean)) else {
+                return "Your words could not be saved. They are still here; press Done to try again."
+            }
             if !existed { reload() }
+            return nil
+        } catch VaultError.notDownloadedYet {
+            return "Today's note is still coming from iCloud. Your words are still here; press Done again in a moment."
         } catch {
-            errorMessage = error.localizedDescription
+            return error.localizedDescription
         }
     }
 
@@ -3245,6 +3405,12 @@ final class AppModel: ObservableObject {
     /// exactly what a real sync would do without changing anything.
     func previewSync() async {
         guard let vault, !isSyncing else { return }
+        // The same rule as `syncNow` (build 261): a rehearsal of part of the vault reports on
+        // something that is not his vault.
+        if let reason = partVaultReason(for: "the rehearsal was not started") {
+            errorMessage = reason
+            return
+        }
         flushPendingEdits()
         isSyncing = true
         defer { isSyncing = false }
@@ -3287,11 +3453,11 @@ final class AppModel: ObservableObject {
         // as this device can see, and while the engine is careful never to delete a reminder
         // whose note it could not read, a sync in that state is needless risk and produces a
         // report full of warnings. Wait until the vault is all here (build 106).
-        if !force, !notesWaitingForCloud.isEmpty {
-            let count = notesWaitingForCloud.count
-            errorMessage = "\(count) note\(count == 1 ? " is" : "s are") still coming from iCloud, so the sync "
-                + "was not started: it would only see part of your vault. Try again in a moment."
-            log("sync refused: \(count) notes waiting for iCloud")
+        // Since build 261 also while a note is being updated: the engine would write task ids
+        // into the older copy, over the newer version iCloud has not brought yet.
+        if !force, let reason = partVaultReason(for: "the sync was not started") {
+            errorMessage = reason
+            log("sync refused: \(notesWaitingForCloud.count) waiting, \(notesBeingUpdated.count) being updated")
             return
         }
         flushPendingEdits()

@@ -104,5 +104,5 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Vault** — the folder on your disk or in iCloud that holds all your notes as plain text files.
 - **Reminders sync** — tasks are copied both ways between PARAGON and Apple Reminders. Goals and aspirations never sync.
 - **Backup** — a dated copy of the whole vault, made every day and before each sync.
-- **Waiting for iCloud** — notes that iCloud has not put on this device yet. The app says so rather than showing them as missing.
+- **Waiting for iCloud** — notes that iCloud has not put on this device yet. The app says so rather than showing them as missing, with the words **still coming from iCloud** and a button, **Ask iCloud again**. PARAGON fetches them in the background and never waits for them while it starts.
 - **Build number** — the number at the foot of the sidebar. It tells you which version of the app you have.

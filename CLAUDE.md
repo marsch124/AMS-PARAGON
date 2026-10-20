@@ -3760,6 +3760,64 @@ it. `place(_:)` now shares lanes by `drawnEnd(of:)` — where a card ends on scr
 cards sit side by side. **When a choice makes a value much smaller, check every place that draws
 it at its true size.**
 
+## No iCloud wait on the main thread (build 261)
+
+His iPhone crashed at start on build 257 and the second start worked; Apple had no log (nor for
+the three "at start" reports of 9, 10 and 14 October). **The suspect, not proven:** iOS's launch
+watchdog. `AppModel` is a `@StateObject`, so `init` → `restoreVault` → `reload()` →
+`allNotes()` ran before the first frame and could wait for iCloud with no limit: the Inbox was
+read first with no budget and no timeout (and a failure there threw out of `allNotes`, emptying
+the vault), and a stub whose coordinated read *failed* never used up `cloudFetchesPerLoad`, so
+every such stub cost a full wait. A mapping workflow found it; two adversarial critiques of the
+first design found ten more faults, all taken in.
+
+**The rule now: nothing on the main thread waits for iCloud. Only the background pass waits,
+and every wait has a limit.**
+- `CloudFiles.read(_:waitingUpTo:)` has **no default**: every caller says how long. Zero never
+  waits — an `.away` file throws at once without even a plain read (on a system that keeps such
+  files under their real names, the plain read *is* the wait). Above zero it is a coordinated
+  read cancelled from a GCD timer. `CloudFiles.fetch(_:within:)` is the time-boxed pass
+  (`longestWait` 20 s, `passLength` 60 s, no try under 1 s left), with an injectable clock.
+- `CloudFiles.Presence`: `.here`, `.stale` (`.downloaded`: an older copy is here), `.away`.
+- `Vault.allNotes(cloudFetches:)`, default 0. **The budget is a local `Listing`, never state on
+  the object**: the sync engine reads the same `Vault` off the main thread with 15, and a shared
+  counter could have handed the main thread a wait. The Inbox goes through the same
+  `readListed` as every note; every try costs one; a stub beside its real file is skipped.
+- **`.stale` notes are read and shown, and also listed in `notesBeingUpdated`.** That list
+  matters: `Vault.save`'s `modifiedOnDisk` compares against the *local* date, which does not move
+  until the newer copy lands, so a write over a stale note is not caught by build 39's check.
+- `loadNote(relativePath:waitingForCloud:)` defaults to **no wait**. So single-note writers
+  (`dailyNote(for:)` and everything on it) now throw `notDownloadedYet` at once for a stub.
+  `saveLookingBack` returns the reason and **Close the day stays open with the words in it**;
+  `Vault.capture`'s `.note(path)` throws instead of misfiling into the Inbox; `inboxNote()` uses
+  `CloudFiles.exists` (build 95's rule, missed there).
+- `AppModel.reload()` passes 0. `fetchCloudFiles` is the pass: on a GCD thread through `offMain`
+  (not `Task.detached`: a coordinated read holds its thread, and the pool has one per core), the
+  `downloadMissing` walk, then waits in `cloudPassOrder` (Inbox, today's note, this week's note,
+  the rest, then the stale ones), then reloads on the main actor when anything came and drains
+  the outbox if the Inbox just arrived. One pass at a time, numbered; one older than
+  `passLength + 2 × longestWait` is taken as stuck and a new one may start, and the stuck one's
+  answer is ignored.
+- **`partVaultReason(for:)` is the one refusal** for writes across the whole vault: `syncNow`,
+  `previewSync`, `changeTag`, `renameNote` — while anything is waiting *or* being updated.
+- `writeWidgetSnapshot` writes nothing while notes are waiting (the widget keeps its last whole
+  picture; Settings › Widget says why). The phone's **Today** carries `VaultWarningBar`; the Inbox
+  says **Still coming from iCloud**, not **Inbox zero**.
+- Backups: an `.away` file is skipped and named, and the signature marks it `@away`, so the next
+  backup runs once it arrives (a download leaves the date alone). `copyContents` refuses for an
+  `.away` note and skips any other `.away` file. `backUpDaily`/`purgeOldDeleted` left `init`:
+  `restoreVault` runs them 5 s later.
+- `saveText` keeps the typing as a conflict copy when the open note left the list (it went
+  `.away`), instead of returning in silence.
+- **Unknown, written down:** whether iOS 27 keeps evicted files as `.icloud` stubs (build 104
+  proved stubs in September) or under their real names with no data (as macOS does). Presence
+  guards notes, backups and the rehearsal either way; plain reads of `.ams-para` state files,
+  templates and snippets would still block in the second model, and folders with no contents on
+  the device could block an enumerator. If that ever shows, the next step is `allNotes` on a
+  separate `Vault(rootURL:)` instance off the main thread.
+- The 0x8badf00d check that would prove the diagnosis is on his phone (Settings › Privacy &
+  Security › Analytics & Improvements › Analytics Data). Not asked: the fix does not depend on it.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

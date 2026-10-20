@@ -42,27 +42,104 @@ public enum CloudFiles {
         try? FileManager.default.startDownloadingUbiquitousItem(at: url)
     }
 
-    /// Reads a file the way TextEdit does.
+    // MARK: Where a file's contents are (build 261)
+
+    /// Whether a file's contents are on this device.
+    public enum Presence: Equatable, Sendable {
+        /// On this device and current, or not an iCloud file at all. Read it.
+        case here
+        /// An older copy is here and iCloud has a newer one. Readable at once, but it may be out
+        /// of date: the app shows it and refuses whole-vault writes until it is current.
+        case stale
+        /// Not on this device. Reading it means waiting for iCloud.
+        case away
+    }
+
+    /// The decision, apart from the file system so it can be tested.
+    public static func presence(isUbiquitous: Bool?, status: URLUbiquitousItemDownloadingStatus?) -> Presence {
+        guard isUbiquitous == true, let status else { return .here }
+        if status == .current { return .here }
+        if status == .downloaded { return .stale }
+        return .away
+    }
+
+    /// Asks the file system. Metadata only: never waits for a download. A path that does not
+    /// exist at all reads as `.here` — whether a file is there is `exists(_:)`'s question.
+    public static func presence(of url: URL) -> Presence {
+        let values = try? url.resourceValues(forKeys: [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey])
+        return presence(isUbiquitous: values?.isUbiquitousItem, status: values?.ubiquitousItemDownloadingStatus)
+    }
+
+    /// The longest one read may wait for iCloud to send one file.
+    public static let longestWait: TimeInterval = 20
+    /// The longest one background pass may spend waiting, all files together.
+    public static let passLength: TimeInterval = 60
+
+    /// Reads a file, waiting up to `wait` seconds for iCloud when its contents are not here.
     ///
-    /// iCloud keeps a file's contents off the device until something asks for them, and a
-    /// plain `Data(contentsOf:)` of such a file simply fails — which is why a note opened in
-    /// TextEdit while this app called it unreadable and drew an empty vault (build 101).
-    /// A coordinated read makes iCloud materialise the file first and waits for it, so it is
-    /// used as the second attempt: the fast path stays fast for a file that is already here.
-    public static func read(_ url: URL) throws -> Data {
+    /// **There is no default**, so every caller says how long it may wait (build 261: a launch
+    /// that waited for iCloud on the main thread was killed by iOS before its first frame).
+    /// **Zero never waits**: a file whose contents are not here throws at once, after asking
+    /// iCloud for it. Above zero this blocks the calling thread through a coordinated read — the
+    /// only thing that makes iCloud bring a file down (build 101) — so it is never given a wait
+    /// on the main thread.
+    public static func read(_ url: URL, waitingUpTo wait: TimeInterval) throws -> Data {
+        if presence(of: url) == .away {
+            startDownload(url)
+            // Where a system keeps such a file under its own name, a plain read of it is itself
+            // a wait with no end, so it is never tried.
+            guard wait > 0 else { throw CocoaError(.fileReadNoPermission, userInfo: [NSFilePathErrorKey: url.path]) }
+            return try coordinatedRead(url, waitingUpTo: wait, otherwise: nil)
+        }
         do {
             return try Data(contentsOf: url)
-        } catch let first {
+        } catch {
             startDownload(url)
-            var data: Data?
-            var readError: Error?
-            var coordinationError: NSError?
-            NSFileCoordinator().coordinate(readingItemAt: url, options: [], error: &coordinationError) { actual in
-                do { data = try Data(contentsOf: actual) } catch { readError = error }
-            }
-            if let data { return data }
-            throw readError ?? coordinationError ?? first
+            guard wait > 0 else { throw error }
+            return try coordinatedRead(url, waitingUpTo: wait, otherwise: error)
         }
+    }
+
+    /// A read that waits for iCloud, given up after `wait` seconds by cancelling the coordinator
+    /// from another thread.
+    private static func coordinatedRead(_ url: URL, waitingUpTo wait: TimeInterval, otherwise first: Error?) throws -> Data {
+        let coordinator = NSFileCoordinator()
+        let giveUp = DispatchWorkItem { coordinator.cancel() }
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + wait, execute: giveUp)
+        defer { giveUp.cancel() }
+        var data: Data?
+        var readError: Error?
+        var coordinationError: NSError?
+        coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { actual in
+            do { data = try Data(contentsOf: actual) } catch { readError = error }
+        }
+        if let data { return data }
+        if let readError { throw readError }
+        if let coordinationError { throw coordinationError }
+        if let first { throw first }
+        throw CocoaError(.fileReadUnknown)
+    }
+
+    /// Waits for iCloud to send the given files, one after another, until `seconds` have gone
+    /// (build 261). Every try costs time whether or not the file comes, so a file iCloud cannot
+    /// deliver holds up the ones after it for `longestWait` at most; a try with less than a
+    /// second left is not started. Returns what arrived.
+    ///
+    /// **Blocks the calling thread; the app calls it on a GCD thread, never the main one.**
+    /// `now` and `waitFor` are for the tests: there is no iCloud in a test.
+    public static func fetch(_ urls: [URL], within seconds: TimeInterval,
+                             now: () -> Date = { Date() },
+                             waitFor: (URL, TimeInterval) -> Bool = { url, wait in
+                                 (try? CloudFiles.read(url, waitingUpTo: wait)) != nil
+                             }) -> [URL] {
+        let start = now()
+        var arrived: [URL] = []
+        for url in urls {
+            let left = seconds - now().timeIntervalSince(start)
+            guard left >= 1 else { break }
+            if waitFor(url, min(longestWait, left)) { arrived.append(url) }
+        }
+        return arrived
     }
 
     /// Every file under `root` that iCloud has not sent to this device, asked for as it goes.

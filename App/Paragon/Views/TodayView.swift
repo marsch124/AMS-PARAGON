@@ -46,6 +46,14 @@ struct TodayView: View {
         // is written in it — build 213's whole lesson. The count did not come back: the
         // **Due today** section names those tasks a few lines further down.
         VStack(alignment: .leading, spacing: 0) {
+            // **On the phone, notes still coming from iCloud are named here** (build 261). Since
+            // 261 the app no longer waits for them at launch, so for a moment after a start the
+            // lists below can be short; the Mac says so at the foot of its sidebar, and the phone
+            // has no sidebar. A read failure must never look like an absence (build 100).
+            if isPhone, let warning = model.vaultWarning {
+                VaultWarningBar(text: warning) { model.fetchMissingNotes() }
+                    .padding(.bottom, Theme.tight)
+            }
             // **Close the day sits beside the date, not in the window's toolbar.** A control
             // that governs a column belongs in that column next to its own name (build 167),
             // and the date row build 220 put here is that name. It costs no new furniture: the

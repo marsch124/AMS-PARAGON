@@ -114,7 +114,16 @@ struct InboxTriageView: View {
         VStack(spacing: 0) {
             captureBar
             Divider()
-            if items.isEmpty {
+            if items.isEmpty, model.inboxIsComingFromCloud {
+                // Not "Inbox zero": the Inbox note has not reached this device yet (build 261),
+                // and an empty Inbox is something this app may only say when it knows.
+                EmptyStateView(title: "Still coming from iCloud",
+                               systemImage: "icloud.and.arrow.down",
+                               message: "The Inbox note has not reached this device yet. Its lines appear here as soon as it arrives.",
+                               tint: .orange,
+                               actionTitle: "Ask iCloud again",
+                               action: { model.fetchMissingNotes() })
+            } else if items.isEmpty {
                 EmptyStateView(title: "Inbox zero",
                                systemImage: "tray",
                                message: "Nothing left to sort. Anything you capture — here, from the menu bar, or from the share sheet on the phone — lands in this list.",
