@@ -1211,7 +1211,7 @@ The app therefore asks. When it starts, when you open a vault, and once a minute
 
 **PARAGON never waits for iCloud while it starts.** It opens at once with the notes that are on the device and fetches the rest in the background, the Inbox and today's note first. While notes are still coming, a short orange line says how many — at the foot of the sidebar on the Mac, at the top of **Today** on the iPhone — with a button, **Ask iCloud again**. If the Inbox note itself has not arrived, the Inbox says **Still coming from iCloud** instead of **Inbox zero**. A capture that cannot be filed yet is kept and filed when the note arrives.
 
-Some things wait until every note is here, because they reach across the whole vault: the Reminders sync and its rehearsal, renaming or removing a tag everywhere, and renaming a note with its links. They say why and ask you to try again in a moment. The same is true while iCloud is bringing a newer version of a note that is already on the device. The widget also keeps its last complete picture until every note is here.
+Some things wait until every note is here, because they reach across the whole vault: the Reminders sync and its rehearsal, renaming or removing a tag everywhere, renaming a note with its links, and restoring a backup. They say why and ask you to try again in a moment. The same is true while iCloud is bringing a newer version of a note that is already on the device. The widget also keeps its last complete picture until every note is here.
 
 ### When something takes a moment to arrive
 
@@ -1231,7 +1231,7 @@ Open the Files app on the iPhone, find your vault folder, and tap the file once.
 
 The app checks every few seconds whether files changed outside it and reloads them. It never writes over a newer file. If you were typing in a note that changed elsewhere at the same time, your text is saved as a copy named "… (conflict date time).md" next to the note, and the note shows the other version. Merge the two by hand when that happens; it is rare.
 
-A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment.
+A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment. If the note then turns out to have a line already, written on your other device, that line is kept and your words go below it. The goal for the week and **Plan the day** work the same way: nothing you typed is thrown away, and the box stays open until it can be saved.
 
 ## Getting new versions
 

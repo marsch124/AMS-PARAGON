@@ -927,15 +927,15 @@ final class AppModel: ObservableObject {
     }
 
     /// What the pass waits for, most wanted first: the Inbox, then today's and this week's
-    /// notes — what the first screens show — then everything else still coming, then the notes
-    /// whose newer version is not here yet.
+    /// notes — what the first screens show — then everything else still coming. Notes being
+    /// updated are left out: the walk has asked for them, an older copy reads at once and would
+    /// count as "arrived" every minute, and the newer copy's date is what the change check sees.
     private func cloudPassOrder(_ vault: Vault) -> [String] {
         let first = [vault.config.inboxFile, vault.dailyNotePath(for: .today()),
                      vault.weeklyNotePath(for: WeekRef(containing: .today()))]
         let waiting = notesWaitingForCloud
         var order = first.filter { waiting.contains($0) }
         order += waiting.filter { !first.contains($0) }
-        order += notesBeingUpdated.filter { !order.contains($0) }
         return order
     }
 
@@ -963,11 +963,11 @@ final class AppModel: ObservableObject {
             return
         }
         guard arrived > 0, !isSyncing else { return }
-        let inboxWasWaiting = inboxIsComingFromCloud
         log("iCloud sent \(arrived) note\(arrived == 1 ? "" : "s"); re-reading the vault")
+        // `reload()` files any capture kept for a note that has now arrived.
         reload()
-        // Captures kept while the Inbox was still coming can be filed now.
-        if inboxWasWaiting, !inboxIsComingFromCloud { drainOutbox() }
+        // The day's backup, if launch had to put it off because nothing was here yet.
+        backUpDaily()
         // Again at once only on real progress, so a file that reads but never lands cannot keep
         // this going.
         if !notesWaitingForCloud.isEmpty, notesWaitingForCloud.count < waitingAtStart {
@@ -1185,6 +1185,10 @@ final class AppModel: ObservableObject {
             notes = []
             return
         }
+        // What was still coming before this read, so a capture kept for it can be filed the
+        // moment any reload sees it arrive (build 261's review: the 10 s poll or the iCloud
+        // watcher often re-reads before the background pass finishes).
+        let waitingBefore = notesWaitingForCloud
         do {
             // **Never waits for iCloud** (build 261). This runs on the main thread, the first
             // time inside `init` before the first frame, and a launch that waited for iCloud
@@ -1194,6 +1198,12 @@ final class AppModel: ObservableObject {
             unreadableNotes = vault.skippedFiles
             notesWaitingForCloud = vault.notesWaitingForCloud
             notesBeingUpdated = vault.notesBeingUpdated
+            if waitingBefore.contains(where: { !notesWaitingForCloud.contains($0) }) {
+                // `afterUpdate`: a reload can run inside a view update. `drainOutbox` returns at
+                // once when the outbox is empty, and its own reload sees nothing newly arrived,
+                // so this cannot repeat itself.
+                afterUpdate { [weak self] in self?.drainOutbox() }
+            }
             if !unreadableNotes.isEmpty { log("skipped unreadable files: \(unreadableNotes)") }
             if !notesWaitingForCloud.isEmpty { log("waiting for iCloud: \(notesWaitingForCloud.count) notes") }
         } catch {
@@ -2153,18 +2163,25 @@ final class AppModel: ObservableObject {
     /// Writes the goal for a week into its weekly note as `focus:`, or removes the line when
     /// the text is empty. **An empty goal never makes a weekly note**: asking nothing must not
     /// leave a file behind (the same rule as `planBlocks(for:)`, build 147).
-    func setWeekGoal(_ text: String, for week: WeekRef) {
+    ///
+    /// **Returns false when the goal could not be written** (build 261), so the box stays open
+    /// with his words in it — likeliest when the week's note is still coming from iCloud.
+    @discardableResult
+    func setWeekGoal(_ text: String, for week: WeekRef) -> Bool {
         flushPendingEdits()
-        guard let vault else { return }
+        guard let vault else { return false }
         let value = WeekGoal.cleaned(text)
-        guard value != (weekGoal(for: week) ?? "") else { return }
-        if value.isEmpty && !vault.weeklyNoteExists(for: week) { return }
+        guard value != (weekGoal(for: week) ?? "") else { return true }
+        if value.isEmpty && !vault.weeklyNoteExists(for: week) { return true }
         do {
             let note = try vault.weeklyNote(for: week)
             let updated = WeekGoal.setting(value, on: self.note(at: note.relativePath) ?? note)
-            if save(updated) { reload() }
+            guard save(updated) else { return false }
+            reload()
+            return true
         } catch {
             errorMessage = "Could not write the goal for the week: \(error.localizedDescription)"
+            return false
         }
     }
 
@@ -2237,16 +2254,23 @@ final class AppModel: ObservableObject {
 
     /// Rewrites a day's plan, making the daily note if there is none yet. This is the only
     /// place a plan is written; everything else goes through it.
-    func savePlan(_ blocks: [PlanBlock], for day: DateOnly) {
+    ///
+    /// **Returns whether the plan was written** (build 261): a day's note still coming from
+    /// iCloud is no longer waited for, so callers must not carry on — copy a block to Apple
+    /// Calendar, say "Block removed" — as if it had been.
+    @discardableResult
+    func savePlan(_ blocks: [PlanBlock], for day: DateOnly) -> Bool {
         flushPendingEdits()
-        guard let vault else { return }
+        guard let vault else { return false }
         do {
             let existed = vault.dailyNoteExists(for: day)
             let note = try vault.dailyNote(for: day)
-            guard save(note.settingPlanBlocks(blocks)) else { return }
+            guard save(note.settingPlanBlocks(blocks)) else { return false }
             if !existed { reload() }
+            return true
         } catch {
             errorMessage = error.localizedDescription
+            return false
         }
     }
 
@@ -2272,16 +2296,29 @@ final class AppModel: ObservableObject {
     /// were, or there was nothing to write. **Close the day** then stays open with the reason
     /// inside it, so what he typed is not thrown away — likeliest when the evening reminder
     /// starts the app and today's note has not come from iCloud yet.
-    func saveLookingBack(_ text: String, for day: DateOnly) -> String? {
+    ///
+    /// `shown` is what the field was filled with when the sheet opened. **A line on file that
+    /// differs from it is never replaced or removed unseen** (build 261's review): with today's
+    /// note still coming from iCloud the field opens empty, and the line may have been written on
+    /// the other device. It is kept, and his new words go below it.
+    func saveLookingBack(_ text: String, for day: DateOnly, shown: String) -> String? {
         flushPendingEdits()
         guard let vault else { return nil }
         let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let before = shown.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Nothing typed and nothing shown: nothing to write, even while the note is still coming.
+        guard !clean.isEmpty || !before.isEmpty else { return nil }
         let existed = vault.dailyNoteExists(for: day)
         guard !clean.isEmpty || existed else { return nil }
         do {
             let note = try vault.dailyNote(for: day)
-            guard note.lookingBack != clean else { return nil }
-            guard save(note.settingLookingBack(clean)) else {
+            let onFile = note.lookingBack
+            var words = clean
+            if !onFile.isEmpty, onFile != before {
+                words = (clean.isEmpty || onFile.contains(clean)) ? onFile : onFile + "\n\n" + clean
+            }
+            guard onFile != words else { return nil }
+            guard save(note.settingLookingBack(words)) else {
                 return "Your words could not be saved. They are still here; press Done to try again."
             }
             if !existed { reload() }
@@ -2317,7 +2354,8 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func addPlanBlock(_ block: PlanBlock, on day: DateOnly) {
+    @discardableResult
+    func addPlanBlock(_ block: PlanBlock, on day: DateOnly) -> Bool {
         savePlan(planBlocks(for: day) + [block], for: day)
     }
 
@@ -2346,7 +2384,7 @@ final class AppModel: ObservableObject {
             added.append(PlanBlock(start: start, end: start + item.length, title: item.title))
         }
         guard !added.isEmpty else { return 0 }
-        savePlan(existing + added, for: day)
+        guard savePlan(existing + added, for: day) else { return 0 }
         return added.count
     }
 
@@ -2416,7 +2454,7 @@ final class AppModel: ObservableObject {
         guard blocks.indices.contains(block.index) else { return }
         let event = calendarBlock(for: block, on: day)
         blocks.remove(at: block.index)
-        savePlan(blocks, for: day)
+        guard savePlan(blocks, for: day) else { return }
         // The tick said "this block is also in Apple Calendar". With the block gone there is
         // nothing for the event to be, so it goes too.
         if let event {
@@ -2428,11 +2466,12 @@ final class AppModel: ObservableObject {
         flash(event == nil ? "Block removed" : "Block removed, and from Apple Calendar")
     }
 
-    func replacePlanBlock(_ block: PlanBlock, on day: DateOnly) {
+    @discardableResult
+    func replacePlanBlock(_ block: PlanBlock, on day: DateOnly) -> Bool {
         var blocks = planBlocks(for: day)
-        guard blocks.indices.contains(block.index) else { return }
+        guard blocks.indices.contains(block.index) else { return false }
         blocks[block.index] = block
-        savePlan(blocks, for: day)
+        return savePlan(blocks, for: day)
     }
 
     /// Saves a block from the planner's sheet and settles its Apple Calendar copy in the same
@@ -2444,11 +2483,9 @@ final class AppModel: ObservableObject {
     /// changed. Here the event is found first, against the block as it still is.
     func savePlanBlock(_ block: PlanBlock, on day: DateOnly, replacing previous: PlanBlock?, inAppleCalendar wanted: Bool) async {
         let event = previous.flatMap { calendarBlock(for: $0, on: day) }
-        if previous == nil {
-            addPlanBlock(block, on: day)
-        } else {
-            replacePlanBlock(block, on: day)
-        }
+        let written = previous == nil ? addPlanBlock(block, on: day) : replacePlanBlock(block, on: day)
+        // No calendar write or delete for a block the note did not take (build 261).
+        guard written else { return }
         if wanted {
             await putInAppleCalendar(block, on: day, replacing: event)
         } else if let event {
@@ -3066,6 +3103,11 @@ final class AppModel: ObservableObject {
             let note = try vault.capture(item)
             reload()
             lastCaptureMessage = "Saved to \(note.displayTitle)"
+        } catch VaultError.notDownloadedYet {
+            // Not a failure to report as one (build 261): the note it belongs in is still coming
+            // from iCloud, and the line is filed the moment it arrives.
+            try? CaptureOutbox(fileURL: Self.outboxURL).append(item)
+            lastCaptureMessage = "Saved. It goes into its note as soon as that note has come from iCloud."
         } catch {
             // Keep it for later rather than lose it.
             try? CaptureOutbox(fileURL: Self.outboxURL).append(item)
@@ -3122,7 +3164,9 @@ final class AppModel: ObservableObject {
         var failed: [CaptureItem] = []
         for item in items {
             do {
-                try vault.capture(item)
+                // On the day it was captured, not the day it is filed: a line kept for a note
+                // still coming from iCloud may be filed after midnight (build 261).
+                try vault.capture(item, today: DateOnly(item.createdAt))
                 filed += 1
             } catch {
                 log("capture kept for later: \(error.localizedDescription)")
@@ -3365,12 +3409,23 @@ final class AppModel: ObservableObject {
             refreshBackups()
             return
         }
+        // Not while nothing but notes still coming from iCloud is here (build 261): the copy
+        // would hold nothing, and the day would be marked done anyway. The background pass calls
+        // this again when notes arrive.
+        if notes.isEmpty, !notesWaitingForCloud.isEmpty { return }
         backUp(reason: "daily")
         defaults.set(today, forKey: lastBackupDayKey)
     }
 
     func restore(_ backup: VaultBackup) {
         guard let vault else { return }
+        // A restore reaches across the whole vault like a sync (build 261). Notes still coming
+        // from iCloud are exactly what made a full vault look empty in build 100 — a moment
+        // when restoring is tempting and wrong.
+        if let reason = partVaultReason(for: "nothing was restored") {
+            errorMessage = reason
+            return
+        }
         flushPendingEdits()
         do {
             let result = try vault.restore(backup)

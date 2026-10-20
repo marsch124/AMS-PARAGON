@@ -3794,8 +3794,8 @@ and every wait has a limit.**
 - `AppModel.reload()` passes 0. `fetchCloudFiles` is the pass: on a GCD thread through `offMain`
   (not `Task.detached`: a coordinated read holds its thread, and the pool has one per core), the
   `downloadMissing` walk, then waits in `cloudPassOrder` (Inbox, today's note, this week's note,
-  the rest, then the stale ones), then reloads on the main actor when anything came and drains
-  the outbox if the Inbox just arrived. One pass at a time, numbered; one older than
+  the rest), then reloads on the main actor when anything came (and that reload files any
+  capture kept for a note that arrived). One pass at a time, numbered; one older than
   `passLength + 2 × longestWait` is taken as stuck and a new one may start, and the stuck one's
   answer is ignored.
 - **`partVaultReason(for:)` is the one refusal** for writes across the whole vault: `syncNow`,
@@ -3815,6 +3815,27 @@ and every wait has a limit.**
   templates and snippets would still block in the second model, and folders with no contents on
   the device could block an enumerator. If that ever shows, the next step is `allNotes` on a
   separate `Vault(rootURL:)` instance off the main thread.
+- **The review of the first push found twelve real faults; all fixed before upload.** The
+  pattern behind most of them: **once a single-note load stops waiting, every writer that read
+  "the note is not here" as "the note is empty" becomes a way to lose or overwrite words.**
+  - `reload()` drains the outbox whenever any waiting note arrives (through `afterUpdate`), not
+    only when the pass's own reload is the one that sees the Inbox — the 10 s poll and the
+    watcher usually re-read first. Kept captures are filed on the day they were made.
+  - Close the day remembers what the field was filled with (`shown`); a line on file that it
+    never showed is kept and the new words go below it — never replaced or removed unseen.
+  - `savePlan`, `addPlanBlock`, `replacePlanBlock` and `setWeekGoal` return whether they
+    wrote; `savePlanBlock` does no calendar work, `removePlanBlock` says nothing, and the week
+    goal box stays open, when they did not.
+  - `NoteEditorView`'s `onChange(of: storedText)` ignores the "" of a note gone back to iCloud,
+    so the editor is not blanked and `baseText` is not lost.
+  - `Vault.restore` skips (and names) a destination that is `.away` or has a stub beside it,
+    and a backup file that is itself a stub; `AppModel.restore` refuses through
+    `partVaultReason`. Build 100's incident is exactly the moment a restore is tempting.
+  - The pass no longer waits for stale notes (they read at once and counted as "arrived" every
+    minute); `backUpDaily` waits while nothing but waiting notes is here, and the pass calls it
+    again.
+- **Still open, pre-existing:** `downloadMissing` skips all of `.ams-para`, so on a stub device
+  config, tags, saved searches and first picks may never be asked for.
 - The 0x8badf00d check that would prove the diagnosis is on his phone (Settings › Privacy &
   Security › Analytics & Improvements › Analytics Data). Not asked: the fix does not depend on it.
 

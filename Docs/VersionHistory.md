@@ -18,9 +18,12 @@ on the iPhone.
 - If the Inbox note itself has not arrived, the Inbox says **Still coming from iCloud** instead
   of **Inbox zero**.
 - **These wait until every note is here**, and say so: the Reminders sync and its rehearsal,
-  renaming or removing a tag everywhere, and renaming a note. The widget keeps its last
-  complete picture until then.
-- **Close the day** stays open with your words in it if they cannot be saved yet.
+  renaming or removing a tag everywhere, renaming a note, and restoring a backup. The widget
+  keeps its last complete picture until then.
+- **Close the day** stays open with your words in it if they cannot be saved yet. A line
+  already written on your other device is kept, and your words go below it. The goal for the
+  week and **Plan the day** also keep what you typed until it can be saved.
+- A restore never writes over a note that is not on this device.
 - A capture aimed at a note that is still coming is kept and filed later. It is no longer put
   in the Inbox instead.
 - The daily backup now runs a few seconds after start, not during it.

@@ -26,6 +26,9 @@ struct CloseDayView: View {
     /// Why the words could not be saved, shown in the sheet (build 261). A sheet's messages
     /// belong in the sheet (build 238), and closing it would have thrown the words away.
     @State private var saveProblem: String?
+    /// What the field was filled with, so a line on file the field never showed is never
+    /// written over (build 261's review).
+    @State private var shownLookingBack = ""
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -98,6 +101,7 @@ struct CloseDayView: View {
             model.loadFirstPicks()
             guard !loaded else { return }
             lookingBack = model.lookingBack(for: day)
+            shownLookingBack = lookingBack
             loaded = true
         }
         .task { await model.loadEvents(for: tomorrow) }
@@ -291,7 +295,7 @@ struct CloseDayView: View {
     /// **When the words cannot be written, the sheet stays open** and says why (build 261): a
     /// note still coming from iCloud is no longer waited for, and closing would lose them.
     private func finish() {
-        if let problem = model.saveLookingBack(lookingBack, for: day) {
+        if let problem = model.saveLookingBack(lookingBack, for: day, shown: shownLookingBack) {
             saveProblem = problem
             return
         }

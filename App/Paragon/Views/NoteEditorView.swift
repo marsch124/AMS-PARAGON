@@ -96,6 +96,10 @@ struct NoteEditorView: View {
             }
         }
         .onChange(of: storedText) { _, newValue in
+            // The open note went back to iCloud (build 261): "" is not its text. Keep the screen
+            // and the text it came from; a save meanwhile keeps the typing as a copy beside the
+            // note (`saveText`), and the note's return is the next change seen here.
+            if note == nil, model.notesWaitingForCloud.contains(path) { return }
             // The file changed (a sync assigned markers, another device edited it). While
             // nothing is being typed, follow it; the shown text often does not change at all
             // because only hidden markers moved.

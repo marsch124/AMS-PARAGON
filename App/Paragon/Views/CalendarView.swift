@@ -764,8 +764,9 @@ struct WeekGoalBox: View {
         }
     }
 
+    /// The box stays open with his words when they could not be written (build 261): the
+    /// week's note may still be coming from iCloud, and closing it would throw them away.
     private func save() {
-        model.setWeekGoal(draft, for: week)
-        editing = false
+        if model.setWeekGoal(draft, for: week) { editing = false }
     }
 }

@@ -159,7 +159,24 @@ public extension Vault {
                   Array(components.prefix(sourceComponents.count)) == sourceComponents else { continue }
             let relative = components.dropFirst(sourceComponents.count).joined(separator: "/")
             guard relative != "signature.txt", relative != "skipped.txt", !relative.isEmpty else { continue }
+            // A file of the backup that is itself only an iCloud stub here — a backup made on the
+            // other device — cannot be restored from this one; copied, it would put a stub into
+            // the vault (build 261).
+            if let real = CloudFiles.realName(ofPlaceholder: fileURL.lastPathComponent) {
+                let folder = (relative as NSString).deletingLastPathComponent
+                failed.append(folder.isEmpty ? real : "\(folder)/\(real)")
+                continue
+            }
             let destination = url(for: relative)
+            // Never written over: a vault file whose contents are not on this device. The
+            // before-restore backup leaves such a file out (it never waits for iCloud), so its
+            // current version would be lost with no copy anywhere; and writing beside a stub
+            // would leave iCloud two versions to choose between (build 261's review).
+            if CloudFiles.presence(of: destination) == .away
+                || fm.fileExists(atPath: CloudFiles.placeholderURL(for: destination).path) {
+                failed.append(relative)
+                continue
+            }
             do {
                 try fm.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try? fm.removeItem(at: destination)
