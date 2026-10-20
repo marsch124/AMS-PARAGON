@@ -132,8 +132,9 @@ struct FocusBar: View {
 /// **Starting a clock closes the keyboard** (build 258). His field test of 257: the bar only
 /// came after he changed screen. He had just added a task in a note, the **Add a task…** field
 /// kept the keyboard, and the bar was stepping aside for it — so a clock he had just started
-/// could not be seen. The clock is the thing he asked to see, so the keyboard gives way to it.
-/// `up` is also set false there, so a missed hide can never keep the bar away.
+/// could not be seen. The clock is the thing he asked to see, so the keyboard gives way to it —
+/// twice, the second time after a popover or menu has closed. `up` is also set false there, so a
+/// missed hide can never keep the bar away.
 private struct KeyboardWatch: ViewModifier {
     @Binding var up: Bool
     let clockStart: Date?
@@ -152,10 +153,17 @@ private struct KeyboardWatch: ViewModifier {
                 up = false
             }
             .onChange(of: clockStart) { _, start in
-                guard start != nil, up else { return }
+                guard start != nil else { return }
                 up = false
                 // The next turn: the press that started the clock may still be finishing.
                 DispatchQueue.main.async {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                                    to: nil, from: nil, for: nil)
+                }
+                // Again once the time list or the task menu has finished closing: iOS may give
+                // the field its keyboard back then, and the bar would hide again (build 258's
+                // review). With nothing holding the keyboard, both are no-ops.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
                                                     to: nil, from: nil, for: nil)
                 }

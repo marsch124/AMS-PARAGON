@@ -3556,7 +3556,8 @@ the push is still worth running after it** — it found two behaviour faults CI 
 
 Part 3 of PARAGON Time and Focus (https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX), in the
 look of that page, which he said he loves. **256** the timer, **257** the notice when the
-planned time is up and the time in the Mac menu bar, **258** Planned and worked in Close the day.
+planned time is up and the time in the Mac menu bar, **258** fixes from his field test of 257,
+**259** Planned and worked in Close the day.
 
 **Build 256.**
 - `Core/Vault/FocusSession.swift` (tested in `FocusSessionTests`): `FocusSession` (Codable:
@@ -3697,7 +3698,9 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
   `keyboardUp`, and the test began by adding a task in a note, so the **Add a task…** field
   still held the keyboard when he pressed **Focus on this**. `KeyboardWatch` now takes
   `clockStart` (the first run's start, else `runningSince`): when it changes while `up`, it sets
-  `up = false` and resigns the first responder a turn later. It also listens to
+  `up = false` and resigns the first responder a turn later **and again 0.6 s later** — the
+  review's point: a popover or context menu closing may hand the keyboard back to the field,
+  which nothing here can test. It also listens to
   `keyboardDidHideNotification`, so a missed hide can never keep the bar away. **A bar that
   steps aside for the keyboard must never step aside for the very press that asked for it.**
 - **The paused dot in the menu bar was invisible**: a fixed `systemGray`, non-template, on

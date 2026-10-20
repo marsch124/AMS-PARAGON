@@ -576,8 +576,8 @@ today's daily note, so you can see later how long things really took.
 ### While it runs
 
 A bar shows the task and the time: "23:14 of 45 min" when the task has a time, or just "23:14".
-It is dark on a light screen and light in dark mode, with a small orange dot (pale while the
-clock is paused). On the iPhone it sits above the tabs on every screen, and steps aside while
+It is dark on a light screen and light in dark mode, with a small orange dot (faded while
+the clock is paused). On the iPhone it sits above the tabs on every screen, and steps aside while
 the keyboard is up. Starting a clock puts the keyboard away, so the bar shows at once. On the
 Mac it sits at the foot of the window. It has two round buttons:
 
