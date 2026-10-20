@@ -13,9 +13,12 @@ struct ParagonApp: App {
     #endif
     @AppStorage("showMenuBarItem") private var showMenuBarItem = true
     static let plannerWindowID = "planner"
+    /// The main window's name, so the menu bar clock's **Show PARAGON** can open a fresh one when
+    /// it was closed (build 257's review).
+    static let mainWindowID = "main"
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: ParagonApp.mainWindowID) {
             ContentView()
                 .environmentObject(model)
         }

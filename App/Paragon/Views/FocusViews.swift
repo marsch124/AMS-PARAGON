@@ -239,7 +239,8 @@ struct FocusStopView: View {
     private static func sentence(_ session: FocusSession) -> String {
         let on = "on \(session.title)."
         guard let planned = session.plannedMinutes else { return on }
-        return on + " You planned \(TaskTime.label(planned))."
+        // `total` in a sentence ("1 h 30 min"); the bar keeps the button's short "1 h 30".
+        return on + " You planned \(TaskTime.total(planned))."
     }
 
     /// "08:02–08:54": the first start to the last end.

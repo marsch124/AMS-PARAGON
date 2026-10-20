@@ -3631,21 +3631,42 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
   **once**: going on after the time is up plants nothing.
 - `App/Paragon/FocusNotice.swift`: one `UNTimeIntervalNotificationTrigger`, id
   `paragon.focus.timeUp`, **planted again on every change to `focus`** (`focusChanged()` in its
-  `didSet`, and said out loud after `loadFocus()`), so a pause removes it and **Go on** puts it
-  back at the right moment. A stop also removes a delivered one. `EveningReminder` stays the one
-  delegate, so it shows while PARAGON is in front. Asking for permission happens here, the first
-  time a clock with a time starts; a `generation` counter drops a system answer that arrives
-  after a newer change. **Never asked under `TestVault`**: on the phone the question covers the
-  screen. When notices are off it **says so once per launch** through `flash` (build 100), not
-  on every start.
+  `didSet`; `loadFocus()` sets `focus` from a method so `didSet` runs at launch too), so a pause
+  removes it and **Go on** puts it back at the right moment. `takeAwayDelivered()` on Stop, when
+  a new clock replaces a running one, and when `focus` becomes nil. `EveningReminder` stays the
+  one delegate, so it shows while PARAGON is in front. Permission is asked here only while it is
+  still `.notDetermined` — the evening reminder asks for the same one, so on his devices no
+  question comes. A `generation` counter drops a system answer that arrives after a newer
+  change, for the add **and** for the message. **Never asked under `TestVault`**: on the phone
+  the question covers the screen. When notifications are off, or allowed but set to **None**
+  (two sentences, the same two Settings › Evening reminder uses), it **says so once per launch**
+  through `flash`, added to a message already showing rather than replacing it (the flash
+  overlay's wait is now `.task(id: message)`, and a cancelled wait returns instead of clearing).
+- **"Notification" in everything he reads**, never "notice": the system and the evening
+  reminder say notification, and two words for one thing is build 165's fault.
+- **With Use task times off, `startFocus(on:)` plans no time** (`usesTaskTimes ? minutes :
+  nil`): a hidden `~45m` must not bring a notification, an "of 45 min" or a **Planned:** line.
 - `App/Paragon/FocusMenuBar.swift` (Mac only): **an `NSStatusItem` of our own, not a second
   `MenuBarExtra`**. Whether a SwiftUI menu bar label really ticks each second cannot be seen from
   here; a status item's title set by a `.common`-mode `Timer` is certain. The dot is an
-  `NSImage` symbol in `PlanTint` (grey while paused), the time is plain title text so the system
-  colours it for a light or dark menu bar, `monospacedDigitSystemFont` at the menu bar's size.
-  Menu: the task, **Pause**/**Go on**, **Stop…** (shows the window first, since the question is
-  asked there), **Show PARAGON** (the window holding an `NSSplitView`, so not Settings or Help).
-  Shown whatever **Show capture panel in the menu bar** says.
+  `NSImage` symbol in `PlanTint` (`systemGray` while paused — a fixed grey, since the menu bar
+  can be dark while the app is light), set with the tooltip on each change, never each second;
+  the time is plain title text so the system colours it, `monospacedDigitSystemFont` at the
+  menu bar's size. **A new status item goes to the left of the icons already there, never
+  beside the clock**, so it has an `autosaveName` (and `isVisible = true` after it): ⌘-dragged
+  once, it comes back there. Menu: the task, **Planned: 45 min**, **Pause**/**Go on** (greyed by
+  `NSMenuItemValidation` while `focusQuestionPending`), **Stop…**, **Show PARAGON** (the window
+  holding an `NSSplitView`; when every main window is closed, `model.openMainWindow` — the
+  `WindowGroup` now has `id: "main"`, and `ContentView` hands `openWindow` in). Shown whatever
+  **Show capture panel in the menu bar** says.
+- **The menu bar is the first control outside every sheet**, and that is what the review of
+  257 found twice. **Go on** while the stop question was open would run the clock behind the
+  sheet and write a stretch the question never showed: `pauseFocus`/`resumeFocus` refuse while
+  `focusQuestionPending`. **Stop…** while **New Note** or **Close the day** was open would have
+  swapped that sheet for the question and lost what was typed: `stopFocus` now sets
+  `stopQuestionWaiting`, and `activeSheet`'s `didSet` asks the question a turn after that sheet
+  closes (build 246's shape). **Any new control outside the window has to be checked against
+  every sheet the window can show.**
 - Mac screen test: `focus.menuBar` among `app.statusItems` while the clock runs, gone after
   Stop. **First time this suite looks at the menu bar**; if it fails, the message lists every
   status item it found, which says whether the identifier or the query is wrong.

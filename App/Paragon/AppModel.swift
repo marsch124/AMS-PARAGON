@@ -201,7 +201,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var lastReport: SyncReport?
     @Published var errorMessage: String?
     /// SwiftUI only presents one sheet reliably per view, so all sheets go through this.
-    @Published var activeSheet: AppSheet?
+    @Published var activeSheet: AppSheet? {
+        didSet { askWaitingStopQuestion() }
+    }
     @Published private(set) var lastCaptureMessage: String?
     @Published var selectedDate = DateOnly.today()
     @Published var selectedWeek = WeekRef.current()
@@ -2383,6 +2385,7 @@ final class AppModel: ObservableObject {
     /// test was exactly that: "Start a timer, close the app, open it again."
     @Published private(set) var focus: FocusSession? {
         didSet {
+            if focus == nil { stopQuestionWaiting = false }
             saveFocus()
             focusChanged()
         }
@@ -2391,13 +2394,48 @@ final class AppModel: ObservableObject {
     #if os(macOS)
     /// The running clock in the Mac's menu bar (build 257).
     private lazy var focusStatusItem = FocusStatusItem(model: self)
+    /// Opens a fresh main window, for **Show PARAGON** in the menu bar clock's menu when the
+    /// main window has been closed with \u{2318}W (build 257's review): activating the app alone
+    /// never makes one. Handed in by `ContentView`, which can read `openWindow`.
+    var openMainWindow: (() -> Void)?
     #endif
+
+    /// **Stop** was pressed while another screen was open as a sheet — possible from the Mac's
+    /// menu bar since build 257, where nothing covers the button. Swapping that screen for the
+    /// stop question would throw away what was typed there, so the clock is stopped and the
+    /// question waits for that screen to close (build 257's review).
+    private var stopQuestionWaiting = false
+
+    /// True while the stop question is open or waiting to open. The clock is stopped then, and
+    /// **Pause** / **Go on** do nothing.
+    var focusQuestionPending: Bool {
+        activeSheet == .focusStop || stopQuestionWaiting
+    }
+
+    private func askWaitingStopQuestion() {
+        guard activeSheet == nil, stopQuestionWaiting else { return }
+        stopQuestionWaiting = false
+        // A turn later, never in the update that closed the other sheet (build 246).
+        afterUpdate {
+            guard self.activeSheet == nil, let session = self.focus, session.isPaused else { return }
+            self.activeSheet = .focusStop
+        }
+    }
 
     /// Everything outside the window that follows the clock (build 257): the notice when the
     /// planned time is up, and on the Mac the clock in the menu bar. Both are planted again from
     /// the session's dates on every change, so they can never disagree with the bar.
     private func focusChanged() {
-        FocusNotice.plan(for: focus) { [weak self] message in self?.flash(message) }
+        FocusNotice.plan(for: focus) { [weak self] message in
+            guard let self else { return }
+            // Added to a message already on screen ("12 min on … written under Worked."), never
+            // put in its place (build 257's review).
+            if let shown = self.lastCaptureMessage {
+                self.flash(shown + " " + message)
+            } else {
+                self.flash(message)
+            }
+        }
         #if os(macOS)
         focusStatusItem.show(focus)
         #endif
@@ -2412,11 +2450,10 @@ final class AppModel: ObservableObject {
 
     private func loadFocus() {
         guard let data = defaults.data(forKey: Self.focusKey) else { return }
+        // Set from a method, not in `init`'s own body, so `didSet` runs: a clock left running
+        // when the app closed is back in the menu bar, and its notification planted, at launch.
+        // **Never move this assignment into `init` itself**, where `didSet` is skipped.
         focus = try? JSONDecoder().decode(FocusSession.self, from: data)
-        // Said out loud rather than trusted to `didSet`, which is called from `init`'s own
-        // methods but is easy to break by moving a line: a clock left running when the app
-        // closed has to be back in the menu bar, and its notice planted, at launch.
-        focusChanged()
     }
 
     private func saveFocus() {
@@ -2439,7 +2476,11 @@ final class AppModel: ObservableObject {
     func startFocus(on ref: TaskRef) {
         guard canFocus(on: ref) else { return }
         beginFocus(FocusSession(notePath: ref.notePath, taskTitle: ref.task.title,
-                                title: planBlockTitle(from: ref.task), plannedMinutes: ref.task.minutes,
+                                // With **Use task times** off no screen shows a time, so no
+                                // time is planned either (build 257's review): no notification,
+                                // no "of 45 min", no "Planned:" line.
+                                title: planBlockTitle(from: ref.task),
+                                plannedMinutes: usesTaskTimes ? ref.task.minutes : nil,
                                 startedAt: Date(), taskID: ref.task.id, taskDue: ref.task.dueDate))
     }
 
@@ -2476,15 +2517,22 @@ final class AppModel: ObservableObject {
                     flash("\(result.minutes) min on \(running.title) written under Worked.")
                 }
             }
+            // The old clock has stopped, so its notification is out of date.
+            FocusNotice.takeAwayDelivered()
         }
         focus = session
     }
 
     func pauseFocus() {
+        guard !focusQuestionPending else { return }
         focus?.pause(at: Date())
     }
 
+    /// Refused while the stop question is open or waiting (build 257's review): going on from the
+    /// Mac's menu bar would start a stretch the question does not count but the note would get,
+    /// and plant the notification again behind it.
     func resumeFocus() {
+        guard !focusQuestionPending else { return }
         focus?.resume(at: Date())
     }
 
@@ -2493,6 +2541,8 @@ final class AppModel: ObservableObject {
     func stopFocus() {
         guard var session = focus else { return }
         focusProblem = nil
+        // The clock has stopped, so a notification saying its time is up is out of date.
+        FocusNotice.takeAwayDelivered()
         session.pause(at: Date())
         focus = session
         let spans = WorkLog.spans(from: session.runs, title: session.title)
@@ -2501,6 +2551,11 @@ final class AppModel: ObservableObject {
             // Each stretch between pauses is written on its own, so the rule is per stretch —
             // three stretches of 25 seconds write nothing, though the clock showed 1:15.
             flash("Stopped. No stretch reached half a minute, so nothing was written.")
+            return
+        }
+        if let open = activeSheet, open != .focusStop {
+            stopQuestionWaiting = true
+            flash("The clock is stopped. Its question comes when you close the screen that is open.")
             return
         }
         afterUpdate { self.activeSheet = .focusStop }

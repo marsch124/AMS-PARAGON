@@ -590,28 +590,40 @@ sits at the foot of the window. It has two round buttons:
 ### When the planned time is up
 
 When the task has a time, such as **45 min**, or the clock runs on a block from **Plan the
-day**, one notice comes when that much work time has passed. It comes even when PARAGON is
-closed, with the ordinary notification sound, once.
+day**, one notification comes when that much work time has passed. It comes even when PARAGON
+is closed, with the ordinary notification sound, once. When **Use task times** is off in
+Settings, no task has a time, so no notification comes for a task.
 
-- Paused time does not count: a pause moves the notice later. Going on after the time is up
-  brings no second notice.
+- Paused time does not count: a pause moves the notification later. Going on after the time is
+  up brings no second notification.
 - The clock does not stop by itself. Press the stop button when you are done.
-- The first time a clock with a planned time starts, PARAGON asks whether it may send notices.
-  It is the same permission as the evening reminder. If notices are off for PARAGON (**System
-  Settings › Notifications** on the Mac, **Settings › Notifications** on the iPhone), no notice
-  comes, and PARAGON says so once, at the foot of the screen, when a clock starts.
-- When the clock stops, a notice still lying in Notification Center is taken away.
+- It is the same permission as the evening reminder. If you have already answered that
+  question, nothing is asked. If PARAGON has never asked, it asks the first time a clock with a
+  planned time starts.
+- If notifications for PARAGON are turned off, or set to **None** (**System Settings ›
+  Notifications** on the Mac, **Settings › Notifications** on the iPhone), none appears. PARAGON
+  then says so at the foot of the screen, once each time you open PARAGON.
+- When you press stop, or start a clock on another task, a notification still shown in
+  Notification Center is taken away.
 
 ### In the Mac menu bar
 
-While a clock runs, the Mac's menu bar shows it next to the system clock: a small orange dot
-and the time, for example "● 23:14". The dot is grey while the clock is paused. It is there
-whatever **Show capture panel in the menu bar** says; that setting is only about quick capture.
+While a clock runs, the Mac's menu bar shows it on the right, among the small icons there: a
+small orange dot and the time, for example "● 23:14". The dot is grey while the clock is paused.
+It is there whatever **Show capture panel in the menu bar** says; that setting is only about
+quick capture. To put it next to the clock, hold ⌘ and drag it there. It stays there the next
+time.
 
-Click it for a short menu: the task, **Pause** (or **Go on**), **Stop…** and **Show PARAGON**.
-**Stop…** brings the PARAGON window forward, because the question is asked there. If you have
-closed the window, click PARAGON in the Dock to open it again. The time goes away from the menu
-bar when the clock stops.
+Click it for a short menu: the task, how long you planned (when the task has a time),
+**Pause** (or **Go on**), **Stop…** and **Show PARAGON**.
+
+- **Show PARAGON** brings the PARAGON window forward. If you have closed the window, it opens a
+  new one.
+- **Stop…** does the same, because the question is asked in that window. After **Stop…** the dot
+  is grey and the time stays until you answer the question. Then it goes away.
+- While the question is open, **Pause** and **Go on** are grey and cannot be pressed.
+- If another screen is open in PARAGON, such as **New Note** or **Close the day**, **Stop…**
+  stops the clock but does not close that screen. The question comes when you close it.
 
 ### Stopping it
 

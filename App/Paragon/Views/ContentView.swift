@@ -5,6 +5,7 @@ import ParagonCore
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openWindow) private var openWindow
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
@@ -156,6 +157,12 @@ struct ContentView: View {
         }
         .onAppear {
             model.afterUpdate { model.drainOutbox() }
+            #if os(macOS)
+            // For the menu bar clock's Show PARAGON when every main window is closed (build 257).
+            // An `OpenWindowAction` acts on the app's scenes, so it still works after this window
+            // has gone.
+            model.openMainWindow = { [openWindow] in openWindow(id: ParagonApp.mainWindowID) }
+            #endif
             #if DEBUG
             // Lets a test open a note without hands: the phone layouts can only be checked
             // on a screen, and every route to one is a tap. Debug builds only.
@@ -177,8 +184,11 @@ struct ContentView: View {
                     // (build 256): on the phone the bar sits on top of the tab bar, so higher.
                     .padding(.bottom, flashBottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .task {
-                        try? await Task.sleep(for: .seconds(2.5))
+                    // Keyed to the words, so a message that replaces or extends another gets
+                    // its own full time on screen (build 257's review). A new message cancels
+                    // the old wait, and a cancelled wait must not clear the new message.
+                    .task(id: message) {
+                        do { try await Task.sleep(for: .seconds(2.5)) } catch { return }
                         model.clearCaptureMessage()
                     }
             }
