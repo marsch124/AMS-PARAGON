@@ -203,6 +203,8 @@ final class AppModel: ObservableObject {
     /// SwiftUI only presents one sheet reliably per view, so all sheets go through this.
     @Published var activeSheet: AppSheet? {
         didSet {
+            // Close the day is on screen, by whatever route: a kept reminder press is answered.
+            if activeSheet == .closeDay { closeDayAfterFocusQuestion = false }
             askWaitingStopQuestion()
             openWaitingCloseDay()
         }
@@ -2429,8 +2431,11 @@ final class AppModel: ObservableObject {
     private func openWaitingCloseDay() {
         guard activeSheet == nil, closeDayAfterFocusQuestion else { return }
         afterUpdate {
-            guard self.activeSheet == nil, self.closeDayAfterFocusQuestion, self.vault != nil else { return }
+            guard self.activeSheet == nil, self.closeDayAfterFocusQuestion else { return }
+            // Cleared before the vault check: a press that can no longer be answered (the vault
+            // was closed meanwhile) is dropped, never left to open Close the day hours later.
             self.closeDayAfterFocusQuestion = false
+            guard self.vault != nil else { return }
             self.activeSheet = .closeDay
         }
     }

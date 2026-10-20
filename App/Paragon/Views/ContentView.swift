@@ -140,7 +140,9 @@ struct ContentView: View {
                 // Kept, not lost: Close the day opens once the question is answered or closed.
                 // A message would sit under the question's sheet on the phone (build 238).
                 guard !model.focusQuestionPending else {
-                    model.openCloseDayAfterFocusQuestion()
+                    // Close the day may be the screen already open, with the question waiting
+                    // behind it: then there is nothing to open later.
+                    if model.activeSheet != .closeDay { model.openCloseDayAfterFocusQuestion() }
                     return
                 }
                 if model.activeSheet == nil {
