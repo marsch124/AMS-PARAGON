@@ -3649,8 +3649,8 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
 - `App/Paragon/FocusMenuBar.swift` (Mac only): **an `NSStatusItem` of our own, not a second
   `MenuBarExtra`**. Whether a SwiftUI menu bar label really ticks each second cannot be seen from
   here; a status item's title set by a `.common`-mode `Timer` is certain. The dot is an
-  `NSImage` symbol in `PlanTint` (`systemGray` while paused — a fixed grey, since the menu bar
-  can be dark while the app is light), set with the tooltip on each change, never each second;
+  `NSImage` symbol in `PlanTint`; while paused, a **template** `pause.fill` (build 258 — see
+  below), set with the tooltip on each change, never each second;
   the time is plain title text so the system colours it, `monospacedDigitSystemFont` at the
   menu bar's size. **A new status item goes to the left of the icons already there, never
   beside the clock**, so it has an `autosaveName` (and `isVisible = true` after it): ⌘-dragged
@@ -3690,6 +3690,37 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
 - Mac screen test: `focus.menuBar` among `app.statusItems` while the clock runs, gone after
   Stop. **First time this suite looks at the menu bar**; if it fails, the message lists every
   status item it found, which says whether the identifier or the query is wrong.
+
+**Build 258: two faults from his field test of 257**
+(https://claude.ai/artifact/1hXCr3RqjbYzMHxb7wjf4c, collection `checks`). Six of nine passed.
+- **The iPhone bar only came after he changed screen.** `FocusBar` steps aside while
+  `keyboardUp`, and the test began by adding a task in a note, so the **Add a task…** field
+  still held the keyboard when he pressed **Focus on this**. `KeyboardWatch` now takes
+  `clockStart` (the first run's start, else `runningSince`): when it changes while `up`, it sets
+  `up = false` and resigns the first responder a turn later. It also listens to
+  `keyboardDidHideNotification`, so a missed hide can never keep the bar away. **A bar that
+  steps aside for the keyboard must never step aside for the very press that asked for it.**
+- **The paused dot in the menu bar was invisible**: a fixed `systemGray`, non-template, on
+  macOS 26's see-through menu bar, which differs from a mid-grey only in lightness — his words,
+  *"maybe it's the same color as the menu bar"*. While paused the item now shows `pause.fill`
+  at 11pt semibold as a **template** image, which the menu bar paints in the same adaptive
+  colour as the time beside it; the tooltip says "Paused: …". The orange running dot stays
+  non-template: it survives because it differs in hue. **In the menu bar, anything that is not
+  a strong colour must be a template image**, or its contrast depends on the desktop picture.
+- **The window bar's paused dot had the same fault**, found by the review, unreported:
+  `Color.secondary` is the bar's own ink at half strength, drawn on that ink (`Color.primary`).
+  It is `.background.opacity(0.55)` now. Build 200's lesson in a new place: check a colour
+  against the surface it actually sits on, not the page.
+- **Not changed, waiting for his answers**: (a) the note on check 2 — a time set on the Mac not
+  seen on the iPhone. If he meant the clock bar, that is by design (each device has its own
+  clock). If he meant the **10 min** label, the suspect is `CloudFiles.read` returning a stale
+  local copy (plain read first; status `.downloaded`, not `.current`) and `AppModel.save`/
+  `saveText` resetting `vaultSignature` after the phone's own save, which can swallow an outside
+  change. (b) A launch crash on 257 with no report at Apple. Nothing in 257 runs at launch in a
+  way that can crash; the suspect is the older one — `AppModel.init` → `reload()` →
+  `allNotes()` waiting for iCloud on the main thread (the Inbox stub is read with no budget at
+  all, and a failed stub read does not use up `cloudFetchesPerLoad`), killed by iOS's launch
+  watchdog. Fix only once the device is known.
 
 ## Not built (by choice)
 

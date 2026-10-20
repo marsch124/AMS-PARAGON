@@ -33,6 +33,13 @@ struct FocusBar: View {
     /// from every screen with a text field, so it steps aside while the keyboard is up.
     @State private var keyboardUp = false
 
+    /// When the clock now running was started, or nil with no clock. `KeyboardWatch` closes the
+    /// keyboard when it changes (build 258), so a clock just started is never hidden behind it.
+    private var clockStart: Date? {
+        guard let session = model.focus else { return nil }
+        return session.runs.first?.start ?? session.runningSince
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if let session = model.focus, !keyboardUp {
@@ -41,13 +48,15 @@ struct FocusBar: View {
                 }
             }
         }
-        .modifier(KeyboardWatch(up: $keyboardUp))
+        .modifier(KeyboardWatch(up: $keyboardUp, clockStart: clockStart))
     }
 
     private func bar(_ session: FocusSession, now: Date) -> some View {
         HStack(spacing: 10) {
+            // Paused: the bar's own page colour, faded. `Color.secondary` was the bar's ink at
+            // half strength on that same ink, so the paused dot could not be seen (build 258).
             Circle()
-                .fill(session.isPaused ? Color.secondary : Theme.planBlockTint)
+                .fill(session.isPaused ? AnyShapeStyle(.background.opacity(0.55)) : AnyShapeStyle(Theme.planBlockTint))
                 .frame(width: 9, height: 9)
             VStack(alignment: .leading, spacing: 1) {
                 Text(session.title)
@@ -119,8 +128,15 @@ struct FocusBar: View {
 
 /// Whether the phone's keyboard is up. A `ViewModifier`, so no `#if` sits in the middle of a
 /// modifier chain (build 148); the Mac has no keyboard to step aside for.
+///
+/// **Starting a clock closes the keyboard** (build 258). His field test of 257: the bar only
+/// came after he changed screen. He had just added a task in a note, the **Add a task…** field
+/// kept the keyboard, and the bar was stepping aside for it — so a clock he had just started
+/// could not be seen. The clock is the thing he asked to see, so the keyboard gives way to it.
+/// `up` is also set false there, so a missed hide can never keep the bar away.
 private struct KeyboardWatch: ViewModifier {
     @Binding var up: Bool
+    let clockStart: Date?
 
     func body(content: Content) -> some View {
         #if os(iOS)
@@ -130,6 +146,19 @@ private struct KeyboardWatch: ViewModifier {
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
                 up = false
+            }
+            // A second chance, in case the keyboard went without the warning.
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
+                up = false
+            }
+            .onChange(of: clockStart) { _, start in
+                guard start != nil, up else { return }
+                up = false
+                // The next turn: the press that started the clock may still be finishing.
+                DispatchQueue.main.async {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                                    to: nil, from: nil, for: nil)
+                }
             }
         #else
         content

@@ -576,9 +576,10 @@ today's daily note, so you can see later how long things really took.
 ### While it runs
 
 A bar shows the task and the time: "23:14 of 45 min" when the task has a time, or just "23:14".
-It is dark on a light screen and light in dark mode, with a small orange dot. On the iPhone it
-sits above the tabs on every screen, and steps aside while the keyboard is up; on the Mac it
-sits at the foot of the window. It has two round buttons:
+It is dark on a light screen and light in dark mode, with a small orange dot (pale while the
+clock is paused). On the iPhone it sits above the tabs on every screen, and steps aside while
+the keyboard is up. Starting a clock puts the keyboard away, so the bar shows at once. On the
+Mac it sits at the foot of the window. It has two round buttons:
 
 - The **pause** button (two bars) stops the clock; it then shows a triangle, which goes on.
   Paused time is not counted.
@@ -609,8 +610,8 @@ Settings, no task has a time, so no notification comes for a task.
 ### In the Mac menu bar
 
 While a clock runs, the Mac's menu bar shows it on the right, among the small icons there: a
-small orange dot and the time, for example "● 23:14". The dot is grey while the clock is paused.
-It is there whatever **Show capture panel in the menu bar** says; that setting is only about
+small orange dot and the time, for example "● 23:14". While the clock is paused, a pause sign
+(two small bars) takes the dot's place, in the same colour as the time. It is there whatever **Show capture panel in the menu bar** says; that setting is only about
 quick capture. To put it next to the clock, hold ⌘ and drag it there. It stays there the next
 time.
 
@@ -619,8 +620,8 @@ Click it for a short menu: the task, how long you planned (when the task has a t
 
 - **Show PARAGON** brings the PARAGON window forward, also when it is in the Dock or PARAGON is
   hidden. If you have closed the window, it opens a new one.
-- **Stop…** does the same, because the question is asked in that window. After **Stop…** the dot
-  is grey and the time stays until you answer the question. Then it goes away.
+- **Stop…** does the same, because the question is asked in that window. After **Stop…** the
+  pause sign and the time stay until you answer the question. Then they go away.
 - While the question is open, **Pause**, **Go on** and **Stop…** are grey and cannot be pressed.
   If the evening reminder is pressed then, **Close the day** opens after you have answered the
   question.

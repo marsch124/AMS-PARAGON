@@ -15,8 +15,8 @@ import ParagonCore
 /// a second cannot be seen from here, with no Mac to look at. A status item's title is set
 /// directly by a timer, which is certain. The orange dot is a small image in the plan-block
 /// colour, the same dot as the bar at the foot of the window; the time is plain title text, so
-/// the system draws it in the menu bar's own colours, light or dark. Grey dot while paused, as on
-/// the bar.
+/// the system draws it in the menu bar's own colours, light or dark. While paused, a pause sign
+/// in that same menu bar colour takes the dot's place (build 258: a grey dot could not be seen).
 ///
 /// **The clock is worked out from the session's dates each second**, like the bar
 /// (`FocusSession`), so it is right after the Mac slept. Pressing it opens a short menu: the
@@ -54,7 +54,8 @@ final class FocusStatusItem: NSObject {
         // tooltip every second can stop it ever showing.
         if let button = item.button {
             button.image = Self.dot(paused: session.isPaused)
-            button.toolTip = session.title
+            // The paused sign has no word of its own, so the tooltip carries it (build 159).
+            button.toolTip = session.isPaused ? "Paused: " + session.title : session.title
         }
         redraw()
         if timer == nil {
@@ -102,11 +103,23 @@ final class FocusStatusItem: NSObject {
         button.setAccessibilityLabel("Focus clock \(clock)\(state), \(session.title)")
     }
 
-    /// The bar's dot: the plan-block orange while the clock runs, grey while it is paused.
+    /// Running: the plan-block orange dot, the same dot as the bar at the foot of the window.
+    /// Paused: a pause sign drawn as a **template** image (build 258). The menu bar paints a
+    /// template image itself, in the colour it gives the time beside it, so the sign is exactly
+    /// as easy to see as the time on a light, dark or see-through bar. A fixed colour gets no such
+    /// help: build 257's `systemGray` dot sat at the bar's own lightness on macOS 26's
+    /// see-through menu bar and vanished — his words, *"maybe it's the same color as the menu
+    /// bar"*. The two states now also differ in shape, not only in colour.
     private static func dot(paused: Bool) -> NSImage? {
-        // `systemGray`, a fixed mid grey, rather than `secondaryLabelColor`: the menu bar can be
-        // dark while the app is light, and a colour resolved for the app could vanish there.
-        let colour = paused ? NSColor.systemGray : (NSColor(named: "PlanTint") ?? .systemOrange)
+        if paused {
+            let shape = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
+            let image = NSImage(systemSymbolName: "pause.fill", accessibilityDescription: nil)?
+                .withSymbolConfiguration(shape)
+            // A symbol image is a template already; said out loud, because this is the whole fix.
+            image?.isTemplate = true
+            return image
+        }
+        let colour = NSColor(named: "PlanTint") ?? .systemOrange
         let shape = NSImage.SymbolConfiguration(pointSize: 8, weight: .regular)
             .applying(NSImage.SymbolConfiguration(paletteColors: [colour]))
         let image = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: nil)?

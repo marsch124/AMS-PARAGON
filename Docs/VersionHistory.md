@@ -2,6 +2,22 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 258 · 20 October 2026
+
+**Two fixes from your test of build 257.**
+
+- **On the iPhone, the focus bar shows at once.** In your test it only came after you changed
+  screen. The bar steps aside while the keyboard is up, and after adding a task the keyboard was
+  still there for the **Add a task…** field. Starting a clock now puts the keyboard away, so the
+  bar can be seen straight away.
+- **On the Mac, a paused clock can be seen in the menu bar.** The grey dot had the same colour
+  as the menu bar, as you thought. While the clock is paused, a pause sign (two small bars)
+  now takes the dot's place. The menu bar draws it in the same colour as the time beside it, so
+  it is always as easy to see as the time. Hold the pointer over it and it says "Paused".
+- **The paused dot on the bar at the foot of the window** had the same fault: grey on the dark
+  bar. It is now a pale dot that can be seen.
+- Next: **Planned and worked** in **Close the day**.
+
 ## Build 257 · 20 October 2026
 
 **The notification when the planned time is up, and the clock in the Mac menu bar.** Part 3
@@ -23,7 +39,7 @@ of PARAGON Time and Focus, second step.
   until you answer the question.
 - With **Use task times** off, a task's hidden time is not used: no notification, and no
   "of 45 min" on the bar.
-- Next: build 258 brings **Planned and worked** in **Close the day**.
+- Next: **Planned and worked** in **Close the day**.
 
 ## Build 256 · 20 October 2026
 
