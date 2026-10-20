@@ -69,10 +69,11 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**.
 - **To place** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
 - **Start the day** — the cup button on **Today**. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added there with **+**.
-- **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is waiting tomorrow, and asks one line about the day.
+- **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is waiting tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.
 - **First** — a mark you put on an action in **Close the day**. The next morning, **Start the day** shows it at the top.
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
 - **Looking back** — the part of a daily note where that one line is kept.
+- **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
 
 ## Getting things in
 

@@ -73,6 +73,9 @@ struct CloseDayView: View {
                     lookingBackField
                     Divider()
                     whatYouDid
+                    PlannedWorkedSection(table: model.plannedAndWorked(on: day),
+                                         clockOn: model.focus?.title,
+                                         waitingForCloud: model.dailyNoteIsWaitingForCloud(day))
                 }
                 .padding(isPhone ? 14 : 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -304,6 +307,128 @@ struct CountPill: View {
             .padding(.vertical, 5)
             .background(Capsule().fill(tint.opacity(0.12)))
             .overlay(Capsule().strokeBorder(tint.opacity(0.45)))
+    }
+}
+
+/// **Planned and worked** (build 259), the last part of PARAGON Time and Focus, as drawn
+/// (https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX): each thing beside the time planned for
+/// it and the time the focus clock measured, then **All of today**. `PlannedAndWorked` (Core,
+/// tested) decides the rows; this only draws them.
+///
+/// **At the foot, after What you did today**, not between **Did not happen** and **How was
+/// today?** as the drawing had it: build 237's order is his — what to act on first, the look
+/// back on the day at the foot — and this is a look back.
+///
+/// **Worked longer than planned is orange and bold**, as drawn: it is the one number worth a
+/// second look, and bold keeps it from resting on colour alone. A cell with nothing to say is a
+/// dash, never a zero (build 141).
+///
+/// **Every empty or partial state says why** (build 100): a clock not stopped yet is not in the
+/// note, and a note still coming from iCloud cannot be read — neither may look like "nothing".
+private struct PlannedWorkedSection: View {
+    let table: PlannedAndWorked
+    /// The focus timer's task while it runs or is paused: its time is written to the note only
+    /// when it is stopped, so the table cannot hold it yet.
+    var clockOn: String?
+    var waitingForCloud = false
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(title: "Planned and worked")
+            if table.isEmpty {
+                Text(emptyMessage)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                grid
+                Text(caption)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let clockOn {
+                Text("The focus timer on \u{201C}\(clockOn)\u{201D} is not stopped yet. Its time is added here when you stop it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        // Accessibility only, for the screen test: nothing here takes a press.
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("closeDay.plannedWorked")
+    }
+
+    /// `LocalizedStringKey`, so the bold words render; written as `if`, never a ternary of two
+    /// literals inside `Text(…)`, which would make a plain `String` and show the asterisks.
+    private var emptyMessage: LocalizedStringKey {
+        if waitingForCloud {
+            return "Today's note is still coming from iCloud, so the plan and the timer's times cannot be read yet."
+        }
+        if clockOn != nil {
+            return "Nothing was planned in **Plan the day** today."
+        }
+        return "Nothing was planned in **Plan the day** today, and the focus timer was not used."
+    }
+
+    /// Names the task's own time only while **Use task times** is on: off, no task time is used.
+    private var caption: LocalizedStringKey {
+        if useTaskTimes {
+            return "Planned is the block in **Plan the day**, or the task's own time. Worked is what the focus timer measured."
+        }
+        return "Planned is the block in **Plan the day**. Worked is what the focus timer measured."
+    }
+
+    /// Modifiers go on the cells and on the whole grid, **never on a `GridRow`**: a modified row
+    /// is no longer a row to the grid, and would be drawn as one cell across every column.
+    private var grid: some View {
+        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 14, verticalSpacing: 6) {
+            GridRow {
+                header("Task")
+                header("Planned")
+                    .gridColumnAlignment(.trailing)
+                header("Worked")
+                    .gridColumnAlignment(.trailing)
+            }
+            ForEach(table.rows) { row in
+                GridRow {
+                    Text(row.title)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    cell(row.planned)
+                    cell(row.worked, over: row.isOver)
+                }
+            }
+            Divider()
+            GridRow {
+                Text("All of today")
+                    .bold()
+                cell(table.plannedTotal)
+                    .bold()
+                cell(table.workedTotal)
+                    .bold()
+            }
+        }
+        .font(.callout)
+    }
+
+    /// Spelled like `SectionLabel`, as the drawing has it.
+    private func header(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.caption.weight(.semibold))
+            .tracking(0.6)
+            .foregroundStyle(.secondary)
+    }
+
+    /// "45 min", "1 h 30" — the task's own time button's words (`TaskTime.label`). Returns a
+    /// `Text`, so the totals can be made bold without leaving `Text`.
+    private func cell(_ minutes: Int?, over: Bool = false) -> Text {
+        guard let minutes else {
+            return Text("\u{2013}").foregroundStyle(Color.secondary)
+        }
+        let text = Text(TaskTime.label(minutes)).monospacedDigit()
+        return over ? text.foregroundStyle(Color.orange).bold() : text
     }
 }
 

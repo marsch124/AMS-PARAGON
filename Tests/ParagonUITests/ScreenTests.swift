@@ -413,6 +413,10 @@ final class ScreenTests: XCTestCase {
                       "Close the day opened without its Done button. On screen: \(visibleTexts())")
         let cancel = element("sheet.cancel")
         XCTAssertTrue(cancel.exists, "Close the day opened without its Cancel button.")
+        // Build 259: Planned and worked is drawn. Nothing is planned in the test vault, so this
+        // is its empty state, which still has to be there and say why.
+        XCTAssertTrue(element("closeDay.plannedWorked").waitForExistence(timeout: 10),
+                      "Close the day has no Planned and worked section. On screen: \(visibleTexts())")
 
         cancel.pressCentre()
         XCTAssertTrue(screen.waitForNonExistence(timeout: 20),

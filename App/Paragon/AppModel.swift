@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 258
+    static let number = 259
 }
 
 @MainActor
@@ -2056,6 +2056,33 @@ final class AppModel: ObservableObject {
     func planBlocks(for day: DateOnly) -> [PlanBlock] {
         guard let vault, let note = note(at: vault.dailyNotePath(for: day)) else { return [] }
         return note.planBlocks
+    }
+
+    /// **Planned and worked** for a day (build 259): the blocks under `## Plan` beside the focus
+    /// clock's lines under `## Worked`, both read from that daily note and never written.
+    /// Empty when there is no daily note — asking must not make one. The tasks handed in are
+    /// where work with no block finds its planned time: those finished today and every open
+    /// one, since **Focus on this** can start on any of them. None when **Use task times** is
+    /// off, so a hidden `~45m` does not appear here either.
+    func plannedAndWorked(on day: DateOnly) -> PlannedAndWorked {
+        guard let vault, let note = note(at: vault.dailyNotePath(for: day)) else {
+            return PlannedAndWorked(blocks: [], worked: [])
+        }
+        let worked = note.workedSpans
+        var tasks: [TaskItem] = []
+        // The whole vault is read only when there is work to find a time for.
+        if usesTaskTimes, !worked.isEmpty {
+            let refs = index.tasksCompleted(on: day) + index.openTasks()
+            tasks = refs.map(\.task)
+        }
+        return PlannedAndWorked(blocks: note.planBlocks, worked: worked, tasks: tasks)
+    }
+
+    /// True while iCloud has not sent that day's note to this device yet: its plan and its
+    /// worked lines cannot be read, which is not the same as there being none (build 100).
+    func dailyNoteIsWaitingForCloud(_ day: DateOnly) -> Bool {
+        guard let vault else { return false }
+        return notesWaitingForCloud.contains(vault.dailyNotePath(for: day))
     }
 
     /// Rewrites a day's plan, making the daily note if there is none yet. This is the only

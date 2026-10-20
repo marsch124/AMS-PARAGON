@@ -443,6 +443,19 @@ The per cent never says 100 until everything really is finished, and never says 
   - **What you did today**: how many tasks you finished, and what they went towards — an
     aspiration, a goal, an area, or the project itself — with how many for each. The names of
     the tasks are on the **Done** screen.
+  - **Planned and worked**: a small table with three columns, **Task**, **Planned** and
+    **Worked**, and **All of today** at the bottom. **Planned** is the length of the block in
+    **Plan the day**. For a task you worked on without a block, it is the task's own time, such
+    as **45 min**. **Worked** is what the focus timer wrote under **Worked** in today's note. A
+    time worked that is longer than the time planned is orange and bold. A dash means there is
+    nothing to show: no block and no task time, or the timer was not used on it. Blocks and work
+    are put on one row by their name. A block made by **Start the day** has the same name as the
+    work on that task, so they meet on one row. If you change the name of the block or of the
+    task afterwards, also by adding a tag, they show on two rows, and **All of today** counts the
+    planned time of both. If two tasks have the same name but different times, neither time is
+    used. With **Use task times** off, a task's own time is not used here. A timer that is not
+    stopped yet is not in the table: its time is added when you stop it, and a line under the
+    table says so.
   **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
   **First** save as soon as you press them.
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
@@ -656,7 +669,8 @@ stretch that runs past midnight is written on both days. If the time cannot be w
 question says why and the clock is kept, paused, so you can try again later. Opening another
 vault folder, or closing the vault, writes a running clock's time first; if that cannot be done,
 the vault is not changed. In **Read** mode these lines are
-drawn as an ordinary list, not as plan blocks.
+drawn as an ordinary list, not as plan blocks. In the evening, **Close the day** shows them
+beside what you planned, under **Planned and worked**.
 
 ## Weekly review
 

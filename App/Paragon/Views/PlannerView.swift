@@ -28,10 +28,11 @@ import ParagonCore
 /// **One place, because there are two ways in.** The ⊕ button in the Actions column has written
 /// the raw title since build 149, so a dropped task and a pressed ⊕ would have put different
 /// words into the daily note for the same task (build 168's rule). **Start the day** (build 233)
-/// is the third way in, which is why this is no longer private to this file.
+/// is the third way in, which is why this is no longer private to this file. The rule itself
+/// moved into Core as `TaskItem.planTitle` (build 259), because **Planned and worked** matches a
+/// block to the clock's lines by this very name and has to be tested.
 func planBlockTitle(from task: TaskItem) -> String {
-    Note.removingTag(Note.nextActionTag, from: task.title)
-        .trimmingCharacters(in: .whitespaces)
+    task.planTitle
 }
 
 struct PlannerView: View {

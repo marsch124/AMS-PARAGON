@@ -3725,6 +3725,30 @@ planned time is up and the time in the Mac menu bar, **258** fixes from his fiel
   all, and a failed stub read does not use up `cloudFetchesPerLoad`), killed by iOS's launch
   watchdog. Fix only once the device is known.
 
+**Build 259: Planned and worked**, the last part of the Time and Focus drawing.
+- `Core/Vault/PlannedAndWorked.swift` (tested in `PlannedAndWorkedTests`): rows from today's
+  `## Plan` blocks and `## Worked` lines, **matched by name** (case and runs of spaces folded),
+  ordered by each row's earliest minute. Planned is the block's length; for work with no block,
+  the task's own time — but **only when every task under that name has the same time**, so two
+  tasks sharing a title never lend each other a time. Nil stays nil: a dash, never a zero.
+  `plannedTotal`/`workedTotal` are nil when nothing is known.
+- **`TaskItem.planTitle` is the one naming rule** for a plan block and for the clock's line
+  (`#next` off, his tags kept); `planBlockTitle(from:)` in PlannerView now just returns it. That
+  shared name is what puts a block and its work on one row. **A name changed afterwards — even
+  a tag added — splits them onto two rows** and **All of today** then counts the plan of both;
+  the manual says so rather than guessing a match.
+- `AppModel.plannedAndWorked(on:)` reads only, never makes a daily note; it hands in
+  `tasksCompleted(on:) + openTasks()` only when there is work and **Use task times** is on.
+  `dailyNoteIsWaitingForCloud(_:)` lets the empty state say "still coming from iCloud" instead
+  of "nothing planned" (build 100).
+- `PlannedWorkedSection` (CloseDayView.swift) sits **at the foot, after What you did today**, not
+  where the drawing put it: build 237's order (act first, look back last) is his, and this is a
+  look back. A `Grid`; **modifiers go on cells and on the grid, never on a `GridRow`** — a
+  modified row stops being a row. Over is orange **and bold** (the drawing's CSS), headers
+  uppercase like `SectionLabel`. A running or paused clock is named under the table: its time is
+  not in the note until Stop.
+- On-screen text says **focus timer**, the word in `Docs/Words.md`.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

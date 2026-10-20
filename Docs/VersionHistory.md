@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 259 · 20 October 2026
+
+**Planned and worked in Close the day.** The last part of PARAGON Time and Focus.
+
+- **Close the day** has a new small table at the bottom, **Planned and worked**, with three
+  columns: **Task**, **Planned** and **Worked**. **All of today** adds them up.
+- **Planned** is the length of the block in **Plan the day**. For a task you worked on without
+  a block, it is the task's own time, such as **45 min**.
+- **Worked** is what the focus timer wrote under **Worked** in today's note.
+- A time worked that is longer than planned is orange and bold. A dash means there is nothing
+  to show.
+- A timer that is not stopped yet is not in the table. A line under it says so, and its time is
+  added when you stop it.
+
 ## Build 258 · 20 October 2026
 
 **Two fixes from your test of build 257, and one more that I found myself.**
