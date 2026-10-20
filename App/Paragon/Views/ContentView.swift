@@ -121,6 +121,7 @@ struct ContentView: View {
         .onOpenURL { url in
             model.handle(url: url)
         }
+        .modifier(MainWindowMarking())
         // A press on the evening reminder opens **Close the day** (build 234). `onReceive` also
         // hands over the current count when it starts listening, which is what catches a press
         // that started the app from cold, before this view existed.
@@ -133,6 +134,13 @@ struct ContentView: View {
             // turn later (build 246): swapping one sheet for another in a single update is
             // the kind of mid-transition change iOS has crashed on before (build 232).
             model.afterUpdate {
+                // The focus clock's question is open, or waiting for a screen to close (build
+                // 257's review): swapping it for Close the day would lose it, and with it the
+                // stopped clock's time.
+                guard !model.focusQuestionPending else {
+                    model.flash("Close the day did not open: the focus clock's question is open. Answer it first.")
+                    return
+                }
                 if model.activeSheet == nil {
                     model.activeSheet = .closeDay
                 } else {
@@ -199,6 +207,18 @@ struct ContentView: View {
         } message: {
             Text(model.errorMessage ?? "")
         }
+    }
+}
+
+/// The Mac's mark on the main window, for the menu bar clock's **Show PARAGON** (build 257).
+/// A modifier, so no `#if` sits in the middle of `ContentView`'s chain (build 148).
+private struct MainWindowMarking: ViewModifier {
+    func body(content: Content) -> some View {
+        #if os(macOS)
+        content.background(MainWindowMarker().frame(width: 0, height: 0))
+        #else
+        content
+        #endif
     }
 }
 

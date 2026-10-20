@@ -2540,6 +2540,9 @@ final class AppModel: ObservableObject {
     /// no line, so there is nothing to ask about and nothing is written.
     func stopFocus() {
         guard var session = focus else { return }
+        // The question is already open: nothing more to stop, and clearing `focusProblem` would
+        // take a write failure's explanation off the open sheet (build 257's second review).
+        guard activeSheet != .focusStop else { return }
         focusProblem = nil
         // The clock has stopped, so a notification saying its time is up is out of date.
         FocusNotice.takeAwayDelivered()

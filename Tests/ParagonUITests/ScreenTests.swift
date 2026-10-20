@@ -625,8 +625,13 @@ final class ScreenTests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
                        "Stop was pressed and the timer bar is still there. On screen: \(visibleTexts())")
         #if os(macOS)
-        let menuBarGone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: menuBarClock)
-        XCTAssertEqual(XCTWaiter().wait(for: [menuBarGone], timeout: 10), .completed,
+        // Hidden with `isVisible`, never removed, so it keeps the place it was dragged to: gone
+        // from the tree, or still in it but no longer on screen, both count.
+        let deadline = Date().addingTimeInterval(10)
+        while menuBarClock.exists && menuBarClock.isHittable && Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        }
+        XCTAssertFalse(menuBarClock.exists && menuBarClock.isHittable,
                        "The clock was stopped and the menu bar still shows it. Status items: \(statusItemNames())")
         #endif
     }

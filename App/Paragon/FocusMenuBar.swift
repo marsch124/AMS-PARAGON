@@ -1,5 +1,6 @@
 #if os(macOS)
 import AppKit
+import SwiftUI
 import ParagonCore
 
 /// The running focus clock in the Mac's menu bar (build 257), from the
@@ -21,9 +22,12 @@ import ParagonCore
 /// (`FocusSession`), so it is right after the Mac slept. Pressing it opens a short menu: the
 /// task, **Planned: 45 min** when it has a time, **Pause** or **Go on**, **Stop…** and **Show
 /// PARAGON**. Stop shows the window first, because the one question after Stop is asked there.
-/// **Pause** and **Go on** are greyed out while that question is open or waiting
+/// **Pause**, **Go on** and **Stop…** are greyed out while that question is open or waiting
 /// (`NSMenuItemValidation`, asked each time the menu opens): the menu is outside the sheet, so
 /// nothing else would stop the clock being started again behind it (build 257's review).
+///
+/// **When no clock runs, the item is hidden, never removed** (`isVisible`): removing an item
+/// that has an `autosaveName` throws away the place he dragged it to.
 @MainActor
 final class FocusStatusItem: NSObject {
     private weak var model: AppModel?
@@ -44,6 +48,7 @@ final class FocusStatusItem: NSObject {
         }
         let item = self.item ?? makeItem()
         self.item = item
+        item.isVisible = true
         item.menu = menu(for: session)
         // Here, on each change, not each second: neither changes between ticks, and setting a
         // tooltip every second can stop it ever showing.
@@ -81,11 +86,12 @@ final class FocusStatusItem: NSObject {
         return item
     }
 
+    /// Hides the item. Never `removeStatusItem`: for an item with an `autosaveName` that also
+    /// deletes the place it was ⌘-dragged to, and it would come back at the far left.
     private func remove() {
         timer?.invalidate()
         timer = nil
-        if let item { NSStatusBar.system.removeStatusItem(item) }
-        item = nil
+        item?.isVisible = false
     }
 
     private func redraw() {
@@ -143,33 +149,56 @@ final class FocusStatusItem: NSObject {
         model?.stopFocus()
     }
 
-    /// Brings PARAGON forward with its main window: the one holding the sidebar's split view,
-    /// never Settings, Help or the planner window, where the stop question cannot be shown. When
-    /// the main window was closed with ⌘W, a fresh one is opened (build 257's review):
-    /// activating the app alone never makes one, so Stop… would have shown nothing.
+    /// Brings PARAGON forward with its main window: the one carrying `MainWindowMarker`, which
+    /// `ContentView` draws whether it shows the vault or the welcome screen — never Settings,
+    /// Help or the planner window, where the stop question cannot be shown. A minimized window
+    /// comes back from the Dock, a hidden PARAGON is shown again, and only when no main window
+    /// exists at all is a fresh one opened (both reviews of build 257): activating the app alone
+    /// never makes one, so Stop… would have shown nothing.
     @objc private func showApp() {
+        if NSApp.isHidden { NSApp.unhide(nil) }
         NSApp.activate()
-        let windows = NSApp.windows.filter { $0.canBecomeMain }
-        if let main = windows.first(where: { Self.holdsSplitView($0.contentView) }) {
+        // Not filtered on `canBecomeMain`: that is false for a minimized window, which would then
+        // be passed over and a second main window opened beside it.
+        let shown = NSApp.windows.filter { $0.isVisible || $0.isMiniaturized }
+        if let main = shown.first(where: { Self.holdsMarker($0.contentView) }) {
             if main.isMiniaturized { main.deminiaturize(nil) }
             main.makeKeyAndOrderFront(nil)
+        } else if let open = model?.openMainWindow {
+            open()
         } else {
-            model?.openMainWindow?()
+            // No main window has been drawn since launch, so `ContentView` never handed in
+            // `openWindow`: ask the way a Dock click does, which opens the main window.
+            NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL,
+                                               configuration: NSWorkspace.OpenConfiguration())
         }
     }
 
-    private static func holdsSplitView(_ view: NSView?) -> Bool {
+    private static func holdsMarker(_ view: NSView?) -> Bool {
         guard let view else { return false }
-        if view is NSSplitView { return true }
-        return view.subviews.contains { holdsSplitView($0) }
+        if view is MainWindowMarker.MarkerView { return true }
+        return view.subviews.contains { holdsMarker($0) }
     }
+}
+
+/// An empty, zero-sized view `ContentView` carries on the Mac, so the menu bar clock can tell
+/// the main window from Settings, Help and the planner window — on the welcome screen too, where
+/// there is no split view to look for (build 257's second review). It takes no clicks and asks
+/// for no size: anything that claims a size in that window is builds 30 and 34 again.
+struct MainWindowMarker: NSViewRepresentable {
+    final class MarkerView: NSView {
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    }
+
+    func makeNSView(context: Context) -> MarkerView { MarkerView(frame: .zero) }
+    func updateNSView(_ nsView: MarkerView, context: Context) {}
 }
 
 extension FocusStatusItem: NSMenuItemValidation {
     /// Asked each time the menu opens, so it follows the stop question whether or not the clock
     /// changed since the menu was built.
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        if menuItem.action == #selector(togglePause) {
+        if menuItem.action == #selector(togglePause) || menuItem.action == #selector(stop) {
             return !(model?.focusQuestionPending ?? false)
         }
         return true

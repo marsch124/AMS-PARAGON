@@ -617,11 +617,13 @@ time.
 Click it for a short menu: the task, how long you planned (when the task has a time),
 **Pause** (or **Go on**), **Stop…** and **Show PARAGON**.
 
-- **Show PARAGON** brings the PARAGON window forward. If you have closed the window, it opens a
-  new one.
+- **Show PARAGON** brings the PARAGON window forward, also when it is in the Dock or PARAGON is
+  hidden. If you have closed the window, it opens a new one.
 - **Stop…** does the same, because the question is asked in that window. After **Stop…** the dot
   is grey and the time stays until you answer the question. Then it goes away.
-- While the question is open, **Pause** and **Go on** are grey and cannot be pressed.
+- While the question is open, **Pause**, **Go on** and **Stop…** are grey and cannot be pressed.
+  If the evening reminder is pressed then, **Close the day** does not open: answer the question
+  first.
 - If another screen is open in PARAGON, such as **New Note** or **Close the day**, **Stop…**
   stops the clock but does not close that screen. The question comes when you close it.
 
