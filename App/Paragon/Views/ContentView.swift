@@ -10,6 +10,13 @@ struct ContentView: View {
     #endif
     @State private var showingImporter = false
 
+    /// How far above the bottom the short messages sit: clear of the focus timer's bar while a
+    /// clock runs — on the phone that bar sits above the tab bar.
+    private var flashBottom: CGFloat {
+        guard model.focus != nil else { return 16 }
+        return isCompact ? 128 : 72
+    }
+
     /// iPhone (and a narrow iPad window): tabs instead of three columns.
     private var isCompact: Bool {
         #if os(iOS)
@@ -166,8 +173,9 @@ struct ContentView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(.regularMaterial, in: Capsule())
-                    // Above the focus timer's bar while a clock runs, never over it (build 256).
-                    .padding(.bottom, model.focus == nil ? 16 : 72)
+                    // Above the focus timer's bar while a clock runs, never over its buttons
+                    // (build 256): on the phone the bar sits on top of the tab bar, so higher.
+                    .padding(.bottom, flashBottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .task {
                         try? await Task.sleep(for: .seconds(2.5))

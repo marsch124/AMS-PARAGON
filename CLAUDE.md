@@ -3607,7 +3607,16 @@ planned time is up and the time in the Mac menu bar, **258** Planned and worked 
   - **A clock left running**: over `FocusSession.forgottenAfter` (12 h) it is not written when a
     new one starts, and the stop question warns and offers **Don't save the time**
     (`discardFocus`), so a weekend does not become days of 00:00–24:00 lines.
-  - **Changing vault** writes the running clock into the old vault first.
+  - **Changing or closing the vault** settles the running clock first
+    (`settleFocusBeforeLeavingVault`): written into the vault it ran in, dropped when over 12 h,
+    and when it cannot be written the vault is **not** changed and the clock is kept, paused.
+  - **`writeWorked` never raises an alert itself**: it returns `(minutes, problem)`, saves through
+    `vault.save` directly (re-reading once on `modifiedOnDisk`), and each caller puts the problem
+    where it can be seen — `focusProblem` inside the stop sheet (a sheet's messages belong in the
+    sheet, build 238; an alert while it closes is build 246's two presentations at once),
+    `errorMessage` elsewhere. A clock whose old time failed to write is paused before a new one
+    is refused, so its stretches stop growing and a retry writes exactly what is missing.
+  - `task(in:)` refuses to fall back to words when the id's own task is there but ticked.
   - Smaller: the bar steps aside while the phone's keyboard is up (`KeyboardWatch`, a
     `ViewModifier` so no `#if` sits in a modifier chain), the Mac's flash message sits above the
     bar, the stop message states the per-stretch rule, an empty `## Worked` gets one blank line.

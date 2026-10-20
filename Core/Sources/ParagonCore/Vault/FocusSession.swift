@@ -81,7 +81,12 @@ public struct FocusSession: Codable, Equatable, Sendable {
     /// moved, ticked elsewhere — and then **Done** must say so rather than tick another task.
     public func task(in tasks: [TaskItem]) -> TaskItem? {
         let open = tasks.filter { !$0.isDone }
-        if let id = taskID, let byID = open.first(where: { $0.id == id }) { return byID }
+        if let id = taskID {
+            if let byID = open.first(where: { $0.id == id }) { return byID }
+            // The task with that id is there but already ticked (in Reminders, say): it is done,
+            // and another task with the same words must not be ticked in its place.
+            if tasks.contains(where: { $0.id == id }) { return nil }
+        }
         let sameTitle = open.filter { $0.title == taskTitle && $0.dueDate == taskDue }
         // Two open tasks with the same words and the same date cannot be told apart, so
         // neither is ticked.
@@ -216,10 +221,11 @@ public enum WorkLog {
             }
             if at == range.lowerBound {
                 // An empty section — nothing in it, or only blank lines — is given the shape the
-                // section is made in below: a blank line, the lines, and a blank line before a
-                // heading that follows. Its own blank lines are replaced, not added to.
-                let headingFollows = range.upperBound < lines.count
-                lines.replaceSubrange(range, with: [""] + added + (headingFollows ? [""] : []))
+                // section is made in below: a blank line, the lines, a blank line. Its own blank
+                // lines are replaced, not added to.
+                // Always a blank line after: before a heading that follows, or as the note's own
+                // final newline when the section is the last thing in it.
+                lines.replaceSubrange(range, with: [""] + added + [""])
             } else {
                 lines.insert(contentsOf: added, at: at)
             }

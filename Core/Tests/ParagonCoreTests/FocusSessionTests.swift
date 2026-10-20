@@ -89,6 +89,12 @@ final class FocusSessionTests: XCTestCase {
         let added = day.addingWorkedSpans([WorkedSpan(start: 482, end: 534, title: "Write the offer")])
         XCTAssertTrue(added.body.hasPrefix("## Worked\n\n- 08:02-08:54 Write the offer\n\n## Looking back"),
                       "One blank line on each side: \(added.body)")
+
+        let last = Note(relativePath: "Calendar/2026-10-21.md", kind: .daily,
+                        text: "---\ntitle: 2026-10-21\n---\n## Tasks\n\n## Worked\n")
+        XCTAssertTrue(last.addingWorkedSpans([WorkedSpan(start: 0, end: 45, title: "Late reading")]).body
+                        .hasSuffix("## Worked\n\n- 00:00-00:45 Late reading\n"),
+                      "At the end of the note the final newline stays")
     }
 
     func testDoneFindsTheRightTaskOrNone() {
@@ -111,6 +117,10 @@ final class FocusSessionTests: XCTestCase {
         XCTAssertEqual(session("Renamed by hand", id: "t1a2b3c").task(in: tasks)?.title, "Call the yard",
                        "The id finds a task whose words have changed")
         XCTAssertNil(session("Sand it").task(in: tasks), "A task already ticked is not ticked again")
+        let ticked = Note(relativePath: "Projects/Boat.md", kind: .project,
+                          text: "---\ntitle: Boat\n---\n- [x] Paint the hull ^t9f9f9f\n- [ ] Paint the hull\n").tasks
+        XCTAssertNil(session("Paint the hull", id: "t9f9f9f").task(in: ticked),
+                     "Its own task was ticked elsewhere, so the other one with the same words is left alone")
         XCTAssertNil(session("Gone").task(in: tasks), "Nothing matches, so nothing is ticked")
     }
 

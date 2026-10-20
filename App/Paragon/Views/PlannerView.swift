@@ -350,16 +350,16 @@ struct PlannerDayView: View {
             .offset(x: x, y: placed.top)
     }
 
-    /// "Open in Calendar", but only when the block really has a copy out there. Written as a
-    /// function rather than a `map` on the optional: a closure that returns a closure is the
-    /// kind of thing Swift's inference gives up on, and there is no compiler in this container.
     /// **Focus on this** for a block's menu, or nil where no timer bar can be seen. A function
-    /// for the same reason as `openEventAction(for:)` below.
+    /// for the same reason as `openEventAction(for:)`.
     private func focusAction(for block: PlanBlock) -> (() -> Void)? {
         guard focusBarShown else { return nil }
         return { model.startFocus(onBlock: block) }
     }
 
+    /// "Open in Calendar", but only when the block really has a copy out there. Written as a
+    /// function rather than a `map` on the optional: a closure that returns a closure is the
+    /// kind of thing Swift's inference gives up on, and there is no compiler in this container.
     private func openEventAction(for block: PlanBlock) -> (() -> Void)? {
         guard let event = model.calendarBlock(for: block, on: day) else { return nil }
         return { model.openInCalendar(event) }

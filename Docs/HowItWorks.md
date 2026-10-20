@@ -612,7 +612,9 @@ lines; a line you change or delete by hand stays as you left it. Each stretch is
 minutes, so the lines add up to what the question said. A stretch under half a minute is no
 line, so when no stretch reached half a minute nothing is written and nothing is asked. A
 stretch that runs past midnight is written on both days. If the time cannot be written, the
-clock is kept, paused, so you can press stop again later. In **Read** mode these lines are
+question says why and the clock is kept, paused, so you can try again later. Opening another
+vault folder, or closing the vault, writes a running clock's time first; if that cannot be done,
+the vault is not changed. In **Read** mode these lines are
 drawn as an ordinary list, not as plan blocks.
 
 ## Weekly review

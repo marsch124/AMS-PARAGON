@@ -168,6 +168,14 @@ struct FocusStopView: View {
             Text(Self.sentence(session))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            if let problem = model.focusProblem {
+                // Why the last answer could not be written, here in the sheet rather than in an
+                // alert behind it (builds 238, 246).
+                Text(problem)
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if session.notePath != nil {
                 Button {
                     model.finishFocus(done: true)
@@ -222,7 +230,9 @@ struct FocusStopView: View {
         }
         .padding(20)
         .frame(minWidth: 300, idealWidth: 340)
-        .presentationDetents([.medium])
+        // Medium to start with, and pulled up to full height when the warning lines make it
+        // taller than half a small iPhone.
+        .presentationDetents([.medium, .large])
     }
 
     /// "on Write the offer for the shed. You planned 45 min."

@@ -796,10 +796,11 @@ final class AppModel: ObservableObject {
             return
         }
         // A clock running on the old vault is written there first: its lines belong to that
-        // vault's daily note, and Done must never tick a task in another one.
-        if let running = focus, vault != nil {
-            _ = writeWorked(running, at: Date())
-            focus = nil
+        // vault's daily note, and Done must never tick a task in another one. When that cannot
+        // be done the vault is not changed, so the time is not lost.
+        guard settleFocusBeforeLeavingVault() else {
+            if scoped { url.stopAccessingSecurityScopedResource() }
+            return
         }
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = scoped ? url : nil
@@ -822,10 +823,7 @@ final class AppModel: ObservableObject {
             return
         }
         flushPendingEdits()
-        if let running = focus {
-            _ = writeWorked(running, at: Date())
-            focus = nil
-        }
+        guard settleFocusBeforeLeavingVault() else { return }
         autoSyncTask?.cancel()
         autoSyncTask = nil
         securityScopedURL?.stopAccessingSecurityScopedResource()
@@ -2389,6 +2387,11 @@ final class AppModel: ObservableObject {
 
     private static let focusKey = "focusSession"
 
+    /// Why the stop question's answer could not be written, shown **inside** that sheet: a
+    /// sheet's messages belong in the sheet (build 238), and an alert raised while it closes
+    /// is two presentations changing at once (build 246).
+    @Published private(set) var focusProblem: String?
+
     private func loadFocus() {
         guard let data = defaults.data(forKey: Self.focusKey) else { return }
         focus = try? JSONDecoder().decode(FocusSession.self, from: data)
@@ -2438,7 +2441,15 @@ final class AppModel: ObservableObject {
                 flash("The clock on \(running.title) had run for over 12 hours, so its time was not written.")
             } else {
                 let result = writeWorked(running, at: now)
-                guard result.complete else { return }
+                if let problem = result.problem {
+                    // Kept and paused, so its stretches stop growing and a later Stop writes
+                    // exactly what is missing (the lines already written are not added twice).
+                    var kept = running
+                    kept.pause(at: now)
+                    focus = kept
+                    errorMessage = problem + " The clock on \(running.title) is kept, paused, and the new one was not started."
+                    return
+                }
                 if result.minutes > 0 {
                     flash("\(result.minutes) min on \(running.title) written under Worked.")
                 }
@@ -2459,6 +2470,7 @@ final class AppModel: ObservableObject {
     /// no line, so there is nothing to ask about and nothing is written.
     func stopFocus() {
         guard var session = focus else { return }
+        focusProblem = nil
         session.pause(at: Date())
         focus = session
         let spans = WorkLog.spans(from: session.runs, title: session.title)
@@ -2481,9 +2493,13 @@ final class AppModel: ObservableObject {
     /// when that task cannot be found rather than ticking another one.
     func finishFocus(done: Bool) {
         guard let session = focus else { return }
-        activeSheet = nil
         let result = writeWorked(session, at: Date())
-        guard result.complete else { return }
+        if let problem = result.problem {
+            focusProblem = problem + " The clock is kept, paused. Try again, or choose Don\u{2019}t save the time."
+            return
+        }
+        focusProblem = nil
+        activeSheet = nil
         if done, let path = session.notePath {
             if let note = note(at: path), let task = session.task(in: note.tasks) {
                 toggle(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
@@ -2496,42 +2512,72 @@ final class AppModel: ObservableObject {
 
     /// The third answer: the clock was left running by mistake. Nothing is written.
     func discardFocus() {
+        focusProblem = nil
         focus = nil
         activeSheet = nil
     }
 
+    /// Settles a running clock before the vault changes or closes: written into the vault it
+    /// ran in, or dropped when it had run for over twelve hours (the same rule as starting a new
+    /// clock). False when its time could not be written; the vault must then stay as it is, so
+    /// nothing measured is lost.
+    private func settleFocusBeforeLeavingVault() -> Bool {
+        guard let running = focus, vault != nil else { return true }
+        let now = Date()
+        if running.workedSeconds(at: now) > FocusSession.forgottenAfter {
+            focus = nil
+            flash("The clock on \(running.title) had run for over 12 hours, so its time was not written.")
+            return true
+        }
+        let result = writeWorked(running, at: now)
+        if let problem = result.problem {
+            var kept = running
+            kept.pause(at: now)
+            focus = kept
+            errorMessage = problem + " The vault was not changed, so the clock\u{2019}s time is not lost. Stop the clock first."
+            return false
+        }
+        focus = nil
+        return true
+    }
+
     /// Writes a session's stretches under `## Worked`, each in its own day's note, making the
     /// note when there is none. Lines already in a note are not written twice, so trying again
-    /// after a day failed adds only what is missing. `complete` is false when a day could not
-    /// be written; the error message says why.
+    /// after a day failed adds only what is missing. A note changed on disk meanwhile is read
+    /// again and the lines added to that, once. **It never raises an alert itself**: `problem`
+    /// says what went wrong and each caller puts it where it can be seen (`focusProblem` in the
+    /// stop sheet, `errorMessage` elsewhere).
     @discardableResult
-    private func writeWorked(_ session: FocusSession, at now: Date) -> (minutes: Int, complete: Bool) {
+    private func writeWorked(_ session: FocusSession, at now: Date) -> (minutes: Int, problem: String?) {
         flushPendingEdits()
-        guard let vault else { return (0, false) }
+        guard let vault else { return (0, "No vault is open.") }
         let dated = WorkLog.spans(from: session.allRuns(endingAt: now), title: session.title)
         var written = 0
-        var complete = true
-        var made = false
+        var problem: String?
+        var changed = false
         for day in Set(dated.map(\.day)).sorted() {
             let spans = dated.filter { $0.day == day }.map(\.span)
             do {
-                let existed = vault.dailyNoteExists(for: day)
-                let note = try vault.dailyNote(for: day)
-                let already = note.workedSpans
-                let fresh = spans.filter { !already.contains($0) }
-                guard save(note.addingWorkedSpans(fresh)) else {
-                    complete = false
-                    continue
+                var note = try vault.dailyNote(for: day)
+                for attempt in 0..<2 {
+                    let already = note.workedSpans
+                    let fresh = spans.filter { !already.contains($0) }
+                    guard !fresh.isEmpty else { break }
+                    do {
+                        try vault.save(note.addingWorkedSpans(fresh))
+                        break
+                    } catch VaultError.modifiedOnDisk where attempt == 0 {
+                        note = try vault.loadNote(relativePath: note.relativePath)
+                    }
                 }
                 written += spans.reduce(0) { $0 + $1.minutes }
-                if !existed { made = true }
+                changed = true
             } catch {
-                complete = false
-                errorMessage = error.localizedDescription + " The clock is kept: press Stop again later."
+                problem = "The time for \(day.description) could not be written: \(error.localizedDescription)"
             }
         }
-        if made { reload() }
-        return (written, complete)
+        if changed { reload() }
+        return (written, problem)
     }
 
     /// A short, non-modal message in the bottom banner.
