@@ -3848,6 +3848,53 @@ and every wait has a limit.**
   it fails again, treat it as real and look at the `.popover` on that button (build 249: SwiftUI
   puts the identifier on a wrapper too).
 
+## Eight ideas (build 262 on, planned 20 October)
+
+He asked for "some nice stuff"; a workflow found 23 ideas, checked each against the code, and
+he answered *"Love them"* to eight. The plan, with drawings and his answers, is
+https://claude.ai/artifact/RyZxairjYDdB7KoxiuGZ3S — **read its `db` (collection `plan`, doc
+`answers`) before building**; the page writes on every press (build 175's pattern). The full
+per-build plans (files, Core types, tests, risks) are in the workflow journal of this session
+and are summarised here only where they change a decision.
+
+**Order** (one thing per build): 262 a project's end day (`ended:`, idea 6) · 263 Weekly review
+step 7, Look back at the week (1) · 264 step 8, the coming week's goal (1) · 265 Start the day
+shows last evening, the week goal and today's events (2) · 266 Now and Then on Today (5) · 267 a
+block's clock finds its task (5) · 268 Done, each day tells its story (7) · 269 Done's squares for
+12 weeks (7) · 270 Morning reminder (2) · 271 a goal's date, measure and Serves… (3) · 272 Add a
+project… from a goal, Add a goal… from an aspiration (3) · 273 Looked at, from the note (3) · 274
+In area… (4) · 275 the area page (4) · 276 an area's Standard (4) · 277 Done projects newest first
+(6) · 278 What is next for this goal? (6) · 279 widgets follow every change (8) · 280 Today's plan,
+a Mac widget (8). Only if he says yes: 281 How was the week? (1b), 282 the widget on the iPhone (8a).
+
+**Decided by me and written on the page, so he can object**: step 7 has ‹ ›; Start the day shows
+nothing when there is no week goal; a reminder pressed while another sheet is open **waits**
+(the evening one then works the same); Add a project… **stays** on the goal; an aspiration's
+button makes a dated goal; an area lists its own projects and one row per sub-area; a block's
+clock ticks a task only when exactly one open task has its name; Done keeps its name; the
+widget's big line is blocks only (same answer as Today's Now line); only Done gets "N this year".
+
+**Shared parts, built once**: one per-day record and `TaskItem.doneDay` (263, reused by 268 —
+ideas 1 and 7 each planned their own; do not); `ServedRow` made shared (263, `compact:` in 268);
+`WeekGoalBox(week:title:identifier:divided:)` (264); `WeekGoalLine` in Theme.swift (265);
+`NowAndNext` in Core (266, reused by 280); `DayReminder` + one `answerReminder(opening:)` (270);
+`AddServingNoteButton` with the link key as a parameter (272, reused by 275 with `area:` — the
+area page does **not** go through New Note); one plain-var New Note preset (278 only).
+
+**Corrections the sequencer made to the individual plans**: `Note.measure` already reads an
+empty `measure:` as nil (no change needed); `newNotePreset` must not be `@Published`; the area
+page reuses 272's popover instead of opening New Note; anchor 266 on the `WeekGoalLine(` call
+265 puts in `TodayView`; `HowItWorks.md` says the widget is written "when you tick a task", which
+has not been true since 174 (fix in 279); `NowLine`'s comment still says red (fix in 265); 265
+adds the fixture's first dated daily note (prose, no tasks), so say so when it lands; every new
+`Place` case needs both `way(to:)` switches.
+
+**Found while planning, not in the eight** (offered on the page as small builds of their own):
+`Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
+out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters
+`model.notes`, so **Serves…** offers ended goals and, on a goal, the goal itself (build 204's
+missed menu); `WidgetLook.goal`/`.project` have drifted from GoalTint/ProjectTint.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now
