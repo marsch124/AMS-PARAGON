@@ -3889,6 +3889,25 @@ has not been true since 174 (fix in 279); `NowLine`'s comment still says red (fi
 adds the fixture's first dated daily note (prose, no tasks), so say so when it lands; every new
 `Place` case needs both `way(to:)` switches.
 
+**His answers (21 October, `plan/answers`)**: all eleven took my advice — 1a last week on
+Monday and Tuesday, 1b **yes** (so build 281 is in), 2a every day, 3a "looked at" everywhere,
+4a only **In area…** decides, 5a **Then**, 5b two lines, 6a **`ended:`**, 6b ask at once, 7a
+quiet days are listed, 8a **Mac only** (so no 282).
+
+**Build 262: the day a project ends.** `Core/Model/NoteEnding.swift` (tested in
+`NoteEndingTests`): `Note.endedDate`/`createdDate`, `Note.settingStatus(_:today:)` — the one
+rule: an ending writes `ended:` only when the note was not ended before (Done → Missed keeps the
+day; an old ending with no day never gets one), Active and On hold remove it, the same status
+changes nothing — `settingEndedDate`, and `ProjectEnding` with `line(today:calendar:locale:)`.
+`AppModel.setStatus` now reads the live note, goes through `settingStatus` and writes nothing
+when nothing changed; the unused `setStatus(String)` is gone. `setEndedDate(_:on:)`.
+`ProjectEndedLine` (NoteEditorView.swift) sits under `NoteHeader`, outside its wrapping row,
+only for `declaredKind == .project && isEnded`; the whole line is the button (`project.ended`,
+label set explicitly), a popover with `DateChoiceView` and no clearing button. `NoteStatus
+.tint(onNote:)` (GoalsView.swift) is now the one place the three ending colours are decided.
+TestVault gained **Fix the bike** (done, made 41 days ago, ended today, two ticked tasks with no
+`@done` stamp, no goal, no open task); screen test `testAFinishedProjectSaysWhenItEnded`.
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

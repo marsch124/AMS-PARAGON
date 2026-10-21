@@ -38,6 +38,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Done** — finished, and it did what it was for.
 - **Missed** — it is over, and it did not happen.
 - **Dropped** — you decided not to do it. Shown in grey, not orange, because it was a decision and not a failure.
+- **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 21 October".
 
 ## Tasks
 

@@ -331,6 +331,9 @@ struct NoteEditorView: View {
     private var sections: some View {
         if let note {
             NoteHeader(note: note, rename: renameAction(for: note))
+            if note.declaredKind == .project && note.isEnded {
+                ProjectEndedLine(model: model, note: note)
+            }
             Divider()
             if let date = note.dailyDate {
                 DayAgendaView(date: date)
@@ -708,6 +711,74 @@ struct ProjectDeadlineChip: View {
                 model.setDeadline(note, chosen)
                 picking = false
             }
+        }
+    }
+}
+
+/// The calm line under a finished project's header (build 262): "Done on 20 October · after
+/// 41 days · 17 tasks finished". The words come from `ProjectEnding` in Core, so this view
+/// assembles nothing (build 58). Pressing the line changes the day; Set active or Put on hold
+/// in the status chip is what takes it away, so the date box has no clearing button.
+///
+/// **A project that ended before build 262 has no day**, and then the line is a dashed grey
+/// **Set the day it ended…** — build 142's "not set" look — never a guessed date. It sits
+/// outside `NoteHeader`'s wrapping row on purpose: a sentence among chips wraps badly
+/// (build 250), and the whole line is the button, so the Mac's accessibility frame is the
+/// line and not a short word beside a gap (build 247).
+struct ProjectEndedLine: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+    @State private var picking = false
+
+    var body: some View {
+        // Read back out of the model: a change saves and reloads, so the note handed in may be
+        // one behind (build 144).
+        let live = model.note(at: note.relativePath) ?? note
+        let words = sentence(for: live)
+        Button { picking = true } label: {
+            face(for: live, words: words)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(words ?? "Set the day it ended"))
+        .accessibilityIdentifier("project.ended")
+        .help("The day this project ended. Press to change it.")
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .popover(isPresented: $picking) {
+            DateChoiceView(current: live.endedDate ?? DateOnly.today(),
+                           cancel: { picking = false }) { chosen in
+                if let chosen { model.setEndedDate(chosen, on: live) }
+                picking = false
+            }
+        }
+    }
+
+    private func sentence(for live: Note) -> String? {
+        ProjectEnding(note: live)?.line(today: DateOnly.today())
+    }
+
+    @ViewBuilder
+    private func face(for live: Note, words: String?) -> some View {
+        let status = live.noteStatus
+        if let words {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Image(systemName: status.systemImage)
+                    .foregroundStyle(status.tint(onNote: live.tint))
+                Text(words)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .font(.caption)
+        } else {
+            Label("Set the day it ended\u{2026}", systemImage: status.systemImage)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .overlay(Capsule().strokeBorder(Color.secondary,
+                                                style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         }
     }
 }

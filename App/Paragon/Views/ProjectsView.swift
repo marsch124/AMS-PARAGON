@@ -295,11 +295,7 @@ struct ProjectGroupHeader: View {
     /// The colours the status chip gives the same three words (build 165): done in the
     /// project's own green, missed orange, dropped grey — a decision, not a failure.
     private func endedTint(_ status: NoteStatus) -> Color {
-        switch status {
-        case .done: return ParaKind.project.tint
-        case .missed: return .orange
-        default: return .secondary
-        }
+        status.tint(onNote: ParaKind.project.tint)
     }
 
     @ViewBuilder

@@ -1023,11 +1023,7 @@ struct NoteStatusChip: View {
     /// colour this app already uses for "look at this". **Dropped is grey on purpose** — it is
     /// not a failure, it is a decision, and drawing it in a warning colour would say otherwise.
     private func tint(for status: NoteStatus) -> Color {
-        switch status {
-        case .done: return note.tint
-        case .missed: return .orange
-        default: return .secondary
-        }
+        status.tint(onNote: note.tint)
     }
 }
 
@@ -1188,6 +1184,18 @@ extension NoteStatus {
         case .missed: return "xmark.circle"
         case .dropped: return "minus.circle"
         case .archived: return "archivebox"
+        }
+    }
+
+    /// The colour each way a note can stand is drawn in, given the note's own colour: done in
+    /// it (the good ending), missed orange (this app's "look at this"), dropped and the rest
+    /// grey — dropping is a decision, not a failure (build 165). One place since build 262, for
+    /// the status chip, the Projects list's headings and the line under a finished project.
+    func tint(onNote noteTint: Color) -> Color {
+        switch self {
+        case .done: return noteTint
+        case .missed: return .orange
+        default: return .secondary
         }
     }
 }

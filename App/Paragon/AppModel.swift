@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 261
+    static let number = 262
 }
 
 @MainActor
@@ -3220,26 +3220,33 @@ final class AppModel: ObservableObject {
 
     // MARK: Review
 
-    func setStatus(_ status: String, for note: Note) {
-        flushPendingEdits()
-        var updated = note
-        updated.frontmatter.set("status", status)
-        save(updated)
-    }
-
     /// The one way the app writes how a note stands (build 165), so the word in the file is
     /// always one `NoteStatus` knows. `.active` removes the line rather than writing
     /// `status: active`: a note that says nothing is active, and that is what a new note looks
     /// like — writing it back would mark every note he ever touches.
+    ///
+    /// **Build 262: it also keeps the end day in step** (`Note.settingStatus`, Core): an ending
+    /// writes `ended:` with today, Active and On hold take it away. Every screen that changes
+    /// how a note stands comes through here, which is why the day is written the same way from
+    /// the status chip, the Projects list and the Weekly review. The note is read back out of
+    /// the model first (build 144): the copy a menu was handed may be one save behind.
     func setStatus(_ status: NoteStatus, for note: Note) {
         flushPendingEdits()
-        var updated = note
-        if status == .active {
-            updated.frontmatter.remove("status")
-        } else {
-            updated.frontmatter.set("status", status.rawValue)
-        }
+        guard let live = self.note(at: note.relativePath) else { return }
+        let updated = live.settingStatus(status, today: .today())
+        guard updated != live else { return }
         save(updated)
+    }
+
+    /// Changes the day a note ended (build 262), from the line under a finished project's
+    /// header. Writes nothing when the day is the one already there.
+    func setEndedDate(_ day: DateOnly, on note: Note) {
+        flushPendingEdits()
+        guard let live = self.note(at: note.relativePath) else { return }
+        let updated = live.settingEndedDate(day)
+        guard updated != live else { return }
+        guard save(updated) else { return }
+        reload()
     }
 
     func markReviewed(_ note: Note) {

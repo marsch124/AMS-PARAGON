@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 262 · 21 October 2026
+
+**A finished project remembers the day it ended.** The first of the eight ideas you chose.
+
+- When you mark a project **Done**, **Missed** or **Dropped**, PARAGON writes the day into the
+  project's settings block as `ended: 2026-10-21`.
+- Under the coloured band at the top of the project, one grey line says when and how:
+  **Done on 21 October · after 41 days · 17 tasks finished**. "After 41 days" counts from the
+  day the project was made.
+- **Press the line to change the day**, for example when you mark a project done a few days
+  late.
+- Changing **Done** to **Missed** keeps the day. **Set active** or **Put on hold** takes the
+  day away again, because the project is not over.
+- **A project you marked done before this build has no day**, and PARAGON does not guess one.
+  It shows **Set the day it ended…** instead, in a dashed grey frame. Press it if you remember
+  the day.
+- Goals get the same `ended:` line when you mark them, ready for later builds.
+- Pressing the status a note already has no longer saves the note again.
+
 ## Build 261 · 20 October 2026
 
 **PARAGON no longer waits for iCloud while it starts.** This is the fix for the crash at start

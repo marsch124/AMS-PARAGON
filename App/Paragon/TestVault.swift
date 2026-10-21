@@ -65,6 +65,18 @@ enum TestVault {
         // template someone may reword.
         trip.body += "\n- [ ] \(action)\n"
         _ = try vault.save(trip)
+        // A project that is already over (build 262), so the line "Done on … · after 41 days ·
+        // 2 tasks finished" has something to say. Its body is **set**, never added to, so the
+        // project template's own open task is not in it (build 162). Its two ticked tasks carry
+        // **no `@done` stamp**: a stamp would draw the Projects band and break the weekly-bars
+        // test, which first checks there is none. No `goal:` and no open task, so the chain,
+        // the Map's aspiration box, All actions and Start the day stay as they were.
+        var bike = try vault.createNote(kind: .project, title: finishedProject)
+        bike.body = "# \(finishedProject)\n\n- [x] Pump the tyres\n- [x] Oil the chain\n"
+        bike.frontmatter.set("status", NoteStatus.done.rawValue)
+        bike.frontmatter.set("created", DateOnly.today().adding(days: -41).description)
+        bike.frontmatter.set(Note.endedKey, DateOnly.today().description)
+        _ = try vault.save(bike)
         _ = try vault.createNote(kind: .area, title: area, extraFrontmatter: [("goal", aspiration)])
         _ = try vault.createNote(kind: .resource, title: resource)
         // Through `capture`, the same path the capture screens use, so the line is exactly
@@ -77,6 +89,7 @@ enum TestVault {
     static let aspiration = "Be strong and steady at seventy"
     static let datedGoal = "Walk the Kungsleden in one go"
     static let project = "Plan the Kungsleden trip"
+    static let finishedProject = "Fix the bike"
     static let area = "Health"
     static let resource = "Packing list"
     static let inboxLine = "Call the bank about the ferry"

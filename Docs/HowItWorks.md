@@ -300,6 +300,19 @@ different ways, and the difference matters:
 altogether: counting it as finished would be untrue, and counting it as nothing done would hold the
 goal below full for ever.
 
+**The day it ended is written down.** When you mark a project or a goal Done, Missed or Dropped,
+PARAGON adds `ended:` with today's date to its settings block (frontmatter). The line goes at the
+end of the block. A finished project then shows one grey line under its coloured band: **Done on
+21 October · after 41 days · 17 tasks finished**. "After 41 days" counts from the `created:` line,
+which every new note has had from the start; "17 tasks finished" counts the ticked top-level tasks.
+A part PARAGON cannot know is left out.
+
+- **Press the line to change the day.** Type it or pick it in the calendar.
+- Changing from one ending to another (Done to Missed) **keeps the day**. **Set active** or **Put
+  on hold** removes it, because the project is not over any more.
+- **A project marked done before build 262 has no day.** PARAGON never guesses one: the line then
+  says **Set the day it ended…** in a dashed grey frame, and you can press it if you remember.
+
 Anything that has ended leaves the working lists — the weekly **Review**, the next actions, the
 **Map**, and the list of notes you can move a task into. On the **Goals** screen it drops into a
 closed group at the foot named after the ending.

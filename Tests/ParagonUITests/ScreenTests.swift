@@ -564,6 +564,36 @@ final class ScreenTests: XCTestCase {
                       "The heading was pressed again and the project did not come back. On screen: \(visibleTexts())")
     }
 
+    /// A finished project says when it ended (build 262). The test vault's **Fix the bike** is
+    /// done, made 41 days ago, ended today, with two ticked tasks, so its line under the header
+    /// must say "after 41 days" and "2 tasks finished". Those are the app's own English words;
+    /// the day itself is the runner's language and is not checked. The ended groups start
+    /// folded, so the **Done** heading is opened first unless the row is already there. The
+    /// line is found among buttons (build 249) and read from its label, which is set
+    /// explicitly so both platforms read the same sentence (build 253).
+    func testAFinishedProjectSaysWhenItEnded() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Fix the bike.md")
+        if !row.waitForExistence(timeout: 5) {
+            let done = app.buttons.matching(identifier: "projects.group.ended:done").firstMatch
+            XCTAssertTrue(done.waitForExistence(timeout: 20),
+                          "The Projects list has no Done heading. On screen: \(visibleTexts())")
+            if done.isHittable { done.press() } else { done.pressCentre() }
+        }
+        XCTAssertTrue(row.waitForExistence(timeout: 10),
+                      "The Done group does not show the finished test project. On screen: \(visibleTexts())")
+        row.press()
+
+        let line = app.buttons.matching(identifier: "project.ended").firstMatch
+        XCTAssertTrue(line.waitForExistence(timeout: 20),
+                      "The finished project has no line saying when it ended. On screen: \(visibleTexts())")
+        XCTAssertTrue(line.label.contains("after 41 days"),
+                      "The line does not say how long the project took. It says: \(line.label)")
+        XCTAssertTrue(line.label.contains("2 tasks finished"),
+                      "The line does not count the finished tasks. It says: \(line.label)")
+    }
+
     /// The focus timer (build 256): **Focus on this** under a task's time button starts the
     /// clock and the bar appears; **Pause** turns into **Go on** and back; **Stop** takes the
     /// bar away. A clock stopped inside half a minute writes nothing and asks nothing, so the
