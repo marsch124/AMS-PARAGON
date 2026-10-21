@@ -4,6 +4,9 @@ import ParagonCore
 /// The weekly review: inbox, overdue work, and a health check of every active project and area.
 struct ReviewView: View {
     @EnvironmentObject private var model: AppModel
+    /// The week step 7 looks at once its arrows are pressed (build 263). Kept here rather than
+    /// in the step itself: this view's state certainly outlives a scroll of the list.
+    @State private var lookedWeek: WeekRef?
 
     /// The aspirations among the review's goals, and the dated goals. Two plain functions
     /// rather than work done inside the body: a `@ViewBuilder` takes views and nothing else
@@ -147,6 +150,12 @@ struct ReviewView: View {
                 }
             }
 
+            // **Build 263: the review looks back as well as forward.** Steps 1 to 6 are all
+            // about what comes next; this one is the week that has just gone, from his own
+            // notes — including the evening lines **Close the day** saves and nothing showed
+            // again.
+            WeekLookStep(chosenWeek: $lookedWeek)
+
             // **Last, and with no number** (build 171). It sat above step 1, which put a
             // question that is not part of the weekly walk in front of the walk itself. It
             // is a loose end to tidy when you have time, and it says so.
@@ -177,6 +186,8 @@ struct ReviewView: View {
                 }
             }
         }
+        // For the screen test, which scrolls this list to reach step 7 (build 263).
+        .accessibilityIdentifier("review.list")
     }
 }
 

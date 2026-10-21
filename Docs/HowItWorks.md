@@ -716,7 +716,7 @@ Press a row to open the note with the review still beside it. **Right-click a ro
 
 Work that is over is never asked about: a project you dropped, a goal you missed, anything archived. A review is a question about work you are still doing.
 
-### The five steps
+### The steps
 
 Every step is always on screen, even when it is empty — a step you have finished says "Inbox is empty" or "Nothing is overdue" rather than disappearing. A step that vanished was impossible to tell from one the app had decided not to show you.
 
@@ -726,10 +726,27 @@ Every step is always on screen, even when it is empty — a step you have finish
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
 6. **Look over the areas.** The same row for each area.
+7. **Look back at the week.** The week that has just gone, from your own notes. See below.
 
 Aspirations and goals with a date are two steps, not one. They are different questions asked at different speeds — the review rhythm says so, a goal every three months against an aspiration every six.
 
-Under the six steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no number.
+Under the steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no number.
+
+### Look back at the week
+
+Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and everything in it comes from your own notes:
+
+- **The week's goal**, the one you wrote in **Calendar › Week**. When none was written, a grey dashed box says so.
+- **Seven days, Monday to Sunday.** A green bar for the tasks you finished each day, with the number above it. A day with none shows a dash, never a zero. A day still to come shows nothing. A day whose note has not reached this device from iCloud yet shows a small cloud.
+- **How many tasks you finished** in the week.
+- **Your evening lines.** What you wrote under **How was today?** in **Close the day**, one line per day. Press a line and that day's note opens, with the review still beside it on the Mac.
+- **The time on the focus timer**, added up from the **Worked** lines in your daily notes.
+- **Projects that ended in the week**, with how they ended: **Done**, **Missed** or **Dropped**. Press one to open it.
+- **What it served**: the goals and areas the week's finished tasks went towards, the same way **Close the day** shows a single day. At most six, then "…and 3 more".
+
+**Which week it shows.** On Monday and Tuesday it shows the week that has just ended, because that is when a week is looked back on. From Wednesday it shows the week you are in. The arrows **‹** and **›** beside the week's name move one week at a time. **›** stops at the week you are in.
+
+A task counts on the day of its `@done(…)` stamp — the day you ticked it. A task ticked without a stamp has no day and is not counted. While notes are still coming from iCloud, an orange line says so, because the numbers may still grow.
 
 ### What you can do to a row
 

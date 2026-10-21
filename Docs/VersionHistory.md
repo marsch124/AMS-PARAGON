@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 263 · 21 October 2026
+
+**The Weekly review looks back at the week.** The second of the eight ideas you chose.
+
+- **A new step 7, Look back at the week**, at the foot of the **Weekly review**. Everything in
+  it comes from your own notes.
+- **The week's goal**, the one you wrote in **Calendar › Week**, or a grey dashed box when none
+  was written.
+- **Seven days, Monday to Sunday**, each with a green bar for the tasks you finished that day.
+  A day with none shows a dash, not a zero. A day still to come shows nothing.
+- **Your evening lines.** What you wrote under **How was today?** in **Close the day** is shown
+  here again, one line per day. Press a line to open that day's note.
+- **The time on the focus timer**, the **projects that ended** in the week, and **what it
+  served**: the goals and areas the week's work went towards.
+- **On Monday and Tuesday it shows the week that has just ended**, from Wednesday the week you
+  are in. **‹** and **›** move one week at a time.
+- If notes are still coming from iCloud, a day may show a small cloud, and an orange line says
+  the numbers may still grow.
+
 ## Build 262 · 21 October 2026
 
 **A finished project remembers the day it ended.** The first of the eight ideas you chose.

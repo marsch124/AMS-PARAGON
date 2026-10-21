@@ -3914,6 +3914,26 @@ keeps it. Related and still open: because archiving replaces the status word, a 
 **through the app** reads as not ended and shows no ended line at all — that is the first of the
 three faults below, and its own small build.
 
+**Build 263: step 7, Look back at the week.** `Core/Vault/WeekLook.swift` (tested in
+`WeekLookTests`): `DayRecord` (finished `TaskRef`s, `workedMinutes` nil when no Worked line,
+`lookingBack`, `dailyNotePath`) and `NoteIndex.dayRecords(from:through:)` — **one pass over the
+notes for any run of days; build 268's Done diary must reuse it, not walk the vault again** —
+`TaskItem.doneDay` (the one place a `@done` stamp becomes a day; `tasksCompleted(on:)` goes
+through it, and a test pins that the week and the day-by-day count agree), `EndedProject`,
+`WeekLook` (`finishedText`/`workedText` nil for nothing, never a zero) and
+`WeekLook.weekToShow(today:)` (Monday and Tuesday → the week before, his answer 1a).
+App: `WeekLookStep.swift` is a `Section` placed after step 6 in `ReviewView`; the chosen week is
+`@State` in `ReviewView`, passed as a binding, so a scroll cannot reset it. **No row in it is
+tagged**: its rows hold buttons (the arrows are `.borderless`, or a press on the phone would
+press every button in the row). `ServedRow` (CloseDayView.swift) is no longer private.
+`EveningLine` lists a day whose note is still coming from iCloud as "Still coming from iCloud".
+The `List` carries `review.list` for the test's `reveal(_:)`, which swipes on the phone and
+scrolls the list on the Mac (down, then up). Screen test `testTheWeekCanBeLookedBackAt`, both
+platforms: it only asks that ‹ changes the week and › brings it back, because which week opens
+depends on the weekday the runner has. **The test vault has no `@done` stamp anywhere**, so the
+bars are all dashes there; that is deliberate and keeps build 211's "nothing is overdue" fixture
+whole.
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

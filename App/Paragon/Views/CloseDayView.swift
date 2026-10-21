@@ -456,7 +456,10 @@ private struct PlannedWorkedSection: View {
 /// The goal's own star or target and its gold (`ChainSymbol` / `ChainTint`, build 189), an
 /// area's pink, or the note's own kind: the same pictures and colours the rest of the app uses
 /// for the same things (build 168).
-private struct ServedRow: View {
+///
+/// Shared since build 263: the Weekly review's step 7 draws the week's work the same way, so
+/// a goal looks the same on the evening of a day and at the end of the week.
+struct ServedRow: View {
     @EnvironmentObject private var model: AppModel
     let served: ServedCount
 

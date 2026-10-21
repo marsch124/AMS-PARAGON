@@ -594,6 +594,77 @@ final class ScreenTests: XCTestCase {
                       "The line does not count the finished tasks. It says: \(line.label)")
     }
 
+    /// Step 7 of the Weekly review (build 263): it is drawn at the foot of the review, says
+    /// which week it shows, and its arrows move one week back and forward again. The week it
+    /// opens on depends on the day the test runs (on Monday and Tuesday it is the week before),
+    /// so the test only asks that ‹ changes the week and › brings the same one back. The step
+    /// sits below six others, so the list is scrolled until it shows (`reveal`). The arrows are
+    /// found among buttons (build 249).
+    func testTheWeekCanBeLookedBackAt() {
+        go(to: .review)
+        let title = reveal("review.lookBack")
+        XCTAssertTrue(title.exists, "The Weekly review has no step 7. On screen: \(visibleTexts())")
+        let first = words(of: title)
+        XCTAssertTrue(first.contains("Week"), "Step 7 does not say which week it shows. It says: \(first)")
+        XCTAssertTrue(element("review.lookBack.goal").exists,
+                      "Step 7 has no box for the week's goal. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("review.lookBack.days").exists,
+                      "Step 7 has no row of days. On screen: \(visibleTexts())")
+
+        let earlier = app.buttons.matching(identifier: "review.lookBack.earlier").firstMatch
+        XCTAssertTrue(earlier.waitForExistence(timeout: 10),
+                      "Step 7 has no arrow to an earlier week. On screen: \(visibleTexts())")
+        if earlier.isHittable { earlier.press() } else { earlier.pressCentre() }
+        XCTAssertTrue(becomes(within: 10) { self.words(of: title) != first },
+                      "The arrow was pressed and the week stayed \(first).")
+
+        let later = app.buttons.matching(identifier: "review.lookBack.later").firstMatch
+        XCTAssertTrue(later.waitForExistence(timeout: 10),
+                      "Step 7 has no arrow to a later week. On screen: \(visibleTexts())")
+        XCTAssertTrue(later.isEnabled, "One week back, the arrow to a later week is greyed out.")
+        if later.isHittable { later.press() } else { later.pressCentre() }
+        XCTAssertTrue(becomes(within: 10) { self.words(of: title) == first },
+                      "The arrow back did not return to \(first). It says: \(words(of: title))")
+    }
+
+    /// Scrolls the screen until the element is there and on screen, and returns it. On the
+    /// phone a list draws only the rows in view; on the Mac the list is scrolled where it is,
+    /// down first and then, in case the first half went the wrong way, up.
+    private func reveal(_ identifier: String, tries: Int = 10) -> XCUIElement {
+        let target = element(identifier)
+        for attempt in 0..<tries {
+            #if os(macOS)
+            let window = app.windows.firstMatch
+            if target.exists && window.frame.contains(target.frame) { return target }
+            let list = element("review.list")
+            let spot = list.exists
+                ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                : window.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.6))
+            spot.scroll(byDeltaX: 0, deltaY: attempt < tries / 2 ? -300 : 300)
+            #else
+            if target.exists && target.isHittable { return target }
+            app.swipeUp()
+            #endif
+        }
+        return target
+    }
+
+    /// The words an element shows: the phone keeps them in `label`, the Mac a text's in `value`.
+    private func words(of element: XCUIElement) -> String {
+        let label = element.label
+        return label.isEmpty ? ((element.value as? String) ?? "") : label
+    }
+
+    /// Asks again every quarter of a second until the answer is yes or the time is up.
+    private func becomes(within timeout: TimeInterval, _ condition: () -> Bool) -> Bool {
+        let end = Date().addingTimeInterval(timeout)
+        while Date() < end {
+            if condition() { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+        }
+        return condition()
+    }
+
     /// The focus timer (build 256): **Focus on this** under a task's time button starts the
     /// clock and the bar appears; **Pause** turns into **Go on** and back; **Stop** takes the
     /// bar away. A clock stopped inside half a minute writes nothing and asks nothing, so the
@@ -1016,7 +1087,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -1053,6 +1124,7 @@ final class ScreenTests: XCTestCase {
         case .map: return ["sidebar.Map"]
         case .allActions: return ["sidebar.All actions"]
         case .plan: return ["sidebar.Time Blocks"]
+        case .review: return ["sidebar.Weekly review"]
         }
     }
 
@@ -1075,6 +1147,7 @@ final class ScreenTests: XCTestCase {
         case .map: return ["tab.browse", "browse.Map"]
         case .allActions: return ["tab.actions"]
         case .plan: return ["tab.plan"]
+        case .review: return ["tab.browse", "browse.Weekly review"]
         }
     }
 

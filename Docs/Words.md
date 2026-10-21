@@ -86,6 +86,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 - **Weekly review** — a walk through everything, step by step, once a week. It shows what needs a look.
 - **Due for a look** — notes you have not reviewed for a while. How often each kind is due is set in **Settings › Weekly review**.
+- **Look back at the week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended.
 - **Map** — a drawing of what serves what: aspirations at the top, then goals, areas and projects.
 - **All actions** — every open task in the vault, with tick boxes to narrow the list.
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks.

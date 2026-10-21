@@ -56,12 +56,12 @@ public extension NoteIndex {
         MonthOverview(month: month, days: month.days.map(dayOverview(for:)))
     }
 
-    /// Tasks whose `@done` stamp falls on a day.
+    /// Tasks whose `@done` stamp falls on a day. Through `TaskItem.doneDay` (build 263), the
+    /// same reading the Weekly review's step 7 uses, so the two can never count differently.
     func tasksCompleted(on date: DateOnly) -> [TaskRef] {
         var refs: [TaskRef] = []
         for note in notes {
-            for task in note.tasks where task.status == .done {
-                guard let stamp = task.doneStamp, DateOnly(String(stamp.prefix(10))) == date else { continue }
+            for task in note.tasks where task.doneDay == date {
                 refs.append(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
             }
         }
