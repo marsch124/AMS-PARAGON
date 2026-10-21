@@ -154,7 +154,13 @@ struct ReviewView: View {
             // about what comes next; this one is the week that has just gone, from his own
             // notes — including the evening lines **Close the day** saves and nothing showed
             // again.
-            WeekLookStep(chosenWeek: $lookedWeek)
+            // **Build 264: and then forward again.** The walk ends by writing the goal for the
+            // week about to start, in the same box as Calendar › Week. The two steps share a
+            // `Group` so this list stays at ten children.
+            Group {
+                WeekLookStep(chosenWeek: $lookedWeek)
+                WeekGoalStep()
+            }
 
             // **Last, and with no number** (build 171). It sat above step 1, which put a
             // question that is not part of the weekly walk in front of the walk itself. It

@@ -164,6 +164,31 @@ public struct WeekLook: Equatable, Sendable {
         let intoWeek = today.days(since: current.monday, calendar: WeekRef.calendar)
         return intoWeek < 2 ? current.adding(weeks: -1) : current
     }
+
+    /// The week step 8 asks the goal for (build 264): the one after the week step 7 looks back
+    /// at, so the review always ends on the week you are about to work in. On Monday and
+    /// Tuesday that is the week you are in; from Wednesday it is next week.
+    public static func goalWeek(today: DateOnly) -> WeekRef {
+        weekToShow(today: today).adding(weeks: 1)
+    }
+
+    /// How a sentence names a week: "this week", "next week", "last week", or "week 45" — and
+    /// "week 1 of 2028" when it is in another year. The one place it is decided, so the goal
+    /// box on **Calendar › Week** and step 8 can never call one week by two names.
+    public static func weekName(_ week: WeekRef, today: DateOnly) -> String {
+        let current = WeekRef(containing: today)
+        if week == current { return "this week" }
+        if week == current.adding(weeks: 1) { return "next week" }
+        if week == current.adding(weeks: -1) { return "last week" }
+        if week.year != current.year { return "week \(week.week) of \(week.year)" }
+        return "week \(week.week)"
+    }
+
+    /// The words above a week's goal: "Goal for this week", "Goal for next week", "Goal for
+    /// week 45". Before build 264 the box said "Goal for this week" whatever week it showed.
+    public static func goalTitle(for week: WeekRef, today: DateOnly) -> String {
+        "Goal for " + weekName(week, today: today)
+    }
 }
 
 public extension NoteIndex {

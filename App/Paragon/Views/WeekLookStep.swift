@@ -133,7 +133,9 @@ struct WeekLookStep: View {
         let missing = waiting ? "The week's note is still coming from iCloud."
                               : "No goal was written for \(weekWords)."
         return VStack(alignment: .leading, spacing: 2) {
-            Text("Goal for \(weekWords)")
+            // Named as Calendar › Week names it ("Goal for last week"), so the two boxes never call
+            // one week by two names; the sentences below keep "that week" (review of 264).
+            Text(WeekLook.goalTitle(for: shownWeek, today: DateOnly.today()))
                 .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(goal == nil ? Color.secondary : tint)
@@ -211,6 +213,35 @@ struct WeekLookStep: View {
         let count = model.notesWaitingForCloud.count
         let notes = count == 1 ? "1 note is" : "\(count) notes are"
         return "\(notes) still coming from iCloud, so these numbers may still grow."
+    }
+}
+
+/// Step 8 of the Weekly review, **Write the goal for …** (build 264): the week's goal box, for
+/// the week you are about to work in (`WeekLook.goalWeek`, Core, tested). **The same
+/// `WeekGoalBox` as Calendar › Week**, not a copy, so the two can never disagree about what the
+/// goal is or how it is written (build 168). It does not follow step 7's arrows: looking at an
+/// old week must not move what you are about to plan.
+struct WeekGoalStep: View {
+    /// Not read, but watched: it is what makes the body run again when the model publishes —
+    /// at midnight among other times — so a review left open from Tuesday to Wednesday moves on
+    /// to next week like step 7 does. A view with nothing to watch is drawn once (review of 264).
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        let today = DateOnly.today()
+        let week = WeekLook.goalWeek(today: today)
+        Section {
+            WeekGoalBox(week: week, identifier: "review.nextGoal", divided: false)
+                .padding(.vertical, 4)
+                // The field's **Cancel** and **Done** sit in one List row: borderless, or on the
+                // phone one press would press both. The box's own button keeps its `.plain`.
+                .buttonStyle(.borderless)
+        } header: {
+            Text("8. Write the goal for \(WeekLook.weekName(week, today: today))")
+        } footer: {
+            Text("It is shown on **Today** during that week, and at the top of **Calendar \u{203A} Week**.")
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 

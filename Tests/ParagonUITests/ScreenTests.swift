@@ -627,11 +627,44 @@ final class ScreenTests: XCTestCase {
                       "The arrow back did not return to \(first). It says: \(words(of: title))")
     }
 
+    /// Step 8 of the Weekly review (build 264): the goal for the week about to start is written
+    /// in the same box as Calendar › Week. Pressed at its frame and found among buttons
+    /// (build 249); the field closing is the sign Return was taken, and the box's own label —
+    /// set explicitly, one sentence on both platforms — is the proof the words were kept.
+    func testTheComingWeeksGoalCanBeWrittenInTheReview() {
+        go(to: .review)
+        let box = reveal(app.buttons.matching(identifier: "review.nextGoal").firstMatch)
+        XCTAssertTrue(box.exists, "The Weekly review has no step 8. On screen: \(visibleTexts())")
+        let frame = box.frame
+        guard Self.isOnScreen(frame) else {
+            XCTFail("The goal box in step 8 has no place on screen: \(frame)")
+            return
+        }
+        press(box, at: frame)
+
+        let field = element("review.nextGoal.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing the goal box in step 8 did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Rest and the garden\n")
+
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The field in step 8 stayed open after Return. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { box.label.contains("Rest and the garden") },
+                      "The goal was written and the box does not show it. It says: \(box.label)")
+    }
+
     /// Scrolls the screen until the element is there and on screen, and returns it. On the
     /// phone a list draws only the rows in view; on the Mac the list is scrolled where it is,
     /// down first and then, in case the first half went the wrong way, up.
     private func reveal(_ identifier: String, tries: Int = 10) -> XCUIElement {
-        let target = element(identifier)
+        reveal(element(identifier), tries: tries)
+    }
+
+    /// The same, for an element found some other way — among buttons, for one with a frame
+    /// of its own (build 249).
+    private func reveal(_ target: XCUIElement, tries: Int = 10) -> XCUIElement {
         for attempt in 0..<tries {
             #if os(macOS)
             let window = app.windows.firstMatch

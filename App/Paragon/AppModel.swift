@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 263
+    static let number = 264
 }
 
 @MainActor
@@ -2166,8 +2166,14 @@ final class AppModel: ObservableObject {
     ///
     /// **Returns false when the goal could not be written** (build 261), so the box stays open
     /// with his words in it — likeliest when the week's note is still coming from iCloud.
+    ///
+    /// **`startedFrom` is the goal the box showed when he began typing** (review of 264). When
+    /// the file now holds another one — written on the other device meanwhile, or arrived from
+    /// iCloud while the box stood open — nothing is written and he is told what it says; a second
+    /// **Done** then replaces it on purpose. The same rule build 261 gave Close the day: a line
+    /// he never saw is never replaced unseen.
     @discardableResult
-    func setWeekGoal(_ text: String, for week: WeekRef) -> Bool {
+    func setWeekGoal(_ text: String, for week: WeekRef, startedFrom: String?) -> Bool {
         flushPendingEdits()
         guard let vault else { return false }
         let value = WeekGoal.cleaned(text)
@@ -2175,6 +2181,16 @@ final class AppModel: ObservableObject {
         if value.isEmpty && !vault.weeklyNoteExists(for: week) { return true }
         do {
             let note = try vault.weeklyNote(for: week)
+            let onFile = WeekGoal.read(from: note)
+            let wanted: String? = value.isEmpty ? nil : value
+            if onFile != startedFrom && onFile != wanted {
+                let name = WeekLook.weekName(week, today: DateOnly.today())
+                let what = onFile.map { "changed on your other device to \u{201C}\($0)\u{201D}" }
+                    ?? "removed on your other device"
+                errorMessage = "The goal for \(name) was \(what). Your words are still in the box. Press Done again to use yours instead."
+                reload()
+                return false
+            }
             let updated = WeekGoal.setting(value, on: self.note(at: note.relativePath) ?? note)
             guard save(updated) else { return false }
             reload()

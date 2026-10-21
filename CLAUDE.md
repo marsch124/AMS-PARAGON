@@ -3947,6 +3947,34 @@ and the manual still said nothing reads the **Looking back** line. **A step that
 other than this one must never say "this week" in a fixed string** — the heading did it right
 and five sentences under it did not.
 
+**Build 264: step 8, the goal for the coming week.** `WeekLook.goalWeek(today:)` (the week
+after step 7's, so Monday/Tuesday → this week, Wednesday on → next week), `weekName(_:today:)`
+("this week" / "next week" / "last week" / "week 45" / "week 1 of 2028" — the one place a week
+is named in a sentence) and `goalTitle(for:today:)`, all tested in `WeekLookTests`, New Year
+included. `WeekGoalBox` gained a written-out `init(week:title:identifier:divided:)`: `title`
+defaults to the week's own name, which also fixed Calendar › Week saying "Goal for this week"
+over any week the arrows reached — **the same fault the review of 263 found in step 7, in the
+box step 8 reuses**. `identifier` names the box, `.field` and `.done`; `divided: false` drops
+the rule and padding in a List row. The box's label is set explicitly ("Goal for next week:
+…"). `WeekGoalStep` (WeekLookStep.swift) is a `Section` after step 7 with
+`.buttonStyle(.borderless)` on the box so the field's **Cancel** and **Done** do not fire
+together in a phone List row; it does not follow step 7's arrows. Screen test
+`testTheComingWeeksGoalCanBeWrittenInTheReview`, both platforms; `reveal` now also takes an
+`XCUIElement`, so a button can be found among `app.buttons` first (build 249).
+The review of 264 found six real faults, all fixed before upload: **the box's empty line and
+field still asked "What is this week about?"** under a "GOAL FOR NEXT WEEK" title (both through
+`weekName` now — the 263 lesson again, one layer down, in strings I had not touched); the box
+drew "no goal" while the week's note was still coming from iCloud (orange, disabled, through
+`weeklyNoteIsWaitingForCloud`); **`setWeekGoal(_:for:startedFrom:)` refuses to write over a goal
+the box never showed** — changed on the other device, or arrived while the box stood open — and
+says what it now is, and a second **Done** replaces it (build 261's Close the day rule, which
+the shared box had never had); `WeekGoalStep` had nothing to watch, so it was drawn once and
+did not move on at midnight (an unread `@EnvironmentObject` now makes it redraw — **a view with
+no state and no observed object is evaluated once**); step 7's goal title goes through
+`goalTitle` so the two boxes name a week alike; and the manual. Steps 7 and 8 share a `Group`,
+keeping the review `List` at ten children. `weekName` is the one place a week is named in a box
+title or a question; step 7's sentences keep their own "this week" / "that week".
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

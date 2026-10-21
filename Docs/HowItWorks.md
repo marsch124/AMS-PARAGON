@@ -476,7 +476,8 @@ The per cent never says 100 until everything really is finished, and never says 
 - **Done** lists what you completed, day by day, for the last 30 days.
 - **Calendar** lets you pick a day, week or month. The day view can show a month grid with week numbers and a dot under every day that holds something — green for tasks due, red if one is overdue, blue for calendar events, grey for a day that already has a note. Under the grid is the day itself: its events, what is due, what got done, and a button to open or create the daily note. The grid is off to begin with, because the day itself is what the screen is for: press the **calendar** button in the day's top row to show it, and press it again to put it away. The button is lit while the grid is showing, and the app remembers your choice. Move with the arrows, the Today button, or the left and right arrow keys. Drop a task on a day to give it that date.
 - **Calendar › Week** is where you plan a week. At the very top is **Goal for this week**:
-  one line that says what the week is about. Press the box, write the line, and press Return
+  one line that says what the week is about. When the arrows move to another week, the box
+  says so: **Goal for next week**, **Goal for last week**, **Goal for week 45**. Press the box, write the line, and press Return
   or **Done**. An empty box is grey and dashed; a written goal is gold. Save an empty line to
   remove the goal. It is kept in the week's note as `focus: …`, and **Today** shows it in one
   line under the date. Below the goal is **To place**: every open task
@@ -728,6 +729,7 @@ Every step is always on screen, even when it is empty — a step you have finish
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
 6. **Look over the areas.** The same row for each area.
 7. **Look back at the week.** The week that has just gone, from your own notes. See below.
+8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
 
 Aspirations and goals with a date are two steps, not one. They are different questions asked at different speeds — the review rhythm says so, a goal every three months against an aspiration every six.
 
@@ -735,9 +737,9 @@ Under the steps, when there are any, comes **Projects with no goal** — a loose
 
 ### Look back at the week
 
-Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and everything in it comes from your own notes:
+Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and step 8 looks forward again, at the coming week. Everything in step 7 comes from your own notes:
 
-- **The week's goal**, the one you wrote in **Calendar › Week**. When none was written, a grey dashed box says so.
+- **The week's goal**, the one you wrote in **Calendar › Week** or in step 8 of an earlier review. When none was written, a grey dashed box says so.
 - **Seven days, Monday to Sunday.** A green bar for the tasks you finished each day, with the number above it. A day with none shows a dash, never a zero. A day still to come shows nothing. A day whose note has not reached this device from iCloud yet shows a small cloud.
 - **How many tasks you finished** in the week.
 - **Your evening lines.** What you wrote under **How was today?** in **Close the day**, one line per day. Press a line and that day's note opens, with the review still beside it on the Mac.
@@ -1264,7 +1266,7 @@ Open the Files app on the iPhone, find your vault folder, and tap the file once.
 
 The app checks every few seconds whether files changed outside it and reloads them. It never writes over a newer file. If you were typing in a note that changed elsewhere at the same time, your text is saved as a copy named "… (conflict date time).md" next to the note, and the note shows the other version. Merge the two by hand when that happens; it is rare.
 
-A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment. If the note then turns out to have a line already, written on your other device, that line is kept and your words go below it. The goal for the week and **Plan the day** work the same way: nothing you typed is thrown away, and the box stays open until it can be saved.
+A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment. If the note then turns out to have a line already, written on your other device, that line is kept and your words go below it. The goal for the week and **Plan the day** work the same way: nothing you typed is thrown away, and the box stays open until it can be saved. While a week's note is still coming, its goal box says so in orange and cannot be pressed. If the goal was changed on your other device while you were typing, the box does not write over it: a message says what the goal now is, your words stay in the box, and pressing **Done** again puts yours in its place.
 
 ## Getting new versions
 

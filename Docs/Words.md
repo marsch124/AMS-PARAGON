@@ -67,7 +67,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Notification when the time is up** — one notification when you have worked as long as the task's time, or the plan block's length. Paused time does not count. The clock keeps running until you stop it.
 - **Worked** — a heading in the daily note where the focus timer writes how long you worked: one line for each stretch, like `- 08:02-08:54 Write the offer`.
 - **Week** — **Calendar › Week**: the seven days of a week, with what is due on each.
-- **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**.
+- **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**. Step 8 of the **Weekly review** writes it too, for the week you are about to work in.
 - **To place** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
 - **Start the day** — the cup button on **Today**. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added there with **+**.
 - **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is waiting tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.

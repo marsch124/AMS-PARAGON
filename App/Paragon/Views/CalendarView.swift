@@ -683,15 +683,46 @@ struct MonthDayCell: View {
 /// states, and gold because a week's goal is the goal family's colour. Pressing it turns it
 /// into a field in place; Return or **Done** saves, **Cancel** puts it back. An empty field
 /// saved removes the goal. No sheet: one line does not need a screen of its own.
+///
+/// **Build 264: one box in two places.** The Weekly review's step 8 draws this same box for the
+/// week about to start, so a goal written there and one written here are the same line in the
+/// same note. `title` defaults to the week's own name (`WeekLook.goalTitle`, Core) — before 264
+/// it said "Goal for this week" whatever week the arrows had moved to. `identifier` names the
+/// box, its field and its **Done** for the screen tests; `divided: false` drops the rule and the
+/// padding a `List` row already gives.
 struct WeekGoalBox: View {
     @EnvironmentObject private var model: AppModel
     let week: WeekRef
+    let title: String?
+    let identifier: String
+    let divided: Bool
     @State private var editing = false
     @State private var draft = ""
+    /// The goal the box showed when typing began; `setWeekGoal` refuses to write over a
+    /// different one unseen (review of 264).
+    @State private var startedFrom: String?
     @FocusState private var focused: Bool
+
+    /// Written out: a struct with `private @State` properties does not offer its memberwise
+    /// initializer to other files (build 229).
+    init(week: WeekRef, title: String? = nil, identifier: String = "week.goal", divided: Bool = true) {
+        self.week = week
+        self.title = title
+        self.identifier = identifier
+        self.divided = divided
+    }
 
     private var goal: String? { model.weekGoal(for: week) }
     private var tint: Color { ParaKind.goal.tint }
+    private var shownTitle: String { title ?? WeekLook.goalTitle(for: week, today: DateOnly.today()) }
+    /// "this week", "next week", "week 45": the box asks about the week it shows (review of 264).
+    private var weekWords: String { WeekLook.weekName(week, today: DateOnly.today()) }
+    /// No goal can be read because the week's note is still coming from iCloud. That is not
+    /// "no goal" (build 100), and pressing would only fail, so the box says so and waits.
+    private var waiting: Bool { goal == nil && model.weeklyNoteIsWaitingForCloud(week) }
+    private var emptyText: String {
+        waiting ? "The week's note is still coming from iCloud." : "What is \(weekWords) about? Press to write it."
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -702,9 +733,11 @@ struct WeekGoalBox: View {
                     shown
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            Divider()
+            .padding(.horizontal, divided ? 12 : 0)
+            .padding(.vertical, divided ? 8 : 0)
+            if divided {
+                Divider()
+            }
         }
         // A different week is a different goal: never carry a half-typed one across.
         .onChange(of: week) { _, _ in editing = false }
@@ -713,17 +746,18 @@ struct WeekGoalBox: View {
     private var shown: some View {
         Button {
             draft = goal ?? ""
+            startedFrom = goal
             editing = true
             DispatchQueue.main.async { focused = true }
         } label: {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Goal for this week")
+                Text(shownTitle)
                     .font(.caption2.weight(.semibold))
                     .textCase(.uppercase)
                     .foregroundStyle(goal == nil ? Color.secondary : tint)
-                Text(goal ?? "What is this week about? Press to write it.")
+                Text(goal ?? emptyText)
                     .font(goal == nil ? .callout : .callout.weight(.semibold))
-                    .foregroundStyle(goal == nil ? Color.secondary : Color.primary)
+                    .foregroundStyle(goal != nil ? Color.primary : (waiting ? Color.orange : Color.secondary))
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -735,8 +769,12 @@ struct WeekGoalBox: View {
             .contentShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("week.goal")
-        .help("Press to write what this week is about")
+        .disabled(waiting)
+        // One sentence on both platforms, so a test and a screen reader hear the same words
+        // (builds 196, 253).
+        .accessibilityLabel(Text(shownTitle + ": " + (goal ?? (waiting ? "still coming from iCloud" : "not written yet"))))
+        .accessibilityIdentifier(identifier)
+        .help("Press to write what the week is about")
     }
 
     @ViewBuilder
@@ -751,22 +789,28 @@ struct WeekGoalBox: View {
 
     private var editor: some View {
         HStack(spacing: 8) {
-            TextField("What is this week about?", text: $draft)
+            TextField("What is \(weekWords) about?", text: $draft)
                 .textFieldStyle(.roundedBorder)
                 .focused($focused)
                 .submitLabel(.done)
                 .onSubmit(save)
-                .accessibilityIdentifier("week.goal.field")
+                .accessibilityIdentifier(identifier + ".field")
             Button("Cancel") { editing = false }
             Button("Done", action: save)
                 .fontWeight(.semibold)
-                .accessibilityIdentifier("week.goal.done")
+                .accessibilityIdentifier(identifier + ".done")
         }
     }
 
     /// The box stays open with his words when they could not be written (build 261): the
-    /// week's note may still be coming from iCloud, and closing it would throw them away.
+    /// week's note may still be coming from iCloud, and closing it would throw them away. After
+    /// a refusal, what the file holds now is what a second **Done** replaces — on purpose, since
+    /// he has just been told what it says.
     private func save() {
-        if model.setWeekGoal(draft, for: week) { editing = false }
+        if model.setWeekGoal(draft, for: week, startedFrom: startedFrom) {
+            editing = false
+        } else {
+            startedFrom = model.weekGoal(for: week)
+        }
     }
 }

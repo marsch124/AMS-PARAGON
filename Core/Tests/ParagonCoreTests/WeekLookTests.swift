@@ -130,6 +130,35 @@ final class WeekLookTests: XCTestCase {
         XCTAssertEqual(WeekLook.weekToShow(today: monday), WeekRef(year: 2026, week: 53))
     }
 
+    // MARK: Step 8, the goal for the coming week
+
+    /// The review ends on the week you are about to work in: on Monday and Tuesday the week you
+    /// are in, from Wednesday the next one.
+    func testStepEightAsksForTheWeekAboutToBeWorkedIn() {
+        XCTAssertEqual(WeekLook.goalWeek(today: DateOnly(year: 2026, month: 10, day: 19)), WeekRef(year: 2026, week: 43))
+        XCTAssertEqual(WeekLook.goalWeek(today: DateOnly(year: 2026, month: 10, day: 20)), WeekRef(year: 2026, week: 43))
+        XCTAssertEqual(WeekLook.goalWeek(today: DateOnly(year: 2026, month: 10, day: 21)), WeekRef(year: 2026, week: 44))
+        XCTAssertEqual(WeekLook.goalWeek(today: DateOnly(year: 2026, month: 10, day: 25)), WeekRef(year: 2026, week: 44))
+    }
+
+    func testAWeekIsNamedTheWayASentenceNeeds() {
+        let tuesday = DateOnly(year: 2026, month: 10, day: 20) // week 43
+        XCTAssertEqual(WeekLook.weekName(WeekRef(year: 2026, week: 43), today: tuesday), "this week")
+        XCTAssertEqual(WeekLook.weekName(WeekRef(year: 2026, week: 44), today: tuesday), "next week")
+        XCTAssertEqual(WeekLook.weekName(WeekRef(year: 2026, week: 42), today: tuesday), "last week")
+        XCTAssertEqual(WeekLook.weekName(WeekRef(year: 2026, week: 46), today: tuesday), "week 46")
+        XCTAssertEqual(WeekLook.weekName(WeekRef(year: 2028, week: 1), today: tuesday), "week 1 of 2028")
+        XCTAssertEqual(WeekLook.goalTitle(for: WeekRef(year: 2026, week: 44), today: tuesday), "Goal for next week")
+    }
+
+    /// Across New Year the neighbours are still "next week" and "last week".
+    func testNextWeekAcrossTheNewYear() {
+        let sunday = DateOnly(year: 2026, month: 12, day: 27) // week 52 of 2026
+        XCTAssertEqual(WeekLook.weekName(WeekRef(containing: DateOnly(year: 2027, month: 1, day: 1)), today: sunday), "next week")
+        let monday = DateOnly(year: 2027, month: 1, day: 4) // week 1 of 2027
+        XCTAssertEqual(WeekLook.weekName(WeekRef(containing: DateOnly(year: 2026, month: 12, day: 31)), today: monday), "last week")
+    }
+
     // MARK: What it served
 
     /// A week of tasks ticked in the days' own notes is one row, not seven rows of dates, so the

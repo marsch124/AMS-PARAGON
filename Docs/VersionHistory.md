@@ -2,6 +2,25 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 264 · 21 October 2026
+
+**The Weekly review ends by looking forward.** The third of the eight ideas, and the second half
+of the review.
+
+- **A new step 8 under step 7: Write the goal for the week.** It asks for the week you are about
+  to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading
+  says which one.
+- It is **the same box as at the top of Calendar › Week**. Press it, write one line, and press
+  Return or **Done**. The goal then shows on **Today** during that week.
+- Pressing **‹** in step 7 to look at an older week does not move step 8.
+- The box on **Calendar › Week** now names the week it shows: **Goal for next week**, **Goal for
+  last week** or **Goal for week 45**, and it asks "What is next week about?" and so on. Before,
+  it said "this week" for every week.
+- While a week's note is still coming from iCloud, the goal box says so in orange and waits.
+- If the goal was changed on your other device while you were typing, PARAGON does not write
+  over it. It tells you what the goal now says and keeps your words in the box. Press **Done**
+  again to use yours.
+
 ## Build 263 · 21 October 2026
 
 **The Weekly review looks back at the week.** The second of the eight ideas you chose.
