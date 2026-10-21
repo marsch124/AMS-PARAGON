@@ -42,6 +42,18 @@ final class NoteEndingTests: XCTestCase {
         XCTAssertNil(old.settingStatus(.dropped, today: today).endedDate)
     }
 
+    /// Archiving keeps `ended:` but writes `status: archived`. Marking such a note Done again
+    /// keeps the day it really ended; one that never had a day gets today (review of 262).
+    func testAnArchivedNoteKeepsTheDayItEnded() {
+        let archived = project("status: archived\nended: 2026-09-15\n")
+        let again = archived.settingStatus(.done, today: today)
+        XCTAssertEqual(again.noteStatus, .done)
+        XCTAssertEqual(again.endedDate, DateOnly(year: 2026, month: 9, day: 15))
+
+        let noDay = project("status: archived\n").settingStatus(.done, today: today)
+        XCTAssertEqual(noDay.endedDate, today)
+    }
+
     func testActiveRemovesBothLines() {
         let ended = project("").settingStatus(.done, today: today)
         let again = ended.settingStatus(.active, today: today)

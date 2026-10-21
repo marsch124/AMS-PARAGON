@@ -3907,6 +3907,12 @@ label set explicitly), a popover with `DateChoiceView` and no clearing button. `
 .tint(onNote:)` (GoalsView.swift) is now the one place the three ending colours are decided.
 TestVault gained **Fix the bike** (done, made 41 days ago, ended today, two ticked tasks with no
 `@done` stamp, no goal, no open task); screen test `testAFinishedProjectSaysWhenItEnded`.
+The review (three lenses, compile and tests found nothing) found one real fault, fixed before
+upload: `Vault.archive` writes `status: archived` but keeps `ended:`, so marking an archived
+note Done again overwrote its real day with today. An archived note that still carries a day
+keeps it. Related and still open: because archiving replaces the status word, a project archived
+**through the app** reads as not ended and shows no ended line at all — that is the first of the
+three faults below, and its own small build.
 
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops

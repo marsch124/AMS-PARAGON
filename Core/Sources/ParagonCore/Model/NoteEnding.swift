@@ -50,7 +50,11 @@ public extension Note {
             updated.frontmatter.remove(Note.endedKey)
         case .done, .missed, .dropped:
             updated.frontmatter.set("status", status.rawValue)
-            if !before.isEnded {
+            // An archived note may still carry the day it really ended: `Vault.archive`
+            // replaces the status word with `archived` and leaves `ended:` alone. Marking it
+            // Done again from the Archive must not swap that day for today (review of 262).
+            let keepsWrittenDay = before == .archived && endedDate != nil
+            if !before.isEnded && !keepsWrittenDay {
                 updated.frontmatter.set(Note.endedKey, today.description)
             }
         case .archived:
