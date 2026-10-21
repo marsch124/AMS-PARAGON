@@ -3968,7 +3968,9 @@ drew "no goal" while the week's note was still coming from iCloud (orange, disab
 `weeklyNoteIsWaitingForCloud`); **`setWeekGoal(_:for:startedFrom:)` refuses to write over a goal
 the box never showed** — changed on the other device, or arrived while the box stood open — and
 says what it now is, and a second **Done** replaces it (build 261's Close the day rule, which
-the shared box had never had); `WeekGoalStep` had nothing to watch, so it was drawn once and
+the shared box had never had) — **only for a note that existed before the call**, since one
+`weeklyNote(for:)` has just made carries the Weekly template's own `focus:` if he wrote one
+(found by the check after the fixes); `WeekGoalStep` had nothing to watch, so it was drawn once and
 did not move on at midnight (an unread `@EnvironmentObject` now makes it redraw — **a view with
 no state and no observed object is evaluated once**); step 7's goal title goes through
 `goalTitle` so the two boxes name a week alike; and the manual. Steps 7 and 8 share a `Group`,

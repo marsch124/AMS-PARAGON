@@ -2178,12 +2178,15 @@ final class AppModel: ObservableObject {
         guard let vault else { return false }
         let value = WeekGoal.cleaned(text)
         guard value != (weekGoal(for: week) ?? "") else { return true }
-        if value.isEmpty && !vault.weeklyNoteExists(for: week) { return true }
+        let existed = vault.weeklyNoteExists(for: week)
+        if value.isEmpty && !existed { return true }
         do {
             let note = try vault.weeklyNote(for: week)
             let onFile = WeekGoal.read(from: note)
             let wanted: String? = value.isEmpty ? nil : value
-            if onFile != startedFrom && onFile != wanted {
+            // Only a note that was already there can hold a goal he never saw. One made a moment
+            // ago carries whatever his Weekly template says, and that is not "your other device".
+            if existed && onFile != startedFrom && onFile != wanted {
                 let name = WeekLook.weekName(week, today: DateOnly.today())
                 let what = onFile.map { "changed on your other device to \u{201C}\($0)\u{201D}" }
                     ?? "removed on your other device"
