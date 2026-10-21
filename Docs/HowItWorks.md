@@ -451,8 +451,9 @@ The per cent never says 100 until everything really is finished, and never says 
     to take the mark off. The marks are kept in the vault, so a mark made on the iPhone is also
     there on the Mac.
   - **How was today?**: one line, kept in that day's daily note under a heading called
-    **Looking back**. It is ordinary text: nothing reads it, nothing counts it, it never becomes
-    a task. Clear it and the heading goes too.
+    **Looking back**. It is ordinary text: nothing counts it and it never becomes a task. Step 7
+    of the **Weekly review**, **Look back at the week**, shows it again. Clear it and the heading
+    goes too.
   - **What you did today**: how many tasks you finished, and what they went towards — an
     aspiration, a goal, an area, or the project itself — with how many for each. The names of
     the tasks are on the **Done** screen.
@@ -742,11 +743,13 @@ Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and everything in
 - **Your evening lines.** What you wrote under **How was today?** in **Close the day**, one line per day. Press a line and that day's note opens, with the review still beside it on the Mac.
 - **The time on the focus timer**, added up from the **Worked** lines in your daily notes.
 - **Projects that ended in the week**, with how they ended: **Done**, **Missed** or **Dropped**. Press one to open it.
-- **What it served**: the goals and areas the week's finished tasks went towards, the same way **Close the day** shows a single day. At most six, then "…and 3 more".
+- **What it served**: what the week's finished tasks went towards — an aspiration, a goal, an area, or, when a task's note serves none of these, that note itself — the same way **Close the day** shows a single day. Tasks ticked in the days' own notes are one row, **Daily notes**. At most six rows, then "…and 3 more".
 
 **Which week it shows.** On Monday and Tuesday it shows the week that has just ended, because that is when a week is looked back on. From Wednesday it shows the week you are in. The arrows **‹** and **›** beside the week's name move one week at a time. **›** stops at the week you are in.
 
-A task counts on the day of its `@done(…)` stamp — the day you ticked it. A task ticked without a stamp has no day and is not counted. While notes are still coming from iCloud, an orange line says so, because the numbers may still grow.
+A task counts on the day of its `@done(…)` stamp — the day you ticked it. A task ticked without a stamp has no day and is not counted. While notes are still coming from iCloud, an orange line says so, because the numbers may still grow. When the week's own note has not arrived yet, the goal box says so in orange rather than "No goal was written".
+
+The count at the top of the review, "tasks finished in the last 7 days", is today and the six days before it. Step 7 counts Monday to Sunday, so the two numbers are the same only on a Sunday when step 7 shows the week you are in.
 
 ### What you can do to a row
 

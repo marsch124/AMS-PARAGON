@@ -327,7 +327,9 @@ struct HealthRow: View {
                     Label("\(health.overdueTaskCount) overdue", systemImage: "clock.badge.exclamationmark")
                         .rowTint(.red)
                 }
-                Label("\(health.completedLast7Days) done this week", systemImage: "checkmark")
+                // "In 7 days", not "this week": it counts back from today, and the step 7 week
+                // is Monday to Sunday (review of 263).
+                Label("\(health.completedLast7Days) done in 7 days", systemImage: "checkmark")
                 if let due = health.note.dueDate {
                     Label(due.description, systemImage: "calendar")
                 }

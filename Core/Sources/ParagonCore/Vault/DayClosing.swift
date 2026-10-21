@@ -36,6 +36,22 @@ public struct ServedCount: Identifiable, Equatable, Sendable {
     }
 }
 
+public extension ServedCount {
+    /// The rows with every day's own note added into one, called `title`. A day's note serves
+    /// nothing, so its tasks count towards the note itself, titled with its long date: right for
+    /// one evening in **Close the day**, but over a week it is up to seven rows of dates pushing
+    /// the goals out of the six the Weekly review shows (build 263). One daily note stays as it
+    /// is, date and all. The order is `servedCounts(of:)`'s: most first, then by name.
+    static func mergingDailyNotes(_ counts: [ServedCount], title: String = "Daily notes") -> [ServedCount] {
+        let daily = counts.filter { $0.kind == .note(.daily) }
+        guard daily.count > 1 else { return counts }
+        var merged = counts.filter { $0.kind != .note(.daily) }
+        merged.append(ServedCount(title: title, kind: .note(.daily), count: daily.reduce(0) { $0 + $1.count }))
+        return merged.sorted { $0.count != $1.count ? $0.count > $1.count
+                                                    : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+}
+
 public extension NoteIndex {
     /// The finished tasks gathered by what they served, most first, then by name.
     ///

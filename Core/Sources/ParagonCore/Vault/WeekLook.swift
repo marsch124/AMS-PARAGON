@@ -42,7 +42,9 @@ public struct DayRecord: Identifiable, Equatable, Sendable {
 
 public extension TaskItem {
     /// The day this task was ticked off, read from its `@done(…)` stamp: the one place a stamp
-    /// becomes a day (build 263). Nil when the task is not done or carries no stamp.
+    /// becomes a day (build 263). `tasksCompleted(on:)` and `(since:)`, a project's health, a
+    /// goal's activity and the Projects list's weekly bars all go through it. Nil when the task
+    /// is not done or carries no stamp.
     var doneDay: DateOnly? {
         guard status == .done, let stamp = doneStamp else { return nil }
         return DateOnly(String(stamp.prefix(10)))

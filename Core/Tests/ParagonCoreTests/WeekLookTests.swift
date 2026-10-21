@@ -130,6 +130,30 @@ final class WeekLookTests: XCTestCase {
         XCTAssertEqual(WeekLook.weekToShow(today: monday), WeekRef(year: 2026, week: 53))
     }
 
+    // MARK: What it served
+
+    /// A week of tasks ticked in the days' own notes is one row, not seven rows of dates, so the
+    /// goals are not pushed out of the six the step shows (review of 263).
+    func testTheDaysOwnNotesAreOneRow() {
+        let counts = [
+            ServedCount(title: "Monday 12 October 2026", kind: .note(.daily), count: 1),
+            ServedCount(title: "Walk the Kungsleden", kind: .goal, count: 2),
+            ServedCount(title: "Wednesday 14 October 2026", kind: .note(.daily), count: 2),
+            ServedCount(title: "Health", kind: .area, count: 1),
+        ]
+        let merged = ServedCount.mergingDailyNotes(counts)
+        XCTAssertEqual(merged.map(\.title), ["Daily notes", "Walk the Kungsleden", "Health"])
+        XCTAssertEqual(merged.map(\.count), [3, 2, 1])
+        XCTAssertEqual(merged.first?.kind, ServedCount.Kind.note(.daily))
+    }
+
+    /// One day's note keeps its own date: nothing is gained by renaming it.
+    func testOneDailyNoteKeepsItsDate() {
+        let counts = [ServedCount(title: "Health", kind: .area, count: 2),
+                      ServedCount(title: "Monday 12 October 2026", kind: .note(.daily), count: 1)]
+        XCTAssertEqual(ServedCount.mergingDailyNotes(counts), counts)
+    }
+
     func testDoneDayReadsOnlyDoneTasks() {
         XCTAssertEqual(TaskItem(status: .done, title: "A", doneStamp: "2026-10-12 09:10").doneDay, day(12))
         XCTAssertEqual(TaskItem(status: .done, title: "A", doneStamp: "2026-10-12").doneDay, day(12))

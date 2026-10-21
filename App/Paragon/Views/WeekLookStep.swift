@@ -22,6 +22,10 @@ struct WeekLookStep: View {
     private var thisWeek: WeekRef { WeekRef(containing: DateOnly.today()) }
     /// Worked out each time, so a Mac left open from Tuesday to Wednesday moves on by itself.
     private var shownWeek: WeekRef { chosenWeek ?? WeekLook.weekToShow(today: DateOnly.today()) }
+    /// "this week" or "that week", for every sentence that names the week shown. On Monday and
+    /// Tuesday the step opens on last week, and a sentence saying "this week" about it would
+    /// contradict the heading above it (review of 263).
+    private var weekWords: String { shownWeek == thisWeek ? "this week" : "that week" }
 
     var body: some View {
         let look = model.index.weekLook(for: shownWeek)
@@ -35,7 +39,7 @@ struct WeekLookStep: View {
             .padding(.vertical, 4)
 
             if eveningLines(look).isEmpty {
-                Text("No evening lines this week. **Close the day** writes them.")
+                Text("No evening lines \(weekWords). **Close the day** writes them.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {
@@ -47,7 +51,7 @@ struct WeekLookStep: View {
             VStack(alignment: .leading, spacing: 8) {
                 timerLine(look)
                 ForEach(look.endedProjects) { project in
-                    EndedProjectRow(project: project)
+                    EndedProjectRow(project: project, weekWords: weekWords)
                 }
                 if !look.finished.isEmpty {
                     SectionLabel(title: "What it served")
@@ -120,17 +124,22 @@ struct WeekLookStep: View {
     }
 
     /// The goal written for the week, in the gold of the goal box it was written in, or a
-    /// dashed grey box saying none was — the two states `WeekGoalBox` already draws.
+    /// dashed grey box saying none was — the two states `WeekGoalBox` already draws. While the
+    /// week's own note is still coming from iCloud it says that instead, in orange: "no goal"
+    /// is not something this device can know yet (build 100's rule, review of 263).
     private func goalBox(_ goal: String?) -> some View {
         let tint = ParaKind.goal.tint
+        let waiting = goal == nil && model.weeklyNoteIsWaitingForCloud(shownWeek)
+        let missing = waiting ? "The week's note is still coming from iCloud."
+                              : "No goal was written for \(weekWords)."
         return VStack(alignment: .leading, spacing: 2) {
-            Text(shownWeek == thisWeek ? "Goal for this week" : "Goal for that week")
+            Text("Goal for \(weekWords)")
                 .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(goal == nil ? Color.secondary : tint)
-            Text(goal ?? "No goal was written for this week.")
+            Text(goal ?? missing)
                 .font(goal == nil ? .callout : .callout.weight(.semibold))
-                .foregroundStyle(goal == nil ? Color.secondary : Color.primary)
+                .foregroundStyle(goal != nil ? Color.primary : (waiting ? Color.orange : Color.secondary))
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -148,14 +157,14 @@ struct WeekLookStep: View {
         if let text = look.finishedText {
             CountPill(text: text, systemImage: "checkmark.circle", tint: .green)
         } else {
-            Text("No task was ticked off this week.")
+            Text("No task was ticked off \(weekWords).")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }
 
     private func timerLine(_ look: WeekLook) -> some View {
-        Label(look.workedText ?? "The focus timer was not used this week.", systemImage: "timer")
+        Label(look.workedText ?? "The focus timer was not used \(weekWords).", systemImage: "timer")
             .font(.callout)
             .foregroundStyle(look.workedText == nil ? Color.secondary : Color.primary)
     }
@@ -181,13 +190,20 @@ struct WeekLookStep: View {
         }
     }
 
+    /// What the week's work served, with the days' own notes as one row: a week of tasks ticked
+    /// in daily notes would otherwise be seven rows of dates pushing the goals out of the six
+    /// shown (review of 263). `ServedCount.mergingDailyNotes` (Core, tested) decides it.
+    private func served(_ look: WeekLook) -> [ServedCount] {
+        ServedCount.mergingDailyNotes(model.index.servedCounts(of: look.finished))
+    }
+
     /// At most six: the point is where the week went, not a second list of everything.
     private func servedShown(_ look: WeekLook) -> [ServedCount] {
-        Array(model.index.servedCounts(of: look.finished).prefix(6))
+        Array(served(look).prefix(6))
     }
 
     private func servedMore(_ look: WeekLook) -> String? {
-        let left = model.index.servedCounts(of: look.finished).count - 6
+        let left = served(look).count - 6
         return left > 0 ? "\u{2026}and \(left) more" : nil
     }
 
@@ -252,10 +268,12 @@ private struct EveningLineRow: View {
 }
 
 /// "Ended this week: Fix the bike · Done", in the ending's own symbol and colour (build 165).
-/// Pressing it opens the project, staying in the review.
+/// "that week" when the step shows an earlier one. Pressing it opens the project, staying in
+/// the review.
 private struct EndedProjectRow: View {
     @EnvironmentObject private var model: AppModel
     let project: EndedProject
+    let weekWords: String
 
     var body: some View {
         Button {
@@ -265,7 +283,7 @@ private struct EndedProjectRow: View {
                 Image(systemName: project.status.systemImage)
                     .foregroundStyle(project.status.tint(onNote: ParaKind.project.tint))
                     .frame(width: 18)
-                Text("Ended this week:")
+                Text("Ended \(weekWords):")
                     .foregroundStyle(.secondary)
                 Text(project.title)
                     .fontWeight(.medium)
@@ -312,13 +330,13 @@ private struct WeekDayBars: View {
                     Image(systemName: "icloud")
                         .foregroundStyle(.orange)
                 }
-                Text(countText(count, future: future))
+                Text(countText(count, future: future, waiting: waiting))
                     .monospacedDigit()
                     .foregroundStyle(count == 0 ? Color.secondary : Color.primary)
             }
             .font(.caption2.weight(.semibold))
             RoundedRectangle(cornerRadius: 3)
-                .fill(barFill(count, future: future))
+                .fill(barFill(count, future: future, waiting: waiting))
                 .frame(height: barHeight(count))
                 .frame(height: barArea, alignment: .bottom)
             Text(dayName(record.day))
@@ -332,8 +350,10 @@ private struct WeekDayBars: View {
         .accessibilityLabel(spoken(record, count: count, future: future, waiting: waiting))
     }
 
-    private func countText(_ count: Int, future: Bool) -> String {
-        if future { return " " }
+    /// A day still to come, or one still coming from iCloud with nothing counted, draws no dash
+    /// and no grey line: both are what "none" looks like, and neither day can say that.
+    private func countText(_ count: Int, future: Bool, waiting: Bool) -> String {
+        if future || (waiting && count == 0) { return " " }
         return count == 0 ? "\u{2013}" : "\(count)"
     }
 
@@ -342,8 +362,8 @@ private struct WeekDayBars: View {
         return max(4, barArea * CGFloat(count) / CGFloat(look.biggest))
     }
 
-    private func barFill(_ count: Int, future: Bool) -> Color {
-        if future { return Color.clear }
+    private func barFill(_ count: Int, future: Bool, waiting: Bool) -> Color {
+        if future || (waiting && count == 0) { return Color.clear }
         return count == 0 ? Color.secondary.opacity(0.25) : Color.green.opacity(0.85)
     }
 

@@ -45,6 +45,19 @@ final class ReviewTests: XCTestCase {
         XCTAssertFalse(p.needsAttention)
     }
 
+    /// "The last 7 days" is today and the six days before it, never eight days (review of 263).
+    func testTheLastSevenDaysAreSevenDays() {
+        let note = project("Week", body: """
+        - [x] Six days ago @done(2026-08-30 10:00)
+        - [x] Seven days ago @done(2026-08-29 10:00)
+        - [x] Today @done(2026-09-05 08:00)
+        - [ ] Next
+        """, reviewed: "2026-09-04")
+        let index = NoteIndex(notes: [note])
+        XCTAssertEqual(index.health(of: note, today: today, config: config).completedLast7Days, 2)
+        XCTAssertEqual(index.review(today: today, config: config).completedLast7Days, 2)
+    }
+
     func testNeverReviewedProjectIsFlagged() {
         let note = project("New", body: "- [ ] Start\n")
         let health = NoteIndex(notes: [note]).health(of: note, today: today, config: config)

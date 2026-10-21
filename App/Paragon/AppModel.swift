@@ -2252,6 +2252,12 @@ final class AppModel: ObservableObject {
         return notesWaitingForCloud.contains(vault.dailyNotePath(for: day))
     }
 
+    /// The same question for a week's note, which holds the week's goal (build 263's review).
+    func weeklyNoteIsWaitingForCloud(_ week: WeekRef) -> Bool {
+        guard let vault else { return false }
+        return notesWaitingForCloud.contains(vault.weeklyNotePath(for: week))
+    }
+
     /// Rewrites a day's plan, making the daily note if there is none yet. This is the only
     /// place a plan is written; everything else goes through it.
     ///

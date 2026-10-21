@@ -3933,6 +3933,19 @@ platforms: it only asks that ‹ changes the week and › brings it back, becaus
 depends on the weekday the runner has. **The test vault has no `@done` stamp anywhere**, so the
 bars are all dashes there; that is deliberate and keeps build 211's "nothing is overdue" fixture
 whole.
+The review of 263 (three lenses, then a refuter per finding) found seven real faults, all fixed
+before upload: **every sentence in the step named "this week"** while Monday and Tuesday show the
+week before (`weekWords` now says "this week" or "that week"); the goal box said "No goal was
+written" while the **weekly** note was still coming from iCloud (`weeklyNoteIsWaitingForCloud`);
+a waiting day still drew the dash and grey line that mean "none"; a week of tasks ticked in daily
+notes became up to seven date rows under **What it served** (`ServedCount.mergingDailyNotes`,
+Core, tested — one **Daily notes** row when there are two or more); **"the last 7 days" in the
+review counted eight** (`today - 7 ... today`; now `- 6`, pinned by
+`testTheLastSevenDaysAreSevenDays`) and a project's row called that rolling count "this week"
+(now "done in 7 days"); four places still parsed `@done` themselves (all through `doneDay` now);
+and the manual still said nothing reads the **Looking back** line. **A step that can show a week
+other than this one must never say "this week" in a fixed string** — the heading did it right
+and five sentences under it did not.
 
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops

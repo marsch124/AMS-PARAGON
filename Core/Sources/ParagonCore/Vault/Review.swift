@@ -112,7 +112,7 @@ public extension NoteIndex {
         var refs: [TaskRef] = []
         for note in notes {
             for task in note.tasks where task.status == .done {
-                guard let stamp = task.doneStamp, let day = DateOnly(String(stamp.prefix(10))), day >= start else { continue }
+                guard let day = task.doneDay, day >= start else { continue }
                 refs.append(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
             }
         }
@@ -122,9 +122,10 @@ public extension NoteIndex {
     func health(of note: Note, today: DateOnly, config: VaultConfig, calendar: Calendar = .current) -> ProjectHealth {
         let open = note.openTasks
         let overdue = open.filter { ($0.dueDate.map { $0 < today }) ?? false }
-        let weekAgo = today.adding(days: -7, calendar: calendar)
+        // Today and the six days before it: seven days, not eight (review of 263).
+        let weekAgo = today.adding(days: -6, calendar: calendar)
         let completed = note.tasks.filter { task in
-            guard task.status == .done, let stamp = task.doneStamp, let day = DateOnly(String(stamp.prefix(10))) else { return false }
+            guard let day = task.doneDay else { return false }
             return day >= weekAgo
         }.count
         let daysSinceModified = note.modifiedAt.map { today.days(since: DateOnly($0, calendar: calendar), calendar: calendar) }
@@ -190,7 +191,7 @@ public extension NoteIndex {
         for note in servingNotes {
             open += note.openTasks.count
             for task in note.tasks where task.status == .done {
-                guard let stamp = task.doneStamp, let day = DateOnly(String(stamp.prefix(10))) else { continue }
+                guard let day = task.doneDay else { continue }
                 if day >= monthAgo { completed += 1 }
                 if lastActivity.map({ day > $0 }) ?? true { lastActivity = day }
             }
@@ -235,7 +236,8 @@ public extension NoteIndex {
             }
         let areas = notes(kind: .area).filter(active).map { health(of: $0, today: today, config: config, calendar: calendar) }
         let inbox = notes(kind: .inbox).first?.openTasks.count ?? 0
-        let completed = tasksCompleted(since: today.adding(days: -7, calendar: calendar)).count
+        // "In the last 7 days" is today and the six days before it (review of 263).
+        let completed = tasksCompleted(since: today.adding(days: -6, calendar: calendar)).count
         let overdue = openTasks(dueOnOrBefore: today.adding(days: -1, calendar: calendar))
         let goals = notes(kind: .goal).filter { !$0.isArchived }
             .map { goalHealth(of: $0, today: today, calendar: calendar) }

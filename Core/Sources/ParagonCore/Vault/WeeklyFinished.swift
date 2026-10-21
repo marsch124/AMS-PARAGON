@@ -43,7 +43,7 @@ public struct WeeklyFinished: Equatable, Sendable {
         var last: DateOnly?
         let thisMonday = WeekRef(containing: today).monday
         for task in tasks where task.status == .done {
-            guard let stamp = task.doneStamp, let day = DateOnly(String(stamp.prefix(10))) else { continue }
+            guard let day = task.doneDay else { continue }
             let monday = WeekRef(containing: day).monday
             let back = thisMonday.days(since: monday, calendar: WeekRef.calendar) / 7
             // A stamp in a later week (typed by hand, or from a device whose clock is ahead) is

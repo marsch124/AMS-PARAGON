@@ -19,7 +19,12 @@ The build number is shown at the bottom of the sidebar. Newest first.
 - **On Monday and Tuesday it shows the week that has just ended**, from Wednesday the week you
   are in. **‹** and **›** move one week at a time.
 - If notes are still coming from iCloud, a day may show a small cloud, and an orange line says
-  the numbers may still grow.
+  the numbers may still grow. If the week's own note has not arrived, the goal box says so.
+- Tasks ticked in the days' own notes are counted together as one row, **Daily notes**, under
+  **What it served**.
+- **A small fix at the top of the review**: "tasks finished in the last 7 days" counted eight
+  days. It now counts today and the six days before it. A project's row says "done in 7 days"
+  instead of "done this week", because it counts back from today and not from Monday.
 
 ## Build 262 · 21 October 2026
 
