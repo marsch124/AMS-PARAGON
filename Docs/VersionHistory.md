@@ -2,6 +2,50 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 269 · 26 October 2026
+
+**A project can say which area it is in.** The next of the eight ideas you chose, and the first of three builds about areas. Until now, only a drag on the **Map** could put a project in an area.
+
+- Open a project. At the top there is a new button, **In area…**. Press it and pick an area, for example Health. The button then says **In Health**, in pink.
+- A sub-area is listed after its own area, as **Health › Yoga**.
+- **In no area** takes the project out again. **Open Health** goes to the area.
+- The same list is on the right-click menu of a project in the **Projects** list (press and hold on the iPhone): **In area**.
+- On the **New note** screen, a new project also has **In area…**. Its list has a field at the top: type a name and press **Add area** to make a new area. You stay on the **New note** screen, and the new area is chosen. If an area with that name is already there, that one is chosen and no second area is made.
+- The area is kept in the project's settings block as `area: Health`, as before.
+- **The Projects list does not change.** It stays grouped by aspiration.
+- **The Map may move some boxes.** You chose that only **In area…** decides. A project that only mentions an area in its text, like `[[Health]]`, no longer sits under that area on the **Map**. Press **In area…** on the project to put it there again.
+- If a project's `area:` line names an area that does not exist, the button shows the name in grey, and its list says **No area is called …**. Pick the right area to fix it.
+- If the area it names has been archived, the button says **(archived)** after the name, and its list says so and offers to open it.
+- While notes are still coming from iCloud, the button is orange, and its list says the area may still be coming from iCloud instead of **No area is called …**.
+- Pressing the choice that already has the tick changes nothing in the note.
+
+**A goal can make its own projects.** The second of three builds about goals. Before this build, you had to leave the goal, make a project, and then choose the goal in its **Serves…** button.
+
+- Open a goal. Under the projects that serve it there is a new button, **Add a project…**.
+- Press it, write the name, and press **Add project** or Return. **Cancel** makes nothing.
+- The new project appears in the list at once, and it already serves the goal. You stay on the goal, so you can add the next one straight away. Press the new project to open it.
+- On an aspiration the button is **Add a goal…**, and the box has **Add goal**. The new goal serves the aspiration. It has no target date yet: open it and press **Set a target date…**.
+- An aspiration makes a goal, not a project. The work then goes under that goal, which is what gives it a date.
+- When nothing serves a goal yet, the goal's note now says "Nothing serves this goal yet." with the button under it. Before, it asked you to type a `goal:` line into another note. An aspiration with nothing under it says "Nothing works towards this yet." with **Add a goal…**.
+- If a project or goal with that name is already there, the box says so in orange and keeps your words. Change the name and press the button again.
+- On the Mac the button is also on the goal's page in **Goals**, under its projects, and on an aspiration's page in **Aspirations**, under its goals. Inside an aspiration, a goal with no project yet has **Add a project…** under the orange line.
+- On the iPhone the button is at the foot of the goal's note. **Add a goal…** is also under an aspiration when you open it in **Aspirations**.
+
+**Finished projects, newest first.** The next of the eight ideas you chose. It uses the day a project ended, which PARAGON has written since build 262.
+
+- Open **Projects** and press **Done** at the bottom. The project that ended last is now at the top.
+- **Missed** and **Dropped** are in the same order: the newest at the top.
+- Each box in these groups shows the day it ended in a small grey pill, for example **20 October**. A day in another year also shows the year.
+- A project that ended before build 262 has no day. It sits at the bottom of its group, in your own order, and it has no pill. PARAGON does not guess a day.
+- Two projects that ended on the same day keep your own order.
+- The **Done** heading now also says how many of the projects in it ended this year, for example **Done 6 · 4 this year**. "This year" means since 1 January. A project you have archived has left the Projects list and is not counted.
+- When none of them ended this year, the heading shows only the number of projects, never "0 this year".
+- **Missed** and **Dropped** show no count for the year. A count of missed projects would feel like blame. They get the order and the day only.
+- A finished project's box no longer shows the date of a task that is still open in it. The day it ended is the only date on the box, so the two cannot be mixed up.
+- To change the day a project ended, open it and press the grey line under its header, as before.
+
+**To try it:** mark one active project done. Then open **Projects**, press **Done**, and check that this project is at the top with today's date beside it. Only another project that also ended today can be above it. Check also that the heading says how many ended this year.
+
 ## Build 268 · 26 October 2026
 
 **Done shows the last 12 weeks as small squares.** The second half of the Done idea.

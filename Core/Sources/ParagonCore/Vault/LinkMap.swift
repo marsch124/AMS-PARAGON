@@ -223,12 +223,12 @@ public extension NoteIndex {
             return match
         }
 
+        // Only the `area:` line puts a note under an area (build 269, his answer). Before, a
+        // project with no such line went under the first area its text happened to link to,
+        // so the Map and the project's own **In area…** button could disagree.
         func areaOf(_ note: Note) -> Note? {
-            if let name = note.area, let match = self.note(matching: name), match.kind == .area,
-               match.relativePath != note.relativePath, activePaths.contains(match.relativePath) {
-                return match
-            }
-            return outgoing[note.relativePath]?.first { $0.kind == .area && activePaths.contains($0.relativePath) }
+            guard let match = self.area(of: note), activePaths.contains(match.relativePath) else { return nil }
+            return match
         }
 
         // Every active note that links to a resource, or that the resource links to.

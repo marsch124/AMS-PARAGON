@@ -1124,7 +1124,11 @@ struct NoteHeader: View {
             if note.kind != .inbox, note.kind != .daily {
                 NoteStatusChip(model: model, note: note)
             }
-            if let area = note.area {
+            if note.kind == .project {
+                // **In area…** (build 269): until then nothing but a drag on the Map could
+                // write a project's `area:` line, and this was a label you could not press.
+                ProjectAreaChip(model: model, note: note)
+            } else if let area = note.area {
                 Label(area, systemImage: "circle.grid.2x2")
                     .foregroundStyle(ParaKind.area.tint)
             }
@@ -1570,7 +1574,9 @@ struct GoalDashboardView: View {
             // button, and saying it twice on one screen carries no information (build 169).
             let serving = health.subgoals + health.projects + health.areas + health.endedNotes
             if serving.isEmpty {
-                Text("Nothing serves this goal yet. Add `goal: \(goal.title)` to a project or area's frontmatter.")
+                // Build 269: the old line asked him to type `goal:` into another note's
+                // settings block. The button under it makes the note that serves this one.
+                Text(emptyText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
@@ -1596,8 +1602,16 @@ struct GoalDashboardView: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    // Named by its path for the screen tests (build 269), the same name the
+                    // project carries in the chain's rail.
+                    .accessibilityIdentifier("serves.\(note.relativePath)")
                 }
             }
+            // **Always at the foot** (build 269): **Add a project…** on a goal with a date,
+            // **Add a goal…** on an aspiration. It stays on this page and the new note appears
+            // in the list above at once.
+            AddServingNoteButton(model: model, parent: goal)
+                .padding(.top, 2)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -1608,6 +1622,12 @@ struct GoalDashboardView: View {
             Text(value).font(.headline).foregroundStyle(goal.tint)
             Text(label).font(.caption2).foregroundStyle(.secondary)
         }
+    }
+
+    /// What the page says when nothing serves the goal yet. An aspiration uses the chain's own
+    /// words (`AspirationChainBody`), so the two pages say it alike.
+    private var emptyText: String {
+        GoalWording.isAspiration(goal) ? "Nothing works towards this yet." : "Nothing serves this goal yet."
     }
 }
 

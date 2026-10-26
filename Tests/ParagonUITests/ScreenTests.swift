@@ -24,8 +24,8 @@ import AppKit
 /// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`,
 /// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`, `task.tick.<title>`,
 /// `projects.band`, `project.weekly.<path>`, `focus.start`, `focus.bar`, `focus.pause`,
-/// `focus.stop`, and on the Mac `focus.menuBar` (a status item). The vault is `TestVault` in the
-/// app, which is where its titles live.
+/// `focus.stop`, `new.inArea`, `note.area`, and on the Mac `focus.menuBar` (a status item).
+/// The vault is `TestVault` in the app, which is where its titles live.
 ///
 /// **One suite, two platforms.** A test bundle compiles once per platform, so `#if os(macOS)`
 /// picks the Mac's way in — the sidebar row — where the phone taps a tab, and `go(to:)` is the
@@ -694,18 +694,31 @@ final class ScreenTests: XCTestCase {
     /// folded, so the **Done** heading is opened first unless the row is already there. The
     /// line is found among buttons (build 249) and read from its label, which is set
     /// explicitly so both platforms read the same sentence (build 253).
+    ///
+    /// Build 269: the **Done** heading also says how many projects ended this year. Fix the
+    /// bike ended today, so "1 this year" is true on any day, 1 January included. Its box
+    /// carries the day it ended as a pill, read by its name only, since the day's words are the
+    /// runner's language.
     func testAFinishedProjectSaysWhenItEnded() {
         go(to: .projects)
 
+        let done = app.buttons.matching(identifier: "projects.group.ended:done").firstMatch
+        XCTAssertTrue(done.waitForExistence(timeout: 20),
+                      "The Projects list has no Done heading. On screen: \(visibleTexts())")
+        XCTAssertTrue(words(of: done).contains("1 this year"),
+                      "The Done heading does not say how many projects ended this year. It says: \(words(of: done))")
+
         let row = element("note.Projects/Fix the bike.md")
         if !row.waitForExistence(timeout: 5) {
-            let done = app.buttons.matching(identifier: "projects.group.ended:done").firstMatch
-            XCTAssertTrue(done.waitForExistence(timeout: 20),
-                          "The Projects list has no Done heading. On screen: \(visibleTexts())")
             if done.isHittable { done.press() } else { done.pressCentre() }
         }
         XCTAssertTrue(row.waitForExistence(timeout: 10),
                       "The Done group does not show the finished test project. On screen: \(visibleTexts())")
+        let day = element("project.endedDay.Projects/Fix the bike.md")
+        XCTAssertTrue(day.waitForExistence(timeout: 10),
+                      "The finished project's box does not show the day it ended. On screen: \(visibleTexts())")
+        XCTAssertTrue(words(of: day).hasPrefix("Ended on"),
+                      "The day on the box does not say what it is. It says: \(words(of: day))")
         row.press()
 
         let line = app.buttons.matching(identifier: "project.ended").firstMatch
@@ -1625,6 +1638,112 @@ final class ScreenTests: XCTestCase {
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: date)
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
                        "The date box stayed open after Cancel. On screen: \(visibleTexts())")
+    }
+
+    /// Build 269: a project has an **In area…** button at the top, and the New note screen has
+    /// one for a new project. **Dull on purpose**: pressing the items of a SwiftUI `Menu` is new
+    /// ground for this suite, so the test only asks that both buttons are there and say what
+    /// they do. The New note screen comes first, so the phone never has to find its way back
+    /// out of a pushed note. The test project has no `area:` line, so its button reads
+    /// "In area…". Both buttons may carry their name on a frameless wrapper as well as on the
+    /// control itself (build 249), and a `Menu` is a button on the phone and a menu button on
+    /// the Mac, so every element with the name is asked for its words (`wordsOfEvery`).
+    func testAProjectHasAnInAreaButton() {
+        go(to: .projects)
+
+        let newNote = element("list.newNote")
+        XCTAssertTrue(newNote.waitForExistence(timeout: 20), "The Projects list has no New note button.")
+        newNote.press()
+
+        let projectButton = element("new.project")
+        XCTAssertTrue(projectButton.waitForExistence(timeout: 20),
+                      "The New note screen did not open, or has no Project button.")
+        projectButton.press()
+
+        XCTAssertTrue(element("new.inArea").waitForExistence(timeout: 10),
+                      "A new project has no In area… button. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("new.inArea").contains("In area") },
+                      "The New note screen's In area… button does not say what it does. It says: \(wordsOfEvery("new.inArea"))")
+
+        let cancel = element("sheet.cancel")
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10), "The New note screen has no Cancel button.")
+        cancel.press()
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("new.project"))
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "Cancel was pressed and the New note screen stayed open.")
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Projects list does not show the test project.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The note opened without its editor.")
+
+        XCTAssertTrue(element("note.area").waitForExistence(timeout: 10),
+                      "The project has no In area… button at the top. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.area").contains("In area") },
+                      "The project's In area… button does not say what it does. It says: \(wordsOfEvery("note.area"))")
+    }
+
+    /// The words of every element carrying this name, joined: one of them is the control
+    /// itself, whatever kind of element SwiftUI made it.
+    private func wordsOfEvery(_ identifier: String) -> String {
+        app.descendants(matching: .any).matching(identifier: identifier).allElementsBoundByIndex
+            .map { words(of: $0) }
+            .joined(separator: " | ")
+    }
+
+    /// **Add a project…** on a goal makes a project that already serves it, and you stay on the
+    /// goal (build 269). On the Mac the button is in the rail of the goal's page in the Goals
+    /// screen; on the phone it is at the foot of the goal's own note, under the projects that
+    /// serve it. Same names, same test code.
+    ///
+    /// The proof the page stayed is **Add a project…** still being there after the add: had
+    /// the app opened the new project, the goal's page and its button would be gone. The test
+    /// never counts the new project's tasks — the project template ships its own (build 162).
+    /// Every button is found among buttons (build 249).
+    func testAProjectCanBeAddedFromItsGoal() {
+        go(to: .goals)
+
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+
+        let add = app.buttons.matching(identifier: "goal.addProject").firstMatch
+        XCTAssertTrue(add.waitForExistence(timeout: 20),
+                      "The goal has no Add a project… button. On screen: \(visibleTexts())")
+        let addFrame = add.frame
+        guard Self.isOnScreen(addFrame) else {
+            XCTFail("The Add a project… button has no place on screen: \(addFrame)")
+            return
+        }
+        press(add, at: addFrame)
+
+        let field = element("addNote.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing Add a project… did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Buy the maps")
+
+        // The box's own button when it can be pressed; Return in the field otherwise, which
+        // does the same thing. On the phone the keyboard is up at this moment.
+        let confirm = app.buttons.matching(identifier: "addNote.add").firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 10),
+                      "The box has no Add project button. On screen: \(visibleTexts())")
+        if confirm.isHittable { confirm.press() } else { field.typeText("\n") }
+
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The box stayed open after Add project. On screen: \(visibleTexts())")
+
+        let made = element("serves.Projects/Buy the maps.md")
+        XCTAssertTrue(made.waitForExistence(timeout: 20),
+                      "The new project is not listed under its goal. On screen: \(visibleTexts())")
+        XCTAssertTrue(app.buttons.matching(identifier: "goal.addProject").firstMatch.waitForExistence(timeout: 10),
+                      "Add a project… is gone, so the page left the goal. On screen: \(visibleTexts())")
     }
 }
 

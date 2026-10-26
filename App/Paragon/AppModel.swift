@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 268
+    static let number = 269
 }
 
 @MainActor
@@ -1391,16 +1391,32 @@ final class AppModel: ObservableObject {
     @discardableResult
     func makeNoteQuietly(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
                          tags: [String] = [], template: String? = nil) -> Note? {
-        guard let vault else { return nil }
         do {
-            let note = try vault.createNote(kind: kind, title: title, extraFrontmatter: extraFrontmatter,
-                                            tags: tags, template: template)
-            reload()
-            return note
+            return try makeNoteSayingWhy(kind: kind, title: title, extraFrontmatter: extraFrontmatter,
+                                         tags: tags, template: template)
         } catch {
             errorMessage = error.localizedDescription
             return nil
         }
+    }
+
+    /// `makeNoteQuietly` that **hands the reason back** instead of raising an alert, and the
+    /// one place a note is actually made. Nil only when no vault is open.
+    ///
+    /// **Build 269.** **Add a project…** and **Add a goal…** make a note from inside a popover,
+    /// and an alert raised behind a popover is two presentations at once (builds 238 and 246).
+    /// So the popover catches the reason and says it itself, with his words still in the field.
+    func makeNoteSayingWhy(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
+                           tags: [String] = [], template: String? = nil) throws -> Note? {
+        guard let vault else { return nil }
+        // The open note's typing is saved first: the reload below reads every note back from
+        // disk, and the goal he presses **Add a project…** on may be the note in the editor
+        // (build 39's rule — every model write flushes the editor first).
+        flushPendingEdits()
+        let note = try vault.createNote(kind: kind, title: title, extraFrontmatter: extraFrontmatter,
+                                        tags: tags, template: template)
+        reload()
+        return note
     }
 
     /// Renames a note and follows every link to it: `goal:`, `area:`, `parent:`, `related:`

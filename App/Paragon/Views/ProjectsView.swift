@@ -118,6 +118,9 @@ struct ProjectsListView: View {
         let status = note.noteStatus
         Button("Rename\u{2026}") { rename(note) }
         NoteGoalMenu(model: model, note: note)
+        // Build 269. The groups stay by aspiration (build 253); choosing an area moves the
+        // project on the Map, not here.
+        ProjectAreaMenu(model: model, note: note)
         Divider()
         if status != .active {
             Button("Set active") { model.setStatus(NoteStatus.active, for: note) }
@@ -236,6 +239,15 @@ struct ProjectGroupHeader: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 1)
                     .background(.quaternary, in: Capsule())
+                if let caption = yearCaption {
+                    // Build 269: on Done alone, how many ended this year. Grey, and it gives
+                    // way before the name does in a narrow column (builds 138, 212).
+                    Text("\u{00B7} " + caption)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .layoutPriority(-1)
+                }
                 if group.needsALookCount > 0 {
                     // Orange, as everywhere in PARAGON: look at this. On the heading, so a
                     // folded group still says it (build 100).
@@ -263,8 +275,14 @@ struct ProjectGroupHeader: View {
 
     private var spoken: String {
         var words = "\(group.title), \(group.lines.count) " + (group.lines.count == 1 ? "project" : "projects")
+        if let caption = yearCaption { words += ", " + caption }
         if group.needsALookCount > 0 { words += ", \(group.needsALookCount) need a look" }
         return words
+    }
+
+    /// "4 this year" on the Done heading, nil on every other one (Core decides, and says why).
+    private var yearCaption: String? {
+        group.thisYearCaption(today: DateOnly.today())
     }
 
     /// The same badge the Goals rooms draw for the same thing, so a heading here and a row
@@ -374,7 +392,16 @@ struct ProjectBox: View {
                             ProjectProgress(done: line.done, total: line.total)
                         }
                         ForEach(facts) { fact in
-                            ProjectPill(fact: fact)
+                            if let identifier = fact.identifier {
+                                // One element with one sentence, so a screen test and a screen
+                                // reader find the same words on both platforms (build 196).
+                                ProjectPill(fact: fact)
+                                    .accessibilityElement(children: .ignore)
+                                    .accessibilityLabel(fact.spoken ?? fact.text)
+                                    .accessibilityIdentifier(identifier)
+                            } else {
+                                ProjectPill(fact: fact)
+                            }
                         }
                     }
                 }
@@ -479,11 +506,22 @@ struct ProjectBox: View {
     private var facts: [ProjectFact] {
         let today = DateOnly.today()
         var facts: [ProjectFact] = []
+        if isOver, let ended = line.ended {
+            // Build 269: the day it ended, "20 October". Not "Done on …": the heading above
+            // already says Done (build 169). An old project with no `ended:` day gets no pill,
+            // never a guessed one (build 262).
+            let day = ProjectEnding.dayText(ended, today: today)
+            facts.append(ProjectFact(id: "ended", text: day, systemImage: "calendar",
+                                     identifier: "project.endedDay.\(line.id)",
+                                     spoken: "Ended on " + day))
+        }
         if let next = line.nextTask {
             if useTaskTimes, let minutes = next.minutes {
                 facts.append(ProjectFact(id: "time", text: TaskTime.label(minutes), systemImage: "clock"))
             }
-            if let due = next.dueDate {
+            // On a box that is over, the day it ended is the one date (build 269): a second
+            // calendar pill for an open task's date would read as the same kind of fact.
+            if !isOver, let due = next.dueDate {
                 facts.append(ProjectFact(id: "date", text: due.timeLeftText(from: today),
                                          systemImage: "calendar",
                                          tint: isRunning && due < today ? Color.red : Color.secondary))
@@ -556,6 +594,10 @@ struct ProjectFact: Identifiable {
     /// Dashed and unfilled: something missing rather than something there, as everywhere in
     /// PARAGON (`StateToggle` off, a loose Map box).
     var dashed: Bool = false
+    /// A name for the screen tests. A pill that has one is drawn as one element whose label
+    /// is `spoken`, or its words when there is none (build 269).
+    var identifier: String? = nil
+    var spoken: String? = nil
 }
 
 /// A pill: words, an optional symbol, a light fill and a thin border in one colour.

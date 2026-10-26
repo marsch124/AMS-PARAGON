@@ -18,11 +18,12 @@ final class ProjectGroupsTests: XCTestCase {
     }
 
     private func project(_ title: String, goal: String? = nil, status: String? = nil,
-                         due: String? = nil, body: String = "") -> Note {
+                         due: String? = nil, ended: String? = nil, body: String = "") -> Note {
         var lines = ["title: \(title)", "type: project"]
         if let goal { lines.append("goal: \(goal)") }
         if let status { lines.append("status: \(status)") }
         if let due { lines.append("due: \(due)") }
+        if let ended { lines.append("ended: \(ended)") }
         return Note(relativePath: "Projects/\(title).md", kind: .project,
                     text: "---\n" + lines.joined(separator: "\n") + "\n---\n" + body)
     }
@@ -177,6 +178,84 @@ final class ProjectGroupsTests: XCTestCase {
         XCTAssertEqual(ProjectLine.deadlineText(today.adding(days: -12), today: today), "Deadline 12 days over")
         XCTAssertEqual(ProjectGroup.notLinkedTitle, "Not linked to an aspiration")
         XCTAssertEqual(ProjectGroup.noGoalTitle, "Projects with no goal", "The review's own words (build 140)")
+    }
+
+    // MARK: Endings, newest first (build 269)
+
+    func testEndedGroupsShowTheNewestEndingFirst() {
+        let projects = [
+            project("Old boat", status: "done", ended: "2025-06-01"),
+            project("No day A", status: "done"),
+            project("Kitchen", status: "done", ended: "2026-10-12"),
+            project("Garden", status: "done", ended: "2026-03-02"),
+            project("No day B", status: "done"),
+            project("Same day, later in his order", status: "done", ended: "2026-10-12"),
+            project("Spring race", status: "missed", ended: "2026-05-01"),
+            project("Summer race", status: "missed", ended: "2026-07-01"),
+            project("Paint the hall"),
+            project("Fix the gate"),
+        ]
+        let groups = NoteIndex(notes: projects).projectGroups(projects, today: today)
+        func titles(_ title: String) -> [String] {
+            groups.first { $0.title == title }?.lines.map(\.note.title) ?? []
+        }
+
+        XCTAssertEqual(titles("Done"),
+                       ["Kitchen", "Same day, later in his order", "Garden", "Old boat", "No day A", "No day B"],
+                       "Newest ending on top; on the same day his own order; the ones with no day at the bottom, in his order")
+        XCTAssertEqual(titles("Missed"), ["Summer race", "Spring race"], "Missed is ordered the same way")
+        XCTAssertEqual(titles(ProjectGroup.noGoalTitle), ["Paint the hall", "Fix the gate"],
+                       "A live group keeps his hand order")
+        XCTAssertEqual(groups.first { $0.title == "Done" }?.lines.first?.ended, DateOnly(year: 2026, month: 10, day: 12))
+    }
+
+    func testOnlyARealEndingHasADay() {
+        let running = project("Set active again", ended: "2026-01-01")
+        let paused = project("Paused", status: "on-hold", ended: "2026-01-01")
+        let finished = project("Finished", status: "done", ended: "2026-01-01")
+        let archived = project("Archived here", status: "archived", ended: "2026-02-01")
+        let lines = NoteIndex(notes: [running, paused, finished, archived])
+            .projectGroups([running, paused, finished, archived], today: today)
+            .flatMap(\.lines)
+        func line(_ title: String) -> ProjectLine? { lines.first { $0.note.title == title } }
+
+        XCTAssertNil(line("Set active again")?.ended, "An ended: line left on a running project is not a fact about it")
+        XCTAssertNil(line("Paused")?.ended, "On hold is not over")
+        XCTAssertEqual(line("Finished")?.ended, DateOnly(year: 2026, month: 1, day: 1))
+        XCTAssertEqual(line("Archived here")?.ended, DateOnly(year: 2026, month: 2, day: 1),
+                       "An archived note keeps the day it really ended (build 262)")
+    }
+
+    func testTheDoneHeadingCountsTheProjectsThatEndedThisYear() {
+        let projects = [
+            project("New Year's Day", status: "done", ended: "2026-01-01"),
+            project("New Year's Eve", status: "done", ended: "2025-12-31"),
+            project("No day", status: "done"),
+            project("Today", status: "done", ended: today.description),
+            project("Missed this year", status: "missed", ended: "2026-04-01"),
+            project("Dropped this year", status: "dropped", ended: "2026-04-01"),
+        ]
+        let groups = NoteIndex(notes: projects).projectGroups(projects, today: today)
+        func group(_ title: String) -> ProjectGroup? { groups.first { $0.title == title } }
+
+        XCTAssertEqual(group("Done")?.endedThisYear(today: today), 2,
+                       "The calendar year: last year's 31 December is not counted, and a project with no day never is")
+        XCTAssertEqual(group("Done")?.thisYearCaption(today: today), "2 this year")
+        XCTAssertEqual(group("Missed")?.endedThisYear(today: today), 1)
+        XCTAssertNil(group("Missed")?.thisYearCaption(today: today),
+                     "Only Done gets the count: a count of misses would read as a telling-off")
+        XCTAssertNil(group("Dropped")?.thisYearCaption(today: today))
+
+        let nextYear = DateOnly(year: 2027, month: 1, day: 1)
+        XCTAssertEqual(group("Done")?.endedThisYear(today: nextYear), 0)
+        XCTAssertNil(group("Done")?.thisYearCaption(today: nextYear),
+                     "On 1 January nothing has ended yet this year, and the heading says nothing rather than 0")
+    }
+
+    func testTheWordsForTheYear() {
+        XCTAssertEqual(ProjectGroup.thisYearText(1), "1 this year")
+        XCTAssertEqual(ProjectGroup.thisYearText(4), "4 this year")
+        XCTAssertNil(ProjectGroup.thisYearText(0), "Never 0 this year (build 141)")
     }
 
     func testMovedMeansWhatSwiftUIsMoveMeans() {

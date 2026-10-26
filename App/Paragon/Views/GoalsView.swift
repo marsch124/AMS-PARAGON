@@ -685,9 +685,14 @@ struct AspirationChainBody: View {
                 GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
             }
             if chain.isBare {
-                Text("Nothing works towards this yet. Give a goal with a target date `goal: \(chain.note.title)`, or press **Serves…** in that goal's header.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                // Build 269: the old line asked him to type `goal:` into another note. The
+                // button under it makes the goal instead, already serving this aspiration.
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Nothing works towards this yet.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    AddServingNoteButton(model: model, parent: chain.note)
+                }
             }
             if let changed = chain.activity.summary {
                 Label(changed, systemImage: "clock.arrow.circlepath")
@@ -697,6 +702,13 @@ struct AspirationChainBody: View {
             }
             ForEach(chain.goals) { goal in
                 ChainGoalBlock(goal: goal, lead: false, under: chain.note.title)
+            }
+            // **Add a goal…** at the foot of the goals (build 269), on the phone too: the phone
+            // has no aspiration page, so the folded-open chain is the only place to add a
+            // second goal from (the review of 271 put the measure there for the same reason).
+            // A bare chain has the button above, beside the line it answers.
+            if !chain.isBare {
+                AddServingNoteButton(model: model, parent: chain.note)
             }
             // One heading per ending, never one heading for all three: a group called Done
             // may not hold a goal that was missed (build 165).
@@ -904,12 +916,19 @@ struct ChainGoalBlock: View {
     }
 
     /// The projects, drawn against a rail so the level is visible without indenting text.
+    ///
+    /// **Add a project…** (build 269) is at the foot of the rail on the goal's own page, always,
+    /// and inside an aspiration's chain only under "No project delivers this goal yet.", where
+    /// it answers the line above it. It sits in the rail, never in the head's button.
     private var rail: some View {
         VStack(alignment: .leading, spacing: 4) {
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
                 Text("No project delivers this goal yet.")
                     .font(.caption)
                     .foregroundStyle(.orange)
+                if !lead {
+                    AddServingNoteButton(model: model, parent: goal.note)
+                }
             }
             ForEach(goal.projects) { project in
                 ChainProjectRow(project: project)
@@ -924,6 +943,10 @@ struct ChainGoalBlock: View {
                         .foregroundStyle(ParaKind.area.tint)
                 }
                 .buttonStyle(.plain)
+            }
+            if lead {
+                AddServingNoteButton(model: model, parent: goal.note)
+                    .padding(.top, 2)
             }
         }
         .padding(.leading, 12)
@@ -980,6 +1003,9 @@ struct ChainProjectRow: View {
             }
         }
         .buttonStyle(.plain)
+        // Named by its path for the screen tests (build 269), the same name the project
+        // carries in a goal's own page on the phone (`GoalDashboardView`).
+        .accessibilityIdentifier("serves.\(project.note.relativePath)")
     }
 }
 
@@ -1203,6 +1229,212 @@ struct NoAspirationPrompt: View {
         .menuStyle(.borderlessButton)
         .fixedSize()
         .help("This goal hangs under no aspiration. Choose the one it is in service of.")
+    }
+}
+
+/// **Add a project…** on a goal, **Add a goal…** on an aspiration (build 269), and — with
+/// `link: .area` — **Add a project…** on an area (the area page, a later build).
+///
+/// **You stay where you are** (his answer, 21 October). The note is made through
+/// `makeNoteSayingWhy`, the quiet way build 203 made for the New note sheet, never through
+/// `createNote`, whose `show(_:)` would carry him out of the Goals room into Projects (builds
+/// 135 and 203). The new note appears in the list under the button at once, already linked,
+/// and one press on it opens it. A goal often needs more than one project, so the button stays
+/// for the next one.
+///
+/// **What it makes is decided in Core** (`ServingNote`, tested): a project under a goal with a
+/// date, a goal with a date under an aspiration, a project under an area. The link line is the
+/// parent's title, the same value **Serves…** writes.
+///
+/// A plain-style button, so it can sit in a phone list row beside other buttons without the
+/// row taking the press (builds 71–74), and never inside another button: on the goal's own
+/// page it sits in the rail under the head, never in it (build 268).
+struct AddServingNoteButton: View {
+    @ObservedObject var model: AppModel
+    let parent: Note
+    /// Which line ties the new note to `parent`: `goal:` on a goal or an aspiration, `area:`
+    /// on an area.
+    var link: ServingLink = .goal
+    @State private var adding = false
+
+    /// Read back out of the model: a chip on the same page may have just renamed or changed
+    /// the note, and the copy handed in is then one behind (build 144).
+    private var live: Note { model.note(at: parent.relativePath) ?? parent }
+
+    var body: some View {
+        let plan = ServingNote(under: live, link: link)
+        Button { adding = true } label: {
+            Label(plan.buttonTitle, systemImage: "plus.circle")
+                .font(.callout)
+                .foregroundStyle(plan.tint)
+                .helpWhenClosed(plan.helpText, open: adding)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(plan.identifier)
+        .popover(isPresented: $adding) {
+            AddServingNoteBox(plan: plan, cancel: { adding = false }) { (name: String) -> String? in
+                add(name, plan)
+            }
+        }
+    }
+
+    /// Makes the note and closes the box, or says why it made none. **Every reason is handed
+    /// back to the box**, never put in an alert: an alert behind a popover is two presentations
+    /// at once (builds 238 and 246), and the box keeps his words so a second try costs nothing.
+    private func add(_ name: String, _ plan: ServingNote) -> String? {
+        let title = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return "Write a name first." }
+        if let taken = ServingNote.existing(named: title, kind: plan.kind, among: model.notes) {
+            return plan.nameInUse(taken.displayTitle)
+        }
+        do {
+            guard try model.makeNoteSayingWhy(kind: plan.kind, title: title,
+                                              extraFrontmatter: plan.frontmatter) != nil else {
+                return "No folder of notes is open."
+            }
+        } catch VaultError.noteAlreadyExists(_) {
+            // A note that is still coming from iCloud is not in the list yet, so only the
+            // vault itself can say the name is taken.
+            return plan.nameInUse(title)
+        } catch VaultError.invalidTitle {
+            return "That name cannot be used for a file. Use letters and numbers."
+        } catch {
+            return error.localizedDescription
+        }
+        adding = false
+        return nil
+    }
+}
+
+/// What **Add a project…** and **Add a goal…** open: a heading, one field for the name, one
+/// line that says what the new note will serve, and **Cancel** and **Add project** (or **Add
+/// goal**). Return adds, as the button does. A small popover on the phone too, the shape of
+/// `GoalMeasureEditor` (build 268): it hangs near the button, so the keyboard does not cover
+/// the buttons (builds 160 and 231).
+struct AddServingNoteBox: View {
+    let plan: ServingNote
+    let cancel: () -> Void
+    /// Makes the note. The answer is nil when it was made, or why it was not, in words for
+    /// the box.
+    let add: (String) -> String?
+
+    @State private var typed = ""
+    /// Why the last press made nothing. Said inside the popover, never in an alert over it: a
+    /// popover's messages belong in the popover (build 238).
+    @State private var notice: String? = nil
+    /// Set once the note is made. On the Mac Return can reach both the field's own submit and
+    /// the default button, and a second press must not answer "already a project called…"
+    /// about the note the first one has just made.
+    @State private var made = false
+    @FocusState private var focused: Bool
+
+    private var trimmed: String { typed.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(plan.heading, systemImage: plan.symbol)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(plan.tint)
+            TextField("Name", text: $typed)
+                .textFieldStyle(.roundedBorder)
+                .focused($focused)
+                .onSubmit(commit)
+                .accessibilityIdentifier("addNote.field")
+            Text(plan.sentence)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let notice {
+                Text(notice)
+                    .font(.caption)
+                    .foregroundStyle(Color.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("addNote.notice")
+            }
+            HStack {
+                Spacer()
+                Button("Cancel", action: cancel)
+                    .accessibilityIdentifier("addNote.cancel")
+                Button(plan.addTitle, action: commit)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(trimmed.isEmpty)
+                    .accessibilityIdentifier("addNote.add")
+            }
+        }
+        .padding(14)
+        .frame(width: 300)
+        .presentationCompactAdaptation(.popover)
+        .onAppear {
+            typed = ""
+            notice = nil
+            made = false
+            // Focus does not always take in the turn the popover appears (build 119).
+            DispatchQueue.main.async { focused = true }
+        }
+    }
+
+    /// An empty field does nothing: the button is greyed out, and Return must not say "Write a
+    /// name first." about a field he has not started on.
+    private func commit() {
+        guard !trimmed.isEmpty, !made else { return }
+        let problem = add(typed)
+        notice = problem
+        if problem == nil { made = true }
+    }
+}
+
+/// The words and colours of **Add a project…** and **Add a goal…**, in one place, so the
+/// button, its box and the screen test's names cannot drift apart. What the button *makes* is
+/// Core's decision (`ServingNote`); how it is said is the app's.
+extension ServingNote {
+    /// The button: **Add a project…** or **Add a goal…**.
+    var buttonTitle: String { makesAGoal ? "Add a goal\u{2026}" : "Add a project\u{2026}" }
+    /// The button inside the box that makes it.
+    var addTitle: String { makesAGoal ? "Add goal" : "Add project" }
+    /// The box's heading.
+    var heading: String { makesAGoal ? "New goal" : "New project" }
+    /// The word for one of what is made, inside a sentence.
+    var noun: String { makesAGoal ? "goal" : "project" }
+    /// The symbol of what is made: the target for a goal with a date, the flag for a project.
+    var symbol: String { makesAGoal ? ChainSymbol.datedGoal : ChainSymbol.project }
+    /// The colour of what is made: a goal's gold, a project's green.
+    var tint: Color { makesAGoal ? ChainTint.datedGoal : ParaKind.project.tint }
+
+    /// Named after what it is pressed on and what it makes, for the screen tests. A name of its
+    /// own, never the button's words (build 191).
+    var identifier: String {
+        switch link {
+        case .area: return "area.addProject"
+        case .goal: return makesAGoal ? "aspiration.addGoal" : "goal.addProject"
+        }
+    }
+
+    /// The one line under the field: what the new note will serve, and — for a goal, which is
+    /// made without one — where its date is set.
+    var sentence: String {
+        let serves: String
+        switch link {
+        case .goal: serves = "It will serve \u{201C}\(parentTitle)\u{201D}."
+        case .area: serves = "It will be in the area \u{201C}\(parentTitle)\u{201D}."
+        }
+        guard makesAGoal else { return serves }
+        return serves + " It has no target date yet. Open it and press Set a target date\u{2026} to give it one."
+    }
+
+    /// The Mac's tooltip on the button.
+    var helpText: String {
+        switch link {
+        case .area: return "Make a new project in this area. You stay on this page."
+        case .goal:
+            return makesAGoal
+                ? "Make a new goal that serves this aspiration. You stay on this page."
+                : "Make a new project that serves this goal. You stay on this page."
+        }
+    }
+
+    /// What the box says when the name is taken.
+    func nameInUse(_ name: String) -> String {
+        "There is already a \(noun) called \u{201C}\(name)\u{201D}. Use another name."
     }
 }
 

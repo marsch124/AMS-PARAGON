@@ -125,9 +125,46 @@ public struct NoteIndex: Sendable {
         areaTree().flatMap { [$0.area] + $0.subAreas }
     }
 
-    /// Projects belonging to an area (via `area:` frontmatter or a link).
-    public func projects(in area: Note) -> [Note] {
-        backlinks(to: area).filter { $0.kind == .project }
+    /// The area a name points at. **The one place an `area:` line is resolved** (build 269):
+    /// the Map, the Aspirations chain, the planner's serves line, the widget and the
+    /// **In area…** button all ask here, so they cannot give different answers.
+    ///
+    /// An area note whose title, shown title or file name is the name, ignoring case, comes
+    /// first. Only then is the name looked up as any link would be, and the answer counts only
+    /// when it is an area: a project or a resource that happens to carry an area's name is
+    /// never the area.
+    public func area(named reference: String) -> Note? {
+        let name = reference.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return nil }
+        func same(_ candidate: String) -> Bool {
+            candidate.localizedCaseInsensitiveCompare(name) == .orderedSame
+        }
+        if let exact = notes(kind: .area).first(where: { same($0.title) || same($0.displayTitle) || same($0.fileName) }) {
+            return exact
+        }
+        guard let found = note(matching: name), found.kind == .area else { return nil }
+        return found
+    }
+
+    /// The area a note is in: its `area:` line, resolved through `area(named:)`. **Only that
+    /// line decides** (build 269, his answer): a `[[Health]]` in the text, or Health in
+    /// `related:`, links the two notes but does not put the note in Health. Never the note
+    /// itself. Works for any note, so an archived project — in the Archive folder, but still
+    /// `type: project` — still knows the area it was in.
+    public func area(of note: Note) -> Note? {
+        guard let name = note.area, let found = area(named: name),
+              found.relativePath != note.relativePath else { return nil }
+        return found
+    }
+
+    /// The projects in an area: every note that says it is a project (archived ones too) whose
+    /// `area:` line names this area, in list order. A sub-area's projects are its own, not its
+    /// parent's.
+    public func projects(in target: Note) -> [Note] {
+        notes.filter { candidate in
+            candidate.declaredKind == .project && self.area(of: candidate)?.relativePath == target.relativePath
+        }
+        .sorted(by: Note.byArrangedOrder)
     }
 
     public func notes(tagged tag: String) -> [Note] {

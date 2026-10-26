@@ -4213,7 +4213,7 @@ name a day one way. Screen test: `testATickedTaskShowsInDone` now also waits for
 finds `done.square.<today>` among buttons, checks its label says "1 done", presses it with
 `pressCentre()` and checks the card is still there and the app runs. Dull on purpose: the test
 vault has one dated finish, so there is nowhere far to jump. **Untested from here: whether
-`scrollTo` really moves a `List` on either platform** — CI cannot see a scroll. **The review of 269 found four faults, all fixed before upload**: a day with nothing counted
+`scrollTo` really moves a `List` on either platform** — CI cannot see a scroll. **The review of the Done squares found four faults, all fixed before upload**: a day with nothing counted
 whose daily note was still coming from iCloud drew the grey "nothing ticked off" square and said
 so aloud (build 100 — step 7 had already been fixed for exactly this in 263), so
 `DoneSquaresView` now reads `model.dailyNoteIsWaitingForCloud` and draws that day empty with an
@@ -4259,7 +4259,110 @@ here has proved. `DateChoiceView` carries `date.field`, `date.clear`, `date.canc
 (accessibility only). Screen test `testAGoalsMeasureAndDateCanBeChanged`, both platforms, with
 `Place.goals`; it waits for the measure box to close before pressing the date, so a press never
 lands on a popover on its way out. **Still read but not written**: a dated goal's horizon
-(**This year** / **Long term**) is a plain label in the header with no control to change it. **The review of 271 found four faults, all fixed before upload**: **Set a measure…** could write over a measure changed on the other device while the box stood open — `setMeasure` now takes the measure the box opened on, returns `AppModel.MeasureChangedMeanwhile` instead of writing, and `GoalMeasureEditor` keeps his words, says in orange inside the popover what the measure is now (build 238), and lets a second press replace it (the week goal box's rule, 264); the iPhone's **Aspirations** showed each measure with no way to change it, so the folded-open compact chain now carries the measure chip in its own untagged row; and two manual faults — the `horizon:` sentence had slid under the new `###` and lost its subject, and the manual named **Serves…** among the goal page's buttons, where it is a plain capsule.
+(**This year** / **Long term**) is a plain label in the header with no control to change it. **The review of the goal's date and measure found four faults, all fixed before upload**: **Set a measure…** could write over a measure changed on the other device while the box stood open — `setMeasure` now takes the measure the box opened on, returns `AppModel.MeasureChangedMeanwhile` instead of writing, and `GoalMeasureEditor` keeps his words, says in orange inside the popover what the measure is now (build 238), and lets a second press replace it (the week goal box's rule, 264); the iPhone's **Aspirations** showed each measure with no way to change it, so the folded-open compact chain now carries the measure chip in its own untagged row; and two manual faults — the `horizon:` sentence had slid under the new `###` and lost its subject, and the manual named **Serves…** among the goal page's buttons, where it is a plain capsule.
+
+**Build 269: In area.** Once more a field was read that nothing could write: a project's
+`area:` line was read by the Map, the planner, the Aspirations chain and the widget, and only a
+Map drag wrote it (132, 134, 140, 144, 165, 167). **`NoteIndex.area(named:)` is now the one
+resolver** (Core, tested in `AreaLinkTests`): an area whose title, shown title or file name
+matches, ignoring case, else `note(matching:)` only when that is an area — so a resource or a
+project with an area's name is never the answer (the widget could name a resource "Health
+notes" for `area: health`; a test pins it). `area(of:)` reads the line, never the note itself,
+and works for an archived project through `declaredKind`. `projects(in:)` is rewritten on it, in
+`byArrangedOrder` (it was built on `backlinks`, and only a test called it). **His answer
+`link_rule`: only the line decides.** `LinkMap.areaOf` lost its fallback to the first area the
+text linked to, so a project with only `[[Health]]` in it leaves Health on the Map — said in
+VersionHistory. `AspirationChain` (where the two-step rule came from; its local is `homeArea`
+so it cannot hide the method), `WidgetSnapshot.serves` and the planner's serves line all call
+`area(named:)`. App: `ProjectAreaOptions`/`ProjectAreaMenu`/`ProjectAreaChip` are in a **new
+file, `Views/ProjectArea.swift`**, not beside `AreaParent*` in ContentView as the plan said, so
+a file other builds change at the same time stays small; the shared words ("Health › Yoga", the
+tick, the cut) are `ProjectAreaWording`. The chip replaces the plain area `Label` in
+`NoteHeader` for `.project` only (`note.area`): grey "In area…", pink "In Health".
+**The name is cut in code at 28 characters, not with a frame**: a Mac `Menu` may be drawn by
+AppKit and ignore a SwiftUI frame in its label, and the row is a `WrappingHStack` (build 250),
+so `.fixedSize()` sits on the chip only. A line that names no area is shown as written, in
+grey, and the list says **No area is called …** (build 100). The menu is on both project
+right-click menus, after **Serves**. New note: an **In area** `PickerChip` for projects
+(`new.inArea` — `new.area` is already the **Area** kind button, `new.<thing>`) with one make action, **Add area**, through `makeNoteQuietly` (build 203's shape,
+so the chip never vanishes in a vault with no areas). `PickerChip` gained `identifier:`, put on
+the button before the `.popover` (the time button's shape, build 249), and an accessibility
+label of its own words, for every chip. Screen test `testAProjectHasAnInAreaButton`, both
+platforms, dull on purpose: it reads the words of every element carrying `new.inArea` /
+`note.area` (`wordsOfEvery`), because a `Menu` is a button on the phone and a menu button on
+the Mac, and SwiftUI may put the name on a frameless wrapper too. Pressing a `Menu`'s items is
+left for a later build. **The review of In area… found five things, all fixed before upload**: the chip's test name
+clashed with the **Area** kind button's `new.area`, so the test's existence check could not fail;
+"No area is called Health" was said of an area that was only **archived** (`area(named:)` answers
+live areas only, so `ProjectAreaWording.archivedArea` names it "(archived)" and offers **Open**)
+and of one **still coming from iCloud** (orange, "may still be coming from iCloud" — build 118's
+rule, the same test `missingLinks` uses); pressing the already-ticked choice saved the file and
+took the template's empty `area:` line (build 254's rule, now a `guard` in each action); and the
+manual's list of header buttons left out **In area…**.
+
+**Build 269: a goal makes its own projects.** `Core/Sources/ParagonCore/Model/ServingNote.swift`
+(tested in `ServingNoteTests`): `ServingLink` (`.goal` / `.area`, the key the line is written
+under) and `ServingNote(under:link:)`, which decides what is made and the lines it gets — a
+project with `goal: <title>` under a goal with a date, a goal with `horizon: year` and `goal:
+<title>` under an aspiration (his answer: never a project straight under an aspiration), a
+project with `area: <title>` under an area. The value is `displayTitle`, the value `setGoal` and
+`setArea` write; the tests pin that the made note is in `chainGoal(of:).projects` /
+`chain(of:).goals` (a title that needs quotes too), so the line the button writes is the line
+the chain reads. `ServingNote.existing(named:kind:among:)` finds a name in use by title **or**
+file name, without regard to capitals, before anything is written. App:
+`AddServingNoteButton(model:parent:link:)` + `AddServingNoteBox` (GoalsView.swift) — a
+plain-style button and a popover: heading, `addNote.field`, one line saying what it will serve
+(and, for a goal, where its date is set), **Cancel** and **Add project** / **Add goal**
+(`addNote.add`), Return adds. **You stay on the page** (his answer): it goes through the new
+`AppModel.makeNoteSayingWhy`, which `makeNoteQuietly` now wraps — one place a note is made, and
+it now flushes the editor first, since its `reload()` reads every note back. **It throws instead
+of setting `errorMessage`**, so a taken name, a bad file name or a failed write is said in
+orange inside the popover with his words kept (builds 238, 246) — never an alert behind it. A
+`made` flag stops Return reaching both the field's submit and the default button and then
+reporting "already a project called…" about the note it just made. Words and identifiers
+(`goal.addProject`, `aspiration.addGoal`, `area.addProject`) are an App extension on
+`ServingNote`, so the area page, a later build, reuses the button with `link: .area` and changes nothing here.
+Where it is: `GoalDashboardView`'s foot always (its empty line is now "Nothing serves this goal
+yet." / "Nothing works towards this yet." instead of "type `goal:` into another note"); the
+rail of `ChainGoalBlock` always when `lead`, and only under "No project delivers this goal yet."
+in a chain; `AspirationChainBody` beside "Nothing works towards this yet." when bare, else at
+the foot of the goals. **Departed from the plan in one place**: the foot button is drawn in the
+phone's compact chain too, not only on the Mac — the phone has no aspiration page, the reason
+the review of 271 put the measure chip there. `serves.<path>` names the dashboard's serving
+rows and `ChainProjectRow`. Screen test `testAProjectCanBeAddedFromItsGoal`, both platforms:
+presses `addNote.add` when hittable and Return otherwise (the phone's keyboard is up), waits
+for `serves.Projects/Buy the maps.md`, then for `goal.addProject` still on screen — the proof
+the page did not leave the goal. **Noticed, not fixed**: `GoalDashboardView` still draws a per
+cent bar on an aspiration (build 199 removed it everywhere else).
+The review of Add a project… found two wording faults in the docs, both fixed before upload: `Docs/Words.md` called the note **Add a goal…** makes "a goal with a date" one sentence before saying it has no date (the Mac tooltip said the same; both now say "a new goal"), and the manual quoted "Nothing serves this goal yet." as what the Mac's goal page in **Goals** says, when that page says "No project delivers this goal yet." — and still named the flag "Nothing serves this" instead of "No project or area serves this".
+
+**Build 269: Done projects, newest first.** Core, in `ProjectGroups.swift` (tested in
+`ProjectGroupsTests`): `ProjectLine.ended` is `Note.endedDate` (build 262), **but only while the
+project is Done, Missed, Dropped or archived** — an `ended:` line left on a project set active
+again by hand is not a fact about it. `projectGroups(_:today:)` puts every ended group (Done,
+Missed, Dropped, Archived) through `ProjectGroup.newestFirst`: the dated lines in a **full**
+order (later day first, same day by hand order) put together with the undated ones in hand
+order, so the result never leans on `sort` keeping ties (build 225). Ended groups had no
+`mover` already, so no drag fights the date order; the manual now says so. `endedThisYear(today:)`
+counts a written day in today's calendar year (build 255's calendar weeks), `thisYearText(_:)` is
+"4 this year" or nil for 0 (build 141), and `thisYearCaption(today:)` is the one rule that **only
+Done** gets it — a count of misses reads as a telling-off (build 199) — so the rule is tested, not
+left to the view. App: `ProjectGroupHeader` draws "· 4 this year" after the count capsule, grey,
+`.lineLimit(2)` and `.layoutPriority(-1)` so the name keeps its room (builds 138, 212), and adds it
+to `spoken`. `ProjectBox.facts` puts the day first on a box that is over, through
+`ProjectEnding.dayText` (the one wording of a day, with the year when it is not this year's),
+with no "Done" in it (the heading says that, build 169). **One addition to the plan:** the plan
+said the pill "is the only date on an ended box", but the next task's date pill still showed on a
+finished box that kept an open task (common on a missed or dropped project), with the same
+`calendar` symbol — two pills that look alike for two different facts (build 154). That pill is
+now left out when the box is over, which makes the plan's sentence true. `ProjectFact` gained
+`identifier`/`spoken`; a pill with an identifier is drawn as one element with one sentence
+("Ended on 26 October", `project.endedDay.<path>`), the others are unchanged. Screen test: build
+262's `testAFinishedProjectSaysWhenItEnded` now reads the **Done** heading first (its label must
+contain "1 this year": the fixture ended today, so true even on 1 January) and checks the box's
+day pill exists and starts "Ended on" before opening the note; the day's own words are the
+runner's language and are not checked. The new identifier is not added to the list at the top of
+`ScreenTests.swift`, to keep the merge clean. **The review of the Done order found five wording faults, all fixed before upload**: the manual said a project marked done is always first in **Done**, but a same-day ending keeps the hand order and Missed → Done keeps the old day; "this year" counts only the projects still in the list, so an archived one is not counted; an **Archived** box shows a day that only the `ended:` line can change, since `ProjectEndedLine` needs `isEnded`; and the version note had an idiom and a field-test step that could fail by design. **The review of the three parts together (build 269) found one more fault, fixed before upload**: **Add area** on the New note screen, with a name already in use, made `makeNoteQuietly` raise an alert behind the sheet and its popover (builds 238, 246) and the popover showed nothing; `makeArea` now chooses the existing area through `ServingNote.existing` instead (the goal makers from build 203 have the same flaw and are left for their own small build).
 
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops

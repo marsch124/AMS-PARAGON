@@ -132,7 +132,7 @@ public extension NoteIndex {
             return (self.goal(matching: goal)?.displayTitle ?? goal, true)
         }
         if let area = note.area {
-            return (self.note(matching: area)?.displayTitle ?? area, false)
+            return (self.area(named: area)?.displayTitle ?? area, false)
         }
         return nil
     }

@@ -113,6 +113,8 @@ struct NewNoteSheet: View {
     /// project.
     @State private var servesGoal = ""
     @State private var parentArea = ""
+    /// The area a new project is in, as its `area:` line will say it (build 269).
+    @State private var inArea = ""
     @State private var template = ""
     /// Tags for the new note. His ask, build 187: he wants to see the tags he already has at
     /// the moment he is making the note, so he does not write a second one meaning the same.
@@ -260,6 +262,20 @@ struct NewNoteSheet: View {
                            choice: $servesGoal,
                            make: makeOption(serves))
             }
+            if thing == .project {
+                // **In area…** (build 269), the same choice as the button at the top of a
+                // project. Never hidden when there are no areas yet: the list can make one
+                // (build 203's rule — a control that vanishes removes the way to fill it).
+                PickerChip(name: "In area",
+                           emptyLabel: "In area\u{2026}",
+                           noneLabel: "In no area",
+                           systemImage: ChainSymbol.area,
+                           tint: ParaKind.area.tint,
+                           options: areaOptions,
+                           choice: $inArea,
+                           make: makeAreaOption(),
+                           identifier: "new.inArea")
+            }
             if thing == .area, !possibleParents.isEmpty {
                 PickerChip(name: "Part of another area",
                            emptyLabel: "Part of\u{2026}",
@@ -389,6 +405,42 @@ struct NewNoteSheet: View {
         }
     }
 
+    /// Every area that is not put away, each sub-area after its own area and named
+    /// "Health › Yoga" — the same list and the same words as **In area…** on a project. The
+    /// value is the area's title, which is what its `area:` line carries.
+    private var areaOptions: [ChipOption] {
+        model.index.areasInFamilyOrder().filter { !$0.isArchived }.map { area in
+            ChipOption(value: area.displayTitle, label: ProjectAreaWording.name(of: area, in: model.index))
+        }
+    }
+
+    /// One button, **Add area**: a list that lets you choose an area has to let you make one.
+    /// A plain function, like `makeOption(_:)` above (builds 152 and 154).
+    private func makeAreaOption() -> PickerChip.MakeOption {
+        PickerChip.MakeOption(prompt: "Name a new area", hint: nil, actions: [makeAreaAction()])
+    }
+
+    private func makeAreaAction() -> PickerChip.MakeAction {
+        PickerChip.MakeAction(title: "Add area", symbol: ChainSymbol.area) { name in
+            makeArea(named: name)
+        }
+    }
+
+    /// Makes the area without leaving this screen, and hands back the title its `area:` line
+    /// will carry — the same value `areaOptions` uses, so the new one is chosen at once.
+    private func makeArea(named name: String) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return nil }
+        // A name already in use chooses that area instead of failing: `makeNoteQuietly` would
+        // raise an alert behind this sheet and its popover (builds 238 and 246), and the box
+        // has no line to say so in. Found by the review of build 269.
+        if let taken = ServingNote.existing(named: trimmed, kind: .area, among: model.notes) {
+            return taken.displayTitle
+        }
+        guard let note = model.makeNoteQuietly(kind: .area, title: trimmed) else { return nil }
+        return note.displayTitle
+    }
+
     private var templateOptions: [ChipOption] {
         templateChoices.map {
             ChipOption(value: $0.name, label: $0.isDefault ? "\($0.name) (default)" : $0.name)
@@ -402,6 +454,7 @@ struct NewNoteSheet: View {
         thing = choice
         servesGoal = ""
         parentArea = ""
+        inArea = ""
         target = ""
         // The name field may not exist yet in this turn — coming back from Capture it is
         // only being made now — so the focus is asked for on the next one (build 119).
@@ -444,6 +497,10 @@ struct NewNoteSheet: View {
         }
         if (kind == .area || kind == .project), !servesGoal.isEmpty {
             extra.append(("goal", servesGoal))
+        }
+        // `set` replaces the template's own empty `area:` line rather than adding a second.
+        if kind == .project, !inArea.isEmpty {
+            extra.append(("area", inArea))
         }
         if let horizon = thing.horizon {
             extra.append(("horizon", horizon.rawValue))
@@ -561,6 +618,9 @@ private struct PickerChip: View {
     /// Making one from inside the list, when this list is one that can be added to. Nil when
     /// the choices are fixed (build 203).
     var make: MakeOption? = nil
+    /// The name the screen tests find it by. Put on the button itself, before the popover,
+    /// the shape the time button has (build 249). Nil for the chips no test looks for.
+    var identifier: String? = nil
     @State private var showing = false
     @State private var draft = ""
 
@@ -629,6 +689,9 @@ private struct PickerChip: View {
                 .helpWhenClosed(name, open: showing)
         }
         .buttonStyle(.plain)
+        // The words on the chip, set explicitly so both platforms read the same sentence.
+        .accessibilityLabel(chosen?.label ?? emptyLabel)
+        .accessibilityIdentifier(identifier ?? "")
         .popover(isPresented: $showing) { list }
     }
 

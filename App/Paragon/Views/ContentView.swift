@@ -542,6 +542,10 @@ struct NoteListView: View {
             if note.kind == .area || note.kind == .project {
                 NoteGoalMenu(model: model, note: note)
             }
+            if note.kind == .project {
+                // Build 269: the same choices as **In area…** at the top of the project.
+                ProjectAreaMenu(model: model, note: note)
+            }
             if model.canArchive(note) {
                 Button("Archive") { model.archive(note) }
             }

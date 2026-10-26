@@ -9,6 +9,8 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Target date** — the date a goal should be reached by. Set it with **Set a target date…** at the top of the goal.
 - **Measure** — one line on a goal that says how you will know it is reached. Set it with **Set a measure…** at the top of the goal. An aspiration can have one too.
 - **Serves** — the link from a piece of work up to what it is for. A project serves a goal. A goal or an area serves an aspiration. Set it with the **Serves…** button at the top of a note.
+- **Add a project…** — a button on a goal. It makes a new project that already serves the goal. You stay on the goal.
+- **Add a goal…** — a button on an aspiration. It makes a new goal that serves the aspiration. The new goal has no target date yet; give it one with **Set a target date…**.
 
 ## Your notes
 
@@ -25,6 +27,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Due after its goal** — a project whose deadline is later than its goal's target date. Shown in orange.
 - **Area** — a part of life you keep looking after and that never finishes, like "Health" or "Home". Shown in pink.
 - **Sub-area** — an area that is part of another area, like "Yoga" inside "Health". Set it with **Part of…** at the top of the area.
+- **In area** — the area a project is part of, like "Health". Set it with **In area…** at the top of the project, or on its right-click menu. It is kept as `area:` in the settings block. Only this line puts a project in an area; a `[[Health]]` link in the text does not.
 - **Resource** — reference material you want to keep, like a packing list. Shown in blue.
 - **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way.
 - **Daily note** — one note for each day. It holds that day's plan, tasks and **Looking back**.
@@ -38,7 +41,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Done** — finished, and it did what it was for.
 - **Missed** — it is over, and it did not happen.
 - **Dropped** — you decided not to do it. Shown in grey, not orange, because it was a decision and not a failure.
-- **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 21 October".
+- **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 21 October". In **Projects**, the finished groups put the newest ending first, each box shows its day, and the **Done** heading says how many of its projects ended this year.
 
 ## Tasks
 

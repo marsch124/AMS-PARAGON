@@ -242,10 +242,9 @@ public extension NoteIndex {
         let live = health.subgoals
             .sorted(by: NoteIndex.byTargetThenTitle)
             .map { chainGoal(of: $0, today: today, calendar: calendar) }
-        let area = aspiration.area.flatMap { reference in
-            notes(kind: .area).first { $0.title.localizedCaseInsensitiveCompare(reference) == .orderedSame }
-                ?? note(matching: reference).flatMap { $0.kind == .area ? $0 : nil }
-        }
+        // `area(named:)` is the one resolver since build 269; this was the rule it was moved from.
+        // Not called `area`: a local of that name would hide the method it is made from.
+        let homeArea = aspiration.area.flatMap { reference in self.area(named: reference) }
         // `serving` drops everything that has ended, so an ended **sub-goal** is not in
         // `health.subgoals` at all — it is in `endedNotes`, together with the ended projects.
         // Splitting them apart here is what a failing test caught: `endedGoals` was always
@@ -258,7 +257,7 @@ public extension NoteIndex {
         let endedProjects = ended.filter { $0.declaredKind != .goal }.map(ChainProject.init)
         let activity = NoteIndex.activity(health: health, projects: projects, finished: endedProjects)
         return AspirationChain(note: aspiration,
-                               area: area,
+                               area: homeArea,
                                goals: live,
                                projects: projects + endedProjects,
                                areas: health.areas,

@@ -1062,7 +1062,7 @@ struct PlannerActionsView: View {
                           tint: ChainTint.forGoal(named: goal, in: model.index))
         }
         if let area = note.area {
-            return Serves(title: model.index.note(matching: area)?.displayTitle ?? area,
+            return Serves(title: model.index.area(named: area)?.displayTitle ?? area,
                           symbol: ChainSymbol.area, tint: ParaKind.area.tint)
         }
         return nil

@@ -54,6 +54,11 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
     /// The deadline is later than the target date of the goal it is meant to deliver — the
     /// review's own `dueAfterGoal`.
     public var dueAfterGoal: Bool
+    /// The day it ended, from its `ended:` line (build 262). Nil while it is still running —
+    /// a line left behind on a project that was set active again by hand is not a fact about
+    /// it — and nil for a project that ended before build 262 and so has no day. A day is
+    /// read, never guessed (build 269).
+    public var ended: DateOnly?
 
     public var id: String { note.relativePath }
 
@@ -110,6 +115,8 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
         } else {
             dueAfterGoal = false
         }
+        let standing = note.noteStatus
+        ended = (standing.isEnded || standing == .archived) ? note.endedDate : nil
     }
 
     /// Something about it is late or cannot work: an overdue task, a passed deadline, or a
@@ -160,7 +167,8 @@ public struct ProjectGroup: Identifiable, Equatable, Sendable {
     }
 
     public var heading: Heading
-    /// In the order they were handed in, which is his own hand order.
+    /// In the order they were handed in, which is his own hand order. In Done, Missed, Dropped
+    /// and Archived the newest ending comes first instead (build 269, `newestFirst`).
     public var lines: [ProjectLine]
 
     public var id: String {
@@ -200,6 +208,49 @@ public struct ProjectGroup: Identifiable, Equatable, Sendable {
         groups.reduce(0) { $0 + $1.needsALookCount }
     }
 
+    // MARK: Endings, newest first (build 269)
+
+    /// How many of its projects ended in today's calendar year, 1 January to 31 December — a
+    /// calendar year, as the weekly bars use calendar weeks (build 255). Only a written
+    /// `ended:` day counts: a project that ended before build 262 has no day and is never
+    /// guessed into this year.
+    public func endedThisYear(today: DateOnly) -> Int {
+        lines.filter { $0.ended?.year == today.year }.count
+    }
+
+    /// "4 this year". Nil for none: "0 this year" would read as an answer (build 141).
+    public static func thisYearText(_ count: Int) -> String? {
+        count > 0 ? "\(count) this year" : nil
+    }
+
+    /// What the heading says after its count: "4 this year" on **Done** alone, nil on every
+    /// other heading. A count of missed or dropped projects would read as a telling-off — the
+    /// lesson of build 199's "Nothing serves these yet" — so those two get the order and the
+    /// day on each box, and no count.
+    public func thisYearCaption(today: DateOnly) -> String? {
+        guard case .ended(.done) = heading else { return nil }
+        return ProjectGroup.thisYearText(endedThisYear(today: today))
+    }
+
+    /// An ended group's projects with the newest ending on top, then the ones with no day in
+    /// the order they were handed in (his hand order). Two lists put together, and the dated
+    /// ones in a **full** order — the later day first, on the same day the hand order — so the
+    /// result never depends on whether `sort` keeps ties in place, which Swift does not promise
+    /// (build 225).
+    static func newestFirst(_ lines: [ProjectLine]) -> [ProjectLine] {
+        var dated: [(day: DateOnly, place: Int)] = []
+        var undated: [ProjectLine] = []
+        for (place, line) in lines.enumerated() {
+            if let day = line.ended {
+                dated.append((day: day, place: place))
+            } else {
+                undated.append(line)
+            }
+        }
+        dated.sort { $0.day != $1.day ? $0.day > $1.day : $0.place < $1.place }
+        return dated.map { lines[$0.place] } + undated
+    }
+
     public static let notLinkedTitle = "Not linked to an aspiration"
     public static let noGoalTitle = "Projects with no goal"
 }
@@ -227,9 +278,12 @@ public extension NoteIndex {
     /// - **Done**, **Missed**, **Dropped**, then **Archived** for the rare note whose status says
     ///   archived but which still sits in the Projects folder.
     ///
-    /// Inside a group the projects keep the order they were handed in, which is his own hand
-    /// order. Groups with nothing in them are left out. Every project lands in exactly one
-    /// group, so no list ever draws it twice (builds 71–74).
+    /// Inside a live group the projects keep the order they were handed in, which is his own
+    /// hand order. Inside Done, Missed, Dropped and Archived the newest ending is on top, and
+    /// the projects with no `ended:` day sit at the bottom in his hand order (build 269):
+    /// nothing is arranged by hand there, and what ended last is what he looks for. Groups
+    /// with nothing in them are left out. Every project lands in exactly one group, so no list
+    /// ever draws it twice (builds 71–74).
     func projectGroups(_ projects: [Note], today: DateOnly = .today()) -> [ProjectGroup] {
         var underAspiration: [String: [ProjectLine]] = [:]
         var aspirationNotes: [String: Note] = [:]
@@ -263,7 +317,7 @@ public extension NoteIndex {
         if !noGoal.isEmpty { groups.append(ProjectGroup(heading: .noGoal, lines: noGoal)) }
         for status in NoteStatus.endings + [.archived] {
             if let lines = ended[status], !lines.isEmpty {
-                groups.append(ProjectGroup(heading: .ended(status), lines: lines))
+                groups.append(ProjectGroup(heading: .ended(status), lines: ProjectGroup.newestFirst(lines)))
             }
         }
         return groups

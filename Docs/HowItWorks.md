@@ -49,7 +49,7 @@ tags: [sport, training]
 
 Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `emoji` (a project's own emoji, see **The Projects list**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
-Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`. On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`.
+Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`. On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`.
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -65,7 +65,7 @@ Under that, everything else a note can be given as it is made, drawn as chips yo
 
 - **Aspiration** — the aspiration it serves is not asked for: an aspiration is the top of the chain. Only its name and its tags.
 - **Goal** — a **Target** date and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The two buttons carry the two icons: the star for an aspiration, the target for a goal with a date. The measure is not asked for here. Set it later with **Set a measure…** at the top of the goal.
-- **Project** — the goal it delivers.
+- **Project** — the goal it delivers, and **In area…**: the area it is part of. The list also has a field to make a new area without leaving the screen: type the name and press **Add area**. A name already in use chooses that area.
 - **Area** — the area it is part of, and the aspiration it serves.
 - **Tags** — the whole list of tags you already have, with a tick on the ones you pick and a number beside each saying how much of your vault carries it, so a tag that means the same as one you already use but is spelled differently stands out. A field at the top makes a tag that does not exist yet. It is the same list the tag button in a note's header opens.
 - **Template** — which template to start from, when that kind has more than one.
@@ -90,6 +90,19 @@ A name another note already uses is refused. In Apple Reminders the list follows
 ### Which aspiration an area serves
 
 An area can say which aspiration it belongs to, and a project which goal it delivers: **Serves…** at the top of the note, or right-click it in the list. A project is offered the dated goals first, an area the aspirations first. That is what makes Endurance the home of "an endurance athlete still racing at seventy" rather than leaving the aspiration floating on its own. An area is allowed to serve nothing — it is a standard you keep up, not a path to an outcome — so the review never asks about an area without one.
+
+### Which area a project is in
+
+Open a project and press **In area…** at the top. Pick an area, for example Health. The button then says **In Health**, in pink. A sub-area is listed after its own area, as **Health › Yoga**. **In no area** takes the project out again, and **Open Health** goes to the area.
+
+- The same list is on the right-click menu of a project in the **Projects** list (press and hold on the iPhone) › **In area**.
+- On the **New note** screen, a new project has the same **In area…** button. Its list also has a field to make a new area without leaving the screen: type the name and press **Add area**. A name already in use chooses that area; no second one is made.
+- It is kept in the note's settings block as `area: Health`. You can also write that line yourself.
+- **Only this line puts a project in an area.** A `[[Health]]` link in the project's text, or Health in its `related:` line, links the two notes, but the project is not in Health because of it.
+- If the line names an area that does not exist, for example after a spelling mistake, the button shows the name in grey, and its list says **No area is called …**. Pick the right area to fix it.
+- If the area it names has been archived, the button says **(archived)** after the name, and its list says the area is archived and offers to open it.
+- While notes are still coming from iCloud, the button is orange, and its list says the area may still be coming from iCloud instead of **No area is called …**. Wait for it to arrive before you change anything.
+- On the **Map**, the project sits under the area you chose. The **Projects** list does not change: it stays grouped by aspiration.
 
 ## The Projects list
 
@@ -144,23 +157,37 @@ rounded card.
   "last task finished about a month ago". A project where no finished task carries a date
   shows no bars.
 - **Pills**: a small bar with "2 of 6 finished", the next task's time and date, **On hold**,
-  the deadline ("Deadline in 11 days"), and the first two tags.
+  the deadline ("Deadline in 11 days"), and the first two tags. A project that has ended shows
+  the day it ended instead of the dates (see **Finished projects, newest first**).
 
 **Red** is only for a date that has passed: the next task's date, the deadline, or "2 overdue"
 (open tasks in the project whose date has passed). **Due after its goal** is orange: the
 project's deadline is later than its goal's target date. A heading shows an orange ⚠ and a
 number when a project in it has one of these. "No next action" is never orange.
 
+### Finished projects, newest first
+
+- In **Done**, **Missed**, **Dropped** and **Archived**, the project that ended last is at the top.
+- The order comes from the `ended:` line, the day you marked the project. Two projects that ended on the same day keep your own order.
+- A project that ended before build 262 has no `ended:` line. Those sit at the bottom of their group, in your own order.
+- Each box in these groups shows the day it ended in a small grey pill, for example **20 October**. A day in another year also shows the year. A project with no day has no pill.
+- The **Done** heading also says how many of the projects in it ended this year, for example **Done 6 · 4 this year**. "This year" means since 1 January. Only projects with an `ended:` day are counted. A project you have archived is no longer in the Projects list, so it is not counted. When none ended this year, nothing is shown.
+- **Missed** and **Dropped** do not get this count. Only the order and the day.
+- A finished box does not show its open task's date, so the day it ended is the only date on it.
+- To change the day of a project in **Done**, **Missed** or **Dropped**, open the project and press the line under its header (see **How a note stands**). In **Archived** there is no such line: change the `ended:` line in the note's settings block.
+
 ### What you can do from the list
 
 - **Click** a project to open it, as before.
-- **Right-click** (press and hold on the iPhone): **Rename…**, **Serves**, **Set active**,
+- **Right-click** (press and hold on the iPhone): **Rename…**, **Serves**, **In area**, **Set active**,
   **Mark done**, **Mark missed**, **Mark dropped**, **Put on hold**, **Archive** and **Move to
   Trash…**. Only the lines that would change something are shown. A project you mark done
-  moves into **Done** at the bottom.
+  moves into **Done** at the bottom of the list, where the projects are in the order they
+  ended (see **Finished projects, newest first**).
 - **Drag** a project up or down inside its group to arrange it by hand. A drag never moves a
   project into another group, and the projects in the other groups keep their places. The
-  order is written into the note as `order:`, so the Mac and the iPhone agree.
+  order is written into the note as `order:`, so the Mac and the iPhone agree. **Done**,
+  **Missed** and **Dropped** cannot be arranged: they are in the order the projects ended.
 - Drop a task from another list onto a project to move the task into it.
 - **Search** in Projects shows the plain list of every project, as before. While a search is
   shown, projects cannot be dragged: the list then holds only the matches, so a new order could
@@ -283,7 +310,7 @@ There are **two rows in the sidebar**, because there are two different things.
 
 **Goals** says what you will have done, and by when. A goal has a target date, a measure of what success looks like, and the aspiration it serves, chosen in the **Serves aspiration** box. Press **Goal** at the top of the New note screen.
 
-Projects and areas link to a goal with the `goal:` line. A goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "Nothing serves this", "Past its target date" or "Done".
+A project or an area serves a goal with the `goal:` line. Press **Serves…** at the top of the project or area to choose the goal, or press **Add a project…** on the goal itself (see below). A goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "No project or area serves this", "Past its target date" or "Done".
 
 Both are goal notes in your vault, so nothing was moved or rewritten. The line that tells them apart is `horizon:`, and it is the same line as before.
 
@@ -302,6 +329,20 @@ If the measure was changed on your other device while the box was open, **Set** 
 A new date changes the weekly review at once: "Past its target date" and "Due after its goal" are worked out from it.
 
 On the Mac **Set a target date…** and **Set a measure…** are also on the goal's page in **Goals**, under its name, and an aspiration's page in **Aspirations** has **Set a measure…**. There they are small capsules: grey with a dashed line while nothing is set, and solid when something is. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
+
+### Adding a project from its goal
+
+A goal can make the projects that serve it, and an aspiration can make the goals that serve it. You stay on the page you are on.
+
+- Open a goal. Under the projects that serve it there is **Add a project…**. Press it, write the name, and press **Add project** or Return.
+- The new project appears in the list at once, and it already serves the goal: its `goal:` line names the goal. Press it to open it. Press **Add a project…** again for the next one.
+- On an aspiration the button is **Add a goal…**, and the box has **Add goal**. The new goal serves the aspiration. It has no target date yet: open it and press **Set a target date…**.
+- An aspiration makes a goal, never a project. The work then goes under that goal, which is the step that gives it a date.
+- When nothing serves a goal yet, its note says "Nothing serves this goal yet." and shows the same button under it. On the Mac, the goal's page in **Goals** says "No project delivers this goal yet." in orange when no project serves it, and the button is at the foot of that list. An aspiration with nothing under it says "Nothing works towards this yet."
+- If a project or goal with that name is already there, the box says so in orange and keeps your words. Change the name and press **Add project** or **Add goal** again.
+- **Cancel** closes the box and makes nothing.
+
+Where the button is: at the foot of a goal's own note, on the Mac and on the iPhone. On the Mac it is also on the goal's page in **Goals**, under its projects, and on an aspiration's page in **Aspirations**, under its goals. Inside an aspiration's chain, a goal with no project yet has **Add a project…** under the orange line that says no project delivers it. On the iPhone, **Add a goal…** is also under an aspiration when you open it in **Aspirations**.
 
 ### How a note stands
 
@@ -348,6 +389,8 @@ working towards it appears beside it, in order:
 - the **projects** under each goal — finished ones struck through;
 - the **next action** on each project. **No next action** in orange means there is nothing on
   that project you could start.
+
+**Add a goal…** under the goals makes a new goal that serves the aspiration, and **Add a project…** under a goal with no project yet makes a project for it. You stay on the aspiration.
 
 Each row says how many goals serve it, **when you last looked at it** ("Looked at 12 days ago",
 or "Never looked at"), and a mark in orange when one of its goals needs attention. An
@@ -811,6 +854,8 @@ A goal is flagged when nothing serves it, when its target date has passed, when 
 
 The Map draws what serves what: goals at the top, then areas and projects, then open tasks and resources. Notes without a goal and archived notes sit in dashed boxes. Click a box to highlight its connections and open the note.
 
+A project sits under the area its `area:` line names — the line **In area…** writes. A project that only links to an area in its text, like `[[Health]]`, does not sit under that area.
+
 The Map and the Goals screen answer the same question — what serves what — and they are built from the same reading of your notes, so they can never tell you different things. The difference is the shape. The Map is the picture: it shows the whole vault at once, including the parts that hang from nothing. The **Aspirations** screen is the list: one aspiration at a time, with dates, per cents and next actions a drawing has no room for, and **Goals** is every goal with a date in one list.
 
 ### What each box says
@@ -923,7 +968,7 @@ Type two square brackets in any note and a list of your notes appears under the 
 
 **Linking to a note you have not written yet.** Write the link anyway. It appears under **Not made yet** in the Linked notes section, and clicking it — or ⌘-clicking the link in the text — offers to make that note there and then, with the link's own words as its title. Choose whether it should be a goal, project, area or resource and it is created, opened, and the link is a real link from that moment.
 
-**What counts as a link.** Both `[[double brackets]]` in the text and the `goal:`, `area:`, `parent:` and `related:` lines at the top of a note.
+**What counts as a link.** Both `[[double brackets]]` in the text and the `goal:`, `area:`, `parent:` and `related:` lines at the top of a note. All of them show under **Linked notes**. But which area a project is in is decided only by its `area:` line, the one **In area…** writes: a `[[Health]]` in the text links the two notes and does not put the project in Health.
 
 **Renaming.** If you rename a note, every `[[link]]` to it is rewritten. Links are for connections that cut across the structure — a resource three projects use, a person who turns up in two areas — while Goals, Areas and Projects are the structure itself.
 
