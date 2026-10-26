@@ -3,7 +3,7 @@ import ParagonCore
 
 /// The weekly review: inbox, overdue work, and a health check of every active project and area.
 ///
-/// **Build REVIEW: every part under the summary folds, and starts folded.** His words after the
+/// **Build 266: every part under the summary folds, and starts folded.** His words after the
 /// first week with steps 7 and 8: *"it's so many lines. I would say it's like 50 lines or
 /// more, and that is a bit scary."* The first look is now the summary and one short heading per
 /// part. Each heading says how many things are in its part, so nothing is hidden by folding it
@@ -107,7 +107,7 @@ struct ReviewView: View {
             // They used to appear only when they had something in them, so the walk through
             // the review read 1, 2, 4 on a good week and you could not tell a step you had
             // finished from one the app had decided not to show you. Build 100's rule: an
-            // absence has to say it is an absence. Folded (build REVIEW), a step is still its
+            // absence has to say it is an absence. Folded (build 266), a step is still its
             // heading, and the heading still counts what is in it.
             Section {
                 if isOpen("2") {
@@ -274,7 +274,7 @@ struct ReviewView: View {
         .accessibilityIdentifier("review.list")
     }
 
-    // MARK: Folding (build REVIEW)
+    // MARK: Folding (build 266)
 
     /// The open set for this platform.
     private var openText: Binding<String> { isPhone ? $phoneOpenText : $deskOpenText }
@@ -318,7 +318,7 @@ struct ReviewView: View {
     }
 }
 
-/// The heading of one part of the Weekly review (build REVIEW): **the whole line is the
+/// The heading of one part of the Weekly review (build 266): **the whole line is the
 /// button** (`FoldButton`, build 205), and the label fills the line, because a short button
 /// beside a `Spacer` gets a wrong frame on the Mac (build 247).
 ///
@@ -365,7 +365,7 @@ struct ReviewPartHeading: View {
 }
 
 /// **Open all** while any part of the review is folded, **Close all** once every part is open
-/// (build REVIEW). One button whose words say what it will do now. The same two words as the
+/// (build 266). One button whose words say what it will do now. The same two words as the
 /// button at the top of Help, which does the same thing to that page's sections — one action,
 /// one pair of words (build 165).
 struct ReviewOpenAllButton: View {

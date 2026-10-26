@@ -722,7 +722,7 @@ final class ScreenTests: XCTestCase {
     /// opens on depends on the day the test runs (on Monday and Tuesday it is the week before),
     /// so the test only asks that ‹ changes the week and › brings the same one back. The step
     /// sits below six others, so the list is scrolled until it shows (`reveal`). The arrows are
-    /// found among buttons (build 249). The review starts folded (build REVIEW), so the step is
+    /// found among buttons (build 249). The review starts folded (build 266), so the step is
     /// opened first.
     func testTheWeekCanBeLookedBackAt() {
         go(to: .review)
@@ -756,7 +756,7 @@ final class ScreenTests: XCTestCase {
     /// in the same box as Calendar › Week. Pressed at its frame and found among buttons
     /// (build 249); the field closing is the sign Return was taken, and the box's own label —
     /// set explicitly, one sentence on both platforms — is the proof the words were kept. The
-    /// review starts folded (build REVIEW), so the step is opened first.
+    /// review starts folded (build 266), so the step is opened first.
     func testTheComingWeeksGoalCanBeWrittenInTheReview() {
         go(to: .review)
         openReviewPart("8")
@@ -802,7 +802,16 @@ final class ScreenTests: XCTestCase {
                 : window.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.6))
             spot.scroll(byDeltaX: 0, deltaY: attempt < tries / 2 ? -300 : 300)
             #else
-            if target.exists && target.isHittable { return target }
+            // **Clear of the tab bar, not only on screen** (build 266's first CI run): with the
+            // review folded, step 8's box came to rest low on the screen, under the see-through
+            // tab bar. `isHittable` said yes, the press landed on the **Actions** tab, and the
+            // test failed for its own reasons (build 190). The middle of the element has to be
+            // above the bar before it counts as revealed.
+            let bar = app.tabBars.firstMatch
+            let barTop = bar.exists ? bar.frame.minY : CGFloat.greatestFiniteMagnitude
+            if target.exists && target.isHittable && target.frame.midY < barTop - 12 {
+                return target
+            }
             app.swipeUp()
             #endif
         }
@@ -1386,7 +1395,7 @@ final class ScreenTests: XCTestCase {
                                     "tab.browse": "Browse"]
     #endif
 
-    /// The Weekly review folds step by step (build REVIEW). His words: *"it's so many lines …
+    /// The Weekly review folds step by step (build 266). His words: *"it's so many lines …
     /// that is a bit scary."* Every part starts folded, so step 7's week bar is not there at
     /// first; its heading names the week it shows rather than "the week"; pressing the heading
     /// opens the step and pressing it again folds it; and **Open all** in the summary opens
@@ -1427,7 +1436,7 @@ final class ScreenTests: XCTestCase {
                       "Open all was pressed and step 7 stayed folded. On screen: \(visibleTexts())")
     }
 
-    /// Opens one part of the Weekly review, which starts folded (build REVIEW). The heading is
+    /// Opens one part of the Weekly review, which starts folded (build 266). The heading is
     /// found among buttons (build 249) and scrolled to first, in case it is below the fold.
     private func openReviewPart(_ part: String) {
         let heading = reveal(app.buttons.matching(identifier: "review.part.\(part)").firstMatch)

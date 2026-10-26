@@ -14,7 +14,7 @@ import ParagonCore
 /// their click (builds 71–74), and an untagged one also never takes the selection fill, so the
 /// explicit colours below stay readable (build 201).
 ///
-/// **Build REVIEW: the heading names the week the step shows.** It said "7. Look back at the
+/// **Build 266: the heading names the week the step shows.** It said "7. Look back at the
 /// week" while, on a Monday, the summary above it said "9 tasks finished in the last 7 days" —
 /// and he could not tell which week the step was about. It now says "7. Look back at last week"
 /// (or "this week", or "week 41"), through `WeekLook.weekName`, the one place a week is named
@@ -252,7 +252,7 @@ struct WeekGoalStep: View {
     /// at midnight among other times — so a review left open from Tuesday to Wednesday moves on
     /// to next week like step 7 does. A view with nothing to watch is drawn once (review of 264).
     @EnvironmentObject private var model: AppModel
-    /// Whether the step is open, kept by `ReviewView` with the rest of the review (build REVIEW).
+    /// Whether the step is open, kept by `ReviewView` with the rest of the review (build 266).
     @Binding var isOpen: Bool
 
     var body: some View {
