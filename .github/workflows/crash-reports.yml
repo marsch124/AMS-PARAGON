@@ -85,6 +85,17 @@ jobs:
                             "appPlatform", "devicePlatform", "buildBundleId"):
                   if attributes.get(field) is not None:
                       print(f"  {field}: {attributes[field]}")
+              # Which build crashed. CFBundleVersion is "<BuildStamp.number>.<run number>", so the
+              # part before the dot is the build number shown at the foot of the sidebar.
+              build = get(f"/v1/betaFeedbackCrashSubmissions/{submission['id']}/build",
+                          must=False, **{"fields[builds]": "version,uploadedDate"})
+              build_attributes = ((build or {}).get("data") or {}).get("attributes") or {}
+              if build_attributes.get("version"):
+                  version = build_attributes["version"]
+                  print(f"  build: {version.split('.')[0]}  (CFBundleVersion {version})")
+                  attributes["build"] = version
+              else:
+                  print("  build: (App Store Connect did not say)")
               # Apple keeps no log for some reports (older ones especially). That report is
               # still listed, with its date and comment, and the run carries on.
               log = get(f"/v1/betaFeedbackCrashSubmissions/{submission['id']}/crashLog", must=False)
