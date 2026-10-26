@@ -13,11 +13,21 @@ import ParagonCore
 /// buttons of their own — the arrows, a day's line, an ended project. A tagged row would take
 /// their click (builds 71–74), and an untagged one also never takes the selection fill, so the
 /// explicit colours below stay readable (build 201).
+///
+/// **Build REVIEW: the heading names the week the step shows.** It said "7. Look back at the
+/// week" while, on a Monday, the summary above it said "9 tasks finished in the last 7 days" —
+/// and he could not tell which week the step was about. It now says "7. Look back at last week"
+/// (or "this week", or "week 41"), through `WeekLook.weekName`, the one place a week is named
+/// in a sentence (build 264), and it follows the arrows. The step folds like every other part
+/// of the review; folded, nothing below the heading is worked out at all.
 struct WeekLookStep: View {
     @EnvironmentObject private var model: AppModel
     /// The week the arrows chose, or nil for the one `WeekLook.weekToShow(today:)` picks. Kept
     /// by `ReviewView`, whose state is certain to outlive a scroll of the list.
     @Binding var chosenWeek: WeekRef?
+    /// Whether the step is open. `ReviewView` keeps it with every other part of the review in
+    /// one stored string, so **Open all** and this heading can never disagree.
+    @Binding var isOpen: Bool
 
     private var thisWeek: WeekRef { WeekRef(containing: DateOnly.today()) }
     /// Worked out each time, so a Mac left open from Tuesday to Wednesday moves on by itself.
@@ -27,58 +37,74 @@ struct WeekLookStep: View {
     /// contradict the heading above it (review of 263).
     private var weekWords: String { shownWeek == thisWeek ? "this week" : "that week" }
 
+    /// "7. Look back at last week" — the week shown, named the way step 8 and **Calendar ›
+    /// Week** name a week, so it changes with the arrows.
+    private var heading: String {
+        "7. Look back at " + WeekLook.weekName(shownWeek, today: DateOnly.today())
+    }
+
     var body: some View {
-        let look = model.index.weekLook(for: shownWeek)
         Section {
-            VStack(alignment: .leading, spacing: 10) {
-                weekBar
-                goalBox(look.goal)
-                WeekDayBars(look: look)
-                finishedLine(look)
-            }
-            .padding(.vertical, 4)
-
-            if eveningLines(look).isEmpty {
-                Text("No evening lines \(weekWords). **Close the day** writes them.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(eveningLines(look)) { line in
-                    EveningLineRow(line: line)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                timerLine(look)
-                ForEach(look.endedProjects) { project in
-                    EndedProjectRow(project: project, weekWords: weekWords)
-                }
-                if !look.finished.isEmpty {
-                    SectionLabel(title: "What it served")
-                        .padding(.top, 4)
-                    ForEach(servedShown(look)) { served in
-                        ServedRow(served: served)
-                    }
-                    if let more = servedMore(look) {
-                        Text(more)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .padding(.vertical, 4)
-
-            // Build 100's rule: a note not yet on this device must never read as a quiet week.
-            if !model.notesWaitingForCloud.isEmpty {
-                Label(cloudText, systemImage: "icloud")
-                    .font(.callout)
-                    .foregroundStyle(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
+            if isOpen {
+                content(model.index.weekLook(for: shownWeek))
             }
         } header: {
-            Text("7. Look back at the week")
+            ReviewPartHeading(title: heading, isOpen: $isOpen, part: "7")
         } footer: {
-            Text("Press a day's line to open that day's note. The arrows show earlier weeks.")
+            if isOpen {
+                Text("Press a day's line to open that day's note. The arrows show earlier weeks.")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// The step's rows. A function, so the week is only worked out while the step is open; the
+    /// rows are each their own row in the list, as they were when they sat in the body.
+    @ViewBuilder
+    private func content(_ look: WeekLook) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            weekBar
+            goalBox(look.goal)
+            WeekDayBars(look: look)
+            finishedLine(look)
+        }
+        .padding(.vertical, 4)
+
+        if eveningLines(look).isEmpty {
+            Text("No evening lines \(weekWords). **Close the day** writes them.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        } else {
+            ForEach(eveningLines(look)) { line in
+                EveningLineRow(line: line)
+            }
+        }
+
+        VStack(alignment: .leading, spacing: 8) {
+            timerLine(look)
+            ForEach(look.endedProjects) { project in
+                EndedProjectRow(project: project, weekWords: weekWords)
+            }
+            if !look.finished.isEmpty {
+                SectionLabel(title: "What it served")
+                    .padding(.top, 4)
+                ForEach(servedShown(look)) { served in
+                    ServedRow(served: served)
+                }
+                if let more = servedMore(look) {
+                    Text(more)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+
+        // Build 100's rule: a note not yet on this device must never read as a quiet week.
+        if !model.notesWaitingForCloud.isEmpty {
+            Label(cloudText, systemImage: "icloud")
+                .font(.callout)
+                .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -226,21 +252,28 @@ struct WeekGoalStep: View {
     /// at midnight among other times — so a review left open from Tuesday to Wednesday moves on
     /// to next week like step 7 does. A view with nothing to watch is drawn once (review of 264).
     @EnvironmentObject private var model: AppModel
+    /// Whether the step is open, kept by `ReviewView` with the rest of the review (build REVIEW).
+    @Binding var isOpen: Bool
 
     var body: some View {
         let today = DateOnly.today()
         let week = WeekLook.goalWeek(today: today)
         Section {
-            WeekGoalBox(week: week, identifier: "review.nextGoal", divided: false)
-                .padding(.vertical, 4)
-                // The field's **Cancel** and **Done** sit in one List row: borderless, or on the
-                // phone one press would press both. The box's own button keeps its `.plain`.
-                .buttonStyle(.borderless)
+            if isOpen {
+                WeekGoalBox(week: week, identifier: "review.nextGoal", divided: false)
+                    .padding(.vertical, 4)
+                    // The field's **Cancel** and **Done** sit in one List row: borderless, or on the
+                    // phone one press would press both. The box's own button keeps its `.plain`.
+                    .buttonStyle(.borderless)
+            }
         } header: {
-            Text("8. Write the goal for \(WeekLook.weekName(week, today: today))")
+            ReviewPartHeading(title: "8. Write the goal for \(WeekLook.weekName(week, today: today))",
+                              isOpen: $isOpen, part: "8")
         } footer: {
-            Text("It is shown on **Today** during that week, and at the top of **Calendar \u{203A} Week**.")
-                .fixedSize(horizontal: false, vertical: true)
+            if isOpen {
+                Text("It is shown on **Today** during that week, and at the top of **Calendar \u{203A} Week**.")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

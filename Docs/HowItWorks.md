@@ -414,6 +414,8 @@ The per cent never says 100 until everything really is finished, and never says 
 
 - **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
 
+- **Now and Then** on **Today**: on a day with a plan, two short lines under the date say where you are in it. The first starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**. On its right is a small orange button with a clock. Press it and the focus timer starts on that block, and the bar appears at the bottom, as usual. While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused. The dot also shows when the clock runs on a task with the same name as the block, such as the task the block was made from. The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button. The lines change by themselves when a block starts or ends. When nothing is on now, only the **Then** line is shown. When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before. Only plan blocks are shown here; your calendar events are under **Calendar** further down. On the Mac, hold the pointer over the clock button and its name appears.
+
 - **Start the day** shows what is overdue, what is due today, and your next actions. At the top are three things you already know this morning:
   - **Last evening you wrote**: the line you wrote yesterday in **Close the day**, under **How was today?**. If you wrote nothing, this part is not shown. If yesterday's note is still coming from iCloud, an orange line says so. The line belongs to the day on which you pressed **Done**: if you close the day after midnight, it goes into the new day's note, and the next morning nothing is shown here.
   - **This week:** and the goal for the week, the same line as on **Today**. It is not shown when no goal is written. If this week's note is still coming from iCloud, an orange line says so. You write the goal on **Calendar › Week**.
@@ -445,7 +447,7 @@ The per cent never says 100 until everything really is finished, and never says 
   - **How was today?**: one line, kept in that day's daily note under a heading called
     **Looking back**. It is ordinary text: nothing counts it and it never becomes a task. The
     next morning, **Start the day** shows it under **Last evening you wrote**, and step 7 of the
-    **Weekly review**, **Look back at the week**, shows it again. Clear it and the heading goes
+    **Weekly review**, which looks back at a whole week, shows it again. Clear it and the heading goes
     too.
   - **What you did today**: how many tasks you finished, and what they went towards — an
     aspiration, a goal, an area, or the project itself — with how many for each. The names of
@@ -587,6 +589,7 @@ today's daily note, so you can see later how long things really took.
   this** at the bottom of the list. Or right-click the task (press and hold on the iPhone) and
   choose **Focus on this**, the first line of the menu.
 - A block in **Plan the day** has **Focus on this** on its right-click menu too.
+- On **Today**, the line that starts with **Now** has a small orange clock button. It starts the focus timer on the plan block you are in.
 - **Focus on this** is not offered inside **Start the day** and **Close the day**, nor in the
   Mac's separate **Plan the day** window (⇧⌘P), because the bar cannot be seen there. Nor is it
   offered on a task in a work note.
@@ -690,9 +693,17 @@ Today's date, then one line saying how many tasks you finished in the last seven
 
 **When there is nothing to look at, one green capsule says so.** That matters: a row of zeroes reads as if the app had failed to count, and it is easy to miss that a week was simply a good one.
 
+### Every part folds
+
+Everything under the summary folds away: **Due for a look**, steps 1 to 8, and **Projects with no goal**. The first time you open the review, every part is folded, so you see the summary and one short heading for each part. Press a heading to open that part, and press it again to fold it. PARAGON remembers what you opened. The iPhone and the Mac each remember this on their own.
+
+**A folded heading still says how much is in it.** "2. Reschedule or drop overdue tasks · 3" means three overdue tasks are waiting inside. When a part has nothing in it, the heading has no number at all, never a 0; open it and it says so in words, such as "Nothing is overdue". Steps 7 and 8 have no number: there is no list in them to work through.
+
+Under the summary is one button for all of them: **Open all** while any part is folded, **Close all** when every part is open.
+
 ### Due for a look
 
-Under the summary is **Due for a look**: everything whose review rhythm has come round.
+Under the summary is **Due for a look**: everything whose review rhythm has come round. Its heading says how many notes are due.
 
 Each level of the chain is on its own rhythm, because they do not change at the same speed:
 
@@ -713,22 +724,22 @@ Work that is over is never asked about: a project you dropped, a goal you missed
 
 ### The steps
 
-Every step is always on screen, even when it is empty — a step you have finished says "Inbox is empty" or "Nothing is overdue" rather than disappearing. A step that vanished was impossible to tell from one the app had decided not to show you.
+Every step's heading is always on screen, even when the step is empty. Open a step you have finished and it says "Inbox is empty" or "Nothing is overdue" rather than disappearing. A step that vanished was impossible to tell from one the app had decided not to show you.
 
 1. **Empty the inbox.** How many loose items are waiting. Press it to go to the Inbox and file them.
 2. **Reschedule or drop overdue tasks.** Every task whose date has passed, with the note it lives in. Tick it, move it, or drop it, straight from the row.
 3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
-5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one.
+5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one. It is there while the step is open.
 6. **Look over the areas.** The same row for each area.
-7. **Look back at the week.** The week that has just gone, from your own notes. See below.
+7. **Look back at last week.** A whole week, from your own notes. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
 8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
 
 Aspirations and goals with a date are two steps, not one. They are different questions asked at different speeds — the review rhythm says so, a goal every three months against an aspiration every six.
 
-Under the steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no number.
+Under the steps, when there are any, comes **Projects with no goal** — a loose end to tidy when you have time rather than a step in the walk, so it has no step number.
 
-### Look back at the week
+### Step 7: looking back at a week
 
 Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and step 8 looks forward again, at the coming week. Everything in step 7 comes from your own notes:
 
@@ -740,7 +751,7 @@ Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and step 8 looks 
 - **Projects that ended in the week**, with how they ended: **Done**, **Missed** or **Dropped**. Press one to open it.
 - **What it served**: what the week's finished tasks went towards — an aspiration, a goal, an area, or, when a task's note serves none of these, that note itself — the same way **Close the day** shows a single day. Tasks ticked in the days' own notes are one row, **Daily notes**. At most six rows, then "…and 3 more".
 
-**Which week it shows.** On Monday and Tuesday it shows the week that has just ended, because that is when a week is looked back on. From Wednesday it shows the week you are in. The arrows **‹** and **›** beside the week's name move one week at a time. **›** stops at the week you are in.
+**Which week it shows.** On Monday and Tuesday it shows the week that has just ended, because that is when a week is looked back on. From Wednesday it shows the week you are in. The heading of the step says which, for example **7. Look back at last week**. The arrows **‹** and **›** beside the week's name move one week at a time, and the heading changes with them. **›** stops at the week you are in.
 
 A task counts on the day of its `@done(…)` stamp — the day you ticked it. A task ticked without a stamp has no day and is not counted. While notes are still coming from iCloud, an orange line says so, because the numbers may still grow. When the week's own note has not arrived yet, the goal box says so in orange rather than "No goal was written".
 

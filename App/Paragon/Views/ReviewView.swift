@@ -2,11 +2,36 @@ import SwiftUI
 import ParagonCore
 
 /// The weekly review: inbox, overdue work, and a health check of every active project and area.
+///
+/// **Build REVIEW: every part under the summary folds, and starts folded.** His words after the
+/// first week with steps 7 and 8: *"it's so many lines. I would say it's like 50 lines or
+/// more, and that is a bit scary."* The first look is now the summary and one short heading per
+/// part. Each heading says how many things are in its part, so nothing is hidden by folding it
+/// (build 100), and **Open all** / **Close all** in the summary does every part at once.
 struct ReviewView: View {
     @EnvironmentObject private var model: AppModel
     /// The week step 7 looks at once its arrows are pressed (build 263). Kept here rather than
     /// in the step itself: this view's state certainly outlives a scroll of the list.
     @State private var lookedWeek: WeekRef?
+    /// The parts he has opened, one id per line (`ReviewView.parts`). **Folded by default**: the
+    /// review's length was the whole complaint. One string for every part, steps 7 and 8
+    /// included, so there is one answer to "is this open" — and its own key per platform, so
+    /// opening a step on the phone does not open it on the Mac (build 161's pair).
+    @AppStorage("reviewOpenParts") private var deskOpenText = ""
+    @AppStorage("reviewOpenPartsPhone") private var phoneOpenText = ""
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    /// A plain stub, so the body never carries an `#if` in the middle of a modifier chain
+    /// (build 148's lesson, and build 160's about this pair).
+    private var isPhone: Bool { false }
+    #endif
+
+    /// Every part that folds, in the order they are drawn. The id is also the screen test's
+    /// name for the heading: `review.part.<id>`.
+    static let parts = ["due", "1", "2", "3", "4", "5", "6", "7", "8", "noGoal"]
 
     /// The aspirations among the review's goals, and the dated goals. Two plain functions
     /// rather than work done inside the body: a `@ViewBuilder` takes views and nothing else
@@ -23,7 +48,13 @@ struct ReviewView: View {
         let report = model.index.review(config: model.config)
         let due = model.dueForReview()
         List(selection: model.noteSelection) {
-            Section { ReviewSummary(report: report, dueForReview: due.count) }
+            // **Never folded**: it is the week in one block, and it holds the one button that
+            // opens or closes every part below it (build 167: a control that governs what a
+            // column shows belongs in that column).
+            Section {
+                ReviewSummary(report: report, dueForReview: due.count)
+                ReviewOpenAllButton(opensAll: anyFolded(report)) { openOrCloseAll(report) }
+            }
 
             // **Build 172: the review rhythm.** Until now the app asked about one thing only —
             // a project not marked reviewed for a week. A goal could sit untouched for two
@@ -34,49 +65,65 @@ struct ReviewView: View {
             // two rows carrying the same selection tag is what made the Inbox unusable in
             // builds 71 to 74.
             Section {
-                if due.isEmpty {
-                    Label("Everything has been looked at recently", systemImage: "checkmark.circle")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(due) { item in
-                        ReviewDueRow(item: item)
+                if isOpen("due") {
+                    if due.isEmpty {
+                        Label("Everything has been looked at recently", systemImage: "checkmark.circle")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(due) { item in
+                            ReviewDueRow(item: item)
+                        }
                     }
                 }
             } header: {
-                Text("Due for a look")
+                ReviewPartHeading(title: "Due for a look", count: due.count,
+                                  isOpen: openBinding("due"), part: "due")
             } footer: {
-                Text("Right-click a row (long-press on the phone) for **Mark reviewed**, and it leaves this list. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
-                    .fixedSize(horizontal: false, vertical: true)
+                if isOpen("due") {
+                    Text("Right-click a row (long-press on the phone) for **Mark reviewed**, and it leaves this list. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
-            Section("1. Empty the inbox") {
-                if report.inboxOpenTasks == 0 {
-                    Label("Inbox is empty", systemImage: "checkmark.circle")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Button {
-                        model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
-                    } label: {
-                        Label("\(report.inboxOpenTasks) open items to file into projects or areas", systemImage: "tray")
+            Section {
+                if isOpen("1") {
+                    if report.inboxOpenTasks == 0 {
+                        Label("Inbox is empty", systemImage: "checkmark.circle")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button {
+                            model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
+                        } label: {
+                            Label("\(report.inboxOpenTasks) open items to file into projects or areas", systemImage: "tray")
+                        }
                     }
                 }
+            } header: {
+                ReviewPartHeading(title: "1. Empty the inbox", count: report.inboxOpenTasks,
+                                  isOpen: openBinding("1"), part: "1")
             }
 
             // **Every numbered step is always drawn, even when it is empty** (build 171).
             // They used to appear only when they had something in them, so the walk through
             // the review read 1, 2, 4 on a good week and you could not tell a step you had
             // finished from one the app had decided not to show you. Build 100's rule: an
-            // absence has to say it is an absence.
-            Section("2. Reschedule or drop overdue tasks") {
-                if report.overdueTasks.isEmpty {
-                    Label("Nothing is overdue", systemImage: "checkmark.circle")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(report.overdueTasks) { ref in
-                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
-                            .tag(ref.notePath)
+            // absence has to say it is an absence. Folded (build REVIEW), a step is still its
+            // heading, and the heading still counts what is in it.
+            Section {
+                if isOpen("2") {
+                    if report.overdueTasks.isEmpty {
+                        Label("Nothing is overdue", systemImage: "checkmark.circle")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(report.overdueTasks) { ref in
+                            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                                .tag(ref.notePath)
+                        }
                     }
                 }
+            } header: {
+                ReviewPartHeading(title: "2. Reschedule or drop overdue tasks", count: report.overdueTasks.count,
+                                  isOpen: openBinding("2"), part: "2")
             }
 
             // **Build 175, both from his test.** He asked for two things here: steps 3 to 5
@@ -85,69 +132,95 @@ struct ReviewView: View {
             // them?" They are two different questions, asked at different speeds (the review
             // rhythm says so: a year against a quarter), so they are two steps.
             Section {
-                if aspirations(report).isEmpty {
-                    Label("No aspirations yet", systemImage: ChainSymbol.aspiration)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(aspirations(report)) { health in
-                        GoalHealthRow(health: health)
-                            .tag(health.note.relativePath)
+                if isOpen("3") {
+                    if aspirations(report).isEmpty {
+                        Label("No aspirations yet", systemImage: ChainSymbol.aspiration)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(aspirations(report)) { health in
+                            GoalHealthRow(health: health)
+                                .tag(health.note.relativePath)
+                        }
                     }
                 }
             } header: {
-                Text("3. Read the aspirations again")
+                ReviewPartHeading(title: "3. Read the aspirations again", count: aspirations(report).count,
+                                  isOpen: openBinding("3"), part: "3")
             } footer: {
                 // Build 176: the rule in one line, where the two kinds sit side by side.
                 // A title string and a footer cannot be given together (build 157).
-                Text(GoalWording.aspirationRule)
-                    .fixedSize(horizontal: false, vertical: true)
+                if isOpen("3") {
+                    Text(GoalWording.aspirationRule)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             Section {
-                if datedGoals(report).isEmpty {
-                    Label("No goals with a date yet", systemImage: ChainSymbol.datedGoal)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(datedGoals(report)) { health in
-                        GoalHealthRow(health: health)
-                            .tag(health.note.relativePath)
+                if isOpen("4") {
+                    if datedGoals(report).isEmpty {
+                        Label("No goals with a date yet", systemImage: ChainSymbol.datedGoal)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(datedGoals(report)) { health in
+                            GoalHealthRow(health: health)
+                                .tag(health.note.relativePath)
+                        }
                     }
                 }
             } header: {
-                Text("4. Check the goals with a date are on course")
+                ReviewPartHeading(title: "4. Check the goals with a date are on course", count: datedGoals(report).count,
+                                  isOpen: openBinding("4"), part: "4")
             } footer: {
-                Text(GoalWording.datedGoalRule)
-                    .fixedSize(horizontal: false, vertical: true)
+                if isOpen("4") {
+                    Text(GoalWording.datedGoalRule)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             Section {
-                ForEach(report.projects) { health in
-                    HealthRow(health: health)
-                        .tag(health.note.relativePath)
-                }
-                if report.projects.isEmpty {
-                    Label("No active projects", systemImage: SidebarSection.kind(.project).systemImage)
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                HStack {
-                    Text("5. Give every project a next action")
-                    Spacer()
-                    Button("Mark all reviewed") { model.markAllReviewed() }
-                        .font(.caption)
-                }
-            }
-
-            Section("6. Look over the areas") {
-                if report.areas.isEmpty {
-                    Label("No areas yet", systemImage: SidebarSection.kind(.area).systemImage)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(report.areas) { health in
+                if isOpen("5") {
+                    ForEach(report.projects) { health in
                         HealthRow(health: health)
                             .tag(health.note.relativePath)
                     }
+                    if report.projects.isEmpty {
+                        Label("No active projects", systemImage: SidebarSection.kind(.project).systemImage)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+            } header: {
+                // A plain `HStack`, not a `WrappingHStack`: a wrapping row places each item at
+                // its one-line width, so a long heading would run off a narrow column instead
+                // of breaking between words. The button keeps its own width and the heading
+                // takes what is left (build 138).
+                HStack(spacing: 8) {
+                    ReviewPartHeading(title: "5. Give every project a next action", count: report.projects.count,
+                                      isOpen: openBinding("5"), part: "5")
+                    // Only while the step is open: it stamps every project in it, and a folded
+                    // step has not been looked at yet.
+                    if isOpen("5") {
+                        Button("Mark all reviewed") { model.markAllReviewed() }
+                            .font(.caption)
+                            .fixedSize()
+                    }
+                }
+            }
+
+            Section {
+                if isOpen("6") {
+                    if report.areas.isEmpty {
+                        Label("No areas yet", systemImage: SidebarSection.kind(.area).systemImage)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(report.areas) { health in
+                            HealthRow(health: health)
+                                .tag(health.note.relativePath)
+                        }
+                    }
+                }
+            } header: {
+                ReviewPartHeading(title: "6. Look over the areas", count: report.areas.count,
+                                  isOpen: openBinding("6"), part: "6")
             }
 
             // **Build 263: the review looks back as well as forward.** Steps 1 to 6 are all
@@ -158,8 +231,8 @@ struct ReviewView: View {
             // week about to start, in the same box as Calendar › Week. The two steps share a
             // `Group` so this list stays at ten children.
             Group {
-                WeekLookStep(chosenWeek: $lookedWeek)
-                WeekGoalStep()
+                WeekLookStep(chosenWeek: $lookedWeek, isOpen: openBinding("7"))
+                WeekGoalStep(isOpen: openBinding("8"))
             }
 
             // **Last, and with no number** (build 171). It sat above step 1, which put a
@@ -167,33 +240,155 @@ struct ReviewView: View {
             // is a loose end to tidy when you have time, and it says so.
             if !report.projectsWithoutGoal.isEmpty {
                 Section {
-                    // Buttons, not tagged HealthRows: these projects are listed again under
-                    // step 5, and two rows carrying the same selection tag is exactly
-                    // what made the Inbox unselectable in builds 71 to 74.
-                    ForEach(report.projectsWithoutGoal) { health in
-                        Button {
-                            // Stay in Weekly review. On the Mac the note opens in the third
-                            // column with this list still beside it, so the review can be
-                            // worked straight down; on the phone it pushes one screen and the
-                            // back arrow returns here. Jumping to the Projects section instead
-                            // threw the review away and gave Back nowhere sensible to return to.
-                            model.show(section: .review, notePath: health.note.relativePath)
-                        } label: {
-                            Label(health.note.displayTitle, systemImage: "questionmark.circle")
+                    if isOpen("noGoal") {
+                        // Buttons, not tagged HealthRows: these projects are listed again under
+                        // step 5, and two rows carrying the same selection tag is exactly
+                        // what made the Inbox unselectable in builds 71 to 74.
+                        ForEach(report.projectsWithoutGoal) { health in
+                            Button {
+                                // Stay in Weekly review. On the Mac the note opens in the third
+                                // column with this list still beside it, so the review can be
+                                // worked straight down; on the phone it pushes one screen and the
+                                // back arrow returns here. Jumping to the Projects section instead
+                                // threw the review away and gave Back nowhere sensible to return to.
+                                model.show(section: .review, notePath: health.note.relativePath)
+                            } label: {
+                                Label(health.note.displayTitle, systemImage: "questionmark.circle")
+                            }
                         }
                     }
                 } header: {
-                    Text("Projects with no goal")
+                    ReviewPartHeading(title: "Projects with no goal", count: report.projectsWithoutGoal.count,
+                                      isOpen: openBinding("noGoal"), part: "noGoal")
                 } footer: {
                     // A Section footer in a narrow column is handed one line unless it is
                     // told it may grow downwards, and the sentence was cut at "Give one a g…".
-                    Text("These projects have nothing above them. That is fine for work you do for its own sake. If one should belong to a goal, open it and press Serves\u{2026} at the top. None of them counts as needing attention.")
-                        .fixedSize(horizontal: false, vertical: true)
+                    if isOpen("noGoal") {
+                        Text("These projects have nothing above them. That is fine for work you do for its own sake. If one should belong to a goal, open it and press Serves\u{2026} at the top. None of them counts as needing attention.")
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }
         // For the screen test, which scrolls this list to reach step 7 (build 263).
         .accessibilityIdentifier("review.list")
+    }
+
+    // MARK: Folding (build REVIEW)
+
+    /// The open set for this platform.
+    private var openText: Binding<String> { isPhone ? $phoneOpenText : $deskOpenText }
+
+    private func isOpen(_ part: String) -> Bool {
+        Self.ids(in: openText.wrappedValue).contains(part)
+    }
+
+    /// What a heading's `FoldButton` reads and writes. Every part goes through the same string,
+    /// so **Open all** and a heading can never disagree.
+    private func openBinding(_ part: String) -> Binding<Bool> {
+        let text = openText
+        return Binding(get: { Self.ids(in: text.wrappedValue).contains(part) },
+                       set: { text.wrappedValue = Self.storing(part, opening: $0, in: text.wrappedValue) })
+    }
+
+    /// The parts drawn right now: **Projects with no goal** only while there are such projects,
+    /// so a part that is not on screen can never make the button say **Open all**.
+    private func shownParts(_ report: ReviewReport) -> [String] {
+        report.projectsWithoutGoal.isEmpty ? Self.parts.filter { $0 != "noGoal" } : Self.parts
+    }
+
+    /// True while any part on screen is folded: the button then opens them all.
+    private func anyFolded(_ report: ReviewReport) -> Bool {
+        let opened = Self.ids(in: openText.wrappedValue)
+        return shownParts(report).contains { !opened.contains($0) }
+    }
+
+    private func openOrCloseAll(_ report: ReviewReport) {
+        openText.wrappedValue = anyFolded(report) ? Self.parts.joined(separator: "\n") : ""
+    }
+
+    private static func ids(in text: String) -> Set<String> {
+        Set(text.split(separator: "\n").map(String.init))
+    }
+
+    private static func storing(_ part: String, opening: Bool, in text: String) -> String {
+        var opened = Self.ids(in: text)
+        if opening { opened.insert(part) } else { opened.remove(part) }
+        return opened.sorted().joined(separator: "\n")
+    }
+}
+
+/// The heading of one part of the Weekly review (build REVIEW): **the whole line is the
+/// button** (`FoldButton`, build 205), and the label fills the line, because a short button
+/// beside a `Spacer` gets a wrong frame on the Mac (build 247).
+///
+/// **The heading counts what the part lists** — "2. Reschedule or drop overdue tasks · 3" — so
+/// a folded part still says something is in it (build 100). **One rule everywhere: a number
+/// when there is something, nothing when there is not.** Never "· 0": a zero beside a step reads
+/// as a fault (builds 141, 171), and the part itself says "Nothing is overdue" once opened.
+/// Steps 7 and 8 list nothing to work through, so they carry no number; step 7 names its week
+/// instead.
+///
+/// The words keep the list's own look: on the phone a `List` writes a header in capitals, as it
+/// did before the fold, so nothing about the heading changes but the arrow and the number.
+struct ReviewPartHeading: View {
+    let title: String
+    let count: Int
+    @Binding var isOpen: Bool
+    /// "due", "1" … "8", "noGoal" — the id the open set keeps.
+    let part: String
+
+    init(title: String, count: Int = 0, isOpen: Binding<Bool>, part: String) {
+        self.title = title
+        self.count = count
+        self._isOpen = isOpen
+        self.part = part
+    }
+
+    private var shown: String {
+        count > 0 ? "\(title) \u{00B7} \(count)" : title
+    }
+
+    /// Said aloud and readable by a test, beside the `isSelected` trait `FoldButton` gives an
+    /// open box.
+    private var state: String { isOpen ? "open" : "folded" }
+
+    var body: some View {
+        FoldButton(isOpen: $isOpen, accessibilityName: shown) {
+            Text(shown)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityValue(state)
+        .accessibilityIdentifier("review.part.\(part)")
+    }
+}
+
+/// **Open all** while any part of the review is folded, **Close all** once every part is open
+/// (build REVIEW). One button whose words say what it will do now. The same two words as the
+/// button at the top of Help, which does the same thing to that page's sections — one action,
+/// one pair of words (build 165).
+struct ReviewOpenAllButton: View {
+    /// True while anything is folded.
+    let opensAll: Bool
+    let action: () -> Void
+
+    private var words: String { opensAll ? "Open all" : "Close all" }
+    private var symbol: String { opensAll ? "chevron.down" : "chevron.up" }
+
+    var body: some View {
+        Button(action: action) {
+            Label(words, systemImage: symbol)
+                .font(.callout)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        // Borderless, so on the phone only this button answers a press in its row. The row
+        // carries no `.tag`, so the colour never sits on a selection fill (build 201).
+        .buttonStyle(.borderless)
+        .foregroundStyle(SidebarSection.review.tint)
+        .accessibilityLabel(words)
+        .accessibilityIdentifier("review.openAll")
     }
 }
 

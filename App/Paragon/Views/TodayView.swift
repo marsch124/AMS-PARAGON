@@ -74,6 +74,10 @@ struct TodayView: View {
             }
             .padding(.horizontal, Theme.gutter + 6)
             .padding(.bottom, Theme.tight)
+            // **Now and Then, the day's plan in two short lines** (build 266), outside the
+            // `List` for the same reason the date is (build 220). Nothing at all on a day with
+            // no plan, or once the last block is over, so Today is then as short as before.
+            NowAndNextLines()
             // **The goal for this week, one line under the date** (build 251), outside the
             // `List` for the same reason the date is (build 220). Nothing at all when no goal is
             // written: an empty line asking for one every morning would be a nag, and the week
@@ -211,6 +215,143 @@ struct TodayView: View {
             .accessibilityIdentifier("today.closeDay")
         }
         .fixedSize()
+    }
+}
+
+/// **Now and Then** (build 266): the block of today's plan you are in, and the one after it, as
+/// two short lines under the date. **Now** carries a small clock button that starts the focus
+/// timer on that block; **Then** has no button. His words, from the plan page: **Then**, not
+/// "Next", because **Next actions** a few lines lower already means the `#next` task, and one
+/// word with two meanings on one screen is build 176's fault. And **two lines**, not one.
+///
+/// Plan blocks only, read through `model.planBlocks(for:)`, which never writes a file. Which
+/// block is now and which comes next is decided in Core (`NowAndNext`, tested), so the Mac
+/// widget can name the same block (build 280). In this file because `HeaderActionButton` is
+/// private to it.
+private struct NowAndNextLines: View {
+    @EnvironmentObject private var model: AppModel
+    /// False where no focus bar is drawn: the clock button is then left out, because a clock
+    /// started where its bar cannot be seen would run unseen (build 256).
+    @Environment(\.focusBarShown) private var focusBarShown
+
+    var body: some View {
+        // `.everyMinute`, never a sleep loop like `NowLine`'s: the lines change on the minute a
+        // block starts or ends, not up to 59 seconds late. The day is read from the timeline's
+        // own date, so at midnight the lines move on to the new day's plan by themselves.
+        TimelineView(.everyMinute) { context in
+            lines(current(at: context.date))
+        }
+    }
+
+    /// A plain function, never worked out inside the view builder (build 58).
+    private func current(at date: Date) -> NowAndNext {
+        NowAndNext(blocks: model.planBlocks(for: DateOnly(date)),
+                   minute: NowAndNext.minute(of: date))
+    }
+
+    /// Nothing at all when there is nothing to say: no plan today, or the last block is over.
+    /// A note still coming from iCloud reads as no plan here; the vault warning on **Today**
+    /// (phone) and at the foot of the sidebar (Mac) already says why (build 261).
+    @ViewBuilder
+    private func lines(_ state: NowAndNext) -> some View {
+        if !state.isEmpty {
+            VStack(alignment: .leading, spacing: 3) {
+                if let now = state.now {
+                    nowRow(now)
+                }
+                if let next = state.next {
+                    thenRow(next)
+                }
+            }
+            .padding(.horizontal, Theme.gutter + 6)
+            .padding(.bottom, Theme.tight)
+        }
+    }
+
+    /// **Now 09:30 – 11:00 Write the offer**, and the clock button on the right. The word and
+    /// the time keep their width; only the title gives way in a narrow column (build 138).
+    private func nowRow(_ block: PlanBlock) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            // The words are one element with one sentence, so both platforms read them the same
+            // (build 253's shape). The button beside them keeps its own.
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("Now")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.planBlockTint)
+                    .fixedSize()
+                Text(block.timeText)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                Text(block.title)
+                    .lineLimit(1)
+                    .layoutPriority(-1)
+            }
+            .font(.caption)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Self.nowWords(block))
+            .accessibilityIdentifier("today.now")
+            Spacer(minLength: 6)
+            nowControl(for: block)
+        }
+    }
+
+    /// **Then 11:00 Call Anna**, all in grey, and no button: it is only what comes after.
+    private func thenRow(_ block: PlanBlock) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text("Then")
+                .fontWeight(.semibold)
+                .fixedSize()
+            Text(block.startText)
+                .monospacedDigit()
+                .fixedSize()
+            Text(block.title)
+                .lineLimit(1)
+                .layoutPriority(-1)
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Self.thenWords(block))
+        .accessibilityIdentifier("today.next")
+    }
+
+    /// The clock button, or — while the focus timer already runs on this block — a small dot in
+    /// its place: orange while it runs, grey while paused. **Never a button that does nothing**
+    /// (build 175). The clock is matched to the block by name, the way **Planned and worked**
+    /// matches them (build 259), so a clock started on the task the block was made from counts.
+    @ViewBuilder
+    private func nowControl(for block: PlanBlock) -> some View {
+        if let session = model.focus, NowAndNext.sameName(session.title, block.title) {
+            Circle()
+                .fill(session.isPaused ? Color.secondary : Theme.planBlockTint)
+                .frame(width: 7, height: 7)
+                .accessibilityElement()
+                .accessibilityLabel(Self.runningWords(session))
+                .accessibilityIdentifier("today.now.running")
+                .help(Self.runningWords(session))
+        } else if focusBarShown {
+            // `timer`, the symbol **Focus on this** already has on every menu.
+            HeaderActionButton(spokenTitle: "Start the focus timer on \(block.title)",
+                               systemImage: "timer",
+                               tint: Theme.planBlockTint) {
+                model.startFocus(onBlock: block)
+            }
+            .fixedSize()
+            .accessibilityIdentifier("today.now.focus")
+        }
+    }
+
+    private static func nowWords(_ block: PlanBlock) -> String {
+        "Now: \(block.startText) to \(block.endText), \(block.title)"
+    }
+
+    private static func thenWords(_ block: PlanBlock) -> String {
+        "Then: \(block.startText), \(block.title)"
+    }
+
+    private static func runningWords(_ session: FocusSession) -> String {
+        session.isPaused ? "The focus timer is on this, paused" : "The focus timer is on this"
     }
 }
 

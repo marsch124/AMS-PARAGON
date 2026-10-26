@@ -62,6 +62,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Calendar lane** — the left-hand lane on **Plan the day**. It shows your Apple Calendar events and is read only.
 - **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan the day**.
 - **Now line** — the thin blue line that shows the time right now.
+- **Now and Then** — two short lines under the date on **Today**, on a day with a plan. The first starts with **Now** and names the plan block you are in, with a small orange clock button that starts the focus timer on it. The second starts with **Then** and names the next block. They are not the **Now line**, which is the thin blue line across the hours.
 - **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **time?** button opens, and first on a task's right-click menu.
 - **Focus timer** — a clock on one task while you work. A bar at the foot of the screen shows it, with a pause button and a stop button. On the Mac the time also shows in the menu bar, on the right among the small icons there.
 - **Notification when the time is up** — one notification when you have worked as long as the task's time, or the plan block's length. Paused time does not count. The clock keeps running until you stop it.
@@ -86,7 +87,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 - **Weekly review** — a walk through everything, step by step, once a week. It shows what needs a look.
 - **Due for a look** — notes you have not reviewed for a while. How often each kind is due is set in **Settings › Weekly review**.
-- **Look back at the week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended.
+- **Look back at last week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended. The heading names the week it shows: **last week**, **this week**, or a week number.
 - **Map** — a drawing of what serves what: aspirations at the top, then goals, areas and projects.
 - **All actions** — every open task in the vault, with tick boxes to narrow the list.
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks.

@@ -504,6 +504,93 @@ final class ScreenTests: XCTestCase {
                       "Cancel was pressed and Start the day stayed on screen.")
     }
 
+    /// **Now and Then** on Today (build 266). An action added in **Start the day** arrives
+    /// picked, and **Plan 1 action** puts it into today's plan as a one-hour block from the next
+    /// quarter hour. Today must then name it: as **Then** until that quarter hour has come, as
+    /// **Now** after it — on a slow runner it can be either, and both are right.
+    ///
+    /// The test vault has no plan on purpose (build 221's rule: its emptiness is a fixture), so
+    /// this test makes its own block in its own fresh vault. The clock button is not pressed: a
+    /// block cannot be made to be now without waiting for it, and the bar the button starts is
+    /// `testAFocusTimerStartsPausesAndStops`'s. Skipped after 22:30 on the runner's clock: a
+    /// one-hour block from the next quarter hour still fits until about 23:00, and the half hour
+    /// before that is room for the test's own run. CI's "Check the tests really ran" counts a
+    /// skipped case as finished (the review of 266: before that, a skip turned the job red).
+    func testAPlannedActionShowsOnToday() throws {
+        let clock = Calendar.current.dateComponents([.hour, .minute], from: Date())
+        let minute = (clock.hour ?? 0) * 60 + (clock.minute ?? 0)
+        try XCTSkipIf(minute >= 22 * 60 + 30,
+                      "After 22:30 a one-hour block from the next quarter hour may run out of room before midnight while the test is still running.")
+
+        go(to: .today)
+
+        let open = element("today.startDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Start the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+
+        let screen = element("startDay.screen")
+        XCTAssertTrue(screen.waitForExistence(timeout: 20),
+                      "Start the day did not open. On screen: \(visibleTexts())")
+
+        let field = element("startDay.newAction")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Water the plants")
+        let add = element("startDay.add")
+        XCTAssertTrue(add.isEnabled, "The + stayed grey after a line was typed.")
+        add.pressCentre()
+        let pick = element("startDay.pick.Water the plants")
+        XCTAssertTrue(pick.waitForExistence(timeout: 20),
+                      "The added action did not appear in the list. On screen: \(visibleTexts())")
+        let chosen = expectation(
+            for: NSPredicate(format: "label == 'Picked' OR value == 'Picked' OR isSelected == true"),
+            evaluatedWith: pick)
+        wait(for: [chosen], timeout: 10)
+
+        let plan = element("sheet.action")
+        XCTAssertTrue(plan.waitForExistence(timeout: 10),
+                      "Start the day opened without its button at the bottom. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: plan).contains("Plan 1") },
+                      "The button at the bottom does not offer to plan the picked action. It says: \(words(of: plan))")
+        plan.pressCentre()
+        XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
+                      "Plan 1 action was pressed and Start the day stayed on screen.")
+
+        // **One query for both lines, matched by their words** (the review of 266). The block
+        // starts at the next quarter hour, so at that minute **Then** turns into **Now** and
+        // `today.next` goes away. A line looked up by one name, checked and then read, could
+        // vanish between the two and fail the test for its own reasons (build 190). This query is
+        // run again on every read, so it answers with whichever line is showing at that moment.
+        // Both lines' words are one element with one sentence as its label, so both platforms
+        // read them the same (build 253).
+        let wanted = "Water the plants"
+        let planLines = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == 'today.now' OR identifier == 'today.next'"))
+        let line = planLines.matching(NSPredicate(format: "label CONTAINS %@", wanted)).firstMatch
+        XCTAssertTrue(line.waitForExistence(timeout: 30),
+                      "Today does not name the planned action on its Now or Then line (\(planLines.count) such lines are shown). On screen: \(visibleTexts())")
+
+        #if os(macOS)
+        // Build 250: on the Mac a row that will not shrink makes its column lay out wider than
+        // the column, centred, and cut off at both sides. **Today is the middle column**, so its
+        // neighbours are inside the window and a check against the window could never fail
+        // (build 178's rule; found by the review of 266). The cut is the same on both sides, so
+        // the left side is enough: the line must start to the right of the sidebar. Not against
+        // a button in Today's own column: a cut moves that button by the same amount as the line.
+        let sidebarRow = element("sidebar.Today")
+        XCTAssertTrue(sidebarRow.exists, "The sidebar has no Today row. On screen: \(visibleTexts())")
+        let lineFrame = line.frame
+        let sidebarFrame = sidebarRow.frame
+        // A frame with no size would make the check below pass whatever happens (build 178).
+        XCTAssertFalse(sidebarFrame.isEmpty || lineFrame.isEmpty,
+                       "The sidebar's Today row or the line has no size: line \(lineFrame), sidebar row \(sidebarFrame).")
+        XCTAssertGreaterThanOrEqual(lineFrame.minX, sidebarFrame.maxX - 1,
+                                    "The line starts under the sidebar, so Today's column is cut off at both sides again (build 250): line \(lineFrame), sidebar row \(sidebarFrame).")
+        #endif
+    }
+
     /// **Week** on the Plan screen opens Calendar → Week, and that screen draws the two strips
     /// build 225 added: the tray of unplaced work and the seven-day row you drop it on.
     ///
@@ -635,9 +722,11 @@ final class ScreenTests: XCTestCase {
     /// opens on depends on the day the test runs (on Monday and Tuesday it is the week before),
     /// so the test only asks that ‹ changes the week and › brings the same one back. The step
     /// sits below six others, so the list is scrolled until it shows (`reveal`). The arrows are
-    /// found among buttons (build 249).
+    /// found among buttons (build 249). The review starts folded (build REVIEW), so the step is
+    /// opened first.
     func testTheWeekCanBeLookedBackAt() {
         go(to: .review)
+        openReviewPart("7")
         let title = reveal("review.lookBack")
         XCTAssertTrue(title.exists, "The Weekly review has no step 7. On screen: \(visibleTexts())")
         let first = words(of: title)
@@ -666,9 +755,11 @@ final class ScreenTests: XCTestCase {
     /// Step 8 of the Weekly review (build 264): the goal for the week about to start is written
     /// in the same box as Calendar › Week. Pressed at its frame and found among buttons
     /// (build 249); the field closing is the sign Return was taken, and the box's own label —
-    /// set explicitly, one sentence on both platforms — is the proof the words were kept.
+    /// set explicitly, one sentence on both platforms — is the proof the words were kept. The
+    /// review starts folded (build REVIEW), so the step is opened first.
     func testTheComingWeeksGoalCanBeWrittenInTheReview() {
         go(to: .review)
+        openReviewPart("8")
         let box = reveal(app.buttons.matching(identifier: "review.nextGoal").firstMatch)
         XCTAssertTrue(box.exists, "The Weekly review has no step 8. On screen: \(visibleTexts())")
         let frame = box.frame
@@ -721,7 +812,11 @@ final class ScreenTests: XCTestCase {
     /// The words an element shows: the phone keeps them in `label`, the Mac a text's in `value`.
     private func words(of element: XCUIElement) -> String {
         let label = element.label
-        return label.isEmpty ? ((element.value as? String) ?? "") : label
+        if !label.isEmpty { return label }
+        // A bordered button on the Mac may be an AppKit button, which keeps its words in its
+        // title and leaves the label empty (raised in the review of build 266).
+        if !element.title.isEmpty { return element.title }
+        return (element.value as? String) ?? ""
     }
 
     /// Asks again every quarter of a second until the answer is yes or the time is up.
@@ -1290,6 +1385,71 @@ final class ScreenTests: XCTestCase {
                                     "tab.actions": "Actions", "tab.inbox": "Inbox",
                                     "tab.browse": "Browse"]
     #endif
+
+    /// The Weekly review folds step by step (build REVIEW). His words: *"it's so many lines …
+    /// that is a bit scary."* Every part starts folded, so step 7's week bar is not there at
+    /// first; its heading names the week it shows rather than "the week"; pressing the heading
+    /// opens the step and pressing it again folds it; and **Open all** in the summary opens
+    /// every part. The test vault wipes the app's settings first, so "folded at first" is the
+    /// default and not something an earlier test left behind. Everything pressed is found among
+    /// buttons (build 249).
+    func testTheReviewFoldsStepByStep() {
+        go(to: .review)
+
+        let heading = reveal(app.buttons.matching(identifier: "review.part.7").firstMatch)
+        XCTAssertTrue(heading.exists, "The Weekly review has no heading for step 7. On screen: \(visibleTexts())")
+        XCTAssertTrue(heading.label.contains("Look back at "),
+                      "Step 7's heading does not say what the step does. It says: \(heading.label)")
+        XCTAssertFalse(heading.label.contains("at the week"),
+                       "Step 7's heading does not name the week it shows. It says: \(heading.label)")
+        XCTAssertFalse(element("review.lookBack").exists,
+                       "Step 7 is open the first time the review is shown. Every part should start folded.")
+
+        if heading.isHittable { heading.press() } else { heading.pressCentre() }
+        XCTAssertTrue(reveal("review.lookBack").exists,
+                      "Step 7's heading was pressed and the step did not open. On screen: \(visibleTexts())")
+
+        let again = revealAbove(app.buttons.matching(identifier: "review.part.7").firstMatch)
+        XCTAssertTrue(again.exists, "Step 7's heading went away when the step opened. On screen: \(visibleTexts())")
+        if again.isHittable { again.press() } else { again.pressCentre() }
+        let folded = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("review.lookBack"))
+        XCTAssertEqual(XCTWaiter().wait(for: [folded], timeout: 10), .completed,
+                       "Step 7's heading was pressed again and the step did not fold. On screen: \(visibleTexts())")
+
+        let all = revealAbove(app.buttons.matching(identifier: "review.openAll").firstMatch)
+        XCTAssertTrue(all.exists, "The review's summary has no Open all button. On screen: \(visibleTexts())")
+        XCTAssertTrue(all.label.contains("Open all"),
+                      "With the steps folded, the button does not offer to open them. It says: \(all.label)")
+        if all.isHittable { all.press() } else { all.pressCentre() }
+        XCTAssertTrue(becomes(within: 10) { all.label.contains("Close all") },
+                      "Open all was pressed and the button does not offer to close them again. It says: \(all.label)")
+        XCTAssertTrue(reveal("review.lookBack").exists,
+                      "Open all was pressed and step 7 stayed folded. On screen: \(visibleTexts())")
+    }
+
+    /// Opens one part of the Weekly review, which starts folded (build REVIEW). The heading is
+    /// found among buttons (build 249) and scrolled to first, in case it is below the fold.
+    private func openReviewPart(_ part: String) {
+        let heading = reveal(app.buttons.matching(identifier: "review.part.\(part)").firstMatch)
+        XCTAssertTrue(heading.exists,
+                      "The Weekly review has no heading review.part.\(part). On screen: \(visibleTexts())")
+        if heading.isHittable { heading.press() } else { heading.pressCentre() }
+    }
+
+    /// `reveal` the other way round on the phone: swipes down, which moves the list back
+    /// towards its top, until the element is on screen. The Mac's `reveal` already scrolls both
+    /// ways.
+    private func revealAbove(_ target: XCUIElement, tries: Int = 6) -> XCUIElement {
+        #if os(macOS)
+        return reveal(target)
+        #else
+        for _ in 0..<tries {
+            if target.exists && target.isHittable { return target }
+            app.swipeDown()
+        }
+        return target
+        #endif
+    }
 }
 
 extension XCUIElement {

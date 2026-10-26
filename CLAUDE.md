@@ -4015,6 +4015,62 @@ bullet, so Help showed the asterisks (its bullets are one line each now); and th
 `Docs/Words.md` still said the **First** marks are "at the top" of Start the day, which they no
 longer are — they are first in its list, above **Overdue**.
 
+**Build 266: Now and Then on Today.** `Core/Sources/ParagonCore/Vault/NowAndNext.swift` (tested
+in `NowAndNextTests`): `NowAndNext(blocks:minute:)` gives `now` (start ≤ minute < start +
+`minutes`, the end minute not included; overlapping blocks → the one that **started last**, so a
+short block inside a long one wins while it runs; same start → lower index) and `next` (the
+earliest block starting after the minute, same start → lower index, never the now block);
+`isEmpty`; `minute(of:calendar:)` from the clock's own hour and minute, never seconds / 60 (build
+238 — a test pins 600 at 10:00 on 25 October 2026 in Stockholm, the day the clocks went back);
+`sameName(_:_:)` through `PlannedAndWorked.key`, so the running clock is matched to a block the
+way **Planned and worked** matches them (build 259). **Build 280's Mac widget reads the same
+type**, so Today and the widget name the same block. App: `NowAndNextLines`, private in
+`TodayView.swift` (so it can use the file's private `HeaderActionButton`), sits between the date
+row and the `WeekGoalLine(` call, outside the `List` (build 220). A `TimelineView(.everyMinute)`,
+not a sleep loop like `NowLine`'s, so the lines move on the minute; the day comes from the
+timeline's own date, so midnight is handled; the blocks from `planBlocks(for:)`, which never
+writes. His answers: **Then**, not "Next" (**Next actions** lower on Today means `#next`, build
+176's one word with two meanings), and **two lines**. **Now** carries a `timer`
+`HeaderActionButton` (`today.now.focus`, spoken "Start the focus timer on …") calling
+`startFocus(onBlock:)`, left out where `focusBarShown` is false; while the clock runs on that
+name the button gives way to a 7-point dot (orange running, grey paused, `today.now.running`),
+never a button that does nothing (build 175). The words of each line are one accessibility
+element with one sentence as its label (`today.now`, `today.next`; build 253's shape). Only the
+title gives way in a narrow column (`.layoutPriority(-1)`, build 138). **"Now line" was already
+taken** — it is the thin blue line across the hours (build 180) — so the docs call these
+**Now and Then** and say "the line that starts with **Now**"; `Docs/Words.md` says the two are
+different. Screen test `testAPlannedActionShowsOnToday`, both platforms: **Start the day**, type
+and add "Water the plants", **Plan 1 action**, then `today.now` or `today.next` must name it
+(Then until its quarter hour comes, Now after — either is right on a slow runner). The two
+lines are **one query matched by the title**, run again on every read, so a Then that turns into
+Now between a check and a read still answers (build 190). On the Mac the line must start to the
+right of the sidebar's **Today** row (build 250): Today is the **middle** column, so its
+neighbours are inside the window and a check against the window could never fail (build 178).
+Skipped after 22:30 on the runner's clock: a one-hour block still fits until about 23:00, and the
+half hour is room for the test's own run. **This is the suite's first `XCTSkip`, and XCTest
+prints `' skipped ('` for it, never `' passed ('`**, so both **Check the tests really ran** steps
+in `ci.yml` now count skipped cases as finished; without that, every run after 22:30 UTC would
+have gone red with no fault. The test makes its own plan; the fixture still has none (build 221).
+The review of 266 found three faults, all in the test and all fixed before upload: the skip that
+CI's count would have read as unfinished, a Then line that could vanish between a check and a
+read, and a frame check against the window that could not fail.
+
+**Build 266: the Weekly review folds part by part, and step 7 names its week.** From his field test of 263–264 on a Monday: *"it's so many lines … like 50 lines or more, and that is a bit scary"*, and he could not tell which week step 7 showed. `ReviewPartHeading` (ReviewView.swift) is every heading under the summary — **Due for a look**, steps 1 to 8, **Projects with no goal** — a `FoldButton` whose label fills the line (build 247), identifier `review.part.<id>` (`due`, `1`…`8`, `noGoal`), accessibility value "open"/"folded". **One open set**: `@AppStorage` strings `reviewOpenParts` / `reviewOpenPartsPhone` (build 161's pair), ids of the OPEN parts, **empty by default, so the first look is the summary plus at most ten headings**; `WeekLookStep` and `WeekGoalStep` take an `isOpen` binding into the same string, never a key of their own. **The count rule, one for all**: a heading says "· N" for what its part lists (due notes, inbox items, overdue tasks, aspirations, dated goals, projects, areas, projects with no goal) and **no number at all when there is nothing** — never "· 0" (builds 141, 171); steps 7 and 8 list nothing to work through and carry none. Footers are drawn only while open; folded, step 7 does not work out its week at all (`content(_:)` is only called when open). **Open all / Close all** (`ReviewOpenAllButton`, `review.openAll`) is a second, untagged, borderless row in the summary section, which never folds (build 167). **"Close all", not the brief's "Fold all"**: Help's button already says **Open all** / **Close all** for the same action, and one action gets one pair of words (build 165). The *rule* differs on purpose: Help says **Close all** as soon as anything is open, the review says **Open all** while anything is still folded, because the review is opened a part at a time and the button should still open the rest. **Mark all reviewed** shows only while step 5 is open: it stamps projects a folded step has not shown. The step 5 header stays a plain `HStack` with the button `.fixedSize()`, **not a `WrappingHStack`**: a wrapping row places each item at its one-line width, so a long heading would run off a narrow column instead of breaking between words. Phone headers keep the `List`'s capitals, as before; no `.textCase(nil)`. Step 7's heading is "7. Look back at " + `WeekLook.weekName` (build 264's one namer), so it reads "last week" on Monday and Tuesday and follows the arrows. The two step 7/8 screen tests open their step first (`openReviewPart`); new test `testTheReviewFoldsStepByStep` (both platforms) checks folded at first, the heading names the week, open and fold again, and **Open all** turning into **Close all**. `revealAbove` swipes down on the phone, since `reveal` only swipes up there. **The lesson: a screen that grows a step at a time has to be read at its full length before the next step is added** — steps 7 and 8 each made sense alone, and the sum was the fault. **The review of this build found two wording faults, both fixed before upload**: the version note implied a heading with no number has nothing in it (steps 7 and 8 never carry one), and the manual's step 7 line called it "the week that has just gone" one sentence before saying it shows this week from Wednesday.
+
+**From build 266 on, a build may carry two or three parts** (26 October, his words: *"we need
+some speed on this"*). Each part is still written and reviewed on its own, in its own git
+worktree (`/home/user/wt-<label>`), and the lead merges them with
+`scratchpad/integrate.py <stamp> <date> <label>…`, which cherry-picks each worktree and writes
+one VersionHistory section and one CLAUDE.md paragraph per part. CI and TestFlight are the slow
+steps (a Mac runner can wait half an hour when his other repositories hold the account's five
+Mac slots), so fewer, fuller builds are faster. **Plan numbers stop matching build numbers
+from here**: the briefs keep their plan numbers (267 = a block's clock finds its task, …), the
+stamp is whatever build carries them. **Running seven helper workflows at once hit the session
+usage limit for three hours on 26 October**: keep it to about three at a time.
+**The Crash reports workflow now names the build** of each report: `include=build` on the list
+call (the report's own `build` link answers 403). That is how the iPhone crashes of 24 and 25
+October were placed on build 264; Apple kept no log for either.
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

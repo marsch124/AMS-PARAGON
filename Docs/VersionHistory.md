@@ -2,6 +2,31 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 266 · 26 October 2026
+
+**Today says what you are doing now, and what comes next.** The next of the eight ideas you
+chose. You chose the word **Then** and two lines.
+
+- On a day with a plan, there are two new short lines on **Today**, under the date.
+- The first line starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**.
+- On the right of that line is a small orange button with a clock. Press it and the focus timer starts on that block. The bar appears at the bottom, as usual. On the Mac, hold the pointer over the button and its name appears.
+- While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused.
+- The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button.
+- The lines change by themselves when a block starts or ends. When nothing is on now, before the first block or between two blocks, only the **Then** line is shown.
+- When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before.
+- Only plan blocks are shown here. Your calendar events are under **Calendar**, further down on **Today**.
+
+**The Weekly review is short again.** From your test of builds 263 and 264: the review had about 50 lines, and you could not tell which week step 7 was about.
+
+- Every part under the summary now folds: **Due for a look**, steps 1 to 8, and **Projects with no goal**.
+- The first time you open **Weekly review**, every part is folded. You see the summary at the top and one short heading for each part.
+- Press a heading to open that part. Press it again to fold it. PARAGON remembers what you opened. The iPhone and the Mac each remember this on their own.
+- A folded heading still says how much is inside. "2. Reschedule or drop overdue tasks · 3" means three overdue tasks. A part with nothing in it shows no number, never a 0. Steps 7 and 8 have no number: there is no list in them to work through.
+- Under the summary there is one button for all parts: **Open all** while any part is folded, **Close all** when every part is open.
+- **Mark all reviewed** in step 5 is shown when step 5 is open.
+- **Step 7 now names its week.** On Monday and Tuesday the heading says **7. Look back at last week**. From Wednesday it says **7. Look back at this week**. When you press **‹** to go further back, it says the week's number, for example **7. Look back at week 41**.
+- The line at the top, "tasks finished in the last 7 days", is not about step 7's week. It always counts today and the six days before it.
+
 ## Build 265 · 26 October 2026
 
 **Start the day shows more of your morning.** The next of the eight ideas you chose. The morning
