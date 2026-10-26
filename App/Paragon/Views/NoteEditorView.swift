@@ -715,6 +715,271 @@ struct ProjectDeadlineChip: View {
     }
 }
 
+/// A goal's target date, set from the goal itself (build 268). Until this build `target:` was
+/// written only when a goal was made, so a goal's date could not be moved from the app, though
+/// the Goals list, the chain and the weekly review all read it.
+///
+/// **One view, two looks, chosen by a Bool** (`CalendarEventRow(compact:)`, build 212): a label
+/// in a note's header, where the deadline is a label too, or a capsule on the Goals screen's
+/// chain page, where every fact about the goal is one. Never a closure handed in for the face:
+/// that is where Swift's inference has given up before (builds 152, 154). On the chain page a
+/// set date is solid and a missing one grey and dashed (build 142).
+struct GoalTargetChip: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+    var onChainPage: Bool = false
+    @State private var picking = false
+
+    /// Read back out of the model: a chip beside this one may have just saved and reloaded the
+    /// note, and the copy handed in is then one behind (build 144).
+    private var live: Note { model.note(at: note.relativePath) ?? note }
+
+    var body: some View {
+        let current = live
+        let target = current.targetDate
+        Button { picking = true } label: {
+            face(target, ended: current.isEnded)
+                .helpWhenClosed("The day this goal should be reached by. The weekly review compares it with today and with the deadlines of the projects under the goal.",
+                                open: picking)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(Self.spoken(target)))
+        .accessibilityIdentifier("goal.target")
+        .popover(isPresented: $picking) {
+            DateChoiceView(current: target,
+                           clearTitle: target == nil ? nil : "Clear",
+                           cancel: { picking = false }) { chosen in
+                model.setTarget(current, chosen)
+                picking = false
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func face(_ target: DateOnly?, ended: Bool) -> some View {
+        if onChainPage {
+            if let target {
+                ChainChip(text: Self.words(for: target, withTimeLeft: true),
+                          tint: Self.color(for: target, ended: ended), filled: false)
+            } else {
+                ChainChip(text: "Set a target date\u{2026}", tint: .secondary, filled: false, dashed: true)
+            }
+        } else {
+            Label(Self.headerWords(target), systemImage: "flag.checkered")
+                .foregroundStyle(Self.color(for: target, ended: ended))
+        }
+    }
+
+    /// "Target 2027-08-15 · in about 10 months" on the chain page, where the date alone never
+    /// says whether it is close (build 163); "Target 2027-08-15" in a header, beside the other
+    /// short facts. The one place both are spelled, so the goals drawn inside an aspiration's
+    /// chain, which carry no button, say it the same way.
+    static func words(for target: DateOnly, withTimeLeft: Bool) -> String {
+        guard withTimeLeft else { return "Target \(target.description)" }
+        let left = target.timeLeftText(from: DateOnly.today())
+        return "Target \(target.description) · \(left)"
+    }
+
+    /// What the header's label says. Written out as a function returning `String`, never an
+    /// optional's `map` with a string literal inside: `Label` and `Text` also take a
+    /// `LocalizedStringKey`, and there is no compiler here to settle which one is meant.
+    private static func headerWords(_ target: DateOnly?) -> String {
+        guard let target else { return "Set a target date\u{2026}" }
+        return words(for: target, withTimeLeft: false)
+    }
+
+    /// What a screen reader says, and what the screen test reads.
+    private static func spoken(_ target: DateOnly?) -> String {
+        guard let target else { return "Set a target date" }
+        return "Target \(target.description)"
+    }
+
+    /// Grey when no date is set, orange when the date has passed on a goal that is still
+    /// running, the goal's gold otherwise.
+    static func color(for target: DateOnly?, ended: Bool) -> Color {
+        guard let target else { return Color.secondary }
+        if !ended && target < DateOnly.today() { return Color.orange }
+        return ChainTint.datedGoal
+    }
+}
+
+/// A goal's measure: one line that says how you will know the goal is reached (build 268).
+/// **Nothing in the app wrote `measure:` before this build**, though the Goals list, the chain
+/// and the aspiration's page all read it — the fault of `due:` (132), an area's `goal:` (134),
+/// a project's `goal:` (140), `tags:` (144) and `status:` (165), in a sixth place.
+///
+/// The same two looks as `GoalTargetChip`. The words can be long, so they are cut in the middle
+/// at 260 points, as the name chip is (build 250): a wrapping row measures each item at its
+/// natural width, and a long measure would otherwise be wider than the column on its own line.
+struct GoalMeasureChip: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+    var onChainPage: Bool = false
+    @State private var editing = false
+
+    private var live: Note { model.note(at: note.relativePath) ?? note }
+
+    var body: some View {
+        let current = live
+        let measure = current.measure
+        Button { editing = true } label: {
+            face(measure, tint: ChainTint.forGoal(current))
+                .helpWhenClosed("How you will know this goal is reached, in one line.", open: editing)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(Self.spoken(measure)))
+        .accessibilityIdentifier("goal.measure")
+        .popover(isPresented: $editing) {
+            // The box stays open when the measure was changed while it stood open (review of
+            // 271): `setMeasure` then wrote nothing, and the editor says what it is now.
+            GoalMeasureEditor(current: measure, cancel: { editing = false }) { (text: String, started: String?) -> AppModel.MeasureChangedMeanwhile? in
+                let changed = model.setMeasure(text, on: current, startedFrom: started)
+                if changed == nil { editing = false }
+                return changed
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func face(_ measure: String?, tint: Color) -> some View {
+        if onChainPage {
+            if let measure {
+                ChainChip(text: Self.words(measure), tint: tint, filled: false)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 260, alignment: .leading)
+            } else {
+                ChainChip(text: "Set a measure\u{2026}", tint: .secondary, filled: false, dashed: true)
+            }
+        } else {
+            Label(Self.words(measure), systemImage: "ruler")
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: 260, alignment: .leading)
+                .foregroundStyle(measure == nil ? Color.secondary : tint)
+        }
+    }
+
+    /// "Measure: All 440 km in 30 days", or **Set a measure…** when there is none. A function
+    /// returning `String` rather than a `map` with a literal inside, for the reason given at
+    /// `GoalTargetChip.headerWords`.
+    private static func words(_ measure: String?) -> String {
+        guard let measure else { return "Set a measure\u{2026}" }
+        return "Measure: \(measure)"
+    }
+
+    /// What a screen reader says, and what the screen test reads.
+    private static func spoken(_ measure: String?) -> String {
+        guard let measure else { return "Set a measure" }
+        return "Measure: \(measure)"
+    }
+}
+
+/// What **Set a measure…** opens: a heading, one sentence, one line to write in, and **Clear**,
+/// **Cancel** and **Set**. Return sets, as **Set** does. A small popover on the phone too, the
+/// way the tag list is (`TagChoices`), rather than a whole sheet for one line — and it hangs
+/// under the note's header, near the top of the screen, so the keyboard does not cover **Set**
+/// (builds 160 and 231).
+///
+/// **A measure changed while the box stood open is never replaced unseen** (review of 271, the
+/// rule of the week goal box, 264). The box remembers the measure it opened on and hands it on
+/// with the words; when the note holds another one by then, nothing is written, the box stays
+/// open with his words, and an orange line says what the measure is now. A second press then
+/// replaces it on purpose.
+struct GoalMeasureEditor: View {
+    let current: String?
+    let cancel: () -> Void
+    /// The words to store, and the measure the box started from. An empty string clears the
+    /// measure. The answer is nil when it was written, or what the measure says now when it was
+    /// changed while the box stood open.
+    let choose: (String, String?) -> AppModel.MeasureChangedMeanwhile?
+
+    @State private var typed = ""
+    /// The measure the box showed when it opened. After a refusal it is what the note holds
+    /// now: he has just been told what it says, so the next press replaces it on purpose.
+    @State private var startedFrom: String? = nil
+    /// Why the last press wrote nothing. Said inside the popover, never in an alert over it: a
+    /// popover's messages belong in the popover (build 238).
+    @State private var notice: String? = nil
+    @FocusState private var focused: Bool
+
+    /// What would be stored, by the same rule `GoalFields` stores it with (Core, tested).
+    private var cleaned: String { GoalFields.cleaned(typed) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Measure")
+                .font(.subheadline.weight(.semibold))
+            Text("One line that says how you will know this goal is reached.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            TextField("All 440 km in 30 days", text: $typed)
+                .textFieldStyle(.roundedBorder)
+                .focused($focused)
+                .onSubmit(set)
+                .accessibilityIdentifier("measure.field")
+            if let notice {
+                Text(notice)
+                    .font(.caption)
+                    .foregroundStyle(Color.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("measure.notice")
+            }
+            HStack {
+                if current != nil {
+                    Button("Clear", role: .destructive) { write("", clearing: true) }
+                        .accessibilityIdentifier("measure.clear")
+                }
+                Spacer()
+                Button("Cancel", action: cancel)
+                    .accessibilityIdentifier("measure.cancel")
+                Button("Set", action: set)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(cleaned.isEmpty)
+                    .accessibilityIdentifier("measure.set")
+            }
+        }
+        .padding(14)
+        .frame(width: 300)
+        .presentationCompactAdaptation(.popover)
+        .onAppear {
+            typed = current ?? ""
+            startedFrom = current
+            notice = nil
+            // Focus does not always take in the turn the popover appears (build 119).
+            DispatchQueue.main.async { focused = true }
+        }
+    }
+
+    /// An empty line does nothing here: **Clear** is the way to take a measure away, so a
+    /// Return in an emptied field cannot do it by accident.
+    private func set() {
+        guard !cleaned.isEmpty else { return }
+        write(cleaned, clearing: false)
+    }
+
+    /// Hands the words on with the measure the box started from. When nothing was written
+    /// because the measure changed meanwhile, the box keeps his words and says what it is now.
+    private func write(_ value: String, clearing: Bool) {
+        guard let changed = choose(value, startedFrom) else { return }
+        startedFrom = changed.onFile
+        notice = Self.message(onFile: changed.onFile, clearing: clearing)
+    }
+
+    /// The orange line after a refusal. **Clear** never meets a removed measure: clearing what
+    /// is already gone is not a refusal, so only **Set** gets that sentence.
+    private static func message(onFile: String?, clearing: Bool) -> String {
+        guard let onFile else {
+            return "The measure was removed on your other device. Press Set again to use your words."
+        }
+        let what = "The measure was changed on your other device to \u{201C}\(onFile)\u{201D}."
+        if clearing {
+            return what + " Press Clear again to take it away."
+        }
+        return what + " Press Set again to use your words instead."
+    }
+}
+
 /// The calm line under a finished project's header (build 262): "Done on 20 October · after
 /// 41 days · 17 tasks finished". The words come from `ProjectEnding` in Core, so this view
 /// assembles nothing (build 58). Pressing the line changes the day; Set active or Put on hold
@@ -799,6 +1064,23 @@ struct NoteHeader: View {
         }
     }
 
+    /// The word at the start of the header. A goal note says which of the two it is —
+    /// **Goal with a date** or **Aspiration** (build 268) — where it used to say "Goals", the
+    /// name of the list rather than of the note, and the same for both kinds.
+    private func kindWord(for note: Note) -> String {
+        switch note.kind {
+        case .daily: return "Daily note"
+        case .goal: return GoalWording.name(for: note)
+        default: return note.kind.displayName
+        }
+    }
+
+    /// A goal with a date, as opposed to an aspiration. Only this kind has a target date and
+    /// serves something above it.
+    private func isDatedGoal(_ note: Note) -> Bool {
+        note.kind == .goal && !GoalWording.isAspiration(note)
+    }
+
     var body: some View {
         // **A row that wraps, not an `HStack`** (build 250). On a project the kind, the name,
         // Status, Serves…, Deadline, Tags and the List label want about 556 points on one
@@ -809,8 +1091,9 @@ struct NoteHeader: View {
         // second line instead.
         WrappingHStack(spacing: 12, lineSpacing: 6) {
             // A goal note says which of the two it is: the star for an aspiration, the
-            // target for a goal with a date (build 168). Every other kind has one symbol.
-            Label(note.kind == .daily ? "Daily note" : note.kind.displayName,
+            // target for a goal with a date (build 168), and the word to match (build 268).
+            // Every other kind has one symbol.
+            Label(kindWord(for: note),
                   systemImage: note.kind == .goal ? ChainSymbol.forGoal(note)
                                                   : SidebarSection.kind(note.kind).systemImage)
                 .foregroundStyle(note.tint)
@@ -848,21 +1131,37 @@ struct NoteHeader: View {
             if note.kind == .area {
                 AreaParentChip(model: model, note: note)
             }
-            if note.kind == .area || note.kind == .project {
+            if note.kind == .area || note.kind == .project || isDatedGoal(note) {
                 // The weekly review asks which goal a project serves; before build 140 the
-                // only way to answer was dragging its box onto a goal on the Map.
+                // only way to answer was dragging its box onto a goal on the Map. A goal with
+                // a date chooses its aspiration here too since build 268.
                 NoteGoalChip(model: model, note: note)
             } else if let goal = note.goal {
+                // An aspiration serves nothing above it, but a `goal:` line someone typed is
+                // still shown: what the file holds is never hidden (build 100).
                 Label(goal, systemImage: ChainSymbol.forGoal(named: goal, in: model.index))
                     .foregroundStyle(ChainTint.forGoal(named: goal, in: model.index))
                     .contentShape(Rectangle())
                     .onTapGesture { model.openGoal(reference: goal) }
             }
-            if let horizon = note.horizon {
+            // "This year" or "Long term". Not on an aspiration: its horizon's word is
+            // "Aspiration", which the start of the header already says.
+            if let horizon = note.horizon, horizon != .life {
                 Label(horizon.label, systemImage: "scope")
             }
-            if let target = note.targetDate {
+            if isDatedGoal(note) {
+                // Build 268: `target:` was written only when a goal was made, so the date
+                // could not be moved from the app.
+                GoalTargetChip(model: model, note: note)
+            } else if let target = note.targetDate {
+                // An aspiration has no date, so it gets no button. A target line left in one
+                // by hand stays a plain grey label rather than vanishing (build 100).
                 Label("Target \(target.description)", systemImage: "flag.checkered")
+            }
+            if note.kind == .goal {
+                // Build 268: read by the Goals list, the chain and the aspiration's page, and
+                // never written by anything in the app before.
+                GoalMeasureChip(model: model, note: note)
             }
             if note.kind == .project {
                 ProjectDeadlineChip(model: model, note: note)
@@ -969,6 +1268,12 @@ struct TaskRow: View {
 
     private var isNext: Bool { ref.task.tags.contains(Note.nextActionTag) }
 
+    /// The tick's state in words, for VoiceOver and the screen tests.
+    private var tickState: String {
+        if ref.task.status == .cancelled { return "cancelled" }
+        return ref.task.isDone ? "done" : "not done"
+    }
+
     /// The note's own symbol, not one grey page for everything: a goal is a star, a project a
     /// flag, an area the grid, a daily note a calendar. He asked what the two identical pages
     /// in the planner's Actions column were (build 153) — which is the question an icon that
@@ -988,6 +1293,9 @@ struct TaskRow: View {
             .buttonStyle(.plain)
             // For the screen tests (build 255): the tick a test presses to finish a task.
             .accessibilityIdentifier("task.tick.\(ref.task.title)")
+            // What the circle shows, in words (build 268): a screen reader said only "button",
+            // and a test could not tell a press that ticked from one that did nothing.
+            .accessibilityValue(tickState)
             VStack(alignment: .leading, spacing: 2) {
                 if renaming {
                     TextField("Task", text: $draft)
@@ -1258,11 +1566,8 @@ struct GoalDashboardView: View {
                     }
                 }
             }
-            if let measure = goal.measure {
-                Text("Measure: \(measure)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            // No measure line here since build 268: the header just above carries it as a
+            // button, and saying it twice on one screen carries no information (build 169).
             let serving = health.subgoals + health.projects + health.areas + health.endedNotes
             if serving.isEmpty {
                 Text("Nothing serves this goal yet. Add `goal: \(goal.title)` to a project or area's frontmatter.")

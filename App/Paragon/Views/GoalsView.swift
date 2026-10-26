@@ -257,9 +257,7 @@ struct DatedGoalsListView: View {
             if !live.wanting.isEmpty {
                 Section {
                     ForEach(live.wanting) { note in
-                        DatedGoalRow(note: note)
-                            .tag(note.relativePath)
-                            .contextMenu { rowMenu(note) }
+                        deskRow(note)
                     }
                 } header: {
                     Label("Needs a look", systemImage: "exclamationmark.triangle.fill")
@@ -269,9 +267,7 @@ struct DatedGoalsListView: View {
             if !live.rest.isEmpty {
                 Section {
                     ForEach(live.rest) { note in
-                        DatedGoalRow(note: note)
-                            .tag(note.relativePath)
-                            .contextMenu { rowMenu(note) }
+                        deskRow(note)
                     }
                 } header: {
                     Text("By date")
@@ -284,9 +280,7 @@ struct DatedGoalsListView: View {
                 Section {
                     if !endedFolded {
                         ForEach(group.notes) { note in
-                            DatedGoalRow(note: note)
-                                .tag(note.relativePath)
-                                .contextMenu { rowMenu(note) }
+                            deskRow(note)
                         }
                     }
                 } header: {
@@ -332,6 +326,20 @@ struct DatedGoalsListView: View {
             DatedGoalRow(note: note)
         }
         .buttonStyle(.plain)
+        // Named by its path for the screen tests (build 268), on the button itself: it is the
+        // one element here that takes the press.
+        .accessibilityIdentifier("goal.\(note.relativePath)")
+    }
+
+    /// One goal in the Mac's list: a selection tag, so pressing it puts the goal's page in the
+    /// third column. Named by its path for the screen tests (build 268), the way every note row
+    /// is named (build 191), on one element that holds the row's words.
+    private func deskRow(_ note: Note) -> some View {
+        DatedGoalRow(note: note)
+            .tag(note.relativePath)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("goal.\(note.relativePath)")
+            .contextMenu { rowMenu(note) }
     }
 
     @ViewBuilder
@@ -669,6 +677,13 @@ struct AspirationChainBody: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             if !compact { head }
+            if compact {
+                // The phone has no aspiration page, so the measure's button lives in the
+                // folded-open chain (review of 271): the row above shows the measure, and this
+                // is what changes it. Its own list row, outside the fold button, so it is never
+                // a button inside a button (builds 71–74).
+                GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
+            }
             if chain.isBare {
                 Text("Nothing works towards this yet. Give a goal with a target date `goal: \(chain.note.title)`, or press **Serves…** in that goal's header.")
                     .font(.callout)
@@ -764,9 +779,9 @@ struct AspirationChainBody: View {
                 if let area = chain.area {
                     ChainChip(text: "In area: \(area.title)", tint: ParaKind.area.tint, filled: false)
                 }
-                if let measure = chain.note.measure, !measure.isEmpty {
-                    ChainChip(text: "Measure: \(measure)", tint: .secondary, filled: false, dashed: true)
-                }
+                // A button since build 268: **Set a measure…** when there is none, and the
+                // measure itself when there is. An aspiration has no date, so no date button.
+                GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
                 ForEach(chain.flags, id: \.self) { flag in
                     ChainChip(text: flag.label,
                               tint: flag == .achieved ? ChainTint.aspiration : .orange, filled: false)
@@ -815,51 +830,18 @@ struct ChainGoalBlock: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button { model.show(section: model.section ?? .kind(.goal), notePath: goal.note.relativePath) } label: {
-                VStack(alignment: .leading, spacing: 5) {
-                    HStack(spacing: 6) {
-                        Image(systemName: ChainSymbol.datedGoal)
-                            .font(.caption)
-                            .foregroundStyle(ParaKind.goal.tint)
-                        Text(goal.note.title)
-                            .font(lead ? .title3.weight(.semibold) : .headline)
-                            .foregroundStyle(ParaKind.goal.tint)
-                            .lineLimit(2)
-                    }
-                    WrappingHStack(spacing: 6, lineSpacing: 5) {
-                        if let target = goal.note.targetDate {
-                            // Build 163: the date alone never says whether it is close.
-                            let left = target.timeLeftText(from: .today())
-                            let late = !goal.isEnded && target < .today()
-                            ChainChip(text: "Target \(target.description) · \(left)",
-                                      tint: late ? .orange : ParaKind.goal.tint, filled: false)
-                        }
-                        if let serves = servesToShow {
-                            // The extra he ticked: a dated goal says what it is in service of.
-                            // The chip takes the colour of the thing it NAMES, not of the goal
-                            // it sits on — the deeper gold since build 189, and gold rather
-                            // than the area's pink since build 169.
-                            ChainChip(text: "Serves \(serves)",
-                                      tint: ChainTint.forGoal(named: serves, in: model.index),
-                                      filled: false)
-                        }
-                        if let percent = goal.progress.percent {
-                            ChainChip(text: "\(percent)%", tint: ParaKind.goal.tint, filled: true)
-                        }
-                        if lead, let measure = goal.note.measure, !measure.isEmpty {
-                            ChainChip(text: "Measure: \(measure)", tint: .secondary, filled: false, dashed: true)
-                        }
-                        ForEach(goal.flags, id: \.self) { flag in
-                            ChainChip(text: flag.label,
-                                      tint: flag == .achieved ? ParaKind.goal.tint : .orange,
-                                      filled: false)
-                        }
-                    }
-                    .font(.caption)
-                    .lineLimit(2)
+            if lead {
+                // **No button around the head when the goal is the whole page** (build 268).
+                // It holds **Set a target date…** and **Set a measure…** now, and a button
+                // inside a button is the builds 71–74 fault: one press, two meanings. Pressing
+                // the head would only have opened the page you are already on.
+                head
+            } else {
+                Button { model.show(section: model.section ?? .kind(.goal), notePath: goal.note.relativePath) } label: {
+                    head
                 }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
             if lead, let changed = goal.activity.summary {
                 Label(changed, systemImage: "clock.arrow.circlepath")
                     .font(.caption)
@@ -867,6 +849,57 @@ struct ChainGoalBlock: View {
                     .lineLimit(2)
             }
             rail
+        }
+    }
+
+    /// The goal's name and its facts. On its own page (`lead`) the date and the measure are the
+    /// buttons that change them, the same views the note's header uses (build 268); inside an
+    /// aspiration's chain the whole head is one button that opens the goal, so its facts are
+    /// plain capsules there.
+    private var head: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 6) {
+                Image(systemName: ChainSymbol.datedGoal)
+                    .font(.caption)
+                    .foregroundStyle(ParaKind.goal.tint)
+                Text(goal.note.title)
+                    .font(lead ? .title3.weight(.semibold) : .headline)
+                    .foregroundStyle(ParaKind.goal.tint)
+                    .lineLimit(2)
+            }
+            WrappingHStack(spacing: 6, lineSpacing: 5) {
+                if lead {
+                    GoalTargetChip(model: model, note: goal.note, onChainPage: true)
+                } else if let target = goal.note.targetDate {
+                    // Build 163: the date alone never says whether it is close. Spelled by
+                    // `GoalTargetChip`, so a goal with a button and one without say it alike.
+                    ChainChip(text: GoalTargetChip.words(for: target, withTimeLeft: true),
+                              tint: GoalTargetChip.color(for: target, ended: goal.isEnded),
+                              filled: false)
+                }
+                if let serves = servesToShow {
+                    // The extra he ticked: a dated goal says what it is in service of.
+                    // The chip takes the colour of the thing it NAMES, not of the goal
+                    // it sits on — the deeper gold since build 189, and gold rather
+                    // than the area's pink since build 169.
+                    ChainChip(text: "Serves \(serves)",
+                              tint: ChainTint.forGoal(named: serves, in: model.index),
+                              filled: false)
+                }
+                if let percent = goal.progress.percent {
+                    ChainChip(text: "\(percent)%", tint: ParaKind.goal.tint, filled: true)
+                }
+                if lead {
+                    GoalMeasureChip(model: model, note: goal.note, onChainPage: true)
+                }
+                ForEach(goal.flags, id: \.self) { flag in
+                    ChainChip(text: flag.label,
+                              tint: flag == .achieved ? ParaKind.goal.tint : .orange,
+                              filled: false)
+                }
+            }
+            .font(.caption)
+            .lineLimit(2)
         }
     }
 

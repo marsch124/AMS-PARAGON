@@ -4180,6 +4180,87 @@ line, when only a part whose switch is on does; and the manual said a press open
 "when a PARAGON window next appears", when only the **main** window answers it (Settings, Help
 and **Plan the day** do not).
 
+**Build 268: Done's squares for the last 12 weeks.** Core, in `DoneDiary.swift` (tested in
+`DoneDiaryTests`): `DoneSquare` (`state` is `notYet` / `beforeRecord` / `counted(Int)`, `level`,
+`isToday`, `canJump`, `count`, `isDrawn`, `spoken(dayName:)` — "Tuesday 14 October, 6 done",
+"Yesterday, nothing ticked off"), `MonthMark` (a struct, build 61), and on `DoneDiary`:
+`showsSquares` (false while `firstFinished` is nil, the same rule as the count line, so the two
+appear together), `level(_:biggest:)` (1–4 by share of the busiest day, never 0 above 0),
+`squareWeeks` (12 columns of 7, oldest first, Monday first) and `monthMarks`. Everything comes
+from the diary build 267 already worked out — no second pass over the vault. Decisions:
+**a column belongs to the month of its Thursday** (the ISO rule that gives a week its year), so a
+window that starts on Monday 29 June opens with July; **the oldest column's name is dropped when
+the next month starts under 3 columns later** — the plan said to drop the later one, but that
+would label two columns at the left edge and leave a whole month unnamed (a month holds four or
+five Thursdays, so only the first name can be that close); the last name may run past the right
+edge, offsets do not widen the grid. **`canJump` needs a drawn square and a card**: a quiet day
+before the first dated finish has a card but no square, so nothing to press; a quiet day after it
+is a grey square that can be pressed and goes to his line. App: `DoneSquaresView` (DoneView.swift)
+between the count line and the `Divider`, and **the app's first `ScrollViewReader`**, around the
+squares and the `List`; a press calls `proxy.scrollTo(day, anchor: .top)` on the card's
+`.id(day.day)`, which is on the row, never on its `Section`. Only `canJump` squares are `Button`s
+(build 175); drawn squares carry `.help` and a label, empty days are clear space hidden from
+accessibility; `.focusEffectDisabled()` on the grid (build 202). **Squares are 22 points on the
+phone and 16 on the Mac, with a `ViewThatFits` falling back to 12** — the plan said 16 fits the
+Mac's 280-point middle column, but that column's minimum is 220, and 16-point squares plus the
+12-point gutters are 249: build 250's cut-off-on-both-sides fault. The fold is a `FoldButton`
+over a `SectionLabel` filling the line (build 247), **on its own line under the count**, not
+beside it as the plan said: the count line already wraps in the Mac's narrow column, and a button
+beside it would squeeze it (build 138). **Two keys, `doneSquaresFolded` and
+`doneSquaresFoldedPhone`**, open by default, as Today and Start the day do (builds 161, 212);
+the plan named one. `DoneView.title(for:today:)` is no longer private, so a square and its card
+name a day one way. Screen test: `testATickedTaskShowsInDone` now also waits for `done.squares`,
+finds `done.square.<today>` among buttons, checks its label says "1 done", presses it with
+`pressCentre()` and checks the card is still there and the app runs. Dull on purpose: the test
+vault has one dated finish, so there is nowhere far to jump. **Untested from here: whether
+`scrollTo` really moves a `List` on either platform** — CI cannot see a scroll. **The review of 269 found four faults, all fixed before upload**: a day with nothing counted
+whose daily note was still coming from iCloud drew the grey "nothing ticked off" square and said
+so aloud (build 100 — step 7 had already been fixed for exactly this in 263), so
+`DoneSquaresView` now reads `model.dailyNoteIsWaitingForCloud` and draws that day empty with an
+orange dashed edge, labelled "still coming from iCloud", with a caption line when one is on
+screen; "Darker means more done" and "a dark frame" were false in dark mode, where ReviewTint is
+a light teal and the frame is `Color.primary` (now "a stronger colour" and "a frame"); and the
+version note said "a task with a date", which in PARAGON means a due date, for the day a task was
+ticked off. **A sentence that names light or dark has to be checked in both modes.**
+
+**Build 268: a goal's date and measure have a writer.** The project's most repeated fault, once
+more: `measure:` was read by the Goals list, the chain and the aspiration's page and
+written by nothing, and `target:` only when a goal was made. `Core/Sources/ParagonCore/Model/
+GoalFields.swift` (tested in `GoalFieldsTests`): `cleaned(_:)` is `WeekGoal.cleaned` (one line),
+`settingMeasure(_:on:)` / `settingTarget(_:on:)` return the note unchanged when nothing changes,
+and **an empty value keeps the template's own empty line** (`set(key, list: [])` → `measure:`),
+never `measure: ""` and never a removed line. `Note.measure` needed no change — an empty line
+already reads as nil (the sequencer's correction), and a test pins it. A measure that needs
+quotes (`: `, a leading `#`, `"`, `[`) survives the settings block. `AppModel.setTarget(_:_:)` /
+`setMeasure(_:on:startedFrom:)` read the live note and write nothing when unchanged. `GoalTargetChip` and
+`GoalMeasureChip` (NoteEditorView.swift) are **one view in two looks, chosen by
+`onChainPage: Bool`** (`CalendarEventRow(compact:)`, build 212): a header `Label`, or a
+`ChainChip` capsule — solid when set, grey and dashed when not (build 142). Their words come
+from small `static func … -> String` helpers, never `optional.map { "literal \($0)" }` inside a
+`Label`/`Text`, which also take a `LocalizedStringKey` (an inference question there is no
+compiler here to answer). `GoalTargetChip.words(for:withTimeLeft:)` / `.color(for:ended:)` also
+spell the date for the goals inside an aspiration's chain, so a goal with a button and one
+without cannot drift. `GoalMeasureEditor`: heading, one sentence, one field, **Clear** /
+**Cancel** / **Set**, Return sets, an empty line does nothing (Clear is the only way to take a
+measure away), `.presentationCompactAdaptation(.popover)` like `TagChoices`. `NoteHeader`: the
+kind word is `GoalWording.name(for:)` (**Goal with a date** / **Aspiration**, it said "Goals");
+a dated goal gets **Serves…**, the target and the measure; an aspiration gets the measure and
+**no horizon label** (it would say Aspiration twice) and keeps a hand-typed `target:` as a plain
+grey label (build 100). `ChainGoalBlock` with `lead: true` **draws its head without the
+wrapping Button** — chips inside it would be a button inside a button (builds 71–74), and the
+press only opened the page you were on. `AspirationChainBody.head`'s measure became the chip;
+`GoalDashboardView` lost its Measure line (build 169). `NoteGoalOptions` no longer offers the
+note itself (`setLink` refused it without a word); it still lists ended goals — build 204's
+missed menu, its own small build. **Departed from the plan in one place**: the `goal.<path>`
+identifier sits at the call sites, not inside `DatedGoalRow` — on the Mac's tagged row with
+`.accessibilityElement(children: .contain)` (the note-row shape, build 191), and on the phone's
+plain `Button` itself, because a container element inside a Button's label is a shape nothing
+here has proved. `DateChoiceView` carries `date.field`, `date.clear`, `date.cancel`, `date.set`
+(accessibility only). Screen test `testAGoalsMeasureAndDateCanBeChanged`, both platforms, with
+`Place.goals`; it waits for the measure box to close before pressing the date, so a press never
+lands on a popover on its way out. **Still read but not written**: a dated goal's horizon
+(**This year** / **Long term**) is a plain label in the header with no control to change it. **The review of 271 found four faults, all fixed before upload**: **Set a measure…** could write over a measure changed on the other device while the box stood open — `setMeasure` now takes the measure the box opened on, returns `AppModel.MeasureChangedMeanwhile` instead of writing, and `GoalMeasureEditor` keeps his words, says in orange inside the popover what the measure is now (build 238), and lets a second press replace it (the week goal box's rule, 264); the iPhone's **Aspirations** showed each measure with no way to change it, so the folded-open compact chain now carries the measure chip in its own untagged row; and two manual faults — the `horizon:` sentence had slid under the new `###` and lost its subject, and the manual named **Serves…** among the goal page's buttons, where it is a plain capsule.
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

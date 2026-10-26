@@ -209,6 +209,8 @@ struct DateChoiceView: View {
                 .textFieldStyle(.roundedBorder)
                 .font(.body.monospacedDigit())
                 .onSubmit(set)
+                // Named for the screen tests (build 268). Accessibility only.
+                .accessibilityIdentifier("date.field")
             Text(parsed == nil ? "Write the date as 2031-12-01." : "Or pick it below.")
                 .font(.caption)
                 .foregroundStyle(parsed == nil ? Color.red : Color.secondary)
@@ -219,14 +221,17 @@ struct DateChoiceView: View {
             HStack {
                 if let clearTitle {
                     Button(clearTitle, role: .destructive) { choose(nil) }
+                        .accessibilityIdentifier("date.clear")
                 }
                 Spacer()
                 if let cancel {
                     Button("Cancel", action: cancel)
+                        .accessibilityIdentifier("date.cancel")
                 }
                 Button("Set", action: set)
                     .keyboardShortcut(.defaultAction)
                     .disabled(parsed == nil)
+                    .accessibilityIdentifier("date.set")
             }
         }
         .padding(12)

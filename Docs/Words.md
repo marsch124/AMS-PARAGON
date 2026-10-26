@@ -5,9 +5,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## What you aim for
 
 - **Aspiration** — something you steer your life by and never finish, like "Healthy body". It has no date. It is shown with a star, in a deep gold. You find them under **Aspirations**.
-- **Goal** — something you want to reach by a date, like "Walk the Kungsleden by August 2027". It is shown with a target (two circles), in gold. A goal can serve an aspiration. You find them under **Goals**.
-- **Target date** — the date a goal should be reached by.
-- **Measure** — one line on a goal that says how you will know it is reached.
+- **Goal** — something you want to reach by a date, like "Walk the Kungsleden by August 2027". It is shown with a target (two circles), in gold. A goal can serve an aspiration. You find them under **Goals**. At the top of a goal it is called **Goal with a date**.
+- **Target date** — the date a goal should be reached by. Set it with **Set a target date…** at the top of the goal.
+- **Measure** — one line on a goal that says how you will know it is reached. Set it with **Set a measure…** at the top of the goal. An aspiration can have one too.
 - **Serves** — the link from a piece of work up to what it is for. A project serves a goal. A goal or an area serves an aspiration. Set it with the **Serves…** button at the top of a note.
 
 ## Your notes
@@ -94,7 +94,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks.
 - **Saved search** — a search you kept, shown as a chip on the **Search** screen.
 - **Recent** — the notes you opened last.
-- **Done** (in the sidebar) — a diary of the last 12 weeks. For each day: the tasks you finished, the time on the focus timer, your line from **Close the day**, and what the work went towards.
+- **Done** (in the sidebar) — a diary of the last 12 weeks. For each day: the tasks you finished, the time on the focus timer, your line from **Close the day**, and what the work went towards. At the top, **Last 12 weeks** shows a small square for each day; the stronger the colour, the more was done. An empty square with an orange dashed edge is a day whose note is still coming from iCloud.
 - **Deleted** — notes you deleted. They are kept for 30 days and can be restored.
 
 ## Tools

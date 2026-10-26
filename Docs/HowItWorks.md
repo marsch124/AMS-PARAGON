@@ -49,7 +49,7 @@ tags: [sport, training]
 
 Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `emoji` (a project's own emoji, see **The Projects list**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
-Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`.
+Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`. On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`.
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -64,7 +64,7 @@ Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below
 Under that, everything else a note can be given as it is made, drawn as chips you press. A chip you have set is filled in its own colour with a solid line around it; one you have not set is grey with a dashed line.
 
 - **Aspiration** — the aspiration it serves is not asked for: an aspiration is the top of the chain. Only its name and its tags.
-- **Goal** — a **Target** date and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The two buttons carry the two icons: the star for an aspiration, the target for a goal with a date.
+- **Goal** — a **Target** date and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The two buttons carry the two icons: the star for an aspiration, the target for a goal with a date. The measure is not asked for here. Set it later with **Set a measure…** at the top of the goal.
 - **Project** — the goal it delivers.
 - **Area** — the area it is part of, and the aspiration it serves.
 - **Tags** — the whole list of tags you already have, with a tick on the ones you pick and a number beside each saying how much of your vault carries it, so a tag that means the same as one you already use but is spelled differently stands out. A field at the top makes a tag that does not exist yet. It is the same list the tag button in a note's header opens.
@@ -287,6 +287,22 @@ Projects and areas link to a goal with the `goal:` line. A goal note shows how m
 
 Both are goal notes in your vault, so nothing was moved or rewritten. The line that tells them apart is `horizon:`, and it is the same line as before.
 
+### Changing a goal's date and measure
+
+The top of a goal says what it is: **Goal with a date** or **Aspiration**. After the name and the status come its buttons:
+
+- **Serves…** — the aspiration a goal with a date serves. Press it to choose another one.
+- **Set a target date…** — the day the goal should be reached by. When a date is set, the button shows it instead, for example **Target 2027-08-15**. Press it to change the date, or press **Clear** to take it away. Write the date as 2027-08-15 or pick it in the calendar.
+- **Set a measure…** — one line that says how you will know the goal is reached, for example "All 440 km in 30 days". When a measure is set, the button shows it. Press it to change the words, write them, and press **Set** or Return. **Clear** takes the measure away.
+
+An aspiration has **Set a measure…** but no date button, because an aspiration has no date.
+
+If the measure was changed on your other device while the box was open, **Set** writes nothing the first time. The box stays open with your words in it, and an orange line says what the measure is now. Press **Set** again to use your words instead. **Clear** works the same way.
+
+A new date changes the weekly review at once: "Past its target date" and "Due after its goal" are worked out from it.
+
+On the Mac **Set a target date…** and **Set a measure…** are also on the goal's page in **Goals**, under its name, and an aspiration's page in **Aspirations** has **Set a measure…**. There they are small capsules: grey with a dashed line while nothing is set, and solid when something is. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
+
 ### How a note stands
 
 Press the button in a note's header to say how it stands. A project or a goal can end in three
@@ -361,7 +377,7 @@ date** is a **target**, what you aim at and hit on a day. A **project** is a fla
 is a ring, and an **area** is the four squares. They are the same icons the sidebar uses: the
 row named **Aspirations** carries the star, the row named **Goals** carries the target, and the
 star is used for one thing only in the whole app — an aspiration. A note's own header shows
-which of the two it is.
+which of the two it is, with the icon and in words: **Aspiration** or **Goal with a date**.
 
 They also have their own colours: an **aspiration is a deeper gold** and a **goal with a date**
 is the lighter gold the Goals list has always used.
@@ -462,7 +478,7 @@ The per cent never says 100 until everything really is finished, and never says 
   **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
   **First** save as soon as you press them.
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
-- **Done** is a diary of the last 12 weeks: this week and the 11 weeks before it, each from Monday to Sunday. The newest day is at the top. The line at the top says how many tasks you finished this week and in the 12 weeks, for example **6 done this week · 212 in 12 weeks**. It is not shown until a finished task carries a day. Each day starts with a small card:
+- **Done** is a diary of the last 12 weeks: this week and the 11 weeks before it, each from Monday to Sunday. The newest day is at the top. The line at the top says how many tasks you finished this week and in the 12 weeks, for example **6 done this week · 212 in 12 weeks**. It is not shown until a finished task carries a day. Under it, **Last 12 weeks** shows one small square for each day: each column is one week, with Monday at the top and this week on the right, and the names of the months above the columns. The stronger the colour of a square, the more tasks were done that day; a grey square means nothing was ticked off. A day whose note is still coming from iCloud has an empty square with an orange dashed edge, and it says so: that day may not be empty, its note is just not here yet. The days still to come this week have no square, and nor do the days before you first ticked off a task with a day: for those the notes cannot say. Today's square has a frame around it. On the Mac, hold the pointer over a square to see its day and how many tasks were done. Press a square to go to that day in the list below; only a day that is listed can be pressed. Press **Last 12 weeks** to fold the squares away, and again to bring them back. The iPhone and the Mac each remember this on their own. Each day starts with a small card:
   - The day's name, for example **Today**, **Yesterday** or **Tuesday 14 October**.
   - A grey line with how many tasks you finished and the time on the focus timer, for example **6 done · 2 h 40 min worked**. When the timer was not used that day, no time is shown.
   - The line you wrote that evening under **How was today?** in **Close the day**, beside a lilac moon.

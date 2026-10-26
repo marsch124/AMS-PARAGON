@@ -1260,7 +1260,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -1299,6 +1299,7 @@ final class ScreenTests: XCTestCase {
         case .plan: return ["sidebar.Time Blocks"]
         case .review: return ["sidebar.Weekly review"]
         case .done: return ["sidebar.Done"]
+        case .goals: return ["sidebar.Goals"]
         }
     }
 
@@ -1323,6 +1324,7 @@ final class ScreenTests: XCTestCase {
         case .plan: return ["tab.plan"]
         case .review: return ["tab.browse", "browse.Weekly review"]
         case .done: return ["tab.browse", "browse.Done"]
+        case .goals: return ["tab.browse", "browse.Goals"]
         }
     }
 
@@ -1463,11 +1465,13 @@ final class ScreenTests: XCTestCase {
     }
 
     /// **Done tells the day's story** (build 267): a task ticked off shows under today's card,
-    /// and the card says "1 done". The test vault has no `@done` stamp anywhere (build 221's
-    /// fixture), so the tick is made here, in **All actions**, pressed at its frame (build
-    /// 255). Done is visited once, after the tick: on the phone a second visit would find Done
-    /// already pushed and `browse.Done` gone. Yesterday may be listed too — the vault's daily
-    /// note holds a line from **Close the day** (build 265) — so only today's card is read.
+    /// and the card says "1 done"; since build 268 today's square above the list says so too,
+    /// and pressing it keeps the app running. The test vault has no `@done` stamp anywhere
+    /// (build 221's fixture), so the tick is made here, in **All actions**, pressed at its frame
+    /// (build 255). Done is visited once, after the tick: on the phone a second visit would
+    /// find Done already pushed and `browse.Done` gone. Yesterday may be listed too — the
+    /// vault's daily note holds a line from **Close the day** (build 265) — so only today's
+    /// card is read.
     /// Its sentence is set explicitly, so both platforms read the same words (build 253).
     func testATickedTaskShowsInDone() {
         go(to: .allActions)
@@ -1479,16 +1483,52 @@ final class ScreenTests: XCTestCase {
             XCTFail("The tick has no place on screen: \(frame)")
             return
         }
-        // Not checked here by the row going away: on the Mac a press in the list can also open
-        // the note beside it, whose own task box draws the same task again, ticked.
         press(tick, at: frame)
+        // Proof the press ticked (build 268), so a failure further down is about Done. The row
+        // leaves the list once the task is finished; on the Mac a press in the list can also
+        // open the note beside it, whose own task box draws the same task again — ticked, so
+        // its value says "done".
+        let ticked = becomes(within: 15) {
+            let again = self.app.buttons.matching(identifier: "task.tick.Book the night train").firstMatch
+            return !again.exists || (again.value as? String) == "done"
+        }
+        XCTAssertTrue(ticked, "The press on the tick in All actions did not finish the task. On screen: \(visibleTexts())")
 
         go(to: .done)
         let card = element("done.day.\(Self.todayStamp())")
         XCTAssertTrue(card.waitForExistence(timeout: 20),
-                      "Done has no card for today after the tick in All actions. Either the tick did not finish the task, or Done did not list it. On screen: \(visibleTexts())")
+                      "Done has no card for today after the task was ticked. Done shows: \(doneScreenSays())")
         XCTAssertTrue(becomes(within: 10) { self.words(of: card).contains("1 done") },
                       "Today's card does not say one task was done. It says: \(words(of: card))")
+
+        // Build 268: the squares above the list. With one finish in the vault, today's square is
+        // the only one that can be pressed, and the list is already at its card, so there is
+        // nowhere far to go: this proves the press is safe. Which squares can be pressed, and
+        // how dark each one is, is pinned in Core (`DoneDiaryTests`). Found among buttons
+        // (build 249) and pressed at its centre, as a plain-styled button (build 196).
+        XCTAssertTrue(element("done.squares").waitForExistence(timeout: 10),
+                      "Done shows no squares after a task was ticked off today. On screen: \(visibleTexts())")
+        let square = app.buttons.matching(identifier: "done.square.\(Self.todayStamp())").firstMatch
+        XCTAssertTrue(square.waitForExistence(timeout: 10),
+                      "Today's square is not a button that can be pressed. On screen: \(visibleTexts())")
+        XCTAssertTrue(words(of: square).contains("1 done"),
+                      "Today's square does not say one task was done. It says: \(words(of: square))")
+        square.pressCentre()
+        XCTAssertTrue(card.waitForExistence(timeout: 10),
+                      "Today's card is gone after its square was pressed. On screen: \(visibleTexts())")
+        XCTAssertEqual(app.state, .runningForeground, "PARAGON stopped after a square was pressed.")
+    }
+
+    /// What the Done screen holds, for a failure message: the sidebar fills the first twenty
+    /// texts on the Mac, so `visibleTexts()` never reaches the list (build 268).
+    private func doneScreenSays() -> String {
+        let ours = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'done.'"))
+            .allElementsBoundByIndex.prefix(12)
+            .map { "\($0.identifier) = \(words(of: $0))" }
+        let empty = app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH 'Nothing in the last' OR value BEGINSWITH 'Nothing in the last'")).count
+        return (ours.isEmpty ? "no element named done.*" : ours.joined(separator: " | "))
+            + (empty > 0 ? " | the empty message" : "")
     }
 
     /// Today as the app writes a day, `YYYY-MM-DD`, in the runner's own calendar and time zone —
@@ -1496,6 +1536,78 @@ final class ScreenTests: XCTestCase {
     private static func todayStamp() -> String {
         let parts = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
+    }
+
+    /// A goal's measure and target date are changed from the goal itself (build 268). Before it,
+    /// `measure:` had no writer in the app at all and `target:` was written only when a goal was
+    /// made. On the Mac the two buttons are on the goal's page in the Goals screen; on the phone
+    /// they are in the header of the note that opens. Same names, same test code.
+    ///
+    /// The test writes a measure and sees the button say it. For the date it only opens the box
+    /// and checks it starts on the goal's own day, then presses **Cancel**: clearing a field that
+    /// already holds text is fragile in XCUITest, and the date box is already proven by the
+    /// deadline and the task date. Every button is found among buttons (build 249).
+    func testAGoalsMeasureAndDateCanBeChanged() {
+        go(to: .goals)
+
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+
+        let measure = app.buttons.matching(identifier: "goal.measure").firstMatch
+        XCTAssertTrue(measure.waitForExistence(timeout: 20),
+                      "The goal has no Set a measure… button. On screen: \(visibleTexts())")
+        XCTAssertTrue(measure.label.contains("Set a measure"),
+                      "The test goal has no measure yet, but the button says: \(measure.label)")
+        let measureFrame = measure.frame
+        guard Self.isOnScreen(measureFrame) else {
+            XCTFail("The Set a measure… button has no place on screen: \(measureFrame)")
+            return
+        }
+        press(measure, at: measureFrame)
+
+        let field = element("measure.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing Set a measure… did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("All 440 km in 30 days")
+
+        let setButton = app.buttons.matching(identifier: "measure.set").firstMatch
+        XCTAssertTrue(setButton.waitForExistence(timeout: 10),
+                      "The measure box has no Set button. On screen: \(visibleTexts())")
+        if setButton.isHittable { setButton.press() } else { setButton.pressCentre() }
+
+        // The box closing first, so the next press does not land on a popover on its way out.
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The measure box stayed open after Set. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { measure.label.contains("440 km") },
+                      "The measure was set and the button does not show it. It says: \(measure.label)")
+
+        let target = app.buttons.matching(identifier: "goal.target").firstMatch
+        XCTAssertTrue(target.waitForExistence(timeout: 10),
+                      "The goal has no target date button. On screen: \(visibleTexts())")
+        let targetFrame = target.frame
+        guard Self.isOnScreen(targetFrame) else {
+            XCTFail("The target date button has no place on screen: \(targetFrame)")
+            return
+        }
+        press(target, at: targetFrame)
+
+        let date = element("date.field")
+        XCTAssertTrue(date.waitForExistence(timeout: 10),
+                      "Pressing the target date did not open the date box. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { (date.value as? String) == "2027-08-15" },
+                      "The date box did not start on the goal's own day. It holds: \(String(describing: date.value))")
+
+        let cancel = app.buttons.matching(identifier: "date.cancel").firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
+                      "The date box has no Cancel button. On screen: \(visibleTexts())")
+        if cancel.isHittable { cancel.press() } else { cancel.pressCentre() }
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: date)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The date box stayed open after Cancel. On screen: \(visibleTexts())")
     }
 }
 

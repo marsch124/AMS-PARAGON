@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 267
+    static let number = 268
 }
 
 @MainActor
@@ -2143,6 +2143,53 @@ final class AppModel: ObservableObject {
         }
         guard save(updated) else { return }
         reload()
+    }
+
+    /// A goal's target date, written as `target:` (build 268). Before this build the line was
+    /// written only when a goal was made, so a goal's date could not be moved from the app at
+    /// all. Nil empties the line, as the goal template ships it. The note is read back out of
+    /// the model first (build 144): a chip beside this one may have just saved it.
+    func setTarget(_ note: Note, _ date: DateOnly?) {
+        flushPendingEdits()
+        guard let live = self.note(at: note.relativePath) else { return }
+        let updated = GoalFields.settingTarget(date, on: live)
+        // The same day again writes nothing (`setEmoji`'s rule, build 254).
+        guard updated != live else { return }
+        guard save(updated) else { return }
+        reload()
+    }
+
+    /// What `setMeasure` answers when it did not write (review of 271): the measure is no
+    /// longer the one the box opened on. `onFile` is what it says now; nil means it was removed.
+    struct MeasureChangedMeanwhile: Equatable {
+        let onFile: String?
+    }
+
+    /// A goal's measure, written as `measure:` (build 268): one line saying how you will know
+    /// the goal is reached. **Nothing in the app wrote this line before**, though the Goals
+    /// list, the chain and the goal's page all read it. Empty text empties the line.
+    ///
+    /// **`startedFrom` is the measure the box showed when it opened** (review of 271). When the
+    /// note now holds another one — changed on the other device, or a newer copy from iCloud
+    /// while the box stood open — nothing is written and the answer says what it is now; a
+    /// second press then replaces it on purpose. The rule of `setWeekGoal` (264) and Close the
+    /// day (261): a line he never saw is never replaced unseen. Nil means it was written, or
+    /// that there was nothing to write.
+    @discardableResult
+    func setMeasure(_ text: String, on note: Note, startedFrom: String?) -> MeasureChangedMeanwhile? {
+        flushPendingEdits()
+        guard let live = self.note(at: note.relativePath) else { return nil }
+        let value = GoalFields.cleaned(text)
+        let wanted: String? = value.isEmpty ? nil : value
+        let onFile: String? = live.measure
+        if onFile != startedFrom && onFile != wanted {
+            return MeasureChangedMeanwhile(onFile: onFile)
+        }
+        let updated = GoalFields.settingMeasure(text, on: live)
+        guard updated != live else { return nil }
+        guard save(updated) else { return nil }
+        reload()
+        return nil
     }
 
     func select(_ ref: TaskRef) {

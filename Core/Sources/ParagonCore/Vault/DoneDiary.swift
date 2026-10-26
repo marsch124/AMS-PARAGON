@@ -181,3 +181,156 @@ public extension NoteIndex {
                          finishedThisWeek: inThisWeek, finishedTotal: total)
     }
 }
+
+// Build 268: **squares for the last 12 weeks** at the top of Done (idea 7, the plan page). One
+// square per day, one column per calendar week, Monday at the top and this week on the right; a
+// square in a stronger colour is a day with more done, and pressing one goes to that day's card
+// in the list.
+// Everything the grid shows is decided here, where it can be tested: which days have a square
+// at all, how dark each one is, which can be pressed, and where the month names go.
+
+/// One day's square in the grid at the top of Done.
+public struct DoneSquare: Identifiable, Equatable, Sendable {
+    public enum State: Equatable, Sendable {
+        /// Later this week: the day has not come yet. No square is drawn.
+        case notYet
+        /// Before the first task in the vault was ticked off with a day. No square is drawn:
+        /// a grey one would say "nothing done", when the truth is "the file cannot say"
+        /// (build 141).
+        case beforeRecord
+        /// A day the file can speak for, with the tasks ticked off that day. A 0 is a grey square,
+        /// except that the app draws it empty while that day's note is still coming from iCloud.
+        case counted(Int)
+    }
+
+    public var day: DateOnly
+    public var state: State
+    /// How dark the square is: 0 for a day with nothing done (and for a day with no square),
+    /// 1 to 4 by its share of the busiest day in the twelve weeks.
+    public var level: Int
+    public var isToday: Bool
+    /// The square is drawn and its day has a card in the list below, so a press can go to it.
+    /// A day with nothing to show has no card, and a press that goes nowhere is worse than no
+    /// button at all (build 175).
+    public var canJump: Bool
+
+    public init(day: DateOnly, state: State, level: Int, isToday: Bool, canJump: Bool) {
+        self.day = day
+        self.state = state
+        self.level = level
+        self.isToday = isToday
+        self.canJump = canJump
+    }
+
+    public var id: DateOnly { day }
+
+    /// The number of tasks ticked off that day, or nil when no square is drawn.
+    public var count: Int? {
+        guard case .counted(let count) = state else { return nil }
+        return count
+    }
+
+    /// Whether a square is drawn for the day at all.
+    public var isDrawn: Bool { count != nil }
+
+    /// What a square says aloud and on the Mac's tooltip: "Tuesday 14 October, 6 done",
+    /// "Yesterday, nothing ticked off". The day's name is handed in, so a square and its card
+    /// name a day the same way.
+    public func spoken(dayName: String) -> String {
+        guard let count else { return dayName }
+        return dayName + ", " + (count == 0 ? "nothing ticked off" : "\(count) done")
+    }
+}
+
+/// Where a month's name sits above the squares: over the first column of that month.
+public struct MonthMark: Identifiable, Equatable, Sendable {
+    /// The column, 0 for the oldest week.
+    public var column: Int
+    /// The first day of the month. The app writes the month's name from it.
+    public var firstDay: DateOnly
+
+    public init(column: Int, firstDay: DateOnly) {
+        self.column = column
+        self.firstDay = firstDay
+    }
+
+    public var id: Int { column }
+}
+
+public extension DoneDiary {
+    /// How many columns a month's name needs before the next one, so two names never print
+    /// over each other.
+    static let monthMarkRoom = 3
+
+    /// Whether the squares are drawn at all. Not while no finished task in the vault carries a
+    /// day: 84 empty squares would say "nothing done for twelve weeks", when the truth is that
+    /// the file cannot say (builds 141, 255).
+    var showsSquares: Bool { firstFinished != nil }
+
+    /// How dark a square is: 0 for nothing done, else 1 to 4 by the day's share of the busiest
+    /// day — never 0 for a day with something done, or it would look like a day with nothing.
+    static func level(_ count: Int, biggest: Int) -> Int {
+        guard count > 0 else { return 0 }
+        guard biggest > count else { return 4 }
+        let share = (4 * count + biggest - 1) / biggest
+        return min(4, max(1, share))
+    }
+
+    /// The squares, twelve columns of seven: the oldest week first, each from Monday to Sunday,
+    /// so this week is the column on the right.
+    var squareWeeks: [[DoneSquare]] {
+        var counts: [DateOnly: Int] = [:]
+        for day in days { counts[day.day] = day.finished.count }
+        let biggest = counts.values.max() ?? 0
+        let first = Self.firstDay(today: today)
+        return (0..<Self.weeks).map { column -> [DoneSquare] in
+            (0..<7).map { row -> DoneSquare in
+                let day = first.adding(days: column * 7 + row, calendar: WeekRef.calendar)
+                return square(for: day, count: counts[day] ?? 0, hasCard: counts[day] != nil, biggest: biggest)
+            }
+        }
+    }
+
+    private func square(for day: DateOnly, count: Int, hasCard: Bool, biggest: Int) -> DoneSquare {
+        let state: DoneSquare.State
+        if day > today {
+            state = .notYet
+        } else if let firstFinished, day >= firstFinished {
+            state = .counted(count)
+        } else {
+            state = .beforeRecord
+        }
+        let drawn: Bool
+        if case .counted = state { drawn = true } else { drawn = false }
+        return DoneSquare(day: day, state: state,
+                          level: drawn ? Self.level(count, biggest: biggest) : 0,
+                          isToday: day == today,
+                          canJump: drawn && hasCard)
+    }
+
+    /// The month names above the columns. A column belongs to the month that holds most of its
+    /// days — the month of its Thursday, the rule that gives a week its year — and a name is
+    /// written where that month changes. The oldest column's name is left out when the next
+    /// month starts fewer than `monthMarkRoom` columns after it: that month only shows at the
+    /// left edge, and the two names would print over each other. A month holds four or five
+    /// Thursdays, so only the first name can ever be that close.
+    var monthMarks: [MonthMark] {
+        let first = Self.firstDay(today: today)
+        var changes: [MonthMark] = []
+        for column in 0..<Self.weeks {
+            let thursday = first.adding(days: column * 7 + 3, calendar: WeekRef.calendar)
+            let month = DateOnly(year: thursday.year, month: thursday.month, day: 1)
+            if changes.last?.firstDay != month {
+                changes.append(MonthMark(column: column, firstDay: month))
+            }
+        }
+        var marks: [MonthMark] = []
+        for index in changes.indices {
+            let isLast = index == changes.count - 1
+            if isLast || changes[index + 1].column - changes[index].column >= Self.monthMarkRoom {
+                marks.append(changes[index])
+            }
+        }
+        return marks
+    }
+}

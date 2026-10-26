@@ -824,16 +824,20 @@ struct NoteGoalOptions: View {
 
     private var current: Note? { note.goal.flatMap { model.index.goal(matching: $0) } }
 
+    /// Never the note itself: a goal cannot serve itself, and `setLink` refuses that without a
+    /// word, so offering it would be a line in the menu that does nothing (build 268, when this
+    /// menu reached a goal's own header).
     private var aspirations: [Note] {
-        model.notes.filter { $0.kind == .goal && $0.horizon == .life }
+        model.notes.filter { $0.kind == .goal && $0.horizon == .life && $0.relativePath != note.relativePath }
     }
     private var datedGoals: [Note] {
-        model.notes.filter { $0.kind == .goal && $0.horizon != .life }
+        model.notes.filter { $0.kind == .goal && $0.horizon != .life && $0.relativePath != note.relativePath }
     }
 
     /// A project delivers a dated goal, so those come first for one. An area holds an
-    /// aspiration, so those come first for an area. Both lists are always offered: the
-    /// review already knows what to say about a dated goal only an area serves.
+    /// aspiration, and a goal with a date serves one, so those come first for both. Both lists
+    /// are always offered: the review already knows what to say about a dated goal only an
+    /// area serves.
     private var first: [Note] { note.kind == .project ? datedGoals : aspirations }
     private var second: [Note] { note.kind == .project ? aspirations : datedGoals }
 
@@ -899,6 +903,16 @@ struct NoteGoalChip: View {
         note.goal.map { ChainTint.forGoal(named: $0, in: model.index) } ?? ChainTint.datedGoal
     }
 
+    /// Said per kind: before build 268 a goal's chip would have called the goal "this part of
+    /// your life", which is what an area is.
+    private var helpText: String {
+        switch note.kind {
+        case .project: return "Which goal this project delivers"
+        case .goal: return "Which aspiration this goal serves"
+        default: return "Which aspiration this part of your life serves"
+        }
+    }
+
     var body: some View {
         Menu {
             NoteGoalOptions(model: model, note: note)
@@ -908,9 +922,7 @@ struct NoteGoalChip: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .foregroundStyle(note.goal == nil ? Color.secondary : tint)
-        .help(note.kind == .project
-              ? "Which goal this project delivers"
-              : "Which aspiration this part of your life serves")
+        .help(helpText)
     }
 }
 

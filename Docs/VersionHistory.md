@@ -2,6 +2,36 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 268 · 26 October 2026
+
+**Done shows the last 12 weeks as small squares.** The second half of the Done idea.
+
+- Open **Done**. Under the line with the counts there is a new part, **Last 12 weeks**, with one small square for each day.
+- Each column is one week. Monday is at the top, and this week is the column on the right. The names of the months are above the columns.
+- The stronger the colour of a square, the more tasks were done that day. A grey square means nothing was ticked off that day.
+- A day whose note is still coming from iCloud has an empty square with an orange dashed edge, and it says so. It does not look like a day with nothing done.
+- Some days have no square: the days still to come this week, and the days before the first day your notes show a task ticked off. For those days the notes cannot say how much was done.
+- Today's square has a frame around it.
+- Press a square, and the list below goes to that day. Only a day that is listed in **Done** can be pressed. A grey day with a line from **Close the day** can be pressed too, and takes you to that line.
+- On the Mac, hold the pointer over a square to see the day and how many tasks were done.
+- Press **Last 12 weeks** to fold the squares away, and press it again to bring them back. The iPhone and the Mac each remember this on their own.
+- The squares are shown only when at least one finished task carries the day it was ticked off, the same as the line with the counts.
+
+**A goal can change its own date and measure.** The first of three builds about goals. Before this build, nothing in PARAGON could write a goal's measure, and its target date could only be set when the goal was made.
+
+- Open a goal. The top now says **Goal with a date** or **Aspiration**, not **Goals**.
+- New buttons at the top of a goal: **Set a target date…** and **Set a measure…**. When they are set, they show the date and the measure instead, for example **Target 2027-08-15** and **Measure: All 440 km in 30 days**.
+- Press **Set a target date…** to choose the day. Write it as 2027-08-15 or pick it in the calendar. **Clear** takes the date away.
+- Press **Set a measure…** and write one line that says how you will know the goal is reached. Press **Set** or Return. **Clear** takes the measure away.
+- A goal with a date now has **Serves…** at the top too, so you can choose its aspiration there.
+- An aspiration has **Set a measure…** but no date button, because an aspiration has no date.
+- On the Mac the same two buttons are also on the goal's page in **Goals**, under its name, and an aspiration's page in **Aspirations** has **Set a measure…**. There they are grey with a dashed line until you set them, and solid after.
+- On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
+- If the measure was changed on your other device while the box was open, **Set** writes nothing the first time. The box stays open with your words, and an orange line says what the measure is now. Press **Set** again to use your words.
+- In the goal's note, the grey **Measure:** line further down is gone, because the button at the top shows the measure.
+- A new date changes the **Weekly review** at once: "Past its target date" and "Due after its goal" use it.
+- The **Serves…** list on a goal no longer offers the goal itself.
+
 ## Build 267 · 26 October 2026
 
 **A clock on a plan block can now tick its task off.** The next of the eight ideas you chose.
