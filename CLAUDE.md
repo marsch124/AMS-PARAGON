@@ -3977,6 +3977,44 @@ no state and no observed object is evaluated once**); step 7's goal title goes t
 keeping the review `List` at ten children. `weekName` is the one place a week is named in a box
 title or a question; step 7's sentences keep their own "this week" / "that week".
 
+**Build 265: Start the day shows last evening, the week and today's events.** No Core change:
+everything is read through existing, tested readers, and nothing is written. `StartDayView`
+draws `morningContext` first in its scroll view — a `@ViewBuilder` of three parts, not a
+`VStack`, so a part that draws nothing leaves no gap: `lastEvening` (`model.lookingBack(for:)`
+for yesterday, the one reader of `## Looking back`; grey, `.lineLimit(4)`, its label set as one
+sentence, `startDay.lastEvening`; nothing when he wrote nothing; while yesterday's note is still
+coming from iCloud an orange line with the cloud — **the plan said grey, but step 7 of the
+review draws the same state orange with `icloud`, and one state drawn two ways is build 168's
+fault**), `weekGoal` (nothing without a goal, his answer, the same as Today; orange with the
+cloud while this week's note is still coming from iCloud) and `calendarBox`
+(only while `showsCalendarEvents`; a `FoldButton` whose `SectionLabel` fills the line, build
+247; `startDay.calendar`; keys `startDayCalendarFolded` / `startDayCalendarFoldedPhone`, open by
+default; the access message is never folded away, build 212). **`WeekGoalLine` (Theme.swift)
+is Today's old "This week:" text moved as it was**, with the identifier a parameter and the
+padding left to each caller; build 266 anchors on its one call in `TodayView`. The scroll view
+gained `.scrollDismissesKeyboard(.interactively)` (build 231), since **Add an action for today**
+now sits lower; `testStartTheDayOpensAndCloses`, which types into it, is the check that it is
+still reachable with the keyboard up. The stale "one-hour blocks" in the view's comment and the
+manual went (blocks have had the task's own length since 249), and `NowLine`'s comment no
+longer says red. **The test vault now has one dated daily note**, yesterday's, holding only a
+**Looking back** line (`TestVault.lastEvening`, "A quiet day by the sea."): prose and no task,
+so build 221's fixture still holds — no dated open task, no plan, no `#next`, no `@done`.
+Screen test `testStartTheDayShowsLastEveningAndTheDay`, both platforms; it never presses the
+fold, because events and Calendar access on a runner are not the test's to decide (build 190).
+**Accepted, and in the manual**: a day closed after midnight writes its line into the new day's
+note, so the next morning shows nothing under **Last evening you wrote**. **Found while writing
+the manual**: `HelpBlock.parse` ends a bullet at its first wrapped line, so every hard-wrapped
+bullet in `Docs/HowItWorks.md` is drawn as one bullet line and then a plain paragraph. The new
+Start the day bullets are written one line each for that reason; the parser itself is a small
+build of its own.
+The review of 265 found three faults, all fixed before upload: the week goal line drew nothing
+while this week's note was still coming from iCloud, which reads as "no goal" (build 100 — the
+same case `lastEvening` and the 264 boxes already named); the 265 entry in
+`Docs/VersionHistory.md` split `**How was today?**` and `**Calendar › Week**` across a wrapped
+bullet, so Help showed the asterisks (its bullets are one line each now); and the manual and
+`Docs/Words.md` still said the **First** marks are "at the top" of Start the day, which they no
+longer are — they are first in its list, above **Overdue**.
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

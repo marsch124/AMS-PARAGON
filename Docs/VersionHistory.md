@@ -2,6 +2,20 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 265 · 26 October 2026
+
+**Start the day shows more of your morning.** The next of the eight ideas you chose. The morning
+reminder, the other half of this idea, comes in a later build.
+
+- Press the orange cup on **Today**. **Start the day** now has three new things at the top.
+- **Last evening you wrote**: the line you wrote yesterday in **Close the day**, under **How was today?**. If you wrote nothing, this part is not shown.
+- **This week:** and your goal for the week, in gold. It is the same line as on **Today**. If no goal is written for this week, the line is not shown. You write the goal on **Calendar › Week**.
+- If last evening's note or this week's note is still coming from iCloud, an orange line says so, instead of showing nothing.
+- **Today's calendar events**, with the number of events, and one short line for each event. Press the heading to fold the events away. The number stays in the heading. Press it again to open them. The iPhone and the Mac each remember this on their own.
+- Below these three things the screen is the same as before: **Add an action for today**, then **Overdue**, **Due today** and **Next actions**.
+- On the iPhone, drag the list down to put the keyboard away.
+- If you press **Done** in **Close the day** after midnight, the line is kept in the new day's note. The next morning, **Start the day** then shows nothing under **Last evening you wrote**.
+
 ## Build 264 · 21 October 2026
 
 **The Weekly review ends by looking forward.** The third of the eight ideas, and the second half

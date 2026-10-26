@@ -414,20 +414,12 @@ The per cent never says 100 until everything really is finished, and never says 
 
 - **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
 
-- **Start the day** shows what is overdue, what is due today, and your next actions. Press
-  **Pick** at the left of the two or three that matter most (the round circle after it marks
-  the task as done, as everywhere else), then press the button at the bottom
-  (it says **Plan 2 actions**, for example). Each one goes into today's plan as a one-hour
-  block, in the free time left today: after the time it is now, and never on top of a block
-  you already have or a calendar event. Nothing is placed after midnight; if not all of them
-  fit, a message says how many did. An action already in today's plan says **In the plan at**
-  and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make
-  them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
-  At the top there is a field, **Add an action for today**, with a **+** beside it. Type
-  something that came to mind and press **+** (or Return). It goes to the Inbox, dated today,
-  and appears in the list already picked. The field stays ready for the next one. If you type
-  your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the
-  Inbox but not shown in today's list.
+- **Start the day** shows what is overdue, what is due today, and your next actions. At the top are three things you already know this morning:
+  - **Last evening you wrote**: the line you wrote yesterday in **Close the day**, under **How was today?**. If you wrote nothing, this part is not shown. If yesterday's note is still coming from iCloud, an orange line says so. The line belongs to the day on which you pressed **Done**: if you close the day after midnight, it goes into the new day's note, and the next morning nothing is shown here.
+  - **This week:** and the goal for the week, the same line as on **Today**. It is not shown when no goal is written. If this week's note is still coming from iCloud, an orange line says so. You write the goal on **Calendar › Week**.
+  - **Today's calendar events**, one short line each, with the number in the heading. Press the heading to fold them away, and again to open them. The iPhone and the Mac each remember this on their own. If Calendar access is off, the message that says so is never folded away. When **Show the day's events in Today and in daily notes** is off in **Settings › Apple Calendar**, this part is not shown.
+- Under those three things there is a field, **Add an action for today**, with a **+** beside it. Type something that came to mind and press **+** (or Return). It goes to the Inbox, dated today, and appears in the list already picked. The field stays ready for the next one. If you type your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the Inbox but not shown in today's list. On the iPhone, drag the list down to put the keyboard away.
+- In **Start the day**, press **Pick** at the left of the two or three that matter most (the round circle after it marks the task as done, as everywhere else), then press the button at the bottom (it says **Plan 2 actions**, for example). Each one goes into today's plan as a block as long as the task's own time, or one hour when it has none, in the free time left today: after the time it is now, and never on top of a block you already have or a calendar event. Nothing is placed after midnight; if not all of them fit, a message says how many did. An action already in today's plan says **In the plan at** and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the
   day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a
   day at that time. Press it and **Close the day** opens. The first time you turn it on, the
@@ -447,13 +439,14 @@ The per cent never says 100 until everything really is finished, and never says 
   - **Tomorrow's calendar events**, with tomorrow's date, then **Waiting for tomorrow**:
     everything dated tomorrow (including what you just moved there) and a few next actions. Press **First** at the left of the
     ones that should come first. That only marks them: in the morning, **Start the day** shows
-    them at the top under **Marked first last evening**. No block is made. Press **First** again
+    them first in its list, above **Overdue**, under **Marked first last evening**. No block is made. Press **First** again
     to take the mark off. The marks are kept in the vault, so a mark made on the iPhone is also
     there on the Mac.
   - **How was today?**: one line, kept in that day's daily note under a heading called
-    **Looking back**. It is ordinary text: nothing counts it and it never becomes a task. Step 7
-    of the **Weekly review**, **Look back at the week**, shows it again. Clear it and the heading
-    goes too.
+    **Looking back**. It is ordinary text: nothing counts it and it never becomes a task. The
+    next morning, **Start the day** shows it under **Last evening you wrote**, and step 7 of the
+    **Weekly review**, **Look back at the week**, shows it again. Clear it and the heading goes
+    too.
   - **What you did today**: how many tasks you finished, and what they went towards — an
     aspiration, a goal, an area, or the project itself — with how many for each. The names of
     the tasks are on the **Done** screen.

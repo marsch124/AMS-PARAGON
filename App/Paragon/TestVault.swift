@@ -82,6 +82,12 @@ enum TestVault {
         // Through `capture`, the same path the capture screens use, so the line is exactly
         // what a real capture would have written.
         _ = try vault.capture(CaptureItem(text: inboxLine))
+        // Yesterday's daily note with one line under **Looking back** (build 265), so **Start the
+        // day** has something to show under *Last evening you wrote*. **The first dated daily
+        // note in this vault.** It holds prose and no task — the Daily template has none — so
+        // build 221's fixture still holds: no dated open task, no plan, no `#next`.
+        let yesterday = try vault.dailyNote(for: DateOnly.today().adding(days: -1))
+        _ = try vault.save(yesterday.settingLookingBack(lastEvening))
         return root
     }
 
@@ -94,5 +100,6 @@ enum TestVault {
     static let resource = "Packing list"
     static let inboxLine = "Call the bank about the ferry"
     static let action = "Book the night train"
+    static let lastEvening = "A quiet day by the sea."
 }
 #endif

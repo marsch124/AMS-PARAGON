@@ -72,6 +72,29 @@ struct SectionLabel: View {
     }
 }
 
+/// **This week:** in gold, then the goal for the week (build 251), on one or two lines.
+///
+/// **One view, two screens** (build 265): **Today** draws it under the date and **Start the
+/// day** under last evening's line. One thing drawn in two places is one view, or the two
+/// drift (build 168). The text is the one Today drew since build 251, moved here as it was.
+///
+/// The caller decides whether there is a goal and draws nothing when there is none: a line
+/// asking for one every morning would be a nag, and the week screen is where it is written.
+/// The padding is the caller's too, since the two screens sit it in different places.
+struct WeekGoalLine: View {
+    let goal: String
+    /// Different on each screen, so a test can tell which one it found.
+    let identifier: String
+
+    var body: some View {
+        (Text("This week: ").fontWeight(.semibold).foregroundColor(ParaKind.goal.tint)
+            + Text(goal))
+            .font(.caption)
+            .lineLimit(2)
+            .accessibilityIdentifier(identifier)
+    }
+}
+
 /// What a screen shows when there is nothing in it yet: an icon, a sentence that says
 /// what belongs here, and the one button that fills it.
 struct EmptyStateView: View {
@@ -521,9 +544,9 @@ struct FoldButton<Label: View>: View {
 ///
 /// - It keeps its own time and moves every minute; a line that stands still where the screen
 ///   happened to open is worse than none.
-/// - **Red, and only here.** Red appears nowhere else in PARAGON — orange is "look at this" and
-///   is already the plan block's own colour — so a red line cannot be read as a warning about
-///   anything. It is also what every calendar draws, which is what he asked for.
+/// - **A soft slate blue, `Theme.nowTint`** (build 182). It was red for one build; he asked
+///   for a friendly colour, because red means overdue or dangerous. It is not one of the
+///   nine tints, since the time of day is not a kind of note.
 /// - `allowsHitTesting(false)`: it lies over the cards, and nothing that lies over a card may
 ///   take its click (builds 71–74).
 struct NowLine: View {

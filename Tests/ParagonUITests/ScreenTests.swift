@@ -468,6 +468,42 @@ final class ScreenTests: XCTestCase {
                       "Cancel was pressed and Start the day stayed on screen.")
     }
 
+    /// **Start the day** shows what is already known this morning (build 265): the line written
+    /// last evening in **Close the day** — the test vault's daily note for yesterday carries one —
+    /// and a heading for today's calendar events. The line's label is set as one sentence, so it
+    /// reads the same on both platforms (build 253); the heading is looked for among buttons
+    /// (build 249). **The fold is not pressed**: whether the runner has events or Calendar access
+    /// is not up to the test, and a test may not fail for its own reasons (build 190).
+    func testStartTheDayShowsLastEveningAndTheDay() {
+        go(to: .today)
+
+        let open = element("today.startDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Start the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+
+        let screen = element("startDay.screen")
+        XCTAssertTrue(screen.waitForExistence(timeout: 20),
+                      "Start the day did not open. On screen: \(visibleTexts())")
+
+        let evening = element("startDay.lastEvening")
+        XCTAssertTrue(evening.waitForExistence(timeout: 20),
+                      "Start the day does not show what was written last evening. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: evening).contains("A quiet day by the sea") },
+                      "The line from last evening is not the one in the test vault. It says: \(words(of: evening))")
+
+        let calendar = app.buttons.matching(identifier: "startDay.calendar").firstMatch
+        XCTAssertTrue(calendar.waitForExistence(timeout: 10),
+                      "Start the day has no heading for today's calendar events. On screen: \(visibleTexts())")
+
+        let cancel = element("sheet.cancel")
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
+                      "Start the day opened without its Cancel button. On screen: \(visibleTexts())")
+        cancel.pressCentre()
+        XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
+                      "Cancel was pressed and Start the day stayed on screen.")
+    }
+
     /// **Week** on the Plan screen opens Calendar → Week, and that screen draws the two strips
     /// build 225 added: the tray of unplaced work and the seven-day row you drop it on.
     ///

@@ -3,7 +3,12 @@ import ParagonCore
 
 /// The morning step, the partner of **Close the day** (build 233): what is overdue, what is due
 /// today and your next actions, and you pick the few that matter most. Those go into today's
-/// plan as one-hour blocks, in the free time left in the day.
+/// plan as blocks, each as long as its task's own time (one hour when it has none, build 249),
+/// in the free time left in the day.
+///
+/// **Build 265: the morning starts with what is already known.** Above the list: the line he
+/// wrote last evening in **Close the day**, the goal for the week, and today's calendar events.
+/// All three are read, never written, and each is drawn only when it has something to say.
 ///
 /// **The same shape as `CloseDayView` on purpose** — a sheet you open, work down and finish,
 /// through the app's single `.sheet` (build 44). Two screens that are a pair should look like
@@ -31,6 +36,11 @@ struct StartDayView: View {
     /// first**). Pressing **Pick** on a task with no time opens the choices on that button, and
     /// choosing one picks it. By `pickKey`, for the reason that key exists.
     @State private var askingTimeFor: String?
+    /// Today's calendar events fold away (build 265). Open by default, and one key per platform,
+    /// so folding them on the phone does not fold them on the Mac — the pair Today has had since
+    /// build 212 (builds 121 and 161).
+    @AppStorage("startDayCalendarFolded") private var deskCalendarFolded = false
+    @AppStorage("startDayCalendarFoldedPhone") private var phoneCalendarFolded = false
 
     /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating task
     /// here writes its next occurrence on the line below, moving every later task in that note —
@@ -102,6 +112,7 @@ struct StartDayView: View {
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    morningContext
                     counts
                     addField
                     if actions.isEmpty {
@@ -120,6 +131,10 @@ struct StartDayView: View {
                 .padding(isPhone ? 14 : 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            // The field **Add an action for today** sits lower since build 265, under last
+            // evening's line and the events. Dragging the list down puts the keyboard away, as on
+            // the phone's capture screen (build 231).
+            .scrollDismissesKeyboard(.interactively)
             Divider()
             if useTaskTimes && !picked.isEmpty {
                 fitLine
@@ -234,6 +249,109 @@ struct StartDayView: View {
         }
         .padding(.horizontal, isPhone ? 14 : 20)
         .padding(.vertical, 12)
+    }
+
+    // MARK: What is already known this morning (build 265)
+
+    /// The three things at the top, each drawn only when it has something to say. A
+    /// `@ViewBuilder` of three parts rather than a `VStack`, so a part that draws nothing leaves
+    /// no gap in the screen's spacing.
+    @ViewBuilder
+    private var morningContext: some View {
+        lastEvening
+        weekGoal
+        calendarBox
+    }
+
+    private var yesterday: DateOnly { day.adding(days: -1) }
+
+    /// The line from last night's **How was today?**, read through `AppModel.lookingBack(for:)`
+    /// — the one reader of `## Looking back`, which never makes a daily note.
+    private var lastEveningText: String { model.lookingBack(for: yesterday) }
+
+    /// What he wrote last evening, in grey. **Nothing when he wrote nothing**: an empty box every
+    /// morning would be a telling-off. While yesterday's note is still coming from iCloud it says
+    /// so instead, in the orange the review's step 7 uses for the same thing — "nothing written"
+    /// is not something this device can know yet (build 100).
+    @ViewBuilder
+    private var lastEvening: some View {
+        if !lastEveningText.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                SectionLabel(title: "Last evening you wrote")
+                Text(lastEveningText)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // One sentence on both platforms, set explicitly, so a test reads the same words on
+            // the phone and the Mac (build 253's `project.next`).
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Last evening you wrote: \(lastEveningText)")
+            .accessibilityIdentifier("startDay.lastEvening")
+        } else if model.dailyNoteIsWaitingForCloud(yesterday) {
+            Label("Last evening's note is still coming from iCloud.", systemImage: "icloud")
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("startDay.lastEvening")
+        }
+    }
+
+    /// **This week:** and the goal, the very line Today draws (`WeekGoalLine`, build 168's rule).
+    /// Nothing when no goal is written — the same as Today, and his answer on the plan page. While
+    /// this week's note is still coming from iCloud an orange line says so, as `lastEvening` does:
+    /// a missing line would read as "no goal", which this device cannot know yet (build 100).
+    @ViewBuilder
+    private var weekGoal: some View {
+        if let goal = model.weekGoal(for: .current()) {
+            WeekGoalLine(goal: goal, identifier: "startDay.weekGoal")
+        } else if model.weeklyNoteIsWaitingForCloud(.current()) {
+            Label("This week's note is still coming from iCloud.", systemImage: "icloud")
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("startDay.weekGoal")
+        }
+    }
+
+    private var calendarFolded: Binding<Bool> {
+        isPhone ? $phoneCalendarFolded : $deskCalendarFolded
+    }
+
+    /// `FoldButton` asks whether the box is **open**; the stored value says whether it is
+    /// folded, so the two are the same question read the other way round (as on Today).
+    private var calendarOpen: Binding<Bool> {
+        Binding(get: { !calendarFolded.wrappedValue },
+                set: { calendarFolded.wrappedValue = !$0 })
+    }
+
+    /// Today's calendar events, one short line each — the blocks are fitted around them, and
+    /// until now this screen read them without showing them. The heading folds them away and the
+    /// count stays in it (build 212). **The access message is never folded away**: with Calendar
+    /// access off it is the only thing that says why there are no events (build 100).
+    ///
+    /// The label fills the whole line, so a press anywhere on it folds — a short button beside a
+    /// `Spacer` gets a wrong frame on the Mac, and a click there landed on the wrong view in
+    /// build 247.
+    @ViewBuilder
+    private var calendarBox: some View {
+        if model.showsCalendarEvents {
+            VStack(alignment: .leading, spacing: 6) {
+                FoldButton(isOpen: calendarOpen, accessibilityName: "Today's calendar events") {
+                    SectionLabel(title: "Today's calendar events",
+                                 count: model.events(on: day).count,
+                                 systemImage: SidebarSection.calendar.systemImage,
+                                 tint: SidebarSection.calendar.tint)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .accessibilityIdentifier("startDay.calendar")
+                if !calendarFolded.wrappedValue || model.calendarAccessGranted == false {
+                    CalendarEventRows(date: day, compact: true)
+                }
+            }
+        }
     }
 
     /// A cup, not a sunrise: `sunrise` already means **Tomorrow** on the Inbox's buttons and over
