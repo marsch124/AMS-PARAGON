@@ -1260,7 +1260,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -1298,6 +1298,7 @@ final class ScreenTests: XCTestCase {
         case .allActions: return ["sidebar.All actions"]
         case .plan: return ["sidebar.Time Blocks"]
         case .review: return ["sidebar.Weekly review"]
+        case .done: return ["sidebar.Done"]
         }
     }
 
@@ -1321,6 +1322,7 @@ final class ScreenTests: XCTestCase {
         case .allActions: return ["tab.actions"]
         case .plan: return ["tab.plan"]
         case .review: return ["tab.browse", "browse.Weekly review"]
+        case .done: return ["tab.browse", "browse.Done"]
         }
     }
 
@@ -1458,6 +1460,42 @@ final class ScreenTests: XCTestCase {
         }
         return target
         #endif
+    }
+
+    /// **Done tells the day's story** (build 267): a task ticked off shows under today's card,
+    /// and the card says "1 done". The test vault has no `@done` stamp anywhere (build 221's
+    /// fixture), so the tick is made here, in **All actions**, pressed at its frame (build
+    /// 255). Done is visited once, after the tick: on the phone a second visit would find Done
+    /// already pushed and `browse.Done` gone. Yesterday may be listed too — the vault's daily
+    /// note holds a line from **Close the day** (build 265) — so only today's card is read.
+    /// Its sentence is set explicitly, so both platforms read the same words (build 253).
+    func testATickedTaskShowsInDone() {
+        go(to: .allActions)
+        let tick = app.buttons.matching(identifier: "task.tick.Book the night train").firstMatch
+        XCTAssertTrue(tick.waitForExistence(timeout: 20),
+                      "All actions has no tick for the test task. On screen: \(visibleTexts())")
+        let frame = tick.frame
+        guard Self.isOnScreen(frame) else {
+            XCTFail("The tick has no place on screen: \(frame)")
+            return
+        }
+        // Not checked here by the row going away: on the Mac a press in the list can also open
+        // the note beside it, whose own task box draws the same task again, ticked.
+        press(tick, at: frame)
+
+        go(to: .done)
+        let card = element("done.day.\(Self.todayStamp())")
+        XCTAssertTrue(card.waitForExistence(timeout: 20),
+                      "Done has no card for today after the tick in All actions. Either the tick did not finish the task, or Done did not list it. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: card).contains("1 done") },
+                      "Today's card does not say one task was done. It says: \(words(of: card))")
+    }
+
+    /// Today as the app writes a day, `YYYY-MM-DD`, in the runner's own calendar and time zone —
+    /// the ones the app reads `DateOnly.today()` from.
+    private static func todayStamp() -> String {
+        let parts = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 }
 

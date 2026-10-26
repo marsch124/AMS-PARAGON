@@ -459,11 +459,55 @@ private struct PlannedWorkedSection: View {
 ///
 /// Shared since build 263: the Weekly review's step 7 draws the week's work the same way, so
 /// a goal looks the same on the evening of a day and at the end of the week.
+///
+/// **`compact: true` is a small capsule** (build 267): symbol, name and count in the thing's
+/// own colour, for the Done diary, where a day carries several of them side by side in a
+/// `WrappingHStack`. The same view in two sizes, like `CalendarEventRow(compact:)` (build 212),
+/// never a second view that could drift. Close the day and the review keep the roomy form.
 struct ServedRow: View {
     @EnvironmentObject private var model: AppModel
     let served: ServedCount
+    let compact: Bool
+
+    /// Written out, so the default for `compact` is certain and no caller has to change.
+    init(served: ServedCount, compact: Bool = false) {
+        self.served = served
+        self.compact = compact
+    }
 
     var body: some View {
+        if compact {
+            capsule
+        } else {
+            roomy
+        }
+    }
+
+    private var capsule: some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol)
+                .imageScale(.small)
+            // A wrapping row places each item at its full width and never squeezes one, so the
+            // whole capsule has to fit the narrowest column it lives in (builds 250, 255): the
+            // Mac's middle column at its 220-point minimum leaves the card about 185 points.
+            // 120 for the name plus the symbol, the count, the gaps and the padding is about
+            // 167. A longer name ends in "…" inside the capsule; the count is never cut off.
+            Text(served.title)
+                .lineLimit(1)
+                .frame(maxWidth: 120, alignment: .leading)
+            Text("\(served.count)")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
+        .font(.caption.weight(.medium))
+        .foregroundStyle(tint)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(tint.opacity(0.12)))
+        .overlay(Capsule().strokeBorder(tint.opacity(0.35)))
+    }
+
+    private var roomy: some View {
         HStack(spacing: 8) {
             Image(systemName: symbol)
                 .foregroundStyle(tint)

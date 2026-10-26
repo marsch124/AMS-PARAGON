@@ -4,8 +4,8 @@ import ParagonCore
 @main
 struct ParagonApp: App {
     @StateObject private var model = AppModel()
-    // Only so the evening reminder's delegate is in place before launch finishes: a press on
-    // the notification can start the app from cold (build 234).
+    // Only so the reminders' delegate is in place before launch finishes: a press on a
+    // notification can start the app from cold (builds 234 and 270).
     #if os(iOS)
     @UIApplicationDelegateAdaptor(ReminderAppDelegate.self) private var reminderDelegate
     #else

@@ -73,6 +73,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Start the day** — the cup button on **Today**. At the top it shows what you wrote last evening, the goal for the week and today's calendar events. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added there with **+**.
 - **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is waiting tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.
 - **First** — a mark you put on an action in **Close the day**. The next morning, **Start the day** shows it first in its list, above **Overdue**.
+- **Morning reminder** — a notification every morning, at a time you choose in **Settings**. Press it to open **Start the day**.
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
 - **Looking back** — the part of a daily note where that one line is kept.
 - **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
@@ -93,7 +94,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks.
 - **Saved search** — a search you kept, shown as a chip on the **Search** screen.
 - **Recent** — the notes you opened last.
-- **Done** (in the sidebar) — the tasks you finished, day by day.
+- **Done** (in the sidebar) — a diary of the last 12 weeks. For each day: the tasks you finished, the time on the focus timer, your line from **Close the day**, and what the work went towards.
 - **Deleted** — notes you deleted. They are kept for 30 days and can be restored.
 
 ## Tools

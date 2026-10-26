@@ -239,7 +239,7 @@ private struct NowAndNextLines: View {
         // block starts or ends, not up to 59 seconds late. The day is read from the timeline's
         // own date, so at midnight the lines move on to the new day's plan by themselves.
         TimelineView(.everyMinute) { context in
-            lines(current(at: context.date))
+            lines(current(at: context.date), on: DateOnly(context.date))
         }
     }
 
@@ -252,12 +252,14 @@ private struct NowAndNextLines: View {
     /// Nothing at all when there is nothing to say: no plan today, or the last block is over.
     /// A note still coming from iCloud reads as no plan here; the vault warning on **Today**
     /// (phone) and at the foot of the sidebar (Mac) already says why (build 261).
+    /// `day` is the plan's own day, the one the lines were read from, handed on to the clock
+    /// button so the block's task is looked for on that day (build 267).
     @ViewBuilder
-    private func lines(_ state: NowAndNext) -> some View {
+    private func lines(_ state: NowAndNext, on day: DateOnly) -> some View {
         if !state.isEmpty {
             VStack(alignment: .leading, spacing: 3) {
                 if let now = state.now {
-                    nowRow(now)
+                    nowRow(now, on: day)
                 }
                 if let next = state.next {
                     thenRow(next)
@@ -270,7 +272,7 @@ private struct NowAndNextLines: View {
 
     /// **Now 09:30 – 11:00 Write the offer**, and the clock button on the right. The word and
     /// the time keep their width; only the title gives way in a narrow column (build 138).
-    private func nowRow(_ block: PlanBlock) -> some View {
+    private func nowRow(_ block: PlanBlock, on day: DateOnly) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             // The words are one element with one sentence, so both platforms read them the same
             // (build 253's shape). The button beside them keeps its own.
@@ -292,7 +294,7 @@ private struct NowAndNextLines: View {
             .accessibilityLabel(Self.nowWords(block))
             .accessibilityIdentifier("today.now")
             Spacer(minLength: 6)
-            nowControl(for: block)
+            nowControl(for: block, on: day)
         }
     }
 
@@ -320,8 +322,11 @@ private struct NowAndNextLines: View {
     /// its place: orange while it runs, grey while paused. **Never a button that does nothing**
     /// (build 175). The clock is matched to the block by name, the way **Planned and worked**
     /// matches them (build 259), so a clock started on the task the block was made from counts.
+    /// The button goes through the same `startFocus(onBlock:on:)` as the block's menu in **Plan
+    /// the day**, so one rule decides in both places whether the clock can tick a task off
+    /// (builds 168, 267).
     @ViewBuilder
-    private func nowControl(for block: PlanBlock) -> some View {
+    private func nowControl(for block: PlanBlock, on day: DateOnly) -> some View {
         if let session = model.focus, NowAndNext.sameName(session.title, block.title) {
             Circle()
                 .fill(session.isPaused ? Color.secondary : Theme.planBlockTint)
@@ -335,7 +340,7 @@ private struct NowAndNextLines: View {
             HeaderActionButton(spokenTitle: "Start the focus timer on \(block.title)",
                                systemImage: "timer",
                                tint: Theme.planBlockTint) {
-                model.startFocus(onBlock: block)
+                model.startFocus(onBlock: block, on: day)
             }
             .fixedSize()
             .accessibilityIdentifier("today.now.focus")

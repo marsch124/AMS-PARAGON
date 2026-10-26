@@ -122,36 +122,19 @@ struct ContentView: View {
             model.handle(url: url)
         }
         .modifier(MainWindowMarking())
-        // A press on the evening reminder opens **Close the day** (build 234). `onReceive` also
-        // hands over the current count when it starts listening, which is what catches a press
-        // that started the app from cold, before this view existed.
-        // The answered count lives in `EveningReminder`, so a window opened later does not
-        // replay a press an earlier window already answered (build 238).
+        // A press on a daily reminder opens its screen: **Close the day** in the evening (build
+        // 234), **Start the day** in the morning (build 267). `onReceive` also hands over the
+        // current count when it starts listening, which is what catches a press that started the
+        // app from cold, before this view existed. The answered counts live in `EveningReminder`,
+        // so a window opened later does not replay a press an earlier window already answered
+        // (build 238), and the count is the one handed in, never read back (build 242).
         .onReceive(EveningReminder.shared.$openRequests) { count in
-            guard EveningReminder.shared.takeOpenRequest(upTo: count) else { return }
-            guard model.vault != nil else { return }
-            // A screen already open as a sheet is closed first and **Close the day** opens a
-            // turn later (build 246): swapping one sheet for another in a single update is
-            // the kind of mid-transition change iOS has crashed on before (build 232).
-            model.afterUpdate {
-                // The focus clock's question is open, or waiting for a screen to close (build
-                // 257's review): swapping it for Close the day would lose it, and with it the
-                // stopped clock's time.
-                // Kept, not lost: Close the day opens once the question is answered or closed.
-                // A message would sit under the question's sheet on the phone (build 238).
-                guard !model.focusQuestionPending else {
-                    // Close the day may be the screen already open, with the question waiting
-                    // behind it: then there is nothing to open later.
-                    if model.activeSheet != .closeDay { model.openCloseDayAfterFocusQuestion() }
-                    return
-                }
-                if model.activeSheet == nil {
-                    model.activeSheet = .closeDay
-                } else {
-                    model.activeSheet = nil
-                    model.afterUpdate { model.activeSheet = .closeDay }
-                }
-            }
+            guard EveningReminder.shared.takeOpenRequest(.evening, upTo: count) else { return }
+            answerReminder(opening: DayReminder.evening.sheet)
+        }
+        .onReceive(EveningReminder.shared.$morningRequests) { count in
+            guard EveningReminder.shared.takeOpenRequest(.morning, upTo: count) else { return }
+            answerReminder(opening: DayReminder.morning.sheet)
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
@@ -210,6 +193,33 @@ struct ContentView: View {
             Button("OK") { model.errorMessage = nil }
         } message: {
             Text(model.errorMessage ?? "")
+        }
+    }
+
+    /// The one way a reminder's press is answered (build 267), for the morning and the evening
+    /// alike, so the two can never answer a press in different ways. In this order:
+    ///
+    /// 1. No vault: nothing to open. The press is dropped, never kept for hours.
+    /// 2. Everything else happens **a turn later**, never in the update that brought the press
+    ///    (build 246): a sheet changed mid-update is what iOS has crashed on before (build 232).
+    /// 3. **The same screen is already open: it stays as it is**, with what was typed in it.
+    ///    Before build 267 **Close the day** was closed and opened again, empty.
+    /// 4. **The focus clock's question is open or waiting, or another screen is open: the press
+    ///    waits** (**Wait**, on the plan page he read), and the screen opens a turn after that
+    ///    one closes.
+    ///    Swapping it would throw away what was typed there, or the stopped clock's time
+    ///    (build 257). A message would sit under the open sheet on the phone (build 238).
+    /// 5. Nothing is open: the screen opens.
+    private func answerReminder(opening sheet: AppSheet) {
+        guard model.vault != nil else { return }
+        model.afterUpdate {
+            guard model.vault != nil else { return }
+            if model.activeSheet == sheet { return }
+            if model.activeSheet != nil || model.focusQuestionPending {
+                model.openWhenFree(sheet)
+                return
+            }
+            model.activeSheet = sheet
         }
     }
 }
@@ -1089,7 +1099,7 @@ struct DetailView: View {
         } else if model.section == .done {
             EmptyStateView(title: "What you finished",
                            systemImage: "checkmark.circle",
-                           message: "Pick a day on the left to see the tasks you ticked off, and the note each one came from.",
+                           message: "Press a task on the left to open the note it came from.",
                            tint: SidebarSection.done.tint)
         } else {
             EmptyStateView(title: "No note open",

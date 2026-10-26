@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 266
+    static let number = 267
 }
 
 @MainActor
@@ -203,10 +203,11 @@ final class AppModel: ObservableObject {
     /// SwiftUI only presents one sheet reliably per view, so all sheets go through this.
     @Published var activeSheet: AppSheet? {
         didSet {
-            // Close the day is on screen, by whatever route: a kept reminder press is answered.
-            if activeSheet == .closeDay { closeDayAfterFocusQuestion = false }
+            // The screen a reminder is waiting for is on screen, by whatever route: the kept
+            // press is answered (build 267).
+            if let waiting = waitingScreen, activeSheet == waiting { waitingScreen = nil }
             askWaitingStopQuestion()
-            openWaitingCloseDay()
+            openWaitingScreen()
         }
     }
     @Published private(set) var lastCaptureMessage: String?
@@ -2666,26 +2667,37 @@ final class AppModel: ObservableObject {
         activeSheet == .focusStop || stopQuestionWaiting
     }
 
-    /// The evening reminder was pressed while the focus clock's question was open or waiting
-    /// (build 257): **Close the day** opens once that question is out of the way, rather than
-    /// swapping it away or being lost.
-    private var closeDayAfterFocusQuestion = false
+    /// The screen a reminder asked for while it could not open (builds 257 and 270): the focus
+    /// clock's question was open or waiting, or another screen was open as a sheet — **New
+    /// Note**, say, with words typed in it. It opens a turn after that screen closes, rather than
+    /// swapping it away (**Wait**, on the plan page he read): a sheet swapped for another throws
+    /// away what was typed in it, and in a single update it is the change iOS has crashed on
+    /// before (builds 232, 246). One slot: a second press, before the first was answered, waits
+    /// in its place.
+    ///
+    /// **Build 257 called this `closeDayAfterFocusQuestion`**, a Bool for one screen. It holds
+    /// the screen now, because the morning reminder asks for **Start the day** through the same
+    /// path (`ContentView.answerReminder(opening:)`).
+    private var waitingScreen: AppSheet?
 
-    func openCloseDayAfterFocusQuestion() {
-        closeDayAfterFocusQuestion = true
+    /// What `ContentView.answerReminder(opening:)` calls when the screen cannot open now.
+    func openWhenFree(_ sheet: AppSheet) {
+        waitingScreen = sheet
+        // Nothing is open after all (it closed in the same turn): the usual turn later.
+        openWaitingScreen()
     }
 
     /// A turn after a sheet closes, and after a waiting stop question has had its turn: the
     /// stop question is queued first, so when it opens this finds a sheet and waits again.
-    private func openWaitingCloseDay() {
-        guard activeSheet == nil, closeDayAfterFocusQuestion else { return }
+    private func openWaitingScreen() {
+        guard activeSheet == nil, waitingScreen != nil else { return }
         afterUpdate {
-            guard self.activeSheet == nil, self.closeDayAfterFocusQuestion else { return }
+            guard self.activeSheet == nil, let sheet = self.waitingScreen else { return }
             // Cleared before the vault check: a press that can no longer be answered (the vault
-            // was closed meanwhile) is dropped, never left to open Close the day hours later.
-            self.closeDayAfterFocusQuestion = false
+            // was closed meanwhile) is dropped, never left to open a screen hours later.
+            self.waitingScreen = nil
             guard self.vault != nil else { return }
-            self.activeSheet = .closeDay
+            self.activeSheet = sheet
         }
     }
 
@@ -2761,11 +2773,29 @@ final class AppModel: ObservableObject {
                                 startedAt: Date(), taskID: ref.task.id, taskDue: ref.task.dueDate))
     }
 
-    /// **Focus on this** on a block in the day's plan. A block is not a task, so nothing can be
-    /// ticked off at the end; its length is what was planned.
-    func startFocus(onBlock block: PlanBlock) {
-        beginFocus(FocusSession(notePath: nil, taskTitle: block.title, title: block.title,
-                                plannedMinutes: block.minutes, startedAt: Date()))
+    /// **Focus on this** on a block in the day's plan, from its menu in **Plan the day** or the
+    /// clock button on **Today**'s **Now** line; its length is what was planned. When exactly one
+    /// open task has the block's name (`NoteIndex.openTask(forBlock:on:)`, build 267), the clock
+    /// is also tied to that task, so the stop question offers **Done, tick it off** and ticks it
+    /// in its note — found again by its id, else by its words and date (`FocusSession.task(in:)`).
+    /// Otherwise the clock is the block's alone and the answer is **Save the time**, as before.
+    /// `title` stays the block's name either way, so its line under **Worked** meets the block
+    /// on one row in **Planned and worked** (build 259). `day` is the plan's own day, so a
+    /// repeating task's next copy, dated later, is never taken for it.
+    /// "Exactly one open task has this name" is a question about the whole vault, so it is not
+    /// asked while a note is still coming from iCloud: a second task with the same name could be
+    /// in it, and the wrong one would be ticked (build 100's rule, as in `partVaultReason`). The
+    /// clock is then the block's alone, as before.
+    func startFocus(onBlock block: PlanBlock, on day: DateOnly) {
+        let tied: TaskRef? = notesWaitingForCloud.isEmpty ? index.openTask(forBlock: block, on: day) : nil
+        if let ref = tied, canFocus(on: ref) {
+            beginFocus(FocusSession(notePath: ref.notePath, taskTitle: ref.task.title, title: block.title,
+                                    plannedMinutes: block.minutes, startedAt: Date(),
+                                    taskID: ref.task.id, taskDue: ref.task.dueDate))
+        } else {
+            beginFocus(FocusSession(notePath: nil, taskTitle: block.title, title: block.title,
+                                    plannedMinutes: block.minutes, startedAt: Date()))
+        }
     }
 
     /// A second timer never runs beside the first: the one running is stopped and its time

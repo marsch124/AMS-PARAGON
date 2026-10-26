@@ -12,7 +12,7 @@ import Foundation
 /// written in **Close the day**, and the daily note they all came from.
 ///
 /// **One record for every screen that looks back at days** — the Weekly review's step 7 takes
-/// seven of them, the Done diary (build 268) will take twelve weeks of them. Two screens that
+/// seven of them, the Done diary (build 267) takes twelve weeks of them. Two screens that
 /// each walked the vault their own way is how two lists of "today's actions" came to disagree
 /// before build 174.
 public struct DayRecord: Identifiable, Equatable, Sendable {
@@ -55,19 +55,35 @@ public extension NoteIndex {
     /// Every day from `first` through `last`, oldest first, worked out in **one pass** over the
     /// notes rather than one pass per day.
     func dayRecords(from first: DateOnly, through last: DateOnly) -> [DayRecord] {
-        guard first <= last else { return [] }
+        dayRecordsInOnePass(from: first, through: last, earliestUpTo: last).records
+    }
+}
+
+extension NoteIndex {
+    /// `dayRecords(from:through:)`, and in the same pass the earliest day any task in the whole
+    /// vault was ticked off, up to `cutoff`. The Done diary (build 267) needs both, and
+    /// `Note.tasks` parses the body on every call, so asking for the second in a pass of its own
+    /// would parse the whole vault twice.
+    func dayRecordsInOnePass(from first: DateOnly, through last: DateOnly,
+                             earliestUpTo cutoff: DateOnly) -> (records: [DayRecord], earliest: DateOnly?) {
         var finished: [DateOnly: [TaskRef]] = [:]
         var daily: [DateOnly: Note] = [:]
+        var earliest: DateOnly?
         for note in notes {
             if let date = note.dailyDate, date >= first, date <= last {
                 daily[date] = note
             }
             for task in note.tasks {
-                guard let day = task.doneDay, day >= first, day <= last else { continue }
+                guard let day = task.doneDay else { continue }
+                // A stamp later than the cutoff (typed by hand, or from a device whose clock is
+                // ahead) is no one's first finish: WeeklyFinished's rule (review of 255).
+                if day <= cutoff, earliest.map({ day < $0 }) ?? true { earliest = day }
+                guard day >= first, day <= last else { continue }
                 finished[day, default: []].append(
                     TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
             }
         }
+        guard first <= last else { return ([], earliest) }
         var records: [DayRecord] = []
         var day = first
         while day <= last {
@@ -84,7 +100,7 @@ public extension NoteIndex {
             guard next > day else { break }
             day = next
         }
-        return records
+        return (records, earliest)
     }
 }
 

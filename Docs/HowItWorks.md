@@ -414,7 +414,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 - **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
 
-- **Now and Then** on **Today**: on a day with a plan, two short lines under the date say where you are in it. The first starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**. On its right is a small orange button with a clock. Press it and the focus timer starts on that block, and the bar appears at the bottom, as usual. While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused. The dot also shows when the clock runs on a task with the same name as the block, such as the task the block was made from. The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button. The lines change by themselves when a block starts or ends. When nothing is on now, only the **Then** line is shown. When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before. Only plan blocks are shown here; your calendar events are under **Calendar** further down. On the Mac, hold the pointer over the clock button and its name appears.
+- **Now and Then** on **Today**: on a day with a plan, two short lines under the date say where you are in it. The first starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**. On its right is a small orange button with a clock. Press it and the focus timer starts on that block, and the bar appears at the bottom, as usual. If exactly one open task has the same name as the block, the timer can tick that task off when you stop it (see **The focus timer**). While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused. The dot also shows when the clock runs on a task with the same name as the block, such as the task the block was made from. The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button. The lines change by themselves when a block starts or ends. When nothing is on now, only the **Then** line is shown. When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before. Only plan blocks are shown here; your calendar events are under **Calendar** further down. On the Mac, hold the pointer over the clock button and its name appears.
 
 - **Start the day** shows what is overdue, what is due today, and your next actions. At the top are three things you already know this morning:
   - **Last evening you wrote**: the line you wrote yesterday in **Close the day**, under **How was today?**. If you wrote nothing, this part is not shown. If yesterday's note is still coming from iCloud, an orange line says so. The line belongs to the day on which you pressed **Done**: if you close the day after midnight, it goes into the new day's note, and the next morning nothing is shown here.
@@ -422,16 +422,10 @@ The per cent never says 100 until everything really is finished, and never says 
   - **Today's calendar events**, one short line each, with the number in the heading. Press the heading to fold them away, and again to open them. The iPhone and the Mac each remember this on their own. If Calendar access is off, the message that says so is never folded away. When **Show the day's events in Today and in daily notes** is off in **Settings › Apple Calendar**, this part is not shown.
 - Under those three things there is a field, **Add an action for today**, with a **+** beside it. Type something that came to mind and press **+** (or Return). It goes to the Inbox, dated today, and appears in the list already picked. The field stays ready for the next one. If you type your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the Inbox but not shown in today's list. On the iPhone, drag the list down to put the keyboard away.
 - In **Start the day**, press **Pick** at the left of the two or three that matter most (the round circle after it marks the task as done, as everywhere else), then press the button at the bottom (it says **Plan 2 actions**, for example). Each one goes into today's plan as a block as long as the task's own time, or one hour when it has none, in the free time left today: after the time it is now, and never on top of a block you already have or a calendar event. Nothing is placed after midnight; if not all of them fit, a message says how many did. An action already in today's plan says **In the plan at** and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
-- **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the
-  day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a
-  day at that time. Press it and **Close the day** opens. The first time you turn it on, the
-  iPhone or the Mac asks whether PARAGON may send notifications. Under the time, Settings says
-  when the next reminder will come, for example "Next reminder: today at 21:00". If no reminder
-  can come, it says why in orange and where to change it. **Send one in 10 seconds** sends the
-  same notification once, so you can try it without waiting for the evening. Below the button
-  it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac
-  delivered it. Turn the switch
-  off and the reminder stops.
+- **Morning reminder.** In **Settings › Morning reminder**, turn on **Remind me to start the day** and choose a time (07:30 unless you change it). PARAGON then sends one notification every morning at that time: "Start the day. What matters most today? Pick it and put it in your plan." Press it and **Start the day** opens. On the iPhone the keyboard does not come up by itself, so you see the whole list first. It comes every day, at the weekend too, because your leisure tasks are in PARAGON as well. Turn the switch off and it stops.
+- **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a day at that time. Press it and **Close the day** opens. Turn the switch off and it stops.
+- **Both reminders work the same way.** The first time you turn one on, the iPhone or the Mac asks whether PARAGON may send notifications. That one answer is for both reminders and for the focus timer. Under the time, Settings says when the next reminder will come, for example "Next reminder: tomorrow at 07:30". If no reminder can come, it says why in orange and where to change it. Each part has its own **Send one in 10 seconds**, which sends the same notification once, so you can try it now. Press that notification and the same screen opens as from the real one. Below the button it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac delivered it. The iPhone and the Mac each have their own switches and times. A Focus mode, such as Do Not Disturb, can hold a notification back, and PARAGON cannot see that.
+- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New Note**, nothing is closed and nothing you typed is lost: **Start the day** or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan the day** windows do not open it.
 - **Close the day** is one page you work down and finish. From the top:
   - **Did not happen**: everything still open that was due today or earlier. Each has a
     **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is
@@ -447,8 +441,8 @@ The per cent never says 100 until everything really is finished, and never says 
   - **How was today?**: one line, kept in that day's daily note under a heading called
     **Looking back**. It is ordinary text: nothing counts it and it never becomes a task. The
     next morning, **Start the day** shows it under **Last evening you wrote**, and step 7 of the
-    **Weekly review**, which looks back at a whole week, shows it again. Clear it and the heading goes
-    too.
+    **Weekly review**, which looks back at a whole week, shows it again, and so does that day's
+    card in **Done**. Clear it and the heading goes too.
   - **What you did today**: how many tasks you finished, and what they went towards — an
     aspiration, a goal, an area, or the project itself — with how many for each. The names of
     the tasks are on the **Done** screen.
@@ -468,7 +462,15 @@ The per cent never says 100 until everything really is finished, and never says 
   **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
   **First** save as soon as you press them.
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
-- **Done** lists what you completed, day by day, for the last 30 days.
+- **Done** is a diary of the last 12 weeks: this week and the 11 weeks before it, each from Monday to Sunday. The newest day is at the top. The line at the top says how many tasks you finished this week and in the 12 weeks, for example **6 done this week · 212 in 12 weeks**. It is not shown until a finished task carries a day. Each day starts with a small card:
+  - The day's name, for example **Today**, **Yesterday** or **Tuesday 14 October**.
+  - A grey line with how many tasks you finished and the time on the focus timer, for example **6 done · 2 h 40 min worked**. When the timer was not used that day, no time is shown.
+  - The line you wrote that evening under **How was today?** in **Close the day**, beside a lilac moon.
+  - Small labels for what the work went towards: an aspiration, a goal, an area, or the project itself, each with how many tasks. Tasks ticked in that day's own daily note share one label, **Daily note**. A weekly note, or an earlier day's note, keeps its own name, for example **Week 43, 19 Oct – 25 Oct 2026**.
+  - Under the card are the tasks you finished that day. Press one to open the note it came from.
+  - A day when you ticked nothing, but wrote a line in **Close the day** or used the focus timer, is listed too. Its grey line says **Nothing ticked off**.
+  - A task counts on the day in its `@done(…)` stamp. A task ticked with no stamp has no day, so it is not listed here.
+  - If a day's own note is still coming from iCloud, its card says **Still coming from iCloud** in orange, in place of the evening line. That line and the timer time are in the note, so they show when it arrives. On the iPhone an orange line at the top of **Done** also says that notes are still coming. When nothing is listed while notes are still coming, **Done** says so instead of saying there is nothing.
 - **Calendar** lets you pick a day, week or month. The day view can show a month grid with week numbers and a dot under every day that holds something — green for tasks due, red if one is overdue, blue for calendar events, grey for a day that already has a note. Under the grid is the day itself: its events, what is due, what got done, and a button to open or create the daily note. The grid is off to begin with, because the day itself is what the screen is for: press the **calendar** button in the day's top row to show it, and press it again to put it away. The button is lit while the grid is showing, and the app remembers your choice. Move with the arrows, the Today button, or the left and right arrow keys. Drop a task on a day to give it that date.
 - **Calendar › Week** is where you plan a week. At the very top is **Goal for this week**:
   one line that says what the week is about. When the arrows move to another week, the box
@@ -588,7 +590,7 @@ today's daily note, so you can see later how long things really took.
 - Press the **time?** button on a task (or its time, such as **45 min**) and choose **Focus on
   this** at the bottom of the list. Or right-click the task (press and hold on the iPhone) and
   choose **Focus on this**, the first line of the menu.
-- A block in **Plan the day** has **Focus on this** on its right-click menu too.
+- A block in **Plan the day** has **Focus on this** on its right-click menu too. If exactly one open task has the same name as the block, the clock also belongs to that task, so you can tick it off when you stop. See **A clock on a block** below.
 - On **Today**, the line that starts with **Now** has a small orange clock button. It starts the focus timer on the plan block you are in.
 - **Focus on this** is not offered inside **Start the day** and **Close the day**, nor in the
   Mac's separate **Plan the day** window (⇧⌘P), because the bar cannot be seen there. Nor is it
@@ -622,8 +624,8 @@ Settings, no task has a time, so no notification comes for a task.
 - Paused time does not count: a pause moves the notification later. Going on after the time is
   up brings no second notification.
 - The clock does not stop by itself. Press the stop button when you are done.
-- It is the same permission as the evening reminder. If you have already answered that
-  question, nothing is asked. If PARAGON has never asked, it asks the first time a clock with a
+- It is the same permission as the morning and evening reminders. If you have already answered
+  that question, nothing is asked. If PARAGON has never asked, it asks the first time a clock with a
   planned time starts.
 - If notifications for PARAGON are turned off, or set to **None** (**System Settings ›
   Notifications** on the Mac, **Settings › Notifications** on the iPhone), none appears. PARAGON
@@ -647,8 +649,8 @@ Click it for a short menu: the task, how long you planned (when the task has a t
 - **Stop…** does the same, because the question is asked in that window. After **Stop…** the
   pause sign and the time stay until you answer the question. Then they go away.
 - While the question is open, **Pause**, **Go on** and **Stop…** are grey and cannot be pressed.
-  If the evening reminder is pressed then, **Close the day** opens after you have answered the
-  question.
+  If a reminder is pressed then, **Start the day** or **Close the day** opens after you have
+  answered the question.
 - If another screen is open in PARAGON, such as **New Note** or **Close the day**, **Stop…**
   stops the clock but does not close that screen. The question comes when you close it.
 
@@ -659,8 +661,7 @@ shed. You planned 45 min." Then:
 
 - **Done, tick it off** ticks the task in its note. If the task can no longer be found there —
   renamed, moved or already ticked — the time is still saved and nothing else is ticked.
-- **Not done yet** leaves the task open. For a block from **Plan the day** this answer is called
-  **Save the time**, since a block cannot be ticked.
+- **Not done yet** leaves the task open. For a block from **Plan the day** that belongs to no task, this answer is called **Save the time**, and there is no **Done, tick it off** (see **A clock on a block** below).
 - **Don't save the time** writes nothing, for a clock that was left running by mistake.
 
 The first two write the time into today's daily note under a heading **Worked**, one line for
@@ -682,6 +683,18 @@ vault folder, or closing the vault, writes a running clock's time first; if that
 the vault is not changed. In **Read** mode these lines are
 drawn as an ordinary list, not as plan blocks. In the evening, **Close the day** shows them
 beside what you planned, under **Planned and worked**.
+
+### A clock on a block
+
+A clock started on a block from **Plan the day**, from the block's right-click menu (press and hold on the iPhone) or from the clock button on **Today**, can belong to a task too.
+
+- It belongs to a task when exactly one open task has the same name as the block. That is usually the task the block was made from, for example by **Start the day**.
+- Then the question after stop is the same as for a task: **Done, tick it off** and **Not done yet**. **Done, tick it off** ticks that task in its note.
+- Big and small letters and extra spaces do not matter, and `#next` is left out, as on the block itself. Another tag does matter: a block called "Write the offer" does not belong to the task "Write the offer #work".
+- A task dated after the block's day does not count, such as the next copy of a repeating task. Neither does a task with no date in a later day's daily note, nor a task in an archived note.
+- If no open task has the block's name, or two or more do, PARAGON cannot tell which one to tick. Then there is no **Done, tick it off**, and the answer that writes the time is called **Save the time**.
+- While notes are still coming from iCloud, PARAGON cannot be sure no other task has the same name, so the clock belongs to the block alone, and the answer is **Save the time**.
+- Either way the line under **Worked** carries the block's name, so **Planned and worked** in **Close the day** shows the block and its work on one row.
 
 ## Weekly review
 

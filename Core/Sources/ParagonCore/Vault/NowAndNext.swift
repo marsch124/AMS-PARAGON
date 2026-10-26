@@ -76,3 +76,31 @@ public struct NowAndNext: Equatable, Sendable {
         return !key.isEmpty && key == PlannedAndWorked.key(other)
     }
 }
+
+public extension NoteIndex {
+    /// The one open task a block in the day's plan stands for (build 267), so a focus clock
+    /// started on the block can tick that task off when it stops. **Start the day** and a task
+    /// dropped on an hour both name a block `TaskItem.planTitle`, so the task is found by that
+    /// name, compared the way **Planned and worked** compares names (build 259): case and runs
+    /// of spaces ignored, a tag kept. A block typed by hand without the task's tag is another
+    /// name, and finds nothing.
+    ///
+    /// **Never lend a task to the wrong block.** Only a task that is open, in a note that is not
+    /// archived (`openTasks()`; work notes are never in the index), and not on a later day than
+    /// `day` — so a repeating task's next copy, dated tomorrow, is never taken for today's
+    /// block. A task with no date of its own in a daily note belongs to that note's day (build
+    /// 225's rule). **Exactly one** such task, or nil: two tasks with one name cannot be told
+    /// apart (build 256's review), and then the clock is the block's alone, as before.
+    func openTask(forBlock block: PlanBlock, on day: DateOnly) -> TaskRef? {
+        let key = PlannedAndWorked.key(block.title)
+        guard !key.isEmpty else { return nil }
+        var found: [TaskRef] = []
+        for ref in openTasks() {
+            guard PlannedAndWorked.key(ref.task.planTitle) == key else { continue }
+            let taskDay: DateOnly? = ref.task.dueDate ?? note(path: ref.notePath)?.dailyDate
+            if let taskDay, taskDay > day { continue }
+            found.append(ref)
+        }
+        return found.count == 1 ? found.first : nil
+    }
+}

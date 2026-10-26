@@ -8,8 +8,9 @@ import ParagonCore
 ///
 /// **The same system as the evening reminder** (build 234): a local notification the phone or
 /// the Mac keeps itself, so it comes on time whether or not PARAGON is running.
-/// `EveningReminder` is the delegate for both, which is what lets this one show while PARAGON is
-/// in front; pressing it only brings PARAGON forward.
+/// `EveningReminder` is the delegate for every notification PARAGON sends (both daily reminders
+/// since build 267, and this one), which is what lets this one show while PARAGON is in front;
+/// pressing it only brings PARAGON forward.
 ///
 /// **Planted again on every change to the clock**, from the clock's own dates
 /// (`FocusSession.secondsUntilPlanned`): a pause takes it away, **Go on** puts it back at the
@@ -63,9 +64,9 @@ enum FocusNotice {
                 switch status {
                 case .notDetermined:
                     guard ask else { return }
-                    // Asked here only while nothing has asked before: the evening reminder's
-                    // switch and Send one in 10 seconds ask for the same permission, so on a
-                    // device where those were used no question comes.
+                    // Asked here only while nothing has asked before: the morning and evening
+                    // reminders' switches and Send one in 10 seconds ask for the same
+                    // permission, so on a device where those were used no question comes.
                     UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
                         Task { @MainActor in
                             EveningReminder.shared.refreshPermission()
@@ -101,8 +102,8 @@ enum FocusNotice {
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [requestID])
     }
 
-    /// The same two states, in the same words, as **Settings \u{203A} Evening reminder**: turned
-    /// off, or allowed but set to **None**.
+    /// The same two states, in the same words, as **Settings \u{203A} Morning reminder** and
+    /// **Evening reminder**: turned off, or allowed but set to **None**.
     private static func tellOnce(_ tell: @MainActor (String) -> Void, setToNone: Bool) {
         guard !toldNoticesAreOff else { return }
         toldNoticesAreOff = true

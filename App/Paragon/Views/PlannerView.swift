@@ -352,10 +352,13 @@ struct PlannerDayView: View {
     }
 
     /// **Focus on this** for a block's menu, or nil where no timer bar can be seen. A function
-    /// for the same reason as `openEventAction(for:)`.
+    /// for the same reason as `openEventAction(for:)`. The planner's own day goes with it, so the
+    /// block's task is looked for on that day (build 267). Read into a constant first, so the
+    /// closure keeps the day the menu was opened on.
     private func focusAction(for block: PlanBlock) -> (() -> Void)? {
         guard focusBarShown else { return nil }
-        return { model.startFocus(onBlock: block) }
+        let shownDay = day
+        return { model.startFocus(onBlock: block, on: shownDay) }
     }
 
     /// "Open in Calendar", but only when the block really has a copy out there. Written as a

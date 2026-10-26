@@ -120,4 +120,107 @@ final class NowAndNextTests: XCTestCase {
         XCTAssertFalse(NowAndNext.sameName(nil, "Write the offer"))
         XCTAssertFalse(NowAndNext.sameName("", ""))
     }
+
+    // MARK: A block's clock finds its task (build 267)
+
+    private let today = DateOnly(year: 2026, month: 10, day: 26)
+
+    private func note(_ path: String, kind: ParaKind, _ body: String, status: String? = nil) -> Note {
+        let name = (path.split(separator: "/").last.map(String.init) ?? path).replacingOccurrences(of: ".md", with: "")
+        let statusLine = status.map { "status: \($0)\n" } ?? ""
+        let front = "---\ntitle: \(name)\ntype: \(kind.rawValue)\n" + statusLine + "---\n"
+        return Note(relativePath: path, kind: kind, text: front + body)
+    }
+
+    private func found(_ title: String, among notes: [Note], on day: DateOnly? = nil) -> TaskRef? {
+        let block = PlanBlock(start: minutes("09:30"), end: minutes("10:15"), title: title)
+        return NoteIndex(notes: notes).openTask(forBlock: block, on: day ?? today)
+    }
+
+    /// The task the block was made from is found, in its own note, with its own words.
+    func testABlockFindsTheOneOpenTaskWithItsName() {
+        let shed = note("Projects/Shed.md", kind: .project, """
+        - [ ] Order the wood
+        - [ ] Write the offer ~45m
+        """)
+        let ref = found("Write the offer", among: [shed])
+        XCTAssertEqual(ref?.notePath, "Projects/Shed.md")
+        XCTAssertEqual(ref?.task.title, "Write the offer")
+    }
+
+    /// A block never carries `#next` (`planTitle` takes it off), but the task still does.
+    func testATaskMarkedNextStillMatchesItsBlock() {
+        let shed = note("Projects/Shed.md", kind: .project, "- [ ] Write the offer #next\n")
+        XCTAssertEqual(found("Write the offer", among: [shed])?.task.title, "Write the offer #next")
+    }
+
+    func testCaseAndSpacesAreIgnored() {
+        let shed = note("Projects/Shed.md", kind: .project, "- [ ] Write the offer\n")
+        XCTAssertNotNil(found("write  the   OFFER", among: [shed]))
+        XCTAssertNotNil(found(" Write the offer ", among: [shed]))
+    }
+
+    /// Two open tasks with one name cannot be told apart, so neither is lent to the block.
+    func testTwoOpenTasksWithTheNameFindNothing() {
+        let shed = note("Projects/Shed.md", kind: .project, "- [ ] Call Anna\n")
+        let office = note("Areas/Office.md", kind: .area, "- [ ] Call Anna\n")
+        XCTAssertNil(found("Call Anna", among: [shed, office]))
+        // Two in one note are just as unclear.
+        let twice = note("Projects/Shed.md", kind: .project, "- [ ] Call Anna\n- [ ] Call Anna\n")
+        XCTAssertNil(found("Call Anna", among: [twice]))
+    }
+
+    /// A ticked task is done: nothing to tick. A ticked copy beside an open one leaves the open one.
+    func testATickedTaskIsNeverFound() {
+        let done = note("Projects/Shed.md", kind: .project, "- [x] Call Anna @done(2026-10-25)\n- [-] Call Bo\n")
+        XCTAssertNil(found("Call Anna", among: [done]))
+        XCTAssertNil(found("Call Bo", among: [done]), "A cancelled task is not open either.")
+        let both = note("Projects/Shed.md", kind: .project, "- [x] Call Anna @done(2026-10-25)\n- [ ] Call Anna\n")
+        XCTAssertEqual(found("Call Anna", among: [both])?.task.isDone, false)
+    }
+
+    /// Ticking a repeating task writes its next copy, dated later. That copy is not today's work.
+    func testTheOnlyOpenCopyDatedAfterTheDayFindsNothing() {
+        let home = note("Areas/Home.md", kind: .area, """
+        - [x] Water the plants >2026-10-26 @repeat(weekly) @done(2026-10-26 08:00)
+        - [ ] Water the plants >2026-11-02 @repeat(weekly)
+        """)
+        XCTAssertNil(found("Water the plants", among: [home]))
+        // On the copy's own day, or later, it is the one.
+        XCTAssertNotNil(found("Water the plants", among: [home], on: DateOnly(year: 2026, month: 11, day: 2)))
+        // A task that is overdue, or due today, is still the block's task.
+        let late = note("Areas/Home.md", kind: .area, "- [ ] Pay the car tax >2026-10-20\n- [ ] Book the dentist >2026-10-26\n")
+        XCTAssertNotNil(found("Pay the car tax", among: [late]))
+        XCTAssertNotNil(found("Book the dentist", among: [late]))
+    }
+
+    /// A task with no date of its own, in a later day's daily note, belongs to that day.
+    func testATaskInALaterDailyNoteIsThatDaysTask() {
+        let tomorrow = note("Calendar/20261027.md", kind: .daily, "- [ ] Call Anna\n")
+        XCTAssertNil(found("Call Anna", among: [tomorrow]))
+        let thisMorning = note("Calendar/20261026.md", kind: .daily, "- [ ] Call Anna\n")
+        XCTAssertEqual(found("Call Anna", among: [thisMorning])?.notePath, "Calendar/20261026.md")
+    }
+
+    /// An archived project's tasks are out of play, in the Archive folder or marked archived.
+    func testATaskInAnArchivedProjectIsNeverFound() {
+        let moved = note("Archive/Old shed.md", kind: .archive, "- [ ] Paint the door\n")
+        let marked = note("Projects/Old fence.md", kind: .project, "- [ ] Paint the gate\n", status: "archived")
+        XCTAssertNil(found("Paint the door", among: [moved]))
+        XCTAssertNil(found("Paint the gate", among: [marked]))
+    }
+
+    /// A tag is part of the name, as in Planned and worked: a block typed by hand without it is
+    /// another name. With the tag it is the same name.
+    func testABlockTypedWithoutTheTasksTagFindsNothing() {
+        let shed = note("Projects/Shed.md", kind: .project, "- [ ] Write the offer #work\n")
+        XCTAssertNil(found("Write the offer", among: [shed]))
+        XCTAssertNotNil(found("Write the offer #work", among: [shed]))
+    }
+
+    /// A block with no words names nothing.
+    func testABlockWithNoNameFindsNothing() {
+        let shed = note("Projects/Shed.md", kind: .project, "- [ ] Write the offer\n")
+        XCTAssertNil(found("  ", among: [shed]))
+    }
 }

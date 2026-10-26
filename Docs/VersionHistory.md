@@ -2,6 +2,52 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 267 · 26 October 2026
+
+**A clock on a plan block can now tick its task off.** The next of the eight ideas you chose.
+
+- Start the focus timer on a block: with the small clock button on the **Now** line on **Today**, or with **Focus on this** on the block's menu in **Plan the day** (the **Plan** tab on the iPhone, **Time Blocks** on the Mac). Right-click the block on the Mac, press and hold it on the iPhone.
+- Press stop. If exactly one open task has the same name as the block, you now see **Done, tick it off** and **Not done yet**, as for a task. **Done, tick it off** ticks that task in its note.
+- This is usually the task the block was made from, for example by **Start the day**.
+- Big and small letters and extra spaces do not matter, and `#next` is left out, as on the block itself. Another tag does matter: a block called "Write the offer" does not belong to the task "Write the offer #work".
+- A task for a later day does not count: a task dated after the block's day, such as the next copy of a repeating task, or a task with no date in a later day's daily note. A task in an archived note does not count either.
+- If no open task has the block's name, or two or more do, PARAGON cannot tell which one to tick. Then you see **Save the time**, as before.
+- While notes are still coming from iCloud, PARAGON cannot be sure no other task has the same name, so the clock belongs to the block alone, and the answer is **Save the time**.
+- The time is written under **Worked** with the block's name, as before. So **Planned and worked** in **Close the day** still shows the block and its work on one row.
+
+**Done tells the story of each day.** The next of the eight ideas you chose. The row in the sidebar and in **Browse** is still called **Done**. Only the screen changes.
+
+- **Done** now goes back 12 weeks, not 30 days: this week and the 11 weeks before it, each from Monday to Sunday.
+- The line at the top says, for example, **6 done this week · 212 in 12 weeks**.
+- Each day starts with a small card. First the day's name, for example **Today**, **Yesterday** or **Tuesday 14 October**.
+- Under the name is a grey line: how many tasks you finished, and the time on the focus timer, for example **6 done · 2 h 40 min worked**. When you did not use the timer that day, no time is shown.
+- Then the line you wrote that evening under **How was today?** in **Close the day**, beside the lilac moon.
+- Then small labels for what the work went towards, each with how many tasks. For example a star and **Be strong and steady 3**. Tasks ticked in that day's own daily note share one label, **Daily note**. A weekly note keeps its own name, for example **Week 43, 19 Oct – 25 Oct 2026**.
+- Under the card are the tasks, as before. Press one to open the note it came from.
+- A day when you ticked nothing, but wrote a line in **Close the day** or used the focus timer, is now listed too. Its grey line says **Nothing ticked off**.
+- If a day's own note is still coming from iCloud, its card says **Still coming from iCloud** in orange, the same words as step 7 of the **Weekly review**. On the iPhone an orange line at the top of **Done** also says that notes are still coming. When nothing is listed while notes are still coming, **Done** says so instead of saying there is nothing.
+- **Done** opens faster. Before, it read every note 30 times each time the screen was drawn. Now it reads them once, and again only when a note changes.
+- On the Mac, the right-hand column of **Done** now says **Press a task on the left to open the note it came from.** Before, it asked you to pick a day, which never did anything.
+
+**A morning reminder for Start the day.** The other half of the idea that build 265 began. You chose a reminder every day.
+
+- **Settings** has a new part, **Morning reminder**, above **Evening reminder**.
+- Turn on **Remind me to start the day** and choose a time. It is 07:30 unless you change it.
+- Each morning one notification comes: **Start the day**, "What matters most today? Pick it and put it in your plan."
+- Press it and **Start the day** opens. On the iPhone the keyboard does not come up by itself, so you see the whole list first.
+- It comes every day, at the weekend too, because your leisure tasks are in PARAGON as well.
+- Under the time, Settings says when the next one comes, for example **Next reminder: tomorrow at 07:30**.
+- **Send one in 10 seconds** under **Morning reminder** lets you try it now. Press that notification and **Start the day** opens.
+- The **Evening reminder** works as before, with its own switch, time and test button.
+- Both reminders use the same permission. If you have already allowed notifications for the evening reminder, nothing is asked. If notifications are turned off, each part whose switch is on says so in orange.
+- The iPhone and the Mac each have their own switches and times.
+- **If another screen is open when you press a reminder**, for example **New Note**, nothing is closed and nothing you typed is lost. **Start the day** or **Close the day** opens as soon as you close that screen. Before, the open screen was closed at once.
+- **A small fix for the evening reminder**: if **Close the day** is already open when you press it, it now stays open with your words in it. Before, it closed and opened again empty.
+- If you press **Send one in 10 seconds** and then press the notification within a few seconds, Settings now says it was delivered. Before, it could say it was not.
+- On the Mac, if the main PARAGON window is closed when you press a reminder, the screen opens when you next open the main window. The Settings, Help and **Plan the day** windows do not open it.
+
+**To try it:** on the iPhone and on the Mac, press **Send one in 10 seconds** under **Morning reminder**, then press the notification: **Start the day** should open. Then do the same under **Evening reminder**: **Close the day** should open.
+
 ## Build 266 · 26 October 2026
 
 **Today says what you are doing now, and what comes next.** The next of the eight ideas you

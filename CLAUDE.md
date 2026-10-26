@@ -4071,6 +4071,115 @@ usage limit for three hours on 26 October**: keep it to about three at a time.
 call (the report's own `build` link answers 403). That is how the iPhone crashes of 24 and 25
 October were placed on build 264; Apple kept no log for either.
 
+**Build 267: a block's clock finds its task.** `NoteIndex.openTask(forBlock:on:)` (public
+extension at the foot of `Core/Sources/ParagonCore/Vault/NowAndNext.swift`, tested in
+`NowAndNextTests`) returns the one open task whose `planTitle` has the block's name under
+`PlannedAndWorked.key` (case and runs of spaces ignored, `#next` off, any other tag kept — the
+rule `planTitle`/`key` already gave Plan and **Planned and worked**; `key` is internal, so the
+lookup has to live in Core). Candidates are `openTasks()` (archived notes left out, work notes
+never in the index) **not on a later day than the plan's day** — a repeating task's next copy is
+never taken — and **exactly one**, else nil (build 256's review: two tasks with one name cannot be
+told apart). **One addition to the plan:** a task with no date in a later day's daily note
+counts as dated by its note (`note(path:)?.dailyDate`, build 225's rule), so a task already
+written into tomorrow's note is not lent to today's block. `AppModel.startFocus(onBlock:on:)`
+(renamed from `startFocus(onBlock:)`; its two callers are `PlannerDayView.focusAction(for:)`,
+which captures the planner's `day` in a constant before the closure, and Today's
+`NowAndNextLines`, which now hands the timeline's own day down through `lines`/`nowRow`/
+`nowControl` rather than asking `.today()` at the press) ties the clock to the found task
+(`notePath`, the task's exact `taskTitle`, `taskID`, `taskDue`), so `FocusStopView` offers
+**Done, tick it off** with no change to it, and `finishFocus` finds the task by id, else words and
+date, as for any task. **`title` stays the block's name**, so the **Worked** line still meets its
+block on one row (build 259) and Today's dot still finds the clock by `sameName`. `plannedMinutes`
+stays the block's length. One rule for the block's clock in Plan and on Today (build 168). The
+manual has a new `### A clock on a block` under **The focus timer**, its bullets one line each
+(build 265's `HelpBlock.parse` finding); the "Not done yet" bullet, which said a block cannot be
+ticked, is rewritten. No screen test, as planned: a block is Now only after waiting, and a
+block's right-click menu has not opened in a Mac test (run 308); the rule is pure Core. **The review found one real fault, fixed before upload:** the "exactly one" check ran while notes were still coming from iCloud, and a waiting note is not in `index`, so a second open task with the same name there was unseen and **Done, tick it off** could tick the wrong one; `startFocus(onBlock:on:)` now asks `openTask(forBlock:on:)` only while `notesWaitingForCloud` is empty, else the clock is the block's alone (build 100's rule, as in `partVaultReason`).
+
+**Build 267: Done tells each day's story.** `Core/Sources/ParagonCore/Vault/DoneDiary.swift`
+(tested in `DoneDiaryTests`): `DiaryDay` **wraps build 263's `DayRecord`** and adds only `served`
+— the plan's own `DiaryDay` would have been a second record of a day, which the sequencer had
+already ruled out — with `eveningLine` (whole, nil when empty), `hasSomething`, `factsText`
+("6 done · 2 h 40 min worked", "1 done", "Nothing ticked off · 45 min worked"; never "0 done",
+never "0 min worked") and `spoken(dayName:)` (the day's name is the view's to decide).
+`DoneDiary` (`weeks` 12, `today`, `days` newest first, `firstFinished`, `finishedThisWeek`,
+`finishedTotal`, `day(_:)`, `firstDay(today:)` = Monday 11 weeks back, `weekText`/`totalText`/
+`countText`) and `NoteIndex.doneDiary(today:)`. **One pass**: `dayRecords(from:through:)` now goes
+through an internal `dayRecordsInOnePass(from:through:earliestUpTo:)` that also returns the
+earliest stamp in the whole vault, so the diary never parses every note twice; a test pins that
+step 7's records did not move. `doneDay` and `tasksCompleted(on:)` were already one rule since
+263, and a test pins that every diary day equals `tasksCompleted(on:)`. Decisions: **quiet days
+are listed** (his 7a): a day with no tick but an evening line or timer time; a day with only a
+plan is not. **The count line is not drawn at all while no finished task carries a day**, and
+says "Nothing done this week yet" / "none in 12 weeks" rather than a zero once one does (build
+141). **The day's own daily note is labelled "Daily note"** (`DoneDiary.labels(_:ownNoteTitle:)`,
+matched on `Note.dailyTitle(for:)` of the day): here the day's name is the line above and a
+label repeating it carries nothing (build 169). App: `DoneView` keeps the diary in `@State`, worked out
+in `.onReceive(model.$index)` from the value handed in (build 242), only while `isShown`
+(`onAppear`/`onDisappear` — on the phone the pushed Done screen stays alive behind the other
+tabs, build 232), and again from a once-a-minute `.task` when the date has moved (build 254).
+`DoneDayCard` is the first row of each `Section`, **untagged** (builds 71–74, 201), one
+accessibility element `done.day.<YYYY-MM-DD>` with its sentence set explicitly (build 253), and
+`.id(day.day)` for build 269's jump. `ServedRow` gained `compact:` (a capsule, title capped at
+120 points inside the `WrappingHStack`, build 250) with a written-out `init`, so Close the day
+and step 7 are unchanged. Phone only: `VaultWarningBar` above the list.
+A card whose day's note is still coming from iCloud draws step 7's orange "Still coming from
+iCloud" line (`DoneDayCard(waiting:)`, from `dailyNoteIsWaitingForCloud` at the call site, since
+the card has no model). The Mac's third column
+now says "Press a task on the left to open the note it came from." Screen test
+`testATickedTaskShowsInDone`, both platforms, with `Place.done`: tick **Book the night train** in
+All actions, then Done once, and today's card reads "1 done"; yesterday's card from build 265's
+daily note may be there too, so only today's is read.
+**The review of the Done diary found three faults, all fixed before upload**: a day whose note was still
+coming from iCloud drew as a day with nothing written, and the empty state said "Nothing in the
+last 12 weeks" while notes were waiting (build 100; step 7 already drew that day orange, build
+168); every `.note(.daily)` count was folded into "Daily notes", so tasks ticked in the **weekly
+note** (a `.daily` note by its folder) or in another day's note were named wrongly — only the
+day's own note is folded now, into "Daily note"; and the compact capsule's 200-point title cap
+made it wider than the Mac's middle column at its 220-point minimum, cutting off the count
+(cap 120 now — **measure a capsule, not only its text, against the narrowest column**).
+
+**Build 267: the morning reminder.** No Core change: he chose **every day** (2a), so it is one
+repeating `UNCalendarNotificationTrigger` like the evening one and there is no days rule to test.
+`DayReminder` (`EveningReminder.swift`, `.morning`/`.evening`) holds every value that differs —
+request and test ids, `onKey`/`minutesKey`, `defaultMinutes`, the screen (`sheet`), the
+notification's words, the Settings words and identifiers — and `owning(_:)` maps a notification
+id back to its reminder. **The evening's values are byte for byte build 234's**
+(`paragon.closeTheDay`, `.test`, `eveningReminderOn`, `eveningReminderMinutes`, 21:00,
+`settings.eveningReminder`), or a reminder already planted on his devices could not be removed
+and would come twice. Morning: `paragon.startTheDay`, `morningReminderOn`,
+`morningReminderMinutes`, 07:30, `.startDay`, `settings.morningReminder`. `EveningReminder` keeps
+its name and stays **the only notification delegate** (FocusNotice depends on it); `start()`
+plants or removes each kind, `update(_:on:)` no longer takes the minutes (the time is read from
+Settings when the system answers, build 238), `plantWhatIsOn()` plants **every** switched-on
+reminder after a "yes" — from either switch or either test button, since the permission is
+shared — and `tests`/`nextReminders` are `[DayReminder: …]`. A second count,
+`morningRequests`, beside `openRequests`; the answered counts are `[DayReminder: Int]` and
+`takeOpenRequest(_:upTo:)` uses the value handed in (build 242). A test notification pressed
+inside its 15 seconds now reads **Delivered**: a press takes it out of the system's delivered
+list, so `checkTest` used to say "did not deliver it" — exactly what the field test does.
+`DayReminderSection(kind:)` replaces `EveningReminderSection`, drawn twice in Settings, morning
+first, with a written-out `init` (`_isOn = AppStorage(wrappedValue: false, kind.onKey)`); its
+time `Binding` now uses clock parts both ways, so 07:30 does not show as 06:30 or 08:30 on the
+day the clocks change. **`ContentView.answerReminder(opening:)` is the one path** for a reminder
+press, called from two `.onReceive`s: no vault → nothing; then a turn later: the same screen
+already open → it stays (before, **Close the day** was closed and reopened empty); another sheet
+open, or the focus question open or waiting → **wait** (decided on the plan page; he did not
+object) through `AppModel.openWhenFree(_:)`; else open it. **The plan named the slot
+`screenAfterFocusQuestion`; it is `waitingScreen`**, because it now also holds a screen waiting
+for an ordinary sheet such as **New Note**, and the focus-only name would have lied. It is cleared
+when that screen opens by any route (`activeSheet`'s `didSet`), and the stop question still goes
+first (`askWaitingStopQuestion` is queued before `openWaitingScreen`). Build 278's "also wait
+while `whatNext` is set" belongs in `answerReminder`. **No screen test**, as planned: turning a
+switch on raises the system's permission dialog and a test cannot press a notification; the check
+is his field test on both devices. **The review of the morning reminder found three faults, all fixed before
+upload**: a pressed test freed **Send one in 10 seconds** early, so the first send's 15-second
+check could mark a second send as not delivered (`checkTest(_:due:)` now acts only while the
+state is still its own `.waiting(due)`); the version history said "both parts" show the orange
+line, when only a part whose switch is on does; and the manual said a press opens its screen
+"when a PARAGON window next appears", when only the **main** window answers it (Settings, Help
+and **Plan the day** do not).
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

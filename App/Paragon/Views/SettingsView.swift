@@ -183,7 +183,9 @@ struct SettingsView: View {
                 #endif
             }
 
-            EveningReminderSection()
+            // Morning first, the order of the day (build 267).
+            DayReminderSection(kind: .morning)
+            DayReminderSection(kind: .evening)
 
             Section("Quick capture") {
                 #if os(macOS)
@@ -389,25 +391,37 @@ struct WidgetStatusSection: View {
     }
 }
 
-/// **Settings › Evening reminder** (build 234): a switch and a time. Pressing the reminder opens
-/// **Close the day**.
+/// **Settings › Morning reminder** and **Settings › Evening reminder** (builds 270 and 234): a
+/// switch and a time each. Pressing the reminder opens **Start the day** or **Close the day**.
 ///
-/// Its own view, because building the time's `Binding` is a statement and a `@ViewBuilder` takes
-/// views only (build 58).
-struct EveningReminderSection: View {
+/// **One view for both**, so the two parts can never come to say different things about the one
+/// permission they share (build 168's rule: one thing drawn in two places is one view). Its own
+/// view, because building the time's `Binding` is a statement and a `@ViewBuilder` takes views
+/// only (build 58).
+///
+/// **The `init` is written out**: the keys depend on the kind, so `@AppStorage` cannot be given
+/// them where it is declared, and there is no compiler here to settle a generated one.
+struct DayReminderSection: View {
+    let kind: DayReminder
     @ObservedObject private var reminder = EveningReminder.shared
-    @AppStorage(EveningReminder.onKey) private var isOn = false
-    @AppStorage(EveningReminder.minutesKey) private var minutes = EveningReminder.defaultMinutes
+    @AppStorage private var isOn: Bool
+    @AppStorage private var minutes: Int
+
+    init(kind: DayReminder) {
+        self.kind = kind
+        _isOn = AppStorage(wrappedValue: false, kind.onKey)
+        _minutes = AppStorage(wrappedValue: kind.defaultMinutes, kind.minutesKey)
+    }
 
     var body: some View {
-        Section("Evening reminder") {
-            Toggle("Remind me to close the day", isOn: $isOn)
-                .accessibilityIdentifier("settings.eveningReminder")
+        Section(kind.sectionTitle) {
+            Toggle(kind.switchTitle, isOn: $isOn)
+                .accessibilityIdentifier(kind.settingsIdentifier)
                 // On the switch, not on the Section (build 246): a modifier on a `Section`
                 // is applied to each row, so the system was asked once per row.
                 .onAppear { reminder.refreshPermission() }
-                .onChange(of: isOn) { _, on in reminder.update(on: on, minutes: minutes) }
-                .onChange(of: minutes) { _, value in reminder.update(on: isOn, minutes: value) }
+                .onChange(of: isOn) { _, on in reminder.update(kind, on: on) }
+                .onChange(of: minutes) { _, _ in reminder.update(kind, on: isOn) }
             if isOn {
                 DatePicker("At", selection: time, displayedComponents: .hourAndMinute)
             }
@@ -419,19 +433,19 @@ struct EveningReminderSection: View {
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                 if reminder.permission == .notAsked {
-                    Button("Allow notifications") { reminder.update(on: true, minutes: minutes) }
+                    Button("Allow notifications") { reminder.update(kind, on: true) }
                 }
             } else if isOn {
                 Text(nextText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text("One notification a day. Press it to open Close the day.")
+            Text(kind.explanation)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button("Send one in 10 seconds") { reminder.sendTest() }
-                .disabled(reminder.isTesting)
-                .accessibilityIdentifier("settings.eveningReminder.test")
+            Button("Send one in 10 seconds") { reminder.sendTest(kind) }
+                .disabled(reminder.isTesting(kind))
+                .accessibilityIdentifier(kind.testButtonIdentifier)
             if let line = testLine {
                 Text(line.text)
                     .font(.caption)
@@ -449,7 +463,8 @@ struct EveningReminderSection: View {
         #endif
     }
 
-    /// Why the switch is on and nothing will appear, or nil when all is well.
+    /// Why the switch is on and nothing will appear, or nil when all is well. The permission is
+    /// shared, so a problem with it shows in every part whose switch is on.
     private var problemText: String? {
         switch reminder.permission {
         case .refused?:
@@ -461,7 +476,7 @@ struct EveningReminderSection: View {
         case nil:
             return nil
         case .allowed?:
-            return reminder.nextReminder == nil
+            return reminder.nextReminders[kind] == nil
                 ? "No reminder is planned yet. Turn the switch off and on again."
                 : nil
         }
@@ -475,9 +490,9 @@ struct EveningReminderSection: View {
         #endif
     }
 
-    /// What the test button has done, so a press always gets an answer (build 244).
+    /// What this part's test button has done, so a press always gets an answer (build 244).
     private var testLine: (text: String, isProblem: Bool)? {
-        guard let test = reminder.test else { return nil }
+        guard let test = reminder.tests[kind] else { return nil }
         switch test {
         case .asking:
             return ("Sending…", false)
@@ -494,9 +509,9 @@ struct EveningReminderSection: View {
         }
     }
 
-    /// "Next reminder: today at 13:10", read back from the system's own list.
+    /// "Next reminder: tomorrow at 07:30", read back from the system's own list.
     private var nextText: String {
-        guard let next = reminder.nextReminder else { return "Checking…" }
+        guard let next = reminder.nextReminders[kind] else { return "Checking…" }
         let calendar = Calendar.current
         let day = calendar.isDateInToday(next) ? "today"
             : calendar.isDateInTomorrow(next) ? "tomorrow"
@@ -505,15 +520,20 @@ struct EveningReminderSection: View {
     }
 
     /// Minutes since midnight shown as a time of day, today's date standing in for any day.
+    /// Clock parts both ways, never seconds since midnight (build 238): on the day the clocks
+    /// change those differ by an hour, and 07:30 would have shown as 06:30 or 08:30.
     private var time: Binding<Date> {
         Binding(
             get: {
                 let midnight = Calendar.current.startOfDay(for: Date())
-                return midnight.addingTimeInterval(TimeInterval(minutes * 60))
+                return Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60,
+                                             second: 0, of: midnight) ?? midnight
             },
             set: { date in
                 let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
-                minutes = (parts.hour ?? 21) * 60 + (parts.minute ?? 0)
+                let hour: Int = parts.hour ?? kind.defaultMinutes / 60
+                let minute: Int = parts.minute ?? kind.defaultMinutes % 60
+                minutes = hour * 60 + minute
             }
         )
     }
@@ -524,7 +544,7 @@ struct EveningReminderSection: View {
 /// evening, because he keeps his leisure tasks in PARAGON too.
 ///
 /// Its own view, because building the time's `Binding` is a statement and a `@ViewBuilder`
-/// takes only views (build 58) — the shape `EveningReminderSection` already has.
+/// takes only views (build 58) — the shape `DayReminderSection` already has.
 struct WorkdayEndRow: View {
     @AppStorage(WorkdaySetting.key) private var minutes = WorkdaySetting.defaultEnd
 
