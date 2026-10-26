@@ -69,8 +69,18 @@ jobs:
               sys.exit(f"No app with bundle id {os.environ['BUNDLE_ID']} in App Store Connect.")
           app_id = apps[0]["id"]
 
-          submissions = get(f"/v1/apps/{app_id}/betaFeedbackCrashSubmissions",
-                            sort="-createdDate", limit=how_many)["data"]
+          # Which build crashed: asked for alongside the list, since the report's own "build"
+          # link answers 403 ("no allowed operations"). If Apple refuses that too, the list is
+          # fetched without it and each report says it does not know.
+          listing = get(f"/v1/apps/{app_id}/betaFeedbackCrashSubmissions", must=False,
+                        sort="-createdDate", limit=how_many, include="build",
+                        **{"fields[builds]": "version,uploadedDate"})
+          if listing is None:
+              listing = get(f"/v1/apps/{app_id}/betaFeedbackCrashSubmissions",
+                            sort="-createdDate", limit=how_many)
+          submissions = listing["data"]
+          builds = {item["id"]: item.get("attributes", {})
+                    for item in listing.get("included", []) if item.get("type") == "builds"}
           if not submissions:
               print("No crash reports have been shared through TestFlight for this app.")
               sys.exit(0)
@@ -87,9 +97,8 @@ jobs:
                       print(f"  {field}: {attributes[field]}")
               # Which build crashed. CFBundleVersion is "<BuildStamp.number>.<run number>", so the
               # part before the dot is the build number shown at the foot of the sidebar.
-              build = get(f"/v1/betaFeedbackCrashSubmissions/{submission['id']}/build",
-                          must=False, **{"fields[builds]": "version,uploadedDate"})
-              build_attributes = ((build or {}).get("data") or {}).get("attributes") or {}
+              link = ((submission.get("relationships") or {}).get("build") or {}).get("data") or {}
+              build_attributes = builds.get(link.get("id"), {})
               if build_attributes.get("version"):
                   version = build_attributes["version"]
                   print(f"  build: {version.split('.')[0]}  (CFBundleVersion {version})")
