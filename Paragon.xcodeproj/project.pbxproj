@@ -14,6 +14,7 @@
 		3752069BA243D43F74CAC588 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = B5861B3AD6F50041A1F8A8B9 /* ParagonCore */; };
 		627482B9308CA63E70129D95 /* VersionHistory.md in Resources */ = {isa = PBXBuildFile; fileRef = E6919AFBC2371667D46DD399 /* VersionHistory.md */; };
 		71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = 972619FBA5280A0A9364E4D7 /* ParagonCore */; };
+		7E1A76B853569E06501D44E8 /* AMSIcons in Frameworks */ = {isa = PBXBuildFile; productRef = 02CF9E46CEF81012CA8D1897 /* AMSIcons */; };
 		C202C2E162F6A9616899BDAE /* Words.md in Resources */ = {isa = PBXBuildFile; fileRef = 37E5572E0E65566F6BC49B8C /* Words.md */; };
 		C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2714DD3A4254950C4A439829 /* ParagonShare.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -116,6 +117,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3752069BA243D43F74CAC588 /* ParagonCore in Frameworks */,
+				7E1A76B853569E06501D44E8 /* AMSIcons in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,6 +268,7 @@
 			name = Paragon;
 			packageProductDependencies = (
 				B5861B3AD6F50041A1F8A8B9 /* ParagonCore */,
+				02CF9E46CEF81012CA8D1897 /* AMSIcons */,
 			);
 			productName = Paragon;
 			productReference = 1948F57C2B6673ACAA4E203E /* Paragon.app */;
@@ -327,6 +330,7 @@
 			mainGroup = 59832F9D12253109BCFB8B6E;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				E694B7E91D997065C1A14207 /* XCRemoteSwiftPackageReference "AMS-Icons" */,
 				8EE218265CE233628555BBB3 /* XCLocalSwiftPackageReference "Core" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -809,7 +813,23 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		E694B7E91D997065C1A14207 /* XCRemoteSwiftPackageReference "AMS-Icons" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/marsch124/AMS-Icons";
+			requirement = {
+				kind = revision;
+				revision = 43cbcb1f0ab543070cdbc4b8879c4fa00cba6e57;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		02CF9E46CEF81012CA8D1897 /* AMSIcons */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E694B7E91D997065C1A14207 /* XCRemoteSwiftPackageReference "AMS-Icons" */;
+			productName = AMSIcons;
+		};
 		972619FBA5280A0A9364E4D7 /* ParagonCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ParagonCore;
