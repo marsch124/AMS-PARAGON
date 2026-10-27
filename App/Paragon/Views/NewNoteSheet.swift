@@ -139,6 +139,13 @@ struct NewNoteSheet: View {
             if let match = NewThing.forSection(model.section) {
                 thing = match
             }
+            // Opened by "What is next for this goal?" (build 271): the kind first, then the
+            // goal, because choosing a kind clears the goal (`pick(_:)`). Taken once; the model
+            // forgets it, so a later New Note starts plain.
+            if let preset = model.takeNewNotePreset() {
+                thing = preset.thing
+                servesGoal = preset.servesGoal
+            }
             template = defaultTemplateName
             // The sheet exists to be typed into. Focus does not always take in the same turn
             // the view appears, so it is asked for again on the next one.

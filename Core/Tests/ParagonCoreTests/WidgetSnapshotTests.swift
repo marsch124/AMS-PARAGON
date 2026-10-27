@@ -151,4 +151,64 @@ final class WidgetSnapshotTests: XCTestCase {
             XCTAssertEqual(item.noteKind, "project")
         }
     }
+
+    // MARK: Build 271: the widgets follow every change
+
+    private func snapshotOf(_ notes: [Note], on day: DateOnly? = nil, inbox: Int = 0,
+                          written: TimeInterval) -> WidgetSnapshot {
+        index(notes).widgetSnapshot(on: day ?? today, inboxCount: inbox, dueForReview: 0,
+                                    written: Date(timeIntervalSince1970: written))
+    }
+
+    func testTwoSnapshotsThatDifferOnlyInWhenTheyWereWrittenAreTheSame() {
+        let note = project("Race", body: "- [ ] Book the hotel >2026-09-15\n")
+        let early = snapshotOf([note], inbox: 1, written: 1_000)
+        let later = snapshotOf([note], inbox: 1, written: 9_000)
+        // The two really are different values, which is why a plain `==` cannot be the rule.
+        XCTAssertNotEqual(early.written, later.written)
+        XCTAssertNotEqual(early, later)
+        XCTAssertTrue(later.sameContent(as: early))
+        XCTAssertTrue(early.sameContent(as: later))
+        XCTAssertTrue(early.sameContent(as: early))
+    }
+
+    func testANewDayIsAChange() {
+        // The midnight rule hangs on this: the same notes on the next day must be written again,
+        // or the widgets would keep yesterday's date and say "Nothing since you last opened".
+        let note = project("Race", body: "- [ ] Book the hotel >2026-09-15\n")
+        let tomorrow = DateOnly(year: 2026, month: 9, day: 16)
+        let before = snapshotOf([note], written: 1_000)
+        let after = snapshotOf([note], on: tomorrow, written: 1_000)
+        XCTAssertEqual(before.written, after.written)
+        XCTAssertFalse(after.sameContent(as: before))
+        XCTAssertFalse(before.sameContent(as: after))
+    }
+
+    func testATickedTaskIsAChange() {
+        let untouched = project("Race", body: "- [ ] Book the hotel >2026-09-15\n- [ ] Pack the bike >2026-09-15\n")
+        let ticked = project("Race", body: "- [x] Book the hotel @done(2026-09-15 08:00)\n- [ ] Pack the bike >2026-09-15\n")
+        let before = snapshotOf([untouched], written: 1_000)
+        let after = snapshotOf([ticked], written: 2_000)
+        // Said first, so a surprise in the parser fails with its own words and not as a rule.
+        XCTAssertEqual(before.items.count, 2)
+        XCTAssertEqual(after.items.count, 1)
+        XCTAssertFalse(after.sameContent(as: before))
+        XCTAssertEqual(after.dueToday, 1)
+    }
+
+    func testAChangedCountIsAChange() {
+        let note = project("Race", body: "- [ ] Book the hotel >2026-09-15\n")
+        let before = snapshotOf([note], inbox: 1, written: 1_000)
+        let after = snapshotOf([note], inbox: 2, written: 1_000)
+        XCTAssertFalse(after.sameContent(as: before))
+    }
+
+    func testNothingWrittenYetIsNeverTheSame() {
+        // With no file written there is nothing to compare with, even for an empty snapshot:
+        // the first write has to happen so the widget can tell "nothing to do" from "no file".
+        let empty = snapshotOf([], written: 1_000)
+        XCTAssertFalse(empty.sameContent(as: nil))
+        let note = project("Race", body: "- [ ] Book the hotel >2026-09-15\n")
+        XCTAssertFalse(snapshotOf([note], written: 1_000).sameContent(as: nil))
+    }
 }

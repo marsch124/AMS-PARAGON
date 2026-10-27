@@ -43,6 +43,9 @@ struct AreaDashboardView: View {
         // area's projects and sub-areas, so it is cheap. Never in a list's body.
         let overview = model.index.areaOverview(of: area, today: .today())
         VStack(alignment: .leading, spacing: 8) {
+            // Build 271: the area's Standard first — what "good" looks like here — before the
+            // numbers that say whether work in it is moving (`AreaStandardView.swift`).
+            AreaStandardBox(area: area)
             weeklyLine(overview.weekly)
             header(overview)
             // Outside the fold and outside the capped scroll: with the list folded the number in

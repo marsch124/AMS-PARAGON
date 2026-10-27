@@ -146,6 +146,8 @@ struct ContentView: View {
             case .inactive, .background:
                 // Going to the background (or being quit on iOS): write what is being typed.
                 model.flushPendingEdits()
+                // And let the widgets have the latest at once, not in two seconds (build 271).
+                model.flushWidgetSnapshot()
             @unknown default:
                 break
             }
@@ -194,6 +196,9 @@ struct ContentView: View {
         } message: {
             Text(model.errorMessage ?? "")
         }
+        // "What is next for this goal?" (build 271), asked when a project ends and its goal is
+        // left with nothing working on it. A modifier of its own, so this chain gets one line.
+        .modifier(WhatNextDialog())
     }
 
     /// The one way a reminder's press is answered (build 267), for the morning and the evening
@@ -209,13 +214,15 @@ struct ContentView: View {
     ///    one closes.
     ///    Swapping it would throw away what was typed there, or the stopped clock's time
     ///    (build 257). A message would sit under the open sheet on the phone (build 238).
+    ///    **The question "What is next for this goal?" is up** (build 271): the press waits for
+    ///    that too. It is a dialog and not a sheet, so `activeSheet` does not say it is there.
     /// 5. Nothing is open: the screen opens.
     private func answerReminder(opening sheet: AppSheet) {
         guard model.vault != nil else { return }
         model.afterUpdate {
             guard model.vault != nil else { return }
             if model.activeSheet == sheet { return }
-            if model.activeSheet != nil || model.focusQuestionPending {
+            if model.activeSheet != nil || model.focusQuestionPending || model.whatNext != nil {
                 model.openWhenFree(sheet)
                 return
             }

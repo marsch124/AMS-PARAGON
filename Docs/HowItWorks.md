@@ -215,6 +215,13 @@ Press one and it is set.
 
 Open an area, for example Health. Above its text there is a part that shows what the area holds and whether work in it is moving.
 
+- **Standard**: at the very top, the first sentence of what "good" looks like in this area, for example "Three runs a week, one rest day, a yearly check-up." It shows two lines at most. When there is more, it ends with "…".
+- Press **Standard…** and the whole text opens right there. Write it, then press **Save**. **Cancel** closes the box and writes nothing.
+- When no standard is written, a dashed grey line says **No standard written yet**, and the button says **Write the standard…**.
+- The question the Area template puts under **Standard**, "What does "good" look like in this area?", is not a standard. It counts as nothing written. The same goes for the question in your own Area template, if you have reworded it.
+- The standard is kept in the note's text, under the heading `## Standard`. **Save** puts your words in place of the question. A note with no such heading gets one, above its first section. Writing it by hand in the note's text works as well.
+- **Save** with an empty box takes the standard away, heading and all. When no standard was written, it changes nothing, so the template's question stays.
+- If the standard was changed on your other device while the box was open, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
 - **Weekly bars**: eight small pink bars, the tasks finished in each of the last eight weeks, in the area itself and in every project in it. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". A week is Monday to Sunday. When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
 - **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list. The number beside the heading says how many.
 - Each project shows its tile with its emoji, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, or **No tasks yet**.
@@ -415,6 +422,26 @@ up). The weekly **Review** offers the same choices when you right-click a projec
 Older words still read as they always did: `achieved` and `completed` mean Done, and `paused` and
 `someday` mean On hold. Nothing in your notes was rewritten.
 
+### What is next for this goal?
+
+When you mark a project **Done**, **Missed** or **Dropped**, PARAGON looks at the goal the project worked for. If nothing else is working on that goal, a short question comes up on the screen you are on. It does not matter whether you marked the project in its own note, in **Projects** or in the weekly **Review**. The question reads **What is next for this goal?**. Under it, one sentence says: Nothing is working on "(the goal's name)" now. It has up to three buttons:
+
+- **Add a project…** opens **New Note** on **Project**. The goal is already chosen in the button that otherwise says **Serves a goal…**. Write the name and press **Create**.
+- **Mark the goal done** is there only after **Done**. It marks the goal itself Done, with its own day, and a short message at the bottom of the window says so.
+- **Not now** closes the question and changes nothing.
+
+When the question comes, and when it does not:
+
+- It comes only at the moment a project goes from working to over. Changing **Done** to **Missed** does not ask again. A project in the **Archive** does not ask.
+- "Nothing is working" means no project and no goal with a date is still running under that goal. A project that is **On hold** is still the goal's project, so no question comes. An area does not count: an area keeps a standard, it does not deliver a goal.
+- If the goal has itself ended or been archived, nothing is asked.
+- While notes are still coming from iCloud, or iCloud is updating some, nothing is asked. PARAGON cannot know yet that nothing else works on the goal, and a wrong answer could lead you to mark the goal done. The goal's own page still has **Add a project…**.
+- If you mark several projects one after another in the **Review**, the question comes once for each goal that is left with nothing.
+- An aspiration is never finished. If a project that serves an aspiration directly ends and nothing else works towards it, the question reads **What is next for this aspiration?** and the buttons are **Add a goal…** and **Not now**. There is no **Mark the goal done** for an aspiration.
+- Marking a goal Done with **Mark the goal done** does not start a second question about the aspiration above it.
+- A reminder that you press while the question is on screen opens when you have answered it.
+- After **Not now**, the goal's own page still has **Add a project…** (see **Adding a project from its goal**).
+
 ### The Aspirations screen
 
 The **Aspirations** row lists your aspirations, one after another. Choose one and everything
@@ -522,7 +549,7 @@ The per cent never says 100 until everything really is finished, and never says 
 - **Morning reminder.** In **Settings › Morning reminder**, turn on **Remind me to start the day** and choose a time (07:30 unless you change it). PARAGON then sends one notification every morning at that time: "Start the day. What matters most today? Pick it and put it in your plan." Press it and **Start the day** opens. On the iPhone the keyboard does not come up by itself, so you see the whole list first. It comes every day, at the weekend too, because your leisure tasks are in PARAGON as well. Turn the switch off and it stops.
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a day at that time. Press it and **Close the day** opens. Turn the switch off and it stops.
 - **Both reminders work the same way.** The first time you turn one on, the iPhone or the Mac asks whether PARAGON may send notifications. That one answer is for both reminders and for the focus timer. Under the time, Settings says when the next reminder will come, for example "Next reminder: tomorrow at 07:30". If no reminder can come, it says why in orange and where to change it. Each part has its own **Send one in 10 seconds**, which sends the same notification once, so you can try it now. Press that notification and the same screen opens as from the real one. Below the button it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac delivered it. The iPhone and the Mac each have their own switches and times. A Focus mode, such as Do Not Disturb, can hold a notification back, and PARAGON cannot see that.
-- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New Note**, nothing is closed and nothing you typed is lost: **Start the day** or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan the day** windows do not open it.
+- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New Note**, nothing is closed and nothing you typed is lost: **Start the day** or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, or the question **What is next for this goal?** is on screen, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan the day** windows do not open it.
 - **Close the day** is one page you work down and finish. From the top:
   - **Did not happen**: everything still open that was due today or earlier. Each has a
     **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is
@@ -841,7 +868,7 @@ Every step's heading is always on screen, even when the step is empty. Open a st
 3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last looked at it. **I looked at all of them** in the heading stamps today's date on every one. It is there while the step is open.
-6. **Look over the areas.** The same row for each area.
+6. **Look over the areas.** The same row for each area, with its Standard under its name: "Standard:" and the first sentence of what you wrote. When none is written, a dashed grey **No standard written yet** says so. Write or change it on the area's page. The point of the line is to check the area against it.
 7. **Look back at last week.** A whole week, from your own notes. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
 8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
 
@@ -1183,7 +1210,7 @@ Two kinds of ready-made text, both ordinary markdown files in the `Templates` fo
 Every new note is a copy of the matching file, with `{{title}}` and `{{date}}` filled in.
 
 - **Project** — Outcome ("what does done look like?"), Tasks with a first step already written, Notes, and a Log with the day it was created. Frontmatter: `status: active`, empty `area:` and `due:`, `tags`, `related`.
-- **Area** — Standard ("what does good look like here?"), Tasks, Notes. Frontmatter: `status: active`, `tags`.
+- **Area** — Standard ("what does good look like here?"), Tasks, Notes. Frontmatter: `status: active`, `tags`. The question under Standard counts as nothing written until you answer it, also in a template of your own; see **An area's page**.
 - **Resource** — a plain note for reference material, with `related` ready to point at what it supports.
 - **Goal** — Why it matters, the measure, and a "Serving this goal" section reminding you that projects and areas link here with `goal:`. Frontmatter: `horizon`, `target`, `measure`.
 - **Daily** — the shape of a day's note.
@@ -1311,11 +1338,13 @@ Each side is fed by the app on that machine: the Mac widget by PARAGON on the Ma
 
 The widget never opens your vault. It cannot: the vault is a folder you chose, and only the app itself is allowed to open it.
 
-Instead, **PARAGON writes a short summary for the widget every time it reloads** — when you tick a task, when a sync finishes, when a file arrives from iCloud — and the widget reads only that. So:
+Instead, **PARAGON writes a short summary for the widget a few seconds after a change that the widget would show**, and the widget reads only that. These changes reach it: you tick a task, you change a task's date, you add a task that is due today or is a next action, a line comes into the Inbox or leaves it, a sync finishes, or a file arrives from iCloud. A change that the widget does not draw writes nothing. So:
 
 - The widgets are right as of the last time the app noticed a change.
+- The few seconds are on purpose. While you type, PARAGON waits until you stop. When you leave PARAGON for another app or the Home Screen, or quit it, it writes at once. It writes only when the widget would show something different.
+- **After midnight** the widgets move on to the new day by themselves, as long as PARAGON is running.
 - **Open PARAGON once after installing**, or the widget has nothing to read yet and says so. On the Mac that means PARAGON on the Mac; on the iPhone, PARAGON on the iPhone.
-- If you have not opened the app today, the widget says **"Nothing since you last opened PARAGON"** rather than showing yesterday's list as though it were this morning's.
+- If PARAGON has not seen today yet — it was not running at midnight and you have not opened it — the widget says **"Nothing since you last opened PARAGON"** rather than showing yesterday's list as though it were this morning's.
 - When there is genuinely nothing due and nothing waiting, it says that too. An empty widget and a widget with nothing to say are different things, and it never leaves you guessing which one you are looking at.
 
 Nothing is written back from the widget, and nothing about your notes leaves the machine it is on.
@@ -1338,8 +1367,7 @@ Every widget carries one small grey line at the very bottom, for example **PARAG
 written 09:41**. It is there so that a widget can never be a blank box with no explanation.
 Read it like this:
 
-- **written 09:41** — the widget is working and read the app's summary at that time. If the
-  rest of the widget is empty, there is genuinely nothing due and nothing waiting.
+- **written 09:41** — the widget is working. 09:41 is the time of the last change that PARAGON passed on to it, not the time of the last look, so an old time is normal when nothing has changed. If the rest of the widget is empty, there is genuinely nothing due and nothing waiting.
 - **nothing written yet** — the app has not written a summary on this phone. Open PARAGON once.
 - **shared folder missing** — the widget cannot reach the small file the app writes. Nothing
   you do on the phone will mend this; it has to be fixed in the build. Tell me and I will.
@@ -1347,8 +1375,9 @@ Read it like this:
   build problem, not something you can fix yourself.
 
 **Settings › Widget** says the same thing from the app's side: whether the shared folder was
-found, when the summary was last written, and how many actions are in it. There is a **Write it
-again now** button for when you want to be sure.
+found, when the summary was last written (that is, when something the widget shows last
+changed), and how many actions are in it. There is a **Write it again now** button for when you
+want to be sure. It writes at once, even when nothing has changed.
 
 ## Mac and iPhone together
 

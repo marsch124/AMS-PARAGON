@@ -13,8 +13,9 @@ import ParagonCore
 /// **The widget reads one small file and nothing else.** The vault is a folder he picked, held
 /// as a security-scoped bookmark that only the app can resolve, and a widget gets a few
 /// milliseconds and nobody to ask for permission. So `AppModel.writeWidgetSnapshot()` puts a
-/// `WidgetSnapshot` into the shared App Group container on every `reload()`, and this target
-/// draws that. It never opens a note, never parses markdown and never writes anything.
+/// `WidgetSnapshot` into the shared App Group container a few seconds after a change to the
+/// notes that alters what is drawn here (build 271; before it, only on `reload()`), and this
+/// target draws that. It never opens a note, never parses markdown and never writes anything.
 ///
 /// **What it does when there is nothing to draw is half the design** (build 100's rule, on a
 /// home screen): no file at all means the app has never been opened on this phone, and it says

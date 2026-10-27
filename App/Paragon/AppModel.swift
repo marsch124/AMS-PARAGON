@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 270
+    static let number = 271
 }
 
 @MainActor
@@ -137,6 +137,9 @@ final class AppModel: ObservableObject {
         didSet {
             index = NoteIndex(notes: notes)
             refreshProjectGroups()
+            // The one place that sees every change to the notes (build 271): `save` and
+            // `saveText` put the saved note into this array and never call `reload()`.
+            writeWidgetSnapshotSoon()
         }
     }
     /// Rebuilt whenever `notes` changes, so views never build it during a redraw.
@@ -327,7 +330,12 @@ final class AppModel: ObservableObject {
         fetchCloudFiles(force: true)
         #if os(macOS)
         terminationObserver = NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.flushPendingEdits() }
+            // The editor first: saving the open note starts the two-second wait for the widgets,
+            // and quitting would end the program before that wait is over (build 271).
+            MainActor.assumeIsolated {
+                self?.flushPendingEdits()
+                self?.flushWidgetSnapshot()
+            }
         }
         #endif
         watchForExternalChanges()
@@ -818,6 +826,9 @@ final class AppModel: ObservableObject {
         selectedNotePath = nil
         clearHistory()
         vault = opened
+        // A different vault is a different picture: nothing written for the old one may decide
+        // that this one needs no new file (build 271).
+        forgetWidgetSnapshot()
         cloudWatcher.watch(opened.rootURL)
         reload()
         fetchCloudFiles(force: true)
@@ -841,6 +852,10 @@ final class AppModel: ObservableObject {
         cloudWatcher.stop()
         vault = nil
         notes = []
+        // After `notes = []`, whose change has started a write of its own: with no vault open
+        // `writeWidgetSnapshot` would write "nothing due, nothing waiting" (build 179). The
+        // guard against that is new in build 271. The file already on disk stays as it was.
+        forgetWidgetSnapshot()
         selectedNotePath = nil
         clearHistory()
     }
@@ -1072,6 +1087,9 @@ final class AppModel: ObservableObject {
     /// few seconds. A dirty editor keeps its text; its save then meets the conflict check.
     func checkForExternalChanges() {
         if DateOnly.today() != projectGroupsDay { refreshProjectGroups() }
+        // The widgets' midnight rule (build 271): nothing in the notes changes at midnight, but
+        // the day on the summary does, and "today" is what its lines are counted from.
+        if let last = lastWidgetSnapshot, last.day != DateOnly.today() { writeWidgetSnapshot() }
         guard vault != nil, !isSyncing else { return }
         fetchCloudFiles()
         // Notes still coming from iCloud need another look even though nothing on disk has
@@ -1215,7 +1233,10 @@ final class AppModel: ObservableObject {
         refreshSnippets()
         refreshWorkNotes()
         refreshSavedSearches()
-        writeWidgetSnapshot()
+        // Soon, not now (build 271): `notes` was set above, which has already asked for this,
+        // and `notesWaitingForCloud` was set after it. By the time the wait is over both are in
+        // place, and a burst of reloads is one write.
+        writeWidgetSnapshotSoon()
     }
 
     // MARK: The iPhone widget (build 174)
@@ -1249,13 +1270,42 @@ final class AppModel: ObservableObject {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
     }
 
+    /// The summary most recently written for the widgets, so a change that does not alter what
+    /// they draw does not write a file and redraw them (build 271). Nil until the first write
+    /// of this vault, and again after the vault is changed or closed.
+    private var lastWidgetSnapshot: WidgetSnapshot?
+
+    /// The wait that is running before the next write, if any. See `writeWidgetSnapshotSoon`.
+    private var widgetWriteTask: Task<Void, Never>?
+
     /// Writes what the widget draws, then asks the system to redraw it.
     ///
-    /// Called from `reload()`, so it follows every change to the vault the app makes or notices
-    /// — a task ticked, a sync, a file arriving from iCloud. **It never throws outwards**: a
-    /// widget that could not be updated must not stop the app from opening, and the widget
-    /// itself already says when what it holds is out of date.
-    func writeWidgetSnapshot() {
+    /// **Who calls it (build 271).** The `notes` observer calls `writeWidgetSnapshotSoon()`,
+    /// which ends here, so every change to the notes that alters what the widgets draw reaches
+    /// them: a task ticked, a due date changed, a task added that is due today or is a next
+    /// action, an Inbox line coming or going, a sync, a file arriving from iCloud. A plan block
+    /// is not in the summary (build 280 puts it there), so adding one writes nothing. The review
+    /// rhythm in Settings changes `dueForReview` but touches no note, so the count widget follows
+    /// at the next change to a note. Before build 271 only
+    /// `reload()` called this, and `save` and `saveText` never reload — they put the saved note
+    /// into `notes` — so a tick reached the widgets only at the next sync or the next start of
+    /// the app. The manual said "when you tick a task" for a long time and it was not true.
+    /// Also called by the 10 s poll after midnight, and by **Write it again now** in Settings.
+    ///
+    /// **It writes only when something the widgets draw has changed** (`sameContent`, which
+    /// ignores the time of the write), or when `force` is true. The editor saves every 600 ms
+    /// while he types, and a file and a redraw of every widget for each of those would be wasted
+    /// work. A consequence worth knowing: the widgets' foot line, `written 09:41`, is the time
+    /// of the last change, not of the last look.
+    ///
+    /// **Not with no vault open (build 179).** Closing a vault sets `notes = []`, and an empty
+    /// index would be written as "nothing due, nothing waiting" — the picture of a vault with
+    /// nothing in it, drawn for one that is simply not open.
+    ///
+    /// **It never throws outwards**: a widget that could not be updated must not stop the app
+    /// from opening, and the widget itself already says when what it holds is out of date.
+    func writeWidgetSnapshot(force: Bool = false) {
+        guard vault != nil else { return }
         guard let container = Self.widgetContainerURL else { return }
         // Not while notes are still coming from iCloud (build 261): the app no longer waits for
         // them at launch, and a widget showing an Inbox of 0 or a day with nothing due would be
@@ -1267,12 +1317,52 @@ final class AppModel: ObservableObject {
         let inbox = index.notes(kind: .inbox).first?.openTasks.count ?? 0
         let snapshot = index.widgetSnapshot(inboxCount: inbox,
                                             dueForReview: dueForReview().count)
+        guard force || !snapshot.sameContent(as: lastWidgetSnapshot) else { return }
         do {
             try snapshot.write(toContainer: container)
+            // Only after the file is really there: a failed write must not make the next,
+            // identical snapshot look like one that is already on disk.
+            lastWidgetSnapshot = snapshot
             Self.reloadWidgets()
         } catch {
             log("widget snapshot not written: \(error.localizedDescription)")
         }
+    }
+
+    /// Asks for a write in two seconds, and asks again, from the start, each time it is called
+    /// (build 271). A save every 600 ms while he types is therefore one write, two seconds
+    /// after the last key — and only if the widgets would draw something different.
+    ///
+    /// Called from the `notes` observer and from `reload()`. **Not from `init`'s own body**:
+    /// the observer runs because `reload()` is a method, the same rule as `focus` (build 256).
+    private func writeWidgetSnapshotSoon() {
+        widgetWriteTask?.cancel()
+        widgetWriteTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled, let self else { return }
+            self.widgetWriteTask = nil
+            self.writeWidgetSnapshot()
+        }
+    }
+
+    /// Writes at once if a write is waiting, so the widgets are right the moment PARAGON stops
+    /// being the app in front: he ticks a task and clicks the desktop to look at the widget, or
+    /// goes to the iPhone's Home Screen, which may stop the app before two seconds are up.
+    /// Called from `ContentView` when the scene goes inactive or into the background. Nothing
+    /// is written when no change is waiting.
+    func flushWidgetSnapshot() {
+        guard let pending = widgetWriteTask else { return }
+        pending.cancel()
+        widgetWriteTask = nil
+        writeWidgetSnapshot()
+    }
+
+    /// Drops what is known about the last write, and any write that is waiting. Used when the
+    /// vault is opened or closed, so the next write is a whole one.
+    private func forgetWidgetSnapshot() {
+        widgetWriteTask?.cancel()
+        widgetWriteTask = nil
+        lastWidgetSnapshot = nil
     }
 
     /// Whether the folder the app and the widget share can be reached from here (build 177).
@@ -1862,6 +1952,12 @@ final class AppModel: ObservableObject {
     /// Which template the Templates section is showing, shared by its two columns.
     @Published var templateSelection: String?
 
+    /// The lines the Area templates ask under `## Standard` (build 271), so an area whose
+    /// section holds only that question reads as having no standard. Set by `refreshSnippets()`,
+    /// which already reads every template; not `@Published`, because the views that read it
+    /// are redrawn by the same refresh. Read by `standard(of:)` in `AreaStandardView.swift`.
+    private(set) var standardPlaceholders: [String] = []
+
     /// Every template file with the kind of note it makes.
     @Published private(set) var templates: [TemplateFile] = []
 
@@ -1928,6 +2024,7 @@ final class AppModel: ObservableObject {
         snippets = vault?.snippets() ?? []
         templates = vault?.templates() ?? []
         knownTags = vault?.knownTags() ?? []
+        standardPlaceholders = vault?.areaStandardPlaceholders(among: templates) ?? []
     }
 
     /// Drops a snippet's lines into a note's Tasks, dates and answers filled in.
@@ -2753,9 +2850,12 @@ final class AppModel: ObservableObject {
     /// A turn after a sheet closes, and after a waiting stop question has had its turn: the
     /// stop question is queued first, so when it opens this finds a sheet and waits again.
     private func openWaitingScreen() {
-        guard activeSheet == nil, waitingScreen != nil else { return }
+        // Not while the question "What is next for this goal?" is up either (build 271): it
+        // is a dialog at the window's root, and a sheet opened over it is two presentations at
+        // once. Closing the question calls this again (`whatNext`'s `didSet`).
+        guard activeSheet == nil, whatNext == nil, waitingScreen != nil else { return }
         afterUpdate {
-            guard self.activeSheet == nil, let sheet = self.waitingScreen else { return }
+            guard self.activeSheet == nil, self.whatNext == nil, let sheet = self.waitingScreen else { return }
             // Cleared before the vault check: a press that can no longer be answered (the vault
             // was closed meanwhile) is dropped, never left to open a screen hours later.
             self.waitingScreen = nil
@@ -2763,6 +2863,22 @@ final class AppModel: ObservableObject {
             self.activeSheet = sheet
         }
     }
+
+    /// **What is next for this goal?** (build 271): the question asked when a project ends and
+    /// its goal is left with nothing working on it. Set only by `askWhatNext(afterEnding:)`,
+    /// a turn after a status was saved, and cleared by the dialog (`WhatNextDialog`). While it
+    /// is set a reminder's press waits (`ContentView.answerReminder(opening:)`), and closing it
+    /// gives that press its turn.
+    @Published var whatNext: WhatNextQuestion? {
+        didSet { openWaitingScreen() }
+    }
+
+    /// What the New Note sheet starts with, handed over by **Add a project…** in the question
+    /// above. **A plain variable, not `@Published`** (the plan's own correction): the sheet reads
+    /// it once in `onAppear` through `takeNewNotePreset()` and clears it, and clearing a
+    /// published value from inside a view's lifecycle is a publish during a view update, the
+    /// fault `afterUpdate` exists for.
+    var newNotePreset: NewNotePreset?
 
     private func askWaitingStopQuestion() {
         guard activeSheet == nil, stopQuestionWaiting else { return }
@@ -3353,7 +3469,13 @@ final class AppModel: ObservableObject {
         guard let live = self.note(at: note.relativePath) else { return }
         let updated = live.settingStatus(status, today: .today())
         guard updated != live else { return }
-        save(updated)
+        guard save(updated) else { return }
+        // **A project has just ended** (build 271): from not ended to Done, Missed or
+        // Dropped, never Done → Missed and never a note that was archived (nothing was working
+        // on the goal through it). If its goal is now left with nothing, ask what is next.
+        if !live.isEnded, !live.isArchived, updated.isEnded {
+            askWhatNext(afterEnding: updated)
+        }
     }
 
     /// Changes the day a note ended (build 262), from the line under a finished project's

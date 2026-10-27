@@ -350,7 +350,7 @@ struct WidgetStatusSection: View {
         if snapshot == nil {
             return "Nothing has been written yet. Open a vault, or press Write it again now."
         }
-        return "The widget reads this file. It is written again every time PARAGON reloads the vault."
+        return "The widget reads this file. It is written again a few seconds after a change that the widget would show. Last written is the time of the last such change, so an old time does not mean the widget is not working."
     }
 
     var body: some View {
@@ -366,7 +366,9 @@ struct WidgetStatusSection: View {
                 Text("\(snapshot?.items.count ?? 0)").foregroundStyle(Color.secondary)
             }
             Button("Write it again now") {
-                model.writeWidgetSnapshot()
+                // `force`: it writes even when nothing has changed, which is what pressing it
+                // asks for (build 271).
+                model.writeWidgetSnapshot(force: true)
                 refresh()
             }
             .disabled(!folderFound)

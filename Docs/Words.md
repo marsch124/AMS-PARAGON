@@ -29,6 +29,8 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Sub-area** — an area that is part of another area, like "Yoga" inside "Health". Set it with **Part of…** at the top of the area.
 - **Projects in this area** — the list at the top of an area: its projects that are running or on hold, with what each needs next, and its sub-areas under them. Above it, pink weekly bars count the tasks finished in the area and its projects.
 - **In area** — the area a project is part of, like "Health". Set it with **In area…** at the top of the project, or on its right-click menu. It is kept as `area:` in the settings block. Only this line puts a project in an area; a `[[Health]]` link in the text does not.
+- **Standard** — what "good" looks like in an area, like "Three runs a week, one rest day, a yearly check-up." It is shown at the top of the area's page and under the area's name in step 6 of the **Weekly review**. Write it with **Standard…** (or **Write the standard…** when none is written yet). It is kept under `## Standard` in the note's text.
+- **No standard written yet** — on an area: nothing is written under **Standard**. The question the Area template puts there does not count as a standard.
 - **Resource** — reference material you want to keep, like a packing list. Shown in blue.
 - **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way.
 - **Daily note** — one note for each day. It holds that day's plan, tasks and **Looking back**.
@@ -43,6 +45,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Missed** — it is over, and it did not happen.
 - **Dropped** — you decided not to do it. Shown in grey, not orange, because it was a decision and not a failure.
 - **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 21 October". In **Projects**, the finished groups put the newest ending first, each box shows its day, and the **Done** heading says how many of its projects ended this year.
+- **What is next for this goal?** — the question that comes up when you mark a project Done, Missed or Dropped and its goal is left with nothing working on it. **Add a project…** opens **New Note** with the goal already chosen, **Mark the goal done** is there only after Done, and **Not now** closes it and changes nothing.
 
 ## Tasks
 

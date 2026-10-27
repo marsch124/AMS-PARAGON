@@ -4169,7 +4169,7 @@ object) through `AppModel.openWhenFree(_:)`; else open it. **The plan named the 
 `screenAfterFocusQuestion`; it is `waitingScreen`**, because it now also holds a screen waiting
 for an ordinary sheet such as **New Note**, and the focus-only name would have lied. It is cleared
 when that screen opens by any route (`activeSheet`'s `didSet`), and the stop question still goes
-first (`askWaitingStopQuestion` is queued before `openWaitingScreen`). Build 278's "also wait
+first (`askWaitingStopQuestion` is queued before `openWaitingScreen`). Build 271's "also wait
 while `whatNext` is set" belongs in `answerReminder`. **No screen test**, as planned: turning a
 switch on raises the system's permission dialog and a test cannot press a notification; the check
 is his field test on both devices. **The review of the morning reminder found three faults, all fixed before
@@ -4456,6 +4456,118 @@ nothing about why (build 100; build 212 keeps its Calendar reason outside its fo
 is drawn by `body` under the heading. **Departure from the plan, now written down:** the
 sub-area rows stay inside the fold, so folding **Projects in this area** hides them too; each is
 still one press away in the Areas list, and the manual says so.
+
+**Build 271: the widgets follow every change.** Part A of idea 8; the Mac widget itself is build 280. No new widget, so if the existing two go wrong this change is the cause. `WidgetSnapshot.sameContent(as:)` (Core, tested in `WidgetSnapshotTests`): everything except `written`, by copying `self`, setting `written` to the other's and using the synthesized `==`; nil is never the same, and `day` is part of the content, so a new day is always a change. App, in `AppModel.swift` only apart from two one-line edits: the `notes` observer calls `writeWidgetSnapshotSoon()` — **the one place that sees every change**, because `save` and `saveText` put the saved note into `notes[i]` and never call `reload()`, so until now a tick or a changed due date reached the widgets only at the next sync or start. **A plan block is not in the summary** (`WidgetSnapshot` holds counts and the action lines), so adding or moving one writes nothing until build 280 puts the plan into it. `writeWidgetSnapshotSoon()` cancels a `widgetWriteTask` and starts a new one that waits 2 s on the main actor, so the editor's 600 ms autosave is one write two seconds after the last key. `reload()` calls the soon version too (the observer has already asked, but `notesWaitingForCloud` is set after `notes`, and by the end of the wait both are in place). `writeWidgetSnapshot(force: Bool = false)` gained `guard vault != nil` — **closing a vault sets `notes = []`**, which would have written "nothing due, nothing waiting" for a vault that is merely not open (build 179) — keeps the iCloud guard (261), and writes and calls `reloadWidgets()` only when `force || !snapshot.sameContent(as: lastWidgetSnapshot)`. `lastWidgetSnapshot` is set **only after the file was written**, so a failed write cannot make the next identical snapshot look as if it were on disk, and `forgetWidgetSnapshot()` clears it (and any waiting write) in `openVault` and `closeVault`. **Midnight rule**: `checkForExternalChanges` (the 10 s poll) writes again when `lastWidgetSnapshot.day != today`; nothing in the notes changes at midnight, so nothing else would. Settings › Widget: **Write it again now** passes `force: true`, and the caption says "written again a few seconds after a change that the widget would show" and that **Last written** is the time of the last such change. **The foot line `written 09:41` therefore means "last changed", not "last looked at"**; the manual says so, so an old time does not look like a stuck widget (build 177). **One departure from the brief, which a reader should know**: `flushWidgetSnapshot()` writes at once if a write is waiting, called from `ContentView`'s `.inactive`/`.background` branch beside `flushPendingEdits()`. Without it, a tick followed at once by the iPhone's Home Screen (or, on the Mac, a click on the desktop to look at the widget) could leave the widget stale for the two seconds, or until the app next ran if iOS suspended it first. Not checked from here: whether macOS reports `.inactive` when another app comes to the front; if it does not, the Mac simply writes two seconds later, which is still what the brief promised. **Known, not fixed:** the review rhythm in Settings changes `dueForReview` but saves only the config (the `config` setter never touches `notes`), so the **What is waiting** widget follows at the next change to a note, a sync or the midnight rule; the fix is one `writeWidgetSnapshotSoon()` after the write plus an internal wrapper for the private function. **The review of 279 found that the first wording over-claimed in four places** — the manual, the version note, this paragraph and the doc comment above `writeWidgetSnapshot` all said a plan block or "any task added" reached the widgets, when the summary changes only for what the two widgets draw. **A sentence about when something is written has to name only what the written thing contains.** It also found the stamp placeholder in the Swift comments, which the merge script does not rewrite (it rewrites only the two text files): a comment that names a build must keep its placeholder whole on one line, and the lead replaces it in the `.swift` files after merging. **The review of the merged build 271 found that quitting the Mac app (⌘Q) within two seconds of a change dropped the waiting write** — the editor's flush saves the open note, which starts the wait again, and the program ends before it is over; the `willTerminate` observer now calls `flushWidgetSnapshot()` after `flushPendingEdits()`, in that order. **The lesson: the manual's sentence "when you tick a task" was true of `reload()` and never of `save`, and nobody listed who calls the function.** Before a sentence says when something runs, list its callers with a grep. No screen test: CI never draws a widget, and the runner may have no shared folder at all, so the Core test pins the rule that decides when the file is written again. Written down for build 280, not done here: `WidgetLook.goal` and `.project` have drifted from the app's `GoalTint` and `ProjectTint` (#A8781C against #A7811A, #2E7A4F against #2E7D5B), and 280 adds the widget target's first asset catalogue, which is the moment to offer the fix.
+
+**Build 271: What is next for this goal?** `Core/Sources/ParagonCore/Vault/WhatNext.swift` (tested in
+`WhatNextTests`): `NoteIndex.goalLeftWithoutWork(after:)` returns the goal a project's ending has
+just left with nothing, else nil. It needs a project (`declaredKind`) that `isEnded` (so an archived
+one never asks), a `goal:` that resolves through `goal(matching:)`, a goal that is not ended or
+archived, and `serving(_:)` with no live project and no live sub-goal — **an area does not count**
+(build 132's reasoning for `noProjectYet`), and **on hold does**, since it is still the goal's
+project. The project is left out by its path, so the answer is the same whether or not the index
+has caught up with the save. **`GoalHealth.Flag.nothingServing` could not be reused: it is silent
+once any project under the goal has ended ("served, not neglected", build 132), which is the
+exact case this question is for.** A rule that already exists under another name may say the
+opposite on purpose; read what it is silent about before reusing it. `WhatNextQuestion` (same
+file) holds the words, so a test pins each: the title, the line "Nothing is working on “…” now.",
+`addTitle`, `offersDone` and `doneMessage`. It stores the goal's **path and name**, not the
+`Note`; a button looks the goal up again (build 144). App: `AppModel.setStatus` now guards on
+`save` returning true, and when a note goes from not ended to ended (and was not archived) it calls
+`askWhatNext(afterEnding:)` (`WhatNextDialog.swift`, an `AppModel` extension — the first one in this
+target — because `whatNext` is the only stored state and sits in `AppModel.swift`). That sets
+`whatNext` **a turn later, through `afterUpdate`, only when no sheet is open, the focus question is
+not pending, `errorMessage` is nil and no note is coming from iCloud or being updated by it**
+(`notesWaitingForCloud`, `notesBeingUpdated`), and asks the Core rule again against the note as it
+then is. `WhatNextDialog` is a `ViewModifier` (one `.modifier(...)` line in `ContentView`, after the root
+alert) with one `confirmationDialog(presenting:)`: **Add a project…**, **Mark the goal done** (only
+after Done), **Not now** (`.cancel`). The buttons come from a plain `@ViewBuilder` function and each
+press is handed the question — the dialog clears `whatNext` as it closes and which of the action
+and the binding's setter runs first is not to be relied on; the setter clears it through
+`afterUpdate`, like `errorPresented`. **Add a project…** sets `AppModel.newNotePreset` (a **plain
+var**, the plan's correction: a `@Published` value cleared from `onAppear` is a publish during a
+view update) in the same turn it opens `.newNote`, and `NewNoteSheet.onAppear` takes it once
+through `takeNewNotePreset()`, assigning `thing` before `servesGoal` (`pick(_:)` clears the goal on
+a change of kind; `onAppear` does not call it, but the order is the safe one). The value is the
+goal's `title`, which is what the Serves… list uses. **Mark the goal done** goes through
+`setStatus(.done)`, so the goal gets its own `ended:`; it starts no second question because the rule
+asks about projects only. **The dialog is not in `activeSheet`, so every gate that asks "is something
+open?" had to learn it**: `ContentView.answerReminder` waits while `whatNext` is set, and
+`openWaitingScreen` does too, with `whatNext`'s `didSet` giving a waiting press its turn when the
+question closes. **Departed from the plan in two places.** (1) The rule and the words are in a new
+file, not `NoteEnding.swift`, to keep the merge clean. (2) **An aspiration**: the plan's rule can
+return one (a project hand-linked straight to it, with no live dated goal under it). Then the
+question reads "…this aspiration?", the button is **Add a goal…** (New Note on Goal, Serves the
+aspiration) because nothing is made straight under an aspiration (build 269), and there is no
+**Mark the goal done** — you never finish an aspiration (build 199). Not built, by his answer 6b
+(ask at once): the second line in `ProjectEndedLine`. **No screen test, as planned**: the status
+`Menu`'s items carry no identifier, and making the rule true in the test vault would move the boxes
+the Map test presses. Both directions of the rule are pinned in Core. **Untested from here**:
+that the dialog really appears on the iPhone a turn after the status `Menu` closes. **Known and
+accepted**: ⌘N or the menu bar clock's **Stop…** pressed while the dialog is up would open a sheet
+over it; the same is true of the Delete question and the root alert today.
+**The review of this build found two faults, both fixed before upload**: the question was asked
+while notes were still coming from iCloud, when a project of the goal that has not arrived is not in
+the index, so "Nothing is working on …" could be false and **Mark the goal done** could end a goal
+with live work (build 100's rule, as in `partVaultReason`; the question is optional, so skipping it
+costs nothing); and the manual described the line as two lines, when it is one sentence with the
+goal's name inside it.
+
+**Build 271: an area's Standard.** `Core/Sources/ParagonCore/Vault/AreaStandard.swift` (tested in
+`AreaStandardTests`) owns the `## Standard` section of an area note, the way `DayPlan` owns
+`## Plan` and `DayLog` owns `## Looking back`, on `MarkdownSection.find` (build 223) and no second
+parser. **The Area template ships a question under that heading, and a question is not an answer**:
+`text(in:placeholders:)` leaves out lines that are only a placeholder and returns nil — the same
+nil as a missing heading — so a new area says "No standard written yet" instead of showing
+"What does "good" look like in this area?" as its standard (build 100's rule: an absence must not
+look like a presence). The shipped line is read out of `Templates.area` itself
+(`shippedPlaceholders`), never copied; his own area templates' Standard lines come from
+`Vault.areaStandardPlaceholders(among:)`, which reads only `kind == .area` templates and is called
+from `AppModel.refreshSnippets()` into `standardPlaceholders` (plain `private(set)`, not
+`@Published`: the same refresh redraws the readers). Lines are compared with case, curly and
+straight quotes and runs of spaces folded, and also in their `{{title}}`/`{{date}}`-filled form,
+because the note has had those filled in and the raw template line would never match.
+`firstSentence(of:)` strips `- `, `* ` and `1. `, cuts only at a `.`, `!` or `?` that **ends a word**
+(a space, a closing quote or bracket, or the end — so "3.5 km" is whole) and keeps a closing quote
+with its sentence; **"…" appears only when text was cut off**, after a stop as " …" and after a line
+with no stop as "…". `note(_:settingText:placeholders:)`: replaces the section (the question with
+it); **makes a missing one above the first `## ` heading**, not right after the title as the plan
+said — prose under the title would otherwise become part of the standard when read back — or at
+the end when there is none; **empty text removes heading and all, but only when a standard was
+written** (pressing Save on an empty box must not delete the template's question); the same text
+again changes nothing. App: `Views/AreaStandardView.swift` holds `extension AppModel` —
+`standard(of:)` and `setStandard(_:on:startedFrom:) -> StandardWrite` — and `AreaStandardBox`, so
+`AppModel.swift` got two lines and `ReviewView.swift` a small edit (other builds change both).
+**Departed from the plan on purpose:** `setStandard` is not `-> Bool`. It takes the standard the box
+opened on and answers `.written`, `.changedMeanwhile(onFile:)` or `.notWritten`, the rule of
+`setWeekGoal` (264) and `setMeasure` (268) whose reviews each found a line replaced unseen after
+the first push; the box keeps his words, says in orange what the standard is now, and a second
+**Save** replaces it. `AreaStandardBox` is edited in place like `WeekGoalBox`, but **Cancel** and
+**Save** sit in the header row *above* the field (replacing **Standard…** while typing), so the
+phone's keyboard cannot cover **Save** (builds 160, 231); the field is `TextField(axis:
+.vertical)` with `lineLimit(2...6)` and no `onSubmit`, because what Return does in a vertical
+field on the Mac is not known from here and the manual says only "press **Save**". Identifiers:
+`area.standard`, `.text`, `.missing`, `.edit`, `.field`, `.save`, `.cancel`, `.notice`, and
+`review.standard.<path>` in step 6. `HealthRow` gained `showsStandard` (step 6 only), drawing
+"Standard: …" in `.secondary` or a dashed `ProjectPill`, with no colour of its own on a tagged row
+(builds 200, 201). Screen test `testAnAreaStandardCanBeWritten`, both platforms: the test area
+(made from the shipped template) says `area.standard.missing`, **Write the standard…**, type, **Save**,
+`area.standard.text` and the editor hold the words and the heading; on the Mac also the frame
+inside the window and above the editor, `expectNoOverflow`, and step 6 shows the sentence under
+Health. **Noticed, not changed:** step 6 flags an area "No next action" in orange when only its
+projects hold tasks — build 132's "true of most notes" fault, worth its own question to him.
+**Untested from here:** the Mac frame of `area.standard.edit` (a short button beside a label that
+fills the line, build 247 — the test presses it with `press()` when hittable, by coordinate
+otherwise) and whether the phone scrolls the field into view without covering the buttons above it.
+**The review of the Standard found one narrow fault, known and not fixed:** while an Area template
+is not on the device yet (a hidden iCloud stub, or one that could not be read), a question reworded
+in that template reads as the standard until the template arrives and `refreshSnippets()` runs again
+— `templateNames()` lists only `.md` names and `areaStandardPlaceholders` skips a template it cannot
+read, so only the shipped question is always known. It needs a reworded question and an absent
+template at the same time, it corrects itself within seconds (the iCloud pass reloads, which runs
+`refreshSnippets()`), and nothing wrong is written; a "still coming from iCloud" line on two screens
+was judged not worth its cost. A code guard, if ever wanted: make `standardPlaceholders` a union of
+its old and new value for the session — that does not help a fresh device.
 
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops

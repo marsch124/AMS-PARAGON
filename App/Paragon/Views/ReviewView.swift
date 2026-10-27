@@ -215,7 +215,9 @@ struct ReviewView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(report.areas) { health in
-                            HealthRow(health: health)
+                            // Build 271: an area shows its Standard under its name, so it
+                            // can be checked against what "good" looks like.
+                            HealthRow(health: health, showsStandard: true)
                                 .tag(health.note.relativePath)
                         }
                     }
@@ -501,6 +503,9 @@ struct ReviewStat: View {
 struct HealthRow: View {
     @EnvironmentObject private var model: AppModel
     let health: ProjectHealth
+    /// Step 6 only (build 271): the area's Standard, or "No standard written yet", under
+    /// its name. Step 5's project rows have none.
+    var showsStandard = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -511,6 +516,9 @@ struct HealthRow: View {
                 Text(health.note.title)
                     .font(.headline)
                     .lineLimit(2)
+            }
+            if showsStandard {
+                standardLine
             }
             WrappingHStack(spacing: 8, lineSpacing: 3) {
                 // The Aspirations list's own words and eye (build 270, his answer 3a:
@@ -563,6 +571,29 @@ struct HealthRow: View {
                 }
                 Button("Archive") { model.archive(health.note) }
             }
+        }
+    }
+
+    /// **The area's Standard, in the row's grey** — only `.secondary` and a shape, no colour of
+    /// its own, so the row stays readable when it is selected (builds 200, 201). Words are
+    /// `AreaStandard`'s (Core, tested); a standard that is only the template's question reads
+    /// as none. The row is a selectable one, so nothing here takes a click (builds 71–74).
+    @ViewBuilder
+    private var standardLine: some View {
+        if let standard = model.standard(of: health.note) {
+            Text("Standard: " + AreaStandard.firstSentence(of: standard))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("review.standard.\(health.note.relativePath)")
+        } else {
+            ProjectPill(fact: ProjectFact(id: "noStandard", text: "No standard written yet",
+                                          systemImage: "circle.dashed", dashed: true))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("No standard written yet")
+                .accessibilityIdentifier("review.standard.\(health.note.relativePath)")
         }
     }
 }

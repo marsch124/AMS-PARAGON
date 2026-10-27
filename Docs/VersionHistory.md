@@ -2,6 +2,57 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 271 · 27 October 2026
+
+**The widgets follow every change.** The first of two builds about widgets. Before this build, a widget did not change after you ticked a task until the next sync or the next time you started PARAGON. This build does not add a new widget. It makes the two widgets you have show changes sooner.
+
+- Tick a task in PARAGON on the Mac. The **Today's actions** widget shows the change a few seconds later. The same is true when you change a task's date, add a task that is due today or is a next action, or when a line comes into the Inbox or leaves it. A plan block is not in these two widgets, so adding one changes nothing there.
+- It is the same on the iPhone.
+- The few seconds are on purpose. While you type in a note, PARAGON waits until you stop. Then it writes one new summary for the widgets, and only when the widgets would show something different.
+- When you leave PARAGON, for another app or for the Home Screen, or when you quit it, it does not wait. It writes at once. So you can tick a task and look at the widget straight away.
+- **After midnight** the widgets show the new day by themselves, as long as PARAGON is running. If PARAGON was not running at midnight, the widget still says **Nothing since you last opened PARAGON** until you open it.
+- In **Settings**, in the part called **Widget**, **Last written** now shows when something last changed. An old time does not mean that the widget is not working. It means that nothing it shows has changed since then. The small grey line at the foot of every widget, for example **written 09:41**, means the same.
+- **Write it again now** still writes at once, also when nothing has changed.
+- The text under it now says: "The widget reads this file. It is written again a few seconds after a change that the widget would show. Last written is the time of the last such change, so an old time does not mean the widget is not working."
+- When you close a vault, PARAGON does not write an empty summary. The widgets keep the last picture, as before. They do not show "Nothing due" for a vault that is just not open.
+- The manual said that the summary is written "when you tick a task". That was not true until now. The manual now says what really happens.
+
+**To try it:** put **Today's actions** on the Mac desktop. Tick a task that is in it. Look at the widget after about three seconds. It should have one line fewer. Then open **Settings** and look at **Widget**. **Last written** should show the time of the tick.
+
+**What is next for this goal?** The next of the eight ideas you chose. When you finish a project and its goal is left with nothing, PARAGON now asks what comes next.
+
+- Mark a project **Done**, **Missed** or **Dropped**. If the goal it worked for now has no other project working on it, a short question comes up on the screen you are on: **What is next for this goal?** Under it PARAGON says, for example: "Nothing is working on “Walk the Kungsleden in one go” now."
+- It does not matter where you marked the project: in its own note, in **Projects**, or in the weekly **Review**.
+- **Add a project…** opens **New Note** on **Project**. The goal is already chosen in the button that otherwise says **Serves a goal…**. Write the name and press **Create**.
+- **Mark the goal done** is there only after **Done**. It marks the goal itself Done and writes its own day. A short message at the bottom of the window says so.
+- **Not now** closes the question and changes nothing. The goal's own page still has **Add a project…**.
+- The question comes only when a project goes from working to over. Changing a project from **Done** to **Missed** does not ask again, and a project in the Archive does not ask.
+- A project that is **On hold** still counts as working on the goal, so no question comes. An area does not count, because an area keeps a standard and does not deliver a goal.
+- If the goal has itself ended or been archived, nothing is asked.
+- While notes are still coming from iCloud, or iCloud is updating some, nothing is asked. PARAGON cannot know yet that nothing else works on the goal. The goal's own page still has **Add a project…**.
+- If you mark several projects in the weekly **Review**, the question comes once for each goal that is left with nothing.
+- An aspiration is never finished. If a project that serves an aspiration directly ends, and nothing else works towards it, the question reads **What is next for this aspiration?**. The buttons are **Add a goal…** and **Not now**, and there is no **Mark the goal done**.
+- Marking a goal Done with **Mark the goal done** does not start a second question about the aspiration above it.
+- If you press a morning or evening reminder while the question is on screen, the reminder opens when you have answered it.
+
+**To try it:** open a goal that has only one project working on it. Open that project and press the status button in its header, then choose **Done**. The question should come up at once. Press **Add a project…** and check that **New Note** opens on **Project** with the goal already chosen. Try the same with a goal that has two projects: no question should come until the second one ends.
+
+**An area has a Standard.** The next of the eight ideas you chose, and the last of three builds about areas. A Standard says what "good" looks like in an area, for example "Three runs a week, one rest day, a yearly check-up."
+
+- Open an area, for example Health. At the very top of its page there is a new line with the word STANDARD.
+- Press **Standard…** and the whole text opens right there. Write it, then press **Save**. **Cancel** closes the box and writes nothing.
+- The line shows the first sentence of what you wrote, on two lines at most. When there is more, it ends with "…".
+- When nothing is written, a dashed grey line says **No standard written yet**, and the button says **Write the standard…**.
+- Every area you made from the Area template has a question under Standard: "What does "good" look like in this area?" That question is not a standard. It counts as nothing written. The same goes for the question in your own Area template, if you changed its words.
+- **Save** puts your words in place of the question. A note that has no Standard part gets one, above its first part.
+- **Save** with an empty box takes the standard away. When nothing was written before, it changes nothing, so the question stays.
+- The standard is kept in the note's text, under `## Standard`. So both devices agree, and it is in your backups. You can also write it there by hand.
+- If you changed the standard on your other device while the box was open here, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
+
+**The Weekly review.** In step 6, **Look over the areas**, each area now shows its Standard under its name: "Standard:" and the first sentence. When none is written, a dashed grey **No standard written yet** says so. This is so you can check the area against what you wrote, while you look it over.
+
+**To try it:** open Health in **Areas**. It should say **No standard written yet**. Press **Write the standard…**, write one sentence, and press **Save**. The sentence should now be at the top of the page. Then open the **Weekly review**, open step 6, and check that the same sentence is under Health.
+
 ## Build 270 · 27 October 2026
 
 **You can say "I looked at it" from the note itself.** The next of the eight ideas you chose. Before this build, the date you last looked at a note could only be set in the **Weekly review**, with **Mark reviewed** on the right-click menu.

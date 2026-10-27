@@ -1868,6 +1868,91 @@ final class ScreenTests: XCTestCase {
         expectNoOverflow(after: "a project was added on an area's page")
         #endif
     }
+
+    /// An area's Standard (build 271): the test area is made from the shipped template, so
+    /// its `## Standard` holds only the template's question — and that must read as **No
+    /// standard written yet**, not as a standard. Then **Write the standard…** opens the text in
+    /// place, the sentence is typed and saved, the note's own text holds it, and the page shows
+    /// it. On the Mac, step 6 of the **Weekly review** shows the sentence under Health too (the
+    /// phone's way back out of a pushed note is not what this test is about). Every button is
+    /// found among buttons (build 249).
+    func testAnAreaStandardCanBeWritten() {
+        go(to: .areas)
+
+        let row = element("note.Areas/Health.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Areas list does not show the test area. On screen: \(visibleTexts())")
+        row.press()
+
+        XCTAssertTrue(element("area.standard.missing").waitForExistence(timeout: 20),
+                      "The area opened and does not say it has no standard. Its Standard section holds only the template's question, which must not count as one. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("area.standard.text").exists,
+                       "The template's question is shown as the area's standard. On screen: \(visibleTexts())")
+
+        let edit = app.buttons.matching(identifier: "area.standard.edit").firstMatch
+        XCTAssertTrue(edit.waitForExistence(timeout: 20),
+                      "The area has no Write the standard… button. On screen: \(visibleTexts())")
+        let editFrame = edit.frame
+        guard Self.isOnScreen(editFrame) else {
+            XCTFail("The Write the standard… button has no place on screen: \(editFrame)")
+            return
+        }
+        // A short button beside a label that fills the line may report a wrong frame on the
+        // Mac (build 247), so a press that can ask the element itself does that first.
+        if edit.isHittable { edit.press() } else { press(edit, at: editFrame) }
+
+        let field = element("area.standard.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing Write the standard… did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Three walks a week.")
+
+        let save = app.buttons.matching(identifier: "area.standard.save").firstMatch
+        XCTAssertTrue(save.waitForExistence(timeout: 10),
+                      "The open box has no Save button. On screen: \(visibleTexts())")
+        if save.isHittable { save.press() } else { save.pressCentre() }
+
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The box stayed open after Save. On screen: \(visibleTexts())")
+
+        let shown = element("area.standard.text")
+        XCTAssertTrue(shown.waitForExistence(timeout: 20),
+                      "The standard was saved and the page does not show it. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: shown).contains("Three walks a week.") },
+                      "The page shows the wrong words for the standard: \(words(of: shown))")
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("area.standard.missing"))
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The area has a standard now and still says it has none.")
+        XCTAssertTrue(app.buttons.matching(identifier: "area.standard.edit").firstMatch.waitForExistence(timeout: 10),
+                      "The Standard… button is gone after Save. On screen: \(visibleTexts())")
+
+        // The words are in the note itself, under the heading the template ships.
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 10), "The area's note has no editor.")
+        XCTAssertTrue(editorHolds(editor, "Three walks a week.", within: 20),
+                      "The standard is on the page and not in the note's text: \((editor.value as? String) ?? "")")
+        XCTAssertTrue(editorHolds(editor, "## Standard", within: 5),
+                      "The note lost its Standard heading: \((editor.value as? String) ?? "")")
+
+        #if os(macOS)
+        let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
+        XCTAssertTrue(window.contains(shown.frame),
+                      "The standard is not wholly inside the window: \(shown.frame) against \(window).")
+        XCTAssertLessThanOrEqual(shown.frame.maxY, editor.frame.minY + 1,
+                                 "The standard runs into the note's text: \(shown.frame) against the editor at \(editor.frame).")
+        expectNoOverflow(after: "an area's standard was written")
+
+        // Step 6 of the Weekly review shows it under Health.
+        go(to: .review)
+        openReviewPart("6")
+        let line = reveal("review.standard.Areas/Health.md")
+        XCTAssertTrue(line.exists,
+                      "Step 6 of the Weekly review does not show Health's standard. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: line).contains("Three walks a week.") },
+                      "Step 6 shows the wrong words for Health's standard: \(words(of: line))")
+        #endif
+    }
 }
 
 extension XCUIElement {

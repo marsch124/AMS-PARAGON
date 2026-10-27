@@ -83,6 +83,23 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
     /// rather than drawing yesterday's list as if it were today's — an out-of-date answer
     /// presented as a current one is the fault build 100 is about.
     public func isStale(on today: DateOnly) -> Bool { day != today }
+
+    /// True when `other` says exactly what this snapshot says, **ignoring only `written`**.
+    ///
+    /// **Build 271.** The app now looks at its widgets after every change to the notes,
+    /// including each save the editor makes while he types. Writing the file and asking the
+    /// system to redraw every widget each time would be wasted work, so the app writes again
+    /// only when this is false. `written` is the one field that is always different — it is
+    /// the time of the write — so comparing it would make every snapshot look new.
+    ///
+    /// A nil `other` is never the same: with nothing written yet, the first snapshot has to be
+    /// written. The day is compared like everything else, so a new day is always a change.
+    public func sameContent(as other: WidgetSnapshot?) -> Bool {
+        guard let other else { return false }
+        var copy = self
+        copy.written = other.written
+        return copy == other
+    }
 }
 
 public extension WidgetSnapshot {
