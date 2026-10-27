@@ -46,7 +46,7 @@ The build number is shown at the bottom of the sidebar. Newest first.
 
 - If a goal, aspiration or area of the same kind already has the name, that one is chosen and nothing new is made.
 - An aspiration and a goal with a date cannot have the same name, because both are kept in the **Goals** folder. The box says so in orange, for example "Stay fit" is already an aspiration. Use another name. Your words stay in the field.
-- If the goal with that name is Done, Missed, Dropped or archived, or the area with that name is archived, it is not in the list. The box says so in orange too.
+- If the goal with that name is Done, Missed or Dropped and still in the **Goals** folder, it is not in the list. The box says so in orange too. A goal or an area that you put away with **Archive** is not looked at, so its name can be used again.
 - If the note cannot be made for another reason, the box says why in orange. There is no alert.
 - The orange line goes away when you change the name.
 - A project called Health does not stop you from making an area called Health.
