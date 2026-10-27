@@ -6,7 +6,7 @@ import Foundation
 /// that means something else, and one word with two meanings on one screen is what made
 /// Aspiration and Goal hard to tell apart (build 176).
 ///
-/// In Core, so the rule is tested, and so the Mac widget (build 280) can name **the same
+/// In Core, so the rule is tested, and so the Mac widget (build 273) can name **the same
 /// block** as Today. Plan blocks only: calendar events stay in the Calendar section.
 ///
 /// The rules:

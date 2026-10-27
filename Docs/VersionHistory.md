@@ -2,6 +2,33 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 273 · 27 October 2026
+
+**Today's plan, a new widget on the Mac.** The second of two builds about widgets. It shows the time block you are in now, or the next one, and a small ruler of the next hours. It is for the Mac only, as you said.
+
+- **Where to find it:** right-click the desktop and choose **Edit Widgets**, or open Notification Centre and choose **Edit Widgets** at the bottom. Search for **PARAGON**. The new widget is called **Today's plan**. It comes in three sizes.
+- **At the top** it says **Today's plan**. Under that, in big orange letters, is the block that is on now, or else the next one, for example **Swim**.
+- **Under the name** a few words say when it is: **Now · 20 min left**, **Now · until 11:00**, **in 25 min** or **at 14:00**. When the words do not already show a time, the start and the end are shown under them, like **09:30 – 10:15**.
+- **Under that, in grey,** comes the block after it, for example **Then 11:00 Write the report**.
+- **The big line shows your plan blocks only.** It names the same block as the **Now** and **Then** lines on **Today**. Your calendar events are never in the big line.
+- **The ruler** is on the right in the medium widget (the next three hours) and below the words in the large one (the next six hours). The small widget has the words only.
+- **The ruler has two lanes,** like **Plan the day**: **Calendar** on the left and **Time blocks** on the right. A plan block is an orange box with an edge. A calendar event is a purple outline with no fill. When your desktop is not in front, macOS draws widgets in grey. Then the shape still tells them apart.
+- **A thin blue-grey line with a dot** is the time right now.
+- **It moves by itself,** also when PARAGON is closed. The words count down every minute for the next hour, and after that the line and the words are made again every quarter hour. macOS decides when it really draws them. If it is late, **in 25 min** can be up to a quarter of an hour old. The line and **at 14:00** stay right.
+- **Click the widget** and PARAGON opens on **Time Blocks**, on today.
+- **It follows your changes.** Add, move or remove a block in **Plan the day**, or change an event in Apple Calendar. A few seconds later the widget shows it.
+- **On a day with no blocks** it says **No blocks planned today.** and **Click to plan the day.** After the last block it says **Nothing more planned today.**
+- **A block that is also in Apple Calendar** shows in both lanes, as it does in **Plan the day**. The big line uses the block only, so it does not show it twice.
+- **Calendar lane:** it needs **Show the day's events in Today and in daily notes** to be on in Settings, and Calendar access to be allowed. If not, the lane says **Calendar not shown**, on the medium widget inside the lane and on the large one above it. The widget never asks for Calendar access.
+- **Where the titles go:** on the Mac, the titles of today's blocks and events are kept in the same small file that the other two widgets read. The file stays on this Mac, inside PARAGON's own shared folder. PARAGON on the iPhone does not write them, because the iPhone has no widget that draws them.
+- **In Settings,** in the part called **Widget**, there is a new line, **Today's plan**. It says what the widget has, for example **3 blocks · 2 events** or **3 blocks · Calendar not shown**. It says **Not written yet** until PARAGON has written the file once.
+- **The two other widgets** do not change.
+- **Start the day and the widget read your calendar events the same way.** So **Start the day** will not put a block on a meeting that the widget shows somewhere else.
+
+**The first time after an update,** macOS may not list **Today's plan**. Open PARAGON, quit it with ⌘Q, and open it again. Then look in **Edit Widgets** once more.
+
+**To try it:** make a plan block that starts about 20 minutes from now, in **Plan the day**. Put **Today's plan** on the desktop. After a few seconds the big line should show the block with **in 20 min** or about that. Wait for the start time. The words should change to **Now**. Then click the widget. PARAGON should open on **Time Blocks**. Please send me a picture of each of the three sizes, so I can see how they look.
+
 ## Build 272 · 27 October 2026
 
 **Build 271 was not sent to TestFlight.** One of my own checks on the Mac failed. The check looked for a row in the sidebar that had scrolled out of sight. The app was not at fault, and the check is mended. Everything that was new in build 271 is in this build as well: **What is next for this goal?**, the **Standard** of an area, and the widgets that follow every change. They are described under Build 271 below.

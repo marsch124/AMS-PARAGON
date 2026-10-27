@@ -109,6 +109,16 @@ final class WidgetLookTests: XCTestCase {
         }
     }
 
+    func testThePlanWidgetsColourSetsAreTheAppsColourSets() throws {
+        // The widget's own catalogue (build 273) holds copies of three of the app's colour
+        // sets. A copy is only as good as the test that reads both (build 272's lesson).
+        for name in ["PlanTint", "CalendarTint", "NowTint"] {
+            let app = try read("App/Paragon/Assets.xcassets/\(name).colorset/Contents.json")
+            let copy = try read("App/ParagonWidgets/Assets.xcassets/\(name).colorset/Contents.json")
+            XCTAssertEqual(copy, app, "\(name) in the widget's catalogue differs from the app's")
+        }
+    }
+
     func testTheAppGroupSpellingsAreTheOnesTheEntitlementsCarry() throws {
         // The two spellings of one group (build 178): the widget writes them out because it
         // cannot see the app's code, and a change to one is a change to the other.

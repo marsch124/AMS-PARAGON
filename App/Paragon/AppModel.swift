@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 272
+    static let number = 273
 }
 
 @MainActor
@@ -232,7 +232,17 @@ final class AppModel: ObservableObject {
     let remindersStore = EventKitRemindersStore()
     let calendarStore = EventKitCalendarStore()
     /// Apple Calendar events per day, loaded when a day is shown.
-    @Published private(set) var eventsByDay: [DateOnly: [CalendarEvent]] = [:]
+    ///
+    /// **A change to today's events asks for a new widget summary** (build 273): the **Today's
+    /// plan** widget draws them. This covers an event changed in Apple Calendar too, since
+    /// `refreshEvents` reloads every day shown so far and ends here. Only today is looked at —
+    /// the summary holds no other day.
+    @Published private(set) var eventsByDay: [DateOnly: [CalendarEvent]] = [:] {
+        didSet {
+            let today = DateOnly.today()
+            if eventsByDay[today] != oldValue[today] { writeWidgetSnapshotSoon() }
+        }
+    }
     /// nil until Calendar access has been asked for; false when it was refused.
     @Published private(set) var calendarAccessGranted: Bool?
     /// Every calendar on this Mac, loaded once access is granted.
@@ -464,6 +474,9 @@ final class AppModel: ObservableObject {
             objectWillChange.send()
             defaults.set(newValue, forKey: showCalendarKey)
             if newValue { Task { await self.refreshEvents() } }
+            // The **Today's plan** widget says **Calendar not shown** while events are off, and
+            // `widgetEvents()` reads today's when they come back on (build 273).
+            writeWidgetSnapshotSoon()
         }
     }
 
@@ -1283,10 +1296,13 @@ final class AppModel: ObservableObject {
     /// **Who calls it (build 271).** The `notes` observer calls `writeWidgetSnapshotSoon()`,
     /// which ends here, so every change to the notes that alters what the widgets draw reaches
     /// them: a task ticked, a due date changed, a task added that is due today or is a next
-    /// action, an Inbox line coming or going, a sync, a file arriving from iCloud. A plan block
-    /// is not in the summary (build 280 puts it there), so adding one writes nothing. The review
-    /// rhythm in Settings changes `dueForReview` but touches no note, so the count widget follows
-    /// at the next change to a note. Before build 271 only
+    /// action, an Inbox line coming or going, a sync, a file arriving from iCloud. **On the Mac
+    /// a plan block is in the summary since build 273** (the **Today's plan** widget draws it),
+    /// so adding, moving or removing one writes too — and so does a change to today's calendar
+    /// events, through `eventsByDay`'s observer. The iPhone leaves both out (`hasPlanWidget`),
+    /// so there they write nothing. The review rhythm in Settings changes
+    /// `dueForReview` but touches no note, so the count widget follows at the next change to a
+    /// note. Before build 271 only
     /// `reload()` called this, and `save` and `saveText` never reload — they put the saved note
     /// into `notes` — so a tick reached the widgets only at the next sync or the next start of
     /// the app. The manual said "when you tick a task" for a long time and it was not true.
@@ -1315,8 +1331,11 @@ final class AppModel: ObservableObject {
         // The same expression `ReviewReport` uses, so the widget's number and the review's
         // number are the same number.
         let inbox = index.notes(kind: .inbox).first?.openTasks.count ?? 0
-        let snapshot = index.widgetSnapshot(inboxCount: inbox,
-                                            dueForReview: dueForReview().count)
+        var snapshot = index.widgetSnapshot(inboxCount: inbox,
+                                            dueForReview: dueForReview().count,
+                                            events: widgetEvents())
+        // No widget on this device draws the plan: leave it out of the file (see `hasPlanWidget`).
+        if !Self.hasPlanWidget { snapshot.plan = nil }
         guard force || !snapshot.sameContent(as: lastWidgetSnapshot) else { return }
         do {
             try snapshot.write(toContainer: container)
@@ -1328,6 +1347,46 @@ final class AppModel: ObservableObject {
             log("widget snapshot not written: \(error.localizedDescription)")
         }
     }
+
+    /// Today's timed calendar events for the **Today's plan** widget (build 273), or nil when the
+    /// calendar is not shown. **Nil is never "no events"** (build 100): it is no access or the
+    /// switch in Settings off, and the widget then says **Calendar not shown** in the lane
+    /// rather than drawing it empty.
+    ///
+    /// **It never asks for Calendar access.** A write for a widget happens in the background,
+    /// and a question must not come up out of nowhere. When access is already granted and today
+    /// has not been loaded (the Inbox is the first screen on the Mac, so nothing has asked for
+    /// today's events yet), it **reads them here and now**: the read is the same synchronous
+    /// call `loadEvents(for:)` makes, so the first summary after a start, and the first one
+    /// after midnight, already holds today's events. The widget is never told "Calendar not
+    /// shown" for a few seconds while a load runs (review of build 273). The change to
+    /// `eventsByDay` asks for one more write, which `sameContent` then finds has nothing new.
+    ///
+    /// **Only where the widget is** (`hasPlanWidget`): on the iPhone nothing is loaded for it, so
+    /// no event title is written into the iPhone's file and no redraw is asked for (review of
+    /// build 273).
+    private func widgetEvents() -> [WidgetSnapshot.Span]? {
+        guard Self.hasPlanWidget, calendarAccessGranted == true, showsCalendarEvents else { return nil }
+        let today = DateOnly.today()
+        if eventsByDay[today] == nil {
+            eventsByDay[today] = calendarStore.events(on: today, calendarIDs: visibleCalendarIDs)
+        }
+        return timedEventSpans(on: today)
+    }
+
+    /// Whether this device has the **Today's plan** widget (build 273): the Mac does, the iPhone
+    /// does not (his answer, 21 October: "Mac only"). It decides whether the plan blocks and the
+    /// calendar events are put into the file at all, so nothing reads them on a device with no
+    /// widget that draws them, and a change to a block or an event does not write a file and
+    /// redraw the iPhone's two widgets for nothing (review of build 273). **When the widget
+    /// comes to the iPhone, this is the one place to change**, with `ParagonWidgetBundle`.
+    private static let hasPlanWidget: Bool = {
+        #if os(macOS)
+        return true
+        #else
+        return false
+        #endif
+    }()
 
     /// Asks for a write in two seconds, and asks again, from the start, each time it is called
     /// (build 271). A save every 600 ms while he types is therefore one write, two seconds
@@ -2655,8 +2714,17 @@ final class AppModel: ObservableObject {
     /// timed calendar events. **One list for placing and for adding up** (build 249), so the
     /// sum in **Start the day** and where **Plan** puts the blocks cannot disagree.
     func planningBusy(on day: DateOnly) -> [Range<Int>] {
-        guard let midnight = day.date() else { return [] }
         var busy = planBlocks(for: day).map { $0.start..<max($0.start + 1, $0.end) }
+        busy.append(contentsOf: timedEventSpans(on: day).map { $0.start..<max($0.start + 1, $0.end) })
+        return busy
+    }
+
+    /// The day's timed calendar events as minutes since midnight, cut to the day (build 273):
+    /// **the one place an event is turned into minutes**. Placing blocks (`planningBusy`) and
+    /// the **Today's plan** widget both read events through it, so a block can never land on a
+    /// meeting the widget draws somewhere else. All-day events take no hours and are left out.
+    func timedEventSpans(on day: DateOnly) -> [WidgetSnapshot.Span] {
+        guard let midnight = day.date() else { return [] }
         let calendar = Calendar.current
         // **Clock minutes, never seconds since midnight divided by 60** (build 238): on the two
         // days a year the clocks change, those differ by an hour after 03:00, and a block would
@@ -2667,12 +2735,13 @@ final class AppModel: ObservableObject {
             let parts = calendar.dateComponents([.hour, .minute], from: date)
             return (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
         }
+        var spans: [WidgetSnapshot.Span] = []
         for event in events(on: day) where !event.isAllDay {
             let start = event.start < midnight ? 0 : clockMinutes(event.start, orIfOtherDay: 24 * 60)
             let end = clockMinutes(event.end, orIfOtherDay: 24 * 60)
-            busy.append(start..<max(start + 1, end))
+            spans.append(WidgetSnapshot.Span(title: event.title, start: start, end: max(start + 1, end)))
         }
-        return busy
+        return spans
     }
 
     /// The sum at the foot of **Start the day** (build 249).
@@ -3465,6 +3534,18 @@ final class AppModel: ObservableObject {
 
     /// Handles `amspara://capture?...` and `amspara://<note title>` links.
     func handle(url: URL) {
+        // The **Today's plan** widget (build 273): Time Blocks, on today. Checked before anything
+        // else, and with an empty host: a note link has the note's title as its host.
+        if WidgetSnapshot.opensPlan(url) {
+            guard vault != nil else { return }
+            // Through `afterUpdate`, like every write a link makes: the link may land while
+            // SwiftUI is still drawing the window it opened (a cold start from the widget).
+            afterUpdate {
+                self.plannerDay = DateOnly.today()
+                self.show(section: .timeBlocks, notePath: nil)
+            }
+            return
+        }
         if let item = CaptureItem(url: url) {
             capture(item)
             return

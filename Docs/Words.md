@@ -84,6 +84,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
 - **Looking back** — the part of a daily or weekly note where one line about the day or the week is kept.
 - **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
+- **Today's plan** (the widget) — a widget for the Mac, found under **Edit Widgets**. The big orange line names the plan block you are in now, or else the next one, with when it is. A small ruler of the next hours shows your plan blocks as orange boxes and your calendar events as purple outlines. Click it to open **Time Blocks**. It is not the same as the **Today** screen or the **Plan the day** screen.
 
 ## Getting things in
 

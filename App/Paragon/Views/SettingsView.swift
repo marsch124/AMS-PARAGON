@@ -365,6 +365,13 @@ struct WidgetStatusSection: View {
             LabeledContent("Actions in it") {
                 Text("\(snapshot?.items.count ?? 0)").foregroundStyle(Color.secondary)
             }
+            #if os(macOS)
+            // What the Today's plan widget has to draw (build 273): the blocks and the timed
+            // events in the file. It is a Mac widget, so the phone has no such line.
+            LabeledContent("Today's plan") {
+                Text(snapshot?.planSummary ?? "Not written yet").foregroundStyle(Color.secondary)
+            }
+            #endif
             Button("Write it again now") {
                 // `force`: it writes even when nothing has changed, which is what pressing it
                 // asks for (build 271).

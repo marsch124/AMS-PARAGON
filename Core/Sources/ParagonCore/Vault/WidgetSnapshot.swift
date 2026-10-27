@@ -46,6 +46,26 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
         }
     }
 
+    /// One stretch of the day on the **Today's plan** widget (build 273): a plan block or a
+    /// timed calendar event, in minutes since midnight and **already cut to the day** — an
+    /// event that began yesterday starts at 0, one that ends tomorrow ends at 1440. The widget
+    /// never works with dates, only with this, so the clock changing cannot move a box.
+    ///
+    /// The cut is made here, in `init`, so it is the type that promises it. A file written by
+    /// hand can still hold anything, and the widget clips when it draws.
+    public struct Span: Codable, Equatable, Sendable {
+        public var title: String
+        public var start: Int
+        public var end: Int
+
+        public init(title: String, start: Int, end: Int) {
+            let first = min(max(start, 0), 24 * 60)
+            self.title = title
+            self.start = first
+            self.end = min(max(end, first), 24 * 60)
+        }
+    }
+
     /// The day the app was standing on when it wrote this.
     public var day: DateOnly
     public var written: Date
@@ -55,9 +75,21 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
     /// Notes past their review rhythm (build 172).
     public var dueForReview: Int
     public var items: [Item]
+    /// The day's plan blocks, earliest first (build 273). **Nil and empty are different
+    /// answers.** Nil means the file was written by a build that did not know about plans,
+    /// and the widget says "open PARAGON"; empty means the day has no plan, and the widget
+    /// says so. Optional, so a file written before build 273 still decodes (the generated
+    /// decoder uses `decodeIfPresent`).
+    public var plan: [Span]?
+    /// Today's timed calendar events (build 273). **Nil means the calendar is not shown** —
+    /// no access, or switched off in Settings — and **never** "no events";
+    /// an empty list is a day with no timed events (build 100's rule). All-day events are
+    /// left out: they take no hours.
+    public var events: [Span]?
 
     public init(day: DateOnly, written: Date, dueToday: Int, overdue: Int,
-                inboxCount: Int, dueForReview: Int, items: [Item]) {
+                inboxCount: Int, dueForReview: Int, items: [Item],
+                plan: [Span]? = nil, events: [Span]? = nil) {
         self.day = day
         self.written = written
         self.dueToday = dueToday
@@ -65,6 +97,8 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
         self.inboxCount = inboxCount
         self.dueForReview = dueForReview
         self.items = items
+        self.plan = plan
+        self.events = events
     }
 
     /// The most actions any widget size shows. Writing more would make the file bigger for
@@ -99,6 +133,46 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
         var copy = self
         copy.written = other.written
         return copy == other
+    }
+
+    /// What **Settings › Widget** says about the Today's plan widget's part of the file
+    /// (build 273): "3 blocks · 2 events", "3 blocks · Calendar not shown", "No blocks · No
+    /// events". Nil when the file has no plan in it — written by an older build, or not at all
+    /// — and Settings then says "Not written yet". **Never "0 blocks"** (build 141): a count of
+    /// nothing is said in words.
+    public var planSummary: String? {
+        guard let plan else { return nil }
+        let blocks: String
+        if plan.isEmpty {
+            blocks = "No blocks"
+        } else {
+            blocks = plan.count == 1 ? "1 block" : "\(plan.count) blocks"
+        }
+        let calendar: String
+        if let events {
+            if events.isEmpty {
+                calendar = "No events"
+            } else {
+                calendar = events.count == 1 ? "1 event" : "\(events.count) events"
+            }
+        } else {
+            calendar = "Calendar not shown"
+        }
+        return "\(blocks) \u{00B7} \(calendar)"
+    }
+
+    /// Where a click on the **Today's plan** widget goes (build 273): the Time Blocks screen,
+    /// on today. **The existing scheme** (`amspara://` is one of the four identifiers the
+    /// rename kept), with an empty host and the path `/plan`.
+    public static let planLink = "amspara:///plan"
+
+    /// Whether a link is `planLink`. **A note link always has the note's title as its host**
+    /// (`link(toNoteTitled:)`), so this asks for an empty host as well as the path: a note
+    /// called Plan (`amspara://Plan`) can never match, and neither can a capture link.
+    public static func opensPlan(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == CaptureItem.urlScheme else { return false }
+        let host = url.host ?? ""
+        return host.isEmpty && url.path == "/plan"
     }
 }
 
@@ -154,13 +228,29 @@ public extension NoteIndex {
         return nil
     }
 
+    /// The day's plan blocks as the widget carries them: earliest first, in the order
+    /// `DayPlan` holds them, so a block's place in the list is its `PlanBlock.index` and the
+    /// widget's tie-breaks match **Today**'s (build 266). Empty when the day has no daily note.
+    func planSpans(on day: DateOnly) -> [WidgetSnapshot.Span] {
+        (dailyNote(for: day)?.planBlocks ?? []).map { block in
+            WidgetSnapshot.Span(title: block.title, start: block.start, end: block.end)
+        }
+    }
+
     /// Builds what the widget should draw.
     ///
     /// `dueForReview` is handed in rather than worked out here: the rhythm lives in
     /// `VaultConfig`, which the index does not carry, and a snapshot that guessed the default
     /// rhythm would disagree with the review screen beside it.
+    ///
+    /// **Build 273: the day's plan is in it** (`plan`), read from the day's daily note. No daily
+    /// note really does mean nothing planned: a note still coming from iCloud never gets this
+    /// far, because the app writes no snapshot while notes are waiting (build 261). `events`
+    /// is handed in, because the calendar is the app's to read; **nil means the calendar is
+    /// not shown**, never "no events".
     func widgetSnapshot(on day: DateOnly = .today(), inboxCount: Int, dueForReview: Int,
-                        written: Date = Date(), limit: Int = WidgetSnapshot.maxItems) -> WidgetSnapshot {
+                        written: Date = Date(), limit: Int = WidgetSnapshot.maxItems,
+                        events: [WidgetSnapshot.Span]? = nil) -> WidgetSnapshot {
         let actions = actionsForPlanning(on: day)
         let items = actions.prefix(limit).map { ref -> WidgetSnapshot.Item in
             let due = ref.task.dueDate
@@ -184,7 +274,9 @@ public extension NoteIndex {
             overdue: actions.filter { ($0.task.dueDate.map { $0 < day }) ?? false }.count,
             inboxCount: inboxCount,
             dueForReview: dueForReview,
-            items: Array(items)
+            items: Array(items),
+            plan: planSpans(on: day),
+            events: events
         )
     }
 }

@@ -45,6 +45,22 @@ struct ParagonEntry: TimelineEntry {
     var folderFound: Bool = true
 }
 
+extension ParagonEntry {
+    /// The entry for one moment, read from the shared file. **The one place the file is read**
+    /// (build 273): the widgets that draw the actions and the counts and the **Today's plan**
+    /// widget all start here, so they cannot disagree about whether the shared folder is there.
+    /// A different answer for a missing folder and for a missing file, never a blank (build 177).
+    static func read(at date: Date) -> ParagonEntry {
+        guard let container = FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: ParagonWidgetBundle.appGroupID) else {
+            return ParagonEntry(date: date, snapshot: nil, folderFound: false)
+        }
+        return ParagonEntry(date: date,
+                            snapshot: WidgetSnapshot.read(fromContainer: container),
+                            folderFound: true)
+    }
+}
+
 struct ParagonProvider: TimelineProvider {
     /// What the widget gallery shows while he is choosing one — on the Mac, the list under
     /// Edit Widgets. Real-looking lines rather than his own, which are not readable from here.
@@ -73,13 +89,7 @@ struct ParagonProvider: TimelineProvider {
     /// Named `currentEntry`, never `entry`: `let entry = entry()` would be a local
     /// shadowing the method inside its own initial value (build 150).
     private func currentEntry() -> ParagonEntry {
-        guard let container = FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: ParagonWidgetBundle.appGroupID) else {
-            return ParagonEntry(date: Date(), snapshot: nil, folderFound: false)
-        }
-        return ParagonEntry(date: Date(),
-                            snapshot: WidgetSnapshot.read(fromContainer: container),
-                            folderFound: true)
+        ParagonEntry.read(at: Date())
     }
 
     static let example = WidgetSnapshot(
@@ -162,9 +172,10 @@ enum WidgetLook {
 }
 
 /// A colour with one value for light mode and another for dark, the way the app's asset
-/// catalogue gives it (build 272). The widget has no catalogue of its own yet, so the two
-/// values are written as the hexadecimal numbers the catalogue holds, and the system picks
-/// between them when it draws.
+/// catalogue gives it (build 272). The widget's own catalogue (build 273) holds only
+/// `PlanTint`, `CalendarTint` and `NowTint`, read by `PlanLook` in `TodayPlanWidget.swift`.
+/// Every colour in `WidgetLook` is written as the hexadecimal numbers the app's catalogue
+/// holds, and the system picks between the light and the dark value when it draws.
 extension Color {
     init(lightHex light: UInt32, darkHex dark: UInt32) {
         #if canImport(UIKit)
@@ -468,8 +479,21 @@ struct ParagonWidgetBundle: WidgetBundle {
         #endif
     }
 
+    /// **Today's plan is registered on the Mac only** (build 273; his answer, 21 October: "Mac
+    /// only" — he uses widgets on the Mac, and on the iPhone the Plan tab is one tap away). Two
+    /// whole `body` declarations, one per platform, rather than an `#if` inside the result
+    /// builder, which nothing here can check (no compiler in the container). The widget's own file compiles for
+    /// both, so adding it to the iPhone later is one line here.
+    #if os(macOS)
+    var body: some Widget {
+        ActionsWidget()
+        CountsWidget()
+        TodayPlanWidget()
+    }
+    #else
     var body: some Widget {
         ActionsWidget()
         CountsWidget()
     }
+    #endif
 }

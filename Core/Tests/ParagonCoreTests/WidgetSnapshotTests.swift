@@ -211,4 +211,123 @@ final class WidgetSnapshotTests: XCTestCase {
         let note = project("Race", body: "- [ ] Book the hotel >2026-09-15\n")
         XCTAssertFalse(snapshotOf([note], written: 1_000).sameContent(as: nil))
     }
+
+    // MARK: Build 273: Today's plan
+
+    private func dailyNote(_ day: DateOnly, plan: String) -> Note {
+        Note(relativePath: "Calendar/\(Note.dailyFileName(for: day)).md", kind: .daily,
+             text: "---\ntitle: \(day)\ntype: daily\n---\n# \(day)\n\n## Plan\n\n\(plan)\n\n## Tasks\n\n")
+    }
+
+    func testAFileWrittenBeforeBuild273StillReadsAndHasNoPlan() throws {
+        // What build 271 wrote: no `plan`, no `events`. It must decode, and both must be nil —
+        // "an older app wrote this" — and never empty lists, which would say "nothing planned".
+        let old = """
+        {"day":{"year":2026,"month":10,"day":26},"written":0,"dueToday":1,"overdue":0,\
+        "inboxCount":2,"dueForReview":0,"items":[]}
+        """
+        let snapshot = try JSONDecoder().decode(WidgetSnapshot.self, from: Data(old.utf8))
+        XCTAssertNil(snapshot.plan)
+        XCTAssertNil(snapshot.events)
+        XCTAssertEqual(snapshot.dueToday, 1)
+        XCTAssertEqual(snapshot.inboxCount, 2)
+        XCTAssertNil(snapshot.planSummary)
+    }
+
+    func testThePlanIsReadFromTheDaysPlanSection() {
+        let note = dailyNote(today, plan: "TB: 09:30-10:15 Swim\n\nTB: 11:00-12:00 Write the report")
+        let snapshot = index([note]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0)
+        XCTAssertEqual(snapshot.plan, [
+            WidgetSnapshot.Span(title: "Swim", start: 570, end: 615),
+            WidgetSnapshot.Span(title: "Write the report", start: 660, end: 720),
+        ])
+    }
+
+    func testADayWithNoDailyNoteHasAnEmptyPlanAndNotANilOne() {
+        // Nothing planned is an answer the widget says in words; nil would send him to open
+        // the app for a file that is perfectly new.
+        let snapshot = index([]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0)
+        XCTAssertEqual(snapshot.plan, [])
+        // The calendar was not handed in, so it is not shown: nil, never "no events".
+        XCTAssertNil(snapshot.events)
+    }
+
+    func testAnotherDaysPlanIsNotThisDays() {
+        let yesterday = DateOnly(year: 2026, month: 9, day: 14)
+        let note = dailyNote(yesterday, plan: "TB: 09:30-10:15 Swim")
+        let snapshot = index([note]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0)
+        XCTAssertEqual(snapshot.plan, [])
+    }
+
+    func testEventsAreHandedThroughAndKeepTheDifferenceBetweenNilAndEmpty() {
+        let meeting = WidgetSnapshot.Span(title: "Meeting", start: 600, end: 660)
+        let shown = index([]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0, events: [meeting])
+        let none = index([]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0, events: [])
+        XCTAssertEqual(shown.events, [meeting])
+        XCTAssertEqual(none.events, [])
+        XCTAssertFalse(none.sameContent(as: shown))
+        XCTAssertFalse(none.sameContent(as: index([]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0)))
+    }
+
+    func testSpansAreCutToTheDay() {
+        let early = WidgetSnapshot.Span(title: "From yesterday", start: -300, end: 90)
+        XCTAssertEqual(early.start, 0)
+        let late = WidgetSnapshot.Span(title: "Into tomorrow", start: 1400, end: 2000)
+        XCTAssertEqual(late.end, 1440)
+        let backwards = WidgetSnapshot.Span(title: "Odd", start: 600, end: 500)
+        XCTAssertEqual(backwards.end, 600)
+    }
+
+    func testAPlanChangeIsAChangeAndTheFileRoundTripsWithPlanAndEvents() throws {
+        let folder = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("paragon-widget-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+
+        let swim = dailyNote(today, plan: "TB: 09:30-10:15 Swim")
+        let moved = dailyNote(today, plan: "TB: 09:45-10:30 Swim")
+        let before = index([swim]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0,
+                                                  written: Date(timeIntervalSince1970: 1_000))
+        let after = index([moved]).widgetSnapshot(on: today, inboxCount: 0, dueForReview: 0,
+                                                  written: Date(timeIntervalSince1970: 1_000))
+        // Build 271's "write only when something changed" has to see a block being moved.
+        XCTAssertFalse(after.sameContent(as: before))
+
+        let withEvents = index([swim]).widgetSnapshot(
+            on: today, inboxCount: 0, dueForReview: 0,
+            events: [WidgetSnapshot.Span(title: "Meeting", start: 600, end: 660)])
+        try withEvents.write(toContainer: folder)
+        let back = try XCTUnwrap(WidgetSnapshot.read(fromContainer: folder))
+        XCTAssertEqual(back, withEvents)
+        XCTAssertEqual(back.plan?.first?.title, "Swim")
+        XCTAssertEqual(back.events?.first?.title, "Meeting")
+    }
+
+    func testWhatSettingsSaysAboutThePlanInTheFile() {
+        let swim = WidgetSnapshot.Span(title: "Swim", start: 570, end: 615)
+        let meeting = WidgetSnapshot.Span(title: "Meeting", start: 600, end: 660)
+        func file(_ plan: [WidgetSnapshot.Span]?, _ events: [WidgetSnapshot.Span]?) -> WidgetSnapshot {
+            WidgetSnapshot(day: today, written: Date(timeIntervalSince1970: 0), dueToday: 0, overdue: 0,
+                           inboxCount: 0, dueForReview: 0, items: [], plan: plan, events: events)
+        }
+        XCTAssertEqual(file([swim, swim, swim], [meeting, meeting]).planSummary, "3 blocks \u{00B7} 2 events")
+        XCTAssertEqual(file([swim, swim, swim], nil).planSummary, "3 blocks \u{00B7} Calendar not shown")
+        XCTAssertEqual(file([swim], [meeting]).planSummary, "1 block \u{00B7} 1 event")
+        // Never "0 blocks" and never "0 events" (build 141).
+        XCTAssertEqual(file([], []).planSummary, "No blocks \u{00B7} No events")
+        XCTAssertNil(file(nil, nil).planSummary)
+    }
+
+    func testOnlyThePlanLinkOpensThePlan() {
+        let plan = URL(string: WidgetSnapshot.planLink)!
+        XCTAssertTrue(WidgetSnapshot.opensPlan(plan))
+        XCTAssertTrue(WidgetSnapshot.opensPlan(URL(string: "AMSPARA:///plan")!))
+        // A note called Plan has the title as its host, so it can never be this link.
+        XCTAssertFalse(WidgetSnapshot.opensPlan(URL(string: WidgetSnapshot.link(toNoteTitled: "Plan"))!))
+        XCTAssertFalse(WidgetSnapshot.opensPlan(URL(string: "amspara://")!))
+        XCTAssertFalse(WidgetSnapshot.opensPlan(URL(string: "amspara:///other")!))
+        XCTAssertFalse(WidgetSnapshot.opensPlan(URL(string: "amspara://capture?text=hello")!))
+        XCTAssertFalse(WidgetSnapshot.opensPlan(URL(string: "https://example.com/plan")!))
+        // And the link is not a capture, so `handle(url:)` cannot take it for one.
+        XCTAssertNil(CaptureItem(url: plan))
+    }
 }

@@ -1325,7 +1325,7 @@ actions**.
 
 ## Widgets
 
-Two widgets, on the Mac and on the iPhone.
+Three widgets on the Mac and two on the iPhone. **Today's plan** is for the Mac only.
 
 **On the Mac**: click the date and time at the right of the menu bar to open Notification Centre, scroll to the bottom and click **Edit Widgets**. Search for **PARAGON** and drag one in. You can also right-click the desktop and choose **Edit Widgets**, which puts the widget on the desktop itself.
 
@@ -1337,7 +1337,20 @@ Two widgets, on the Mac and on the iPhone.
 
 **What is waiting** is four numbers: due today, overdue, waiting in the Inbox, and due for a look. A zero is grey and a number that wants you is in its own colour, so the one to read finds you first.
 
-Clicking or tapping either one opens PARAGON.
+**Today's plan** is the third widget, on the Mac only. It comes in three sizes. At the top it says **Today's plan**. Under that, in big orange letters, is the plan block you are in now, or else the next one, for example **Swim**. Under the name, a few words say when it is: **Now · 20 min left**, **Now · until 11:00**, **in 25 min** or **at 14:00**. Under that, in grey, comes the block after it, like **Then 11:00 Write the report**.
+
+- The big line is made from your plan blocks only. It names the same block as the **Now** and **Then** lines on **Today**. Your calendar events are never in it.
+- The medium widget has a small ruler of the next three hours on its right, and the large one has a ruler of six hours below the words. The small widget has the words only.
+- The ruler has two lanes, like **Plan the day**: **Calendar** on the left and **Time blocks** on the right. A plan block is an orange box with an edge. A calendar event is a purple outline with no fill. When your desktop is not in front, macOS draws widgets in grey, and then the shape still tells them apart.
+- The thin blue-grey line with a dot is the time right now.
+- The words and the line move by themselves, also when PARAGON is closed. The widget has a new picture ready for every minute of the next hour, and then for every quarter hour. macOS decides when it really draws them. If it is late, the line and **at 14:00** stay right, and **in 25 min** can be up to a quarter of an hour old.
+- A block that you also put into Apple Calendar shows in both lanes, as it does in **Plan the day**. The big line uses the block only, so it never shows it twice. Two events at the same time are drawn on top of each other in the small ruler.
+- On a day with no blocks it says **No blocks planned today.** and **Click to plan the day.** After the last block it says **Nothing more planned today.**
+- Click it and PARAGON opens on **Time Blocks**, on today.
+- If you add, move or remove a block in **Plan the day**, or an event changes in Apple Calendar, the widget follows after a few seconds.
+- The Calendar lane needs **Show the day's events in Today and in daily notes** to be on in Settings, and Calendar access to be allowed. If not, the lane says **Calendar not shown**, on the medium widget inside the lane and on the large one above it. The widget never asks for Calendar access: that question belongs to PARAGON itself.
+
+Clicking or tapping any of the three opens PARAGON.
 
 Each side is fed by the app on that machine: the Mac widget by PARAGON on the Mac, the iPhone widget by PARAGON on the iPhone. They can therefore show slightly different things for a moment, until both apps have seen the same notes through iCloud.
 
@@ -1345,7 +1358,7 @@ Each side is fed by the app on that machine: the Mac widget by PARAGON on the Ma
 
 The widget never opens your vault. It cannot: the vault is a folder you chose, and only the app itself is allowed to open it.
 
-Instead, **PARAGON writes a short summary for the widget a few seconds after a change that the widget would show**, and the widget reads only that. These changes reach it: you tick a task, you change a task's date, you add a task that is due today or is a next action, a line comes into the Inbox or leaves it, a sync finishes, or a file arrives from iCloud. A change that the widget does not draw writes nothing. So:
+Instead, **PARAGON writes a short summary for the widget a few seconds after a change that the widget would show**, and the widget reads only that. These changes reach it: you tick a task, you change a task's date, you add a task that is due today or is a next action, a line comes into the Inbox or leaves it, a sync finishes, or a file arrives from iCloud. On the Mac, two more changes reach it: you add, move or remove a plan block, or an event today changes in Apple Calendar. A change that the widget does not draw writes nothing. So:
 
 - The widgets are right as of the last time the app noticed a change.
 - The few seconds are on purpose. While you type, PARAGON waits until you stop. When you leave PARAGON for another app or the Home Screen, or quit it, it writes at once. It writes only when the widget would show something different.
@@ -1354,7 +1367,7 @@ Instead, **PARAGON writes a short summary for the widget a few seconds after a c
 - If PARAGON has not seen today yet — it was not running at midnight and you have not opened it — the widget says **"Nothing since you last opened PARAGON"** rather than showing yesterday's list as though it were this morning's.
 - When there is genuinely nothing due and nothing waiting, it says that too. An empty widget and a widget with nothing to say are different things, and it never leaves you guessing which one you are looking at.
 
-Nothing is written back from the widget, and nothing about your notes leaves the machine it is on.
+Nothing is written back from the widget, and nothing about your notes leaves the machine it is on. That includes the plan: on the Mac, the titles of today's plan blocks and today's calendar events are kept in the same small file, which stays on this Mac, inside PARAGON's own shared folder. The iPhone has no widget that draws them, so PARAGON on the iPhone does not write them.
 
 ### When the app asks for a vault folder
 
@@ -1378,12 +1391,13 @@ Read it like this:
 - **nothing written yet** — the app has not written a summary on this phone. Open PARAGON once.
 - **shared folder missing** — the widget cannot reach the small file the app writes. Nothing
   you do on the phone will mend this; it has to be fixed in the build. Tell me and I will.
+- **Open PARAGON once and your plan appears here** — on **Today's plan**: the file has no plan in it yet, because it was written by an older build. Open PARAGON once.
 - **no line at all, a completely blank box** — the widget itself is not running. That is also a
   build problem, not something you can fix yourself.
 
 **Settings › Widget** says the same thing from the app's side: whether the shared folder was
 found, when the summary was last written (that is, when something the widget shows last
-changed), and how many actions are in it. There is a **Write it again now** button for when you
+changed), and how many actions are in it. On the Mac a line **Today's plan** says what that widget has to draw, like **3 blocks · 2 events** or **3 blocks · Calendar not shown**. There is a **Write it again now** button for when you
 want to be sure. It writes at once, even when nothing has changed.
 
 ## Mac and iPhone together

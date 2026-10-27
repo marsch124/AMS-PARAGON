@@ -2016,6 +2016,37 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(becomes(within: 10) { box.label.contains("A calm week") },
                       "The line was written and the box does not show it. It says: \(box.label)")
     }
+
+    #if os(macOS)
+    /// The link behind a click on the **Today's plan** widget (build 273), opened the way the
+    /// system opens it: as a URL, with the app already running. **Mac only**, because the widget
+    /// is. It is the first test in this suite that opens a URL, and the whole route is under
+    /// test: the scheme `amspara://` is registered by the app's Info.plist, `onOpenURL` hands
+    /// the link to `AppModel.handle(url:)`, the empty host and the path `/plan` are told from a
+    /// note link, and **Time Blocks** opens. The proof is `plan.week`, the Week button that only
+    /// that screen draws (build 225). The app starts on the Inbox, so the test first checks the
+    /// button is **not** there, or it could pass without the link doing anything.
+    ///
+    /// The widget itself cannot be drawn here: CI compiles it and never shows it. If
+    /// `XCUIApplication.open` turns out to fail on the runner for reasons of its own, this test
+    /// is to be removed and not left red (builds 190, 198); the Core tests already pin the link.
+    func testThePlanLinkOpensTimeBlocks() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("plan.week").exists,
+                       "The Week button is already on screen before the link was opened, so this test would prove nothing. On screen: \(visibleTexts())")
+
+        guard let link = URL(string: "amspara:///plan") else {
+            XCTFail("The test's own link is not a URL.")
+            return
+        }
+        app.open(link)
+
+        XCTAssertTrue(element("plan.week").waitForExistence(timeout: appears),
+                      "The link amspara:///plan did not open Time Blocks. On screen: \(visibleTexts())")
+        XCTAssertTrue(app.windows.firstMatch.exists, "The app has no window after the link.")
+    }
+    #endif
 }
 
 extension XCUIElement {

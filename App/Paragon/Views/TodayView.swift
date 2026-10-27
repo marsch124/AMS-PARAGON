@@ -226,7 +226,7 @@ struct TodayView: View {
 ///
 /// Plan blocks only, read through `model.planBlocks(for:)`, which never writes a file. Which
 /// block is now and which comes next is decided in Core (`NowAndNext`, tested), so the Mac
-/// widget can name the same block (build 280). In this file because `HeaderActionButton` is
+/// widget can name the same block (build 273). In this file because `HeaderActionButton` is
 /// private to it.
 private struct NowAndNextLines: View {
     @EnvironmentObject private var model: AppModel
