@@ -1273,7 +1273,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -1313,6 +1313,7 @@ final class ScreenTests: XCTestCase {
         case .review: return ["sidebar.Weekly review"]
         case .done: return ["sidebar.Done"]
         case .goals: return ["sidebar.Goals"]
+        case .areas: return ["sidebar.Areas"]
         }
     }
 
@@ -1338,6 +1339,7 @@ final class ScreenTests: XCTestCase {
         case .review: return ["tab.browse", "browse.Weekly review"]
         case .done: return ["tab.browse", "browse.Done"]
         case .goals: return ["tab.browse", "browse.Goals"]
+        case .areas: return ["tab.browse", "browse.Areas"]
         }
     }
 
@@ -1744,6 +1746,127 @@ final class ScreenTests: XCTestCase {
                       "The new project is not listed under its goal. On screen: \(visibleTexts())")
         XCTAssertTrue(app.buttons.matching(identifier: "goal.addProject").firstMatch.waitForExistence(timeout: 10),
                       "Add a project… is gone, so the page left the goal. On screen: \(visibleTexts())")
+    }
+
+    /// **Looked at, from the note** (build 270). A goal says when it was last looked at, and
+    /// one press in the box that button opens says you looked at it today. Before this build
+    /// `reviewed:` could only be written from the Weekly review's right-click menu. On the Mac
+    /// the button is on the goal's page in the Goals screen; on the phone it is in the header
+    /// of the note that opens. Same names, same test code, as the measure test above.
+    ///
+    /// The test vault's goal has no `reviewed:` line, so the button starts on "Never looked at"
+    /// and has to end on words with "today" in them. Everything pressed is found among buttons
+    /// (build 249); the button is pressed at its frame, as the measure is.
+    func testAGoalCanBeMarkedAsLookedAt() {
+        go(to: .goals)
+
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+
+        let chip = app.buttons.matching(identifier: "note.lookedAt").firstMatch
+        XCTAssertTrue(chip.waitForExistence(timeout: 20),
+                      "The goal has no Looked at button. On screen: \(visibleTexts())")
+        XCTAssertTrue(chip.label.contains("Never looked at"),
+                      "The test goal has never been looked at, but the button says: \(chip.label)")
+        let frame = chip.frame
+        guard Self.isOnScreen(frame) else {
+            XCTFail("The Looked at button has no place on screen: \(frame)")
+            return
+        }
+        press(chip, at: frame)
+
+        let today = app.buttons.matching(identifier: "lookedAt.today").firstMatch
+        XCTAssertTrue(today.waitForExistence(timeout: 10),
+                      "Pressing the Looked at button did not open its box. On screen: \(visibleTexts())")
+        if today.isHittable { today.press() } else { today.pressCentre() }
+
+        // The box closing first, so the label is read from the page and not from a box on its
+        // way out.
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: today)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The box stayed open after I looked at it today. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { chip.label.contains("today") },
+                      "I looked at it today was pressed and the button does not say so. It says: \(chip.label)")
+    }
+
+    /// **An area lists its projects, and Add a project… makes one in it** (build 270). The
+    /// test vault's Health has no project in it — the test project serves a goal and names no
+    /// area, and only the `area:` line puts a project in an area — so the panel starts with its
+    /// empty line. **Add a project…** is build 269's button with an `area:` link, so the steps
+    /// after the press are those of `testAProjectCanBeAddedFromItsGoal`. The proof the page
+    /// stayed on the area is the new project listed there, with **Add a project…** still on
+    /// screen.
+    ///
+    /// On the Mac more checks, because the panel sits above the editor in a column that does
+    /// not scroll (builds 30 and 34): the new row lies inside the window and wholly above the
+    /// note's text — a scroll view shorter than its rows would fail there — and the app's own
+    /// diagnostics report no overflow. Every button is found among buttons (build 249).
+    func testAnAreaListsItsProjectsAndAddsOne() {
+        go(to: .areas)
+
+        let row = element("note.Areas/Health.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Areas list does not show the test area. On screen: \(visibleTexts())")
+        row.press()
+
+        XCTAssertTrue(element("area.panel").waitForExistence(timeout: 20),
+                      "The area opened without its projects panel. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("area.noProjects").waitForExistence(timeout: 10),
+                      "The test area has no project, and the panel does not say so. On screen: \(visibleTexts())")
+
+        let add = app.buttons.matching(identifier: "area.addProject").firstMatch
+        XCTAssertTrue(add.waitForExistence(timeout: 20),
+                      "The area has no Add a project… button. On screen: \(visibleTexts())")
+        let addFrame = add.frame
+        guard Self.isOnScreen(addFrame) else {
+            XCTFail("The Add a project… button has no place on screen: \(addFrame)")
+            return
+        }
+        press(add, at: addFrame)
+
+        let field = element("addNote.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing Add a project… did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Stretch every morning")
+
+        // The box's own button when it can be pressed; Return in the field otherwise, which
+        // does the same thing. On the phone the keyboard is up at this moment.
+        let confirm = app.buttons.matching(identifier: "addNote.add").firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 10),
+                      "The box has no Add project button. On screen: \(visibleTexts())")
+        if confirm.isHittable { confirm.press() } else { field.typeText("\n") }
+
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The box stayed open after Add project. On screen: \(visibleTexts())")
+
+        let made = element("area.project.Projects/Stretch every morning.md")
+        XCTAssertTrue(made.waitForExistence(timeout: 20),
+                      "The new project is not listed on its area. On screen: \(visibleTexts())")
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("area.noProjects"))
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The area has a project now, and the panel still says it has none.")
+        XCTAssertTrue(app.buttons.matching(identifier: "area.addProject").firstMatch.waitForExistence(timeout: 10),
+                      "Add a project… is gone, so the page left the area. On screen: \(visibleTexts())")
+
+        #if os(macOS)
+        let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
+        XCTAssertFalse(made.frame.isEmpty,
+                       "The new project's row has no size on the area's page: \(made.frame)")
+        XCTAssertTrue(window.contains(made.frame),
+                      "The new project's row is not wholly inside the window: \(made.frame) against \(window).")
+        // The panel's scroll view is as tall as its rows, up to a limit. Had it come out
+        // shorter than one row, the row would run on into the text below it — a frame inside
+        // the window would not show that.
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 10), "The area's note has no editor below its panel.")
+        XCTAssertLessThanOrEqual(made.frame.maxY, editor.frame.minY + 1,
+                                 "The new project's row runs into the note's text: \(made.frame) against the editor at \(editor.frame). The panel is shorter than its rows.")
+        expectNoOverflow(after: "a project was added on an area's page")
+        #endif
     }
 }
 

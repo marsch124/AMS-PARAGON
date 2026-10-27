@@ -214,7 +214,7 @@ struct SettingsView: View {
             } header: {
                 Text("Review rhythm")
             } footer: {
-                Text("How long PARAGON waits before it asks you to look at something again. What is due appears at the top of the Weekly review. Marking a note reviewed writes today's date into it, so both devices agree.")
+                Text("How long PARAGON waits before it asks you to look at something again. What is due appears at the top of the Weekly review. **I looked at it today** writes today's date into the note, so both devices agree.")
                     .fixedSize(horizontal: false, vertical: true)
             }
             .disabled(model.vault == nil)

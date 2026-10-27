@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 269
+    static let number = 270
 }
 
 @MainActor
@@ -3367,11 +3367,32 @@ final class AppModel: ObservableObject {
         reload()
     }
 
+    /// Writes `reviewed:` with today's date: **I looked at it today**, from the top of a note,
+    /// a right-click menu or the Weekly review.
+    ///
+    /// **Build 270: it reads the note back out of the model first** (build 144), because the
+    /// copy a menu or a review row was handed may be one save behind, and saving that would put
+    /// back what the save in between changed. **And it writes nothing when the line already
+    /// says today**: a save moves the file's date, and the Weekly review's **No changes
+    /// recently** counts that as a change, so pressing the button twice would make a quiet
+    /// project look busy. `markAllReviewed` calls this once per project; each call reads the
+    /// note the one before it saved, and nothing here reloads in between.
     func markReviewed(_ note: Note) {
         flushPendingEdits()
-        var updated = note
-        updated.frontmatter.set("reviewed", DateOnly.today().description)
+        guard let live = self.note(at: note.relativePath) else { return }
+        let today = DateOnly.today()
+        guard live.reviewedDate != today else { return }
+        var updated = live
+        updated.frontmatter.set("reviewed", today.description)
         save(updated)
+    }
+
+    /// One note's place on its review rhythm, read from the latest copy the model holds, or nil
+    /// when it has none: a resource, an archived note, a note that has ended (build 270). The
+    /// same answer the Weekly review gives, because `reviewSchedule` is built from it.
+    func reviewDue(of note: Note) -> ReviewDue? {
+        let live = self.note(at: note.relativePath) ?? note
+        return index.reviewDue(of: live, rhythm: reviewRhythm)
     }
 
     /// The rhythm this vault is on (build 172).

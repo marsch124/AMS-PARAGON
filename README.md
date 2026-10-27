@@ -94,8 +94,8 @@ today's daily note.
 The Weekly review section walks through: empty the inbox, reschedule overdue tasks, then a health check
 of every active project and area. A project is flagged when it has no open task, has overdue tasks, is past
 its due date, has not changed for 14 days, or has not been reviewed for 7 days (both configurable in
-Settings). Right-click a project to mark it reviewed (writes `reviewed: YYYY-MM-DD` into the frontmatter),
-put it on hold, mark it done or archive it. "Mark all reviewed" stamps every active project at once.
+Settings). Right-click a project and choose "I looked at it today" (writes `reviewed: YYYY-MM-DD` into the frontmatter),
+put it on hold, mark it done or archive it. "I looked at all of them" stamps every active project at once.
 
 ### Quick capture
 

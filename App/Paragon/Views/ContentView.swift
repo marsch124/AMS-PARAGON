@@ -533,6 +533,11 @@ struct NoteListView: View {
         .accessibilityIdentifier("note.\(note.relativePath)")
         .acceptsTaskDrop { ref in model.moveTask(ref, to: note.relativePath) }
         .contextMenu {
+            if note.kind == .area || note.kind == .goal {
+                // Build 270: the same press as the button at the top of the note. Goals are
+                // here for a search in Aspirations or Goals, which draws this list.
+                LookedAtMenuItem(model: model, note: note)
+            }
             if note.kind != .inbox, note.kind != .daily {
                 Button("Rename…") { startRenaming(note) }
             }

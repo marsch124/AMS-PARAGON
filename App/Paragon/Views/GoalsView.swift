@@ -172,6 +172,10 @@ struct AspirationsListView: View {
             }
         }
         .buttonStyle(.plain)
+        // The Mac's right-click menu, on a long press (build 270): **I looked at it today**,
+        // and **Open the note**, which the phone's Aspirations list had no other way to open for
+        // a live aspiration (the Map, Search and the review could).
+        .contextMenu { rowMenu(chain.note) }
         if isOpen {
             AspirationChainBody(chain: chain, compact: true)
                 .padding(.leading, 10)
@@ -182,6 +186,7 @@ struct AspirationsListView: View {
     @ViewBuilder
     private func rowMenu(_ note: Note) -> some View {
         Button("Open the note") { model.show(section: .aspirations, notePath: note.relativePath) }
+        LookedAtMenuItem(model: model, note: note)
         if model.canArchive(note) {
             Button("Archive") { model.archive(note) }
         }
@@ -326,6 +331,9 @@ struct DatedGoalsListView: View {
             DatedGoalRow(note: note)
         }
         .buttonStyle(.plain)
+        // The Mac's right-click menu, on a long press (build 270). The manual has said
+        // "press and hold on the iPhone" for this list since build 199; until now nothing came.
+        .contextMenu { rowMenu(note) }
         // Named by its path for the screen tests (build 268), on the button itself: it is the
         // one element here that takes the press.
         .accessibilityIdentifier("goal.\(note.relativePath)")
@@ -345,6 +353,7 @@ struct DatedGoalsListView: View {
     @ViewBuilder
     private func rowMenu(_ note: Note) -> some View {
         Button("Open the note") { model.show(section: .kind(.goal), notePath: note.relativePath) }
+        LookedAtMenuItem(model: model, note: note)
         NoteGoalOptions(model: model, note: note)
         if model.canArchive(note) {
             Button("Archive") { model.archive(note) }
@@ -804,14 +813,10 @@ struct AspirationChainBody: View {
             // cent on one is a promise the idea does not make — and the average it was made
             // of read 100% while two of the three goals under it wanted attention. Each goal
             // still carries its own bar inside its own block, where the figure is true.
-            Label(ReviewWording.lookedAt(daysAgo: daysSinceLook), systemImage: "eye")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            // What stands here is when you last looked at it, and since build 270 pressing
+            // it is how you say you have looked at it today.
+            LookedAtChip(model: model, note: chain.note, onChainPage: true)
         }
-    }
-
-    private var daysSinceLook: Int? {
-        chain.note.reviewedDate.map { DateOnly.today().days(since: $0) }
     }
 }
 
@@ -903,6 +908,13 @@ struct ChainGoalBlock: View {
                 }
                 if lead {
                     GoalMeasureChip(model: model, note: goal.note, onChainPage: true)
+                }
+                if lead {
+                    // Build 270: when you last looked at this goal, and the press that says
+                    // you looked at it today. Only on its own page: inside an aspiration's chain
+                    // the head is one button that opens the goal, and a button inside a button is
+                    // the builds 71–74 fault.
+                    LookedAtChip(model: model, note: goal.note, onChainPage: true)
                 }
                 ForEach(goal.flags, id: \.self) { flag in
                     ChainChip(text: flag.label,
@@ -1461,6 +1473,135 @@ extension NoteStatus {
         case .done: return noteTint
         case .missed: return .orange
         default: return .secondary
+        }
+    }
+}
+
+/// When this note was last looked at, and the one press that says you have looked at it today
+/// (build 270, idea 3). On an aspiration, a goal with a date and an area: at the top of the
+/// note, and on the goal's and the aspiration's own page in **Goals** and **Aspirations**.
+///
+/// **Before this build the only way to write `reviewed:` was the Weekly review's right-click
+/// menu.** The Aspirations list and **Due for a look** both read it, so an aspiration you had
+/// just thought about for an hour still said "Never looked at" until you went to the review and
+/// found it there. The rule this project keeps earning, turned round: a screen that shows a
+/// fact needs the control that changes it within reach.
+///
+/// **A popover with a named button, never a `Menu`.** A menu puts its lines where the Mac's test
+/// tree cannot reach them by name, and a popover can say how often this kind of note gets a look
+/// and when the next one is due, which is the question the button raises. The same shape as
+/// `GoalTargetChip` and `GoalMeasureChip`, and the same two looks: a grey label in a note's
+/// header, and a capsule on the chain page — solid once it has been looked at, dashed while it
+/// never has (build 142's language). **Grey either way**: when a look is due the Weekly review
+/// says so in orange; here it is a fact about the note, not a warning.
+///
+/// **Nothing is drawn for a note with no place on a rhythm** — an ended goal, an archived area.
+/// A review is a question about work you are still doing, so offering **I looked at it today**
+/// on one that is over would be a button about nothing.
+struct LookedAtChip: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+    var onChainPage: Bool = false
+    @State private var showingBox = false
+
+    var body: some View {
+        // Read back out of the model on every draw (build 144): a press saves, and the note
+        // handed in is then one save behind.
+        if let due = model.reviewDue(of: note) {
+            Button { showingBox = true } label: {
+                face(due)
+                    .helpWhenClosed("When you last looked at this, how often it gets a look, and a button to say you looked at it today.",
+                                    open: showingBox)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(due.lookedAtText))
+            // `note.lookedAt` on every kind it is drawn on, never `goal.…`: an area carries it
+            // too, and a name that says "goal" on an area would be a name that lies (build 196).
+            .accessibilityIdentifier("note.lookedAt")
+            .popover(isPresented: $showingBox) {
+                LookedAtBox(due: due) {
+                    model.markReviewed(due.note)
+                    showingBox = false
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func face(_ due: ReviewDue) -> some View {
+        if onChainPage {
+            Label(due.lookedAtText, systemImage: "eye")
+                .font(.caption)
+                .lineLimit(1)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .overlay(
+                    Capsule().strokeBorder(Color.secondary.opacity(0.55),
+                                           style: StrokeStyle(lineWidth: 1,
+                                                              dash: due.daysSinceReview == nil ? [3, 2] : []))
+                )
+                .foregroundStyle(.secondary)
+        } else {
+            // A wrapping row measures each item at its natural width (build 250), so the words
+            // are capped like the other chips in the header.
+            Label(due.lookedAtText, systemImage: "eye")
+                .lineLimit(1)
+                .frame(maxWidth: 260, alignment: .leading)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// What the **Looked at** button opens: when you last looked, how often this kind of note gets a
+/// look and when the next one is due, and **I looked at it today**. Every sentence comes from
+/// `ReviewDue` (Core, tested), so the box and the Weekly review cannot tell one note two things.
+///
+/// **I looked at it today** is greyed while the note already says today: pressing it again
+/// would write nothing (`AppModel.markReviewed`), and a button that does nothing where it is
+/// drawn is worse than no button (build 175). The box closes when you press anywhere outside it.
+struct LookedAtBox: View {
+    let due: ReviewDue
+    let lookedAtToday: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(due.lookedAtText, systemImage: "eye")
+                .font(.subheadline.weight(.semibold))
+            Text(due.rhythmText + " " + due.nextText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("How often is set in **Settings \u{203A} Review rhythm**.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Spacer()
+                Button("I looked at it today", action: lookedAtToday)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(due.daysSinceReview == 0)
+                    .accessibilityIdentifier("lookedAt.today")
+            }
+        }
+        .padding(14)
+        .frame(width: 300)
+        .presentationCompactAdaptation(.popover)
+    }
+}
+
+/// **I looked at it today** on a right-click menu (a long press on the iPhone): the Aspirations
+/// list, the Goals list and the Areas list (build 270). Left out for a note with no place on a
+/// rhythm, and greyed while the note already says today, for the same reasons as the button at
+/// the top of the note. The model is passed in rather than read from the environment:
+/// context-menu content is built outside the row's own view hierarchy (`NoteGoalOptions`).
+struct LookedAtMenuItem: View {
+    @ObservedObject var model: AppModel
+    let note: Note
+
+    var body: some View {
+        if let due = model.reviewDue(of: note) {
+            Button("I looked at it today") { model.markReviewed(note) }
+                .disabled(due.daysSinceReview == 0)
         }
     }
 }

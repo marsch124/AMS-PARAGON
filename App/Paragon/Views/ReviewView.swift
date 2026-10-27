@@ -80,7 +80,9 @@ struct ReviewView: View {
                                   isOpen: openBinding("due"), part: "due")
             } footer: {
                 if isOpen("due") {
-                    Text("Right-click a row (long-press on the phone) for **Mark reviewed**, and it leaves this list. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
+                    // "Looked at" everywhere (build 270, his answer 3a): the button at the top
+                    // of a goal, an aspiration or an area says the same words.
+                    Text("Right-click a row (long-press on the phone) for **I looked at it today**, and it leaves this list. The same button is at the top of an aspiration, a goal or an area. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -199,7 +201,7 @@ struct ReviewView: View {
                     // Only while the step is open: it stamps every project in it, and a folded
                     // step has not been looked at yet.
                     if isOpen("5") {
-                        Button("Mark all reviewed") { model.markAllReviewed() }
+                        Button("I looked at all of them") { model.markAllReviewed() }
                             .font(.caption)
                             .fixedSize()
                     }
@@ -509,20 +511,14 @@ struct HealthRow: View {
                 Text(health.note.title)
                     .font(.headline)
                     .lineLimit(2)
-                Spacer(minLength: 6)
-                Group {
-                    if let days = health.daysSinceReview {
-                        Text("reviewed \(days == 0 ? "today" : "\(days)d ago")")
-                    } else {
-                        Text("never reviewed")
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .fixedSize()
             }
             WrappingHStack(spacing: 8, lineSpacing: 3) {
+                // The Aspirations list's own words and eye (build 270, his answer 3a:
+                // "Looked at" everywhere). "Never looked at" is a sentence, never a big number
+                // (build 141). On this line, not beside the name: "looked at about a month ago"
+                // kept its full width there and squeezed the name in the Mac's narrow middle
+                // column (builds 138, 250). Here it wraps as one whole item.
+                Label(ReviewWording.lookedAt(daysAgo: health.daysSinceReview), systemImage: "eye")
                 Label("\(health.openTaskCount) open", systemImage: "checklist")
                 if health.overdueTaskCount > 0 {
                     Label("\(health.overdueTaskCount) overdue", systemImage: "clock.badge.exclamationmark")
@@ -553,7 +549,7 @@ struct HealthRow: View {
         }
         .padding(.vertical, 3)
         .contextMenu {
-            Button("Mark reviewed") { model.markReviewed(health.note) }
+            LookedAtMenuItem(model: model, note: health.note)
             if health.note.kind == .project {
                 if health.flags.contains(.onHold) {
                     Button("Set active") { model.setStatus(NoteStatus.active, for: health.note) }
@@ -642,7 +638,7 @@ struct GoalHealthRow: View {
         // "nothing moved in 30 days" about a goal and offer no way to answer it. A screen that
         // asks a question has to put the answer one press away.
         .contextMenu {
-            Button("Mark reviewed") { model.markReviewed(health.note) }
+            LookedAtMenuItem(model: model, note: health.note)
             if health.note.noteStatus.isOnHold {
                 Button("Set active") { model.setStatus(NoteStatus.active, for: health.note) }
             } else {
@@ -714,7 +710,7 @@ struct ReviewDueRow: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            Button("Mark reviewed") { model.markReviewed(item.note) }
+            LookedAtMenuItem(model: model, note: item.note)
             Button("Open the note") { model.show(section: .review, notePath: item.note.relativePath) }
         }
     }

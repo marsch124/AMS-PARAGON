@@ -9,7 +9,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Target date** — the date a goal should be reached by. Set it with **Set a target date…** at the top of the goal.
 - **Measure** — one line on a goal that says how you will know it is reached. Set it with **Set a measure…** at the top of the goal. An aspiration can have one too.
 - **Serves** — the link from a piece of work up to what it is for. A project serves a goal. A goal or an area serves an aspiration. Set it with the **Serves…** button at the top of a note.
-- **Add a project…** — a button on a goal. It makes a new project that already serves the goal. You stay on the goal.
+- **Add a project…** — a button on a goal and on an area. On a goal it makes a new project that already serves the goal. On an area it makes a new project that is already in the area. You stay where you are.
 - **Add a goal…** — a button on an aspiration. It makes a new goal that serves the aspiration. The new goal has no target date yet; give it one with **Set a target date…**.
 
 ## Your notes
@@ -18,7 +18,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Project** — work with an end, like "Renovate the bathroom". Shown in green. It is finished when you mark it **Done**.
 - **Deadline** — the date a project should be finished by. Set it with **Set a deadline…** at the top of the project.
 - **Next:** — on a project's box in the **Projects** list: the task to do next. That is the task marked `#next`, or else the first open task. When every task is ticked but a subtask under one of them is still open, it is that subtask.
-- **Weekly bars** — the eight small green bars on a project's box and at the top of the **Projects** list: the tasks finished in each of the last eight weeks, Monday to Sunday, with this week on the right.
+- **Weekly bars** — the eight small green bars on a project's box and at the top of the **Projects** list: the tasks finished in each of the last eight weeks, Monday to Sunday, with this week on the right. On an area's page they are pink and count the area and its projects.
 - **No next action** — on a project's box: every task is ticked, but the project is still active. Mark it done, or write its next task.
 - **No tasks yet** — on a project's box: the project has no tasks at all.
 - **Not linked to an aspiration** — a group in the **Projects** list: the projects serve a goal, but that goal has no aspiration above it, or no goal with that name can be found.
@@ -27,6 +27,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Due after its goal** — a project whose deadline is later than its goal's target date. Shown in orange.
 - **Area** — a part of life you keep looking after and that never finishes, like "Health" or "Home". Shown in pink.
 - **Sub-area** — an area that is part of another area, like "Yoga" inside "Health". Set it with **Part of…** at the top of the area.
+- **Projects in this area** — the list at the top of an area: its projects that are running or on hold, with what each needs next, and its sub-areas under them. Above it, pink weekly bars count the tasks finished in the area and its projects.
 - **In area** — the area a project is part of, like "Health". Set it with **In area…** at the top of the project, or on its right-click menu. It is kept as `area:` in the settings block. Only this line puts a project in an area; a `[[Health]]` link in the text does not.
 - **Resource** — reference material you want to keep, like a packing list. Shown in blue.
 - **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way.
@@ -90,7 +91,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Looking after the whole
 
 - **Weekly review** — a walk through everything, step by step, once a week. It shows what needs a look.
-- **Due for a look** — notes you have not reviewed for a while. How often each kind is due is set in **Settings › Weekly review**.
+- **Due for a look** — notes you have not looked at for a while. They are listed at the top of the **Weekly review**. How often each kind is due is set in **Settings › Review rhythm**.
+- **Looked at** — when you last looked at an aspiration, a goal or an area, like **Looked at 12 days ago** or **Never looked at**. It is a button at the top of the note. Press it, then **I looked at it today**, and today's date is kept as `reviewed:` in the settings block.
+- **I looked at it today** — says you have just looked at a note, so it leaves **Due for a look** until it is due again. It is in the box the **Looked at** button opens, on the right-click menu of a row in **Aspirations**, **Goals** and **Areas**, and in the **Weekly review**.
 - **Look back at last week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended. The heading names the week it shows: **last week**, **this week**, or a week number.
 - **Map** — a drawing of what serves what: aspirations at the top, then goals, areas and projects.
 - **All actions** — every open task in the vault, with tick boxes to narrow the list.

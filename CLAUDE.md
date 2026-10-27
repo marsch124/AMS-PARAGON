@@ -4364,6 +4364,99 @@ day pill exists and starts "Ended on" before opening the note; the day's own wor
 runner's language and are not checked. The new identifier is not added to the list at the top of
 `ScreenTests.swift`, to keep the merge clean. **The review of the Done order found five wording faults, all fixed before upload**: the manual said a project marked done is always first in **Done**, but a same-day ending keeps the hand order and Missed → Done keeps the old day; "this year" counts only the projects still in the list, so an archived one is not counted; an **Archived** box shows a day that only the `ended:` line can change, since `ProjectEndedLine` needs `isEnded`; and the version note had an idiom and a field-test step that could fail by design. **The review of the three parts together (build 269) found one more fault, fixed before upload**: **Add area** on the New note screen, with a name already in use, made `makeNoteQuietly` raise an alert behind the sheet and its popover (builds 238, 246) and the popover showed nothing; `makeArea` now chooses the existing area through `ServingNote.existing` instead (the goal makers from build 203 have the same flaw and are left for their own small build).
 
+**Build 270: Looked at, from the note.** Core (`ReviewRhythm.swift`, tested in
+`ReviewRhythmTests`): `NoteIndex.reviewDue(of:rhythm:today:calendar:)` gives one note's
+`ReviewDue`, nil for a note outside the chain, archived or ended, and **`reviewSchedule` is now
+built from it**, so the button and the Weekly review cannot give one note two answers (a test
+pins every schedule item against it). `ReviewDue` gained `lookedAtText` ("Looked at 12 days
+ago" / "Never looked at"), `rhythmText` ("Goals with a date get a look every 3 months.", from
+`ReviewRhythm.label(forDays:)` and the new `ReviewLevel.plural`) and `nextText` ("The next look
+is due in 78 days." / "A look was due 3 days ago." / "A look is due now."). **His answer 3a,
+"Looked at" everywhere**: `ReviewWording.lookedAtLowercased(daysAgo:)` is the one small-letter
+form, `lastText` uses it (it said "reviewed 12 days ago"), `HealthRow` (it said "reviewed 3d
+ago") shows `ReviewWording.lookedAt` with an eye on its facts line as `AspirationRow` does,
+`ProjectHealth.Flag.reviewDue.label` is **Due for a look** (it said "Review due"), and in the
+review **Mark reviewed** → **I looked at it today**, **Mark all reviewed** → **I looked at all
+of them**, plus the step's footer and the Settings › Review rhythm footer. **`whenText` for a
+note never looked at is "due now"**, not in the plan: with `lastText` saying "never looked at",
+`ReviewDueRow` would have read "Aspiration · never looked at … never looked at" (build 169).
+App: `AppModel.markReviewed` reads the live note (build 144) and **writes nothing when
+`reviewed:` already says today** — a save moves the file date and the review's **No changes
+recently** counts it; `markAllReviewed` is unchanged and reads each note after the save before
+it. `AppModel.reviewDue(of:)` reads the live copy. `LookedAtChip` (GoalsView.swift) is the
+`GoalTargetChip` shape: a popover with a named button, never a `Menu`, a grey eye label in a
+header and a capsule on the chain page (dashed while never looked at, build 142), capped at 260
+points (build 250), `note.lookedAt` — **not the plan's `goal.lookedAt`**, because an area
+carries it too and a name that says "goal" on an area lies (build 196). It draws nothing when
+`reviewDue` is nil. `LookedAtBox` holds the two sentences, a Settings › Review rhythm line and
+**I looked at it today** (`lookedAt.today`, greyed while the note says today). Placed in
+`NoteHeader` for goals and areas, in `ChainGoalBlock`'s lead head (only `lead`: inside a chain
+the head is a button, builds 71–74), and in place of `AspirationChainBody.head`'s plain label.
+`LookedAtMenuItem(model:note:)` (model passed in, `NoteGoalOptions`' reason) is in both goal
+lists' `rowMenu` and at the top of `NoteListView.noteRow`'s menu for areas and goals (goals for
+a search in the goal rooms). **The phone's `foldingRow` and `row` gained `.contextMenu {
+rowMenu(…) }`**, so a long press reaches the same menu — the manual had said "press and hold on
+the iPhone" for the Goals list since build 199 and nothing came, and the phone's Aspirations list had no way to open a live aspiration's note (the Map,
+Search and the review could). Projects get no button: step 5 looks at them weekly. Screen test
+`testAGoalCanBeMarkedAsLookedAt`, both platforms, `Place.goals`: the chip reads "Never looked
+at", **I looked at it today**, the box closes, the label holds "today". **Open, as the
+sequencer said**: `NoteGoalOptions` still filters `model.notes` (ended goals offered), its own
+small build.
+**The review of Looked at found four faults, all fixed before upload**: `health(of:)` flagged an area
+**Due for a look** on the project rhythm (7 days, since build 172) while the part of that name and
+the new box used the area's 30, so one note had two answers under one name — the flag now takes
+`reviewLevel(of:)`'s rhythm, pinned by `testAnAreaIsDueForALookOnItsOwnRhythm`; `HealthRow`'s date
+sat `.fixedSize()` beside the name and grew to 29 characters, squeezing the name in the Mac's
+220-point middle column (builds 138, 250), so it moved to the wrapping facts line; the review's
+three menus drew a plain button, never greyed and offered on ended goals in steps 3 and 4, and now
+use `LookedAtMenuItem`; and the version note claimed two things the old code did not do.
+**Giving a flag the name of a part makes them one claim**: check that the two compute the same thing.
+
+**Build 270: the area page.** `Core/Sources/ParagonCore/Vault/AreaOverview.swift` (tested in
+`AreaOverviewTests`): `AreaOverview` (`projects: [ProjectLine]` for running and on-hold
+projects in hand order, `overCount` for done/missed/dropped/archived, `subAreas`, `weekly`,
+and the words `emptyText`, `overText`, `projectsText`), `SubAreaLine` (live project count, open
+tasks in the sub-area and those projects, `factsText` "1 project · 3 open", never "0 open") and
+`NoteIndex.areaOverview(of:today:)`, built on build 269's `projects(in:)` and `subAreas(of:)`.
+**The box line is `ProjectLine`**, so the area page and the Projects list cannot disagree
+about a project (a test pins it against `projectGroups`). The bars count the area's own tasks
+and every project in it, ended ones too; **a sub-area's projects are not on its parent**, his
+answer `subarea_projects` — one row per sub-area instead, and their work is in the sub-area's
+own bars. App: `Views/AreasView.swift` — `AreaDashboardView` (in `NoteEditorView.sections`
+beside the goal branch; `area.panel`), `AreaProjectRow` (a plain button calling `show(_:)`,
+`ProjectTile` with his emoji, the need line in the Projects list's words, red overdue and a
+deadline red only once passed — the Projects box's rule, not the plan's "grey deadline", since
+one fact drawn two ways is build 168's fault; `area.project.<path>`), `SubAreaRow`
+(`area.subArea.<path>`), `ProjectStatusItems` (the status lines, moved out of
+`ProjectsListView.menu(for:)` so both right-click menus are one list) and `CappedHeight`.
+**Departed from the plan, as the sequencer said**: **Add a project…** is build 269's
+`AddServingNoteButton(link: .area)` in the fold's heading (`area.addProject`), never New Note,
+so there is no `newNotePreset` and no `addProject(in:)` — a working screen selects, it does not
+navigate (build 135). **`CappedHeight` is the one new idea**: the plan said
+`ScrollView.frame(maxHeight: 240)` on the Mac, but a scroll view takes all the height it is
+offered, so one short row would have sat in a 240-point box above the editor. This `Layout`
+asks the scroll view for its ideal height (its content's) and gives it that, up to 240; on the
+phone the rows are drawn as they are, since `phoneBody` already scrolls (build 127). The Mac
+half of the screen test checks the new row's frame lies inside the window, which is what fails
+if that ideal-height assumption is ever wrong. The list folds (`areaProjectsFolded`, open by
+default); `WeekBars` gained `tint:` and the area passes pink. The empty line is hidden and an
+orange one shown while notes are still coming from iCloud (build 100). Screen test
+`testAnAreaListsItsProjectsAndAddsOne`, both platforms, with the new `Place.areas`: Health,
+`area.noProjects`, **Add a project…**, the new row, the empty line gone, the button still
+there; on the Mac also `expectNoOverflow(after:)`.
+**The review of the area page found two faults, both fixed before upload.** The weekly line drew "0 tasks
+finished in 8 weeks · 0 this week" beside eight flat stubs for an area whose only dated finishes
+are older than the eight weeks (`bandHead` only asks `!isEmpty`, which is `lastFinished != nil`);
+it now draws the bars and band only when `weekly.total > 0` and otherwise `caption(today:)` alone
+("last task finished about 3 months ago"), pinned by an `AreaOverviewTests` case. The Projects
+list's band in `ProjectsView.swift` had the same wording and the same fault, older than the
+area page; it got the same fix in the same build, with no new test (the band needs a vault with only old finishes, which no screen test builds). **The orange iCloud line was inside the
+fold** and, on the Mac, inside the capped scroll box, so a folded list with a short count said
+nothing about why (build 100; build 212 keeps its Calendar reason outside its fold): `comingLine`
+is drawn by `body` under the heading. **Departure from the plan, now written down:** the
+sub-area rows stay inside the fold, so folding **Projects in this area** hides them too; each is
+still one press away in the Areas list, and the manual says so.
+
 **Found while planning, not in the eight** (offered on the page as small builds of their own):
 `Vault.archive` overwrites `status: done` with `archived`, so an archived finished project drops
 out of its goal's per cent (and would lose its `ended:` line); `NoteGoalOptions` still filters

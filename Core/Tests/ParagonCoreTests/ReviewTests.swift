@@ -93,11 +93,12 @@ final class ReviewTests: XCTestCase {
                     modifiedAt: today.date())
     }
 
-    private func areaNote(_ title: String, serves: String? = nil) -> Note {
+    private func areaNote(_ title: String, serves: String? = nil, reviewed: String? = nil) -> Note {
         var fm = Frontmatter()
         fm.set("title", title)
         fm.set("type", "area")
         if let serves { fm.set("goal", serves) }
+        if let reviewed { fm.set("reviewed", reviewed) }
         return Note(relativePath: "Areas/\(title).md", kind: .area, frontmatter: fm, body: "",
                     modifiedAt: today.date())
     }
@@ -115,6 +116,27 @@ final class ReviewTests: XCTestCase {
         let area = areaNote("Endurance")
         let health = NoteIndex(notes: [area]).health(of: area, today: today, config: config)
         XCTAssertFalse(health.flags.contains(.noGoal))
+    }
+
+    func testAnAreaIsDueForALookOnItsOwnRhythm() {
+        // Review of build 270: an area gets a look every month (30 days), a project every
+        // week. The flag used the project rhythm for both, so an area looked at 10 days ago was
+        // "Due for a look" in step 6 while the review's part of that name left it out.
+        let recent = areaNote("Household", reviewed: "2026-08-26")   // 10 days before today
+        let old = areaNote("Garden", reviewed: "2026-08-06")         // 30 days before today
+        let sameAge = project("Shed", body: "- [ ] Paint it\n", reviewed: "2026-08-26")
+        let index = NoteIndex(notes: [recent, old, sameAge])
+        XCTAssertFalse(index.health(of: recent, today: today, config: config).flags.contains(.reviewDue))
+        XCTAssertTrue(index.health(of: old, today: today, config: config).flags.contains(.reviewDue))
+        XCTAssertTrue(index.health(of: sameAge, today: today, config: config).flags.contains(.reviewDue))
+
+        // One answer under one name: the flag and the "Due for a look" part agree on every note.
+        let rhythm = ReviewRhythm(config: config)
+        for note in [recent, old, sameAge] {
+            let flagged = index.health(of: note, today: today, config: config).flags.contains(.reviewDue)
+            let due = index.reviewDue(of: note, rhythm: rhythm, today: today)
+            XCTAssertEqual(flagged, due?.isDue, "\(note.title): the flag and the review disagree")
+        }
     }
 
     func testProjectDueAfterItsGoalIsFlagged() {

@@ -49,7 +49,7 @@ tags: [sport, training]
 
 Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `emoji` (a project's own emoji, see **The Projects list**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
-Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`. On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`.
+Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`. On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -211,6 +211,26 @@ Press one and it is set.
 - The emoji is kept in the note's settings block as `emoji: 🎒`, so it travels with the note to
   the iPhone and back. You can also write that line yourself.
 
+## An area's page
+
+Open an area, for example Health. Above its text there is a part that shows what the area holds and whether work in it is moving.
+
+- **Weekly bars**: eight small pink bars, the tasks finished in each of the last eight weeks, in the area itself and in every project in it. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". A week is Monday to Sunday. When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
+- **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list. The number beside the heading says how many.
+- Each project shows its tile with its emoji, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, or **No tasks yet**.
+- "2 overdue" is red: open tasks in the project whose date has passed. The deadline is red once it has passed, and grey before that. A project on hold says **On hold**.
+- Projects that are done, missed, dropped or archived are not listed. One line under the list says how many there are.
+- **Press a project** to open it. To come back to the area, press ⌃⌘← on the Mac, or the back arrow at the top on the iPhone.
+- **Right-click** a project (press and hold on the iPhone) for **Serves**, **In area**, **Set active**, **Mark done**, **Mark missed**, **Mark dropped** and **Put on hold** — the same lines as in the **Projects** list.
+- **Add a project…**, beside the heading, makes a new project that is already in this area. Write the name and press **Add project** or Return. You stay on the area, and the new project is listed at once.
+- If a project with that name is already there, the box says so in orange and keeps your words. **Cancel** closes the box and makes nothing.
+- **Sub-areas**: under the projects, one row for each sub-area, like "Yoga · 1 project · 3 open". The open number counts the open tasks in the sub-area and in its projects. Press the row to open the sub-area.
+- The projects of a sub-area are listed on the sub-area's own page, not on its parent's, so each project is shown in one place. Their finished tasks are in the sub-area's bars too.
+- Press **Projects in this area** to fold the list away, and press it again to bring it back. The choice holds for every area. **Add a project…** stays beside the heading while the list is folded. The sub-areas fold away with the list; the orange iCloud line stays.
+- On the Mac the list is never taller than a short box. When there are many projects, scroll inside it; the text of the note keeps its room below.
+- Only the `area:` line puts a project here. A project that only has `[[Health]]` in its text is not listed. See **Which area a project is in**.
+- While notes are still coming from iCloud, an orange line under the heading says that more projects may appear. It stays on screen when the list is folded.
+
 ## Sub-areas
 
 **Making one.** Open the area note and click **Part of…** in the top row, then pick the area it belongs to. "Not part of another area" takes it back out. The same choices sit on the right-click menu of an area in the list (long-press on the phone), and **New note › Area** has a **Part of** chip for making one from the start.
@@ -221,7 +241,7 @@ A sub-area is an ordinary area note with one extra line in its frontmatter, `par
 - Its own box on the Map, drawn under the area it belongs to.
 - A destination of its own in the Inbox "File it" column and in a task's **Move to** menu, where it reads "Health › Mobility".
 
-In the Areas list a sub-area is indented under its area, and the chevron on the area folds its sub-areas away. Dragging to arrange works inside a family: a sub-area moves among its brothers and sisters, an area among the other areas. The note itself shows **Part of Health** at the top — click it to go there.
+In the Areas list a sub-area is indented under its area, and the chevron on the area folds its sub-areas away. Dragging to arrange works inside a family: a sub-area moves among its brothers and sisters, an area among the other areas. The note itself shows **Part of Health** at the top — click it to go there. The parent's own page lists its sub-areas under its projects, one row each; see **An area's page**.
 
 Any area can be picked as the parent. Picking one that is already a sub-area lifts it up a level first, since areas nest one level only — asking for "Yoga under Mobility" means Mobility is the level above.
 
@@ -342,7 +362,22 @@ A goal can make the projects that serve it, and an aspiration can make the goals
 - If a project or goal with that name is already there, the box says so in orange and keeps your words. Change the name and press **Add project** or **Add goal** again.
 - **Cancel** closes the box and makes nothing.
 
+An area has **Add a project…** too, beside **Projects in this area** at the top of the area; see **An area's page**.
+
 Where the button is: at the foot of a goal's own note, on the Mac and on the iPhone. On the Mac it is also on the goal's page in **Goals**, under its projects, and on an aspiration's page in **Aspirations**, under its goals. Inside an aspiration's chain, a goal with no project yet has **Add a project…** under the orange line that says no project delivers it. On the iPhone, **Add a goal…** is also under an aspiration when you open it in **Aspirations**.
+
+### When you last looked at it
+
+At the top of an aspiration, a goal with a date or an area, a grey button with an eye says when you last looked at it: **Looked at 12 days ago**, or **Never looked at**.
+
+- Press it. A small box says how often that kind of note gets a look, and when the next look is due, for example "Goals with a date get a look every 3 months. The next look is due in 78 days."
+- Press **I looked at it today** in the box. PARAGON writes `reviewed:` with today's date into the note's settings block, and the button says **Looked at today**.
+- When the note already says today, **I looked at it today** is grey, because pressing it would change nothing.
+- The same **I looked at it today** is on the right-click menu of a row in **Aspirations**, **Goals** and **Areas**. On the iPhone, press and hold the row.
+- On the Mac the button is also on an aspiration's page in **Aspirations** and on a goal's page in **Goals**, under the name. There it is a small capsule, with a dashed line while the note has never been looked at.
+- It is the same date the **Weekly review** reads, so the note leaves **Due for a look** until it is due again. How often each kind gets a look is set in **Settings › Review rhythm**.
+- A goal or an area that has ended, or is archived, has no button: it no longer comes up for a look.
+- Projects do not have the button. They get a look every week, in step 5 of the **Weekly review**.
 
 ### How a note stands
 
@@ -396,6 +431,8 @@ Each row says how many goals serve it, **when you last looked at it** ("Looked a
 or "Never looked at"), and a mark in orange when one of its goals needs attention. An
 aspiration with nothing under it yet says **Nothing serves this yet** on its own row.
 
+Right-click a row (press and hold on the iPhone) for **Open the note** and **I looked at it today**.
+
 **There is no per cent on an aspiration, and that is deliberate.** You never finish one, so a
 figure would be a promise the idea does not make. Each goal under it keeps its own bar, where
 the number is true.
@@ -412,7 +449,8 @@ holds it. You do not have to choose anything first. Three groups, in this order:
   to look back.
 
 A goal with no aspiration above it carries a **Give it an aspiration** button. Right-click any
-row (press and hold on the iPhone) for the same list.
+row (press and hold on the iPhone) for the same list, with **Open the note** and
+**I looked at it today** above it.
 
 Every link in the chain has its own icon: an **aspiration** is a **star** — the north star on
 PARAGON's own app icon, what you steer by and never tick off — and a **goal with a target
@@ -788,9 +826,9 @@ Each level of the chain is on its own rhythm, because they do not change at the 
 
 All four can be changed under **Settings › Review rhythm**, where each one is a row of named lengths — every week, every month, every 6 months — rather than a count of days. The project one is the same setting the review has always had, so there is one number for it, not two.
 
-Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever marked reviewed says **never looked at** and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
+Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever looked at says **never looked at**, with **due now** on the right, and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
 
-Press a row to open the note with the review still beside it. **Right-click a row** (long-press on the phone) for **Mark reviewed**, which writes `reviewed:` with today's date into the note and starts that note's rhythm again; the row then leaves the list. The line under the heading says so, so the menu is not something you have to know about. Because it is written into the note, both devices agree and it is in your backups.
+Press a row to open the note with the review still beside it. **Right-click a row** (long-press on the phone) for **I looked at it today**, which writes `reviewed:` with today's date into the note and starts that note's rhythm again; the row then leaves the list. The line under the heading says so, so the menu is not something you have to know about. Because it is written into the note, both devices agree and it is in your backups. The same button is at the top of an aspiration, a goal or an area; see **When you last looked at it**.
 
 Work that is over is never asked about: a project you dropped, a goal you missed, anything archived. A review is a question about work you are still doing.
 
@@ -802,7 +840,7 @@ Every step's heading is always on screen, even when the step is empty. Open a st
 2. **Reschedule or drop overdue tasks.** Every task whose date has passed, with the note it lives in. Tick it, move it, or drop it, straight from the row.
 3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
-5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last marked it reviewed. **Mark all reviewed** in the heading stamps today's date on every one. It is there while the step is open.
+5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last looked at it. **I looked at all of them** in the heading stamps today's date on every one. It is there while the step is open.
 6. **Look over the areas.** The same row for each area.
 7. **Look back at last week.** A whole week, from your own notes. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
 8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
@@ -833,14 +871,16 @@ The count at the top of the review, "tasks finished in the last 7 days", is toda
 
 Right-click any goal, project or area row (long-press on the phone):
 
-- **Mark reviewed** — writes `reviewed:` with today's date into the note, and starts that note's rhythm again.
+- **I looked at it today** — writes `reviewed:` with today's date into the note, and starts that note's rhythm again. It is grey when the note already says today. A goal that has ended does not have it.
 - **Put on hold** / **Set active** — a project or goal you are deliberately not working on now. On hold is never counted as needing attention.
 - **Mark done**, **Mark missed**, **Mark dropped** — the three ways a thing can be over. Done means you delivered it; missed means the date passed without it; dropped means you decided not to. Only *done* counts towards a goal's per cent.
 - **Archive** — moves the note to the Archive folder and stops syncing its tasks.
 
 ### The flags
 
-A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, or is on hold.
+A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, is **Due for a look** (not looked at within its rhythm), or is on hold.
+
+**Due for a look** follows each kind's own rhythm: a project is due after a week and an area after a month, unless you change them in **Settings › Review rhythm**.
 
 Two of those deserve a word.
 

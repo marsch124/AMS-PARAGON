@@ -49,11 +49,17 @@ struct ProjectsListView: View {
         let look = ProjectGroup.needsALookCount(of: model.projectGroups)
         if !weekly.isEmpty || look > 0 {
             WrappingHStack(spacing: 9, lineSpacing: 4) {
-                if let head = weekly.bandHead {
+                if weekly.total > 0, let head = weekly.bandHead {
                     WeekBars(weekly: weekly, barWidth: 6)
                     Text(head)
                         .fontWeight(.semibold)
                     Text("\u{00B7} " + weekly.bandWeek)
+                        .foregroundStyle(.secondary)
+                } else if let caption = weekly.caption(today: DateOnly.today()) {
+                    // Every dated finish is older than eight weeks: bars of nothing and
+                    // "0 tasks finished" would say more than the notes do (build 270, the same
+                    // fault the area page's review found; the box beside it has long said this).
+                    Text(caption)
                         .foregroundStyle(.secondary)
                 }
                 if look > 0 {
@@ -115,24 +121,15 @@ struct ProjectsListView: View {
     /// round. Each line is offered only when it would change something.
     @ViewBuilder
     private func menu(for note: Note) -> some View {
-        let status = note.noteStatus
         Button("Rename\u{2026}") { rename(note) }
         NoteGoalMenu(model: model, note: note)
         // Build 269. The groups stay by aspiration (build 253); choosing an area moves the
         // project on the Map, not here.
         ProjectAreaMenu(model: model, note: note)
         Divider()
-        if status != .active {
-            Button("Set active") { model.setStatus(NoteStatus.active, for: note) }
-        }
-        ForEach(NoteStatus.endings, id: \.self) { ending in
-            if ending != status {
-                Button("Mark \(ending.label.lowercased())") { model.setStatus(ending, for: note) }
-            }
-        }
-        if status == .active {
-            Button("Put on hold") { model.setStatus(NoteStatus.onHold, for: note) }
-        }
+        // Shared with the area page's project rows (build 270), so the two menus cannot
+        // offer different lines.
+        ProjectStatusItems(model: model, note: note)
         Divider()
         if model.canArchive(note) {
             Button("Archive") { model.archive(note) }
@@ -562,6 +559,9 @@ struct WeekBars: View {
     let weekly: WeeklyFinished
     var barWidth: CGFloat = 4
     var height: CGFloat = 16
+    /// The colour of a week with something finished: a project's green here, an area's pink on
+    /// the area's own page (build 270).
+    var tint: Color = ParaKind.project.tint
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 2) {
@@ -578,7 +578,7 @@ struct WeekBars: View {
 
     private func bar(_ count: Int) -> some View {
         RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-            .fill(count == 0 ? Color.secondary.opacity(0.3) : ParaKind.project.tint)
+            .fill(count == 0 ? Color.secondary.opacity(0.3) : tint)
             .frame(width: barWidth,
                    height: count == 0 ? 2 : max(3, height * CGFloat(count) / CGFloat(weekly.biggest)))
     }

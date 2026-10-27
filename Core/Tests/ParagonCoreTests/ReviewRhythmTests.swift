@@ -47,8 +47,11 @@ final class ReviewRhythmTests: XCTestCase {
         XCTAssertEqual(schedule.count, 1)
         XCTAssertNil(schedule[0].daysSinceReview)
         XCTAssertTrue(schedule[0].isDue)
-        XCTAssertEqual(schedule[0].whenText, "never looked at")
-        XCTAssertEqual(schedule[0].lastText, "never reviewed")
+        // One side says it was never looked at, the other that a look is due now: never the
+        // same words twice on one row (build 270).
+        XCTAssertEqual(schedule[0].whenText, "due now")
+        XCTAssertEqual(schedule[0].lastText, "never looked at")
+        XCTAssertEqual(schedule[0].lookedAtText, "Never looked at")
     }
 
     func testTheRhythmDecidesWhenSomethingIsDue() {
@@ -76,9 +79,13 @@ final class ReviewRhythmTests: XCTestCase {
         XCTAssertEqual(due(6).whenText, "due tomorrow")
         XCTAssertEqual(due(5).whenText, "due in 2 days")
         XCTAssertEqual(due(8).whenText, "1 day over")
-        XCTAssertEqual(due(0).lastText, "reviewed today")
-        XCTAssertEqual(due(1).lastText, "reviewed yesterday")
-        XCTAssertEqual(due(4).lastText, "reviewed 4 days ago")
+        // "Looked at" everywhere (build 270, his answer 3a), in the Aspirations list's own
+        // words, so a row in the review never says "reviewed" where another screen says
+        // "looked at".
+        XCTAssertEqual(due(0).lastText, "looked at today")
+        XCTAssertEqual(due(1).lastText, "looked at yesterday")
+        XCTAssertEqual(due(4).lastText, "looked at 4 days ago")
+        XCTAssertEqual(due(120).lastText, "looked at about 4 months ago")
     }
 
     func testWorkThatIsOverIsNeverAskedAbout() {
@@ -191,5 +198,102 @@ final class ReviewRhythmTests: XCTestCase {
         XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 120), "Looked at about 4 months ago")
         XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 400), "Looked at about a year ago")
         XCTAssertEqual(ReviewWording.lookedAt(daysAgo: 1100), "Looked at about 3 years ago")
+    }
+
+    // MARK: One note, from its own page (build 270)
+
+    func testOneNoteGetsTheSameAnswerAsTheWeeklyReview() {
+        // The button at the top of a note and the Weekly review ask the same question about
+        // the same note. Build 270 made the schedule out of the one-note answer, and this
+        // pins that the two agree for every kind of note, including the ones left out.
+        let aspiration = note("Goals/Athlete.md", kind: .goal,
+                              text: "---\ntitle: Still racing at seventy\nhorizon: life\nreviewed: 2026-08-01\n---\n")
+        let goal = note("Goals/IM.md", kind: .goal,
+                        text: "---\ntitle: Do IM 70.3\ntarget: 2027-08-15\n---\n")
+        let area = note("Areas/Health.md", kind: .area,
+                        text: "---\ntitle: Health\nreviewed: 2026-09-10\n---\n")
+        let project = note("Projects/Bike.md", kind: .project,
+                           text: "---\ntitle: New bike\nreviewed: 2026-09-01\n---\n")
+        let resource = note("Resources/Plan.md", kind: .resource, text: "---\ntitle: A plan\n---\n")
+        let dropped = note("Goals/Race.md", kind: .goal,
+                           text: "---\ntitle: Race\nstatus: dropped\n---\n")
+        let archived = note("Archive/Club.md", kind: .archive,
+                            text: "---\ntitle: Club\ntype: area\narchived: true\n---\n")
+        let all = [aspiration, goal, area, project, resource, dropped, archived]
+        let i = index(all)
+        let rhythm = ReviewRhythm()
+
+        let schedule = i.reviewSchedule(rhythm: rhythm, today: today)
+        for item in schedule {
+            XCTAssertEqual(i.reviewDue(of: item.note, rhythm: rhythm, today: today), item,
+                           "\(item.note.title) gets one answer from its page and another in the review")
+        }
+        // A resource is not in the chain; a dropped goal and an archived area are over. None of
+        // them has a place on a rhythm, so none gets a button.
+        XCTAssertNil(i.reviewDue(of: resource, rhythm: rhythm, today: today))
+        XCTAssertNil(i.reviewDue(of: dropped, rhythm: rhythm, today: today))
+        XCTAssertNil(i.reviewDue(of: archived, rhythm: rhythm, today: today))
+        XCTAssertEqual(schedule.count, 4)
+
+        let areaDue = i.reviewDue(of: area, rhythm: rhythm, today: today)
+        XCTAssertEqual(areaDue?.level, .area)
+        XCTAssertEqual(areaDue?.daysSinceReview, 4)
+        XCTAssertEqual(areaDue?.every, 30)
+    }
+
+    func testANoteNotInTheIndexIsStillAnswered() {
+        // The app hands in the latest copy it holds, which may be one save ahead of the index.
+        // `empty`, never `index`: a local shadows the method of the same name inside its own
+        // initial value (build 150).
+        let empty = index([])
+        let goal = note("Goals/IM.md", kind: .goal,
+                        text: "---\ntitle: Do IM 70.3\ntarget: 2027-08-15\nreviewed: 2026-09-14\n---\n")
+        let due = empty.reviewDue(of: goal, rhythm: ReviewRhythm(), today: today)
+        XCTAssertEqual(due?.daysSinceReview, 0)
+        XCTAssertEqual(due?.lookedAtText, "Looked at today")
+    }
+
+    func testTheBoxSaysHowOftenAndWhenTheNextLookIsDue() {
+        func due(_ level: ReviewLevel, _ daysAgo: Int?, every: Int) -> ReviewDue {
+            ReviewDue(note: note("Goals/X.md", kind: .goal, text: "# X"),
+                      level: level, daysSinceReview: daysAgo, every: every)
+        }
+        // How often, in the words Settings › Review rhythm uses.
+        XCTAssertEqual(due(.goal, 12, every: 90).rhythmText, "Goals with a date get a look every 3 months.")
+        XCTAssertEqual(due(.aspiration, 12, every: 182).rhythmText, "Aspirations get a look every 6 months.")
+        XCTAssertEqual(due(.area, 12, every: 30).rhythmText, "Areas get a look every month.")
+        XCTAssertEqual(due(.project, 12, every: 7).rhythmText, "Projects get a look every week.")
+        XCTAssertEqual(due(.area, 12, every: 45).rhythmText, "Areas get a look every 45 days.")
+
+        // When the next one is due.
+        XCTAssertEqual(due(.goal, 12, every: 90).nextText, "The next look is due in 78 days.")
+        XCTAssertEqual(due(.goal, 89, every: 90).nextText, "The next look is due tomorrow.")
+        XCTAssertEqual(due(.goal, 90, every: 90).nextText, "The next look is due today.")
+        XCTAssertEqual(due(.goal, 91, every: 90).nextText, "A look was due 1 day ago.")
+        XCTAssertEqual(due(.goal, 93, every: 90).nextText, "A look was due 3 days ago.")
+        // Never looked at is due now, and never a big number (build 141).
+        XCTAssertEqual(due(.goal, nil, every: 90).nextText, "A look is due now.")
+        XCTAssertEqual(due(.goal, nil, every: 90).lookedAtText, "Never looked at")
+        XCTAssertEqual(due(.goal, 0, every: 90).lookedAtText, "Looked at today")
+    }
+
+    func testEveryLevelHasAPluralForTheSentence() {
+        for level in ReviewLevel.allCases {
+            XCTAssertFalse(level.plural.isEmpty)
+        }
+        // An aspiration is a kind of goal too, so the dated ones are named as such (build 176).
+        XCTAssertEqual(ReviewLevel.goal.plural, "Goals with a date")
+    }
+
+    func testTheSmallLetterVersionIsTheSameWords() {
+        for days in [nil, 0, 1, 12, 31, 120, 400, 1100] as [Int?] {
+            let big = ReviewWording.lookedAt(daysAgo: days)
+            let small = ReviewWording.lookedAtLowercased(daysAgo: days)
+            XCTAssertEqual(small.lowercased(), big.lowercased())
+            // Written out rather than `.map(String.init)`: no compiler here to settle the
+            // overload (build 168).
+            XCTAssertEqual(small.first.map { String($0) }, big.first.map { String($0).lowercased() })
+        }
+        XCTAssertEqual(ReviewWording.lookedAtLowercased(daysAgo: nil), "never looked at")
     }
 }

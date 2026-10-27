@@ -2,6 +2,49 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 270 · 27 October 2026
+
+**You can say "I looked at it" from the note itself.** The next of the eight ideas you chose. Before this build, the date you last looked at a note could only be set in the **Weekly review**, with **Mark reviewed** on the right-click menu.
+
+- Open an aspiration, a goal or an area. At the top there is a new grey button with an eye. It says when you last looked at the note, for example **Looked at 12 days ago**, or **Never looked at**.
+- Press it. A small box says how often that kind of note gets a look, and when the next look is due. For example: "Goals with a date get a look every 3 months. The next look is due in 78 days."
+- Press **I looked at it today** in the box. The button then says **Looked at today**, and the note leaves **Due for a look** in the **Weekly review**.
+- When the note already says today, **I looked at it today** is grey, because pressing it would change nothing.
+- On the Mac the same button is also on an aspiration's page in **Aspirations** and on a goal's page in **Goals**, under the name. There it is a small capsule, with a dashed line while the note has never been looked at.
+- **I looked at it today** is also on the right-click menu of a row in **Aspirations**, **Goals** and **Areas**.
+- **On the iPhone, press and hold a row** in **Aspirations** or **Goals** for the same menu. For an aspiration, this menu also has **Open the note**: on the iPhone, the **Aspirations** list had no way to open the note before.
+- A goal or an area that has ended, or is archived, has no button: it no longer comes up for a look.
+- Projects do not get the button. They get a look every week, in step 5 of the **Weekly review**.
+- The date is kept as `reviewed:` in the note's settings block, as before, so both devices agree.
+
+**"Looked at" everywhere.** You chose one word for one thing.
+
+- In the **Weekly review**, **Mark reviewed** is now **I looked at it today**, and **Mark all reviewed** in step 5 is now **I looked at all of them**. As everywhere else, **I looked at it today** is grey when the note already says today, and a goal that has ended does not have it.
+- The rows in the review now say "looked at", for example **Looked at 12 days ago** or **Never looked at**, the same words as the **Aspirations** list. Before, they said "reviewed". In steps 5 and 6 these words are now on the line under the name, with an eye, so a long name has room.
+- In **Due for a look**, a note nobody has looked at yet now says **due now** on the right. Before, the row said "never reviewed" and "never looked at": the same thing twice.
+- The flag **Review due** on a project or an area is now called **Due for a look**, like the part of the review it belongs to. On an area it now comes after a month, the area rhythm. Before, an area got it after a week, like a project, while the **Due for a look** part did not list it.
+- Pressing **I looked at it today** on a note that already says today no longer saves the note again. Before, it moved the file's date, so the review's **No changes recently** could take it for a change.
+
+**To try it:** open a goal and press **Never looked at** (or **Looked at …**) at the top, then **I looked at it today**. The button should say **Looked at today**. On the iPhone, also press and hold an aspiration in **Aspirations**: the menu should have **Open the note** and **I looked at it today**.
+
+**An area shows its projects.** The second of three builds about areas. Before this build, an area note showed only its own text and tasks. You had to go to the **Projects** list to see which projects were in it.
+
+- Open an area, for example Health. Above its text there is a new part.
+- First, small pink bars: the tasks finished in each of the last eight weeks, in the area and in its projects. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
+- Then **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list.
+- Each project shows its emoji, its name and what it needs, in the same words as in the **Projects** list: **Next:** and the next task, **All 3 finished** and **No next action**, or **No tasks yet**.
+- "2 overdue" is red, and so is a deadline that has passed. A project on hold says **On hold**.
+- Projects that are done, missed, dropped or archived are not listed. One line under the list says how many there are.
+- Press a project to open it. To come back to the area, press ⌃⌘← on the Mac, or the back arrow on the iPhone.
+- Right-click a project (press and hold on the iPhone) for **Serves**, **In area**, and the lines that change how it stands: **Set active**, **Mark done**, **Mark missed**, **Mark dropped** and **Put on hold**. They are the same lines as in the **Projects** list.
+- **Add a project…** sits beside the heading. Press it, write the name, and press **Add project** or Return. The new project is already in this area. You stay on the area, and the new project is listed at once.
+- Under the projects, each sub-area has one row, like "Yoga · 1 project · 3 open". You chose this: the projects of Yoga are listed on Yoga's own page, not on Health's, so each project is shown in one place. Press the row to open Yoga.
+- Press **Projects in this area** to fold the list away, and press it again to bring it back. **Add a project…** stays beside the heading. The sub-areas fold away with the list.
+- On the Mac the list is never taller than a short box. When there are many projects, scroll inside it. The text of the note keeps its room below.
+- While notes are still coming from iCloud, an orange line under the heading says that more projects may appear. It stays on screen when the list is folded.
+
+- **The Projects list.** The line above it no longer says "0 tasks finished in 8 weeks" when your last finished task is older than that. It then says when the last one was finished, in grey.
+
 ## Build 269 · 26 October 2026
 
 **A project can say which area it is in.** The next of the eight ideas you chose, and the first of three builds about areas. Until now, only a drag on the **Map** could put a project in an area.

@@ -347,6 +347,11 @@ struct NoteEditorView: View {
                 GoalDashboardView(goal: note)
                 Divider()
             }
+            if note.kind == .area {
+                // Build 270: the area's projects, its sub-areas and its weekly bars.
+                AreaDashboardView(area: note)
+                Divider()
+            }
             if !note.tasks.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -1166,6 +1171,12 @@ struct NoteHeader: View {
                 // Build 268: read by the Goals list, the chain and the aspiration's page, and
                 // never written by anything in the app before.
                 GoalMeasureChip(model: model, note: note)
+            }
+            if note.kind == .goal || note.kind == .area {
+                // Build 270: when you last looked at it, and **I looked at it today**. Until
+                // now `reviewed:` could only be written from the Weekly review's right-click
+                // menu. Projects are left out: the review looks at them every week, step 5.
+                LookedAtChip(model: model, note: note)
             }
             if note.kind == .project {
                 ProjectDeadlineChip(model: model, note: note)

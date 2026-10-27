@@ -20,7 +20,9 @@ public struct ProjectHealth: Identifiable, Equatable, Sendable {
             case .dueAfterGoal: return "Due after its goal"
             case .noGoal: return "Not serving a goal"
             case .stale: return "No changes recently"
-            case .reviewDue: return "Review due"
+            // The heading the Weekly review shows these notes under, word for word (build
+            // REVIEW, his answer 3a): "Review due" and "Due for a look" were one thing.
+            case .reviewDue: return "Due for a look"
             case .onHold: return "On hold"
             }
         }
@@ -151,8 +153,14 @@ public extension NoteIndex {
                 flags.append(.dueAfterGoal)
             }
             if let days = daysSinceModified, days >= config.staleProjectDays { flags.append(.stale) }
+            // The note's own rhythm (review of build 270): an area gets a look every month,
+            // not every week. Since build 172 this used the project rhythm for areas too, so an
+            // area looked at 10 days ago carried the flag "Due for a look" while the review's
+            // part of that name and the Looked at box on its page both said it was not due.
+            let level: ReviewLevel = reviewLevel(of: note) ?? .project
+            let every: Int = ReviewRhythm(config: config).days(for: level)
             if let days = daysSinceReview {
-                if days >= config.reviewIntervalDays { flags.append(.reviewDue) }
+                if days >= every { flags.append(.reviewDue) }
             } else {
                 flags.append(.reviewDue)
             }

@@ -28,6 +28,19 @@ public enum ReviewLevel: String, CaseIterable, Sendable {
         }
     }
 
+    /// The level's notes all together, for a sentence such as "Goals with a date get a look every
+    /// 3 months." (build 270). A goal here is **"Goals with a date"**, the words the app uses
+    /// wherever the two kinds of goal could be taken for each other (`GoalWording` in the app,
+    /// build 176), because an aspiration is a kind of goal too.
+    public var plural: String {
+        switch self {
+        case .aspiration: return "Aspirations"
+        case .goal: return "Goals with a date"
+        case .project: return "Projects"
+        case .area: return "Areas"
+        }
+    }
+
     /// Why this level has the rhythm it has. Shown in Settings beside the number, because a
     /// number with no reason behind it is a number nobody dares change.
     public var reason: String {
@@ -133,6 +146,16 @@ public enum ReviewWording {
         if years < 1.75 { return "Looked at about a year ago" }
         return "Looked at about \(Int(years.rounded())) years ago"
     }
+
+    /// The same words with a small first letter, for the middle of a row: "Area · looked at 12
+    /// days ago". **Build 270, his answer 3a: "Looked at" everywhere.** The Weekly review
+    /// said "reviewed 12 days ago" while the Aspirations list said "Looked at 12 days ago", and
+    /// two words for one thing make you wonder whether they are two things (build 165). One
+    /// function, so the two can never drift apart again.
+    public static func lookedAtLowercased(daysAgo days: Int?) -> String {
+        let words = lookedAt(daysAgo: days)
+        return words.prefix(1).lowercased() + String(words.dropFirst())
+    }
 }
 
 /// One note and when it was last looked at.
@@ -168,8 +191,14 @@ public struct ReviewDue: Identifiable, Equatable, Sendable {
     }
 
     /// In plain words. One place, so the review, the note row and Settings agree.
+    ///
+    /// **"due now" for a note never looked at** (build 270). It said "never looked at", and
+    /// since `lastText` says that too, the Weekly review's row would have read "Aspiration ·
+    /// never looked at … never looked at": a fact said twice on one row carries nothing the
+    /// second time (build 169). This side says when the look is due, which for a note never
+    /// looked at is now.
     public var whenText: String {
-        guard let days = daysSinceReview else { return "never looked at" }
+        guard let days = daysSinceReview else { return "due now" }
         let over = days - every
         if over >= 1 { return over == 1 ? "1 day over" : "\(over) days over" }
         if over == 0 { return "due today" }
@@ -178,12 +207,37 @@ public struct ReviewDue: Identifiable, Equatable, Sendable {
     }
 
     /// What to say about the last look itself, which is a different question from when the
-    /// next one is due.
+    /// next one is due: "looked at 12 days ago", "never looked at". Since build 270 it is
+    /// `ReviewWording`'s own words, so the review's rows and the Aspirations list say the same
+    /// thing (his answer 3a: "Looked at" everywhere).
     public var lastText: String {
-        guard let days = daysSinceReview else { return "never reviewed" }
-        if days == 0 { return "reviewed today" }
-        if days == 1 { return "reviewed yesterday" }
-        return "reviewed \(days) days ago"
+        ReviewWording.lookedAtLowercased(daysAgo: daysSinceReview)
+    }
+
+    /// What the **Looked at** button at the top of a note says: "Looked at 12 days ago", or
+    /// "Never looked at" (build 270).
+    public var lookedAtText: String {
+        ReviewWording.lookedAt(daysAgo: daysSinceReview)
+    }
+
+    /// How often this kind of note gets a look, as one sentence: "Goals with a date get a look
+    /// every 3 months." Built from `ReviewRhythm.label(forDays:)`, the words Settings shows, so
+    /// the box and Settings › Review rhythm can never name the same rhythm two ways.
+    public var rhythmText: String {
+        "\(level.plural) get a look \(ReviewRhythm.label(forDays: every).lowercased())."
+    }
+
+    /// When the next look is due, as one sentence: "The next look is due in 78 days.", "The
+    /// next look is due today.", "A look was due 3 days ago." A note nobody has looked at yet
+    /// is **due now**, never "due 9999 days ago" (build 141's rule: an absence may not look like
+    /// a number). The same arithmetic as `whenText`, so the box and the Weekly review agree.
+    public var nextText: String {
+        guard let days = daysSinceReview else { return "A look is due now." }
+        let over = days - every
+        if over >= 1 { return over == 1 ? "A look was due 1 day ago." : "A look was due \(over) days ago." }
+        if over == 0 { return "The next look is due today." }
+        let left = -over
+        return left == 1 ? "The next look is due tomorrow." : "The next look is due in \(left) days."
     }
 }
 
@@ -240,15 +294,29 @@ public extension NoteIndex {
     func reviewSchedule(rhythm: ReviewRhythm, today: DateOnly = .today(),
                         calendar: Calendar = .current) -> [ReviewDue] {
         notes.compactMap { note -> ReviewDue? in
-            guard !note.isArchived, !note.isEnded, let level = reviewLevel(of: note) else { return nil }
-            let since = note.reviewedDate.map { today.days(since: $0, calendar: calendar) }
-            return ReviewDue(note: note, level: level, daysSinceReview: since,
-                             every: rhythm.days(for: level))
+            reviewDue(of: note, rhythm: rhythm, today: today, calendar: calendar)
         }
         .sorted { a, b in
             if a.overdueBy != b.overdueBy { return a.overdueBy > b.overdueBy }
             return a.note.title.localizedCaseInsensitiveCompare(b.note.title) == .orderedAscending
         }
+    }
+
+    /// One note's place on its rhythm: its level, how long since it was last looked at, and
+    /// how often it wants a look. **Nil** for a note outside the chain (a resource, the Inbox, a
+    /// daily note) and for one that is archived or has ended — a review is a question about
+    /// work you are still doing.
+    ///
+    /// **Build 270: the button at the top of a goal, an aspiration or an area asks this.**
+    /// `reviewSchedule` is built from it, one note at a time, so the button and the Weekly
+    /// review can never give one note two different answers. The note may be a copy that is
+    /// not in this index — the app hands in the latest one it holds.
+    func reviewDue(of note: Note, rhythm: ReviewRhythm, today: DateOnly = .today(),
+                   calendar: Calendar = .current) -> ReviewDue? {
+        guard !note.isArchived, !note.isEnded, let level = reviewLevel(of: note) else { return nil }
+        let since = note.reviewedDate.map { today.days(since: $0, calendar: calendar) }
+        return ReviewDue(note: note, level: level, daysSinceReview: since,
+                         every: rhythm.days(for: level))
     }
 
     /// Only the ones whose rhythm has come round.
