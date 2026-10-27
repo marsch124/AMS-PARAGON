@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 274
+    static let number = 275
 }
 
 @MainActor
@@ -486,6 +486,10 @@ final class AppModel: ObservableObject {
             guard let vault else { return }
             objectWillChange.send()
             do { try vault.save(config: newValue) } catch { errorMessage = error.localizedDescription }
+            // The review rhythm lives in the config and decides how many notes are "due for a
+            // look", which the What is waiting widget shows. Build 275: a changed rhythm now
+            // reaches the widget like any other change. An unchanged picture writes nothing.
+            writeWidgetSnapshotSoon()
         }
     }
 

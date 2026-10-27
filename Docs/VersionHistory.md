@@ -2,6 +2,13 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 275 · 27 October 2026
+
+**Two small things that were left over.**
+
+- **An aspiration no longer has a per cent bar on its page.** The manual has said for a while that an aspiration has no per cent, because you never finish one. The page that opens when you press an aspiration still drew a bar. It is gone. A goal with a date keeps its bar.
+- **The widget follows the review rhythm.** If you change how often a kind of note gets a look, in Settings, the number on the **What is waiting** widget is made again a few seconds later. Before, it waited for the next change to a note.
+
 ## Build 274 · 27 October 2026
 
 **Icons for projects and areas.** You asked for many icons that look hand drawn, in colours you can change, with a search. A project and an area can now have its own icon on a colour. The button that said **Emoji…** now says **Icon…**.

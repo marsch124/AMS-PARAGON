@@ -1558,8 +1558,11 @@ struct GoalDashboardView: View {
         let health = model.index.goalHealth(of: goal, today: .today())
         VStack(alignment: .leading, spacing: 8) {
             // The roll-up first: one line that answers "how far have I come?" before any of
-            // the counts below explain it.
-            GoalProgressBar(progress: health.progress, width: 160, tint: ChainTint.forGoal(goal))
+            // the counts below explain it. Not on an aspiration (build 199, finished in 275): you
+            // never finish one, so a per cent on it promises something the idea does not.
+            if !GoalWording.isAspiration(goal) {
+                GoalProgressBar(progress: health.progress, width: 160, tint: ChainTint.forGoal(goal))
+            }
             HStack(spacing: 14) {
                 stat("\(health.projects.count)", "projects")
                 stat("\(health.areas.count)", "areas")
