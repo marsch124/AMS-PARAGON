@@ -1,20 +1,10 @@
 import XCTest
 @testable import ParagonCore
 
-/// A project's own emoji (build 254). What these pin is what reaches the file: one emoji, and
-/// nothing that is not one.
+/// A project's old emoji (build 254). Since build 284 it is only read, never written (an icon
+/// replaces it: see `NoteIconTests`). What these pin is what is shown: one emoji, and nothing
+/// that is not one.
 final class ProjectEmojiTests: XCTestCase {
-    func testEveryChoiceIsOneEmojiThatReadsBackAsItself() {
-        let all = ProjectEmoji.groups.flatMap(\.emoji)
-        XCTAssertEqual(all.count, 24)
-        XCTAssertEqual(Set(all).count, all.count, "No emoji is offered twice")
-        for emoji in all {
-            XCTAssertEqual(emoji.count, 1, "\(emoji) is more than one character")
-            XCTAssertEqual(ProjectEmoji.cleaned(emoji), emoji,
-                           "\(emoji) would not survive being stored and read back")
-        }
-    }
-
     func testOnlyAnEmojiIsKept() {
         XCTAssertEqual(ProjectEmoji.cleaned("\u{1F392}"), "\u{1F392}")
         XCTAssertEqual(ProjectEmoji.cleaned("  boat \u{1F6A4} and more \u{26F5}"), "\u{1F6A4}",

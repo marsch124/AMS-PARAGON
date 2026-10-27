@@ -22,7 +22,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **No next action** — on a project's box: every task is ticked, but the project is still active. Mark it done, or write its next task.
 - **No tasks yet** — on a project's box: the project has no tasks at all.
 - **Not linked to an aspiration** — a group in the **Projects** list: the projects serve a goal, but that goal has no aspiration above it, or no goal with that name can be found.
-- **Emoji** — a project's own emoji, shown in its tile in the **Projects** list. Set it with **Emoji…** at the top of the project. It is kept as `emoji:` in the settings block.
+- **Icon** — a project's or an area's own small picture, drawn on a colour. Choose it with **Icon…** at the top of the note: about 130 hand-drawn icons and about 300 of Apple's symbols, with a search called **Find an icon**. It is shown in the project's tile in the **Projects** list and in the area's row in the **Areas** list. It is kept as `icon:` and `icon-colour:` in the settings block. An icon replaces an emoji from an earlier version.
+- **Automatic** — in the icon picker, the colour choice that leaves the tile in the colour of the kind of note: green for a project, pink for an area. It is first among the colours.
+- **No icon** — in the icon picker, the choice that takes the icon away. The colour you chose stays.
 - **Projects with no goal** — a group in the **Projects** list and in the weekly review: projects with no **Serves** line at all. Not an error.
 - **Due after its goal** — a project whose deadline is later than its goal's target date. Shown in orange.
 - **Area** — a part of life you keep looking after and that never finishes, like "Health" or "Home". Shown in pink.

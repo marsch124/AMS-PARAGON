@@ -1103,10 +1103,11 @@ struct NoteHeader: View {
                                                   : SidebarSection.kind(note.kind).systemImage)
                 .foregroundStyle(note.tint)
                 .fontWeight(.semibold)
-            if note.kind == .project {
-                // Right after the kind, as in the drawing he approved (build 254): the emoji
-                // is the project's own mark, shown in the Projects list's tile.
-                ProjectEmojiChip(model: model, note: note)
+            if note.kind == .project || note.kind == .area {
+                // Right after the kind, as in the drawing he approved (build 254): the icon
+                // is the note's own mark, shown in the Projects list's tile (build 284 made it
+                // an icon from the AMS-Icons package, for areas as well as projects).
+                NoteIconChip(model: model, note: note)
             }
             if let rename {
                 Button(action: rename) {

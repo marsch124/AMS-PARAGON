@@ -984,9 +984,23 @@ struct NoteRow: View {
     /// Its colour, handed in for the same reason and always with it (build 189).
     var goalTint: Color = ChainTint.datedGoal
 
+    /// An area that has its own icon (build 284) shows it here, on its colour, in place of the
+    /// thin stripe every other row has. Decoration: the title beside it already names the area,
+    /// so a screen reader skips it. A shape, so the selection fill leaves its colour alone
+    /// (build 200).
+    @ViewBuilder
+    private var leadingMark: some View {
+        if note.kind == .area, note.ownIcon.isIconOrColour {
+            NoteIconTile(note: note, fallbackTint: note.tint, size: 30)
+                .accessibilityHidden(true)
+        } else {
+            TintStripe(color: note.tint, height: 34)
+        }
+    }
+
     var body: some View {
         HStack(spacing: 10) {
-            TintStripe(color: note.tint, height: 34)
+            leadingMark
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(note.title)

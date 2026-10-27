@@ -2,6 +2,48 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 274 · 27 October 2026
+
+**Icons for projects and areas.** You asked for many icons that look hand drawn, in colours you can change, with a search. A project and an area can now have its own icon on a colour. The button that said **Emoji…** now says **Icon…**.
+
+The icons come from a small collection of my own that your other apps can use too: https://github.com/marsch124/AMS-Icons. It has about 130 hand-drawn icons (the ones from your Packing app) and about 300 of Apple's symbols, for work, learning, health, money, the garden and technology.
+
+- **Where to find it:** open a project or an area. At the top, right after the word **Projects** (or **Areas**), press **Icon…**. A picker opens. On the Mac it is a small window under the button. On the iPhone it slides up from the bottom and fills the screen.
+- **At the top of the picker** you see the icon you have now, on its colour, and the name of the note. **Cancel** is on the right.
+- **Colour:** **Automatic** and fifteen colours, in two rows. Each colour is a small tile with the icon on it, so you see how it will look. **Automatic** is the colour of the kind of note: green for a project, pink for an area.
+- **Icon:** a field called **Find an icon**, then **No icon**, then the icons in groups. First the hand-drawn ones (**Hand-drawn · Travel**, **Hand-drawn · Outdoors** and so on). Then Apple's symbols (**Apple symbols · Work and projects** and so on).
+- **Find an icon** finds an icon by its name and by words that are not shown. English and Swedish words both work. **bike** and **cykel** find the same icon. If nothing matches, the picker says so.
+- **One press is one choice.** Press a colour, an icon or **No icon**: it is written to the note at once and the picker closes. To change the colour and the icon, open the picker twice.
+- **Cancel** closes the picker and writes nothing. On the Mac the Escape key does the same, when the search field is empty.
+- **No icon** takes the icon away. The colour you chose stays, and the tile shows the first letter of the name on it. Press **Automatic** to take the colour away as well.
+
+**Where the icon is shown**
+
+- In the project's tile in the **Projects** list. The tile is the icon on its colour.
+- In front of each project on its area's page.
+- At the left of an area's row in the **Areas** list, and in front of a sub-area's row on its parent's page. An area with no icon keeps its thin pink line.
+- In the **Icon…** button at the top of the note. Until you choose something it is grey with a dashed edge and says **Icon…**.
+- A project that is on hold, missed, dropped or archived is grey in the **Projects** list when its colour is **Automatic**. A colour you chose yourself stays as you chose it.
+
+**An icon replaces an emoji**
+
+- A project that already has an emoji from before keeps showing that emoji. Nothing in a note you do not touch is changed.
+- When you choose an icon, a colour or **No icon** for that project, the old emoji line is taken out of the note.
+- Pressing **Automatic** when the colour is already **Automatic** changes nothing, so the old emoji stays.
+- There is no emoji list any more. The picker is the only button that gives a project a mark.
+
+**Only projects and areas have an icon.** Aspirations and goals keep their star and their target. Resources keep their blue. Work notes get no icon.
+
+**In the file:** the choice is kept in the note's settings block, for example `icon: hand:bike` and `icon-colour: blue`. With **Automatic** there is no `icon-colour` line. You can write these lines yourself: `hand:` and the icon's name, or `symbol:` and the name of an Apple symbol, for example `symbol:figure.run`. A line PARAGON cannot read, for example an icon from a newer version, stays in the note and is shown as a dashed circle. It is never removed by itself.
+
+**The same icon and colour again writes nothing,** so the note's date does not change and iCloud has nothing to send.
+
+**The Help pages say Icon.** **Your own icon** in the manual replaces **Your own emoji**, and **Words in PARAGON** has the new words **Icon**, **Automatic** and **No icon**.
+
+**For the Xcode project:** PARAGON now uses the icon collection as a package. It is fixed to one exact version, so the icons in the app only change when I choose a new version. Only the app uses it, not the share extension and not the widgets. The Xcode project file is made again automatically after this change.
+
+**To try it:** open a project and press **Icon…**. Write **bike** in **Find an icon**. Press the Bike icon. The picker closes and the button shows the bike. Open the **Projects** list: the project's tile is now a bike on a green square. Open the picker again, press **Blue**, and the tile turns blue. Press **Icon…** once more and press **Cancel**: nothing changes. Then open an area, for example Health, and give it an icon too. It shows at the left of its row in the **Areas** list.
+
 ## Build 273 · 27 October 2026
 
 **Today's plan, a new widget on the Mac.** The second of two builds about widgets. It shows the time block you are in now, or the next one, and a small ruler of the next hours. It is for the Mac only, as you said.

@@ -57,7 +57,7 @@ extension AppModel {
             return .changedMeanwhile(onFile: onFile)
         }
         let updated = AreaStandard.note(live, settingText: text, placeholders: standardPlaceholders)
-        // The same words again write nothing (`setEmoji`'s rule, build 254): a save would stamp
+        // The same words again write nothing (`setIcon`'s rule, build 254): a save would stamp
         // the file and send it round iCloud for nothing.
         guard updated != live else { return .written }
         guard save(updated) else { return .notWritten }

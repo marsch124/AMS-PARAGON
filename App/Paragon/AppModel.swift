@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 273
+    static let number = 274
 }
 
 @MainActor
@@ -2284,20 +2284,23 @@ final class AppModel: ObservableObject {
         reload()
     }
 
-    /// A project's own emoji (build 254). Nil removes the line rather than writing `emoji:`:
-    /// a note that says nothing has no emoji, and that is what a new note looks like.
-    func setEmoji(_ emoji: String?, on note: Note) {
+    /// A project's or an area's own icon and the colour of its tile (build 284), written as
+    /// `icon:` and `icon-colour:`. Both are the AMS-Icons package's own spellings, kept as text
+    /// (`hand:bike`, `symbol:figure.run`, `blue`); Core decides what is written
+    /// (`Note.settingIcon`, tested). Nil removes a line rather than writing it empty, and
+    /// **setting or clearing an icon takes the old `emoji:` line away**: an icon replaces an
+    /// emoji. The note is read back out of the model first (build 144), and the same choice
+    /// again writes nothing: a save moves the file's date, clears the review's "no changes
+    /// lately" and sends the note round iCloud for nothing (build 254's rule).
+    ///
+    /// Projects and areas only. A goal has its star or target (build 168), a resource its blue,
+    /// and a work note must gain no new door out of the work set (build 112).
+    func setIcon(_ icon: String?, colour: String?, on note: Note) {
         flushPendingEdits()
-        guard var updated = self.note(at: note.relativePath) else { return }
-        let cleaned = emoji.flatMap(ProjectEmoji.cleaned)
-        // Pressing the emoji already chosen writes nothing: a save moves the file's date,
-        // clears the review's "no changes lately" and sends the note round iCloud for nothing.
-        guard cleaned != updated.emoji || (cleaned == nil && updated.frontmatter.string(ProjectEmoji.key) != nil) else { return }
-        if let cleaned {
-            updated.frontmatter.set(ProjectEmoji.key, cleaned)
-        } else {
-            updated.frontmatter.remove(ProjectEmoji.key)
-        }
+        guard let live = self.note(at: note.relativePath), !isWorkNote(live) else { return }
+        guard live.kind == .project || live.kind == .area else { return }
+        let updated = live.settingIcon(icon, colour: colour)
+        guard updated != live else { return }
         guard save(updated) else { return }
         reload()
     }
@@ -2325,7 +2328,7 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         guard let live = self.note(at: note.relativePath) else { return }
         let updated = GoalFields.settingTarget(date, on: live)
-        // The same day again writes nothing (`setEmoji`'s rule, build 254).
+        // The same day again writes nothing (`setIcon`'s rule, build 254).
         guard updated != live else { return }
         guard save(updated) else { return }
         reload()

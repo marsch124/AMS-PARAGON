@@ -180,7 +180,7 @@ struct AreaDashboardView: View {
     }
 }
 
-/// One project on its area's page: the tile with his emoji, the name, what it needs next, and
+/// One project on its area's page: the tile with his icon, the name, what it needs next, and
 /// short pills for what is late. **A plain button that opens the project**, like the rows of
 /// `GoalDashboardView`; nothing inside it takes a click, and it carries no drag, so one press
 /// has one meaning (builds 71–74, 85). The right-click menu (press and hold on the iPhone) has
@@ -200,7 +200,7 @@ struct AreaProjectRow: View {
             model.show(line.note)
         } label: {
             HStack(alignment: .top, spacing: 10) {
-                ProjectTile(status: line.status, emoji: line.note.emoji)
+                ProjectTile(status: line.status, note: line.note)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(line.note.title)
                         .font(.subheadline.weight(.semibold))
@@ -313,9 +313,7 @@ struct SubAreaRow: View {
     var body: some View {
         Button(action: open) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Image(systemName: ChainSymbol.area)
-                    .font(.caption)
-                    .foregroundStyle(ParaKind.area.tint)
+                mark
                 Text(line.note.title)
                     .font(.subheadline)
                     .lineLimit(2)
@@ -334,6 +332,24 @@ struct SubAreaRow: View {
         .buttonStyle(.plain)
         .accessibilityLabel(line.note.title + ", " + line.factsText)
         .accessibilityIdentifier("area.subArea.\(line.id)")
+    }
+
+    /// The area symbol, or the sub-area's own icon on its colour (build 284). The icon is
+    /// decoration here — the row's one sentence already names the area — so a screen reader
+    /// skips it. Its bottom edge sits a little below the text's baseline so it reads as level
+    /// with the first line (this row aligns to the first text baseline, and a view without a
+    /// baseline of its own would otherwise rest its bottom edge on it).
+    @ViewBuilder
+    private var mark: some View {
+        if line.note.ownIcon.isIconOrColour {
+            NoteIconTile(note: line.note, fallbackTint: ParaKind.area.tint, size: 20)
+                .alignmentGuide(.firstTextBaseline) { dimensions in dimensions[.bottom] - 4 }
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: ChainSymbol.area)
+                .font(.caption)
+                .foregroundStyle(ParaKind.area.tint)
+        }
     }
 }
 

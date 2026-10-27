@@ -47,9 +47,9 @@ tags: [sport, training]
 ---
 ```
 
-Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `emoji` (a project's own emoji, see **The Projects list**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
+Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `icon` and `icon-colour` (a project's or an area's own icon, see **Your own icon**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
-Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Emoji…** for `emoji`. On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
+Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Icon…** for `icon` and `icon-colour` (projects and areas only). On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -136,10 +136,11 @@ a deadline after its goal's target date.
 Each project is a box. On the Mac it has a thin green frame; on the iPhone each group is one
 rounded card.
 
-- The **tile** on the left shows the project's own emoji, in a green frame. Until you pick one
-  it shows the project flag in a dashed frame. The frame is green while the project is running
-  or done, and grey when it is on hold, missed, dropped or archived. See **Your own emoji**
-  below.
+- The **tile** on the left shows the project's own icon on its colour. Until you pick one
+  it shows the project flag in a dashed frame. On **Automatic** the colour is green while the
+  project is running or done, and grey when it is on hold, missed, dropped or archived. A
+  project that still has an emoji from an earlier version shows that emoji in a green frame
+  until you choose an icon for it. See **Your own icon** below.
 - The **name**, on up to two lines.
 - **What it needs**, in one line:
   - **Next:** and the task to do next. That is the open task marked `#next`, or else the first
@@ -198,24 +199,34 @@ number when a project in it has one of these. "No next action" is never orange.
 The number beside **Projects** in the sidebar counts every project except those marked Done,
 Missed, Dropped or archived. A project on hold is counted.
 
-### Your own emoji
+### Your own icon
 
-Each project can have its own emoji, shown in its tile in the list. Open the project and press
-**Emoji…** at the top, right after **Projects**. A small list opens with 24 emoji in four rows:
-**Make and build**, **Apps and screens**, **Body and sport**, and **Home, boat and travel**.
-Press one and it is set.
+Each project and each area can have its own icon. Open the project or the area and press **Icon…** at the top, right after the kind of note (**Projects** or **Areas**). A picker opens. From the top:
 
-- **Or type any emoji** takes any other emoji. On the Mac, Control-Command-Space shows every
-  emoji there is. Only the first emoji you type is kept; words are not.
-- Once an emoji is set, the button at the top of the project shows the emoji itself instead of
-  **Emoji…**. Press it to pick another one, or to reach **Remove emoji**, which takes it away
-  again. The tile then shows the project flag in a dashed frame.
-- The emoji is kept in the note's settings block as `emoji: 🎒`, so it travels with the note to
-  the iPhone and back. You can also write that line yourself.
+- **Colour**: **Automatic** and fifteen colours. **Automatic** is the colour of the kind of note: green for a project, pink for an area. Each colour is a small tile with the icon on it, so you see how it will look.
+- **Icon**: a field called **Find an icon**, then **No icon**, then the icons in groups. First about 130 hand-drawn icons (**Hand-drawn · Travel**, **Hand-drawn · Outdoors** and so on), then about 300 of Apple's symbols (**Apple symbols · Work and projects** and so on).
+- **Find an icon** searches the names and some words that are not shown. English and Swedish words both work: **bike** and **cykel** find the same icon.
+- One press on a colour, an icon or **No icon** is a choice. It is written to the note at once and the picker closes. To change the colour and the icon, open the picker twice.
+- **Cancel** closes the picker and writes nothing. So does the Escape key on the Mac, when the search field is empty. (While something is typed there, Escape empties the field first.)
+- **No icon** takes the icon away. The colour you chose stays, and the tile shows the first letter of the name on it. Press **Automatic** to take the colour away as well.
+
+Where the icon is shown:
+
+- In the project's tile in the **Projects** list, and in front of each project on its area's page.
+- At the left of an area's row in the **Areas** list, and in front of a sub-area's row on its parent's page.
+- In the button at the top of the note itself, which says **Icon…** until something is chosen.
+
+An icon replaces an emoji:
+
+- A project that already has an emoji from an earlier version keeps showing that emoji. Nothing is changed in a note you do not touch.
+- When you choose an icon, a colour or **No icon** for that project, the old `emoji:` line is removed from the note. The picker is the only button that gives a project a mark.
+- Pressing **Automatic** when the colour is already **Automatic** changes nothing, so the old emoji stays.
+
+The choice is kept in the note's settings block, for example `icon: hand:bike` and `icon-colour: blue`. With **Automatic** there is no `icon-colour` line. You can also write the lines yourself: `hand:` and the icon's key, or `symbol:` and the name of an Apple symbol, for example `symbol:figure.run`. A line PARAGON cannot read, for example an icon from a newer version, stays in the note and is shown as a dashed circle. Goals, aspirations and resources have no icon.
 
 ## An area's page
 
-Open an area, for example Health. Above its text there is a part that shows what the area holds and whether work in it is moving.
+Open an area, for example Health. Above its text there is a part that shows what the area holds and whether work in it is moving. Press **Icon…** at the top of the note to give the area its own icon and colour; see **Your own icon**.
 
 - **Standard**: at the very top, the first sentence of what "good" looks like in this area, for example "Three runs a week, one rest day, a yearly check-up." It shows two lines at most. When there is more, it ends with "…".
 - Press **Standard…** and the whole text opens right there. Write it, then press **Save**. **Cancel** closes the box and writes nothing.
@@ -226,7 +237,7 @@ Open an area, for example Health. Above its text there is a part that shows what
 - If the standard was changed on your other device while the box was open, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
 - **Weekly bars**: eight small pink bars, the tasks finished in each of the last eight weeks, in the area itself and in every project in it. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". A week is Monday to Sunday. When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
 - **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list. The number beside the heading says how many.
-- Each project shows its tile with its emoji, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, or **No tasks yet**.
+- Each project shows its tile with its icon, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, or **No tasks yet**.
 - "2 overdue" is red: open tasks in the project whose date has passed. The deadline is red once it has passed, and grey before that. A project on hold says **On hold**.
 - Projects that are done, missed, dropped or archived are not listed. One line under the list says how many there are.
 - **Press a project** to open it. To come back to the area, press ⌃⌘← on the Mac, or the back arrow at the top on the iPhone.

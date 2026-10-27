@@ -14,6 +14,14 @@ packages:
     # The package lives in its own folder: Xcode cannot reference a local
     # package that sits in the same directory as the .xcodeproj.
     path: Core
+  # The icons every AMS app shares (build 284): hand-drawn icons, Apple symbols, colours, a
+  # search and a picker. Used for projects and areas. **Pinned to one commit, not a version**:
+  # the tag 1.0.0 could not be pushed from the session that wrote this, and a pin is what keeps
+  # a new icon from appearing in the app by surprise anyway. Only the Paragon target uses it;
+  # not the share extension, not the widgets, and not ParagonCore, which stays free of it.
+  AMSIcons:
+    url: https://github.com/marsch124/AMS-Icons
+    revision: 43cbcb1f0ab543070cdbc4b8879c4fa00cba6e57
 
 targets:
   Paragon:
@@ -32,6 +40,8 @@ targets:
     dependencies:
       - package: ParagonCore
         product: ParagonCore
+      - package: AMSIcons
+        product: AMSIcons
       - target: ParagonShare
         platformFilter: iOS
       # Both platforms since build 178. It was iPhone only in 174, and he then said he uses

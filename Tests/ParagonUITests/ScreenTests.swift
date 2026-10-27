@@ -22,7 +22,7 @@ import AppKit
 /// on the Mac, and on both `note.<path>`, `inbox.<line>`, `note.editor`, `list.newNote`,
 /// `new.<thing>`, `sheet.action` / `sheet.cancel`, `capture.open`, `capture.text`,
 /// `capture.save`, `map.<path>`, `projects.group.<id>`, `project.next.<path>`,
-/// `project.tile.<path>`, `note.emoji`, `emoji.choice.<emoji>`, `task.tick.<title>`,
+/// `project.tile.<path>`, `note.icon`, `icon.search`, `icon.choice.<stored>`, `task.tick.<title>`,
 /// `projects.band`, `project.weekly.<path>`, `focus.start`, `focus.bar`, `focus.pause`,
 /// `focus.stop`, `new.inArea`, `note.area`, and on the Mac `focus.menuBar` (a status item).
 /// The vault is `TestVault` in the app, which is where its titles live.
@@ -934,57 +934,6 @@ final class ScreenTests: XCTestCase {
         return items.isEmpty ? "none" : items.joined(separator: ", ")
     }
     #endif
-
-    /// A project's own emoji (build 254): **Emoji…** at the top of the project, one choice in
-    /// its list, and `emoji: 🎒` in the settings block. Pressed the way the time button is
-    /// (build 249): found among buttons, pressed at the middle of its frame. On the Mac the
-    /// Projects list is then asked whether its tile shows the emoji; the phone would have to
-    /// find its way back out of the note first, and that is not what this test is about.
-    func testAProjectCanBeGivenAnEmoji() {
-        go(to: .projects)
-
-        let row = element("note.Projects/Plan the Kungsleden trip.md")
-        XCTAssertTrue(row.waitForExistence(timeout: 20),
-                      "The Projects list does not show the test project.")
-        row.press()
-
-        let editor = element("note.editor")
-        XCTAssertTrue(editor.waitForExistence(timeout: 20),
-                      "The note opened without its editor.")
-
-        let chip = app.buttons.matching(identifier: "note.emoji").firstMatch
-        XCTAssertTrue(chip.waitForExistence(timeout: 10),
-                      "The project has no Emoji… button at the top. On screen: \(visibleTexts())")
-        let chipFrame = chip.frame
-        guard Self.isOnScreen(chipFrame) else {
-            XCTFail("The Emoji… button has no place on screen: \(chipFrame)")
-            return
-        }
-        press(chip, at: chipFrame)
-
-        let backpack = app.buttons.matching(identifier: "emoji.choice.\u{1F392}").firstMatch
-        let opened = backpack.waitForExistence(timeout: 10)
-        XCTAssertTrue(opened,
-                      "Pressing Emoji… did not show the choices. On screen: \(visibleTexts())")
-        guard opened else { return }
-        let choiceFrame = backpack.frame
-        if Self.isOnScreen(choiceFrame) {
-            press(backpack, at: choiceFrame)
-        } else {
-            backpack.press()
-        }
-
-        XCTAssertTrue(editorHolds(editor, "emoji: \u{1F392}", within: 10),
-                      "The note's settings block does not carry the emoji: \(String(((editor.value as? String) ?? "").prefix(200)))")
-
-        #if os(macOS)
-        go(to: .projects)
-        let tile = element("project.tile.Projects/Plan the Kungsleden trip.md")
-        let shown = expectation(for: NSPredicate(format: "label == %@", "\u{1F392}"), evaluatedWith: tile)
-        XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed,
-                       "The project's tile in the list does not show the emoji. It says: \(tile.label)")
-        #endif
-    }
 
     // MARK: The Mac only — three columns and a menu bar, which the phone does not have
 
@@ -2047,6 +1996,113 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(app.windows.firstMatch.exists, "The app has no window after the link.")
     }
     #endif
+
+    // MARK: An icon for a project (build 284)
+
+    /// A project's own icon (build 284): **Icon…** at the top of the project opens the AMS-Icons
+    /// picker, **Cancel** writes nothing, and one icon pressed writes `icon: hand:bike` and takes
+    /// any old `emoji:` line away. It replaces build 254's emoji test, which pressed a control
+    /// that no longer exists; the idea is the same — the editor holds the line.
+    ///
+    /// **The picker's own names are the way in** (`icon.search`, `icon.cancel`,
+    /// `icon.choice.<stored>`), and nothing was added to the package for the test. Everything is
+    /// found among buttons and pressed at its frame (build 249). **The Bike card is brought to
+    /// the top by typing `bike`** instead of scrolling for it: the hand-drawn icons run to more
+    /// than a hundred cards, and the Sport heading is far below the first screen. On the phone
+    /// the keyboard is then closed with its Search key, or the card could lie under it; the
+    /// key is pressed only if it is there, so a keyboard that is already gone fails nothing.
+    ///
+    /// Both platforms. The phone stops at the editor and the chip: finding its way back out of
+    /// a pushed note is not what the test is about (build 254). On the Mac the Projects list's
+    /// tile is asked as well, and says the icon's own name.
+    func testAProjectCanBeGivenAnIcon() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Projects list does not show the test project.")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The note opened without its editor.")
+
+        // Cancel first: the picker opens, and closing it without a choice writes nothing.
+        XCTAssertTrue(openTheIconPicker(),
+                      "Pressing Icon… did not show the picker. On screen: \(visibleTexts())")
+        let cancel = app.buttons.matching(identifier: "icon.cancel").firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
+                      "The icon picker has no Cancel button. On screen: \(visibleTexts())")
+        if cancel.isHittable { cancel.press() } else { cancel.pressCentre() }
+        XCTAssertTrue(iconPickerCloses(),
+                      "Cancel was pressed and the icon picker stayed open.")
+        XCTAssertTrue(editorLacks(editor, "icon:", within: 10),
+                      "Cancel wrote an icon line anyway: \(String(((editor.value as? String) ?? "").prefix(200)))")
+
+        // Then choose one.
+        XCTAssertTrue(openTheIconPicker(),
+                      "Pressing Icon… the second time did not show the picker. On screen: \(visibleTexts())")
+        let search = element("icon.search")
+        if search.isHittable { search.press() } else { search.pressCentre() }
+        search.typeText("bike")
+        #if os(iOS)
+        let searchKey = app.keyboards.buttons["Search"]
+        if searchKey.exists { searchKey.tap() }
+        #endif
+
+        let bike = app.buttons.matching(identifier: "icon.choice.hand:bike").firstMatch
+        XCTAssertTrue(bike.waitForExistence(timeout: 10),
+                      "Searching for bike did not show the Bike icon. On screen: \(visibleTexts())")
+        for _ in 0..<6 where !bike.isHittable {
+            scrollTheIconPicker()
+        }
+        if bike.isHittable { bike.press() } else { bike.pressCentre() }
+
+        XCTAssertTrue(iconPickerCloses(),
+                      "An icon was pressed and the picker stayed open. On screen: \(visibleTexts())")
+        XCTAssertTrue(editorHolds(editor, "icon: hand:bike", within: 10),
+                      "The note's settings block does not carry the icon: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(editorLacks(editor, "emoji:", within: 10),
+                      "An old emoji line is still in the note beside the icon.")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Bike") },
+                      "The Icon… button does not show the choice. It says: \(wordsOfEvery("note.icon"))")
+
+        #if os(macOS)
+        go(to: .projects)
+        let tile = element("project.tile.Projects/Plan the Kungsleden trip.md")
+        let shown = expectation(for: NSPredicate(format: "label == %@", "Bike"), evaluatedWith: tile)
+        XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed,
+                       "The project's tile in the list does not show the icon. It says: \(tile.label)")
+        #endif
+    }
+
+    /// Presses **Icon…** at the top of the open note and waits for the picker's search field.
+    private func openTheIconPicker() -> Bool {
+        let chip = app.buttons.matching(identifier: "note.icon").firstMatch
+        guard chip.waitForExistence(timeout: 10) else { return false }
+        let frame = chip.frame
+        guard Self.isOnScreen(frame) else { return false }
+        press(chip, at: frame)
+        return element("icon.search").waitForExistence(timeout: 15)
+    }
+
+    /// The picker is gone once its search field is.
+    private func iconPickerCloses() -> Bool {
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("icon.search"))
+        return XCTWaiter().wait(for: [gone], timeout: 15) == .completed
+    }
+
+    /// One scroll inside the open picker, for a card that is not yet in view. The Mac scrolls
+    /// the picker itself (it is a popover, not a window of the app); the phone swipes the sheet.
+    private func scrollTheIconPicker() {
+        #if os(macOS)
+        let picker = element("icon.picker")
+        let area = picker.exists ? picker : app.popovers.firstMatch
+        area.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).scroll(byDeltaX: 0, deltaY: -300)
+        #else
+        app.swipeUp()
+        #endif
+    }
 }
 
 extension XCUIElement {
