@@ -32,7 +32,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Standard** — what "good" looks like in an area, like "Three runs a week, one rest day, a yearly check-up." It is shown at the top of the area's page and under the area's name in step 6 of the **Weekly review**. Write it with **Standard…** (or **Write the standard…** when none is written yet). It is kept under `## Standard` in the note's text.
 - **No standard written yet** — on an area: nothing is written under **Standard**. The question the Area template puts there does not count as a standard.
 - **Resource** — reference material you want to keep, like a packing list. Shown in blue.
-- **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way.
+- **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way. A project or goal that was Done, Missed or Dropped keeps that word and the day it ended.
 - **Daily note** — one note for each day. It holds that day's plan, tasks and **Looking back**.
 - **Weekly note** — one note for each week.
 - **Settings block** — the lines between the two `---` at the top of a note, such as `type: project` and `tags: [sport]`. The buttons at the top of the note write into it. The **Settings block** line above the text folds it away.
@@ -82,7 +82,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **First** — a mark you put on an action in **Close the day**. The next morning, **Start the day** shows it first in its list, above **Overdue**.
 - **Morning reminder** — a notification every morning, at a time you choose in **Settings**. Press it to open **Start the day**.
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
-- **Looking back** — the part of a daily note where that one line is kept.
+- **Looking back** — the part of a daily or weekly note where one line about the day or the week is kept.
 - **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
 
 ## Getting things in
@@ -98,6 +98,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Looked at** — when you last looked at an aspiration, a goal or an area, like **Looked at 12 days ago** or **Never looked at**. It is a button at the top of the note. Press it, then **I looked at it today**, and today's date is kept as `reviewed:` in the settings block.
 - **I looked at it today** — says you have just looked at a note, so it leaves **Due for a look** until it is due again. It is in the box the **Looked at** button opens, on the right-click menu of a row in **Aspirations**, **Goals** and **Areas**, and in the **Weekly review**.
 - **Look back at last week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended. The heading names the week it shows: **last week**, **this week**, or a week number.
+- **How was the week?** — a box in step 7 of the **Weekly review**. You write a line or two about the week, and it is kept in that week's note under **Looking back**. It is not the same as the two questions under **Review** that a weekly note already has.
 - **Map** — a drawing of what serves what: aspirations at the top, then goals, areas and projects.
 - **All actions** — every open task in the vault, with tick boxes to narrow the list.
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks.

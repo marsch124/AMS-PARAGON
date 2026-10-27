@@ -12,7 +12,13 @@ import Foundation
 ///
 /// **It is prose, and nothing else.** No parser reads it, no screen counts it, and it never
 /// becomes a task or a block. That is deliberate: the value of the line is that you wrote it,
-/// not that the app can do something with it. `CloseDayView` is the only thing that writes it.
+/// not that the app can do something with it. `CloseDayView` writes it for a day.
+///
+/// **Build 272: a weekly note can carry it too** (**How was the week?** in step 7 of the
+/// Weekly review). Nothing here knows which kind of note it is given. In a weekly note made
+/// from the Weekly template the section lands at the end, below the template's own `## Review`
+/// and its two questions, which are never touched. That is the point of using this heading:
+/// his words and the template's questions can never be taken for each other.
 public enum DayLog {
     public static let heading = "## Looking back"
 
@@ -70,6 +76,28 @@ public enum DayLog {
         return updated
     }
 
+    /// The words to write, given what he typed, what the field showed when he began, and what
+    /// the note holds now (build 261's rule, in one tested place since build 272).
+    ///
+    /// **A line on file that differs from what the field showed is never replaced or removed
+    /// unseen.** With the note still coming from iCloud the field opens empty, and the line may
+    /// have been written on the other device. It is kept, and his new words go below it. When
+    /// the note holds what the field showed, his words are simply what is written. Both
+    /// **Close the day** (a day) and **How was the week?** (a week) ask this.
+    ///
+    /// **A space at the edge of the line on file is not a difference.** `text(in:)` drops blank
+    /// lines at the ends but keeps the spaces on the first and last text line, and the field's
+    /// words are trimmed. A line typed by hand as `A calm week. ` would otherwise look like a
+    /// line the field never showed: emptying the field could not remove it, and an edit would
+    /// be written below it as a second line.
+    public static func words(typed: String, shown: String, onFile: String) -> String {
+        let clean = typed.trimmingCharacters(in: .whitespacesAndNewlines)
+        let before = shown.trimmingCharacters(in: .whitespacesAndNewlines)
+        let disk = onFile.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !disk.isEmpty, disk != before else { return clean }
+        return (clean.isEmpty || onFile.contains(clean)) ? onFile : onFile + "\n\n" + clean
+    }
+
     private static func withoutEdgeBlanks(_ lines: [String]) -> [String] {
         var kept = lines
         while kept.first?.trimmingCharacters(in: .whitespaces).isEmpty == true { kept.removeFirst() }
@@ -79,7 +107,7 @@ public enum DayLog {
 }
 
 public extension Note {
-    /// The line about this day, or an empty string.
+    /// The line about this day (or, in a weekly note, this week), or an empty string.
     var lookingBack: String { DayLog.text(in: self) }
 
     /// This note with that line in place. An empty string takes the section out.

@@ -506,7 +506,14 @@ public final class Vault {
     public func archive(_ note: Note) throws -> Note {
         guard note.kind != .archive, note.kind != .inbox, note.kind != .daily else { return note }
         var archived = note
-        archived.frontmatter.set("status", "archived")
+        // Build 272: an ending is a fact about the note, and archiving only puts it away. A
+        // note that is Done, Missed or Dropped keeps its `status:` line (whatever spelling it
+        // has) and its `ended:` day; before this, `status: archived` replaced the word, so an
+        // archived Done project stopped counting for its goal and lost the day it ended. Any
+        // other status (active, on hold, none) is written as `archived`, as it always was.
+        if !note.noteStatus.isEnded {
+            archived.frontmatter.set("status", NoteStatus.archived.rawValue)
+        }
         archived.frontmatter.set("archived", DateOnly.today().description)
         archived.frontmatter.set("sync", "false")
         var target = "\(config.archiveFolder)/\(note.relativePath)"

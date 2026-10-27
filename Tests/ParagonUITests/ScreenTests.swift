@@ -1284,11 +1284,31 @@ final class ScreenTests: XCTestCase {
         for name in Self.way(to: place) {
             let step = element(name)
             XCTAssertTrue(step.waitForExistence(timeout: 20), "\(name) is not on screen. On screen: \(visibleTexts())")
+            #if os(macOS)
+            bringIntoView(step)
+            #endif
             step.press()
         }
     }
 
     #if os(macOS)
+    /// A row of the sidebar that has been scrolled out of the window reports an empty frame,
+    /// and the Mac refuses to click it ("Not hittable", build 271's first CI run): choosing a
+    /// row far down the list, such as **Areas**, scrolls the list, and a second `go(to:)` in
+    /// the same test then looks for a row above it. Nothing is done when the row is already
+    /// drawn inside the window, so a test that was green keeps its exact steps. Otherwise the
+    /// left strip of the window, where the sidebar is, is scrolled one way for four tries and
+    /// then the other way, and the row is looked at again after every step.
+    private func bringIntoView(_ row: XCUIElement) {
+        let window = app.windows.firstMatch
+        for attempt in 0..<12 {
+            let frame = row.frame
+            if !frame.isEmpty && window.frame.contains(frame) { return }
+            let spot = window.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
+            spot.scroll(byDeltaX: 0, deltaY: attempt < 4 ? 400 : -400)
+        }
+    }
+
     /// The one thing that is always on screen once a vault is open.
     private static let home = "sidebar.Inbox"
     /// What the home has to show. Four rows from different groups of the sidebar.
@@ -1952,6 +1972,49 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(becomes(within: 10) { self.words(of: line).contains("Three walks a week.") },
                       "Step 6 shows the wrong words for Health's standard: \(words(of: line))")
         #endif
+    }
+
+    /// **How was the week?** (build 272): step 7's box writes one line into the shown week's
+    /// note. The week step 7 opens on depends on the day the test runs (build 263), so the test
+    /// does not ask which week; it asks that the words are kept. The box is pressed at its frame
+    /// and found among buttons (build 249). **Done** is pressed rather than Return: a field with
+    /// room for two lines may take Return as a new line on the phone, and **Done** sits above
+    /// the field, clear of the keyboard. The field closing is the sign the words were taken, and
+    /// the box's own label — one sentence on both platforms (build 253) — is the proof they were
+    /// kept. The test vault has no weekly note (build 221's fixture), so this also makes one.
+    /// Taking the line away again is pinned in Core (`DayLogTests`), not here: selecting and
+    /// deleting text differs too much between the two platforms for a test that may not fail
+    /// for its own reasons (build 190).
+    func testTheWeekCanBeGivenALine() {
+        go(to: .review)
+        openReviewPart("7")
+        let box = reveal(app.buttons.matching(identifier: "review.weekLine").firstMatch)
+        XCTAssertTrue(box.exists, "Step 7 has no box called How was the week? On screen: \(visibleTexts())")
+        XCTAssertTrue(words(of: box).contains("not written yet"),
+                      "The box should start empty. It says: \(words(of: box))")
+        let frame = box.frame
+        guard Self.isOnScreen(frame) else {
+            XCTFail("The week box in step 7 has no place on screen: \(frame)")
+            return
+        }
+        press(box, at: frame)
+
+        let field = element("review.weekLine.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing the week box did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("A calm week")
+
+        let done = app.buttons.matching(identifier: "review.weekLine.done").firstMatch
+        XCTAssertTrue(done.waitForExistence(timeout: 10),
+                      "The open week box has no Done button. On screen: \(visibleTexts())")
+        if done.isHittable { done.press() } else { done.pressCentre() }
+
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The field in step 7 stayed open after Done. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { box.label.contains("A calm week") },
+                      "The line was written and the box does not show it. It says: \(box.label)")
     }
 }
 

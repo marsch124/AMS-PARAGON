@@ -52,7 +52,7 @@ struct WeekLookStep: View {
             ReviewPartHeading(title: heading, isOpen: $isOpen, part: "7")
         } footer: {
             if isOpen {
-                Text("Press a day's line to open that day's note. The arrows show earlier weeks.")
+                Text("Press a day's line to open that day's note. The arrows show earlier weeks. **How was the week?** keeps one line about the week in that week's note.")
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -79,6 +79,11 @@ struct WeekLookStep: View {
                 EveningLineRow(line: line)
             }
         }
+
+        // **Build 272: How was the week?** Under the days' lines, one for the week itself. It
+        // belongs to the week shown, so pressing ‹ gives it the older week's note.
+        WeekLineBox(week: shownWeek, line: look.line)
+            .padding(.vertical, 4)
 
         VStack(alignment: .leading, spacing: 8) {
             timerLine(look)
@@ -239,6 +244,179 @@ struct WeekLookStep: View {
         let count = model.notesWaitingForCloud.count
         let notes = count == 1 ? "1 note is" : "\(count) notes are"
         return "\(notes) still coming from iCloud, so these numbers may still grow."
+    }
+}
+
+/// **How was the week?** (build 272), the box under the evening lines in step 7. He said yes
+/// on the plan page (https://claude.ai/artifact/RyZxairjYDdB7KoxiuGZ3S, question 3): the words
+/// go into that week's note under `## Looking back`, the heading **Close the day** uses for a
+/// day, and not under the template's own `## Review`, whose two questions then can never be
+/// taken for his words.
+///
+/// Edited in place like the goal box in step 8 and **Calendar › Week**: press it, write, press
+/// **Done**. `DayLog` (Core, tested) owns the section, `AppModel.saveLookingBack(_:forWeek:
+/// shown:)` the three rules of writing it.
+///
+/// - **It belongs to the week shown.** Press ‹ and it is that older week's note; a half-typed
+///   line is dropped when the week changes.
+/// - **Empty words take the heading away again**, and make no weekly note when there is none.
+/// - **While the week's note is still coming from iCloud** the box says so in orange and cannot
+///   be pressed: "nothing written" is not something this device knows yet (build 100). A write
+///   that fails after the box was opened keeps it open with his words and the reason in it
+///   (builds 238, 261).
+///
+/// Untagged, like every row in the step (builds 71 to 74): it holds buttons of its own. The
+/// buttons in the editor are `.borderless`, or on the phone one press would press them all.
+struct WeekLineBox: View {
+    @EnvironmentObject private var model: AppModel
+    let week: WeekRef
+    /// What the week's note holds now: `WeekLook.line`.
+    let line: String
+    @State private var editing = false
+    @State private var draft = ""
+    /// What the box showed when typing began. `saveLookingBack` keeps a line on file that this
+    /// did not hold, instead of replacing it unseen (build 261's rule, `DayLog.words`).
+    @State private var shown = ""
+    /// Why the words could not be written, shown in the box beside them.
+    @State private var problem: String?
+    @FocusState private var focused: Bool
+
+    /// Written out: a struct with `private @State` properties does not offer its memberwise
+    /// initializer to other files (build 229).
+    init(week: WeekRef, line: String) {
+        self.week = week
+        self.line = line
+    }
+
+    private static let title = "How was the week?"
+    /// The review's own teal: looking back is the review's idea (build 223).
+    private var tint: Color { SidebarSection.review.tint }
+    private var hasLine: Bool { !line.isEmpty }
+    /// The week's note is on its way from iCloud, so an empty line is not known to be empty.
+    private var waiting: Bool { !hasLine && model.weeklyNoteIsWaitingForCloud(week) }
+    /// "last week", "this week", "week 41": the one place a week is named (build 264).
+    private var weekName: String { WeekLook.weekName(week, today: DateOnly.today()) }
+
+    private var restingText: String {
+        if hasLine { return line }
+        if waiting { return "The week's note is still coming from iCloud." }
+        return "Press to write a line about \(weekName)."
+    }
+
+    /// One sentence for a screen reader and for the screen test, on both platforms (builds 196,
+    /// 253).
+    private var spoken: String {
+        let what = hasLine ? line : (waiting ? "still coming from iCloud" : "not written yet")
+        return Self.title + ": " + what
+    }
+
+    var body: some View {
+        Group {
+            if editing {
+                editor
+            } else {
+                resting
+            }
+        }
+        // A different week is a different note: never carry half-typed words across.
+        .onChange(of: week) { _, _ in
+            editing = false
+            problem = nil
+        }
+    }
+
+    private var resting: some View {
+        Button {
+            draft = line
+            shown = line
+            problem = nil
+            editing = true
+            DispatchQueue.main.async { focused = true }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(Self.title)
+                    .font(.caption2.weight(.semibold))
+                    .textCase(.uppercase)
+                    .foregroundStyle(hasLine ? tint : Color.secondary)
+                Text(restingText)
+                    .font(hasLine ? .callout.weight(.semibold) : .callout)
+                    .foregroundStyle(hasLine ? Color.primary : (waiting ? Color.orange : Color.secondary))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(RoundedRectangle(cornerRadius: 10).fill(hasLine ? tint.opacity(0.10) : Color.clear))
+            .overlay(GoalBoxBorder(isSet: hasLine, tint: tint))
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .disabled(waiting)
+        .accessibilityLabel(spoken)
+        .accessibilityIdentifier("review.weekLine")
+        .help("Press to write a line about the week")
+    }
+
+    /// **Cancel and Done sit above the field, in the heading's own line**, not below it: with
+    /// the keyboard up on the phone the field is what the list scrolls into view, and a button
+    /// under it can end up beneath the keyboard (build 231).
+    private var editor: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(Self.title)
+                    .font(.caption2.weight(.semibold))
+                    .textCase(.uppercase)
+                    .foregroundStyle(tint)
+                    .lineLimit(1)
+                    .layoutPriority(-1)
+                Spacer(minLength: 8)
+                Button("Cancel") {
+                    editing = false
+                    problem = nil
+                }
+                .buttonStyle(.borderless)
+                .fixedSize()
+                .accessibilityIdentifier("review.weekLine.cancel")
+                Button("Done", action: save)
+                    .buttonStyle(.borderless)
+                    .fontWeight(.semibold)
+                    .fixedSize()
+                    .accessibilityIdentifier("review.weekLine.done")
+            }
+            TextField("One line, if you feel like it", text: $draft, axis: .vertical)
+                .lineLimit(1...5)
+                .textFieldStyle(.plain)
+                .focused($focused)
+                .submitLabel(.done)
+                .onSubmit(save)
+                .padding(8)
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
+                .accessibilityIdentifier("review.weekLine.field")
+            Text("Goes into the note for \(weekName), under **Looking back**.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let problem {
+                Text(problem)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// **Done saves; Cancel does not.** When the words cannot be written the box stays open
+    /// with them and says why (build 261): the week's note may be on its way from iCloud, and
+    /// closing would throw them away.
+    private func save() {
+        if let reason = model.saveLookingBack(draft, forWeek: week, shown: shown) {
+            problem = reason
+        } else {
+            problem = nil
+            editing = false
+        }
     }
 }
 

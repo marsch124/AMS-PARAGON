@@ -1,6 +1,13 @@
 import WidgetKit
 import SwiftUI
 import ParagonCore
+// The light and dark colours of `WidgetLook` are made with the platform's own colour type
+// (build 272). The widget builds for the iPhone and for the Mac, so each gets its own.
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
+#endif
 
 /// PARAGON on the iPhone's Home Screen and Lock Screen (build 174), and in the Mac's
 /// Notification Centre and on the Mac desktop (build 178).
@@ -104,18 +111,39 @@ struct ParagonProvider: TimelineProvider {
 /// `SidebarSection`**, so these are written out. That is a real risk of drift, and the comment
 /// is the guard: the values match `Assets.xcassets` and `ChainSymbol`, and a change to either
 /// belongs here in the same build — the lesson build 168 paid for.
+///
+/// **Build 272: every value was checked against the catalogue, and four had drifted.** The
+/// goal gold was #A8781C (the catalogue's `GoalTint` is #A7811A), the project green #2E7A4F
+/// (`ProjectTint` is #2E7D5B), and the area and resource colours were a shade off as well. All
+/// of them were one value used in light and dark mode, while the catalogue has a lighter
+/// colour for dark mode. Each line below now carries both values, and the comment at the end
+/// of the line names the colour set it copies, in the app's own spelling. **A test in
+/// `Core/Tests` (`WidgetLookTests`) reads this table and the catalogue and fails when a value
+/// differs**, so the next drift is caught in CI and not in a screenshot.
+///
+/// Not carried: the deeper gold of an aspiration (`AspirationTint`). The snapshot says whether
+/// an action serves a goal, not which kind of goal, so the widget draws both in `GoalTint`.
 enum WidgetLook {
-    static let goal = Color(red: 0.66, green: 0.47, blue: 0.11)
-    static let project = Color(red: 0.18, green: 0.48, blue: 0.31)
-    static let area = Color(red: 0.75, green: 0.38, blue: 0.56)
-    static let resource = Color(red: 0.20, green: 0.43, blue: 0.70)
+    static let goal = Color(lightHex: 0xA7811A, darkHex: 0xE5BE55)       // GoalTint
+    static let project = Color(lightHex: 0x2E7D5B, darkHex: 0x5FBF92)    // ProjectTint
+    static let area = Color(lightHex: 0xC2417C, darkHex: 0xF07FB2)       // AreaTint
+    static let resource = Color(lightHex: 0x2C6FB5, darkHex: 0x6FAEE8)   // ResourceTint
+    static let inbox = Color(lightHex: 0xC2701B, darkHex: 0xE8A053)      // InboxTint
+    static let calendar = Color(lightHex: 0x6B4EA8, darkHex: 0xA98FE0)   // CalendarTint
+    static let archive = Color(lightHex: 0x6E6E73, darkHex: 0x9A9AA2)    // ArchiveTint
     static let attention = Color.orange
 
+    /// The colour of each kind of note, as `ParaKind.tint` gives it in the app. All seven are
+    /// here because `symbol(forKind:)` below already knows all seven: a task in the Inbox note
+    /// used to get the Inbox's tray in the project green.
     static func tint(forKind raw: String) -> Color {
         switch raw {
         case "goal": return goal
         case "area": return area
         case "resource": return resource
+        case "inbox": return inbox
+        case "daily": return calendar
+        case "archive": return archive
         default: return project
         }
     }
@@ -131,6 +159,46 @@ enum WidgetLook {
         default: return "flag"
         }
     }
+}
+
+/// A colour with one value for light mode and another for dark, the way the app's asset
+/// catalogue gives it (build 272). The widget has no catalogue of its own yet, so the two
+/// values are written as the hexadecimal numbers the catalogue holds, and the system picks
+/// between them when it draws.
+extension Color {
+    init(lightHex light: UInt32, darkHex dark: UInt32) {
+        #if canImport(UIKit)
+        let provider: (UITraitCollection) -> UIColor = { traits in
+            WidgetLookHex.uiColor(traits.userInterfaceStyle == .dark ? dark : light)
+        }
+        self.init(uiColor: UIColor(dynamicProvider: provider))
+        #else
+        let provider: (NSAppearance) -> NSColor = { appearance in
+            let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            return WidgetLookHex.nsColor(isDark ? dark : light)
+        }
+        self.init(nsColor: NSColor(name: nil, dynamicProvider: provider))
+        #endif
+    }
+}
+
+/// The hexadecimal number the catalogue holds, as a colour in the same sRGB space.
+enum WidgetLookHex {
+    static func components(_ value: UInt32) -> (red: Double, green: Double, blue: Double) {
+        (Double((value >> 16) & 0xFF) / 255, Double((value >> 8) & 0xFF) / 255, Double(value & 0xFF) / 255)
+    }
+
+    #if canImport(UIKit)
+    static func uiColor(_ value: UInt32) -> UIColor {
+        let c = components(value)
+        return UIColor(red: CGFloat(c.red), green: CGFloat(c.green), blue: CGFloat(c.blue), alpha: 1)
+    }
+    #else
+    static func nsColor(_ value: UInt32) -> NSColor {
+        let c = components(value)
+        return NSColor(srgbRed: CGFloat(c.red), green: CGFloat(c.green), blue: CGFloat(c.blue), alpha: 1)
+    }
+    #endif
 }
 
 // MARK: - The line that is always there

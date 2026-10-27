@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 271
+    static let number = 272
 }
 
 @MainActor
@@ -2499,11 +2499,11 @@ final class AppModel: ObservableObject {
         do {
             let note = try vault.dailyNote(for: day)
             let onFile = note.lookingBack
-            var words = clean
-            if !onFile.isEmpty, onFile != before {
-                words = (clean.isEmpty || onFile.contains(clean)) ? onFile : onFile + "\n\n" + clean
-            }
-            guard onFile != words else { return nil }
+            // The rule for a line he never saw is `DayLog.words` (Core, tested), shared with
+            // the week's line since build 272.
+            let words = DayLog.words(typed: clean, shown: before, onFile: onFile)
+            guard onFile.trimmingCharacters(in: .whitespacesAndNewlines)
+                    != words.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
             guard save(note.settingLookingBack(words)) else {
                 return "Your words could not be saved. They are still here; press Done to try again."
             }
@@ -2511,6 +2511,53 @@ final class AppModel: ObservableObject {
             return nil
         } catch VaultError.notDownloadedYet {
             return "Today's note is still coming from iCloud. Your words are still here; press Done again in a moment."
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    // MARK: Looking back on a week (build 272)
+
+    // Reading the line needs no function here: step 7 reads it with the rest of the week, in
+    // `WeekLook.line` (Core, tested), which never writes — asking what a week says must not
+    // bring a weekly note into being, the rule `lookingBack(for:)` follows for a day.
+
+    /// Writes it, in the week's note under `## Looking back`, **after** the template's own
+    /// `## Review` and its two questions, which are never touched. The same three rules as
+    /// `saveLookingBack(_:for:shown:)`, because it is the same line in another kind of note:
+    /// - **Words for nothing make no note.** Nothing to say and no weekly note yet is nothing to
+    ///   do, and writing the same words twice is nothing to do either.
+    /// - **A line on file that `shown` did not hold is never replaced or removed unseen**
+    ///   (`DayLog.words`, Core, tested): it is kept and his new words go below it.
+    /// - **The reason comes back when the words could not be written**, and nil otherwise, so
+    ///   the box stays open with his words and says why — likeliest when the week's note is
+    ///   still coming from iCloud (build 238: a screen's messages stay on that screen).
+    ///
+    /// **An older week's note is made if it is missing, but only when there are words.** That is
+    /// what pressing ‹ in step 7 and writing a line there means.
+    func saveLookingBack(_ text: String, forWeek week: WeekRef, shown: String) -> String? {
+        flushPendingEdits()
+        guard let vault else { return nil }
+        let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let before = shown.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Nothing typed and nothing shown: nothing to write, even while the note is still coming.
+        guard !clean.isEmpty || !before.isEmpty else { return nil }
+        let existed = vault.weeklyNoteExists(for: week)
+        guard !clean.isEmpty || existed else { return nil }
+        do {
+            let note = try vault.weeklyNote(for: week)
+            let onFile = note.lookingBack
+            let words = DayLog.words(typed: clean, shown: before, onFile: onFile)
+            guard onFile.trimmingCharacters(in: .whitespacesAndNewlines)
+                    != words.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
+            // `save` loads the notes again by itself when the note is one it did not have yet.
+            guard save(note.settingLookingBack(words)) else {
+                return "Your words could not be saved. They are still here; press Done to try again."
+            }
+            return nil
+        } catch VaultError.notDownloadedYet {
+            let name = WeekLook.weekName(week, today: DateOnly.today())
+            return "The note for \(name) is still coming from iCloud. Your words are still here; press Done again in a moment."
         } catch {
             return error.localizedDescription
         }

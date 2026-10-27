@@ -131,12 +131,19 @@ public struct WeekLook: Equatable, Sendable {
     /// Projects whose `ended:` day falls in the week (build 262), oldest first. Only those that
     /// say how they ended: an archived project has lost that word.
     public var endedProjects: [EndedProject]
+    /// What he wrote about the week itself (build 272, **How was the week?**): the text under
+    /// `## Looking back` in the week's note, the same heading **Close the day** uses for a day.
+    /// "" when nothing is written — or when the week's note is not on this device yet, which
+    /// the view tells apart through `AppModel.weeklyNoteIsWaitingForCloud`.
+    public var line: String
 
-    public init(week: WeekRef, goal: String?, days: [DayRecord], endedProjects: [EndedProject]) {
+    public init(week: WeekRef, goal: String?, days: [DayRecord], endedProjects: [EndedProject],
+                line: String = "") {
         self.week = week
         self.goal = goal
         self.days = days
         self.endedProjects = endedProjects
+        self.line = line
     }
 
     /// Every task ticked off in the week.
@@ -221,6 +228,8 @@ public extension NoteIndex {
         // no ties left but the title — written out so it never depends on the order of `notes`.
         ended.sort { $0.ended != $1.ended ? $0.ended < $1.ended
                                           : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
-        return WeekLook(week: week, goal: weekGoal(for: week), days: days, endedProjects: ended)
+        // One reader for the week's own line, the one the days use: `Note.lookingBack`.
+        return WeekLook(week: week, goal: weekGoal(for: week), days: days, endedProjects: ended,
+                        line: weeklyNote(for: week)?.lookingBack ?? "")
     }
 }

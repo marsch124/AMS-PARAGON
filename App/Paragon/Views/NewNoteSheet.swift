@@ -383,13 +383,66 @@ struct NewNoteSheet: View {
 
     /// Makes the aspiration or the goal and hands back its **title**, which is what a `goal:`
     /// line carries and what `goalOptions` uses as its value — so the two cannot drift.
-    private func makeGoal(named name: String, horizon: GoalHorizon) -> String? {
+    ///
+    /// **Build 272: the name is checked first, and every reason is said inside the popover.**
+    /// A name already in use chooses that goal; before, `makeNoteQuietly` raised an alert
+    /// behind the popover (builds 238 and 246), and for a goal of the *other* kind — the two
+    /// share the `Goals` folder, so the file name is taken — it did that every time.
+    private func makeGoal(named name: String, horizon: GoalHorizon) -> PickerChip.MakeOutcome {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return nil }
-        guard let note = model.makeNoteQuietly(kind: .goal, title: trimmed,
-                                               extraFrontmatter: [("horizon", horizon.rawValue)])
-        else { return nil }
-        return note.title
+        guard !trimmed.isEmpty else { return .problem("Write a name first.") }
+        let check = ServingNote.check(goalNamed: trimmed, horizon: horizon, among: model.notes)
+        if case .choose(let taken) = check { return .chosen(taken.title) }
+        if let words = nameProblem(check) { return .problem(words) }
+        do {
+            guard let note = try model.makeNoteSayingWhy(kind: .goal, title: trimmed,
+                                                         extraFrontmatter: [("horizon", horizon.rawValue)])
+            else { return .problem("No folder of notes is open.") }
+            return .chosen(note.title)
+        } catch {
+            return .problem(makeProblem(error, name: trimmed))
+        }
+    }
+
+    /// What the box says when a name cannot be used. Nil for the two answers that need no
+    /// words (`free`, and `choose`, which picks the note). Plain sentences, and the second
+    /// one says *why* the note is not simply picked.
+    private func nameProblem(_ check: NameCheck) -> String? {
+        switch check {
+        case .free, .choose:
+            return nil
+        case .otherKind(let note):
+            return "\u{201C}\(note.displayTitle)\u{201D} is already \(kindWords(of: note)). Use another name."
+        case .ended(let note):
+            return "\u{201C}\(note.displayTitle)\u{201D} is already \(kindWords(of: note)). "
+                + "It is \(note.noteStatus.label.lowercased()), so it is not in the list. Use another name."
+        }
+    }
+
+    /// "an area", "an aspiration" or "a goal with a date": the words the rest of the app uses
+    /// (`GoalWording`), with the article.
+    private func kindWords(of note: Note) -> String {
+        if note.kind == .area { return "an area" }
+        return (note.horizon ?? .year) == .life ? "an aspiration" : "a goal with a date"
+    }
+
+    /// Why the vault would not make the note, in words for the box (the same three reasons
+    /// **Add a project…** gives). `makeNoteQuietly` put them in an alert instead.
+    private func makeProblem(_ error: Error, name: String) -> String {
+        if let vaultError = error as? VaultError {
+            switch vaultError {
+            case .noteAlreadyExists:
+                // A note still coming from iCloud is not in the list yet, so only the vault
+                // can say the name is taken.
+                return "\u{201C}\(name)\u{201D} is already in the folder. It may still be coming from iCloud. "
+                    + "Use another name."
+            case .invalidTitle:
+                return "That name cannot be used for a file. Use letters and numbers."
+            default:
+                break
+            }
+        }
+        return error.localizedDescription
     }
 
     /// **`NoteIndex` decides what is in these lists and what order they come in**, so this
@@ -435,17 +488,23 @@ struct NewNoteSheet: View {
 
     /// Makes the area without leaving this screen, and hands back the title its `area:` line
     /// will carry — the same value `areaOptions` uses, so the new one is chosen at once.
-    private func makeArea(named name: String) -> String? {
+    private func makeArea(named name: String) -> PickerChip.MakeOutcome {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return nil }
+        guard !trimmed.isEmpty else { return .problem("Write a name first.") }
         // A name already in use chooses that area instead of failing: `makeNoteQuietly` would
-        // raise an alert behind this sheet and its popover (builds 238 and 246), and the box
-        // has no line to say so in. Found by the review of build 269.
-        if let taken = ServingNote.existing(named: trimmed, kind: .area, among: model.notes) {
-            return taken.displayTitle
+        // raise an alert behind this sheet and its popover (builds 238 and 246). Found by the
+        // review of build 269. **Build 272: every other reason is said in the popover too**,
+        // and an area that is put away is said to be, not chosen — the list does not offer it.
+        let check = ServingNote.check(areaNamed: trimmed, among: model.notes)
+        if case .choose(let taken) = check { return .chosen(taken.displayTitle) }
+        if let words = nameProblem(check) { return .problem(words) }
+        do {
+            guard let note = try model.makeNoteSayingWhy(kind: .area, title: trimmed)
+            else { return .problem("No folder of notes is open.") }
+            return .chosen(note.displayTitle)
+        } catch {
+            return .problem(makeProblem(error, name: trimmed))
         }
-        guard let note = model.makeNoteQuietly(kind: .area, title: trimmed) else { return nil }
-        return note.displayTitle
     }
 
     private var templateOptions: [ChipOption] {
@@ -630,6 +689,9 @@ private struct PickerChip: View {
     var identifier: String? = nil
     @State private var showing = false
     @State private var draft = ""
+    /// Why the last press made nothing (build 272). Said inside the popover, and cleared as
+    /// soon as the name changes or the list is opened again.
+    @State private var notice: String? = nil
 
     private var chosen: ChipOption? { options.first { $0.value == choice } }
 
@@ -650,10 +712,21 @@ private struct PickerChip: View {
     struct MakeAction: Identifiable {
         let title: String
         let symbol: String
-        /// Makes the thing and returns the value to choose, or nil if it could not.
-        let make: (String) -> String?
+        /// Makes the thing and says which value to choose, or why nothing was made.
+        let make: (String) -> MakeOutcome
 
         var id: String { title }
+    }
+
+    /// What pressing a make button came to (build 272). **A reason is handed back and said in
+    /// the popover**, never put in an alert: an alert raised behind a popover is two
+    /// presentations at once (builds 238 and 246), and the field keeps the owner's words so a
+    /// second try costs nothing — the shape `AddServingNoteBox` has had since build 269.
+    enum MakeOutcome {
+        /// Made, or already there: choose this value and close the list.
+        case chosen(String)
+        /// Nothing was made. Plain words for the popover.
+        case problem(String)
     }
 
     /// The options split under their headings, in the order they were handed over. Worked out
@@ -716,6 +789,8 @@ private struct PickerChip: View {
                     .textFieldStyle(.roundedBorder)
                     // Return makes the kind this list is for — the first button.
                     .onSubmit { if let first = make.actions.first { commitDraft(first) } }
+                    // A reason belongs to the name it was given for.
+                    .onChange(of: draft) { _, _ in notice = nil }
                 HStack(spacing: 6) {
                     ForEach(make.actions) { action in
                         Button { commitDraft(action) } label: {
@@ -733,6 +808,15 @@ private struct PickerChip: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+                // **Why nothing was made (build 272).** Orange is what this app means by "look
+                // at this" and never red (build 167); on its own line, like the hint (build 138).
+                if let notice {
+                    Text(notice)
+                        .font(.caption)
+                        .foregroundStyle(Color.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("pick.notice")
                 }
                 Divider()
             }
@@ -759,6 +843,7 @@ private struct PickerChip: View {
         .padding(14)
         // 320, not 290: his goal titles were cut at "Be open, curious and flexible…".
         .frame(width: 320)
+        .onAppear { notice = nil }
         .presentationCompactAdaptation(.popover)
         // **The gold line under the first row was macOS, not us (build 202).** A plain
         // Button inside a popover takes keyboard focus the moment it opens, and the ring is
@@ -772,10 +857,17 @@ private struct PickerChip: View {
     /// the window behind the sheet where it was.
     private func commitDraft(_ action: MakeAction) {
         let name = draft.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty, let value = action.make(name) else { return }
-        draft = ""
-        choice = value
-        showing = false
+        guard !name.isEmpty else { return }
+        switch action.make(name) {
+        case .chosen(let value):
+            notice = nil
+            draft = ""
+            choice = value
+            showing = false
+        case .problem(let words):
+            // The list stays open and the name stays in the field (build 272).
+            notice = words
+        }
     }
 
     private func row(_ option: ChipOption) -> some View {

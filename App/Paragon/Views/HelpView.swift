@@ -1,4 +1,5 @@
 import SwiftUI
+import ParagonCore
 
 /// The built-in manual: "How it works" and the version history, both markdown files in the
 /// app bundle (`Docs/`). Rendered with a small renderer that knows headings, bullets,
@@ -170,50 +171,8 @@ struct HelpDocument: View {
     }
 }
 
-enum HelpBlock {
-    case title(String)
-    case heading(String)
-    case subheading(String)
-    case paragraph(String)
-    case bullets([String])
-    case code(String)
-
-    static func parse(_ text: String) -> [HelpBlock] {
-        var blocks: [HelpBlock] = []
-        var paragraph: [String] = []
-        var bullets: [String] = []
-        var code: [String]?
-
-        func flush() {
-            if !paragraph.isEmpty { blocks.append(.paragraph(paragraph.joined(separator: " "))); paragraph = [] }
-            if !bullets.isEmpty { blocks.append(.bullets(bullets)); bullets = [] }
-        }
-
-        for rawLine in text.components(separatedBy: "\n") {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
-            if let open = code {
-                if line.hasPrefix("```") { blocks.append(.code(open.joined(separator: "\n"))); code = nil }
-                else { code?.append(rawLine) }
-                continue
-            }
-            if line.hasPrefix("```") { flush(); code = []; continue }
-            if line.isEmpty { flush(); continue }
-            if line.hasPrefix("# ") { flush(); blocks.append(.title(String(line.dropFirst(2)))); continue }
-            if line.hasPrefix("### ") { flush(); blocks.append(.subheading(String(line.dropFirst(4)))); continue }
-            if line.hasPrefix("## ") { flush(); blocks.append(.heading(String(line.dropFirst(3)))); continue }
-            if line.hasPrefix("- ") {
-                if !paragraph.isEmpty { blocks.append(.paragraph(paragraph.joined(separator: " "))); paragraph = [] }
-                bullets.append(String(line.dropFirst(2)))
-                continue
-            }
-            if !bullets.isEmpty { blocks.append(.bullets(bullets)); bullets = [] }
-            paragraph.append(line)
-        }
-        if let open = code { blocks.append(.code(open.joined(separator: "\n"))) }
-        flush()
-        return blocks
-    }
-}
+// `HelpBlock` and `HelpBlock.parse` live in Core (`Markdown/HelpBlock.swift`) since build 272,
+// where a hard-wrapped bullet is tested. This file only draws what they return.
 
 /// One `##` section of a help document: its heading and everything under it.
 struct HelpSection: Identifiable {
@@ -274,18 +233,5 @@ struct HelpParts {
         self.title = title
         self.intro = intro
         self.sections = sections
-    }
-}
-
-extension HelpBlock {
-    /// The words in this block, for searching.
-    var text: String {
-        switch self {
-        case .title(let text), .heading(let text), .subheading(let text),
-             .paragraph(let text), .code(let text):
-            return text
-        case .bullets(let items):
-            return items.joined(separator: "\n")
-        }
     }
 }

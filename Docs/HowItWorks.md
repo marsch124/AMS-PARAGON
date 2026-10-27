@@ -72,6 +72,8 @@ Under that, everything else a note can be given as it is made, drawn as chips yo
 
 Only the chips that apply to the kind you have chosen are shown.
 
+Two lists have a field at the top to make a new thing: **Serves…** (a goal or an aspiration) and **In area…** (an area). They work the same way. If a thing of that kind already has the name, it is chosen and nothing new is made. If the name cannot be used, the box says why in orange and your words stay in the field. For example, an aspiration and a goal with a date cannot have the same name, because both are kept in the **Goals** folder. And a goal that is Done, Missed, Dropped or archived, or an area that is archived, is not in the list, so it cannot be chosen: the box tells you, and you use another name.
+
 **Capture** is the last button. It turns the lower half into the quick capture screen, so the same screen takes a project and a line you must not forget. See **Quick capture** below; nothing about it changes, it is only reachable from here as well.
 
 ### Renaming a note
@@ -82,14 +84,14 @@ A name another note already uses is refused. In Apple Reminders the list follows
 
 ### Archive and Deleted
 
-- **Archive** moves a project, area, resource or goal to the Archive folder, marks it archived and stops syncing its tasks. Use it for finished work.
+- **Archive** moves a project, area, resource or goal to the Archive folder, marks it archived and stops syncing its tasks. Use it for finished work. A note that is **Done**, **Missed** or **Dropped** keeps that word and the day it ended, so an archived project that was done still counts for its goal. Any other note is marked archived.
 - **Delete** (⌘⌫, or right-click the note; long-press on the phone) moves a note to the **Deleted** section in the sidebar. Nothing is lost: each entry has **Put back**, which returns it to the folder it came from (or beside it, if that name has been taken since), and **Delete for good**. **Empty** in the toolbar clears the lot.
 - Deleted notes are kept for **30 days**, then cleared out on their own. They live in a hidden folder inside the vault, so the phone and the Mac behave the same way and nothing there syncs to Reminders. The Inbox note cannot be deleted.
 - Only whole notes go here. A task you delete from a list is gone from the note straight away.
 
 ### Which aspiration an area serves
 
-An area can say which aspiration it belongs to, and a project which goal it delivers: **Serves…** at the top of the note, or right-click it in the list. A project is offered the dated goals first, an area the aspirations first. That is what makes Endurance the home of "an endurance athlete still racing at seventy" rather than leaving the aspiration floating on its own. An area is allowed to serve nothing — it is a standard you keep up, not a path to an outcome — so the review never asks about an area without one.
+An area can say which aspiration it belongs to, and a project which goal it delivers: **Serves…** at the top of the note, or right-click it in the list. A project is offered the dated goals first, an area the aspirations first. The list is the same as on the **Goals** and **Aspirations** screens: only goals that are still running, in their order, and never the note itself. A goal the note already serves stays in the list even if it has ended, with its ending in brackets, such as (Done), so the tick is never lost. That is what makes Endurance the home of "an endurance athlete still racing at seventy" rather than leaving the aspiration floating on its own. An area is allowed to serve nothing — it is a standard you keep up, not a path to an outcome — so the review never asks about an area without one.
 
 ### Which area a project is in
 
@@ -869,7 +871,7 @@ Every step's heading is always on screen, even when the step is empty. Open a st
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last looked at it. **I looked at all of them** in the heading stamps today's date on every one. It is there while the step is open.
 6. **Look over the areas.** The same row for each area, with its Standard under its name: "Standard:" and the first sentence of what you wrote. When none is written, a dashed grey **No standard written yet** says so. Write or change it on the area's page. The point of the line is to check the area against it.
-7. **Look back at last week.** A whole week, from your own notes. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
+7. **Look back at last week.** A whole week, from your own notes, and a box where you can write one line about it. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
 8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
 
 Aspirations and goals with a date are two steps, not one. They are different questions asked at different speeds — the review rhythm says so, a goal every three months against an aspiration every six.
@@ -884,11 +886,16 @@ Steps 1 to 6 look forward. Step 7 looks back, at a whole week, and step 8 looks 
 - **Seven days, Monday to Sunday.** A green bar for the tasks you finished each day, with the number above it. A day with none shows a dash, never a zero. A day still to come shows nothing. A day whose note has not reached this device from iCloud yet shows a small cloud.
 - **How many tasks you finished** in the week.
 - **Your evening lines.** What you wrote under **How was today?** in **Close the day**, one line per day. Press a line and that day's note opens, with the review still beside it on the Mac.
+- **How was the week?** A box under the evening lines, for one line or two about the week itself. Press it, write, and press **Done**. **Cancel** throws the words away. The words go into that week's note, under a heading called **Looking back**, and nothing else in the note is changed. Empty words take the heading away again. If the week has no note yet, no note is made while the box is empty.
 - **The time on the focus timer**, added up from the **Worked** lines in your daily notes.
 - **Projects that ended in the week**, with how they ended: **Done**, **Missed** or **Dropped**. Press one to open it.
 - **What it served**: what the week's finished tasks went towards — an aspiration, a goal, an area, or, when a task's note serves none of these, that note itself — the same way **Close the day** shows a single day. Tasks ticked in the days' own notes are one row, **Daily notes**. At most six rows, then "…and 3 more".
 
 **Which week it shows.** On Monday and Tuesday it shows the week that has just ended, because that is when a week is looked back on. From Wednesday it shows the week you are in. The heading of the step says which, for example **7. Look back at last week**. The arrows **‹** and **›** beside the week's name move one week at a time, and the heading changes with them. **›** stops at the week you are in.
+
+**The box belongs to the week shown.** Press **‹** and it is that older week's note you are writing in. If that week has no note yet, one is made when you press **Done** with words in the box, and only then. While the week's note has not reached this device from iCloud, the box says so in orange and cannot be pressed. If the words cannot be written, the box stays open with them and says why.
+
+**Two places in a weekly note look back, and PARAGON writes in one of them.** A weekly note made from the Weekly template already has a heading called **Review** with two questions, **What went well?** and **What to change next week?**. They are yours to answer by hand, and PARAGON never changes them. **How was the week?** writes under its own heading, **Looking back**, at the end of the note, below those two questions. It is the same heading **Close the day** uses for a day.
 
 A task counts on the day of its `@done(…)` stamp — the day you ticked it. A task ticked without a stamp has no day and is not counted. While notes are still coming from iCloud, an orange line says so, because the numbers may still grow. When the week's own note has not arrived yet, the goal box says so in orange rather than "No goal was written".
 

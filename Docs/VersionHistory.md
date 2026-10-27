@@ -2,6 +2,73 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 272 · 27 October 2026
+
+**Build 271 was not sent to TestFlight.** One of my own checks on the Mac failed. The check looked for a row in the sidebar that had scrolled out of sight. The app was not at fault, and the check is mended. Everything that was new in build 271 is in this build as well: **What is next for this goal?**, the **Standard** of an area, and the widgets that follow every change. They are described under Build 271 below.
+
+**How was the week?** You said yes to a box for the week itself, under the lines from each day. It is in step 7 of the **Weekly review**.
+
+- Open **Weekly review** and open step 7 (**7. Look back at last week**, or **this week**, or a week number). Under the evening lines there is a new box: **How was the week?**
+- Press it. A field opens, with **Cancel** and **Done** above it. Write a line or two, then press **Done**. **Cancel** closes the box and keeps nothing.
+- The words go into that week's note, under a heading called **Looking back**. It is the same heading **Close the day** uses for a day. Nothing else in the note is changed.
+- A weekly note already has a heading called **Review**, with two questions: **What went well?** and **What to change next week?**. PARAGON does not write there. Your words go at the end of the note, below those two questions, so the two can never be mixed up.
+- The box belongs to the week that step 7 shows. Press **‹** to an older week, and you write in that older week's note.
+- If that week has no note yet, one is made when you press **Done** with words in the box. It is never made for an empty box.
+- Empty the field and press **Done**: your words and the heading **Looking back** are taken away again.
+- This also works for a line you typed by hand in the note with a space at its start or end. Before, the box could not take such a line away, and editing it left the old line below your new one. **Close the day** had the same fault and is mended too.
+- If the week's note is still coming from iCloud, the box says so in orange and cannot be pressed yet.
+- If the words cannot be written, the box stays open with your words in it, and says why.
+- If a line was written in that note on your other device while the box was open, it is kept. Your words go below it.
+- **Close the day** works as before. The rule for a line you have not seen is now kept in one place that both screens use, and it has tests of its own.
+
+**To try it:** open **Weekly review**, press the heading of step 7 to open it, and press **How was the week?**. Write "A calm week" and press **Done**. The box should show your words. Open **Calendar** › **Notes** and the weekly note for that week. At the very end it should have a heading **Looking back** with your words under it, and the two questions under **Review** should be as they were. Then press **How was the week?** again, empty the field, and press **Done**: the heading should be gone from the note.
+
+**Five small faults fixed.** None of them is a new screen. Each one was a place where two parts of PARAGON did not agree.
+
+**An archived Done project still counts for its goal.** Before, **Archive** replaced the word Done with Archived. A finished project then stopped counting for its goal, and it lost the day it ended.
+
+- **Archive** now moves the note to the Archive folder and leaves **Done**, **Missed** or **Dropped** as it is. The day it ended stays too. A project that is active or on hold is marked archived, as before.
+- The goal counts an archived Done project as finished again, and shows it with the other finished projects. The per cent on the goal is the same as before you archived the project.
+- A project that was **Missed** or **Dropped** stays that way when you archive it. It is not counted in the per cent of its goal, as before. The goal now lists it with its other ended projects.
+- Step 7 of the **Weekly review** lists such a project in the week it ended.
+- **Search** still finds it with the **Archived** box, and also with **Done**.
+- In the **Archive** list, such a note now shows **Done** where it showed **Archived**.
+- Notes you archived before this build are not changed.
+
+**The Serves… list offers the right goals.** On a project, an area or a goal, **Serves…** used to list every goal note. That included goals that were Done, Missed or Dropped, and it listed them in the order the notes sit in the vault.
+
+- It now lists only goals that are still running, in the same order as the **Goals** and **Aspirations** screens. It never lists the note itself.
+- A project sees the goals with a date first, then the aspirations. An area or a goal sees the aspirations first, then the goals with a date.
+- If the note already serves a goal that has ended, that goal stays in the list with its ending in brackets, for example "Walk the Kungsleden (Done)". The tick does not disappear.
+- This is the same list in the header button and on the right-click menus. The lists on the **New note** screen were already like this.
+
+**A name that is already used no longer opens an alert on the New note screen.** The lists **Serves…** and **In area…** have a field at the top to make a new goal, aspiration or area. Before, a name that was already used could open an alert behind the box.
+
+- If a goal, aspiration or area of the same kind already has the name, that one is chosen and nothing new is made.
+- An aspiration and a goal with a date cannot have the same name, because both are kept in the **Goals** folder. The box says so in orange, for example "Stay fit" is already an aspiration. Use another name. Your words stay in the field.
+- If the goal with that name is Done, Missed, Dropped or archived, or the area with that name is archived, it is not in the list. The box says so in orange too.
+- If the note cannot be made for another reason, the box says why in orange. There is no alert.
+- The orange line goes away when you change the name.
+- A project called Health does not stop you from making an area called Health.
+
+**The widgets use the colours of the app.** Four colours in the widget were a few shades off: the gold of goals, the green of projects, the pink of areas and the blue of resources.
+
+- They are now the same colours as in the app, in light mode and in dark mode. Before, the widget used the light mode colours in both.
+- A task that lives in the Inbox note, in a daily note or in an archived note now gets the colour of its kind in the widget. Before, it got the green of a project. Its symbol was already right.
+- The widgets that count how many things are waiting keep the same numbers and words. Their colours take the new shades too, in light and in dark mode.
+
+**Help shows a long bullet as one bullet.** Before, Help ended a bullet at the first line break in the file. A long bullet then showed as one short line, with the rest of it as a plain paragraph below.
+
+- A bullet now goes on over the lines that are indented under it. About 260 bullets in the manual and in this version history were shown wrongly before.
+- A bullet of one line looks the same as before.
+- Search in Help now also finds a phrase that goes from one line of a bullet to the next.
+
+**To try it:**
+- Archive a project that is **Done** and has a goal. Open the goal. It should still show the same per cent, and the project among the finished ones.
+- Open a project and press **Serves…**. The list should have no goal that is Done, and not the project itself.
+- Press **⌘N**, choose **Project**, press **Serves a goal…** and type the name of an aspiration you have, then press **Add goal**. The box should say in orange that it is already an aspiration. No alert should open.
+- Open **Help** › **Version history** and look at a long bullet. It should be one bullet.
+
 ## Build 271 · 27 October 2026
 
 **The widgets follow every change.** The first of two builds about widgets. Before this build, a widget did not change after you ticked a task until the next sync or the next time you started PARAGON. This build does not add a new widget. It makes the two widgets you have show changes sooner.

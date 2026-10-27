@@ -92,6 +92,43 @@ final class WeekLookTests: XCTestCase {
         XCTAssertNil(quiet.workedText)
     }
 
+    // MARK: The week's own line (build 272)
+
+    /// The week's note the way the vault makes it: the Weekly template, filled in.
+    private func weeklyNote() -> Note {
+        let text = Templates.fill(Templates.weekly, title: week.title, date: week.monday)
+        return Note(relativePath: "Calendar/\(week).md", kind: .daily, text: text)
+    }
+
+    /// What step 7's box shows comes from the week's note, under the same heading a day uses.
+    func testTheWeeksOwnLineComesFromItsNote() {
+        let written = weeklyNote().settingLookingBack("A calm week. The garden is done.")
+        XCTAssertEqual(NoteIndex(notes: [written]).weekLook(for: week).line,
+                       "A calm week. The garden is done.")
+    }
+
+    func testNoNoteAndNoLineAreBothAnEmptyLine() {
+        XCTAssertEqual(NoteIndex(notes: []).weekLook(for: week).line, "")
+        XCTAssertEqual(NoteIndex(notes: [weeklyNote()]).weekLook(for: week).line, "")
+    }
+
+    /// Another week's note says nothing about this one.
+    func testAnotherWeeksLineIsNotThisWeeksLine() {
+        let written = weeklyNote().settingLookingBack("A calm week.")
+        let before = WeekRef(year: 2026, week: 41)
+        XCTAssertEqual(NoteIndex(notes: [written]).weekLook(for: before).line, "")
+    }
+
+    /// A day's evening line and the week's own line are two places, and neither is read as the
+    /// other.
+    func testADaysLineIsNotTheWeeksLine() {
+        let monday = daily(12, "## Tasks\n\n## Looking back\n\nGood start.\n")
+        let look = NoteIndex(notes: [monday, weeklyNote().settingLookingBack("A calm week.")]).weekLook(for: week)
+        XCTAssertEqual(look.line, "A calm week.")
+        XCTAssertEqual(look.days[0].lookingBack, "Good start.")
+        XCTAssertEqual(look.evenings.map(\.day), [day(12)])
+    }
+
     // MARK: The goal and the endings
 
     func testTheGoalComesFromTheWeeklyNote() {

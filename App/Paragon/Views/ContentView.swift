@@ -840,25 +840,21 @@ struct NoteGoalOptions: View {
 
     private var current: Note? { note.goal.flatMap { model.index.goal(matching: $0) } }
 
-    /// Never the note itself: a goal cannot serve itself, and `setLink` refuses that without a
-    /// word, so offering it would be a line in the menu that does nothing (build 268, when this
-    /// menu reached a goal's own header).
-    private var aspirations: [Note] {
-        model.notes.filter { $0.kind == .goal && $0.horizon == .life && $0.relativePath != note.relativePath }
-    }
-    private var datedGoals: [Note] {
-        model.notes.filter { $0.kind == .goal && $0.horizon != .life && $0.relativePath != note.relativePath }
-    }
+    /// **`NoteIndex` decides what is in the lists and in what order** (build 272), as it does
+    /// for the New note screen's Serves lists (build 204): only live goals, in the order of the
+    /// Goals and Aspirations screens, never the note itself (a goal cannot serve itself, and
+    /// `setLink` refuses that without a word — build 268), and a goal the note already names
+    /// stays even when it has ended, so the tick never disappears (build 175). A project lists
+    /// the goals with a date first; an area or a goal lists the aspirations first (build 140).
+    private var choices: GoalChoices { model.index.goalChoices(for: note) }
+    private var first: [Note] { choices.first }
+    private var second: [Note] { choices.second }
 
-    /// A project delivers a dated goal, so those come first for one. An area holds an
-    /// aspiration, and a goal with a date serves one, so those come first for both. Both lists
-    /// are always offered: the review already knows what to say about a dated goal only an
-    /// area serves.
-    private var first: [Note] { note.kind == .project ? datedGoals : aspirations }
-    private var second: [Note] { note.kind == .project ? aspirations : datedGoals }
-
+    /// A goal that has ended is only here because this note names it, so the line says how it
+    /// ended — otherwise it looks like the menu offers finished goals.
     private func label(for goal: Note) -> String {
-        current?.relativePath == goal.relativePath ? "\u{2713} \(goal.displayTitle)" : goal.displayTitle
+        let name = goal.isEnded ? "\(goal.displayTitle) (\(goal.noteStatus.label))" : goal.displayTitle
+        return current?.relativePath == goal.relativePath ? "\u{2713} \(name)" : name
     }
 
     var body: some View {

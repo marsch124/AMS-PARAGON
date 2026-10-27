@@ -280,8 +280,12 @@ public extension NoteIndex {
             // agree however the note spells it — `achieved`, `completed` and `done` are one
             // answer (build 165).
             let status = note.isArchived && note.status == nil ? NoteStatus.archived : note.noteStatus
+            // Build 272: an archived note keeps its ending (Done, Missed, Dropped), so it
+            // stands as that **and** as Archived — the Archived box must still find it.
+            var standings: Set<String> = [status.rawValue]
+            if note.isArchived && status.isEnded { standings.insert(NoteStatus.archived.rawValue) }
             let asked = Set(query.statuses.map { NoteStatus(reading: $0).rawValue })
-            guard asked.contains(status.rawValue) else { return false }
+            guard !asked.isDisjoint(with: standings) else { return false }
         }
         if !query.tags.isEmpty {
             let noteTags = Set(note.tags.map { $0.lowercased() } + note.tasks.flatMap { $0.tags.map { $0.lowercased() } })
