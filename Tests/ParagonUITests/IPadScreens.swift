@@ -39,6 +39,10 @@ final class IPadScreens: XCTestCase {
                                    "Map", "All actions", "Aspirations", "Goals", "Projects",
                                    "Areas", "Resources", "Search"]
 
+    /// The middle column's title where it is not the row's name: Time Blocks draws
+    /// `PlannerView`, titled "Plan the day" (seen in CI 361's pictures).
+    private static let titles = ["Time Blocks": "Plan the day"]
+
     /// The test vault's project, as `TestVault` names it.
     private static let project = "note.Projects/Plan the Kungsleden trip.md"
 
@@ -90,8 +94,12 @@ final class IPadScreens: XCTestCase {
             let name = next(section)
             hideTheKeyboard()
             press(reveal("sidebar.\(section)", name))
-            check(app.navigationBars.firstMatch.waitForExistence(timeout: 20),
-                  "\(section) opened without drawing a screen.", name)
+            // The middle column is titled with the row's name (`NoteListView.navigationTitle`),
+            // so this also proves the press landed on the right row (CI 362).
+            let title = Self.titles[section] ?? section
+            check(showsTitle(title, within: 20),
+                  "\(section) was pressed, but the middle column is not titled \(title). On screen: \(visibleTexts())",
+                  name)
             settle()
             snap(name)
             check(app.state == .runningForeground, "The app stopped running on \(section).", name)
@@ -151,7 +159,10 @@ final class IPadScreens: XCTestCase {
         // sidebar is out.
         var target = element(identifier)
         for attempt in 0..<10 {
-            if isOnScreen(target) { return target }
+            if isOnScreen(target) {
+                if holdsStill(target) { return target }
+                continue
+            }
             if identifier.hasPrefix("sidebar."), aSidebarRowIsOnScreen() {
                 let frame = target.exists ? target.frame : .zero
                 if !frame.isEmpty, frame.midY.isFinite {
@@ -171,6 +182,27 @@ final class IPadScreens: XCTestCase {
               "\(identifier) could not be brought on screen. If no sidebar row is on screen at all, the vault probably did not open. \(whereItIs(target)) On screen: \(visibleTexts())",
               step)
         return target
+    }
+
+    /// The same frame twice, half a second apart. **A list still sliding after a scroll moves
+    /// the row between reading its frame and pressing it** (CI 362: on its side, the press
+    /// meant for Projects opened Goals, the row above it).
+    private func holdsStill(_ element: XCUIElement) -> Bool {
+        let before = element.frame
+        Thread.sleep(forTimeInterval: 0.5)
+        return element.exists && element.frame == before
+    }
+
+    /// Waits until a navigation bar carries that title.
+    private func showsTitle(_ title: String, within timeout: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if app.navigationBars[title].exists || app.navigationBars.staticTexts[title].exists {
+                return true
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        } while Date() < deadline
+        return false
     }
 
     /// The first element with that name that has a frame. A name can also land on a wrapper

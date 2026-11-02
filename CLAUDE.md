@@ -4711,6 +4711,14 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
   off at the right. Shown to him on 2 November; what to do about it is his call.
 - **Third run (CI 361): green, 30 pictures**, 15 upright and 15 on its side, no Calendar question
   in any of them.
+- **Fourth run (CI 362, same test): red on its side.** The sidebar was scrolled to reach Projects
+  and was still sliding when the frame was read, so the press opened **Goals**, the row above.
+  The step's check only asked for *a* navigation bar, so it passed, and the next step failed.
+  Now `reveal` waits until the row's frame holds still for half a second, and every step checks
+  the middle column's **title** is the row's name — `NoteListView.navigationTitle`, except
+  Time Blocks, whose `PlannerView` is titled "Plan the day" (`IPadScreens.titles`). **A check
+  that any screen passes is no check of which screen** — the same lesson as build 211's
+  `actions.noMatch` versus `actions.nothingOpen`.
 - **`continue-on-error: true` on the iPad job while it is new**, and `commit-project` does not
   wait for it: the first runs went red on the other session's build 276 pushes, and a red run
   stops the TestFlight routine. Take it out once the job has been green a few runs in a row.
