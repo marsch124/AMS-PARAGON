@@ -848,6 +848,7 @@ struct AspirationChainBody: View {
                               tint: flag == .achieved ? ChainTint.aspiration : .orange, filled: false)
                 }
             }
+            .font(.caption)
             .lineLimit(2)
             // **No bar here either (build 199).** An aspiration is never finished, so a per
             // cent on one is a promise the idea does not make — and the average it was made

@@ -990,7 +990,7 @@ struct NoteRow: View {
     var goalTint: Color = ChainTint.datedGoal
 
     /// A note that has its own icon (build 274 for an area; every kind in `ParaKind.takesIcon`
-    /// since 286: projects, areas, goals and resources) shows it here, on its colour, in place of
+    /// since 276: projects, areas, goals and resources) shows it here, on its colour, in place of
     /// the thin stripe every other row has. Decoration: the title beside it already names the
     /// note, so a screen reader skips it. A shape, so the selection fill leaves its colour alone
     /// (build 200).

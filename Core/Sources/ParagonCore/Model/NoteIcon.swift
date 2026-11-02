@@ -22,7 +22,7 @@ public enum NoteIconFields {
 public extension ParaKind {
     /// **The one rule for who can have an icon** (build 276), read by the **Icon…** button at the
     /// top of a note and by `AppModel.setIcon`, so the button and the write cannot disagree
-    /// (build 168). Projects and areas have had one since build 274; goals followed in 286 —
+    /// (build 168). Projects and areas have had one since build 274; goals followed in 276 —
     /// an aspiration and a goal with a date are both `.goal` notes, so both are included — and
     /// resources with them.
     ///

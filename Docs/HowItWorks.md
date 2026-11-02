@@ -201,7 +201,7 @@ Missed, Dropped or archived. A project on hold is counted.
 
 ### Your own icon
 
-Each project, area, goal, aspiration and resource can have its own icon. Open the note and press **Icon…** at the top, right after the kind of note (**Projects**, **Areas**, **Goal with a date**, **Aspiration** or **Resources**). On the Mac, a goal or an aspiration opens on its page first, and there **Icon…** is among the buttons at the top of the page, beside the date and the measure. On the iPhone, press and hold the row in the list and choose **Open the note**. A picker opens. From the top:
+Each project, area, goal, aspiration and resource can have its own icon. Open the note and press **Icon…** at the top, right after the kind of note (**Projects**, **Areas**, **Goal with a date**, **Aspiration** or **Resources**). On the Mac, a goal or an aspiration opens on its page first, and there **Icon…** is among the buttons at the top of the page, beside the date and the measure. On the iPhone, press a goal with a date or a resource to open it. For an aspiration, press and hold its row and choose **Open the note**. A picker opens. From the top:
 
 - **Colour**: **Automatic** and fifteen colours. **Automatic** is the colour of the kind of note: green for a project, pink for an area, gold for a goal with a date (a deeper gold for an aspiration), blue for a resource. Each colour is a small tile with the icon on it, so you see how it will look.
 - **Icon**: a field called **Find an icon**, then **No icon**, then the icons in groups. First about 130 hand-drawn icons (**Hand-drawn · Travel**, **Hand-drawn · Outdoors** and so on), then about 300 of Apple's symbols (**Apple symbols · Work and projects** and so on).
