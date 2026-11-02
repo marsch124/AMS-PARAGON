@@ -4640,6 +4640,35 @@ with `archived`, so an archived finished project dropped out of its goal's per c
 vault order (build 204's missed menu); `WidgetLook.goal`/`.project` had drifted from
 GoalTint/ProjectTint.
 
+## The iPad mini, looked at (2 November 2026)
+
+He asked what it would take to use PARAGON on his iPad mini. **Nothing has to be built for it
+to run there**: the iPhone app has always been an iPad app too (`TARGETED_DEVICE_FAMILY: "1,2"`),
+so every TestFlight build of the iPhone app installs on an iPad. On a full iPad screen
+`ContentView.isCompact` is false, so the iPad draws the Mac's three columns, not the phone's
+tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in the tests.
+
+- **`Tests/ParagonUITests/IPadScreens.swift`, a class of its own, and a CI job of its own,
+  "Screen tests (iPad mini)".** `ScreenTests` chooses its way in by platform (tabs on iOS, the
+  sidebar on the Mac), and an iPad is iOS with a sidebar, so the existing suite cannot run there
+  as it is. Two tests, upright and on its side: open the app, press each sidebar row, open the
+  test project, and take a picture after every step. On an iPhone both are skipped (the phone
+  job counts skips as fine); the Mac never compiles them. The iPad job runs
+  `-only-testing:ParagonUITests/IPadScreens` and treats a skip as a failure.
+- **The pictures are the point.** Each is a test attachment and a PNG in `build/ipad-screens/`
+  (written from inside the simulator to the runner's disk, found through `#filePath`). The job
+  uploads that folder as the **`ipad-mini-screens`** artifact on the CI run's page. If the folder
+  is ever empty, the job takes the pictures out of the result bundle with
+  `xcresulttool export attachments` instead. A failed step leaves a picture named `… - FAILED`.
+- **The system decides by orientation whether the sidebar is out**, not the app.
+  `reveal(_:_:)` tries what a person would: the **Show Sidebar** button in the bar (never its
+  **Hide Sidebar** spelling), a swipe in from the left edge, and a scroll of the sidebar for a
+  row below the fold.
+- **The next step, when he wants it:** make `ScreenTests` choose its way in by what is on
+  screen (a tab bar or a sidebar) instead of by platform, and run the whole suite on the iPad
+  too. Not before the pictures have shown what the iPad really does.
+- No app change, so no build number and no TestFlight run.
+
 ## Not built (by choice)
 
 - ~~**The App Group**~~ — **done, 20 September, and it needed both halves.** The archive now

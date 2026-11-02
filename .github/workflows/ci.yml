@@ -127,6 +127,95 @@ jobs:
           name: screen-test-log
           path: test-ui.log
 
+  screen-tests-ipad:
+    name: Screen tests (iPad mini)
+    runs-on: macos-15
+    # The iPad draws the Mac's three columns, not the phone's tabs, so it is a third layout and
+    # neither suite above sees it (2 November 2026). Only `IPadScreens` runs here: it presses
+    # every sidebar row upright and on its side and keeps a picture of each screen, uploaded as
+    # the `ipad-mini-screens` artifact.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Pick an iPad mini
+        id: sim
+        # By id, as for the iPhone. If this runner image has no iPad mini made, one is made from
+        # the newest iPad mini model and the newest iOS it has.
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available | grep -E "^ +iPad mini" | head -1 | sed -E 's/.*\(([0-9A-Fa-f-]{36})\).*/\1/')
+          if [ -z "$UDID" ]; then
+            TYPE=$(xcrun simctl list devicetypes | grep -E "^iPad mini" | tail -1 | sed -E 's/.*\((com\.apple[^)]*)\).*/\1/')
+            RUNTIME=$(xcrun simctl list runtimes available | grep -E "^iOS" | tail -1 | sed -E 's/.* - (com\.apple[^ ]*).*/\1/')
+            echo "No iPad mini on this runner; making one: $TYPE on $RUNTIME"
+            if [ -n "$TYPE" ] && [ -n "$RUNTIME" ]; then
+              UDID=$(xcrun simctl create "iPad mini (CI)" "$TYPE" "$RUNTIME" || true)
+            fi
+          fi
+          if [ -z "$UDID" ]; then
+            echo "No iPad mini simulator on this runner, and none could be made."
+            exit 1
+          fi
+          echo "Using: $(xcrun simctl list devices | grep "$UDID")"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+      - name: Press the buttons
+        run: |
+          set -o pipefail
+          xcodebuild -project Paragon.xcodeproj -scheme ParagonUITests \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build/dd-uitests-ipad \
+            -resultBundlePath build/ipad.xcresult \
+            -only-testing:ParagonUITests/IPadScreens \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
+            test 2>&1 | tee test-ui-ipad.log | grep -E "error:|Test Case|Test Suite|XCTAssert|\*\* TEST" || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" test-ui-ipad.log
+      - name: Check the tests really ran
+        # As for the iPhone, and stricter: a skip here means the tests did not think they were
+        # on an iPad, which would make every picture a lie.
+        run: |
+          STARTED=$(grep -c "' started\.$" test-ui-ipad.log || true)
+          PASSED=$(grep -c "' passed (" test-ui-ipad.log || true)
+          echo "$PASSED of $STARTED test cases passed."
+          if [ "$STARTED" -lt 1 ]; then
+            echo "No test case ran at all."
+            exit 1
+          fi
+          if [ "$STARTED" != "$PASSED" ]; then
+            echo "A test case did not pass (skipped, or started and did not finish)."
+            exit 1
+          fi
+      - name: Collect the pictures
+        if: always()
+        # The tests write the pictures to build/ipad-screens themselves. If none arrived there,
+        # they are taken out of the result bundle, where every picture is also kept.
+        run: |
+          mkdir -p build/ipad-screens
+          COUNT=$(find build/ipad-screens -name "*.png" | wc -l | tr -d ' ')
+          if [ "$COUNT" = "0" ] && [ -d build/ipad.xcresult ]; then
+            echo "No pictures written by the tests; taking them out of the result bundle."
+            xcrun xcresulttool export attachments --path build/ipad.xcresult --output-path build/ipad-screens || true
+            COUNT=$(find build/ipad-screens -type f ! -name "*.json" | wc -l | tr -d ' ')
+          fi
+          echo "$COUNT pictures."
+          ls -1 build/ipad-screens
+      - name: Upload the pictures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipad-mini-screens
+          path: build/ipad-screens
+          if-no-files-found: warn
+      - name: Upload the test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-test-log-ipad
+          path: test-ui-ipad.log
+
   screen-tests-mac:
     name: Screen tests (Mac)
     runs-on: macos-15
@@ -173,7 +262,7 @@ jobs:
   commit-project:
     name: Commit generated Xcode project
     runs-on: macos-15
-    needs: [core-tests, app-build, screen-tests, screen-tests-mac]
+    needs: [core-tests, app-build, screen-tests, screen-tests-ipad, screen-tests-mac]
     # Only when the project definition itself changed, so a developer's local
     # signing settings in Paragon.xcodeproj are never overwritten by a pull.
     if: github.event_name == 'push'

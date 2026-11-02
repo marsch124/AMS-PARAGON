@@ -191,6 +191,7 @@ targets:
   ParagonUITests:
     type: bundle.ui-testing
     # Both since build 195: the faults that cost the most (71-74, 85) were the Mac's.
+    # IPadScreens.swift (2 November 2026) runs on a simulated iPad mini, in a CI job of its own.
     supportedDestinations: [iOS, macOS]
     sources:
       - path: Tests/ParagonUITests

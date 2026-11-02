@@ -1,0 +1,233 @@
+import XCTest
+#if os(iOS)
+import UIKit
+
+/// The iPad, looked at — on a simulated iPad mini (2 November 2026).
+///
+/// He asked what it would take to use PARAGON on his iPad mini. The iPhone app has always been
+/// an iPad app as well (`TARGETED_DEVICE_FAMILY: "1,2"`), and on a full iPad screen it draws the
+/// Mac's three columns, not the phone's tabs (`ContentView.isCompact`). Nothing had ever opened
+/// it on an iPad. These two tests do, upright and on its side, press every row of the sidebar,
+/// open a note, and leave a picture of each screen behind so he can see it before he installs it.
+///
+/// **A class of its own, and a CI job of its own** ("Screen tests (iPad mini)"). `ScreenTests`
+/// picks its way in by platform — tabs on iOS, the sidebar on the Mac — and an iPad is iOS with
+/// a sidebar, so none of its iOS ways in exist here. A suite that fails for its own reasons is
+/// worse than none (build 190), so this one starts small. On an iPhone both tests are skipped;
+/// the Mac never compiles them.
+///
+/// **The iPad may keep the sidebar folded away**, and the system decides that by orientation,
+/// not the app. `reveal(_:_:)` brings a row out the way a person would — the bar's **Show
+/// Sidebar** button, else a swipe in from the left edge — and scrolls the sidebar for a row
+/// below the fold, the way `bringIntoView` does on the Mac.
+///
+/// **The pictures** are kept twice: as test attachments in the result bundle, and as PNG files
+/// in `build/ipad-screens/` beside the repository, which the CI job uploads as the
+/// `ipad-mini-screens` artifact. A simulator's processes can write to the runner's own disk;
+/// if that ever stops working, the job takes the pictures out of the result bundle instead.
+final class IPadScreens: XCTestCase {
+    private var app: XCUIApplication!
+
+    /// Long, as in `ScreenTests`: a cold simulator on a CI runner is slow.
+    private let appears: TimeInterval = 60
+
+    /// The sidebar rows pressed one after another — the Mac suite's list, spelled as
+    /// `SidebarSection.title` spells them. The Tools group is left out: it folds.
+    private static let sections = ["Inbox", "Today", "Calendar", "Time Blocks", "Weekly review",
+                                   "Map", "All actions", "Aspirations", "Goals", "Projects",
+                                   "Areas", "Resources", "Search"]
+
+    /// The test vault's project, as `TestVault` names it.
+    private static let project = "note.Projects/Plan the Kungsleden trip.md"
+
+    override func setUpWithError() throws {
+        try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad,
+                          "These tests look at the iPad's screens, and this is not an iPad.")
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launchArguments += ["-paragon-test-vault"]
+        // A question from iOS, such as Calendar access, would sit on top of every screen after it.
+        _ = addUIInterruptionMonitor(withDescription: "A question from iOS") { alert in
+            for title in ["Don’t Allow", "Don't Allow", "OK"] where alert.buttons[title].exists {
+                alert.buttons[title].tap()
+                return true
+            }
+            return false
+        }
+    }
+
+    override func tearDownWithError() throws {
+        if app != nil { XCUIDevice.shared.orientation = .portrait }
+    }
+
+    func testEveryScreenUpright() {
+        walk(.portrait, "portrait")
+    }
+
+    func testEveryScreenOnItsSide() {
+        walk(.landscapeLeft, "landscape")
+    }
+
+    // MARK: The walk
+
+    /// Opens the app held this way, presses every sidebar row and then the test project, and
+    /// takes a picture after each. Each picture is named with the orientation and a number,
+    /// so the folder lists them in the order they were taken.
+    private func walk(_ orientation: UIDeviceOrientation, _ held: String) {
+        XCUIDevice.shared.orientation = orientation
+        app.launch()
+        waitForTheFirstScreen()
+        snap("\(held) 00 Opened")
+
+        for (number, section) in Self.sections.enumerated() {
+            let name = "\(held) \(String(format: "%02d", number + 1)) \(section)"
+            reveal("sidebar.\(section)", name).tap()
+            check(app.navigationBars.firstMatch.waitForExistence(timeout: 20),
+                  "\(section) opened without drawing a screen.", name)
+            settle()
+            snap(name)
+            check(app.state == .runningForeground, "The app stopped running on \(section).", name)
+        }
+
+        let name = "\(held) \(String(format: "%02d", Self.sections.count + 1)) A project open"
+        reveal("sidebar.Projects", name).tap()
+        reveal(Self.project, name).tap()
+        check(element("note.editor").waitForExistence(timeout: 20),
+              "The test project opened without its editor.", name)
+        settle()
+        snap(name)
+    }
+
+    /// Waits for anything of the open vault — a sidebar row or a navigation bar — so the first
+    /// picture is not of a blank screen. Whether the vault really opened is `reveal`'s question.
+    private func waitForTheFirstScreen() {
+        let anyRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'sidebar.'")).firstMatch
+        let deadline = Date().addingTimeInterval(appears)
+        while Date() < deadline {
+            if anyRow.exists || app.navigationBars.firstMatch.exists { break }
+            Thread.sleep(forTimeInterval: 1)
+        }
+        settle()
+    }
+
+    /// A moment for a column to finish sliding in, so a picture is not taken mid-way.
+    private func settle() {
+        Thread.sleep(forTimeInterval: 1.5)
+    }
+
+    // MARK: Finding things
+
+    /// The element, on screen and pressable. Tries up to ten times: a row that exists in a
+    /// sidebar that is out is scrolled to (down five times, then up); otherwise the sidebar is
+    /// brought out with **Show Sidebar**, or with a swipe in from the left edge when the bar has
+    /// no such button.
+    private func reveal(_ identifier: String, _ step: String) -> XCUIElement {
+        let target = element(identifier)
+        _ = target.waitForExistence(timeout: 5)
+        for attempt in 0..<10 {
+            if isOnScreen(target) { return target }
+            if identifier.hasPrefix("sidebar."), target.exists, aSidebarRowIsOnScreen() {
+                scrollTheSidebar(down: attempt < 5)
+            } else if let button = showSidebarButton() {
+                button.tap()
+            } else {
+                swipeInFromTheLeft()
+            }
+            _ = target.waitForExistence(timeout: 3)
+        }
+        check(isOnScreen(target),
+              "\(identifier) could not be brought on screen. If no sidebar row is on screen at all, the vault probably did not open. On screen: \(visibleTexts())",
+              step)
+        return target
+    }
+
+    private func element(_ identifier: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+    }
+
+    /// There, pressable, and with its middle inside the window.
+    private func isOnScreen(_ element: XCUIElement) -> Bool {
+        guard element.exists, element.isHittable else { return false }
+        let frame = element.frame
+        guard !frame.isEmpty else { return false }
+        return app.windows.firstMatch.frame.contains(CGPoint(x: frame.midX, y: frame.midY))
+    }
+
+    private func aSidebarRowIsOnScreen() -> Bool {
+        let rows = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'sidebar.'"))
+        return rows.allElementsBoundByIndex.contains { isOnScreen($0) }
+    }
+
+    /// The system's own button in the bar. Only its "show" spelling: the same button says
+    /// **Hide Sidebar** while the sidebar is out, and pressing that would undo the step.
+    private func showSidebarButton() -> XCUIElement? {
+        let button = app.buttons.matching(NSPredicate(format: "label == 'Show Sidebar'")).firstMatch
+        return button.exists && button.isHittable ? button : nil
+    }
+
+    private func swipeInFromTheLeft() {
+        let edge = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
+            .withOffset(CGVector(dx: 2, dy: 0))
+        edge.press(forDuration: 0.05,
+                   thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)))
+    }
+
+    /// One drag in the left strip of the window, where the sidebar is. `down` shows the rows
+    /// further down the list.
+    private func scrollTheSidebar(down: Bool) {
+        let low = app.coordinate(withNormalizedOffset: CGVector(dx: 0.12, dy: 0.75))
+        let high = app.coordinate(withNormalizedOffset: CGVector(dx: 0.12, dy: 0.35))
+        if down {
+            low.press(forDuration: 0.05, thenDragTo: high)
+        } else {
+            high.press(forDuration: 0.05, thenDragTo: low)
+        }
+    }
+
+    // MARK: Pictures and failures
+
+    /// A failure with a picture of the moment, named after the step it stopped on.
+    private func check(_ condition: Bool, _ message: String, _ step: String) {
+        if condition { return }
+        snap("\(step) - FAILED")
+        XCTFail("\(step): \(message)")
+    }
+
+    /// The first twenty texts on screen, for a failure message (as in `ScreenTests`).
+    private func visibleTexts() -> String {
+        app.staticTexts.allElementsBoundByIndex.prefix(20).map { text -> String in
+            let label = text.label
+            if !label.isEmpty { return label }
+            return (text.value as? String) ?? ""
+        }.joined(separator: " | ")
+    }
+
+    /// The whole screen, kept as an attachment and written as a PNG. The image is drawn once
+    /// more before it is written, so a picture taken on its side is saved the right way up.
+    private func snap(_ name: String) {
+        let shot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+
+        let image = shot.image
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        let png = UIGraphicsImageRenderer(size: image.size, format: format).pngData { _ in
+            image.draw(at: .zero)
+        }
+        try? FileManager.default.createDirectory(at: Self.folder, withIntermediateDirectories: true)
+        try? png.write(to: Self.folder.appendingPathComponent("\(name).png"))
+    }
+
+    /// `build/ipad-screens/` in the repository this file was built from.
+    private static let folder = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()   // ParagonUITests
+        .deletingLastPathComponent()   // Tests
+        .deletingLastPathComponent()   // the repository
+        .appendingPathComponent("build/ipad-screens", isDirectory: true)
+}
+#endif
