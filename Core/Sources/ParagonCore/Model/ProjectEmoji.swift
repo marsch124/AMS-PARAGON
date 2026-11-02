@@ -2,12 +2,13 @@ import Foundation
 
 /// A project's own emoji (build 254), kept in its settings block as `emoji: 🎒`.
 ///
-/// **Since build 284 nothing in the app writes this line any more.** A project or an area now
+/// **Since build 274 nothing in the app writes this line any more.** A project or an area now
 /// chooses an icon from the AMS-Icons package (`NoteIcon.swift`), and an icon replaces an
 /// emoji. This type stays for **reading**: a note that already has an `emoji:` line and no icon
 /// keeps showing that emoji in its tile exactly as before, and no file is rewritten until an
 /// icon is chosen on that note (`Note.settingIcon` then removes the old line). The 24 choices
-/// the old **Emoji…** list offered went with it.
+/// the old **Emoji…** list offered went with it. **Only a project or an area reads the line**
+/// (`Note.ownIcon`, build 276): a goal or a resource never had one.
 ///
 /// In Core, with tests, because it decides what is read: one emoji and nothing else. A word
 /// written on the line, a digit, or a second emoji after the first is never shown.

@@ -137,7 +137,7 @@ public extension NoteIndex {
         if note.noteStatus.isOnHold {
             flags.append(.onHold)
         } else {
-            if open.isEmpty { flags.append(.noNextAction) }
+            if hasNoNextAction(note, open: open) { flags.append(.noNextAction) }
             if !overdue.isEmpty { flags.append(.overdueTasks) }
             if let due = note.dueDate, due < today { flags.append(.pastDue) }
             // A project is the only thing that has to serve a goal: an area is a standing
@@ -168,6 +168,34 @@ public extension NoteIndex {
         return ProjectHealth(note: note, openTaskCount: open.count, overdueTaskCount: overdue.count,
                              completedLast7Days: completed, daysSinceModified: daysSinceModified,
                              daysSinceReview: daysSinceReview, flags: flags)
+    }
+
+    /// Whether the weekly review should say **No next action** about a project or an area.
+    ///
+    /// **A project** is judged by its own open tasks, as it always was. **An area is not**
+    /// (build 276). An area's work normally lives in its projects, so judging it by the area
+    /// note's own text flagged nearly every area, in orange, in step 6: the fault of
+    /// "Projects with no goal" (build 132), a check that is true of most of the notes is not an
+    /// alarm. An area is flagged only when **nothing is waiting anywhere in its reach**: not in
+    /// its own note, not in a live project in it (running or on hold — an on-hold project is
+    /// still the area's), and not in a sub-area's note or live projects (a parent area's work
+    /// is in its sub-areas; the area page lists them as rows). "Something waiting" is
+    /// `Note.nextThing`, the one rule every screen uses (build 254).
+    ///
+    /// Done, missed, dropped and archived projects do not count: they are over.
+    private func hasNoNextAction(_ note: Note, open: [TaskItem]) -> Bool {
+        guard note.kind == .area else { return open.isEmpty }
+        if holdsSomethingToDo(note) { return false }
+        for sub in subAreas(of: note) where holdsSomethingToDo(sub) { return false }
+        return true
+    }
+
+    /// An area's own note, or one of its live projects, has a next thing to do.
+    private func holdsSomethingToDo(_ area: Note) -> Bool {
+        if area.nextThing != nil { return true }
+        return projects(in: area).contains { project in
+            AreaOverview.isLive(project) && project.nextThing != nil
+        }
     }
 
     // MARK: Goals

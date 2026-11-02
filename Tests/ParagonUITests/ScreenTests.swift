@@ -1966,7 +1966,109 @@ final class ScreenTests: XCTestCase {
                       "The line was written and the box does not show it. It says: \(box.label)")
     }
 
+    /// **How far ahead a goal reaches** (build 276). A goal with a date says **This year** or
+    /// **Long term**, and since this build the words are a button: pressing it shows two
+    /// choices, and the one pressed is written as `horizon:`. Until then the line was written
+    /// once, when the goal was made. The test goal starts on `horizon: year`.
+    ///
+    /// The test moves it to **Long term**, checks the button says so, and moves it back. On the
+    /// phone the button is in the header of the note that opens, so the editor can be asked for
+    /// the line itself; on the Mac it is a capsule on the goal's page in **Goals**, which has no
+    /// editor, so the button's words are the proof there (they are read back out of the saved
+    /// note, and `GoalHorizonFieldTests` pins the text that is written). Everything pressed is
+    /// found among buttons (build 249).
+    func testAGoalsHorizonCanBeChanged() {
+        go(to: .goals)
+
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+
+        let horizon = app.buttons.matching(identifier: "goal.horizon").firstMatch
+        XCTAssertTrue(horizon.waitForExistence(timeout: 20),
+                      "The goal has no horizon button. On screen: \(visibleTexts())")
+        XCTAssertTrue(horizon.label.contains("This year"),
+                      "The test goal is on horizon: year, but the button says: \(horizon.label)")
+
+        chooseTheHorizon("goal.horizon.long", saying: "Long term", on: horizon)
+        #if os(iOS)
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The note opened without its editor. On screen: \(visibleTexts())")
+        XCTAssertTrue(editorHolds(editor, "horizon: long", within: 10),
+                      "The note's settings block does not say horizon: long: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(editorLacks(editor, "horizon: year", within: 10),
+                      "The old horizon: year line is still in the note.")
+        #endif
+
+        chooseTheHorizon("goal.horizon.year", saying: "This year", on: horizon)
+        #if os(iOS)
+        XCTAssertTrue(editorHolds(editor, "horizon: year", within: 10),
+                      "The note's settings block does not say horizon: year again: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        #endif
+    }
+
+    /// Presses the horizon button, then one of its two choices, waits for the choices to close
+    /// and for the button to say the new words.
+    private func chooseTheHorizon(_ choice: String, saying words: String, on button: XCUIElement) {
+        let frame = button.frame
+        guard Self.isOnScreen(frame) else {
+            XCTFail("The horizon button has no place on screen: \(frame)")
+            return
+        }
+        press(button, at: frame)
+
+        let option = app.buttons.matching(identifier: choice).firstMatch
+        XCTAssertTrue(option.waitForExistence(timeout: 10),
+                      "Pressing the horizon button did not show \(choice). On screen: \(visibleTexts())")
+        if option.isHittable { option.press() } else { option.pressCentre() }
+
+        // The choices closing first, so the next press does not land on a popover on its way out.
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: option)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The choices stayed open after \(choice). On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { button.label.contains(words) },
+                      "\(choice) was pressed and the button does not say \(words). It says: \(button.label)")
+    }
+
     #if os(macOS)
+    /// **A link opened while the window is up goes to that window** (build 276). Without
+    /// `handlesExternalEvents`, SwiftUI's own rule is to make a new window for every link, so a
+    /// click on the **Today's plan** widget would have opened a second PARAGON beside the first.
+    /// Nobody has seen it; this is what would show it.
+    ///
+    /// A **separate** test from the one that opens the link (`testThePlanLinkOpensTimeBlocks`),
+    /// so that a failure here means "a second window" and nothing else. Windows are counted by
+    /// the ones with a frame; a second window, if the link made one, takes a moment to appear,
+    /// so the count is watched for a few seconds after `plan.week` shows. If it grows, the
+    /// modifier on the window group is not doing what the documentation says it does, and
+    /// `TakesLinksInOpenWindow` is the place to look.
+    func testAnOpenLinkReusesTheOpenWindow() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
+        let before = windowsWithAFrame()
+        XCTAssertGreaterThanOrEqual(before, 1, "The app has no window with a frame before the link.")
+
+        guard let link = URL(string: "amspara:///plan") else {
+            XCTFail("The test's own link is not a URL.")
+            return
+        }
+        app.open(link)
+
+        XCTAssertTrue(element("plan.week").waitForExistence(timeout: appears),
+                      "The link amspara:///plan did not open Time Blocks. On screen: \(visibleTexts())")
+        let grew = becomes(within: 5) { windowsWithAFrame() > before }
+        XCTAssertFalse(grew,
+                       "The link opened another window: \(before) before, \(windowsWithAFrame()) now.")
+    }
+
+    /// The app's windows that have a place on screen. A window with no frame is a panel that is
+    /// not showing, such as the menu bar item's.
+    private func windowsWithAFrame() -> Int {
+        app.windows.allElementsBoundByIndex.filter { !$0.frame.isEmpty }.count
+    }
+
     /// The link behind a click on the **Today's plan** widget (build 273), opened the way the
     /// system opens it: as a URL, with the app already running. **Mac only**, because the widget
     /// is. It is the first test in this suite that opens a URL, and the whole route is under
@@ -1997,9 +2099,9 @@ final class ScreenTests: XCTestCase {
     }
     #endif
 
-    // MARK: An icon for a project (build 284)
+    // MARK: An icon for a project (build 274)
 
-    /// A project's own icon (build 284): **Icon…** at the top of the project opens the AMS-Icons
+    /// A project's own icon (build 274): **Icon…** at the top of the project opens the AMS-Icons
     /// picker, **Cancel** writes nothing, and one icon pressed writes `icon: hand:bike` and takes
     /// any old `emoji:` line away. It replaces build 254's emoji test, which pressed a control
     /// that no longer exists; the idea is the same — the editor holds the line.
@@ -2074,6 +2176,59 @@ final class ScreenTests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed,
                        "The project's tile in the list does not show the icon. It says: \(tile.label)")
         #endif
+    }
+
+    // MARK: An icon for a resource (build 276)
+
+    /// A resource can have an icon too (build 276): the same **Icon…** button and the same
+    /// picker a project has had since build 274. The test vault's resource, **Packing list**, is
+    /// opened from the Resources list, the picker is searched for `bike`, and the proof is the
+    /// same as for the project: the editor holds `icon: hand:bike` and the button says "Bike".
+    ///
+    /// **The picker's own names are the way in** (`icon.search`, `icon.choice.<stored>`), as in
+    /// the project's test, and the Bike card is brought to the top by typing instead of
+    /// scrolling. One test is enough for the new kinds: a goal and an aspiration are written by
+    /// the very same `setIcon`, and the Core tests carry the cases for each of them
+    /// (`NoteIconTests`). Both platforms; the phone stops at the editor and the button, since
+    /// finding its way back out of a pushed note is not what the test is about.
+    func testAResourceCanBeGivenAnIcon() {
+        go(to: .resources)
+
+        let row = element("note.Resources/Packing list.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Resources list does not show the test resource. On screen: \(visibleTexts())")
+        row.press()
+
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The resource opened without its editor.")
+        XCTAssertTrue(editorLacks(editor, "icon:", within: 10),
+                      "The test resource already has an icon line, so this test would prove nothing: \(String(((editor.value as? String) ?? "").prefix(200)))")
+
+        XCTAssertTrue(openTheIconPicker(),
+                      "A resource has no Icon… button, or pressing it did not show the picker. On screen: \(visibleTexts())")
+        let search = element("icon.search")
+        if search.isHittable { search.press() } else { search.pressCentre() }
+        search.typeText("bike")
+        #if os(iOS)
+        let searchKey = app.keyboards.buttons["Search"]
+        if searchKey.exists { searchKey.tap() }
+        #endif
+
+        let bike = app.buttons.matching(identifier: "icon.choice.hand:bike").firstMatch
+        XCTAssertTrue(bike.waitForExistence(timeout: 10),
+                      "Searching for bike did not show the Bike icon. On screen: \(visibleTexts())")
+        for _ in 0..<6 where !bike.isHittable {
+            scrollTheIconPicker()
+        }
+        if bike.isHittable { bike.press() } else { bike.pressCentre() }
+
+        XCTAssertTrue(iconPickerCloses(),
+                      "An icon was pressed and the picker stayed open. On screen: \(visibleTexts())")
+        XCTAssertTrue(editorHolds(editor, "icon: hand:bike", within: 10),
+                      "The resource's settings block does not carry the icon: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Bike") },
+                      "The Icon… button does not show the choice. It says: \(wordsOfEvery("note.icon"))")
     }
 
     /// Presses **Icon…** at the top of the open note and waits for the picker's search field.

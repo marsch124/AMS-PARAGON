@@ -653,7 +653,7 @@ struct ProjectProgress: View {
 }
 
 /// The square at the left of a box. What it shows, in this order (`Note.ownIcon`, Core):
-/// his **icon** on its colour (build 284, the AMS-Icons package); else an old **emoji** in a
+/// his **icon** on its colour (build 274, the AMS-Icons package); else an old **emoji** in a
 /// solid frame, exactly as before (build 254) until an icon replaces it; else just a colour he
 /// picked, with the project's first letter on it; else the project flag in a dashed frame —
 /// dashed means "not set yet" everywhere in PARAGON (build 142).

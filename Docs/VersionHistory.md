@@ -2,6 +2,75 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 276 · 2 November 2026
+
+**Four small faults fixed, and icons for more kinds of notes.** You asked for all the small items together. Each one is separate: none of them needs the others. This build also holds build 275 (further down), which was not sent on its own.
+
+**A goal with a date can change how far ahead it reaches.** Until now **This year** or **Long term** was only a grey word. Nothing in the app could change it after the goal was made.
+
+- Open a goal with a date. The words **This year** or **Long term** are now a button, in gold.
+- On the Mac, open the goal in **Goals**. The button is a small capsule under the goal's name, beside the target date. The same button is at the top of the note itself. Press **Note** at the top of the goal's page to see it.
+- On the iPhone, open the goal. The button is at the top of the note.
+- Press it. You see both choices, with a short line under each: **This year** is one or two years, **Long term** is three to ten years. A tick shows the one the goal has now. Press the other one to change it. The window closes by itself.
+- The choice is kept as `horizon:` in the note's settings block. A goal with no `horizon:` line counts as **This year**. When you press **This year** on it, the line is written, so the note says what the screen says.
+- An aspiration does not get the button. An aspiration is not a longer goal, it is another kind of note. If it changed, it would move to the other list.
+
+**The Weekly review no longer says "No next action" about every area.** In step 6, nearly every area was marked **No next action** in orange. The reason: the app only looked at the area's own text, and an area's work lives in its projects.
+
+- An area is now marked **No next action** only when nothing is waiting anywhere in it. That means: not in its own text, not in a project in it that is running or on hold, and not in a sub-area (its text or its projects).
+- A project that is done, missed, dropped or archived does not count. It is over.
+- "Waiting" means the same as **Next:** on a project's box in the **Projects** list. A subtask under a ticked task counts. A subtask under a cancelled task does not.
+- Projects are judged as before. An area on hold is still not judged.
+- The orange triangle on an area row follows this rule at once.
+- An area row no longer says how many tasks are open. It counted only the area's own text, and the work is in its projects, so it said "0 open" next to a clean tick. Nothing else in the review changes.
+
+**An event that began yesterday is drawn from the top of today.** A meeting that began at 23:00 yesterday and ends at 01:00 today was drawn at 23:00 today. A meeting that ends tomorrow went past the bottom of the **Calendar** section's day, or was drawn as a small half-hour box on **Time Blocks**.
+
+- In **Calendar**, an event from yesterday starts at 00:00 on this day. One that goes on past midnight ends at 24:00.
+- On **Time Blocks** and in **Plan the day**, the Calendar lane does the same. That screen starts at 06:00, so the box is drawn from 06:00 on, with the event's times on this day written in it. An event that ends before 06:00 is not drawn there.
+- The time written under the event's name is still its real time, for example 23:00–02:00.
+- A task with a time, such as 23:50, is also kept inside the day.
+- **Start the day** and the **Today's plan** widget already did this. All four now use the same rule.
+
+**A click on the widget does not open a second window.** On the Mac, a link such as the **Today's plan** widget's could make a second PARAGON window beside the one you had open. Nobody has seen it happen, but the system does it unless the app says otherwise.
+
+- When PARAGON already has its window open, the link now goes to that window and brings it to the front. This also works when the window is minimized, or hidden behind **Plan the day**.
+- **Plan the day**, Help and Settings do not receive these links.
+- When no PARAGON window is open at all, a window opens, as before.
+- The menu bar clock's **Show PARAGON** works as before.
+
+**To try it:**
+
+1. Open a goal with a date. Press **This year** and choose **Long term**. The button should now say **Long term**. Choose **This year** to go back.
+2. Open **Weekly review**, step 6. An area whose projects have tasks should not have an orange **No next action**. An area with nothing at all in it should.
+3. Make an Apple Calendar event from 23:00 yesterday to 01:00 today. In **Calendar** it should start at the top of the day and end at 01:00.
+4. On the Mac, click the **Today's plan** widget while PARAGON is open. You should see **Time Blocks** in the window you had open, and no second window.
+
+**Icons for goals, aspirations and resources.** You asked if goals, aspirations and resources should have icons too, as projects and areas have since build 274. They can now. It is the same **Icon…** button and the same picker.
+
+- **Where to find it:** on the Mac, open an aspiration or a goal with a date. Its page has **Icon…** among the buttons at the top, beside the date and the measure. For a resource, open it: at the top of the note, right after the kind of note (**Resources**), press **Icon…**. On the iPhone, press and hold the row and choose **Open the note**, then press **Icon…** at the top, right after the kind of note (**Aspiration**, **Goal with a date** or **Resources**). The picker is the one you know: **Automatic** and fifteen colours, **Find an icon**, **No icon** and **Cancel**.
+- **One press is one choice,** as before. **Cancel** writes nothing. The same icon and colour again writes nothing.
+- **Automatic** is the colour of the kind of note: gold for a goal with a date, a deeper gold for an aspiration, and blue for a resource.
+
+**Where the icon is shown**
+
+- **Aspirations and goals: instead of the star or the target.** At the left of each row in the **Aspirations** list and the **Goals** list. At the top of an aspiration's page. In front of each goal in an aspiration's chain. On the goal rows in steps 3 and 4 of the **Weekly review**. A goal with no icon looks exactly as before.
+- **Resources:** at the left of a resource's row in the **Resources** list, instead of the thin blue line. A resource with no icon keeps the line.
+- **Recent, the Archive, and a search inside a list:** a note that has an icon shows it instead of the thin coloured line. This now includes projects, because every kind that can have an icon follows one rule.
+- In the **Icon…** button at the top of the note.
+
+**Where the star and the target stay.** The **Map**, the sidebar, the **Search** screen, the lists of linked notes and the small **Serves…** buttons keep the star, the target, the flag, the four squares and the books. There the symbol tells you what kind of note it is. The column headings in **Aspirations** and **Goals** keep theirs too. The row you are in and the words at the top of the note still say if a note is an aspiration or a goal with a date.
+
+**To go back to the star or the target:** press **Icon…** and then **No icon**. If you also chose a colour, press **Icon…** again and press **Automatic**. Until then the colour stays, and the row shows the first letter of the name on it.
+
+**Notes in the Archive** keep the icon they had and show it in the **Archive** list. A new icon cannot be chosen there, because the **Icon…** button is not offered on an archived note.
+
+**In the file:** the same two lines as for a project, for example `icon: hand:bike` and `icon-colour: blue`. The old `emoji:` line is still shown only on a project or an area. A goal or a resource that has such a line, written by hand, does not show it. Choosing an icon takes that line away, as it does on a project.
+
+**The Help pages** say it too: **Your own icon** in the manual, and the words **Icon**, **Automatic** and **No icon** in **Words in PARAGON**.
+
+**To try it:** open **Packing list** in **Resources** and press **Icon…**. Write **bike** in **Find an icon** and press the Bike icon. The **Resources** list now shows the bike at the left of the row, instead of the blue line. Then open an aspiration (on the iPhone: press and hold its row and choose **Open the note**), press **Icon…** and pick any icon. The **Aspirations** list and the aspiration's page show it where the star was. Press **Icon…** and **No icon** to see the star come back. If you chose a colour as well, press **Automatic** too.
+
 ## Build 275 · 27 October 2026
 
 **Two small things that were left over.**

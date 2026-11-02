@@ -402,16 +402,31 @@ struct PlannerDayView: View {
         return max(span.end, span.start + shortest)
     }
 
+    /// The day's timed events, **cut to the day** (build 276). The cut is `EventDaySpan` in Core,
+    /// the same one the Calendar section's day and the widget use: a meeting that began at 23:00
+    /// yesterday starts at the top of today, and one that ends tomorrow ends at 24:00. Before
+    /// this the clock time of the start was used as it stood, so an event from yesterday was
+    /// drawn at 23:00 today, and one ending tomorrow (an end before its start) was drawn half
+    /// an hour long. An event with no length at all still gets half an hour.
+    ///
+    /// **Then held to the hours this lane draws.** The lane starts at 06:00 and ends at 24:00,
+    /// and nothing clips it, so a card that began above 06:00 would hang over the heading and
+    /// take its words out of sight. The drawn box is the part from 06:00 on; the words keep the
+    /// event's own times on this day (`wordsStart`, `wordsEnd`). An event wholly before 06:00 has
+    /// nothing to draw here and is left out: the hours it lies in are not on this screen.
     private var placedEvents: [PlannerPlacement] {
-        let calendar = WeekRef.calendar
+        let windowStart = firstHour * 60
+        let windowEnd = (lastHour + 1) * 60
         let spans: [PlannerSpan] = model.events(on: day).compactMap { event in
             guard !event.isAllDay else { return nil }
-            let from = calendar.dateComponents([.hour, .minute], from: event.start)
-            let to = calendar.dateComponents([.hour, .minute], from: event.end)
-            let start = (from.hour ?? 0) * 60 + (from.minute ?? 0)
-            var end = (to.hour ?? 0) * 60 + (to.minute ?? 0)
-            if end <= start { end = start + 30 }
-            return PlannerSpan(id: event.id, start: start, end: end, title: event.title, block: nil)
+            let cut = EventDaySpan(start: event.start, end: event.end, on: day)
+            var end = cut.endMinute
+            if end <= cut.startMinute { end = min(cut.startMinute + 30, EventDaySpan.minutesInDay) }
+            let from = max(cut.startMinute, windowStart)
+            let to = min(end, windowEnd)
+            guard to > from else { return nil }
+            return PlannerSpan(id: event.id, start: from, end: to, title: event.title, block: nil,
+                               wordsStart: cut.startMinute, wordsEnd: end)
         }
         return place(spans)
     }
@@ -936,6 +951,10 @@ private struct PlannerSpan {
     let title: String
     /// Set for a plan block, nil for a calendar event. Only a block can be pressed.
     let block: PlanBlock?
+    /// The times the card's words say, when they differ from where it is drawn: an event that
+    /// began before the first hour drawn keeps its own start in the words (build 276).
+    var wordsStart: Int? = nil
+    var wordsEnd: Int? = nil
 }
 
 private struct PlannerPlacement: Identifiable {
@@ -949,8 +968,12 @@ private struct PlannerPlacement: Identifiable {
     var id: String { span.id }
     var title: String { span.title }
     var block: PlanBlock? { span.block }
-    var time: String { "\(PlanBlock.clock(span.start)) \u{2013} \(PlanBlock.clock(span.end))" }
-    var startTime: String { PlanBlock.clock(span.start) }
+    var time: String {
+        let from = span.wordsStart ?? span.start
+        let to = span.wordsEnd ?? span.end
+        return "\(PlanBlock.clock(from)) \u{2013} \(PlanBlock.clock(to))"
+    }
+    var startTime: String { PlanBlock.clock(span.wordsStart ?? span.start) }
 }
 
 // MARK: The actions

@@ -1,6 +1,6 @@
 import Foundation
 
-/// The keys of a note's own icon (build 284): `icon:` and `icon-colour:` in the settings block.
+/// The keys of a note's own icon (build 274): `icon:` and `icon-colour:` in the settings block.
 ///
 /// **Core stores strings and never imports the icon package.** The AMS-Icons package (the
 /// hand-drawn icons and the Apple symbols every AMS app shares) decides what a stored icon
@@ -18,12 +18,36 @@ public enum NoteIconFields {
     public static let automatic = "auto"
 }
 
-/// What a project or an area shows in its tile, worked out in one place so that the Projects
-/// list, the area page and the Areas list cannot disagree (build 168).
+/// Which kinds of note can be given an icon of their own.
+public extension ParaKind {
+    /// **The one rule for who can have an icon** (build 276), read by the **Icon…** button at the
+    /// top of a note and by `AppModel.setIcon`, so the button and the write cannot disagree
+    /// (build 168). Projects and areas have had one since build 274; goals followed in 286 —
+    /// an aspiration and a goal with a date are both `.goal` notes, so both are included — and
+    /// resources with them.
+    ///
+    /// Not the Inbox, daily and weekly notes, or the Archive: none of them is a thing you choose
+    /// a picture for. A note that has been put in the Archive has the kind `.archive`, so it is
+    /// not offered the button either; it keeps whatever icon it already has (the lines stay in
+    /// its settings block, and a list that draws an archived note reads `declaredKind`).
+    ///
+    /// **A work note is a `.resource` by kind** and is refused one level up, where the vault is
+    /// known: this rule knows only the kind (build 112).
+    var takesIcon: Bool {
+        switch self {
+        case .project, .area, .goal, .resource: return true
+        case .inbox, .archive, .daily: return false
+        }
+    }
+}
+
+/// What a note shows as its own mark, worked out in one place so that every list and page that
+/// draws one cannot disagree (build 168).
 ///
 /// **An icon replaces an emoji** (his word, 27 October). A note with both shows the icon; a note
 /// with only an old `emoji:` line keeps showing its emoji exactly as before, and no file is
-/// rewritten until he chooses an icon on that note.
+/// rewritten until he chooses an icon on that note. **Only a project or an area reads an old
+/// emoji** (build 276): goals and resources never had that line, so they do not start reading it.
 public enum NoteIcon: Equatable, Sendable {
     /// `icon:` as written, and the colour of its tile (nil is Automatic). The text is **not**
     /// checked here: a line this version of the app cannot draw (a newer icon, an unknown
@@ -60,10 +84,11 @@ public extension Note {
         NoteIconText.colour(frontmatter.string(NoteIconFields.colourKey))
     }
 
-    /// What this note shows in its tile. The icon first, then an old emoji, then a lone colour.
+    /// What this note shows as its mark. The icon first, then an old emoji (a project or an area
+    /// only, see `NoteIcon`), then a lone colour.
     var ownIcon: NoteIcon {
         if let stored = iconStored { return .icon(stored, colour: iconColourKey) }
-        if let old = self.emoji { return .emoji(old) }
+        if declaredKind == .project || declaredKind == .area, let old = self.emoji { return .emoji(old) }
         if let colour = iconColourKey { return .colour(colour) }
         return .unset
     }

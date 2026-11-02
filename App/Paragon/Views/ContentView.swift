@@ -120,6 +120,11 @@ struct ContentView: View {
         }
         .onOpenURL { url in
             model.handle(url: url)
+            #if os(macOS)
+            // The main window takes a link itself now (`TakesLinksInOpenWindow`, build 276), so
+            // a minimized window or one behind **Plan the day** is brought to the front.
+            FocusStatusItem.bringMainWindowForward()
+            #endif
         }
         .modifier(MainWindowMarking())
         // A press on a daily reminder opens its screen: **Close the day** in the evening (build
@@ -984,13 +989,19 @@ struct NoteRow: View {
     /// Its colour, handed in for the same reason and always with it (build 189).
     var goalTint: Color = ChainTint.datedGoal
 
-    /// An area that has its own icon (build 284) shows it here, on its colour, in place of the
-    /// thin stripe every other row has. Decoration: the title beside it already names the area,
-    /// so a screen reader skips it. A shape, so the selection fill leaves its colour alone
+    /// A note that has its own icon (build 274 for an area; every kind in `ParaKind.takesIcon`
+    /// since 286: projects, areas, goals and resources) shows it here, on its colour, in place of
+    /// the thin stripe every other row has. Decoration: the title beside it already names the
+    /// note, so a screen reader skips it. A shape, so the selection fill leaves its colour alone
     /// (build 200).
+    ///
+    /// **It asks `declaredKind`, not `kind`**: a note in the Archive has the kind `.archive`, and
+    /// the Archive list should keep drawing the icon the note already has (its colour is then
+    /// the Archive's grey while it is Automatic, which is what `Note.tint` says for it). Only
+    /// the button that *chooses* an icon is refused there.
     @ViewBuilder
     private var leadingMark: some View {
-        if note.kind == .area, note.ownIcon.isIconOrColour {
+        if note.declaredKind.takesIcon, note.ownIcon.isIconOrColour {
             NoteIconTile(note: note, fallbackTint: note.tint, size: 30)
                 .accessibilityHidden(true)
         } else {

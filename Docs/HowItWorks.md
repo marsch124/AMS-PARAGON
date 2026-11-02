@@ -47,9 +47,9 @@ tags: [sport, training]
 ---
 ```
 
-Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `icon` and `icon-colour` (a project's or an area's own icon, see **Your own icon**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
+Useful keys: `status` (active, on hold, done, missed, dropped — see **How a note stands**), `area`, `goal`, `due`, `tags`, `icon` and `icon-colour` (a note's own icon: a project, an area, a goal, an aspiration or a resource, see **Your own icon**), `related`, `reviewed`, `order` (where the note sits when you have arranged the list by hand), `reminders-list` to sync into a Reminders list with a different name, `sync: false` to keep a note out of Reminders.
 
-Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Icon…** for `icon` and `icon-colour` (projects and areas only). On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
+Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Icon…** for `icon` and `icon-colour` (projects, areas, goals, aspirations and resources). On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -201,9 +201,9 @@ Missed, Dropped or archived. A project on hold is counted.
 
 ### Your own icon
 
-Each project and each area can have its own icon. Open the project or the area and press **Icon…** at the top, right after the kind of note (**Projects** or **Areas**). A picker opens. From the top:
+Each project, area, goal, aspiration and resource can have its own icon. Open the note and press **Icon…** at the top, right after the kind of note (**Projects**, **Areas**, **Goal with a date**, **Aspiration** or **Resources**). On the Mac, a goal or an aspiration opens on its page first, and there **Icon…** is among the buttons at the top of the page, beside the date and the measure. On the iPhone, press and hold the row in the list and choose **Open the note**. A picker opens. From the top:
 
-- **Colour**: **Automatic** and fifteen colours. **Automatic** is the colour of the kind of note: green for a project, pink for an area. Each colour is a small tile with the icon on it, so you see how it will look.
+- **Colour**: **Automatic** and fifteen colours. **Automatic** is the colour of the kind of note: green for a project, pink for an area, gold for a goal with a date (a deeper gold for an aspiration), blue for a resource. Each colour is a small tile with the icon on it, so you see how it will look.
 - **Icon**: a field called **Find an icon**, then **No icon**, then the icons in groups. First about 130 hand-drawn icons (**Hand-drawn · Travel**, **Hand-drawn · Outdoors** and so on), then about 300 of Apple's symbols (**Apple symbols · Work and projects** and so on).
 - **Find an icon** searches the names and some words that are not shown. English and Swedish words both work: **bike** and **cykel** find the same icon.
 - One press on a colour, an icon or **No icon** is a choice. It is written to the note at once and the picker closes. To change the colour and the icon, open the picker twice.
@@ -214,7 +214,14 @@ Where the icon is shown:
 
 - In the project's tile in the **Projects** list, and in front of each project on its area's page.
 - At the left of an area's row in the **Areas** list, and in front of a sub-area's row on its parent's page.
+- At the left of a resource's row in the **Resources** list. A resource with no icon keeps its thin blue line.
+- On an aspiration or a goal with a date, **instead of the star or the target**: at the left of its row in the **Aspirations** and **Goals** lists, at the top of the aspiration's page, in front of each goal in an aspiration's chain, and on the goal rows in steps 3 and 4 of the **Weekly review**. A goal with no icon keeps its star or target.
+- In **Recent**, in the **Archive** and when you search inside a list, where the row's thin coloured line is replaced by the icon. A note you put in the **Archive** keeps the icon it had; you can no longer choose a new one for it.
 - In the button at the top of the note itself, which says **Icon…** until something is chosen.
+
+The **Map**, the sidebar, the **Search** screen and the lists of linked notes keep the symbols for the kind of note (the flag, the four squares, the books, the star and the target). There the symbol tells you what kind of note it is, and an icon of your own would hide that.
+
+**To go back to the star or the target:** press **Icon…** on the goal or the aspiration, then **No icon**. If you also chose a colour, open it again and press **Automatic**, or the colour stays and the tile shows the first letter of the name.
 
 An icon replaces an emoji:
 
@@ -222,7 +229,7 @@ An icon replaces an emoji:
 - When you choose an icon, a colour or **No icon** for that project, the old `emoji:` line is removed from the note. The picker is the only button that gives a project a mark.
 - Pressing **Automatic** when the colour is already **Automatic** changes nothing, so the old emoji stays.
 
-The choice is kept in the note's settings block, for example `icon: hand:bike` and `icon-colour: blue`. With **Automatic** there is no `icon-colour` line. You can also write the lines yourself: `hand:` and the icon's key, or `symbol:` and the name of an Apple symbol, for example `symbol:figure.run`. A line PARAGON cannot read, for example an icon from a newer version, stays in the note and is shown as a dashed circle. Goals, aspirations and resources have no icon.
+The choice is kept in the note's settings block, for example `icon: hand:bike` and `icon-colour: blue`. With **Automatic** there is no `icon-colour` line. You can also write the lines yourself: `hand:` and the icon's key, or `symbol:` and the name of an Apple symbol, for example `symbol:figure.run`. A line PARAGON cannot read, for example an icon from a newer version, stays in the note and is shown as a dashed circle.
 
 ## An area's page
 
@@ -361,14 +368,15 @@ The top of a goal says what it is: **Goal with a date** or **Aspiration**. After
 - **Serves…** — the aspiration a goal with a date serves. Press it to choose another one.
 - **Set a target date…** — the day the goal should be reached by. When a date is set, the button shows it instead, for example **Target 2027-08-15**. Press it to change the date, or press **Clear** to take it away. Write the date as 2027-08-15 or pick it in the calendar.
 - **Set a measure…** — one line that says how you will know the goal is reached, for example "All 440 km in 30 days". When a measure is set, the button shows it. Press it to change the words, write them, and press **Set** or Return. **Clear** takes the measure away.
+- **This year** or **Long term** — how far ahead the goal reaches. This year is one or two years, Long term is three to ten. The button shows the one the goal has. Press it to see both, with a tick on the one the goal has now, and press the other to change it. It is kept as `horizon:` in the settings block, and a goal with no `horizon:` line counts as This year.
 
-An aspiration has **Set a measure…** but no date button, because an aspiration has no date.
+An aspiration has **Set a measure…** but no date button, because an aspiration has no date. It has no **This year** / **Long term** button either. An aspiration is not a longer goal, it is another kind of note, and changing it would move it to the other list.
 
 If the measure was changed on your other device while the box was open, **Set** writes nothing the first time. The box stays open with your words in it, and an orange line says what the measure is now. Press **Set** again to use your words instead. **Clear** works the same way.
 
 A new date changes the weekly review at once: "Past its target date" and "Due after its goal" are worked out from it.
 
-On the Mac **Set a target date…** and **Set a measure…** are also on the goal's page in **Goals**, under its name, and an aspiration's page in **Aspirations** has **Set a measure…**. There they are small capsules: grey with a dashed line while nothing is set, and solid when something is. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
+On the Mac **Set a target date…**, **Set a measure…** and the **This year** / **Long term** button are also on the goal's page in **Goals**, under its name, and an aspiration's page in **Aspirations** has **Set a measure…**. There they are small capsules: grey with a dashed line while nothing is set, and solid when something is. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
 
 ### Adding a project from its goal
 
@@ -499,6 +507,7 @@ is a ring, and an **area** is the four squares. They are the same icons the side
 row named **Aspirations** carries the star, the row named **Goals** carries the target, and the
 star is used for one thing only in the whole app — an aspiration. A note's own header shows
 which of the two it is, with the icon and in words: **Aspiration** or **Goal with a date**.
+If you give an aspiration or a goal an icon of your own (see **Your own icon**), your icon takes the place of the star or the target in the lists and on its page. The row you are in (**Aspirations** or **Goals**) and the words at the top of the note still say which of the two it is.
 
 They also have their own colours: an **aspiration is a deeper gold** and a **goal with a date**
 is the lighter gold the Goals list has always used.
@@ -631,7 +640,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 The app reads events from the calendars you choose in Settings › Apple Calendar. Events appear in Today and in daily notes. Double-click an event, or use its arrow button, to open it in the Calendar app.
 
-The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
+The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00, so nothing runs out of the day; the time written under its name is still the event's own. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
 
 ### Plan the day
 
@@ -647,7 +656,7 @@ The screen has three parts:
   real task: tick the circle to finish it, right-click (long-press on the iPhone) for the task
   menu, and press **+** to make a block for it. Under each one is what it serves — the goal its
   note belongs to, in gold, or the area it sits in, in pink.
-- **Calendar** on the right: what is already booked that day, read from Apple Calendar.
+- **Calendar** on the right: what is already booked that day, read from Apple Calendar. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00. This screen draws the hours from 06:00, so the box is drawn from 06:00 on, and the times written in it are the event's times on this day. An event that ends before 06:00 is not drawn on this screen.
 - **Time blocks** beside it: your own blocks. They hang on the same hours as the calendar, so
   you can see whether a block lands inside something already booked. Two things at the same
   time stand side by side at half the width, so nothing is hidden behind anything else. **Drag an
@@ -881,7 +890,7 @@ Every step's heading is always on screen, even when the step is empty. Open a st
 3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last looked at it. **I looked at all of them** in the heading stamps today's date on every one. It is there while the step is open.
-6. **Look over the areas.** The same row for each area, with its Standard under its name: "Standard:" and the first sentence of what you wrote. When none is written, a dashed grey **No standard written yet** says so. Write or change it on the area's page. The point of the line is to check the area against it.
+6. **Look over the areas.** The same row for each area, with two differences. The row has no open count, because an area's work is in its projects. And an area is flagged **No next action** only when nothing is waiting in it, in its projects or in its sub-areas (see **The flags**). Under its name is the area's Standard: "Standard:" and the first sentence of what you wrote. When none is written, a dashed grey **No standard written yet** says so. Write or change it on the area's page. The point of the line is to check the area against it.
 7. **Look back at last week.** A whole week, from your own notes, and a box where you can write one line about it. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
 8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
 
@@ -925,6 +934,8 @@ Right-click any goal, project or area row (long-press on the phone):
 
 A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, is **Due for a look** (not looked at within its rhythm), or is on hold.
 
+An area gets the same flags, but **No next action** is judged in another way. The work of an area normally lives in its projects, so the area's own text is not the only place that counts. An area is flagged **No next action** only when nothing is waiting anywhere in it: not in its own text, not in a project in it that is running or on hold, and not in a sub-area (its text or its projects). A project that is done, missed, dropped or archived does not count. So an area whose projects have tasks is not flagged. It does not matter that the area's own text has no task.
+
 **Due for a look** follows each kind's own rhythm: a project is due after a week and an area after a month, unless you change them in **Settings › Review rhythm**.
 
 Two of those deserve a word.
@@ -945,7 +956,7 @@ The Map and the Goals screen answer the same question — what serves what — a
 
 ### What each box says
 
-Every box carries the same icon the rest of the app uses for that kind of note:
+Every box carries the same icon the rest of the app uses for that kind of note (an icon you chose yourself is not drawn on the Map, so the map reads the same for every goal):
 
 - **A star** is an **aspiration** — a goal with no date, which says what you are becoming. It is the north star on PARAGON's own app icon: what you steer by and never tick off.
 - **Two circles, a target**, is a **goal with a date** — what you will have done, by a day.
@@ -1357,7 +1368,7 @@ Three widgets on the Mac and two on the iPhone. **Today's plan** is for the Mac 
 - The words and the line move by themselves, also when PARAGON is closed. The widget has a new picture ready for every minute of the next hour, and then for every quarter hour. macOS decides when it really draws them. If it is late, the line and **at 14:00** stay right, and **in 25 min** can be up to a quarter of an hour old.
 - A block that you also put into Apple Calendar shows in both lanes, as it does in **Plan the day**. The big line uses the block only, so it never shows it twice. Two events at the same time are drawn on top of each other in the small ruler.
 - On a day with no blocks it says **No blocks planned today.** and **Click to plan the day.** After the last block it says **Nothing more planned today.**
-- Click it and PARAGON opens on **Time Blocks**, on today.
+- Click it and PARAGON opens on **Time Blocks**, on today. If PARAGON already has its window open, the click uses that window and brings it to the front. It does not open a second window.
 - If you add, move or remove a block in **Plan the day**, or an event changes in Apple Calendar, the widget follows after a few seconds.
 - The Calendar lane needs **Show the day's events in Today and in daily notes** to be on in Settings, and Calendar access to be allowed. If not, the lane says **Calendar not shown**, on the medium widget inside the lane and on the large one above it. The widget never asks for Calendar access: that question belongs to PARAGON itself.
 

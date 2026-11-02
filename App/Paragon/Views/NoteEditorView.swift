@@ -1080,6 +1080,13 @@ struct NoteHeader: View {
         }
     }
 
+    /// **Icon…** for the kinds `ParaKind.takesIcon` names, the very rule `AppModel.setIcon`
+    /// asks (build 168). A work note is a resource by kind but gets no button: `setIcon` would
+    /// refuse it, and a button that does nothing is worse than none (build 175).
+    private func showsIconChip(for note: Note) -> Bool {
+        note.kind.takesIcon && !model.isWorkNote(note)
+    }
+
     /// A goal with a date, as opposed to an aspiration. Only this kind has a target date and
     /// serves something above it.
     private func isDatedGoal(_ note: Note) -> Bool {
@@ -1103,10 +1110,12 @@ struct NoteHeader: View {
                                                   : SidebarSection.kind(note.kind).systemImage)
                 .foregroundStyle(note.tint)
                 .fontWeight(.semibold)
-            if note.kind == .project || note.kind == .area {
+            if showsIconChip(for: note) {
                 // Right after the kind, as in the drawing he approved (build 254): the icon
-                // is the note's own mark, shown in the Projects list's tile (build 284 made it
-                // an icon from the AMS-Icons package, for areas as well as projects).
+                // is the note's own mark (build 274 made it an icon from the AMS-Icons package,
+                // for areas as well as projects; build 276 added aspirations, goals with a date
+                // and resources). It is one small item in the wrapping row, which is what
+                // build 250 asks of everything in it: nothing here demands width.
                 NoteIconChip(model: model, note: note)
             }
             if let rename {
@@ -1154,10 +1163,12 @@ struct NoteHeader: View {
                     .contentShape(Rectangle())
                     .onTapGesture { model.openGoal(reference: goal) }
             }
-            // "This year" or "Long term". Not on an aspiration: its horizon's word is
-            // "Aspiration", which the start of the header already says.
-            if let horizon = note.horizon, horizon != .life {
-                Label(horizon.label, systemImage: "scope")
+            // "This year" or "Long term", and since build 276 a button: the line was written
+            // once, when the goal was made, and nothing could change it. Not on an aspiration:
+            // its horizon's word is "Aspiration", which the start of the header already says,
+            // and switching it would move the note to the other room.
+            if isDatedGoal(note) {
+                GoalHorizonChip(model: model, note: note)
             }
             if isDatedGoal(note) {
                 // Build 268: `target:` was written only when a goal was made, so the date

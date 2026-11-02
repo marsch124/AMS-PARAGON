@@ -1,7 +1,7 @@
 import XCTest
 @testable import ParagonCore
 
-/// A project's old emoji (build 254). Since build 284 it is only read, never written (an icon
+/// A project's old emoji (build 254). Since build 274 it is only read, never written (an icon
 /// replaces it: see `NoteIconTests`). What these pin is what is shown: one emoji, and nothing
 /// that is not one.
 final class ProjectEmojiTests: XCTestCase {

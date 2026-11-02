@@ -193,6 +193,21 @@ final class FocusStatusItem: NSObject {
         if view is MainWindowMarker.MarkerView { return true }
         return view.subviews.contains { holdsMarker($0) }
     }
+
+    /// Brings the main window to the front when a link has been opened (build 276), for
+    /// `ContentView.onOpenURL`. Since the main window takes links itself instead of a second
+    /// window being made for them (`TakesLinksInOpenWindow`), a window that is minimized, or
+    /// behind another PARAGON window such as **Plan the day**, would show nothing of the link.
+    /// The same search as `showApp()`: visible or minimized, carrying the marker. **It never
+    /// opens a window**: when none is found, the link made its own, which is already in front.
+    static func bringMainWindowForward() {
+        let shown = NSApp.windows.filter { $0.isVisible || $0.isMiniaturized }
+        guard let main = shown.first(where: { holdsMarker($0.contentView) }) else { return }
+        if NSApp.isHidden { NSApp.unhide(nil) }
+        NSApp.activate()
+        if main.isMiniaturized { main.deminiaturize(nil) }
+        main.makeKeyAndOrderFront(nil)
+    }
 }
 
 /// An empty, zero-sized view `ContentView` carries as an **overlay** on the Mac (a background

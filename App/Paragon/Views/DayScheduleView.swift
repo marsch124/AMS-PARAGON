@@ -231,26 +231,41 @@ struct DayScheduleView: View {
 
     // MARK: Data
 
+    /// **Each item is drawn where it lies on this day** (build 276): `shown(_:_:)` cuts it with
+    /// `EventDaySpan`, the same cut the Plan screen's Calendar lane and the widget use. An event
+    /// that began at 23:00 yesterday starts at the top of today instead of at 23:00, and one that
+    /// ends tomorrow ends at the bottom instead of running off the grid. **The subtitle keeps the
+    /// real times**, because "23:00 to 02:00" is true of the event.
     private func timedItems() -> [ScheduleItem] {
         var items: [ScheduleItem] = []
         for event in model.events(on: day) where !event.isAllDay {
             if event.isTimeBlock, let block = model.timeBlocks.first(where: { $0.id == event.id }) {
-                items.append(ScheduleItem(id: block.id, title: block.title, start: block.start, end: block.end,
+                let cut = shown(block.start, block.end)
+                items.append(ScheduleItem(id: block.id, title: block.title, start: cut.start, end: cut.end,
                                           color: SidebarSection.timeBlocks.tint, kind: .block(block.id),
                                           subtitle: timeText(block.start, block.end)))
             } else {
-                items.append(ScheduleItem(id: event.id, title: event.title, start: event.start, end: event.end,
+                let cut = shown(event.start, event.end)
+                items.append(ScheduleItem(id: event.id, title: event.title, start: cut.start, end: cut.end,
                                           color: event.color, kind: .event,
                                           subtitle: timeText(event.start, event.end)))
             }
         }
         for ref in model.index.openTasks(dueOn: day) {
             guard ref.task.dueTime != nil, let start = ref.task.dueMoment(calendar: calendar) else { continue }
+            let cut = shown(start, start.addingTimeInterval(1800))
             items.append(ScheduleItem(id: "task-\(ref.notePath)-\(ref.task.lineIndex)", title: ref.task.title,
-                                      start: start, end: start.addingTimeInterval(1800),
+                                      start: cut.start, end: cut.end,
                                       color: ParaKind.daily.tint, kind: .task, subtitle: ref.noteTitle))
         }
         return items.sorted { $0.start < $1.start }
+    }
+
+    /// The part of a stretch of time that lies on this day (build 276), as dates. A function
+    /// returning a labelled pair rather than the Core type, so the callers stay short.
+    private func shown(_ start: Date, _ end: Date) -> (start: Date, end: Date) {
+        let cut = EventDaySpan(start: start, end: end, on: day, calendar: calendar)
+        return (cut.start, cut.end)
     }
 
     private struct Chip: Identifiable {
@@ -303,9 +318,19 @@ struct DayScheduleView: View {
         var high = 19
         for item in items {
             low = min(low, calendar.component(.hour, from: item.start))
-            high = max(high, calendar.component(.hour, from: item.end) + 1)
+            high = max(high, hourAfter(item.end))
         }
         return max(0, low - 1)...min(24, max(high, low + 6))
+    }
+
+    /// The hour after the one an item ends in. An item cut at the end of the day ends at the
+    /// next midnight (build 276), whose clock reads 00:00 and would draw the day only as far
+    /// as the hour after midnight; on another day than this one it is the last hour, 24.
+    private func hourAfter(_ end: Date) -> Int {
+        if let first = day.date(calendar: calendar), !calendar.isDate(end, inSameDayAs: first) {
+            return 24
+        }
+        return calendar.component(.hour, from: end) + 1
     }
 
     // MARK: Geometry

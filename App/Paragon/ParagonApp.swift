@@ -21,6 +21,9 @@ struct ParagonApp: App {
         WindowGroup(id: ParagonApp.mainWindowID) {
             ContentView()
                 .environmentObject(model)
+                // A link opened while this window is up (a click on the Today's plan widget)
+                // goes to this window and does not make a second one (build 276).
+                .modifier(TakesLinksInOpenWindow())
         }
         .commands {
             // `replacing:`, not `after:`. A WindowGroup puts its own "New Window" in this
@@ -106,6 +109,36 @@ struct ParagonApp: App {
                 .modifier(HandsInMainWindowOpener(model: model))
         }
         .defaultSize(width: 720, height: 640)
+        #endif
+    }
+}
+
+/// Makes the main window the one that takes a link while it is open (build 276).
+///
+/// **Without this modifier SwiftUI makes a new window for every link.** Its own rule, from the
+/// documentation of `handlesExternalEvents`: it sends an event to the first open scene that
+/// prefers to handle it, then to the first that can, and "if it finds neither — including when
+/// you don't add this view modifier — SwiftUI creates a new scene for the event". Nobody has
+/// seen it, but a click on the **Today's plan** widget (build 273, `amspara:///plan`) would have
+/// opened a second PARAGON window beside the one already up.
+///
+/// - **`"*"` matches any link**, and the Mac's `amspara://` links are all handled in one place
+///   (`AppModel.handle(url:)`), so the main window does not need to tell them apart.
+/// - **Only this scene carries it.** **Plan the day**, Help and Settings never prefer or allow a
+///   link, so they never start receiving the main window's links.
+/// - **With no main window open, nothing changes**: the event creates a new scene of the first
+///   scene declaration without a `handlesExternalEvents(matching:)`, which is this window group.
+/// - **The menu bar clock's Show PARAGON is not an external event** (it uses `openWindow`), so it
+///   is not touched.
+/// - A modifier, so no `#if` sits in the middle of the scene's chain (build 148). The iPhone has
+///   one scene and the documentation says it ignores this modifier there; it is left off so the
+///   iPad, where nobody has reported a second window, is not changed in a build about the Mac.
+struct TakesLinksInOpenWindow: ViewModifier {
+    func body(content: Content) -> some View {
+        #if os(macOS)
+        content.handlesExternalEvents(preferring: ["*"], allowing: ["*"])
+        #else
+        content
         #endif
     }
 }

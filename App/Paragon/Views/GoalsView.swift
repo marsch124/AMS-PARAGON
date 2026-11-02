@@ -466,6 +466,32 @@ enum ChainTint {
     }
 }
 
+/// A goal note's mark at the head of a row or a page: the star or the target it has always had,
+/// or, once he has chosen one with **Icon…** (build 276), his own icon on his colour at the same
+/// size. **This is the one place that decides it** for the Aspirations and Goals lists, the
+/// aspiration's page and the weekly review's goal rows, so they cannot disagree (build 168).
+///
+/// A goal with no icon is drawn exactly as before: `KindBadge` with `ChainSymbol.forGoal` and
+/// `ChainTint.forGoal`. The star and the target stay what the *default* means (builds 164 to
+/// 189); a chosen icon is the user's own mark, and the room it is drawn in (Aspirations or
+/// Goals) and its sentence still say which of the two it is. A shape either way, so the
+/// selection fill leaves its colour alone (build 200). A tile is decoration beside a title that
+/// names the goal, so a screen reader skips it.
+struct GoalMark: View {
+    let note: Note
+    let size: CGFloat
+
+    var body: some View {
+        if note.ownIcon.isIconOrColour {
+            NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: size)
+                .accessibilityHidden(true)
+        } else {
+            KindBadge(kind: .goal, size: size, systemImage: ChainSymbol.forGoal(note),
+                      tint: ChainTint.forGoal(note))
+        }
+    }
+}
+
 /// The two kinds of goal, named and explained in one place.
 ///
 /// **Build 176, and it is not a drawing problem.** He said: *"sometimes I have difficulties
@@ -517,8 +543,7 @@ struct AspirationRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.aspiration,
-                      tint: ChainTint.aspiration)
+            GoalMark(note: chain.note, size: 24)
             VStack(alignment: .leading, spacing: 3) {
                 Text(chain.note.title)
                     .font(.headline)
@@ -578,8 +603,7 @@ struct DatedGoalRow: View {
     var body: some View {
         let health = model.index.chainGoal(of: note)
         HStack(spacing: 10) {
-            KindBadge(kind: .goal, size: 24, systemImage: ChainSymbol.forGoal(note),
-                      tint: ChainTint.forGoal(note))
+            GoalMark(note: note, size: 24)
             VStack(alignment: .leading, spacing: 3) {
                 Text(note.title)
                     // Struck through however it ended: done, missed or dropped, it is over.
@@ -768,9 +792,7 @@ struct AspirationChainBody: View {
     private func endedRow(_ goal: ChainGoal) -> some View {
         Button { model.show(section: model.section ?? .kind(.goal), notePath: goal.note.relativePath) } label: {
             HStack(spacing: 6) {
-                Image(systemName: ChainSymbol.datedGoal)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                endedMark(goal.note)
                 Text(goal.note.title)
                     .strikethrough()
                     .foregroundStyle(.secondary)
@@ -786,17 +808,35 @@ struct AspirationChainBody: View {
         .buttonStyle(.plain)
     }
 
+    /// The small mark before an ended goal's name: the grey target it has always had, or his own
+    /// icon (build 276). A function rather than inline: the row is a button label, and a branch
+    /// on the icon is cleaner to read here than in the middle of that closure.
+    @ViewBuilder
+    private func endedMark(_ note: Note) -> some View {
+        if note.ownIcon.isIconOrColour {
+            NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: 16)
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: ChainSymbol.datedGoal)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private var head: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                KindBadge(kind: .goal, size: 26, systemImage: ChainSymbol.aspiration,
-                          tint: ChainTint.aspiration)
+                GoalMark(note: chain.note, size: 26)
                 Text(chain.note.title)
                     .font(.title2.weight(.semibold))
                     .lineLimit(3)
             }
             WrappingHStack(spacing: 6, lineSpacing: 6) {
                 ChainChip(text: GoalHorizon.life.label, tint: ChainTint.aspiration, filled: true)
+                // Build 276: the page that shows the icon is where the icon is changed. The
+                // note's own header (with the same button) is only one press away, behind the
+                // Note switch, so without this a Mac user would see the icon and find no button.
+                NoteIconChip(model: model, note: chain.note)
                 if let area = chain.area {
                     ChainChip(text: "In area: \(area.title)", tint: ParaKind.area.tint, filled: false)
                 }
@@ -869,6 +909,20 @@ struct ChainGoalBlock: View {
         }
     }
 
+    /// The small mark before the goal's name: the target it has always had, or his own icon at
+    /// a size that can still be read (build 276). Larger on the goal's own page (`lead`).
+    @ViewBuilder
+    private var mark: some View {
+        if goal.note.ownIcon.isIconOrColour {
+            NoteIconTile(note: goal.note, fallbackTint: ChainTint.forGoal(goal.note), size: lead ? 24 : 20)
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: ChainSymbol.datedGoal)
+                .font(.caption)
+                .foregroundStyle(ParaKind.goal.tint)
+        }
+    }
+
     /// The goal's name and its facts. On its own page (`lead`) the date and the measure are the
     /// buttons that change them, the same views the note's header uses (build 268); inside an
     /// aspiration's chain the whole head is one button that opens the goal, so its facts are
@@ -876,15 +930,19 @@ struct ChainGoalBlock: View {
     private var head: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
-                Image(systemName: ChainSymbol.datedGoal)
-                    .font(.caption)
-                    .foregroundStyle(ParaKind.goal.tint)
+                mark
                 Text(goal.note.title)
                     .font(lead ? .title3.weight(.semibold) : .headline)
                     .foregroundStyle(ParaKind.goal.tint)
                     .lineLimit(2)
             }
             WrappingHStack(spacing: 6, lineSpacing: 5) {
+                if lead {
+                    // Build 276: the goal's own page carries the button that changes the icon
+                    // it shows (the rule of builds 132 to 144 and 268). Not inside a chain,
+                    // where the whole head is one button (builds 71-74).
+                    NoteIconChip(model: model, note: goal.note)
+                }
                 if lead {
                     GoalTargetChip(model: model, note: goal.note, onChainPage: true)
                 } else if let target = goal.note.targetDate {
@@ -893,6 +951,13 @@ struct ChainGoalBlock: View {
                     ChainChip(text: GoalTargetChip.words(for: target, withTimeLeft: true),
                               tint: GoalTargetChip.color(for: target, ended: goal.isEnded),
                               filled: false)
+                }
+                if lead {
+                    // Build 276: **This year** or **Long term**, and the press that changes it.
+                    // On the Mac this page is what a goal opens as, so the button has to be
+                    // here and not only in the note's header. Only on its own page, for the same
+                    // reason as the date and the measure: inside a chain the head is a button.
+                    GoalHorizonChip(model: model, note: goal.note, onChainPage: true)
                 }
                 if let serves = servesToShow {
                     // The extra he ticked: a dated goal says what it is in service of.

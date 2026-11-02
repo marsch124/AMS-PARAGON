@@ -527,7 +527,12 @@ struct HealthRow: View {
                 // kept its full width there and squeezed the name in the Mac's narrow middle
                 // column (builds 138, 250). Here it wraps as one whole item.
                 Label(ReviewWording.lookedAt(daysAgo: health.daysSinceReview), systemImage: "eye")
-                Label("\(health.openTaskCount) open", systemImage: "checklist")
+                // Not for an area (build 276): the count is the area note's own tasks, and its
+                // work lives in its projects, so "0 open" would sit beside a row with no
+                // "No next action" flag. The two facts could not both be true of that row.
+                if health.note.kind != .area {
+                    Label("\(health.openTaskCount) open", systemImage: "checklist")
+                }
                 if health.overdueTaskCount > 0 {
                     Label("\(health.overdueTaskCount) overdue", systemImage: "clock.badge.exclamationmark")
                         .rowTint(.red)
@@ -606,9 +611,9 @@ struct GoalHealthRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
                 // The star for an aspiration, the target for a goal with a date (build 171,
-                // finishing what 168 and 170 did on the other screens).
-                KindBadge(kind: .goal, size: 20, systemImage: ChainSymbol.forGoal(health.note),
-                          tint: ChainTint.forGoal(health.note))
+                // finishing what 168 and 170 did on the other screens) — or his own icon, when
+                // he has chosen one (build 276).
+                GoalMark(note: health.note, size: 20)
                 Text(health.note.title)
                     .font(.headline)
                     .lineLimit(2)

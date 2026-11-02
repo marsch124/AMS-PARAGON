@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 275
+    static let number = 276
 }
 
 @MainActor
@@ -2288,8 +2288,8 @@ final class AppModel: ObservableObject {
         reload()
     }
 
-    /// A project's or an area's own icon and the colour of its tile (build 284), written as
-    /// `icon:` and `icon-colour:`. Both are the AMS-Icons package's own spellings, kept as text
+    /// A note's own icon and the colour of its tile (build 274), written as `icon:` and
+    /// `icon-colour:`. Both are the AMS-Icons package's own spellings, kept as text
     /// (`hand:bike`, `symbol:figure.run`, `blue`); Core decides what is written
     /// (`Note.settingIcon`, tested). Nil removes a line rather than writing it empty, and
     /// **setting or clearing an icon takes the old `emoji:` line away**: an icon replaces an
@@ -2297,12 +2297,15 @@ final class AppModel: ObservableObject {
     /// again writes nothing: a save moves the file's date, clears the review's "no changes
     /// lately" and sends the note round iCloud for nothing (build 254's rule).
     ///
-    /// Projects and areas only. A goal has its star or target (build 168), a resource its blue,
-    /// and a work note must gain no new door out of the work set (build 112).
+    /// **Projects, areas, goals (both kinds) and resources** (build 276), by `ParaKind.takesIcon`
+    /// in Core, the same rule the **Icon…** button asks, so the button and this write cannot
+    /// disagree (build 168). It reads `live.kind`, so a note in the Archive is refused: it keeps
+    /// the icon it has and is not offered a new one. A work note is a resource by kind and is
+    /// refused here, because it must gain no new door out of the work set (build 112).
     func setIcon(_ icon: String?, colour: String?, on note: Note) {
         flushPendingEdits()
         guard let live = self.note(at: note.relativePath), !isWorkNote(live) else { return }
-        guard live.kind == .project || live.kind == .area else { return }
+        guard live.kind.takesIcon else { return }
         let updated = live.settingIcon(icon, colour: colour)
         guard updated != live else { return }
         guard save(updated) else { return }
@@ -2333,6 +2336,24 @@ final class AppModel: ObservableObject {
         guard let live = self.note(at: note.relativePath) else { return }
         let updated = GoalFields.settingTarget(date, on: live)
         // The same day again writes nothing (`setIcon`'s rule, build 254).
+        guard updated != live else { return }
+        guard save(updated) else { return }
+        reload()
+    }
+
+    /// A goal with a date, moved between **This year** and **Long term** (build 276), written
+    /// as `horizon:`. Until this build the line was written once, when the goal was made, though
+    /// the Goals lists and the review read it. Core decides what is written
+    /// (`Note.settingHorizon`, tested): an aspiration, any other kind of note and `.life` are
+    /// refused there, so this function only has to find the live note.
+    ///
+    /// The note is read back out of the model first (build 144), and the same choice again
+    /// writes nothing (`setTarget`'s rule, build 254). A work note gains no new door out of the
+    /// work set (build 112).
+    func setHorizon(_ horizon: GoalHorizon, on note: Note) {
+        flushPendingEdits()
+        guard let live = self.note(at: note.relativePath), !isWorkNote(live) else { return }
+        let updated = live.settingHorizon(horizon)
         guard updated != live else { return }
         guard save(updated) else { return }
         reload()
@@ -2727,26 +2748,22 @@ final class AppModel: ObservableObject {
     }
 
     /// The day's timed calendar events as minutes since midnight, cut to the day (build 273):
-    /// **the one place an event is turned into minutes**. Placing blocks (`planningBusy`) and
-    /// the **Today's plan** widget both read events through it, so a block can never land on a
-    /// meeting the widget draws somewhere else. All-day events take no hours and are left out.
+    /// **where an event is turned into minutes for the widget and the planning sum**. Placing
+    /// blocks (`planningBusy`) and the **Today's plan** widget both read events through it, so
+    /// a block can never land on a meeting the widget draws somewhere else. All-day events take
+    /// no hours and are left out.
+    ///
+    /// **The cut itself is `EventDaySpan` in Core** (build 276, tested), and the **Plan** screen's
+    /// Calendar lane and the Calendar section's day use the same type. Until then only this
+    /// function made the cut, and the two day views drew an event from yesterday at its start
+    /// time today (one rule, build 168). An event that started yesterday starts at 0; one that
+    /// ends tomorrow ends at 24:00; minutes are the clock's own (build 238).
     func timedEventSpans(on day: DateOnly) -> [WidgetSnapshot.Span] {
-        guard let midnight = day.date() else { return [] }
-        let calendar = Calendar.current
-        // **Clock minutes, never seconds since midnight divided by 60** (build 238): on the two
-        // days a year the clocks change, those differ by an hour after 03:00, and a block would
-        // land on top of a meeting. An event that started yesterday starts at 0; one that ends
-        // tomorrow ends at midnight.
-        func clockMinutes(_ date: Date, orIfOtherDay fallback: Int) -> Int {
-            guard calendar.isDate(date, inSameDayAs: midnight) else { return fallback }
-            let parts = calendar.dateComponents([.hour, .minute], from: date)
-            return (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
-        }
         var spans: [WidgetSnapshot.Span] = []
         for event in events(on: day) where !event.isAllDay {
-            let start = event.start < midnight ? 0 : clockMinutes(event.start, orIfOtherDay: 24 * 60)
-            let end = clockMinutes(event.end, orIfOtherDay: 24 * 60)
-            spans.append(WidgetSnapshot.Span(title: event.title, start: start, end: max(start + 1, end)))
+            let cut = EventDaySpan(start: event.start, end: event.end, on: day)
+            spans.append(WidgetSnapshot.Span(title: event.title, start: cut.startMinute,
+                                             end: max(cut.startMinute + 1, cut.endMinute)))
         }
         return spans
     }

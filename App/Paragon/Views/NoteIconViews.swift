@@ -2,9 +2,10 @@ import SwiftUI
 import AMSIcons
 import ParagonCore
 
-// A project's and an area's own icon (build 284), drawn with the AMS-Icons package
-// (https://github.com/marsch124/AMS-Icons): about 130 hand-drawn icons first made for the
-// Packing app, about 300 chosen Apple symbols, fifteen colours and one search.
+// A note's own icon (build 274; goals, aspirations and resources joined in build 276), drawn
+// with the AMS-Icons package (https://github.com/marsch124/AMS-Icons): about 130 hand-drawn
+// icons first made for the Packing app, about 300 chosen Apple symbols, fifteen colours and
+// one search.
 //
 // **This is the only file in the app that imports the package.** Everything else asks these
 // views, so a clash between a package name and a SwiftUI name has one place to happen, and
@@ -16,9 +17,13 @@ import ParagonCore
 // that emoji (the Projects list's tile and the chip below draw it as before), and no file is
 // rewritten until an icon is chosen on that note.
 //
-// **Icons are for projects and areas only.** Goals and aspirations have their own star and
-// target (build 168), resources have their blue, and a work note must not gain a new door
-// out of the work set (build 112): `AppModel.setIcon` refuses all of those.
+// **Who can have an icon is one rule in Core** (`ParaKind.takesIcon`, build 276): projects,
+// areas, goals (both an aspiration and a goal with a date) and resources. The **Icon…** button
+// and `AppModel.setIcon` both ask it. A goal's star and target (build 168) are the default that
+// a goal without an icon keeps; a chosen icon is the user's own mark and replaces the star or
+// target where that goal is the subject of a row or a page (`GoalMark`, GoalsView.swift), and
+// nowhere else. A work note is a resource by kind and gains no new door out of the work set
+// (build 112): the button is not drawn for one, and `setIcon` refuses it.
 
 /// The note's mark on its colour: the icon when one is chosen, else the first letter of the
 /// name when only a colour is. **Not drawn for an old emoji or for nothing** — callers ask
@@ -31,7 +36,8 @@ import ParagonCore
 struct NoteIconTile: View {
     let note: Note
     /// What **Automatic** looks like. The Projects list passes its status colour (grey while a
-    /// project is on hold or over); everything else passes the kind's own colour.
+    /// project is on hold or over); a goal passes `ChainTint.forGoal` (the deeper gold for an
+    /// aspiration); everything else passes the kind's own colour (`Note.tint`).
     let fallbackTint: Color
     let size: CGFloat
 
@@ -62,8 +68,9 @@ struct NoteIconTile: View {
     }
 }
 
-/// **Icon…** in a project's or an area's header: grey and dashed until something is chosen, then
-/// the icon on its colour in a frame of the note's own colour. An old emoji is drawn as it was
+/// **Icon…** in the header of a project, an area, a goal, an aspiration or a resource: grey and
+/// dashed until something is chosen, then the icon on its colour in a frame of the note's own
+/// colour (`Note.tint`: the deeper gold for an aspiration). An old emoji is drawn as it was
 /// in build 254 until an icon replaces it. Pressing it opens the package's picker.
 ///
 /// **The picker is used as it is** — colours first, **Find an icon**, the hand-drawn icons and
@@ -80,14 +87,23 @@ struct NoteIconChip: View {
     /// handed to this view a moment ago is then one behind (build 144's `NoteTagsChip`).
     private var live: Note { model.note(at: note.relativePath) ?? note }
 
-    private var kindWord: String { note.kind == .area ? "area" : "project" }
+    /// What the note is, in one word, for the tooltip. Written out per kind: an aspiration and
+    /// a goal with a date are both `.goal` notes, and the help should name the right one.
+    private var kindWord: String {
+        switch note.kind {
+        case .project: return "project"
+        case .area: return "area"
+        case .resource: return "resource"
+        case .goal: return GoalWording.isAspiration(note) ? "aspiration" : "goal"
+        default: return "note"
+        }
+    }
 
     var body: some View {
         let current = live
         Button { picking = true } label: {
             chipFace(current)
-                .helpWhenClosed("Choose an icon and a colour for this \(kindWord). They are shown in its tile.",
-                                open: picking)
+                .helpWhenClosed("Choose an icon and a colour for this \(kindWord).", open: picking)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(spoken(current))
@@ -103,7 +119,7 @@ struct NoteIconChip: View {
     private func chipFace(_ current: Note) -> some View {
         switch current.ownIcon {
         case .icon, .colour:
-            framed(NoteIconTile(note: current, fallbackTint: current.kind.tint, size: 22), isSet: true)
+            framed(NoteIconTile(note: current, fallbackTint: current.tint, size: 22), isSet: true)
         case .emoji(let emoji):
             framed(Text(emoji), isSet: true)
         case .unset:
@@ -114,7 +130,7 @@ struct NoteIconChip: View {
     /// The capsule round the face: solid in the note's colour once something is set, grey and
     /// dashed until then (build 142's two states).
     private func framed<Face: View>(_ face: Face, isSet: Bool) -> some View {
-        let edge: Color = isSet ? note.kind.tint : Color.secondary
+        let edge: Color = isSet ? note.tint : Color.secondary
         return face
             .padding(.horizontal, isSet ? 5 : 7)
             .padding(.vertical, 2)
@@ -145,7 +161,7 @@ struct NoteIconChip: View {
             title: current.title,
             chosen: chosenIcon(of: current),
             colour: IconColour.of(key: current.iconColourKey),
-            fallbackTint: current.kind.tint,
+            fallbackTint: current.tint,
             onPick: { picked in choose(picked) },
             onColour: { picked in chooseColour(picked) },
             onCancel: { picking = false }

@@ -334,7 +334,7 @@ struct SubAreaRow: View {
         .accessibilityIdentifier("area.subArea.\(line.id)")
     }
 
-    /// The area symbol, or the sub-area's own icon on its colour (build 284). The icon is
+    /// The area symbol, or the sub-area's own icon on its colour (build 274). The icon is
     /// decoration here — the row's one sentence already names the area — so a screen reader
     /// skips it. Its bottom edge sits a little below the text's baseline so it reads as level
     /// with the first line (this row aligns to the first text baseline, and a view without a
