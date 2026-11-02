@@ -4705,7 +4705,12 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
   middle column fill it and the note column is pushed off the right edge, about 50 points of it
   showing. On its side all three show, but the note column is cut off on the right ("Choose a
   note in the middle col…"). Build 34's split view sizing is the Mac's; the iPad mini is 744 × 1133
-  points.
+  points. **Upright, a note opened from the Projects list opens in that hidden column**: the
+  picture shows the selected project and only a strip of the note at the right edge, so upright
+  a note cannot be read or edited. On its side the note opens and can be read, its top row cut
+  off at the right. Shown to him on 2 November; what to do about it is his call.
+- **Third run (CI 361): green, 30 pictures**, 15 upright and 15 on its side, no Calendar question
+  in any of them.
 - **`continue-on-error: true` on the iPad job while it is new**, and `commit-project` does not
   wait for it: the first runs went red on the other session's build 276 pushes, and a red run
   stops the TestFlight routine. Take it out once the job has been green a few runs in a row.
