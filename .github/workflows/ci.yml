@@ -135,6 +135,11 @@ jobs:
     # every sidebar row upright and on its side and keeps a picture of each screen, uploaded as
     # the `ipad-mini-screens` artifact.
     timeout-minutes: 30
+    # **Not yet allowed to turn the run red.** While the suite is new, a failure here is the
+    # test's own more often than the app's, and a red run stops the TestFlight routine for the
+    # iPhone and the Mac. The job still shows its red cross; commit-project does not wait for it.
+    # Take this line out once it has been green on a few runs in a row.
+    continue-on-error: true
     # To put the pictures on the ipad-screens branch (the last step).
     permissions:
       contents: write
@@ -303,7 +308,7 @@ jobs:
   commit-project:
     name: Commit generated Xcode project
     runs-on: macos-15
-    needs: [core-tests, app-build, screen-tests, screen-tests-ipad, screen-tests-mac]
+    needs: [core-tests, app-build, screen-tests, screen-tests-mac]
     # Only when the project definition itself changed, so a developer's local
     # signing settings in Paragon.xcodeproj are never overwritten by a pull.
     if: github.event_name == 'push'

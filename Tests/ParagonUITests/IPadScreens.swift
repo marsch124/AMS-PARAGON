@@ -33,6 +33,8 @@ final class IPadScreens: XCTestCase {
 
     /// The sidebar rows pressed one after another — the Mac suite's list, spelled as
     /// `SidebarSection.title` spells them. The Tools group is left out: it folds.
+    /// **Search is last** (CI 358/360): its field takes the keyboard, the keyboard covers the
+    /// lower half of the sidebar, and the next row's press typed an "a" into the search.
     private static let sections = ["Inbox", "Today", "Calendar", "Time Blocks", "Weekly review",
                                    "Map", "All actions", "Aspirations", "Goals", "Projects",
                                    "Areas", "Resources", "Search"]
@@ -79,23 +81,32 @@ final class IPadScreens: XCTestCase {
         waitForTheFirstScreen()
         snap("\(held) 00 Opened")
 
-        for (number, section) in Self.sections.enumerated() {
-            let name = "\(held) \(String(format: "%02d", number + 1)) \(section)"
+        var number = 0
+        func next(_ what: String) -> String {
+            number += 1
+            return "\(held) \(String(format: "%02d", number)) \(what)"
+        }
+        for section in Self.sections {
+            let name = next(section)
+            hideTheKeyboard()
             press(reveal("sidebar.\(section)", name))
             check(app.navigationBars.firstMatch.waitForExistence(timeout: 20),
                   "\(section) opened without drawing a screen.", name)
             settle()
             snap(name)
             check(app.state == .runningForeground, "The app stopped running on \(section).", name)
-        }
 
-        let name = "\(held) \(String(format: "%02d", Self.sections.count + 1)) A project open"
-        press(reveal("sidebar.Projects", name))
-        press(reveal(Self.project, name))
-        check(element("note.editor").waitForExistence(timeout: 20),
-              "The test project opened without its editor.", name)
-        settle()
-        snap(name)
+            // The test project, opened from the Projects list while it is on screen, so the
+            // picture shows where a note goes on the iPad: the third column.
+            if section == "Projects" {
+                let name = next("A project open")
+                press(reveal(Self.project, name))
+                check(element("note.editor").waitForExistence(timeout: 20),
+                      "The test project opened without its editor.", name)
+                settle()
+                snap(name)
+            }
+        }
     }
 
     /// Waits for anything of the open vault — a sidebar row or a navigation bar — so the first
@@ -111,17 +122,29 @@ final class IPadScreens: XCTestCase {
         settle()
     }
 
-    /// A moment for a column to finish sliding in, so a picture is not taken mid-way.
+    /// A moment for a column to finish sliding in, so a picture is not taken mid-way — and
+    /// a question from iOS answered first, so it is not in the picture. The interruption
+    /// monitor only acts at the test's next press (CI 360's landscape Today showed the
+    /// Calendar question), so the alert is looked for here as well.
     private func settle() {
         Thread.sleep(forTimeInterval: 1.5)
+        let alert = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch
+        guard alert.exists else { return }
+        for title in ["Don’t Allow", "Don't Allow", "OK"] where alert.buttons[title].exists {
+            alert.buttons[title].tap()
+            Thread.sleep(forTimeInterval: 1.5)
+            return
+        }
     }
 
     // MARK: Finding things
 
-    /// The element, on screen. Tries up to ten times: a row that exists in a
-    /// sidebar that is out is scrolled to (down five times, then up); otherwise the sidebar is
-    /// brought out with **Show Sidebar**, or with a swipe in from the left edge when the bar has
-    /// no such button.
+    /// The element, on screen. Tries up to ten times. When the sidebar is out, a sidebar row is
+    /// scrolled to: towards it when it exists, otherwise down five times and then up. **A row
+    /// below the fold does not exist at all** until it is scrolled to (CI 358/360: Aspirations,
+    /// on its side), because the list only makes the rows it draws. When the sidebar is not
+    /// out, it is brought out with **Show Sidebar**, or with a swipe in from the left edge when
+    /// the bar has no such button.
     private func reveal(_ identifier: String, _ step: String) -> XCUIElement {
         _ = element(identifier).waitForExistence(timeout: 5)
         // Looked up again on every try: which of its elements has a frame can change once the
@@ -129,8 +152,13 @@ final class IPadScreens: XCTestCase {
         var target = element(identifier)
         for attempt in 0..<10 {
             if isOnScreen(target) { return target }
-            if identifier.hasPrefix("sidebar."), target.exists, aSidebarRowIsOnScreen() {
-                scrollTheSidebar(down: attempt < 5)
+            if identifier.hasPrefix("sidebar."), aSidebarRowIsOnScreen() {
+                let frame = target.exists ? target.frame : .zero
+                if !frame.isEmpty, frame.midY.isFinite {
+                    scrollTheSidebar(down: frame.midY > app.frame.midY)
+                } else {
+                    scrollTheSidebar(down: attempt < 5)
+                }
             } else if let button = showSidebarButton() {
                 button.tap()
             } else {
@@ -159,12 +187,35 @@ final class IPadScreens: XCTestCase {
     /// while no row counted as on screen. The screen is now the app's own frame, which on
     /// iOS is the screen's (`press(_:at:)` in `ScreenTests`), and `press(_:)` taps by
     /// coordinate, so nothing asks about "hittable" at all.
+    /// **Not under the keyboard either** (CI 358/360): a press there types a letter.
     private func isOnScreen(_ element: XCUIElement) -> Bool {
         guard element.exists else { return false }
         let frame = element.frame
         guard !frame.isEmpty, frame.midX.isFinite, frame.midY.isFinite else { return false }
+        let middle = CGPoint(x: frame.midX, y: frame.midY)
         let screen = app.frame
-        return screen.isEmpty || screen.contains(CGPoint(x: frame.midX, y: frame.midY))
+        guard screen.isEmpty || screen.contains(middle) else { return false }
+        return middle.y < visibleBottom()
+    }
+
+    /// Puts the keyboard away if a screen brought it up (the note editor may), with the iPad
+    /// keyboard's own key or a **Done** above it. Nothing happens when neither is there; the
+    /// keyboard check in `isOnScreen` is the safety net.
+    private func hideTheKeyboard() {
+        let keyboard = app.keyboards.firstMatch
+        guard keyboard.exists else { return }
+        for button in [keyboard.buttons["Hide keyboard"], app.toolbars.buttons["Done"]] where button.exists {
+            button.tap()
+            Thread.sleep(forTimeInterval: 1)
+            return
+        }
+    }
+
+    /// Where the screen stops being the app's: the top of the keyboard while it is up.
+    private func visibleBottom() -> CGFloat {
+        let keyboard = app.keyboards.firstMatch
+        if keyboard.exists, !keyboard.frame.isEmpty { return keyboard.frame.minY }
+        return app.frame.isEmpty ? .greatestFiniteMagnitude : app.frame.maxY
     }
 
     /// A tap at the element's middle, measured from the app's corner — the phone's way in
@@ -205,10 +256,17 @@ final class IPadScreens: XCTestCase {
     }
 
     /// One drag in the left strip of the window, where the sidebar is. `down` shows the rows
-    /// further down the list.
+    /// further down the list. The drag stays above the keyboard, if it is up: a drag that
+    /// starts on the keys would type.
     private func scrollTheSidebar(down: Bool) {
-        let low = app.coordinate(withNormalizedOffset: CGVector(dx: 0.12, dy: 0.75))
-        let high = app.coordinate(withNormalizedOffset: CGVector(dx: 0.12, dy: 0.35))
+        let screen = app.frame
+        let height = screen.isEmpty ? 1000 : screen.height
+        let x = screen.isEmpty ? 80 : screen.width * 0.12
+        let highY = height * 0.3
+        let lowY = max(highY + 120, min(height * 0.75, visibleBottom() - screen.minY - 40))
+        let corner = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+        let low = corner.withOffset(CGVector(dx: x, dy: lowY))
+        let high = corner.withOffset(CGVector(dx: x, dy: highY))
         if down {
             low.press(forDuration: 0.05, thenDragTo: high)
         } else {

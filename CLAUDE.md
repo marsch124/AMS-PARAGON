@@ -4692,6 +4692,23 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
   `app.windows.firstMatch.frame`. Now it uses the app's own frame, picks the named element that
   has a frame, and presses by coordinate, as `ScreenTests.press(_:at:)` does on the phone. A
   failure message now says whether the row exists, its frame, and the app's and window's frames.
+- **Second run (CI 358, and CI 360 on build 276): 24 pictures, two failures, both the test's.**
+  On its side, **Aspirations did not exist**: a List only makes the rows it draws, so a row below
+  the fold must be scrolled to before it can be found — `reveal` now scrolls whenever the
+  sidebar is out, not only for a row that exists. Upright, **the Search screen's keyboard
+  covered the lower sidebar** and the next press typed "a" into the search: Search is now the
+  last row, the project is opened right after Projects, and nothing under the keyboard counts as
+  on screen. The Calendar question from iOS was in the landscape Today picture: `settle()`
+  answers it **Don't Allow** before a picture is taken.
+- **What the pictures showed about the app (build 276), not yet fixed and not yet his call:**
+  on the iPad mini **the three columns are wider than the screen.** Upright, the sidebar and the
+  middle column fill it and the note column is pushed off the right edge, about 50 points of it
+  showing. On its side all three show, but the note column is cut off on the right ("Choose a
+  note in the middle col…"). Build 34's split view sizing is the Mac's; the iPad mini is 744 × 1133
+  points.
+- **`continue-on-error: true` on the iPad job while it is new**, and `commit-project` does not
+  wait for it: the first runs went red on the other session's build 276 pushes, and a red run
+  stops the TestFlight routine. Take it out once the job has been green a few runs in a row.
 - **The system decides by orientation whether the sidebar is out**, not the app.
   `reveal(_:_:)` tries what a person would: the **Show Sidebar** button in the bar (never its
   **Hide Sidebar** spelling), a swipe in from the left edge, and a scroll of the sidebar for a
