@@ -4660,6 +4660,18 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
   uploads that folder as the **`ipad-mini-screens`** artifact on the CI run's page. If the folder
   is ever empty, the job takes the pictures out of the result bundle with
   `xcresulttool export attachments` instead. A failed step leaves a picture named `… - FAILED`.
+- **The pictures are also on the branch `ipad-screens`**, with a README that shows them one
+  under the other: https://github.com/marsch124/AMS-PARAGON/tree/ipad-screens — he can look at
+  them in a browser without downloading a zip, and a session in the cloud can fetch them with
+  git (the artifact's download host, `*.blob.core.windows.net`, is refused by the session's
+  proxy; `raw.githubusercontent.com` and git are not). The job force-pushes one fresh commit
+  each run, so the branch never grows. **It is the one exception to "this branch only"**: CI
+  owns it, nothing is ever merged from it, and no session works on it.
+- **First run (CI 357): the vault opened and the sidebar was drawn, upright and on its side,
+  yet no row counted as on screen.** The check asked `isHittable` and compared with
+  `app.windows.firstMatch.frame`. Now it uses the app's own frame, picks the named element that
+  has a frame, and presses by coordinate, as `ScreenTests.press(_:at:)` does on the phone. A
+  failure message now says whether the row exists, its frame, and the app's and window's frames.
 - **The system decides by orientation whether the sidebar is out**, not the app.
   `reveal(_:_:)` tries what a person would: the **Show Sidebar** button in the bar (never its
   **Hide Sidebar** spelling), a swipe in from the left edge, and a scroll of the sidebar for a

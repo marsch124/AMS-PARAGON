@@ -135,6 +135,9 @@ jobs:
     # every sidebar row upright and on its side and keeps a picture of each screen, uploaded as
     # the `ipad-mini-screens` artifact.
     timeout-minutes: 30
+    # To put the pictures on the ipad-screens branch (the last step).
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Install XcodeGen
@@ -209,6 +212,44 @@ jobs:
           name: ipad-mini-screens
           path: build/ipad-screens
           if-no-files-found: warn
+      - name: Put the pictures on the ipad-screens branch
+        if: always()
+        # GitHub shows them in the browser, one under the other, with nothing to download:
+        # https://github.com/marsch124/AMS-PARAGON/tree/ipad-screens
+        # The branch holds only the pictures and a page listing them, as one commit that each
+        # run replaces, so it never grows. It is never merged anywhere.
+        run: |
+          COUNT=$(find build/ipad-screens -maxdepth 1 -name "*.png" | wc -l | tr -d ' ')
+          if [ "$COUNT" = "0" ]; then
+            echo "No pictures to put on the branch."
+            exit 0
+          fi
+          SHA=$(git rev-parse --short HEAD)
+          OUT="$RUNNER_TEMP/ipad-screens"
+          rm -rf "$OUT" && mkdir -p "$OUT"
+          cp build/ipad-screens/*.png "$OUT/"
+          cd "$OUT"
+          {
+            echo "# PARAGON on an iPad mini"
+            echo
+            echo "Pictures from CI run ${{ github.run_number }}, commit $SHA, $(date -u '+%d %B %Y %H:%M') UTC."
+            echo "Upright (portrait) first, then on its side (landscape)."
+            echo
+            for f in portrait*.png landscape*.png; do
+              [ -e "$f" ] || continue
+              echo "## ${f%.png}"
+              echo
+              echo "![${f%.png}](${f// /%20})"
+              echo
+            done
+          } > README.md
+          git init -q -b ipad-screens
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "iPad mini pictures from CI run ${{ github.run_number }} ($SHA)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ipad-screens
+          echo "$COUNT pictures on https://github.com/${{ github.repository }}/tree/ipad-screens"
       - name: Upload the test log
         if: always()
         uses: actions/upload-artifact@v4

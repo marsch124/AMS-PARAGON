@@ -81,7 +81,7 @@ final class IPadScreens: XCTestCase {
 
         for (number, section) in Self.sections.enumerated() {
             let name = "\(held) \(String(format: "%02d", number + 1)) \(section)"
-            reveal("sidebar.\(section)", name).tap()
+            press(reveal("sidebar.\(section)", name))
             check(app.navigationBars.firstMatch.waitForExistence(timeout: 20),
                   "\(section) opened without drawing a screen.", name)
             settle()
@@ -90,8 +90,8 @@ final class IPadScreens: XCTestCase {
         }
 
         let name = "\(held) \(String(format: "%02d", Self.sections.count + 1)) A project open"
-        reveal("sidebar.Projects", name).tap()
-        reveal(Self.project, name).tap()
+        press(reveal("sidebar.Projects", name))
+        press(reveal(Self.project, name))
         check(element("note.editor").waitForExistence(timeout: 20),
               "The test project opened without its editor.", name)
         settle()
@@ -118,13 +118,15 @@ final class IPadScreens: XCTestCase {
 
     // MARK: Finding things
 
-    /// The element, on screen and pressable. Tries up to ten times: a row that exists in a
+    /// The element, on screen. Tries up to ten times: a row that exists in a
     /// sidebar that is out is scrolled to (down five times, then up); otherwise the sidebar is
     /// brought out with **Show Sidebar**, or with a swipe in from the left edge when the bar has
     /// no such button.
     private func reveal(_ identifier: String, _ step: String) -> XCUIElement {
-        let target = element(identifier)
-        _ = target.waitForExistence(timeout: 5)
+        _ = element(identifier).waitForExistence(timeout: 5)
+        // Looked up again on every try: which of its elements has a frame can change once the
+        // sidebar is out.
+        var target = element(identifier)
         for attempt in 0..<10 {
             if isOnScreen(target) { return target }
             if identifier.hasPrefix("sidebar."), target.exists, aSidebarRowIsOnScreen() {
@@ -135,23 +137,51 @@ final class IPadScreens: XCTestCase {
                 swipeInFromTheLeft()
             }
             _ = target.waitForExistence(timeout: 3)
+            target = element(identifier)
         }
         check(isOnScreen(target),
-              "\(identifier) could not be brought on screen. If no sidebar row is on screen at all, the vault probably did not open. On screen: \(visibleTexts())",
+              "\(identifier) could not be brought on screen. If no sidebar row is on screen at all, the vault probably did not open. \(whereItIs(target)) On screen: \(visibleTexts())",
               step)
         return target
     }
 
+    /// The first element with that name that has a frame. A name can also land on a wrapper
+    /// SwiftUI makes, with no frame at all (build 249), and `firstMatch` may pick that one.
     private func element(_ identifier: String) -> XCUIElement {
-        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+        let named = app.descendants(matching: .any).matching(identifier: identifier)
+        let framed = named.allElementsBoundByIndex.first { !$0.frame.isEmpty }
+        return framed ?? named.firstMatch
     }
 
-    /// There, pressable, and with its middle inside the window.
+    /// There, with its middle on the screen. **The first run asked two more things and both
+    /// are gone:** whether the element was "hittable", and whether its middle was inside
+    /// `app.windows.firstMatch` — and the sidebar was plainly drawn, upright and on its side,
+    /// while no row counted as on screen. The screen is now the app's own frame, which on
+    /// iOS is the screen's (`press(_:at:)` in `ScreenTests`), and `press(_:)` taps by
+    /// coordinate, so nothing asks about "hittable" at all.
     private func isOnScreen(_ element: XCUIElement) -> Bool {
-        guard element.exists, element.isHittable else { return false }
+        guard element.exists else { return false }
         let frame = element.frame
-        guard !frame.isEmpty else { return false }
-        return app.windows.firstMatch.frame.contains(CGPoint(x: frame.midX, y: frame.midY))
+        guard !frame.isEmpty, frame.midX.isFinite, frame.midY.isFinite else { return false }
+        let screen = app.frame
+        return screen.isEmpty || screen.contains(CGPoint(x: frame.midX, y: frame.midY))
+    }
+
+    /// A tap at the element's middle, measured from the app's corner — the phone's way in
+    /// `ScreenTests.press(_:at:)`, which never asks whether the element is "hittable".
+    private func press(_ element: XCUIElement) {
+        let frame = element.frame
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: frame.midX, dy: frame.midY)).tap()
+    }
+
+    /// What the test knew about an element when it gave up, for the failure message: the
+    /// first run said only "could not be brought on screen", which could not tell a missing
+    /// row from a hidden one.
+    private func whereItIs(_ element: XCUIElement) -> String {
+        guard element.exists else { return "It does not exist." }
+        let named = app.descendants(matching: .any).matching(identifier: element.identifier).count
+        return "It exists (\(named) elements carry its name), hittable \(element.isHittable), frame \(element.frame), app \(app.frame), first window \(app.windows.firstMatch.frame), Show Sidebar button \(showSidebarButton() != nil)."
     }
 
     private func aSidebarRowIsOnScreen() -> Bool {
