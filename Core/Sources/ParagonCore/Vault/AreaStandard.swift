@@ -20,12 +20,20 @@ import Foundation
 /// **In Core, with tests, because it decides a stored value and the words on two screens**: the
 /// area's page and step 6 of the Weekly review. Section finding is `MarkdownSection.find` (build
 /// 223), never a second parser.
+///
+/// **Since build 277 the reading and writing live in `SectionText`**, which a goal's **Why**
+/// (`NoteReason`) shares: this type names the heading and the template and keeps
+/// `firstSentence`, which only a place with room for one line needs. Every test of build 271
+/// still passes through here unchanged.
 public enum AreaStandard {
     public static let heading = "## Standard"
 
+    /// The heading, the Area template and the rules, in one value (`SectionText`).
+    static let section = SectionText(heading: AreaStandard.heading, template: Templates.area)
+
     /// The lines the shipped **Area** template puts under its `## Standard` heading, read out of
     /// `Templates.area` itself so the two can never disagree.
-    public static let shippedPlaceholders: [String] = placeholders(inTemplate: Templates.area)
+    public static let shippedPlaceholders: [String] = AreaStandard.section.shippedPlaceholders
 
     // MARK: Reading
 
@@ -35,20 +43,13 @@ public enum AreaStandard {
     /// nothing under it but the template's question. For him both are "no standard written yet".
     /// `extra` are the placeholder lines of the area templates in his vault.
     public static func text(in note: Note, placeholders extra: [String] = []) -> String? {
-        let found = MarkdownSection.find(heading, in: note.body)
-        guard found.range != nil else { return nil }
-        let known = knownPlaceholders(for: note, extra: extra)
-        let kept = found.lines.filter { !known.contains(folded($0)) }
-        let clean = cleaned(kept.joined(separator: "\n"))
-        return clean.isEmpty ? nil : clean
+        AreaStandard.section.text(in: note, placeholders: extra)
     }
 
     /// The non-empty lines under `## Standard` in a template's text: what that template asks
     /// the writer to answer.
     public static func placeholders(inTemplate text: String) -> [String] {
-        MarkdownSection.find(heading, in: Frontmatter.parse(text).body).lines
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
+        AreaStandard.section.placeholders(inTemplate: text)
     }
 
     /// The first sentence of a standard, for a place with room for one line or two.
@@ -101,90 +102,13 @@ public enum AreaStandard {
     ///   empty box must not delete the template's question.
     /// - **The same text again changes nothing**, so a second save does not touch the file.
     public static func note(_ note: Note, settingText text: String, placeholders extra: [String] = []) -> Note {
-        let clean = cleaned(text)
-        let current = Self.text(in: note, placeholders: extra)
-        if clean.isEmpty {
-            guard current != nil else { return note }
-        } else if clean == current {
-            return note
-        }
-
-        var updated = note
-        var lines = note.body.components(separatedBy: "\n")
-        let found = MarkdownSection.find(heading, in: note.body)
-        let textLines = clean.components(separatedBy: "\n")
-
-        if let range = found.range {
-            let headingLine = max(range.lowerBound - 1, 0)
-            if clean.isEmpty {
-                lines.removeSubrange(headingLine..<range.upperBound)
-                // Two blank lines can meet where the section was. That one seam is closed and
-                // nothing else (DayLog's rule): collapsing every run of blank lines in the note
-                // would be rewriting his own prose.
-                if headingLine > 0, headingLine < lines.count,
-                   lines[headingLine - 1].trimmingCharacters(in: .whitespaces).isEmpty,
-                   lines[headingLine].trimmingCharacters(in: .whitespaces).isEmpty {
-                    lines.remove(at: headingLine)
-                }
-            } else {
-                // A blank line under the heading and one after the text, so the section still
-                // reads as markdown.
-                lines.replaceSubrange(range, with: [""] + textLines + [""])
-            }
-        } else if let above = lines.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces).hasPrefix("## ") }) {
-            var piece = [heading, ""] + textLines + [""]
-            if above > 0, !lines[above - 1].trimmingCharacters(in: .whitespaces).isEmpty {
-                piece.insert("", at: 0)
-            }
-            lines.insert(contentsOf: piece, at: above)
-        } else {
-            while lines.last?.trimmingCharacters(in: .whitespaces).isEmpty == true { lines.removeLast() }
-            lines.append("")
-            lines.append(heading)
-            lines.append("")
-            lines.append(contentsOf: textLines)
-            lines.append("")
-        }
-        updated.body = lines.joined(separator: "\n")
-        return updated
+        AreaStandard.section.note(note, settingText: text, placeholders: extra)
     }
 
     /// What would be stored for these words: line endings made plain, blank space at either end
     /// removed. The one rule, so what the box compares and what the note holds cannot differ.
     public static func cleaned(_ text: String) -> String {
-        text.replacingOccurrences(of: "\r\n", with: "\n")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    // MARK: Placeholders
-
-    /// A line made comparable: lower case, curly quotes made straight, runs of spaces (of any
-    /// kind) made one.
-    static func folded(_ line: String) -> String {
-        var text = line.lowercased()
-        for curly in ["\u{201C}", "\u{201D}", "\u{201E}", "\u{201F}"] {
-            text = text.replacingOccurrences(of: curly, with: "\"")
-        }
-        for curly in ["\u{2018}", "\u{2019}", "\u{201A}", "\u{201B}"] {
-            text = text.replacingOccurrences(of: curly, with: "'")
-        }
-        return text.components(separatedBy: .whitespacesAndNewlines)
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-    }
-
-    /// The placeholder lines for one note, folded. A template line may hold `{{title}}` or
-    /// `{{date}}`, which the note has already had filled in, so each line is also compared in
-    /// its filled-in form.
-    private static func knownPlaceholders(for note: Note, extra: [String]) -> Set<String> {
-        let day = note.createdDate ?? DateOnly.today()
-        var known = Set<String>()
-        for line in shippedPlaceholders + extra {
-            known.insert(folded(line))
-            known.insert(folded(Templates.fill(line, title: note.title, date: day)))
-        }
-        known.remove("")
-        return known
+        SectionText.cleaned(text)
     }
 
     // MARK: Small pieces
@@ -216,13 +140,6 @@ public extension Vault {
     /// or two to a refresh that already reads every template (build 261's rule: nothing here
     /// waits for iCloud any longer than the existing read does).
     func areaStandardPlaceholders(among templates: [TemplateFile]) -> [String] {
-        var lines: [String] = []
-        for file in templates where file.kind == .area {
-            guard let text = templateText(named: file.name) else { continue }
-            for line in AreaStandard.placeholders(inTemplate: text) where !lines.contains(line) {
-                lines.append(line)
-            }
-        }
-        return lines
+        placeholderLines(of: AreaStandard.section, kind: .area, among: templates)
     }
 }

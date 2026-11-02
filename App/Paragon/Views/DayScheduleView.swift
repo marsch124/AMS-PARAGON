@@ -251,9 +251,13 @@ struct DayScheduleView: View {
                                           subtitle: timeText(event.start, event.end)))
             }
         }
-        for ref in model.index.openTasks(dueOn: day) {
-            guard ref.task.dueTime != nil, let start = ref.task.dueMoment(calendar: calendar) else { continue }
-            let cut = shown(start, start.addingTimeInterval(1800))
+        // **The same query as Plan and Start the day** (build 277, `timedTasks(on:)`), and the same
+        // length: the task's own `~45m`, else half an hour. A task of 45 minutes was drawn as 30
+        // here and as 45 on Plan, which is how two screens come to disagree about one task.
+        for ref in model.index.timedTasks(on: day) {
+            guard let start = ref.task.dueMoment(calendar: calendar) else { continue }
+            let length = TimedTask.minutes(of: ref.task, usesTaskTimes: model.usesTaskTimes)
+            let cut = shown(start, start.addingTimeInterval(Double(length) * 60))
             items.append(ScheduleItem(id: "task-\(ref.notePath)-\(ref.task.lineIndex)", title: ref.task.title,
                                       start: cut.start, end: cut.end,
                                       color: ParaKind.daily.tint, kind: .task, subtitle: ref.noteTitle))

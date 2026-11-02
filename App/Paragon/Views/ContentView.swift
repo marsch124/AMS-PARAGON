@@ -18,6 +18,27 @@ struct ContentView: View {
         return isCompact ? 128 : 72
     }
 
+    /// What a wait at the foot of the window is for: the same words with a different offer are a
+    /// different wait. A plain value, so `.task(id:)` can compare two of them.
+    private struct FlashWait: Equatable {
+        let message: String
+        let offerID: Int?
+    }
+
+    /// How long the message stays. A message with an **Undo** stays eight seconds and every
+    /// other message two and a half, as before (`UndoWording.secondsOnScreen`).
+    ///
+    /// **A screen test on a slow runner may need longer than eight seconds between seeing the
+    /// button and pressing it**, and a test that fails for its own reasons is worse than none
+    /// (build 190). In a debug build started with `-paragon-test-vault` the offer stays a minute.
+    private func flashSeconds() -> Double {
+        let offered = model.undoOffer != nil
+        #if DEBUG
+        if offered && TestVault.isWanted { return 60 }
+        #endif
+        return UndoWording.secondsOnScreen(offersUndo: offered)
+    }
+
     /// iPhone (and a narrow iPad window): tabs instead of three columns.
     private var isCompact: Bool {
         #if os(iOS)
@@ -177,20 +198,19 @@ struct ContentView: View {
         }
         .overlay(alignment: .bottom) {
             if let message = model.lastCaptureMessage {
-                Text(message)
-                    .font(.callout)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(.regularMaterial, in: Capsule())
+                // The message and, when it carries one, its **Undo** (build 277). Without an
+                // offer this draws exactly what it always drew.
+                FlashCapsule(message: message, offersUndo: model.undoOffer != nil) { model.undo() }
                     // Above the focus timer's bar while a clock runs, never over its buttons
                     // (build 256): on the phone the bar sits on top of the tab bar, so higher.
                     .padding(.bottom, flashBottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    // Keyed to the words, so a message that replaces or extends another gets
-                    // its own full time on screen (build 257's review). A new message cancels
-                    // the old wait, and a cancelled wait must not clear the new message.
-                    .task(id: message) {
-                        do { try await Task.sleep(for: .seconds(2.5)) } catch { return }
+                    // Keyed to the words **and the offer's number**, so a message that replaces
+                    // or extends another gets its own full time on screen (build 257's review),
+                    // and so does a second Undo offered under the same words. A new message
+                    // cancels the old wait, and a cancelled wait must not clear the new message.
+                    .task(id: FlashWait(message: message, offerID: model.undoOffer?.id)) {
+                        do { try await Task.sleep(for: .seconds(flashSeconds())) } catch { return }
                         model.clearCaptureMessage()
                     }
             }

@@ -2,6 +2,100 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 277 · 2 November 2026
+
+**Undo for two changes that happen in one press.** You asked for **Undo**, and you said PARAGON should not ask first when you delete a line in the Inbox. Both are done. The message at the bottom of the window now has an **Undo** button after these two changes, and it stays for about eight seconds.
+
+- **The two small buttons over Overdue on Today** (the sun and the sunrise). They still move every overdue task to one date with one press, and they still ask nothing first. The message says how many tasks moved, for example "6 tasks moved.", and now has **Undo**. **Undo** gives every task **its own old date** back, not one date for all of them.
+- **Delete in the Inbox.** This is the Delete key on the Mac, and **Delete** in the line's menu on the Mac and on the iPhone. It still asks nothing first. The message says "Deleted" and the line's name, and now has **Undo**. **Undo** puts the line back with its subtasks, with the same id, where it was.
+
+**A correction.** In build 221 I wrote that after the move "every task is still there and can be moved again". That was not enough. Every task had its own old date, the press gives all of them the same new date, and nobody could have put the old dates back by hand. Now they can.
+
+**What Undo will not do.** It only changes what is still as the press left it. It never writes over a change you made afterwards, or that another device made.
+
+- A task you ticked off, gave another date, or deleted after the move is left as it is.
+- If Undo cannot put everything back, the message says how many it put back and names the others, with the reason. For example: "5 of 6 tasks put back. “Send the invoice” was changed after the move, so it was left as it is."
+- A deleted line is put back by adding it. If the Inbox has changed since (a capture from your other device came in, for example), the line goes near where it was and nothing is written over. If the line is already there, the message says so and adds nothing.
+- The message after **Undo** has no **Undo** of its own. Pressing **Undo** twice does nothing the second time.
+
+**When the Undo goes away.** After about eight seconds. Earlier, if another message takes the place of the first one, and when you open or close a vault.
+
+**Where there is no Undo.** The buttons in **Close the day**, because that screen covers the message on the iPhone, so you could not see the button. A date set on one task. A task deleted inside a note.
+
+**The Help pages** say it too: **Undo for one-press changes** in the manual, and the word **Undo** in **Words in PARAGON**.
+
+**To try it**
+
+1. Open **Today**. Make a task with a date long ago. On the iPhone, press the **+** button at the top left (it opens the New note screen with **Capture** chosen). On the Mac, press **Quick capture** in the toolbar. Then write `Pay the old invoice >2020-01-01` and press **Save**. It is now under **Overdue**.
+2. Press the small sun over **Overdue**. The task moves to today and the message has **Undo**. Press **Undo**. The task is under **Overdue** again, with its old date.
+3. Open the **Inbox**. On the Mac, pick a line and press the Delete key. On the iPhone, press and hold a line and choose **Delete**. Press **Undo** in the message. The line is back.
+
+**Your reason is on the Aspirations page.** Every goal note you make has a part called **Why**, with a question under it: "What changes in my life when this is true?" You answer it once, in the note. Until now no screen showed the answer again. Now your own words stand at the top of an aspiration, under its name.
+
+- Open **Aspirations** and choose an aspiration. Under its name there is a new line with the word REASON. It shows what you wrote, in the deep gold of an aspiration. It shows four lines at most, so a long text cannot push the goals off the screen.
+- Press **Reason…** and the whole text opens right there. Write it, then press **Save**. **Cancel** closes the box and writes nothing. Return does not save. Press **Save**.
+- When no reason is written, a dashed grey line says **No reason written yet.**, and the button says **Write the reason…**.
+- The question the Goal template puts under **Why** is not a reason. It counts as nothing written, so PARAGON never shows that question as if it were your answer. The same goes for the question in your own Goal template, if you changed its words.
+- **Save** puts your words in place of the question. A note that has no **Why** part gets one, above its first other part. You can also write it by hand in the note's text, under `## Why`.
+- **Save** with an empty box takes the reason away. When nothing was written before, it changes nothing, so the question stays.
+- If you changed the reason on your other device while the box was open here, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
+- While iCloud is still bringing a newer copy of the note, the button is grey. When no reason is shown yet, an orange line says why. Try again in a moment.
+- On the iPhone there is no aspiration page. The reason is the first thing inside the aspiration when you open it in the list.
+- It is only on the Aspirations page. **Start the day** and the **Weekly review** do not show it, and a goal with a date does not show one yet.
+
+**What changed inside the app.** The Standard of an area and the Reason of an aspiration now use the same code to read and write their part of the note. So they work the same way. Nothing changes for the Standard.
+
+**To try it:** open **Aspirations** and choose an aspiration. If you once answered the question under **Why** in its note, those words should be under its name. If you never did, it should say **No reason written yet.** Press **Write the reason…**, write one sentence, and press **Save**. The sentence should now be under the name. Open the aspiration's note and check that the same words are under `## Why`.
+
+**A time of day on a task.** PARAGON could always read a time on a task, as in `>2026-11-04T14:00`, and show it. Nothing in the app could write one, so you had to type it by hand. Now the date window has a new line, **At**.
+
+- **How to open the date window:** on the Mac, right-click a task, choose **Reschedule**, then **Pick a date**. On the iPhone, hold the task and do the same. In the Inbox, press a line and then **Pick a date**.
+- **Under the calendar there is the new line, At.** It has a small field for the time, four quick times (**09:00**, **12:00**, **14:00** and **16:00**) and a button, **No time of day**.
+- Press a quick time, or write your own time, like `14:30` or `9:30`. If what you write is not a time, a red line says how to write it and **Set** stays grey.
+- Press **Set**. The date and the time are written together. Return in the field does the same. On the iPhone, when the keyboard is up, there is a **Set** button above the keys too.
+- **If At is empty, the task has no time of day.** It is due on that date, for the whole day. **No time of day** empties the field. Then press **Set**: the date stays and the time goes. It is not the **No time** in **How long**: that one takes away how long a task takes.
+- **No date** takes both the date and the time off.
+- The task now shows its time beside the date, with a small clock: in every list, in the note, and in the Inbox. The Inbox line showed only the date before.
+- The time is written on the task's line, after the date, as `T14:00`.
+
+**Apple Reminders rings at that time**, for a task in a note that syncs to Reminders. After the next sync, a task that has a time gets an alarm in Reminders at that time. This is new for tasks that had only a date: they did not ring before. A note marked Not synced, a Resource and a Goal never go to Reminders, so their tasks have no alarm. The sync itself is not changed.
+
+**Plan draws a task that has a time.** On the day it is due, **Plan** shows a small card at that hour, in the **Time blocks** lane.
+
+- The card is as long as the task's own time (`~45m`), or half an hour when the task has none.
+- It does not look like a block of yours. There is no orange. It has a thin border in the colour of the text, a faint tint behind it and a small circle. It is a fixed point in your day. It cannot be moved or made longer.
+- Press the card to open the task's note. To tick the task, use the **Actions** column.
+- Two things at the same hour share the width, as everything on **Plan** does.
+- Only open tasks are drawn. A task that ends before 06:00 is not drawn, because this screen starts at 06:00. It is still in the **Actions** list.
+- If a block of yours has the same name as the task and lies over its hour, only the block is drawn. One task is not shown twice.
+- Work notes never appear.
+
+**Start the day keeps the hour free.** A task with a time is a fixed point, so **Start the day** no longer puts a block on top of it.
+
+- The blocks go around such a task, as they go around a meeting. The sum at the bottom of the screen counts its hour as taken.
+- **A task you pick that has a time goes into the plan at that time,** if the hour is free. If the hour is taken, or the time has already passed, the block goes into the first free time, as before.
+- The hour of a task you are picking is not counted as taken. Otherwise it could never go where it is due.
+- While a note is still coming from iCloud, a task with a time in it is not known yet, so its hour is not kept free. The message after the button says so. Look at **Plan** when the note has arrived.
+
+**The Calendar section's day** draws a task with a time as long as the task's own time too (`~45m`). Before, it was always half an hour there, and on **Plan** it is as long as the task, so now both say the same.
+
+**What does not change.**
+
+- The other date windows have no **At** line: a project's deadline, a goal's target date and the others. They look and work as before.
+- **Quick capture** has no **At** line. Write `>2026-11-04T14:00` in the capture, or set the time afterwards in the date window.
+- **Reschedule** (Today, Tomorrow, Next Monday, In a week), the Inbox buttons **Today** and **Tomorrow**, and **Move to today** over **Overdue** keep the time. A call at 14:00 moved to tomorrow is a call at 14:00 tomorrow. **Remove date** takes the time off with it.
+- **Today** and **All actions** list tasks as before. The **Today's plan** widget shows blocks and events only.
+
+**The Help pages** say it too: **The date window and its At line** in the manual, a line in **Plan the day**, and the word **At** in **Words in PARAGON**.
+
+**To try it** (do it before 16:00, so the time is still ahead of you):
+
+1. Open the Inbox and press a line. Press **Pick a date**. Under the calendar, press **16:00** and then **Set**. The line now shows today's date and 16:00, with a small clock.
+2. Open **Plan** (on the Mac, **Time Blocks**). In the **Time blocks** lane, at 16:00, there is a small grey card with the line's name. Press it: the Inbox opens.
+3. Open **Start the day**. Pick tasks that together take more than the time left before 16:00, and press the button at the bottom. No block covers 16:00. A block that does not fit before it goes after it.
+4. Open **Start the day** again and pick the Inbox line itself. It asks how long it takes: choose a time. Press the button at the bottom. It goes into the plan at 16:00, and **Plan** shows an orange block there instead of the grey card.
+5. Open the date window on another task, press a quick time, then **No time of day** and **Set**. The task shows only the date.
+
 ## Build 276 · 2 November 2026
 
 **Four small faults fixed, and icons for more kinds of notes.** You asked for all the small items together. Each one is separate: none of them needs the others. This build also holds build 275 (further down), which was not sent on its own.

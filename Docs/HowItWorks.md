@@ -87,7 +87,7 @@ A name another note already uses is refused. In Apple Reminders the list follows
 - **Archive** moves a project, area, resource or goal to the Archive folder, marks it archived and stops syncing its tasks. Use it for finished work. A note that is **Done**, **Missed** or **Dropped** keeps that word and the day it ended, so an archived project that was done still counts for its goal. Any other note is marked archived.
 - **Delete** (⌘⌫, or right-click the note; long-press on the phone) moves a note to the **Deleted** section in the sidebar. Nothing is lost: each entry has **Put back**, which returns it to the folder it came from (or beside it, if that name has been taken since), and **Delete for good**. **Empty** in the toolbar clears the lot.
 - Deleted notes are kept for **30 days**, then cleared out on their own. They live in a hidden folder inside the vault, so the phone and the Mac behave the same way and nothing there syncs to Reminders. The Inbox note cannot be deleted.
-- Only whole notes go here. A task you delete from a list is gone from the note straight away.
+- Only whole notes go here. A task you delete from a list is gone from the note straight away. A task deleted in the Inbox has an **Undo** for a short time; see **Undo for one-press changes**.
 
 ### Which aspiration an area serves
 
@@ -279,7 +279,7 @@ Tasks are ordinary list lines inside the notes:
 - `- [ ] Book the hotel` is open
 - `- [x] Book the hotel @done(2026-09-06)` is done
 - `- [-] Cancelled` and `- [>] Moved to another day`
-- `>2026-09-10` sets a date, `>2026-09-10T14:30` a date with a time
+- `>2026-09-10` sets a date, `>2026-09-10T14:30` a date with a time of day. You do not have to type the time: the **At** line in the date window writes it (see **The date window and its At line**).
 - `!`, `!!`, `!!!` set the priority
 - `~45m`, `~1h` or `~1h30m` says how long the task takes. **Start the day** asks for it before it plans a task, adds up what you picked, and **Plan** makes each block that long. The small button on the right of every task row writes it for you: it shows **time?** while there is none. **Settings › Tasks › Use task times** hides all of it.
 - `#tag` adds a tag
@@ -292,7 +292,7 @@ The task box under the note header shows the same tasks as a checklist. Ticking 
 
 Right-click any task, anywhere in the app — long-press on the phone — for the task menu:
 
-- **Reschedule**: Today, Tomorrow, Next Monday, In a week, Pick a date, Remove date.
+- **Reschedule**: Today, Tomorrow, Next Monday, In a week, Pick a date, Remove date. **Pick a date** opens the date window, where you can also give the task a time of day. The quick choices change the day only and **keep the time**: a call at 14:00 moved to tomorrow is a call at 14:00 tomorrow. **Remove date** takes the time off with it.
 - **How long**: 3 min, 5 min, 10 min, 15 min, 30 min, 45 min, 1 h, 1 h 30, 2 h or 3 h, or **No time**. Only there while **Use task times** is on in Settings.
 - **Repeat**: every day, week, 2 weeks, month, 3 months or year. When you tick a repeating task, the next one appears below it with the next date. In the file this is `@repeat(weekly)`.
 - **Make this the next action** (in a project): the task gets a `#next` tag and a badge, and Today lists it under "Next actions". One per project.
@@ -301,6 +301,20 @@ Right-click any task, anywhere in the app — long-press on the phone — for th
 - **Move to**: the Inbox, any active project or any active area. Subtasks move along. The reminder follows on the next sync. You can also drag the task onto another note in the middle column.
 
 You can also **drag** a task: onto a note in the middle column or onto Inbox to move it, onto a day in the Calendar's month grid or week list to set its date, or onto a day in the weekly note.
+
+### The date window and its At line
+
+**Pick a date**, in the task menu and in the Inbox, opens the date window. It has a field for the date, a calendar, and under them a line called **At**: a small field for the time of day, four quick times (**09:00**, **12:00**, **14:00** and **16:00**) and a button, **No time of day**.
+
+- Press a quick time, or write the time yourself as `14:00` (`9:30` is fine too). The field must be a time: if it is not, a red line says how to write it and **Set** stays grey.
+- **Set** writes the date and the time together. Return in either field does the same. On the iPhone, while the keyboard is up, a **Set** button also sits above the keys.
+- **At** empty means no time of day: the task is due on that date, for the whole day. **No time of day** empties the field; press **Set** to keep the date without a time. It is not the **No time** in **How long**, which takes away how long a task takes.
+- **No date** takes the date and the time off.
+- The time is written on the task's line as `T14:00` after the date. A task row shows it beside the date, with a small clock.
+- **Apple Reminders rings at that time**, for a task in a note that syncs to Reminders. After the next sync, a task you gave a time gets an alarm in Reminders at that time. Before, a task with only a date did not ring. A note marked Not synced, a Resource and a Goal never go to Reminders, so no alarm rings for their tasks.
+- The word is **At**, not "Time", because a task's **time** already means how long it takes (`~45m`).
+
+A task with a time is a fixed point in the day. **Plan** draws it at its hour (see **Plan the day**), and **Start the day** keeps that hour free, as long as no note is still coming from iCloud: a task in a note that has not arrived yet cannot be kept free, and **Start the day** says so in its message. The Calendar section's day draws it at its hour too, as long as the task's own time. Quick capture's date window has no **At** line: write `>2026-11-04T14:00` in the capture, or set the time afterwards.
 
 ### Adding a task at the bottom of a note
 
@@ -313,17 +327,33 @@ where it was too long to read on the phone and disappeared as soon as you typed.
 Beside it: **Snippet**, a ready-made block of tasks from Templates › Snippets, and on the phone
 the **pencil** that turns writing on and off.
 
+### Undo for one-press changes
+
+Two changes happen in one press, with no question first. Both can be put back for a short time.
+
+- **Move every overdue task to today or tomorrow**: the two small buttons over **Overdue** on Today. The message at the bottom says how many tasks moved.
+- **Delete** in the Inbox: the Delete key, or **Delete** in the line's menu. The message says which line was deleted.
+
+While the message has an **Undo** button it stays for about eight seconds. The **Undo** button goes earlier if another message takes its place, and when you open or close a vault. One press on **Undo** is enough; a second press does nothing.
+
+- After a move, **Undo** gives every task its own old date back, not one date for all of them.
+- After a delete, **Undo** puts the line back with its subtasks, in the same place. If the Inbox has changed since — a capture from your other device came in, for example — the line is added near where it was and nothing is written over. If the line is already there, the message says so and nothing is added.
+- **Undo** only changes what is still as the press left it. A task you ticked off, gave another date or deleted in the meantime, or that another device changed, is left as it is.
+- The message after **Undo** says how many were put back, and names the ones that were not, with the reason. For example: "5 of 6 tasks put back. “Send the invoice” was changed after the move, so it was left as it is." That message has no **Undo** of its own, so it goes away after the usual two and a half seconds.
+
+There is no **Undo** on the buttons in **Close the day**, because that screen covers the message on the phone. A date set on one task, and a task deleted inside a note, have none either.
+
 ## The Inbox
 
 Everything you capture lands here, and the screen is built for emptying it.
 
-The middle column is the list of lines waiting to be sorted, with a capture field on top. Click a line to pick it, and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it**. The first three set the line's date, and the button for the date it already has is filled in and outlined in orange, so the four buttons also tell you where the line stands. **File it** is a menu: move the line to a project or an area, turn it into a note, block time for it, take the date off again, or delete it. To rename a line, right-click it on the Mac or hold it on the phone — the same menu opens there, with **Rename…** on it.
+The middle column is the list of lines waiting to be sorted, with a capture field on top. Click a line to pick it, and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it**. The first three set the line's date, and the button for the date it already has is filled in and outlined in orange, so the four buttons also tell you where the line stands. **Today** and **Tomorrow** keep a time the line already has; **Pick a date** opens the date window with its **At** line, and the line then shows its time beside the date. **File it** is a menu: move the line to a project or an area, turn it into a note, block time for it, take the date off again, or delete it. **Delete** asks nothing first: the message at the bottom has an **Undo** button for about eight seconds (see **Undo for one-press changes**). To rename a line, right-click it on the Mac or hold it on the phone — the same menu opens there, with **Rename…** on it.
 
 On the Mac the four buttons are in the right-hand column, under the line you are sorting and above the places it can go, so everything about one line is in one place. On the phone there is no right-hand column, so the buttons appear just under the line you tapped. On both, the line you picked keeps its ordinary colours and the other lines fade, so the one you are working on stands out.
 
 ### The keys
 
-↑ and ↓ move down the list, **T** gives a line today's date, **M** tomorrow's, **D** ticks it off and **⌫** deletes it. Typing in the capture field never triggers them.
+↑ and ↓ move down the list, **T** gives a line today's date, **M** tomorrow's, **D** ticks it off and **⌫** deletes it, with an **Undo** in the message that follows. Typing in the capture field never triggers them.
 
 ### Where it goes
 
@@ -481,6 +511,19 @@ aspiration with nothing under it yet says **Nothing serves this yet** on its own
 
 Right-click a row (press and hold on the iPhone) for **Open the note** and **I looked at it today**.
 
+**The reason** sits at the top of an aspiration, under its name. It is why this matters to you, in your own words, in the deep gold of an aspiration. It comes from the part of the note under `## Why`.
+
+- Press **Reason…** and the whole text opens right there. Write it, then press **Save**. **Cancel** closes the box and writes nothing. Return does not save; press **Save**.
+- The page shows the first four lines. When you wrote more, the box shows all of it.
+- When no reason is written, a dashed grey line says **No reason written yet.**, and the button says **Write the reason…**.
+- The Goal template puts a question under `## Why`: "What changes in my life when this is true?". The question is not a reason. It counts as nothing written. The same goes for the question in your own Goal template, if you have reworded it.
+- **Save** puts your words in place of the question. A note with no `## Why` heading gets one, above its first other section. Writing it by hand in the note's text works as well.
+- **Save** with an empty box takes the reason away, heading and all. When no reason was written, it changes nothing, so the template's question stays.
+- If the reason was changed on your other device while the box was open, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
+- While iCloud is still bringing a newer copy of the note, the button is grey. If no reason is shown yet, an orange line says why. Try again in a moment.
+- On the iPhone the reason is the first thing inside an aspiration when you open it in the list.
+- Only an aspiration shows a reason. A goal with a date does not show one yet, and neither do **Start the day** and the **Weekly review**. The text under `## Why` in a goal with a date stays in its note.
+
 **There is no per cent on an aspiration, and that is deliberate.** You never finish one, so a
 figure would be a promise the idea does not make. Each goal under it keeps its own bar, where
 the number is true.
@@ -558,7 +601,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 ## Today, Calendar, daily and weekly notes
 
-- **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot. Nothing is deleted and nothing is asked first — the tasks are all still there, and a short message says how many moved. Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
+- **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot, and nothing is asked first. A short message says how many moved, and it has an **Undo** button for about eight seconds: each task gets back the date it had before (see **Undo for one-press changes**). Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
 
 - **Now and Then** on **Today**: on a day with a plan, two short lines under the date say where you are in it. The first starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**. On its right is a small orange button with a clock. Press it and the focus timer starts on that block, and the bar appears at the bottom, as usual. If exactly one open task has the same name as the block, the timer can tick that task off when you stop it (see **The focus timer**). While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused. The dot also shows when the clock runs on a task with the same name as the block, such as the task the block was made from. The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button. The lines change by themselves when a block starts or ends. When nothing is on now, only the **Then** line is shown. When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before. Only plan blocks are shown here; your calendar events are under **Calendar** further down. On the Mac, hold the pointer over the clock button and its name appears.
 
@@ -567,7 +610,7 @@ The per cent never says 100 until everything really is finished, and never says 
   - **This week:** and the goal for the week, the same line as on **Today**. It is not shown when no goal is written. If this week's note is still coming from iCloud, an orange line says so. You write the goal on **Calendar › Week**.
   - **Today's calendar events**, one short line each, with the number in the heading. Press the heading to fold them away, and again to open them. The iPhone and the Mac each remember this on their own. If Calendar access is off, the message that says so is never folded away. When **Show the day's events in Today and in daily notes** is off in **Settings › Apple Calendar**, this part is not shown.
 - Under those three things there is a field, **Add an action for today**, with a **+** beside it. Type something that came to mind and press **+** (or Return). It goes to the Inbox, dated today, and appears in the list already picked. The field stays ready for the next one. If you type your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the Inbox but not shown in today's list. On the iPhone, drag the list down to put the keyboard away.
-- In **Start the day**, press **Pick** at the left of the two or three that matter most (the round circle after it marks the task as done, as everywhere else), then press the button at the bottom (it says **Plan 2 actions**, for example). Each one goes into today's plan as a block as long as the task's own time, or one hour when it has none, in the free time left today: after the time it is now, and never on top of a block you already have or a calendar event. Nothing is placed after midnight; if not all of them fit, a message says how many did. An action already in today's plan says **In the plan at** and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
+- In **Start the day**, press **Pick** at the left of the two or three that matter most (the round circle after it marks the task as done, as everywhere else), then press the button at the bottom (it says **Plan 2 actions**, for example). Each one goes into today's plan as a block as long as the task's own time, or one hour when it has none, in the free time left today: after the time it is now, and never on top of a block you already have, a calendar event or another task that has a time of day (a call at 14:00 keeps its hour). A task in a note that is still coming from iCloud is not known yet, so its hour is not kept free; the message after the button then says so, and **Plan** shows the task once its note has arrived. **A picked task that has a time of day goes in at that time, if the hour is free**; if it is taken, or the time has already passed, the block goes into the first free time instead. Nothing is placed after midnight; if not all of them fit, a message says how many did. An action already in today's plan says **In the plan at** and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
 - **Morning reminder.** In **Settings › Morning reminder**, turn on **Remind me to start the day** and choose a time (07:30 unless you change it). PARAGON then sends one notification every morning at that time: "Start the day. What matters most today? Pick it and put it in your plan." Press it and **Start the day** opens. On the iPhone the keyboard does not come up by itself, so you see the whole list first. It comes every day, at the weekend too, because your leisure tasks are in PARAGON as well. Turn the switch off and it stops.
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a day at that time. Press it and **Close the day** opens. Turn the switch off and it stops.
 - **Both reminders work the same way.** The first time you turn one on, the iPhone or the Mac asks whether PARAGON may send notifications. That one answer is for both reminders and for the focus timer. Under the time, Settings says when the next reminder will come, for example "Next reminder: tomorrow at 07:30". If no reminder can come, it says why in orange and where to change it. Each part has its own **Send one in 10 seconds**, which sends the same notification once, so you can try it now. Press that notification and the same screen opens as from the real one. Below the button it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac delivered it. The iPhone and the Mac each have their own switches and times. A Focus mode, such as Do Not Disturb, can hold a notification back, and PARAGON cannot see that.
@@ -640,7 +683,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 The app reads events from the calendars you choose in Settings › Apple Calendar. Events appear in Today and in daily notes. Double-click an event, or use its arrow button, to open it in the Calendar app.
 
-The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00, so nothing runs out of the day; the time written under its name is still the event's own. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
+The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. A task that has a time of day is drawn at its hour, as long as the task's own time (`~45m`), or half an hour when it has none. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00, so nothing runs out of the day; the time written under its name is still the event's own. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
 
 ### Plan the day
 
@@ -664,6 +707,18 @@ The screen has three parts:
   hour, named after the task. Nothing is asked first: drag its edge to make it longer, or
   right-click it to remove it. The task keeps its own tick box in the Actions column — a block
   says when you mean to do the work, it does not do the work.
+
+**A task with a time of day is drawn there too.** Give a task a time with the **At**
+line in its date window, and on the day it is due **Plan** shows a small card in the **Time
+blocks** lane at that hour, as long as the task's own time (`~45m`), or half an hour when it
+has none. Two things at the same hour share the width, as everything here does. The card looks
+different from a block on purpose: no orange, a thin border in the colour of the text and a small circle, because it
+is a fixed point in your day and not a block of yours. It cannot be dragged or made longer.
+Press it to open the task's note; tick the task in the **Actions** column. Only open tasks are
+drawn. A task that ends before 06:00 is not drawn on this screen, but it is in the Actions list.
+A task that starts before 06:00 and ends after it is drawn from 06:00 on, and its card still shows
+its own times. When a block of yours has the task's name and lies over its hour, only
+the block is drawn, so one task is not shown twice.
 
 On the iPhone the parts are one page instead. At the top, above the hours, the actions are
 shown again as small dashed tiles under **Actions**, and they stay there while the hours scroll

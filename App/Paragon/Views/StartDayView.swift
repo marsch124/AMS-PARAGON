@@ -158,9 +158,9 @@ struct StartDayView: View {
 
     private var instructions: String {
         if useTaskTimes {
-            return "Press Pick on the left of what matters today. A task with no time asks for one first. Each one goes into your plan as a block of its own length, in the free time left today. The circle marks a task as done."
+            return "Press Pick on the left of what matters today. A task with no time asks for one first. Each one goes into your plan as a block of its own length, in the free time left today. A task that has a time of day goes in at that time, if it is free. The circle marks a task as done."
         }
-        return "Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. The circle marks a task as done."
+        return "Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. A task that has a time of day goes in at that time, if it is free. The circle marks a task as done."
     }
 
     /// **Does it fit?** (build 249) The picked times added up, against the free time left in the
@@ -539,9 +539,19 @@ struct StartDayView: View {
         let refs = pickedRefs
         if !refs.isEmpty {
             let placed = model.planActions(refs, on: day)
-            model.flash(message(placed: placed, asked: refs.count))
+            model.flash(messageWithCloudNote(placed: placed, asked: refs.count))
         }
         close()
+    }
+
+    /// **A note that has not arrived is not known** (build 100's rule): a task with a time of day
+    /// in it is not in the index, so its hour was not kept free. The plan is written all the
+    /// same — refusing would make this screen unusable for as long as one note is on its way —
+    /// and the message says so, so a gap in what was read is never taken for free time.
+    private func messageWithCloudNote(placed: Int, asked: Int) -> String {
+        let text = message(placed: placed, asked: asked)
+        if model.notesWaitingForCloud.isEmpty { return text }
+        return text + " Some notes are still coming from iCloud. A task with a time of day in them was not kept free. Look at Plan."
     }
 
     private func message(placed: Int, asked: Int) -> String {

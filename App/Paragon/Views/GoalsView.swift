@@ -80,6 +80,10 @@ struct AspirationsListView: View {
                     ForEach(chains) { chain in
                         AspirationRow(chain: chain)
                             .tag(chain.note.relativePath)
+                            // Named by its path for the screen tests (build 277), the way a
+                            // goal's row is (build 268): one element that holds the row's words.
+                            .accessibilityElement(children: .contain)
+                            .accessibilityIdentifier("aspiration.\(chain.note.relativePath)")
                             .contextMenu { rowMenu(chain.note) }
                     }
                 } header: {
@@ -176,6 +180,9 @@ struct AspirationsListView: View {
         // and **Open the note**, which the phone's Aspirations list had no other way to open for
         // a live aspiration (the Map, Search and the review could).
         .contextMenu { rowMenu(chain.note) }
+        // Named by its path for the screen tests (build 277), on the button itself: it is the
+        // one element here that takes the press.
+        .accessibilityIdentifier("aspiration.\(chain.note.relativePath)")
         if isOpen {
             AspirationChainBody(chain: chain, compact: true)
                 .padding(.leading, 10)
@@ -711,10 +718,11 @@ struct AspirationChainBody: View {
         VStack(alignment: .leading, spacing: 14) {
             if !compact { head }
             if compact {
-                // The phone has no aspiration page, so the measure's button lives in the
-                // folded-open chain (review of 271): the row above shows the measure, and this
-                // is what changes it. Its own list row, outside the fold button, so it is never
-                // a button inside a button (builds 71–74).
+                // The phone has no aspiration page, so the reason (build 277) and the measure's
+                // button live in the folded-open chain (review of 271): the row above shows the
+                // measure, and this is what changes it. Its own list row, outside the fold
+                // button, so it is never a button inside a button (builds 71–74).
+                AspirationReasonBox(note: chain.note)
                 GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
             }
             if chain.isBare {
@@ -831,6 +839,9 @@ struct AspirationChainBody: View {
                     .font(.title2.weight(.semibold))
                     .lineLimit(3)
             }
+            // Build 277: his own reason, straight under the name — why this matters, from the
+            // note's `## Why`. Only an aspiration's page draws it (his answer A2).
+            AspirationReasonBox(note: chain.note)
             WrappingHStack(spacing: 6, lineSpacing: 6) {
                 ChainChip(text: GoalHorizon.life.label, tint: ChainTint.aspiration, filled: true)
                 // Build 276: the page that shows the icon is where the icon is changed. The

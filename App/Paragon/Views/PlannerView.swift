@@ -248,7 +248,7 @@ struct PlannerDayView: View {
             hours
             lane(title: "Calendar", tint: SidebarSection.calendar.tint, placements: placedEvents)
             Divider()
-            lane(title: "Time blocks", tint: Theme.planBlockTint, placements: placedBlocks,
+            lane(title: "Time blocks", tint: Theme.planBlockTint, placements: placedPlan,
                  takesDrops: true)
         }
     }
@@ -316,6 +316,8 @@ struct PlannerDayView: View {
                                           },
                                           openEvent: openEventAction(for: block),
                                           focus: focusAction(for: block))
+                        } else if let task = placed.task {
+                            taskCard(placed, task: task, x: box.x, width: box.width)
                         } else {
                             item(placed, tint: tint, x: box.x, width: box.width)
                         }
@@ -349,6 +351,24 @@ struct PlannerDayView: View {
                      height: placed.height, tint: tint, filled: false)
             .frame(width: width, height: placed.height)
             .offset(x: x, y: placed.top)
+    }
+
+    /// A task that has a time of day, at its hour (build 277). It sits in the right-hand lane
+    /// with the plan blocks and shares the width with them, but it is **not a plan block and
+    /// must not look like one**: no orange, no grip, and it cannot be moved. Pressing it opens
+    /// the task's note.
+    private func taskCard(_ placed: PlannerPlacement, task: TaskRef, x: CGFloat, width: CGFloat) -> some View {
+        PlanTaskCard(title: placed.title, time: placed.time, startTime: placed.startTime,
+                     noteTitle: task.noteTitle, height: placed.height,
+                     open: { openNote(of: task) })
+            .frame(width: width, height: placed.height)
+            .offset(x: x, y: placed.top)
+    }
+
+    /// Shows the note a task lives in, the way the Actions column's **Open …** does.
+    private func openNote(of ref: TaskRef) {
+        guard let note = model.note(at: ref.notePath) else { return }
+        model.show(note)
     }
 
     /// **Focus on this** for a block's menu, or nil where no timer bar can be seen. A function
@@ -431,10 +451,47 @@ struct PlannerDayView: View {
         return place(spans)
     }
 
-    private var placedBlocks: [PlannerPlacement] {
-        place(blocks.map {
+    /// The plan's blocks and, since build 277, the day's tasks that have a time of day, placed
+    /// together so overlapping ones share the width. Tasks come from `timedTasks(on:)` (Core),
+    /// the one query Start the day and the Calendar section's day use as well.
+    private var placedPlan: [PlannerPlacement] {
+        var spans: [PlannerSpan] = blocks.map {
             PlannerSpan(id: "block-\($0.index)", start: $0.start, end: $0.end, title: $0.title, block: $0)
-        })
+        }
+        spans.append(contentsOf: timedTaskSpans)
+        return place(spans)
+    }
+
+    /// The open tasks due on this day with a time of day, drawn from that time for their own
+    /// length (`TimedTask.span`: the task's `~45m`, else half an hour), cut at midnight.
+    ///
+    /// **A task a plan block already stands for is not drawn twice**: Start the day puts a
+    /// picked task into the plan at its time, and a card beside its own block would halve the
+    /// width of both. A block stands for it when it has the task's name (compared the way
+    /// **Planned and worked** compares names) and lies over the task's hour. Held to the hours
+    /// the lane draws, as events are: a task that ends at or before 06:00 has no place here and
+    /// is left out (one that starts before 06:00 and ends after it is drawn from 06:00); it is
+    /// still in the Actions list.
+    private var timedTaskSpans: [PlannerSpan] {
+        let windowStart = firstHour * 60
+        let windowEnd = (lastHour + 1) * 60
+        let planned = blocks
+        var spans: [PlannerSpan] = []
+        for ref in model.index.timedTasks(on: day) {
+            guard let range = TimedTask.span(of: ref.task, usesTaskTimes: model.usesTaskTimes) else { continue }
+            let name = planBlockTitle(from: ref.task)
+            let covered = planned.contains { block in
+                NowAndNext.sameName(block.title, name) && block.start < range.upperBound && block.end > range.lowerBound
+            }
+            if covered { continue }
+            let from = max(range.lowerBound, windowStart)
+            let to = min(range.upperBound, windowEnd)
+            guard to > from else { continue }
+            spans.append(PlannerSpan(id: "task-\(ref.id)", start: from, end: to, title: ref.task.title,
+                                     block: nil, wordsStart: range.lowerBound, wordsEnd: range.upperBound,
+                                     task: ref))
+        }
+        return spans
     }
 
     /// Spans that overlap share the width. Sorted by start, then greedily given the first lane
@@ -758,6 +815,92 @@ private struct PlanCardFace: View {
     }
 }
 
+/// A task that has a time of day, drawn at its hour on **Plan** (build 277).
+///
+/// **It is a fixed point in the day, not one of his blocks, and it must not look like one.**
+/// Orange means a plan block (build 152: a colour is a claim), and a plan block can be moved and
+/// resized; a task with a time cannot. So this card is neutral ink with a thin solid border and
+/// a faint tint, and it has the task's own circle — the sign everywhere in this app for a
+/// task — with its time. **One gesture only: a press**, which opens the task's note.
+///
+/// It is told its height and draws to fit it, as `PlanCardFace` does: one line under 40 points
+/// (the time and the name), two above, clipped to its rounded box so a short card never prints
+/// over the next one (build 226). The circle is a picture; ticking a task is done in the Actions
+/// list, where `TaskRow` has the real control.
+private struct PlanTaskCard: View {
+    let title: String
+    /// "14:00 – 14:30", for a card with room for two lines.
+    let time: String
+    /// Only the start, for a card too short for two lines.
+    let startTime: String
+    let noteTitle: String
+    let height: CGFloat
+    let open: () -> Void
+
+    private var oneLine: Bool { height < 40 }
+
+    var body: some View {
+        Button(action: open) {
+            face
+        }
+        .buttonStyle(.plain)
+        .help("Open \(noteTitle)")
+        .accessibilityLabel("\(title), at \(startTime)")
+        // Named for the screen tests. Accessibility only.
+        .accessibilityIdentifier("plan.task.\(title)")
+    }
+
+    private var face: some View {
+        content
+            .padding(.horizontal, 6)
+            .padding(.vertical, oneLine ? 2 : 4)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 7))
+            .overlay(
+                RoundedRectangle(cornerRadius: 7)
+                    .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 7))
+            .contentShape(RoundedRectangle(cornerRadius: 7))
+    }
+
+    /// Views only, so the `@ViewBuilder` rule holds (build 58).
+    @ViewBuilder private var content: some View {
+        if oneLine {
+            HStack(spacing: 4) {
+                Image(systemName: "circle")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(startTime)
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 3) {
+                    Image(systemName: "circle")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(time)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 0)
+                }
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+                    .lineLimit(3)
+                Spacer(minLength: 0)
+            }
+        }
+    }
+}
+
 /// One of his own blocks, which can be picked up and moved.
 ///
 /// **Its own view because a live drag needs `@GestureState`** — the shape `MapNodeBox` has had
@@ -955,6 +1098,9 @@ private struct PlannerSpan {
     /// began before the first hour drawn keeps its own start in the words (build 276).
     var wordsStart: Int? = nil
     var wordsEnd: Int? = nil
+    /// Set for a task with a time of day (build 277). It is pressed to open its note and is
+    /// neither moved nor resized.
+    var task: TaskRef? = nil
 }
 
 private struct PlannerPlacement: Identifiable {
@@ -968,6 +1114,7 @@ private struct PlannerPlacement: Identifiable {
     var id: String { span.id }
     var title: String { span.title }
     var block: PlanBlock? { span.block }
+    var task: TaskRef? { span.task }
     var time: String {
         let from = span.wordsStart ?? span.start
         let to = span.wordsEnd ?? span.end

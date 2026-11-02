@@ -148,15 +148,20 @@ struct TodayView: View {
                             // learnt — and two screens that set a date must not use different
                             // pictures for it (build 168). The words live on as the spoken
                             // label and the Mac's tooltip (build 159).
+                            // **Both offer an Undo** (build 277): the press gives every task the
+                            // same date, and each had its own, which nobody could put back by
+                            // hand. The identifiers are for the screen test.
                             HeaderActionButton(spokenTitle: "Move every overdue task to today",
                                                systemImage: "sun.max",
-                                               tint: ParaKind.daily.tint) {
-                                model.moveTasks(overdue, to: today)
+                                               tint: ParaKind.daily.tint,
+                                               identifier: "today.overdue.today") {
+                                model.moveTasks(overdue, to: today, offersUndo: true)
                             }
                             HeaderActionButton(spokenTitle: "Move every overdue task to tomorrow",
                                                systemImage: "sunrise",
-                                               tint: ParaKind.daily.tint) {
-                                model.moveTasks(overdue, to: today.adding(days: 1))
+                                               tint: ParaKind.daily.tint,
+                                               identifier: "today.overdue.tomorrow") {
+                                model.moveTasks(overdue, to: today.adding(days: 1), offersUndo: true)
                             }
                         }
                         .textCase(nil)
@@ -383,6 +388,8 @@ private struct HeaderActionButton: View {
     /// out (**Start the day**, build 241). Still no fill: a tinted fill means "this is on"
     /// in build 142's two-state language, and this is an action, not a state.
     var strong = false
+    /// For the screen tests (build 277); empty when the button has no name of its own.
+    var identifier = ""
     let action: () -> Void
 
     var body: some View {
@@ -400,6 +407,7 @@ private struct HeaderActionButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(spokenTitle)
+        .accessibilityIdentifier(identifier)
         .help(spokenTitle)
     }
 

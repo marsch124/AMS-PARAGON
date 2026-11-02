@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 276
+    static let number = 277
 }
 
 @MainActor
@@ -213,7 +213,22 @@ final class AppModel: ObservableObject {
             openWaitingScreen()
         }
     }
-    @Published private(set) var lastCaptureMessage: String?
+    /// The short message at the foot of the window. **It owns the Undo offer below it** (build
+    /// 287): any other way of setting the message — an ordinary `flash`, a capture's answer, the
+    /// message going away — ends the offer with it, unless `flashKeepingUndo` is the one
+    /// setting it. Two things that must live and die together are tied here, once, so no caller
+    /// has to remember.
+    @Published private(set) var lastCaptureMessage: String? {
+        didSet { if !keepingUndoOffer { undoOffer = nil } }
+    }
+    /// The **Undo** that goes with the message, or nil. Set only by `flash(_:offering:)` and
+    /// cleared by `undo()` (both in `UndoOffer.swift`), by any other message, and when a vault is
+    /// opened or closed.
+    @Published var undoOffer: UndoOffer?
+    /// Numbers the offers, so a second offer with the same words still gets its own full time on
+    /// screen and the bottom overlay can tell it from the first.
+    var undoOfferCount = 0
+    private var keepingUndoOffer = false
     @Published var selectedDate = DateOnly.today()
     @Published var selectedWeek = WeekRef.current()
     @Published var selectedMonth = MonthRef.current()
@@ -846,6 +861,10 @@ final class AppModel: ObservableObject {
         // A different vault is a different picture: nothing written for the old one may decide
         // that this one needs no new file (build 271).
         forgetWidgetSnapshot()
+        // An Undo belongs to the vault it was made in (build 277). Only the offer goes: a message
+        // that `settleFocusBeforeLeavingVault()` has just flashed ("the clock ... had run for over
+        // 12 hours") must still be drawn.
+        undoOffer = nil
         cloudWatcher.watch(opened.rootURL)
         reload()
         fetchCloudFiles(force: true)
@@ -873,6 +892,10 @@ final class AppModel: ObservableObject {
         // `writeWidgetSnapshot` would write "nothing due, nothing waiting" (build 179). The
         // guard against that is new in build 271. The file already on disk stays as it was.
         forgetWidgetSnapshot()
+        // An Undo belongs to the vault it was made in (build 277). Only the offer goes: a message
+        // that `settleFocusBeforeLeavingVault()` has just flashed ("the clock ... had run for over
+        // 12 hours") must still be drawn.
+        undoOffer = nil
         selectedNotePath = nil
         clearHistory()
     }
@@ -1764,14 +1787,45 @@ final class AppModel: ObservableObject {
         return task.map { TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: $0) }
     }
 
+    /// Moves a task to another date (or takes the date off). **It keeps the task's time of day**
+    /// (build 277): a call at 14:00 moved to tomorrow is a call at 14:00 tomorrow, which is what
+    /// **Reschedule**, the Inbox's keys and **Move to today** all rely on. With no date the time
+    /// goes too, since a time needs a date. The rule is `TaskItem.settingDueDate` in Core.
+    /// Setting the time itself is `setDue(_:date:time:)`.
     func setDueDate(_ ref: TaskRef, _ date: DateOnly?) {
         flushPendingEdits()
         guard var note = note(at: ref.notePath) else { return }
-        var task = ref.task
-        task.dueDate = date
-        if date == nil { task.dueTime = nil }
+        let task = ref.task.settingDueDate(date)
         guard note.replace(task: task) else { return }
         save(note)
+    }
+
+    /// Sets a task's date **and** its time of day together — the **Set** button in the date
+    /// window's **At** line (build 277). A separate name, never a second `setDueDate`: an
+    /// overload is a thing Swift settles by inference, and there is no compiler here (build 168).
+    ///
+    /// The change is made on the task **as the note holds it now** (`liveTask`), not on the copy
+    /// the row was drawn from, so a priority or a length changed meanwhile is not written back
+    /// over. Nothing is written when nothing changes: a save moves the file's date, and the
+    /// review counts a note as changed by it. A nil time takes the time off and keeps the date;
+    /// a nil date takes both off.
+    func setDue(_ ref: TaskRef, date: DateOnly?, time: TimeOfDay?) {
+        flushPendingEdits()
+        guard var note = note(at: ref.notePath) else { return }
+        let current = liveTask(for: ref, in: note)
+        let changed = current.settingDue(date: date, time: time)
+        guard changed != current, note.replace(task: changed) else { return }
+        save(note)
+    }
+
+    /// The task a row stands for, read out of the note as it is now: by its `^t` id, else by line
+    /// and title, else by title alone, else the copy the row holds.
+    private func liveTask(for ref: TaskRef, in note: Note) -> TaskItem {
+        if let id = ref.task.id, let byID = note.tasks.first(where: { $0.id == id }) { return byID }
+        if let same = note.tasks.first(where: { $0.lineIndex == ref.task.lineIndex && $0.title == ref.task.title }) {
+            return same
+        }
+        return note.tasks.first(where: { $0.title == ref.task.title }) ?? ref.task
     }
 
     /// Moves many tasks to one date in a single pass — the **Move to today** and **Move to
@@ -1787,30 +1841,54 @@ final class AppModel: ObservableObject {
     /// `replace(task:)` finds each line by its `^t` id, else by its title, and searches when
     /// lines have moved, so the closure is safe to run again on a fresh copy.
     ///
-    /// **No confirmation, on purpose.** He asked for one press, and a date is not a deletion:
-    /// every task is still there and can be moved again. The message afterwards says how many
-    /// moved, so nothing happens in silence.
-    func moveTasks(_ refs: [TaskRef], to date: DateOnly) {
+    /// **No confirmation, on purpose.** He asked for one press, and the message afterwards says
+    /// how many moved, so nothing happens in silence. **A task's time of day is kept** (build 277),
+    /// as in `setDueDate`.
+    ///
+    /// **Build 221 said "every task is still there and can be moved again", and that was wrong
+    /// in the way that matters.** Each task had its own old date and the press gives all of them
+    /// the same new one, so nobody could put the old dates back by hand. With `offersUndo` the
+    /// message carries an **Undo** (build 277) that gives each task its own old date back —
+    /// only the two buttons over Today's Overdue list ask for it. The record is made **inside**
+    /// the write, so it lists only the tasks that were really found and given the date; the
+    /// closure may run twice (a note changed on disk is read again), and the second run
+    /// replaces the first run's list.
+    func moveTasks(_ refs: [TaskRef], to date: DateOnly, offersUndo: Bool = false) {
         flushPendingEdits()
         guard let vault, !refs.isEmpty else { return }
         var byNote: [String: [TaskRef]] = [:]
         for ref in refs { byNote[ref.notePath, default: []].append(ref) }
         let touched = byNote.keys.compactMap { note(at: $0) }
+        var movedByNote: [String: [MovedTask]] = [:]
         let result = vault.saveEach(touched) { note in
             guard let wanted = byNote[note.relativePath] else { return nil }
             var updated = note
             var changed = false
+            var moved: [MovedTask] = []
             for ref in wanted {
                 var task = ref.task
                 task.dueDate = date
-                if updated.replace(task: task) { changed = true }
+                if updated.replace(task: task) {
+                    changed = true
+                    moved.append(MovedTask(ref: ref, to: date))
+                }
             }
+            movedByNote[note.relativePath] = moved
             return changed ? updated : nil
         }
         reload()
         if result.isComplete {
             let moved = refs.filter { result.saved.contains($0.notePath) }.count
-            flash(moved == 1 ? "1 task moved." : "\(moved) tasks moved.")
+            let message = moved == 1 ? "1 task moved." : "\(moved) tasks moved."
+            var undoable: [MovedTask] = []
+            for path in result.saved {
+                for record in movedByNote[path] ?? [] where record.changedTheDate { undoable.append(record) }
+            }
+            if offersUndo && !undoable.isEmpty {
+                flash(message, offering: .dates(undoable))
+            } else {
+                flash(message)
+            }
         } else {
             // One message for the lot, the shape `reorder` has used since build 99: a
             // per-note alert meant a stack of identical ones on a folder that was playing up.
@@ -1923,13 +2001,16 @@ final class AppModel: ObservableObject {
         _ = save(note)
     }
 
-    /// Removes a task and everything indented under it.
+    /// Removes a task and everything indented under it. Only the Inbox calls it, and it does not
+    /// ask first (his answer, 2 November 2026): the message has an **Undo** instead (build 277),
+    /// which puts the lines back, their `^t` id included, without writing over anything.
     func deleteTask(_ ref: TaskRef) {
         flushPendingEdits()
-        guard var note = note(at: ref.notePath), note.removeTaskBlock(for: ref.task) != nil else { return }
-        if save(note) {
+        guard let current = note(at: ref.notePath),
+              let removal = current.removingTaskBlock(for: ref.task) else { return }
+        if save(removal.note) {
             log("deleted task \"\(ref.task.title)\" from \(ref.notePath)")
-            flash("Deleted \u{201C}\(ref.task.title)\u{201D}")
+            flash("Deleted \u{201C}\(ref.task.title)\u{201D}", offering: .deletion(removal.record))
         }
     }
 
@@ -2021,6 +2102,12 @@ final class AppModel: ObservableObject {
     /// are redrawn by the same refresh. Read by `standard(of:)` in `AreaStandardView.swift`.
     private(set) var standardPlaceholders: [String] = []
 
+    /// The lines the Goal templates ask under `## Why` (build 277), so a goal whose section holds
+    /// only that question reads as having no reason. Set by `refreshSnippets()` beside the
+    /// Standard's, and not `@Published` for the same reason. Read by `reason(of:)` in
+    /// `AspirationReasonView.swift`.
+    private(set) var reasonPlaceholders: [String] = []
+
     /// Every template file with the kind of note it makes.
     @Published private(set) var templates: [TemplateFile] = []
 
@@ -2088,6 +2175,7 @@ final class AppModel: ObservableObject {
         templates = vault?.templates() ?? []
         knownTags = vault?.knownTags() ?? []
         standardPlaceholders = vault?.areaStandardPlaceholders(among: templates) ?? []
+        reasonPlaceholders = vault?.goalReasonPlaceholders(among: templates) ?? []
     }
 
     /// Drops a snippet's lines into a note's Tasks, dates and answers filled in.
@@ -2684,24 +2772,29 @@ final class AppModel: ObservableObject {
     /// its task's time since build 249 (`planLength(of:)`); a block that does not fit is left
     /// out without stopping the shorter ones after it.
     ///
-    /// Free means clear of the plan's own blocks and of the calendar's timed events; all-day
-    /// events take no hours. The search starts now, not at the top of the day — a block placed
-    /// at 09:00 when it is already 11:00 would be a plan for a morning that has gone. One write
-    /// for all of them, through `savePlan`, so the daily note is touched once.
+    /// Free means clear of the plan's own blocks, of the calendar's timed events and, since
+    /// build 277, of the day's other tasks that have a time of day (a call at 14:00 keeps its
+    /// hour); all-day events take no hours. The search starts now, not at the top of the day — a
+    /// block placed at 09:00 when it is already 11:00 would be a plan for a morning that has
+    /// gone. **A picked task that has a time of day is placed at that time when it is free**
+    /// (`DayPlan.starts(for:…)`, Core, tested), and its own hour is left out of the busy list,
+    /// or it would be in its own way. One write for all of them, through `savePlan`, so the daily
+    /// note is touched once.
     @discardableResult
     func planActions(_ refs: [TaskRef], on day: DateOnly) -> Int {
-        let wanted = refs.compactMap { ref -> (title: String, length: Int)? in
+        let wanted = refs.compactMap { ref -> (title: String, wish: PlanWish)? in
             let title = planBlockTitle(from: ref.task)
-            return title.isEmpty ? nil : (title, planLength(of: ref.task))
+            guard !title.isEmpty else { return nil }
+            return (title, PlanWish(length: planLength(of: ref.task), at: ownMinute(of: ref.task, on: day)))
         }
         guard !wanted.isEmpty, day.date() != nil else { return 0 }
         let existing = planBlocks(for: day)
-        let starts = DayPlan.freeStarts(lengths: wanted.map { $0.length }, from: planningStart(on: day),
-                                        until: 24 * 60, busy: planningBusy(on: day))
+        let starts = DayPlan.starts(for: wanted.map { $0.wish }, from: planningStart(on: day),
+                                    until: 24 * 60, busy: planningBusy(on: day, excluding: refs))
         var added: [PlanBlock] = []
         for (item, start) in zip(wanted, starts) {
             guard let start else { continue }
-            added.append(PlanBlock(start: start, end: start + item.length, title: item.title))
+            added.append(PlanBlock(start: start, end: start + item.wish.length, title: item.title))
         }
         guard !added.isEmpty else { return 0 }
         guard savePlan(existing + added, for: day) else { return 0 }
@@ -2741,10 +2834,24 @@ final class AppModel: ObservableObject {
     /// What is already taken on a day, in minutes since midnight: the plan's blocks and the
     /// timed calendar events. **One list for placing and for adding up** (build 249), so the
     /// sum in **Start the day** and where **Plan** puts the blocks cannot disagree.
-    func planningBusy(on day: DateOnly) -> [Range<Int>] {
+    ///
+    /// **Build 277: the day's tasks with a time of day are busy too**, each for its own length
+    /// (`TimedTask.span`, half an hour when it has none), so **Start the day** never puts a block
+    /// over a call. `excluding` holds the tasks being placed right now: a picked task's own hour
+    /// is not busy, or it could never go where it is due, and the sum would count it twice.
+    func planningBusy(on day: DateOnly, excluding picked: [TaskRef] = []) -> [Range<Int>] {
         var busy = planBlocks(for: day).map { $0.start..<max($0.start + 1, $0.end) }
         busy.append(contentsOf: timedEventSpans(on: day).map { $0.start..<max($0.start + 1, $0.end) })
+        busy.append(contentsOf: index.timedTaskRanges(on: day, usesTaskTimes: usesTaskTimes,
+                                                      excluding: Set(picked.map { $0.id })))
         return busy
+    }
+
+    /// The minute a task is due on this day, or nil when it has no time of day or is due on
+    /// another day. Only a task due **on the day being planned** is placed at its time.
+    private func ownMinute(of task: TaskItem, on day: DateOnly) -> Int? {
+        guard task.dueDate == day, let time = task.dueTime else { return nil }
+        return time.minutesSinceMidnight
     }
 
     /// The day's timed calendar events as minutes since midnight, cut to the day (build 273):
@@ -2772,7 +2879,7 @@ final class AppModel: ObservableObject {
     func dayFit(for refs: [TaskRef], on day: DateOnly) -> DayFit {
         let picked = refs.reduce(0) { $0 + planLength(of: $1.task) }
         return DayFit(picked: picked, from: planningStart(on: day), workdayEnds: workdayEnds,
-                      busy: planningBusy(on: day))
+                      busy: planningBusy(on: day, excluding: refs))
     }
 
     func removePlanBlock(_ block: PlanBlock, on day: DateOnly) {
@@ -3039,7 +3146,7 @@ final class AppModel: ObservableObject {
             // Added to a message already on screen ("12 min on … written under Worked."), never
             // put in its place (build 257's review).
             if let shown = self.lastCaptureMessage {
-                self.flash(shown + " " + message)
+                self.flashKeepingUndo(shown + " " + message)
             } else {
                 self.flash(message)
             }
@@ -3286,9 +3393,28 @@ final class AppModel: ObservableObject {
         return (written, problem)
     }
 
-    /// A short, non-modal message in the bottom banner.
+    /// A short, non-modal message in the bottom banner. Any Undo that was on offer goes with the
+    /// message it belonged to (see `lastCaptureMessage`).
     func flash(_ message: String) {
         lastCaptureMessage = message
+    }
+
+    /// A message with an **Undo** button (build 277), for the two one-press changes that
+    /// cannot be undone by hand: the move of every overdue task to one date, and a deleted
+    /// Inbox line. The offer is numbered; see `undoOfferCount`.
+    func flash(_ message: String, offering change: UndoableChange) {
+        lastCaptureMessage = message
+        undoOfferCount += 1
+        undoOffer = UndoOffer(id: undoOfferCount, change: change)
+    }
+
+    /// A message that replaces the one showing and keeps its Undo: the focus notification's
+    /// notice is *added to* a message already on screen (build 257), and must not end the offer
+    /// that message carries.
+    private func flashKeepingUndo(_ message: String) {
+        keepingUndoOffer = true
+        lastCaptureMessage = message
+        keepingUndoOffer = false
     }
 
     /// Follows a `goal:` reference. Unlike a wikilink this never creates a note: a goal that

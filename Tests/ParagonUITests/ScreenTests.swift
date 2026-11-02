@@ -1222,7 +1222,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations }
 
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
@@ -1283,6 +1283,7 @@ final class ScreenTests: XCTestCase {
         case .done: return ["sidebar.Done"]
         case .goals: return ["sidebar.Goals"]
         case .areas: return ["sidebar.Areas"]
+        case .aspirations: return ["sidebar.Aspirations"]
         }
     }
 
@@ -1309,6 +1310,7 @@ final class ScreenTests: XCTestCase {
         case .done: return ["tab.browse", "browse.Done"]
         case .goals: return ["tab.browse", "browse.Goals"]
         case .areas: return ["tab.browse", "browse.Areas"]
+        case .aspirations: return ["tab.browse", "browse.Aspirations"]
         }
     }
 
@@ -1923,6 +1925,107 @@ final class ScreenTests: XCTestCase {
         #endif
     }
 
+    /// **Undo for the move of every overdue task** (build 277). The test vault has no dated task
+    /// (build 221's fixture), so the test makes its own with Quick capture: a line dated long ago
+    /// lands in the Inbox, which Today reads, and Today then lists it under **Overdue** with the
+    /// two buttons in the heading. The first button is pressed. Moving the only overdue task
+    /// empties that list, so the heading and its buttons go; **Undo** then brings the old date
+    /// back, the task is overdue again, and the heading with its button returns. That is the
+    /// proof, and it needs no knowledge of how the date is drawn. The words of the answer ("1
+    /// task put back.") are pinned in Core (`TaskUndoTests`), not here: that message is on screen
+    /// for two and a half seconds and a slow runner can take longer than that between two
+    /// queries. For the same reason, in a debug build started for the screen tests the Undo
+    /// offer stays a minute, not eight seconds (build 190: a test may not fail for its own
+    /// reasons). Everything pressed is found among buttons (build 249) and pressed at its centre.
+    func testTheOverdueMoveCanBeUndone() {
+        go(to: .today)
+        saveACapture("Pay the old invoice >2020-01-01")
+
+        let task = element("task.Pay the old invoice")
+        XCTAssertTrue(task.waitForExistence(timeout: 20),
+                      "Today does not list the captured task. On screen: \(visibleTexts())")
+        let toToday = app.buttons.matching(identifier: "today.overdue.today").firstMatch
+        let button = reveal(toToday)
+        XCTAssertTrue(button.exists,
+                      "A task dated 2020-01-01 is not under Overdue: there is no button to move it to today. On screen: \(visibleTexts())")
+        button.pressCentre()
+
+        let undo = app.buttons.matching(identifier: "flash.undo").firstMatch
+        XCTAssertTrue(undo.waitForExistence(timeout: 20),
+                      "The move was pressed and the message has no Undo. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 20) { !toToday.exists },
+                      "The task was moved to today and is still listed as overdue. On screen: \(visibleTexts())")
+
+        undo.pressCentre()
+
+        XCTAssertTrue(becomes(within: 20) { toToday.exists },
+                      "Undo was pressed and the task is not overdue again. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 5) { !undo.exists },
+                      "The answer to Undo offers a second Undo. On screen: \(visibleTexts())")
+    }
+
+    /// Writes a line through Quick capture, the way a person does, and waits for the screen to
+    /// close itself. The same steps as `testACaptureLandsInTheInbox`.
+    private func saveACapture(_ line: String) {
+        let open = element("capture.open")
+        XCTAssertTrue(open.waitForExistence(timeout: 20), "There is no Quick capture button.")
+        open.press()
+
+        let field = element("capture.text")
+        XCTAssertTrue(field.waitForExistence(timeout: 20), "The capture screen did not open, or has no field.")
+        field.press()
+        field.typeText(line)
+
+        let save = element("capture.save")
+        XCTAssertTrue(save.waitForExistence(timeout: 10), "The capture screen has no Save button.")
+        XCTAssertTrue(save.isEnabled, "Save stayed grey after a line was typed.")
+        save.press()
+
+        let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 30), .completed,
+                       "The capture screen did not close itself after Save. On screen: \(visibleTexts())")
+    }
+
+    #if os(macOS)
+    /// **Undo for a deleted Inbox line** (build 277), on the Mac, where the Delete key deletes
+    /// the selected line. The phone's delete is behind a line's menu, which no test here has
+    /// opened yet; the rule that puts a line back is pinned in Core (`TaskUndoTests`).
+    ///
+    /// **A test of its own, and it skips rather than fails when the key never arrives.** Whether
+    /// a key typed from outside reaches the Inbox column's key handling depends on which view has
+    /// the keyboard focus, which nothing here can set. So: a line deleted with no Undo is a
+    /// failure, and no deletion at all is a skip that says so (build 190: a test may not fail for
+    /// its own reasons; CI counts a skipped case as finished since build 266).
+    func testADeletedInboxLineCanBePutBack() throws {
+        go(to: .inbox)
+        let line = element("inbox.Call the bank about the ferry")
+        XCTAssertTrue(line.waitForExistence(timeout: 20),
+                      "The Inbox does not show the test line. On screen: \(visibleTexts())")
+        line.press()
+        let selected = expectation(for: NSPredicate(format: "isSelected == true"), evaluatedWith: line)
+        wait(for: [selected], timeout: 10)
+
+        app.typeKey(.delete, modifierFlags: [])
+
+        let undo = app.buttons.matching(identifier: "flash.undo").firstMatch
+        let somethingHappened = becomes(within: 15) { !line.exists || undo.exists }
+        if !somethingHappened {
+            throw XCTSkip("The Delete key did not reach the Inbox list, so nothing was deleted. This is the test's own limit (keyboard focus), not the app's. On screen: \(visibleTexts())")
+        }
+        XCTAssertTrue(undo.waitForExistence(timeout: 10),
+                      "The line was deleted and the message has no Undo. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { !line.exists },
+                      "Delete showed an Undo and the line is still in the Inbox. On screen: \(visibleTexts())")
+
+        undo.pressCentre()
+
+        XCTAssertTrue(line.waitForExistence(timeout: 20),
+                      "Undo was pressed and the deleted line did not come back. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 5) { !undo.exists },
+                      "The answer to Undo offers a second Undo. On screen: \(visibleTexts())")
+    }
+    #endif
+
     /// **How was the week?** (build 272): step 7's box writes one line into the shown week's
     /// note. The week step 7 opens on depends on the day the test runs (build 263), so the test
     /// does not ask which week; it asks that the words are kept. The box is pressed at its frame
@@ -1964,6 +2067,94 @@ final class ScreenTests: XCTestCase {
                        "The field in step 7 stayed open after Done. On screen: \(visibleTexts())")
         XCTAssertTrue(becomes(within: 10) { box.label.contains("A calm week") },
                       "The line was written and the box does not show it. It says: \(box.label)")
+    }
+
+    /// **An aspiration's reason** (build 277). The Goal template has a `## Why` heading with a
+    /// question under it, and until this build no screen showed what he answered. The test
+    /// aspiration is made from the shipped template, so its `## Why` holds only the template's
+    /// own question: the page must say **No reason written yet.** and must not show the question
+    /// as if it were his answer. Then he writes one, and the page shows it.
+    ///
+    /// On the Mac the reason is under the aspiration's name on its page in **Aspirations**; on
+    /// the phone it is in the chain that folds open in the list row. Same names, same test code.
+    /// Everything pressed is found among buttons (build 249), and the button is pressed at its
+    /// frame, as the measure is. **Save**, not Return: what Return does in a field of several
+    /// lines is not known here. That `## Why` holds the words in the file is pinned in Core
+    /// (`NoteReasonTests`); the Mac's page has no editor to read it back from.
+    func testAnAspirationsReasonCanBeWritten() {
+        go(to: .aspirations)
+
+        let row = element("aspiration.Goals/Be strong and steady at seventy.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Aspirations list does not show the test aspiration. On screen: \(visibleTexts())")
+        row.press()
+
+        // No reason yet: the dashed line is there and the template's question is not shown as
+        // his answer (the text element would exist if it were).
+        XCTAssertTrue(element("aspiration.reason.missing").waitForExistence(timeout: 20),
+                      "The aspiration does not say that no reason is written. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("aspiration.reason.text").exists,
+                       "The template's question is shown as the aspiration's reason. On screen: \(visibleTexts())")
+
+        let edit = app.buttons.matching(identifier: "aspiration.reason.edit").firstMatch
+        XCTAssertTrue(edit.waitForExistence(timeout: 20),
+                      "The aspiration has no Write the reason… button. On screen: \(visibleTexts())")
+        XCTAssertTrue(words(of: edit).contains("Write the reason"),
+                      "The button should offer to write one, but it says: \(words(of: edit))")
+        let editFrame = edit.frame
+        guard Self.isOnScreen(editFrame) else {
+            XCTFail("The Write the reason… button has no place on screen: \(editFrame)")
+            return
+        }
+        // A short button beside a label that fills the line may report a wrong frame on the
+        // Mac (build 247), so a press that can ask the element itself does that first.
+        if edit.isHittable { edit.press() } else { press(edit, at: editFrame) }
+
+        let field = element("aspiration.reason.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Pressing Write the reason… did not open a field. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("To stay on my feet in the fells")
+
+        let save = app.buttons.matching(identifier: "aspiration.reason.save").firstMatch
+        XCTAssertTrue(save.waitForExistence(timeout: 10),
+                      "The reason box has no Save button. On screen: \(visibleTexts())")
+        if save.isHittable { save.press() } else { save.pressCentre() }
+
+        // The box closing first, so the checks below look at the page and not at the field.
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 10), .completed,
+                       "The reason box stayed open after Save. On screen: \(visibleTexts())")
+
+        let text = element("aspiration.reason.text")
+        XCTAssertTrue(text.waitForExistence(timeout: 20),
+                      "The reason was saved and the page does not show it. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: text).contains("To stay on my feet") },
+                      "The page shows the wrong words: \(words(of: text))")
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("aspiration.reason.missing"))
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
+                       "The aspiration has a reason now and still says it has none. On screen: \(visibleTexts())")
+
+        // The button is back, and now offers to change the reason, not to write one.
+        let again = app.buttons.matching(identifier: "aspiration.reason.edit").firstMatch
+        XCTAssertTrue(again.waitForExistence(timeout: 10),
+                      "The Reason… button is gone after Save. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { !self.words(of: again).contains("Write the reason") },
+                      "A reason is written, but the button still offers to write one: \(words(of: again))")
+
+        #if os(macOS)
+        // The reason is under the name, above the chain: wholly inside the window and above
+        // the button at the foot of the goals.
+        let window = app.windows.firstMatch.frame.insetBy(dx: -1, dy: -1)
+        XCTAssertTrue(window.contains(text.frame),
+                      "The reason is not wholly inside the window: \(text.frame) against \(window).")
+        let foot = app.buttons.matching(identifier: "aspiration.addGoal").firstMatch
+        XCTAssertTrue(foot.waitForExistence(timeout: 10),
+                      "The aspiration page has no Add a goal… button. On screen: \(visibleTexts())")
+        XCTAssertLessThanOrEqual(text.frame.maxY, foot.frame.minY + 1,
+                                 "The reason is not above the chain: \(text.frame) against Add a goal… at \(foot.frame).")
+        expectNoOverflow(after: "an aspiration's reason was written")
+        #endif
     }
 
     /// **How far ahead a goal reaches** (build 276). A goal with a date says **This year** or
@@ -2256,6 +2447,78 @@ final class ScreenTests: XCTestCase {
         area.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)).scroll(byDeltaX: 0, deltaY: -300)
         #else
         app.swipeUp()
+        #endif
+    }
+
+    // MARK: A time of day on a task (build 277)
+
+    /// A task can be given an hour from the **At** line in its date window, and **Plan** draws it
+    /// there (build 277). Before this the app could read `>2026-11-04T14:00` and nothing in it
+    /// could write one.
+    ///
+    /// **The way in is the Inbox's Pick a date.** A task's date window is otherwise reached only
+    /// from the right-click menu, which no test has opened (run 308: it did not come up on the
+    /// Mac), and **Pick a date** in the quadrant is a plain button on both platforms (build 215).
+    /// The test vault's one Inbox line is the task. The window opens on today when the task has
+    /// no date, which is the day **Plan** opens on, so the line is due today at the quick time
+    /// 09:00. Nine rather than 14:00: at 09:00 the card is near the top of the ruler on every
+    /// screen, so a short window or a phone cannot have scrolled it out of sight (a test may not
+    /// fail for its own reasons, build 190).
+    ///
+    /// **The proof is read back from the file**, not from the window: **Plan** draws a card only
+    /// for an open task whose line carries a time, so the card's label ("…, at 09:00", set
+    /// explicitly so both platforms read the same words, build 253) shows that the date and the
+    /// time were written together and read again. On the Mac the card must also lie inside the
+    /// window. **Not tested from here:** pressing the card (it opens the task's note, which for
+    /// an Inbox line is a different screen on the phone and the Mac), the quick time that is
+    /// typed rather than pressed, and **No time of day**: an empty `UITextField` reports its
+    /// placeholder as its value, so "the field is empty" cannot be read back.
+    func testATaskCanBeGivenAnHour() {
+        go(to: .inbox)
+
+        let line = element("inbox.Call the bank about the ferry")
+        XCTAssertTrue(line.waitForExistence(timeout: 20),
+                      "The Inbox does not show the test line. On screen: \(visibleTexts())")
+        line.press()
+        let selected = expectation(for: NSPredicate(format: "isSelected == true"), evaluatedWith: line)
+        XCTAssertEqual(XCTWaiter().wait(for: [selected], timeout: 10), .completed,
+                       "The line was pressed and did not become the selected one.")
+
+        // The quadrant is a row under the line on the phone and in the File it column on the Mac.
+        let pick = app.buttons.matching(identifier: "inbox.quad.date").firstMatch
+        XCTAssertTrue(pick.waitForExistence(timeout: 20),
+                      "The selected line has no Pick a date button. On screen: \(visibleTexts())")
+        if pick.isHittable { pick.press() } else { pick.pressCentre() }
+
+        let atField = element("date.time")
+        XCTAssertTrue(atField.waitForExistence(timeout: 15),
+                      "The date window has no At line. On screen: \(visibleTexts())")
+
+        let nine = app.buttons.matching(identifier: "date.time.09:00").firstMatch
+        XCTAssertTrue(nine.waitForExistence(timeout: 10),
+                      "The At line has no 09:00 button. On screen: \(visibleTexts())")
+        if nine.isHittable { nine.press() } else { nine.pressCentre() }
+        XCTAssertTrue(becomes(within: 10) { (atField.value as? String) == "09:00" },
+                      "Pressing 09:00 did not fill the At field. It holds: \(String(describing: atField.value))")
+
+        let set = app.buttons.matching(identifier: "date.set").firstMatch
+        XCTAssertTrue(set.waitForExistence(timeout: 10),
+                      "The date window has no Set button. On screen: \(visibleTexts())")
+        if set.isHittable { set.press() } else { set.pressCentre() }
+        let closed = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: atField)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 15), .completed,
+                       "Set was pressed and the date window stayed open. On screen: \(visibleTexts())")
+
+        go(to: .plan)
+        let card = element("plan.task.Call the bank about the ferry")
+        XCTAssertTrue(card.waitForExistence(timeout: 20),
+                      "Plan does not draw the task that was given an hour. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { card.label.contains("at 09:00") },
+                      "The card does not say the hour. It says: \(card.label)")
+        #if os(macOS)
+        let window = app.windows.firstMatch.frame
+        XCTAssertTrue(window.contains(card.frame),
+                      "The card is outside the window: card \(card.frame), window \(window)")
         #endif
     }
 }

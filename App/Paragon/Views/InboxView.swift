@@ -270,7 +270,10 @@ struct InboxRow: View {
                         .lineLimit(2)
                 }
                 if let due = ref.task.dueDate {
-                    Label(due.description, systemImage: "calendar")
+                    // With the time of day when it has one (build 277): the At line can be
+                    // reached from the Inbox's **Pick a date**, so this row has to show it.
+                    Label(ref.task.dueText ?? due.description,
+                          systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
                         .font(.caption2)
                         .rowTint(due < .today() ? Color.red : .secondary)
                 }
@@ -533,7 +536,8 @@ struct InboxFileItView: View {
                     .font(.title3)
                     .fixedSize(horizontal: false, vertical: true)
                 if let due = ref.task.dueDate {
-                    Label(due.description, systemImage: "calendar")
+                    Label(ref.task.dueText ?? due.description,
+                          systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
                         .font(.caption)
                         .foregroundStyle(due < .today() ? Color.red : .secondary)
                 }

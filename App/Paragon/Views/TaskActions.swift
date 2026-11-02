@@ -186,16 +186,23 @@ struct TaskContextMenu: View {
 }
 
 /// A small date picker shown from "Pick a date…".
+///
+/// **Build 277: it has an At line** — a field for the time of day, four quick times and **No
+/// time of day** — and **Set** writes the date and the time together (`AppModel.setDue`). This is
+/// the only date window that offers a time: a deadline, a goal's target and the others choose a
+/// plain date. **No date** takes the date and the time off; **No time of day** (in the window)
+/// keeps the date. It is not the **No time** in **How long**, which takes away the task's length.
 struct TaskDatePicker: View {
     @EnvironmentObject private var model: AppModel
     let ref: TaskRef
     @Binding var isPresented: Bool
 
     var body: some View {
-        DateChoiceView(current: ref.task.dueDate,
-                       clearTitle: ref.task.dueDate == nil ? nil : "No date",
-                       cancel: { isPresented = false }) { chosen in
-            model.setDueDate(ref, chosen)
+        DateTimeChoiceView(current: ref.task.dueDate,
+                           time: ref.task.dueTime,
+                           clearTitle: ref.task.dueDate == nil ? nil : "No date",
+                           cancel: { isPresented = false }) { chosenDate, chosenTime in
+            model.setDue(ref, date: chosenDate, time: chosenTime)
             isPresented = false
         }
     }

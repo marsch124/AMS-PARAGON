@@ -9,6 +9,8 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Target date** — the date a goal should be reached by. Set it with **Set a target date…** at the top of the goal.
 - **Measure** — one line on a goal that says how you will know it is reached. Set it with **Set a measure…** at the top of the goal. An aspiration can have one too.
 - **This year** and **Long term** — how far ahead a goal with a date reaches. This year is one or two years, Long term is three to ten. The button at the top of the goal says which one it is; press it to change it. It is kept as `horizon:` in the settings block. An aspiration does not have this choice.
+- **Reason** — why an aspiration matters to you, in your own words, like "Still walking long days in the fells at 80, with the people I love." It is shown at the top of the aspiration's page, under its name. Write it with **Reason…** (or **Write the reason…** when none is written yet). It comes from the part of the note under `## Why`.
+- **No reason written yet** — on an aspiration: nothing is written under `## Why`. The question the Goal template puts there does not count as a reason.
 - **Serves** — the link from a piece of work up to what it is for. A project serves a goal. A goal or an area serves an aspiration. Set it with the **Serves…** button at the top of a note.
 - **Add a project…** — a button on a goal and on an area. On a goal it makes a new project that already serves the goal. On an area it makes a new project that is already in the area. You stay where you are.
 - **Add a goal…** — a button on an aspiration. It makes a new goal that serves the aspiration. The new goal has no target date yet; give it one with **Set a target date…**.
@@ -56,11 +58,13 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Next action** — the one task in a note you would do next. A note has at most one. It carries the tag `#next`.
 - **Due date** — the day a task should be done. Written `>2026-09-29` on the task line.
 - **Overdue** — a task whose due date has passed. Its date is shown in red.
+- **At** — the time of day a task is due, like `T14:00` after its date on the task line. You set it in the date window, in the line called **At**, or press one of the quick times there. **No time of day** there takes it away. It is not the same as **Task time**, which is how long the task takes. In a note that syncs to Reminders, Apple Reminders rings at that time. **Plan** shows a task with a time as a small grey card at its hour.
 - **Task time** — how long a task takes, like `~45m` on the task line. The small button on the right of a task sets it; it says **time?** while there is none. **Use task times** in Settings turns it on and off.
 - **Working day ends** — the time in Settings that **Start the day** measures your picks against. 16:00 to begin with. Tasks can still be planned after it; it is a measure, not a limit.
 - **Important** — one, two or three `!` on a task line. More marks mean more important.
 - **Repeat** — a task that comes back after you tick it, like `@repeat(weekly)`.
 - **Subtask** — a task indented under another task.
+- **Undo** — a button in the message at the bottom of the window, for about eight seconds, after two changes that happen in one press: moving every overdue task to today or tomorrow, and deleting a line in the Inbox. It puts back what the press changed, and only that: a task you changed in the meantime is left as it is, and the message says so.
 - **Tag** — a word with `#` in front, like `#travel`, on a task or in a note's `tags:` line. It groups things across notes. See **Tags** under **Tools**.
 
 ## Planning your day and week
@@ -68,7 +72,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Today** — the tasks due today and the overdue ones, with today's calendar events.
 - **Plan the day** — the screen with your day on an hour ruler. On the Mac it is the **Time Blocks** row in the sidebar. On the iPhone it is the **Plan** tab.
 - **Plan block** — an orange block of time you set aside for something, like "09:30–11:00 Deep work". It is a line in the day's daily note, under **Plan**. It stays in PARAGON unless you tick **In Apple Calendar**.
-- **Time blocks lane** — the right-hand lane on **Plan the day**, where your plan blocks sit. Drop a task on an hour here to make a block.
+- **Time blocks lane** — the right-hand lane on **Plan the day**, where your plan blocks sit. Drop a task on an hour here to make a block. A task that has a time of day (**At**) is drawn here too, as a small grey card with a thin border and no orange, so you can tell it from a block. It cannot be moved.
 - **Calendar lane** — the left-hand lane on **Plan the day**. It shows your Apple Calendar events and is read only.
 - **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan the day**.
 - **Now line** — the thin blue line that shows the time right now.

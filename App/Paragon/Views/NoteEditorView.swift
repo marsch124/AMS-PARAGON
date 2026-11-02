@@ -1350,7 +1350,9 @@ struct TaskRow: View {
                             .rowTint(.orange)
                     }
                     if let due = ref.task.dueDate {
-                        Label(due.description + (ref.task.dueTime.map { " \($0)" } ?? ""),
+                        // The date and, since build 277 when the **At** line can write one, the
+                        // time of day: `dueText` in Core is the one wording of it.
+                        Label(ref.task.dueText ?? due.description,
                               systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
                             .rowTint(due < .today() && !ref.task.isDone ? Color.red : Color.secondary)
                     }

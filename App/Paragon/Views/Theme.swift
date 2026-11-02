@@ -187,6 +187,11 @@ extension View {
 /// Used by the project deadline in the note header and by a task's date. The New Note sheet's
 /// target date is deliberately left as a plain field: that screen was designed with him and
 /// takes one short line per row.
+///
+/// **Since build 277 this is a thin shell round `DateTimeChoiceView`**, which is the same
+/// window with an optional **At** line for a time of day. The six windows that choose a plain
+/// date (a deadline, a goal's target, an ending, Quick capture, Close the day, the New note
+/// sheet) keep this exact signature and look; a task's own date window uses the other.
 struct DateChoiceView: View {
     /// The date already set, if any. It is what the field and the calendar open on.
     let current: DateOnly?
@@ -198,10 +203,64 @@ struct DateChoiceView: View {
     /// The chosen date, or nil when the clearing button was pressed.
     let choose: (DateOnly?) -> Void
 
+    var body: some View {
+        DateTimeChoiceView(current: current, offersTime: false, clearTitle: clearTitle,
+                           cancel: cancel, choose: { date, _ in choose(date) })
+    }
+}
+
+/// The date window with an optional **At** line (build 277): the field and the calendar of
+/// `DateChoiceView`, and, under them, a small field for the time of day, four quick times and
+/// **No time of day**. **Set** writes the date and the time together.
+///
+/// The word is **At**, never "Time": a task's time already means how long it takes (`~45m`,
+/// build 248). The line is `offersTime`; with it off this is exactly the plain date window.
+///
+/// **Empty At means no time of day**, which is a real answer and not an error: a task due on a
+/// date, for the whole day. Something typed that is not a time keeps **Set** grey and says so
+/// (`TimeOfDay.typed`, Core, tested). The quick times fill the field and **No time of day**
+/// empties it; neither writes anything by itself, so there is one way to commit, **Set**, and
+/// Return in either field does the same. On the phone a **Set** also sits above the keyboard
+/// (the window is taller with the At line, and the buttons row can end up under the keys,
+/// builds 160, 231); it is the same `set`, and it is there only while the At line is.
+///
+/// `choose` gets the date and the time; both are nil when the clearing button was pressed.
+/// A written-out `init`: the struct mixes `@State` with stored closures, which is where the
+/// generated memberwise one is hard to predict and there is no compiler here to ask.
+struct DateTimeChoiceView: View {
+    let current: DateOnly?
+    /// The time of day already set, if any. It is what the **At** field opens on.
+    let time: TimeOfDay?
+    /// False draws no **At** line: the plain date window.
+    let offersTime: Bool
+    let clearTitle: String?
+    let cancel: (() -> Void)?
+    let choose: (DateOnly?, TimeOfDay?) -> Void
+
     @State private var typed = ""
+    @State private var atText = ""
     @State private var date = Date()
 
+    init(current: DateOnly?, time: TimeOfDay? = nil, offersTime: Bool = true,
+         clearTitle: String? = nil, cancel: (() -> Void)? = nil,
+         choose: @escaping (DateOnly?, TimeOfDay?) -> Void) {
+        self.current = current
+        self.time = time
+        self.offersTime = offersTime
+        self.clearTitle = clearTitle
+        self.cancel = cancel
+        self.choose = choose
+    }
+
     private var parsed: DateOnly? { DateOnly(typed.trimmingCharacters(in: .whitespaces)) }
+
+    /// What the **At** field holds, read as a time.
+    private var reading: TypedTime { TimeOfDay.typed(atText) }
+
+    private var canSet: Bool {
+        if parsed == nil { return false }
+        return !(offersTime && reading == .invalid)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -218,9 +277,12 @@ struct DateChoiceView: View {
                 .datePickerStyle(.graphical)
                 .labelsHidden()
                 .onChange(of: date) { _, picked in typed = DateOnly(picked).description }
+            if offersTime {
+                atLine
+            }
             HStack {
                 if let clearTitle {
-                    Button(clearTitle, role: .destructive) { choose(nil) }
+                    Button(clearTitle, role: .destructive) { choose(nil, nil) }
                         .accessibilityIdentifier("date.clear")
                 }
                 Spacer()
@@ -230,7 +292,7 @@ struct DateChoiceView: View {
                 }
                 Button("Set", action: set)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(parsed == nil)
+                    .disabled(!canSet)
                     .accessibilityIdentifier("date.set")
             }
         }
@@ -240,12 +302,81 @@ struct DateChoiceView: View {
             let start = current ?? DateOnly(Date())
             typed = start.description
             date = start.date() ?? Date()
+            atText = time?.description ?? ""
+        }
+#if os(iOS)
+        // A Set above the keys, as Search has its Done (build 160). Only with the At line: the
+        // plain date windows keep their look. No identifier: the screen tests find `date.set`
+        // with the first match, and this one exists only while a field has the keyboard.
+        .toolbar {
+            if offersTime {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Set", action: set)
+                        .disabled(!canSet)
+                }
+            }
+        }
+#endif
+    }
+
+    /// **At**, the time of day (build 277). Views only, so the `@ViewBuilder` rule holds.
+    ///
+    /// The quick times sit in a `WrappingHStack`, because the window is 300 points wide and an
+    /// `HStack` in a column too narrow squeezes its words rather than overflowing (build 138).
+    /// Return in the field acts as **Set**, which is also the way out on the phone when the
+    /// keyboard is covering the button row (builds 160, 231).
+    private var atLine: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text("At")
+                    .font(.callout.weight(.semibold))
+                TextField("14:00", text: $atText)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.body.monospacedDigit())
+                    .frame(width: 84)
+                    .submitLabel(.done)
+                    .onSubmit(set)
+                    .accessibilityIdentifier("date.time")
+                Button("No time of day") { atText = "" }
+                    .disabled(atText.isEmpty)
+                    .accessibilityIdentifier("date.time.clear")
+                Spacer(minLength: 0)
+            }
+            WrappingHStack(spacing: 6, lineSpacing: 6) {
+                ForEach(TimeOfDay.quickChoices, id: \.self) { quick in
+                    Button(quick.description) { atText = quick.description }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .accessibilityIdentifier("date.time.\(quick.description)")
+                }
+            }
+            Text(atHint)
+                .font(.caption)
+                .foregroundStyle(reading == .invalid ? Color.red : Color.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var atHint: String {
+        switch reading {
+        case .invalid: return "Write the time as 14:00."
+        case .empty: return "No time of day: the task is for the whole day."
+        case .time: return "If this note syncs to Reminders, it rings there at this time."
         }
     }
 
     private func set() {
         guard let parsed else { return }
-        choose(parsed)
+        guard offersTime else {
+            choose(parsed, nil)
+            return
+        }
+        switch reading {
+        case .invalid: return
+        case .empty: choose(parsed, nil)
+        case .time(let at): choose(parsed, at)
+        }
     }
 }
 
