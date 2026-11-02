@@ -421,6 +421,11 @@ public enum UndoWording {
         "\(quoted(title)) could not be put back, because its note is not there."
     }
 
+    /// The note is being updated from iCloud, so a write now could be over a stale copy.
+    public static func noteBeingUpdated(title: String) -> String {
+        "\(quoted(title)) could not be put back, because its note is being updated from iCloud. The line stays deleted."
+    }
+
     /// The note was there but could not be written.
     public static func notWritten(title: String) -> String {
         "\(quoted(title)) could not be put back, because its note could not be written."

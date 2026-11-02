@@ -36,7 +36,7 @@ struct ContentView: View {
         #if DEBUG
         if offered && TestVault.isWanted { return 60 }
         #endif
-        return UndoWording.secondsOnScreen(offersUndo: offered)
+        return model.flashLinger ?? UndoWording.secondsOnScreen(offersUndo: offered)
     }
 
     /// iPhone (and a narrow iPad window): tabs instead of three columns.

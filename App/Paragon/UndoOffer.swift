@@ -107,6 +107,14 @@ extension AppModel {
             flash(UndoWording.noteMissing(title: removed.title))
             return
         }
+        // A newer copy of this note is on its way from iCloud, and `Vault.save` compares against
+        // the local date, so it would not notice a write over the stale one (build 261): the same
+        // refusal the dates' Undo has.
+        guard !notesBeingUpdated.contains(removed.notePath) else {
+            log("undo refused, note is being updated from iCloud: \(removed.notePath)")
+            flash(UndoWording.noteBeingUpdated(title: removed.title))
+            return
+        }
         var outcome: TaskPutBack = .alreadyThere
         let result = vault.saveEach([current]) { fresh in
             var updated = fresh

@@ -214,13 +214,23 @@ final class AppModel: ObservableObject {
         }
     }
     /// The short message at the foot of the window. **It owns the Undo offer below it** (build
-    /// 287): any other way of setting the message — an ordinary `flash`, a capture's answer, the
+    /// 277): any other way of setting the message — an ordinary `flash`, a capture's answer, the
     /// message going away — ends the offer with it, unless `flashKeepingUndo` is the one
     /// setting it. Two things that must live and die together are tied here, once, so no caller
     /// has to remember.
     @Published private(set) var lastCaptureMessage: String? {
-        didSet { if !keepingUndoOffer { undoOffer = nil } }
+        didSet {
+            if !keepingUndoOffer {
+                undoOffer = nil
+                flashLinger = nil
+            }
+        }
     }
+    /// How long the message stays when its caller asked for longer than the usual two and a half
+    /// seconds (`flash(_:seconds:)`), or nil. A plain value, not `@Published`: it is set in the
+    /// same call as the message, and the overlay reads it when its wait starts. Any other
+    /// message ends it, with the Undo offer, in the observer above.
+    private(set) var flashLinger: Double?
     /// The **Undo** that goes with the message, or nil. Set only by `flash(_:offering:)` and
     /// cleared by `undo()` (both in `UndoOffer.swift`), by any other message, and when a vault is
     /// opened or closed.
@@ -3397,6 +3407,15 @@ final class AppModel: ObservableObject {
     /// message it belonged to (see `lastCaptureMessage`).
     func flash(_ message: String) {
         lastCaptureMessage = message
+    }
+
+    /// A message that must stay longer than the usual two and a half seconds, for the one caller
+    /// whose words carry a caution that would be gone before it could be read (**Start the day**,
+    /// when notes are still coming from iCloud, build 277). An opt-in: every other message keeps
+    /// its time.
+    func flash(_ message: String, seconds: Double) {
+        lastCaptureMessage = message
+        flashLinger = seconds
     }
 
     /// A message with an **Undo** button (build 277), for the two one-press changes that

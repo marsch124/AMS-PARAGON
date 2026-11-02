@@ -539,7 +539,14 @@ struct StartDayView: View {
         let refs = pickedRefs
         if !refs.isEmpty {
             let placed = model.planActions(refs, on: day)
-            model.flash(messageWithCloudNote(placed: placed, asked: refs.count))
+            let text = messageWithCloudNote(placed: placed, asked: refs.count)
+            // The caution about notes still coming from iCloud is three sentences, and the
+            // capsule only shows once this sheet has gone: give it time to be read.
+            if model.notesWaitingForCloud.isEmpty {
+                model.flash(text)
+            } else {
+                model.flash(text, seconds: 10)
+            }
         }
         close()
     }

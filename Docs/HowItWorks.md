@@ -337,7 +337,7 @@ Two changes happen in one press, with no question first. Both can be put back fo
 While the message has an **Undo** button it stays for about eight seconds. The **Undo** button goes earlier if another message takes its place, and when you open or close a vault. One press on **Undo** is enough; a second press does nothing.
 
 - After a move, **Undo** gives every task its own old date back, not one date for all of them.
-- After a delete, **Undo** puts the line back with its subtasks, in the same place. If the Inbox has changed since — a capture from your other device came in, for example — the line is added near where it was and nothing is written over. If the line is already there, the message says so and nothing is added.
+- After a delete, **Undo** puts the line back with its subtasks, in the same place. If the Inbox has changed since — a capture from your other device came in, for example — the line is added near where it was and nothing is written over. If the line is already there, the message says so and nothing is added. If iCloud is still bringing a newer copy of that note, **Undo** does not put it back: the message says the line stays deleted, because a write over an old copy could lose a newer capture.
 - **Undo** only changes what is still as the press left it. A task you ticked off, gave another date or deleted in the meantime, or that another device changed, is left as it is.
 - The message after **Undo** says how many were put back, and names the ones that were not, with the reason. For example: "5 of 6 tasks put back. “Send the invoice” was changed after the move, so it was left as it is." That message has no **Undo** of its own, so it goes away after the usual two and a half seconds.
 

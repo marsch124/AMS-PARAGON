@@ -505,6 +505,8 @@ final class TaskUndoTests: XCTestCase {
         XCTAssertTrue(UndoWording.deletionUndone(title: title, .alreadyThere).contains("already there"))
         XCTAssertTrue(UndoWording.noteMissing(title: title).contains("not there"))
         XCTAssertTrue(UndoWording.notWritten(title: title).contains("could not be written"))
+        XCTAssertEqual(UndoWording.noteBeingUpdated(title: title),
+                       "\u{201C}Order the saddle\u{201D} could not be put back, because its note is being updated from iCloud. The line stays deleted.")
     }
 
     func testTheOfferStaysForEightSeconds() {
