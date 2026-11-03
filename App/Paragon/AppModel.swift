@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 278
+    static let number = 279
 }
 
 @MainActor
@@ -2334,6 +2334,12 @@ final class AppModel: ObservableObject {
         }
         guard AppModel.cleanTag(old)?.lowercased() != Note.nextActionTag else {
             errorMessage = "#\(Note.nextActionTag) is how the app marks a next action. Renaming or removing it would break that."
+            return
+        }
+        // `#waiting` has a meaning too (build 279): a tag-only waiting line would leave the Waiting
+        // for list and could become a next action again.
+        guard AppModel.cleanTag(old)?.lowercased() != WaitingFor.tag else {
+            errorMessage = "#\(WaitingFor.tag) is how the app marks a line you are waiting on somebody for. Renaming or removing it would break the Waiting for list."
             return
         }
         let target = new.flatMap(AppModel.cleanTag)

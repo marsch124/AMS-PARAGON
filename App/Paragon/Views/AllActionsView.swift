@@ -14,10 +14,18 @@ import ParagonCore
 ///
 /// The filter itself lives in Core as `ActionFilter`, where it is tested (build 174's reason:
 /// a rule that decides what you do not see has to be testable).
+///
+/// **Build 279: a switch beside the column's name, and a second half.** The **Waiting for**
+/// switch turns the column into the lines he is waiting on other people for, grouped by person
+/// (`WaitingForList`). The boxes filter actions, not people, so they are not drawn there. It is
+/// a switch in this column and not a sidebar row or a Browse row: a second door into one room
+/// (build 166). While it is off, one line says how many lines are waiting and opens the list,
+/// so the lines are never out of sight and the switch is findable (build 74).
 struct AllActionsView: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage("actionFiltersFolded") private var deskFolded = false
     @AppStorage("actionFiltersFoldedPhone") private var phoneFolded = true
+    @AppStorage(WaitingShowing.key) private var showsWaiting = false
 
     private var folded: Bool { isPhone ? phoneFolded : deskFolded }
     private var tint: Color { SidebarSection.allActions.tint }
@@ -57,24 +65,86 @@ struct AllActionsView: View {
 
     var body: some View {
         let all = everything
-        let shown = model.actionFilter.apply(to: all, today: .today())
-        let groups = groups(shown)
+        // Worked out from the actions already in hand, not by walking the vault again, and
+        // through the index so that this and the task menu's chooser leave out the same notes
+        // (finished and archived ones).
+        let waiting = model.index.waitingFor(among: all, today: DateOnly.today())
         VStack(spacing: 0) {
-            header(shown: shown.count, total: all.count)
-            if folded {
-                foldedLine
+            if showsWaiting {
+                waitingHeader(count: waiting.count)
+                WaitingForList(list: waiting)
             } else {
-                ScrollView { boxes(among: all) }
-                    // The same cap as the Search screen's panel: on a phone this is a whole
-                    // tab, and boxes filling it would leave two rows of actions to look at.
-                    .frame(maxHeight: isPhone ? 200 : 260)
+                actionsPart(all: all, waiting: waiting)
             }
-            Divider()
-            if groups.isEmpty {
-                empty(total: all.count)
-            } else {
-                list(groups)
+        }
+    }
+
+    /// The column as it was before build 279: header, boxes, and the list of actions.
+    @ViewBuilder
+    private func actionsPart(all: [TaskRef], waiting: WaitingList) -> some View {
+        let shown = model.actionFilter.apply(to: all, today: .today())
+        let listed = groups(shown)
+        header(shown: shown.count, total: all.count)
+        if folded {
+            foldedLine
+        } else {
+            ScrollView { boxes(among: all) }
+                // The same cap as the Search screen's panel: on a phone this is a whole
+                // tab, and boxes filling it would leave two rows of actions to look at.
+                .frame(maxHeight: isPhone ? 200 : 260)
+        }
+        waitingPointer(waiting)
+        Divider()
+        if listed.isEmpty {
+            empty(total: all.count)
+        } else {
+            list(listed)
+        }
+    }
+
+    // MARK: Waiting for
+
+    /// The switch. A symbol only, in build 142's two states — filled and solid when the list
+    /// of people is showing, grey and dashed when it is not. The words it dropped are in the
+    /// column's name beside it, which reads **Waiting for** on this half (build 159: a control
+    /// that shrinks hands its words to the row it sits in).
+    private var waitingSwitch: some View {
+        StateToggle(systemImage: WaitingShowing.symbol, title: "The Waiting for list", isOn: showsWaiting, tint: tint) {
+            showsWaiting.toggle()
+        }
+        .accessibilityIdentifier("actions.waiting")
+    }
+
+    private func waitingHeader(count: Int) -> some View {
+        HStack(spacing: 8) {
+            SectionLabel(title: "Waiting for", count: count,
+                         systemImage: WaitingShowing.symbol, tint: tint)
+            Spacer()
+            waitingSwitch
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+    }
+
+    /// "3 waiting for other people", one press from the list. Nothing is drawn when nothing is
+    /// waiting: there is nothing to point at.
+    @ViewBuilder
+    private func waitingPointer(_ waiting: WaitingList) -> some View {
+        if let text = waiting.pointerText {
+            Button {
+                showsWaiting = true
+            } label: {
+                Label(text, systemImage: WaitingShowing.symbol)
+                    .font(.caption)
+                    .foregroundStyle(tint)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 10)
+            .padding(.bottom, 8)
+            .help("Show the lines you are waiting on other people for")
+            .accessibilityIdentifier("actions.waitingPointer")
         }
     }
 
@@ -87,14 +157,20 @@ struct AllActionsView: View {
         HStack(spacing: 8) {
             SectionLabel(title: "Actions", count: shown,
                          systemImage: SidebarSection.allActions.systemImage, tint: tint)
+                // The name gives way before the controls beside it (build 138: an HStack in a
+                // narrow column squeezes, it does not overflow).
+                .lineLimit(1)
+                .layoutPriority(-1)
             Spacer()
             if !model.actionFilter.isEmpty {
                 Text("of \(total)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize()
                 Button("Clear") { model.actionFilter = ActionFilter() }
                     .buttonStyle(.borderless)
                     .font(.caption)
+                    .fixedSize()
                     .help("Untick every box")
                     .accessibilityIdentifier("actions.clear")
             }
@@ -108,6 +184,7 @@ struct AllActionsView: View {
             }
             .buttonStyle(.borderless)
             .accessibilityIdentifier("actions.fold")
+            waitingSwitch
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)

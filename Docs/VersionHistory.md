@@ -2,6 +2,61 @@
 
 The build number is shown at the bottom of the sidebar. Newest first.
 
+## Build 279 · 3 November 2026
+
+**Waiting for: what other people owe you, listed by person.** Most of your week is waiting for other people. A line such as "Waiting for Anna: the quote" is not something you can do, so PARAGON no longer treats it as your next step. It is listed by person instead, so nothing is forgotten.
+
+**Make a line wait.**
+
+- Right-click a task (press and hold on the iPhone) and choose **Waiting for…**.
+- A small window asks **Who?**. Type a name, or press one of the people you already wait for. Then press **Add** (or Return). **Cancel** closes it. **Add** stays grey until there is a name.
+- Under the field, one line says what will be written, for example: Writes "Waiting for Anna: the quote" with a follow-up date in a week.
+- PARAGON changes the line to `Waiting for Anna: the quote`, adds the tag `#waiting`, and writes today as `@since(...)`: the day the waiting began.
+- A task with no date gets a follow-up date one week from today. A task that has a date keeps it, and that date is now the follow-up date.
+- Choose **Waiting for…** on a line that is already waiting and the window starts on that person. A new name changes the name. The day the waiting began does not change.
+- On a waiting line the menu also has **Not waiting any more**. It takes off the words, the tag and the `@since` day. The date stays. If nothing but the name follows **Waiting for**, the name becomes the task's words.
+- The Inbox's own line menu has no **Waiting for…**. File the line first.
+
+**See them by person.**
+
+- In **All actions** (the **Actions** tab on the iPhone) there is a new button with an hourglass, beside the heading. It is a switch.
+- Switch on: the heading reads **Waiting for**. The boxes are not shown, because they sort actions and this list sorts people. The switch stays as you left it.
+- First a count line, for example **4 things · 2 people**. Then one heading for each person, A to Z. The last heading is **Someone**: lines that name nobody. It says **No name given**.
+- Every line is an ordinary task row. Tick it when the answer came, and the line is done.
+- Under each line, a grey line: **Follow up Fri 6 Nov · waited 5 days**. When the date has passed it says **Follow up was 3 days ago**, in red. A line with no date says **No follow-up date**.
+- Under each line, the small button **Follow up next week** moves the date one week on. If the date has passed, the week starts from today.
+- Switch off: the screen is as before. When some line is waiting, one small line under the boxes says so, for example **3 waiting for other people**. Press it to open the list.
+- Nothing waiting: the list says **Nothing is waiting for anyone** and how to make a line wait.
+- While notes are still coming from iCloud, the list says so in orange, so a short list is never taken for an empty one.
+
+**"Waited" needs `@since`.** A task line has no date for when it was made. So the list can only say **waited 5 days** when the line has `@since(2026-11-01)`. Without it the line does not say "waited" at all. PARAGON will not guess.
+
+- **Waiting for…** writes `@since`.
+- The **Waiting for** snippet now writes it too.
+- Your own snippets file is not changed. If you want it there, add `@since({{date}})` at the end of the **Waiting for** line.
+
+**Lines you wrote by hand are found too.** Any open task that starts with the words **Waiting for** is a waiting line, also without the tag. The name is the words before the first colon. A line with no colon has no name, and it goes under **Someone**. Anna and anna are one person. Lines in a project that is done, missed, dropped or archived are left out.
+
+**A waiting line is never your next action.** Not even with `#next` on it.
+
+- It is never the **Next:** task on a project's box, never one of the **Next actions** on **Today**, never a next action in **Start the day** or on **Plan**, and never the next task on the Goals and Aspirations screens.
+- **Make this the next action** is not offered on a waiting line. Otherwise it would take `#next` off the real next action.
+- A project where every task that is still open is a waiting line shows **Its one open task is waiting for someone** (or **All 3 open tasks are waiting for others**) and a grey **No next action**. It does not say "finished", because the project is not finished.
+- A waiting line that has a date is still in the lists by date: **Overdue**, **Due today**, **All actions** and the Calendar. That includes **Overdue** and **Due today** on **Today**, in **Start the day** and on **Plan**. When its follow-up date comes, asking again is something to do.
+- The **Next action** box under **Mark** in **All actions** is the `#next` tag. It is as before.
+
+**The Goals and Aspirations screens and the weekly review do not warn about it.** A project where every open task is a waiting line shows the same grey line there as on the **Projects** screen, for example **All 3 open tasks are waiting for others**. It is not orange, and the weekly review does not flag it **No next action**. An area whose only work is such a project is not flagged either, because other people are working on it.
+
+**The Help pages say it too.** The manual has the new switch, the list and the menu item. **Words in PARAGON** has **Waiting for**, **Follow-up date**, **Someone**, **Follow up next week**, **Not waiting any more** and **@since**. Some older sentences said "nothing is waiting" when they meant "nothing is left to do". They are changed, so that "waiting" has one meaning in Help. For the same reason the heading in **Close the day** that said **Waiting for tomorrow** now says **To do tomorrow**, and **Start the day** says "Nothing to do today." when there is nothing to pick.
+
+**To try it:**
+
+1. Open a task's menu and choose **Waiting for…**. Type a name and press **Add**. The line now starts with **Waiting for**.
+2. Open **All actions** (the **Actions** tab on the iPhone). Press the hourglass button beside the heading. The person is a heading, and your line is under it.
+3. Press **Follow up next week**. The grey line under it shows a new date.
+4. Open the task's menu again and choose **Not waiting any more**. The line goes from the list.
+5. Open the **Projects** screen. A project where every open task is waiting shows **Its one open task is waiting for someone**.
+
 ## Build 278 · 3 November 2026
 
 **The iPad mini in landscape: the note column fits on the screen.** You use the iPad mini in landscape only. In the test pictures of build 276, in landscape, the note column was cut off on the right. About half of it was on the screen. The end of a note's name, the buttons at the top right of the note, and the end of **Add a task…** were off the edge.

@@ -452,7 +452,7 @@ struct StartDayView: View {
     /// reads as a screen that failed to load (build 100).
     private var nothingToPick: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Nothing is waiting for today.")
+            Text("Nothing to do today.")
                 .font(.callout.weight(.semibold))
             Text("No task is due today or overdue, and no note has a next action. Add one above with +.")
                 .font(.caption)

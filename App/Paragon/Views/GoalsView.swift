@@ -1088,6 +1088,14 @@ struct ChainProjectRow: View {
                     Text("No next action")
                         .font(.caption)
                         .foregroundStyle(.orange)
+                } else if project.waitingCount > 0, !project.note.isEnded {
+                    // Build 279: nothing he can do himself, but not idle: every open line waits
+                    // for somebody else. The same words and the same calm grey as the Projects
+                    // list (build 168), never the orange of a project nobody can act on.
+                    Label(ProjectLine.waitingText(count: project.waitingCount), systemImage: WaitingShowing.symbol)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
             }
         }

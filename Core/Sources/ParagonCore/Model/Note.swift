@@ -381,9 +381,13 @@ public struct Note: Equatable, Identifiable, Sendable {
     }
 
     /// Makes this task the note's next action: it gets `#next`, every other task loses it.
-    /// Returns false when the task is not in the note.
+    /// Returns false when the task is not in the note, or is a waiting line.
     @discardableResult
     public mutating func setNextAction(_ task: TaskItem) -> Bool {
+        // Build 279: a waiting line is never the next thing (`nextThing` skips it, even with
+        // `#next`). Marking one would take `#next` off the real next action and put it on a line
+        // nothing reads, so the note is left exactly as it is.
+        guard !task.isWaiting else { return false }
         var current = lines
         var found = false
         for var t in tasks {
@@ -421,16 +425,20 @@ public struct Note: Equatable, Identifiable, Sendable {
     /// alone learned the subtask step, and the same project read "Next: Pay the invoice" there
     /// and an orange "No next action" on the Goals screen. A subtask under a *cancelled* task is
     /// left out: that branch was called off.
+    ///
+    /// **A line he is waiting on somebody for is never the next thing** (build 279): "Waiting for
+    /// Anna: the quote" is not something he can do, so it is skipped at every step — even when it
+    /// carries `#next`. A note whose only open lines are waiting lines has no next thing.
     public var nextThing: TaskItem? { Self.nextThing(in: tasks) }
 
     /// `nextThing` over tasks already parsed, for a caller that has them in hand.
     public static func nextThing(in tasks: [TaskItem]) -> TaskItem? {
-        let open = tasks.filter { !$0.isDone && !$0.isSubtask }
+        let open = tasks.filter { !$0.isDone && !$0.isSubtask && !$0.isWaiting }
         if let tagged = open.first(where: { $0.tags.contains(nextActionTag) }) { return tagged }
         if let first = open.first { return first }
         let ticked = Set(tasks.filter { $0.status == .done }.map(\.lineIndex))
         return tasks.first { task in
-            guard task.isSubtask, !task.isDone, let parent = task.parentLineIndex else { return false }
+            guard task.isSubtask, !task.isDone, !task.isWaiting, let parent = task.parentLineIndex else { return false }
             return ticked.contains(parent)
         }
     }

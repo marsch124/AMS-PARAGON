@@ -156,7 +156,7 @@ public enum Templates {
 
     ## Waiting for
 
-    - [ ] Waiting for {{who}}: {{what}} >{{week}} #waiting
+    - [ ] Waiting for {{who}}: {{what}} >{{week}} #waiting @since({{date}})
 
     ## Meeting
 

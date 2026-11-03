@@ -28,6 +28,11 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
         /// It has tasks and every one is finished. Two true facts at once: the work is done, and
         /// the project is still open. The box says both.
         case allFinished(count: Int)
+        /// Nothing is left to do, but not because it is finished: every open line is one he is
+        /// waiting on somebody else for (build 279). `count` is how many such lines there are.
+        /// Without this case, once a waiting line stops being "next", a project of nothing but
+        /// waiting lines would read "All 3 finished" while it has three open lines.
+        case waitingOnly(count: Int)
         /// Not one task yet. Said in words, never as an empty bar (build 141).
         case noTasks
     }
@@ -88,8 +93,13 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
         // `Note.nextThing`, the one rule the Goals screen and the planner use too (build 254).
         // Its last step is new: an open subtask under a ticked task is still work, and without
         // it the box said "All 3 finished" and "No next action" beside "1 overdue".
+        // A waiting line is never the next thing (build 279), so a project whose only open lines
+        // are waiting lines has none — and must not read as finished.
+        let waitingCount = tasks.filter { $0.isWaiting }.count
         if let next = Note.nextThing(in: tasks) {
             need = .next(next)
+        } else if waitingCount > 0 {
+            need = .waitingOnly(count: waitingCount)
         } else if total > 0 {
             need = .allFinished(count: total)
         } else {
@@ -133,6 +143,12 @@ public struct ProjectLine: Identifiable, Equatable, Sendable {
     /// "Its one task is finished" or "All 15 finished".
     public static func finishedText(count: Int) -> String {
         count == 1 ? "Its one task is finished" : "All \(count) finished"
+    }
+
+    /// "Its one open task is waiting for someone" or "All 3 open tasks are waiting for others" —
+    /// the line a project shows when nothing is left that he can do himself (build 279).
+    public static func waitingText(count: Int) -> String {
+        count == 1 ? "Its one open task is waiting for someone" : "All \(count) open tasks are waiting for others"
     }
 
     /// "5 of 8 finished".

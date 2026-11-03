@@ -1283,6 +1283,8 @@ struct TaskRow: View {
     var onAddSubtask: (() -> Void)? = nil
     let toggle: () -> Void
     @State private var pickingDate = false
+    /// **Who?** (build 279), opened by **Waiting for…** on the task menu.
+    @State private var askingWho = false
     @State private var renaming = false
     @State private var draft = ""
     @FocusState private var fieldFocused: Bool
@@ -1367,6 +1369,12 @@ struct TaskRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
+            // **Who?** hangs off the title, not off the row: the row already carries the date
+            // popover, and a second presentation on one view is not reliable on the phone
+            // (build 44). The time button does the same with its own.
+            .popover(isPresented: $askingWho) {
+                WaitingWhoView(ref: ref, isPresented: $askingWho)
+            }
             Spacer()
             // How long it takes (build 248). A finished task keeps its time as plain words and
             // asks for nothing: "time?" on a ticked line would be a question with no use.
@@ -1384,6 +1392,7 @@ struct TaskRow: View {
         .draggable(TaskTransfer(ref))
         .contextMenu {
             TaskContextMenu(ref: ref, showNote: showNote, pickingDate: $pickingDate,
+                            askingWho: $askingWho,
                             onAddSubtask: onAddSubtask, onRename: startRenaming,
                             offersFocus: focusBarShown)
         }

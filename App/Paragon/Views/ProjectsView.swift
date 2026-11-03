@@ -452,6 +452,22 @@ struct ProjectBox: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(needWords)
             .accessibilityIdentifier("project.next.\(line.id)")
+        case .waitingOnly(let count):
+            // Build 279: every open line is waiting for somebody else. The same calm grey as
+            // "All finished", and the same pill, because it is just as true that there is no
+            // next action — but not "finished", which would be false.
+            WrappingHStack(spacing: 6, lineSpacing: 4) {
+                Label(ProjectLine.waitingText(count: count), systemImage: WaitingShowing.symbol)
+                    .font(.subheadline)
+                    .rowTint(ParaKind.project.tint)
+                if line.status == .active {
+                    ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
+                                                  systemImage: "circle.dashed", dashed: true))
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(needWords)
+            .accessibilityIdentifier("project.next.\(line.id)")
         case .noTasks:
             ProjectPill(fact: ProjectFact(id: "noTasks", text: "No tasks yet",
                                           systemImage: "circle.dashed", dashed: true))
@@ -468,6 +484,8 @@ struct ProjectBox: View {
         case .next: return "Next: " + (line.nextTitle ?? "")
         case .allFinished(let count):
             return ProjectLine.finishedText(count: count) + (line.status == .active ? ". No next action" : "")
+        case .waitingOnly(let count):
+            return ProjectLine.waitingText(count: count) + (line.status == .active ? ". No next action" : "")
         case .noTasks: return "No tasks yet"
         }
     }

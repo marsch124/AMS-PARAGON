@@ -66,6 +66,8 @@ struct TaskContextMenu: View {
     let ref: TaskRef
     let showNote: Bool
     @Binding var pickingDate: Bool
+    /// Opens **Who?** (build 279). The row owns the window, as it owns the date picker.
+    @Binding var askingWho: Bool
     var onAddSubtask: (() -> Void)?
     var onRename: (() -> Void)?
     /// Handed in by the row, which can read where it is drawn; a context menu is built outside
@@ -131,6 +133,15 @@ struct TaskContextMenu: View {
                 }
             }
         }
+        // Build 279: a line he has handed to somebody else. On a line that already waits the
+        // item reads the same and the window starts on the current person, so asking again
+        // who it is changes the name; the second item takes the line back out of the list.
+        if !ref.task.isDone {
+            Button("Waiting for…") { askingWho = true }
+            if ref.task.isWaiting {
+                Button("Not waiting any more") { model.stopWaiting(ref) }
+            }
+        }
         Menu("Repeat") {
             Button(ref.task.repeatRule == nil ? "✓ Does not repeat" : "Does not repeat") { model.setRepeat(ref, nil) }
             Divider()
@@ -141,7 +152,9 @@ struct TaskContextMenu: View {
         if note?.kind == .project, !ref.task.isSubtask {
             if isNext {
                 Button("Clear next action") { model.clearNextAction(ref) }
-            } else {
+            } else if !ref.task.isWaiting {
+                // Build 279: a waiting line is never the next thing, so marking one would take
+                // `#next` off the project's real next action and put it where nothing reads it.
                 Button("Make this the next action") { model.makeNextAction(ref) }
             }
         }

@@ -109,6 +109,44 @@ final class ReviewAreaWorkTests: XCTestCase {
         XCTAssertTrue(flags(of: health, among: [health, work]).contains(.noNextAction))
     }
 
+    // MARK: A line he is waiting on somebody else for (build 279)
+
+    /// A waiting line is never the next thing, but a project of nothing else has open tasks and
+    /// is not flagged in step 5. The area it sits in must not be flagged in step 6 for the same
+    /// work: one question, one answer.
+    func testAProjectOfWaitingLinesAndItsAreaAreNotFlagged() {
+        let health = area("Health")
+        let waiting = project("Run a 10k", in: "Health",
+                              body: "- [x] Choose the race\n- [ ] Waiting for Anna: the entry form #waiting\n")
+        XCTAssertNil(waiting.nextThing)
+        XCTAssertFalse(flags(of: waiting, among: [health, waiting]).contains(.noNextAction))
+        XCTAssertFalse(flags(of: health, among: [health, waiting]).contains(.noNextAction))
+        let report = NoteIndex(notes: [health, waiting]).review(today: today, config: config)
+        XCTAssertFalse(report.areas[0].needsAttention)
+    }
+
+    func testWaitingLinesInAnAreasOwnNoteAndInASubAreaCountToo() {
+        let own = area("Garden", body: "- [ ] Waiting for Bo: the delivery date\n")
+        XCTAssertFalse(flags(of: own, among: [own]).contains(.noNextAction))
+
+        let health = area("Health")
+        let yoga = area("Yoga", parent: "Health")
+        let retreat = project("Yoga retreat", in: "Yoga", body: "- [ ] waiting for Sven: the quote\n")
+        XCTAssertFalse(flags(of: health, among: [health, yoga, retreat]).contains(.noNextAction))
+    }
+
+    /// A ticked or cancelled waiting line is not waiting, and a project that is over still does
+    /// not count.
+    func testOnlyAnOpenWaitingLineInALiveProjectCounts() {
+        let health = area("Health")
+        let ticked = project("Run a 10k", in: "Health",
+                             body: "- [x] Waiting for Anna: the form #waiting @done(2026-09-01 10:00)\n")
+        XCTAssertTrue(flags(of: health, among: [health, ticked]).contains(.noNextAction))
+        let over = project("Old plan", in: "Health", body: "- [ ] Waiting for Anna: the form #waiting\n",
+                           status: "dropped")
+        XCTAssertTrue(flags(of: health, among: [health, over]).contains(.noNextAction))
+    }
+
     // MARK: Sub-areas
 
     /// A parent area's work is in its sub-areas, which its page lists as rows (build 270). A

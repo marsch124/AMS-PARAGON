@@ -258,6 +258,17 @@ struct AreaProjectRow: View {
                                                   systemImage: "circle.dashed", dashed: true))
                 }
             }
+        case .waitingOnly(let count):
+            // Build 279: the open lines are all waiting for somebody else, not finished.
+            WrappingHStack(spacing: 6, lineSpacing: 4) {
+                Label(ProjectLine.waitingText(count: count), systemImage: WaitingShowing.symbol)
+                    .font(.caption)
+                    .foregroundStyle(ParaKind.project.tint)
+                if isRunning {
+                    ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
+                                                  systemImage: "circle.dashed", dashed: true))
+                }
+            }
         case .noTasks:
             ProjectPill(fact: ProjectFact(id: "noTasks", text: "No tasks yet",
                                           systemImage: "circle.dashed", dashed: true))
@@ -292,6 +303,8 @@ struct AreaProjectRow: View {
         case .next: words += "Next: " + (line.nextTitle ?? "")
         case .allFinished(let count):
             words += ProjectLine.finishedText(count: count) + (isRunning ? ". No next action" : "")
+        case .waitingOnly(let count):
+            words += ProjectLine.waitingText(count: count) + (isRunning ? ". No next action" : "")
         case .noTasks: words += "No tasks yet"
         }
         if line.status == .onHold { words += ". " + NoteStatus.onHold.label }

@@ -20,9 +20,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **PARA** — the four kinds of note the app is built on: Projects, Areas, Resources and Archive.
 - **Project** — work with an end, like "Renovate the bathroom". Shown in green. It is finished when you mark it **Done**.
 - **Deadline** — the date a project should be finished by. Set it with **Set a deadline…** at the top of the project.
-- **Next:** — on a project's box in the **Projects** list: the task to do next. That is the task marked `#next`, or else the first open task. When every task is ticked but a subtask under one of them is still open, it is that subtask.
+- **Next:** — on a project's box in the **Projects** list: the task to do next. That is the task marked `#next`, or else the first open task. When every task is ticked but a subtask under one of them is still open, it is that subtask. A line you are waiting on somebody else for is never next.
 - **Weekly bars** — the eight small green bars on a project's box and at the top of the **Projects** list: the tasks finished in each of the last eight weeks, Monday to Sunday, with this week on the right. On an area's page they are pink and count the area and its projects.
-- **No next action** — on a project's box: every task is ticked, but the project is still active. Mark it done, or write its next task. In the **Weekly review** an area is flagged with it only when nothing is waiting anywhere in it: not in its own text, not in a running or on-hold project in it, and not in a sub-area.
+- **No next action** — on a project's box: every task is ticked, or every task that is still open is a line you are waiting on somebody else for, and the project is still active. Mark it done, or write its next task. In the **Weekly review** an area is flagged with it only when nothing is left to do anywhere in it: not in its own text, not in a running or on-hold project in it, and not in a sub-area.
 - **No tasks yet** — on a project's box: the project has no tasks at all.
 - **Not linked to an aspiration** — a group in the **Projects** list: the projects serve a goal, but that goal has no aspiration above it, or no goal with that name can be found.
 - **Icon** — a note's own small picture, drawn on a colour. A project, an area, a goal, an aspiration and a resource can each have one. Choose it with **Icon…** at the top of the note: about 130 hand-drawn icons and about 300 of Apple's symbols, with a search called **Find an icon**. It is shown in the project's tile in the **Projects** list, in the row of an area or a resource, and instead of the star or the target on a goal or an aspiration. It is kept as `icon:` and `icon-colour:` in the settings block. An icon replaces an emoji from an earlier version.
@@ -65,6 +65,12 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Repeat** — a task that comes back after you tick it, like `@repeat(weekly)`.
 - **Subtask** — a task indented under another task.
 - **Undo** — a button in the message at the bottom of the window, for about eight seconds, after two changes that happen in one press: moving every overdue task to today or tomorrow, and deleting a line in the Inbox. It puts back what the press changed, and only that: a task you changed in the meantime is left as it is, and the message says so.
+- **Waiting for** — a task you have handed to somebody else and are waiting on, like "Waiting for Anna: the quote". It has the tag `#waiting`, or it starts with the words **Waiting for**. Make one with **Waiting for…** on a task's menu. The lines are listed by person under **All actions**: press the hourglass button beside its heading. A waiting line is never your next action. It is also the name of a snippet.
+- **Follow-up date** — the day to ask again about a **Waiting for** line. It is the line's ordinary date. A new waiting line gets one a week from today if it had none.
+- **Someone** — the heading in the **Waiting for** list for lines that name nobody, with the words **No name given**. A line names somebody when it reads "Waiting for Anna: …", with a colon after the name.
+- **Follow up next week** — the small button under a line in the **Waiting for** list. It moves the follow-up date one week on, from the later of its date and today.
+- **Not waiting any more** — on the task menu of a waiting line. It takes the words, the tag and the `@since` day off, and keeps the date.
+- **@since** — `@since(2026-11-01)` at the end of a waiting line: the day the waiting began. It is how the list can say "waited 5 days". A line without it never says how long.
 - **Tag** — a word with `#` in front, like `#travel`, on a task or in a note's `tags:` line. It groups things across notes. See **Tags** under **Tools**.
 
 ## Planning your day and week
@@ -85,7 +91,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**. Step 8 of the **Weekly review** writes it too, for the week you are about to work in.
 - **To place** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
 - **Start the day** — the cup button on **Today**. At the top it shows what you wrote last evening, the goal for the week and today's calendar events. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added there with **+**.
-- **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is waiting tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.
+- **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is to do tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.
 - **First** — a mark you put on an action in **Close the day**. The next morning, **Start the day** shows it first in its list, above **Overdue**.
 - **Morning reminder** — a notification every morning, at a time you choose in **Settings**. Press it to open **Start the day**.
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.

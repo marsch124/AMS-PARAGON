@@ -88,8 +88,13 @@ public struct ChainProject: Identifiable, Equatable, Sendable {
     /// first open subtask under a ticked task, else nil (build 254).
     public var nextAction: TaskItem?
     /// True when the project is live and has nothing open to do. That is a real finding for
-    /// the review: a project nobody can act on.
+    /// the review: a project nobody can act on. **Not true of a project whose open lines are
+    /// all ones he is waiting on somebody else for** (build 279): that project is moving, in
+    /// other people's hands, and the Projects list shows it calmly; an orange warning here
+    /// would disagree with it (build 168).
     public var hasNothingToDo: Bool
+    /// How many open lines wait for somebody else (build 279).
+    public var waitingCount: Int
     public var isFinished: Bool
 
     public var id: String { note.relativePath }
@@ -101,7 +106,9 @@ public struct ChainProject: Identifiable, Equatable, Sendable {
         let next = note.nextThing
         self.nextAction = next
         self.isFinished = note.isFinishedProject
-        self.hasNothingToDo = !note.isFinishedProject && next == nil
+        let waiting = note.tasks.filter { $0.isWaiting }.count
+        self.waitingCount = waiting
+        self.hasNothingToDo = !note.isFinishedProject && next == nil && waiting == 0
     }
 }
 

@@ -180,7 +180,10 @@ public extension NoteIndex {
     /// its own note, not in a live project in it (running or on hold — an on-hold project is
     /// still the area's), and not in a sub-area's note or live projects (a parent area's work
     /// is in its sub-areas; the area page lists them as rows). "Something waiting" is
-    /// `Note.nextThing`, the one rule every screen uses (build 254).
+    /// `Note.nextThing`, the one rule every screen uses (build 254), **or an open line he is
+    /// waiting on somebody else for** (build 279). A waiting line is never the next thing, but
+    /// a project of nothing else is not flagged here (it has open tasks), so an area whose only
+    /// work is such a project must not be flagged either: one question, one answer.
     ///
     /// Done, missed, dropped and archived projects do not count: they are over.
     private func hasNoNextAction(_ note: Note, open: [TaskItem]) -> Bool {
@@ -190,11 +193,12 @@ public extension NoteIndex {
         return true
     }
 
-    /// An area's own note, or one of its live projects, has a next thing to do.
+    /// An area's own note, or one of its live projects, has a next thing to do, or an open line
+    /// that waits for somebody else.
     private func holdsSomethingToDo(_ area: Note) -> Bool {
-        if area.nextThing != nil { return true }
+        if area.nextThing != nil || area.hasWaitingLine { return true }
         return projects(in: area).contains { project in
-            AreaOverview.isLive(project) && project.nextThing != nil
+            AreaOverview.isLive(project) && (project.nextThing != nil || project.hasWaitingLine)
         }
     }
 

@@ -146,10 +146,15 @@ rounded card.
   - **Next:** and the task to do next. That is the open task marked `#next`, or else the first
     open task in the note. When every task is ticked but a subtask under one of them is still
     open, it is that subtask. The Goals and Aspirations screens and **Plan** use the same rule.
-    The `#next` itself is not shown there.
+    The `#next` itself is not shown there. A line you are waiting on somebody else for is never
+    the next task, not even with `#next` on it (see **Waiting for** under **All actions**).
   - **All 15 finished** (or **Its one task is finished**) and a grey **No next action**: every
     task is ticked, but the project still says it is active. Either mark it done, or write its
     next task. The grey is on purpose; the weekly review is where this is asked with orange.
+  - **Its one open task is waiting for someone** (or **All 3 open tasks are waiting for others**)
+    and a grey **No next action**: every task that is still open is a line you are waiting on
+    somebody else for. There is nothing there for you to do yourself, so no task is "next". It
+    does not say "finished", because the project is not.
   - **No tasks yet**.
 - The **goal** it serves, in gold, with its star or target. It is left out when the project
   serves the heading's aspiration directly, because the heading already says it.
@@ -244,7 +249,7 @@ Open an area, for example Health. Above its text there is a part that shows what
 - If the standard was changed on your other device while the box was open, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
 - **Weekly bars**: eight small pink bars, the tasks finished in each of the last eight weeks, in the area itself and in every project in it. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". A week is Monday to Sunday. When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
 - **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list. The number beside the heading says how many.
-- Each project shows its tile with its icon, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, or **No tasks yet**.
+- Each project shows its tile with its icon, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, **All 2 open tasks are waiting for others** and a grey **No next action**, or **No tasks yet**.
 - "2 overdue" is red: open tasks in the project whose date has passed. The deadline is red once it has passed, and grey before that. A project on hold says **On hold**.
 - Projects that are done, missed, dropped or archived are not listed. One line under the list says how many there are.
 - **Press a project** to open it. To come back to the area, press ⌃⌘← on the Mac, or the back arrow at the top on the iPhone.
@@ -294,8 +299,9 @@ Right-click any task, anywhere in the app — long-press on the phone — for th
 
 - **Reschedule**: Today, Tomorrow, Next Monday, In a week, Pick a date, Remove date. **Pick a date** opens the date window, where you can also give the task a time of day. The quick choices change the day only and **keep the time**: a call at 14:00 moved to tomorrow is a call at 14:00 tomorrow. **Remove date** takes the time off with it.
 - **How long**: 3 min, 5 min, 10 min, 15 min, 30 min, 45 min, 1 h, 1 h 30, 2 h or 3 h, or **No time**. Only there while **Use task times** is on in Settings.
+- **Waiting for…**: you handed this task to somebody else. A small window asks **Who?** and the line goes into the **Waiting for** list under **All actions**. On a line that is already waiting there is also **Not waiting any more**. See **Waiting for** under **All actions**.
 - **Repeat**: every day, week, 2 weeks, month, 3 months or year. When you tick a repeating task, the next one appears below it with the next date. In the file this is `@repeat(weekly)`.
-- **Make this the next action** (in a project): the task gets a `#next` tag and a badge, and Today lists it under "Next actions". One per project.
+- **Make this the next action** (in a project): the task gets a `#next` tag and a badge, and Today lists it under "Next actions". One per project. It is not offered on a line you are waiting on somebody else for.
 - **Block time for this…**: opens Time Blocks with the title filled in.
 - **Rename…**: turns the line into a field. Type and press Return. The date, repeat, tags and subtasks stay, and so does the reminder it is linked to.
 - **Move to**: the Inbox, any active project or any active area. Subtasks move along. The reminder follows on the next sync. You can also drag the task onto another note in the middle column.
@@ -501,7 +507,9 @@ working towards it appears beside it, in order:
 - the **goals with a target date** that serve it, soonest first;
 - the **projects** under each goal — finished ones struck through;
 - the **next action** on each project. **No next action** in orange means there is nothing on
-  that project you could start.
+  that project you could start. A project where every open task is a line you are waiting on
+  somebody else for is not orange: it shows a grey line, such as **All 3 open tasks are waiting
+  for others**, as it does in the **Projects** list.
 
 **Add a goal…** under the goals makes a new goal that serves the aspiration, and **Add a project…** under a goal with no project yet makes a project for it. You stay on the aspiration.
 
@@ -601,11 +609,11 @@ The per cent never says 100 until everything really is finished, and never says 
 
 ## Today, Calendar, daily and weekly notes
 
-- **Today** shows the day's calendar events, one next action per active project, overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot, and nothing is asked first. A short message says how many moved, and it has an **Undo** button for about eight seconds: each task gets back the date it had before (see **Undo for one-press changes**). Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
+- **Today** shows the day's calendar events, one next action per active project (a line you are waiting on somebody else for is never one), overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it still says how many there are, and pressing it again brings them back. Under the events, a short heading says **Today's note** with a small button beside it: **Create** while there is no note for today, **Open** once there is. The day's date is a small grey line at the very top, under the title. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot, and nothing is asked first. A short message says how many moved, and it has an **Undo** button for about eight seconds: each task gets back the date it had before (see **Undo for one-press changes**). Beside the date at the top are **Start the day** (an orange cup) and **Close the day** (a lilac moon): the morning step and the evening step. They are pictures only; on the Mac, hold the pointer over one and its name appears.
 
 - **Now and Then** on **Today**: on a day with a plan, two short lines under the date say where you are in it. The first starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**. On its right is a small orange button with a clock. Press it and the focus timer starts on that block, and the bar appears at the bottom, as usual. If exactly one open task has the same name as the block, the timer can tick that task off when you stop it (see **The focus timer**). While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused. The dot also shows when the clock runs on a task with the same name as the block, such as the task the block was made from. The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button. The lines change by themselves when a block starts or ends. When nothing is on now, only the **Then** line is shown. When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before. Only plan blocks are shown here; your calendar events are under **Calendar** further down. On the Mac, hold the pointer over the clock button and its name appears.
 
-- **Start the day** shows what is overdue, what is due today, and your next actions. At the top are three things you already know this morning:
+- **Start the day** shows what is overdue, what is due today, and your next actions. A line you are waiting on somebody else for is not a next action; it shows with the dated tasks once its follow-up date has come. At the top are three things you already know this morning:
   - **Last evening you wrote**: the line you wrote yesterday in **Close the day**, under **How was today?**. If you wrote nothing, this part is not shown. If yesterday's note is still coming from iCloud, an orange line says so. The line belongs to the day on which you pressed **Done**: if you close the day after midnight, it goes into the new day's note, and the next morning nothing is shown here.
   - **This week:** and the goal for the week, the same line as on **Today**. It is not shown when no goal is written. If this week's note is still coming from iCloud, an orange line says so. You write the goal on **Calendar › Week**.
   - **Today's calendar events**, one short line each, with the number in the heading. Press the heading to fold them away, and again to open them. The iPhone and the Mac each remember this on their own. If Calendar access is off, the message that says so is never folded away. When **Show the day's events in Today and in daily notes** is off in **Settings › Apple Calendar**, this part is not shown.
@@ -621,7 +629,7 @@ The per cent never says 100 until everything really is finished, and never says 
     under them. These are real tasks, so you can tick one off if you did it after all. Tasks
     with no date are not here, because a task that was never promised to today did not fail
     to happen.
-  - **Tomorrow's calendar events**, with tomorrow's date, then **Waiting for tomorrow**:
+  - **Tomorrow's calendar events**, with tomorrow's date, then **To do tomorrow**:
     everything dated tomorrow (including what you just moved there) and a few next actions. Press **First** at the left of the
     ones that should come first. That only marks them: in the morning, **Start the day** shows
     them first in its list, above **Overdue**, under **Marked first last evening**. No block is made. Press **First** again
@@ -651,6 +659,14 @@ The per cent never says 100 until everything really is finished, and never says 
   **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
   **First** save as soon as you press them.
 - **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
+  - **Waiting for.** The hourglass button beside the heading is a switch. While it is on, the heading reads **Waiting for** and the column shows the lines you are waiting on other people for, one heading for each person, instead of the boxes: the boxes sort actions, and this list sorts people. The switch stays as you left it. While it is off and some line is waiting, a small line under the boxes says how many, for example **3 waiting for other people**. Press it to open the list.
+  - **What a waiting line is.** An open task with the tag `#waiting`, or one that starts with the words **Waiting for** (capitals do not matter). It looks like this in the file: `- [ ] Waiting for Anna: the quote >2026-11-06 #waiting @since(2026-11-01)`. Lines you wrote by hand are found too, even with no tag. The name is the words between **Waiting for** and the first colon; the thing is what follows. A line with no colon has no name. It is listed under **Someone**, with **No name given**. Anna and anna are one person. A ticked or cancelled line is not waiting any more, and neither is a line in a project that is done, missed, dropped or archived.
+  - **The list.** First a count line, for example **4 things · 2 people**. Then one heading for each person, A to Z, with **Someone** last. Under a heading every line is an ordinary task row, with the note it lives in: tick it when the answer came, and the line is done. Under it a grey line says when to follow up and how long you have waited, for example **Follow up Fri 6 Nov · waited 5 days**. The follow-up date is the line's ordinary date. A line with no date says **No follow-up date**. When the date has passed it says **Follow up was 3 days ago**, in red. Inside a heading the lines go by follow-up date, then the longest wait.
+  - **How long you have waited needs `@since`.** `@since(2026-11-01)` on the line is the day the waiting began. A task line has no date for when it was made, so without `@since` the line never says **waited**: PARAGON would have to guess. **Waiting for…** and the **Waiting for** snippet both write it. A snippets file you already have is not changed; add `@since({{date}})` to its **Waiting for** line by hand if you want it.
+  - **Follow up next week**, under a line, moves its date one week on: from its date, or from today when the date has passed or there is none.
+  - **Nothing waiting.** The list says **Nothing is waiting for anyone** and how to make a line wait. While notes are still coming from iCloud it says that instead, and an orange line under the count says how many are missing: the list may be short until they arrive.
+  - **Making a line wait.** Right-click a task (press and hold on the iPhone) and choose **Waiting for…**. A small window asks **Who?**. Type a name, or press one of the people you already wait for, and press **Add** (or Return). PARAGON writes `Waiting for Anna: the quote` with the tag `#waiting` and today as `@since`. A task with no date also gets a follow-up date one week from today; a task that has a date keeps it as the follow-up date. Choose **Waiting for…** on a line that is already waiting and the window starts on its person: a new name changes the name and keeps the day the waiting began. **Not waiting any more** takes the words, the tag and `@since` off and keeps the date. If nothing but the name follows **Waiting for**, the name becomes the task's words. The Inbox's own line menu has no such item; file the line first.
+  - **A waiting line is never your next action.** It is left out of the next task on a project's box, of the next actions on **Today**, **Start the day** and **Plan**, and of the next task on the Goals and Aspirations screens, even when it carries `#next`. **Make this the next action** is not offered on a waiting line, so it cannot take `#next` off the real next action. A line that has a date is still in the lists by date, and that includes **Overdue** and **Due today** on **Today**, in **Start the day** and on **Plan**: when its follow-up date comes, chasing it is something to do. It is also in **All actions** and the Calendar. The **Next action** box under **Mark** means the `#next` tag and is unchanged.
 - **Done** is a diary of the last 12 weeks: this week and the 11 weeks before it, each from Monday to Sunday. The newest day is at the top. The line at the top says how many tasks you finished this week and in the 12 weeks, for example **6 done this week · 212 in 12 weeks**. It is not shown until a finished task carries a day. Under it, **Last 12 weeks** shows one small square for each day: each column is one week, with Monday at the top and this week on the right, and the names of the months above the columns. The stronger the colour of a square, the more tasks were done that day; a grey square means nothing was ticked off. A day whose note is still coming from iCloud has an empty square with an orange dashed edge, and it says so: that day may not be empty, its note is just not here yet. The days still to come this week have no square, and nor do the days before you first ticked off a task with a day: for those the notes cannot say. Today's square has a frame around it. On the Mac, hold the pointer over a square to see its day and how many tasks were done. Press a square to go to that day in the list below; only a day that is listed can be pressed. Press **Last 12 weeks** to fold the squares away, and again to bring them back. The iPhone and the Mac each remember this on their own. Each day starts with a small card:
   - The day's name, for example **Today**, **Yesterday** or **Tuesday 14 October**.
   - A grey line with how many tasks you finished and the time on the focus timer, for example **6 done · 2 h 40 min worked**. When the timer was not used that day, no time is shown.
@@ -674,7 +690,7 @@ The per cent never says 100 until everything really is finished, and never says 
   tile onto a cell** and the task gets that day. You can drag onto a day's heading further down
   as well, and you can drag a task from one day to another the same way.
   The tray shows the first twelve and says how many more there are. It is not drawn at all when
-  nothing is waiting. A task written in a daily note is never in the tray: it is already on that
+  there is nothing to put in it. A task written in a daily note is never in the tray: it is already on that
   day by being there.
   The quickest way in is the **Week** button at the top of the **Plan** screen.
 - A daily note shows the day's events and the tasks due that day above its own text. A weekly note shows all seven days as a plan: drop tasks onto a day, tick them off there.
@@ -945,7 +961,7 @@ Every step's heading is always on screen, even when the step is empty. Open a st
 3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last looked at it. **I looked at all of them** in the heading stamps today's date on every one. It is there while the step is open.
-6. **Look over the areas.** The same row for each area, with two differences. The row has no open count, because an area's work is in its projects. And an area is flagged **No next action** only when nothing is waiting in it, in its projects or in its sub-areas (see **The flags**). Under its name is the area's Standard: "Standard:" and the first sentence of what you wrote. When none is written, a dashed grey **No standard written yet** says so. Write or change it on the area's page. The point of the line is to check the area against it.
+6. **Look over the areas.** The same row for each area, with two differences. The row has no open count, because an area's work is in its projects. And an area is flagged **No next action** only when nothing is left to do in it, in its projects or in its sub-areas (see **The flags**). Under its name is the area's Standard: "Standard:" and the first sentence of what you wrote. When none is written, a dashed grey **No standard written yet** says so. Write or change it on the area's page. The point of the line is to check the area against it.
 7. **Look back at last week.** A whole week, from your own notes, and a box where you can write one line about it. The heading names the week the step shows: **last week** on Monday and Tuesday, **this week** from Wednesday, and the week's number, such as **week 41**, when you press **‹** further back. See below.
 8. **Write the goal for the week.** One line for the week you are about to work in: on Monday and Tuesday the week you are in, from Wednesday next week. The heading says which. It is the same box as at the top of **Calendar › Week**: press it, write the line, press Return or **Done**. It is shown on **Today** during that week. Pressing **‹** in step 7 does not move it.
 
@@ -989,7 +1005,7 @@ Right-click any goal, project or area row (long-press on the phone):
 
 A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, is **Due for a look** (not looked at within its rhythm), or is on hold.
 
-An area gets the same flags, but **No next action** is judged in another way. The work of an area normally lives in its projects, so the area's own text is not the only place that counts. An area is flagged **No next action** only when nothing is waiting anywhere in it: not in its own text, not in a project in it that is running or on hold, and not in a sub-area (its text or its projects). A project that is done, missed, dropped or archived does not count. So an area whose projects have tasks is not flagged. It does not matter that the area's own text has no task.
+An area gets the same flags, but **No next action** is judged in another way. The work of an area normally lives in its projects, so the area's own text is not the only place that counts. An area is flagged **No next action** only when nothing is left to do anywhere in it: not in its own text, not in a project in it that is running or on hold, and not in a sub-area (its text or its projects). A project that is done, missed, dropped or archived does not count. So an area whose projects have something to do is not flagged. It does not matter that the area's own text has no task. A line you are waiting on somebody else for counts as something to do here: a project of nothing but waiting lines is not flagged **No next action** in step 5, and an area whose only work is such a project is not flagged in step 6.
 
 **Due for a look** follows each kind's own rhythm: a project is due after a week and an area after a month, unless you change them in **Settings › Review rhythm**.
 
@@ -1268,8 +1284,9 @@ Right-click a tag in the **Tags** screen (long-press on the iPhone):
 - **Delete…** takes it out of every note and every task. The notes and the tasks themselves are
   kept — only the tag is removed.
 
-Two things are left alone on purpose. `#next`, which is how the app marks a next action, cannot
-be renamed or deleted; doing so would break that. And a longer tag that starts with the same
+Two things are left alone on purpose. `#next`, which is how the app marks a next action, and
+`#waiting`, which is how it marks a line you are waiting on somebody for, cannot be renamed or
+deleted; doing so would break the **Next actions** and **Waiting for** lists. And a longer tag that starts with the same
 letters is never touched: renaming `#travel` leaves `#travelling` as it is.
 
 If a note cannot be written — it is open elsewhere, or iCloud has not finished with it — the app
@@ -1305,7 +1322,7 @@ Every new note is a copy of the matching file, with `{{title}}` and `{{date}}` f
 **Snippets** in the sidebar lists every block and what is in it; the file itself is edited beside the list on the Mac, and one tap down on the iPhone. Pick a block to use from the **Snippet** button beside **Add a task** in any note (a symbol rather than the word on the phone), and its lines are added to that note's Tasks. The ones the app starts with:
 
 - **Delegate** — "Ask {{who}} to {{what}}" due tomorrow, with a subtask to check they have it in a week.
-- **Waiting for** — one line tagged `#waiting`, dated a week out, so it turns up in a review rather than being forgotten.
+- **Waiting for** — one line tagged `#waiting`, dated a week out, with `@since` set to today. It shows in the **Waiting for** list under **All actions**, and in the lists by date when its day comes, so it is not forgotten. A snippets file you already have is not changed: add `@since({{date}})` to its **Waiting for** line by hand if you want the days waited.
 - **Meeting** — prepare it today (with agenda and "what do I need from them" as subtasks) and write it up tomorrow.
 - **Decision** — "Decide: …" a week out at high priority, with the options, who else has a say, and telling the people it affects.
 - **Errand** — one line tagged `#errand`.

@@ -13,7 +13,7 @@ public enum MarkdownStyle: Equatable, Sendable {
     case link
     /// The text of a task that is done or cancelled.
     case finished
-    /// `>2026-09-10`, `@done(...)`, `@repeat(...)`
+    /// `>2026-09-10`, `@done(...)`, `@repeat(...)`, `@since(...)`
     case dueDate
     /// `!`, `!!`, `!!!`
     case priority
@@ -140,7 +140,7 @@ public enum MarkdownHighlight {
                 spans.append(MarkdownSpan(range: shift(box.range(at: 4), by: lineRange.location), style: .finished))
             }
         }
-        for regex in [TaskParser.dueRegex, TaskParser.doneRegex, TaskParser.repeatRegex, TaskTime.regex] {
+        for regex in [TaskParser.dueRegex, TaskParser.doneRegex, TaskParser.repeatRegex, TaskParser.sinceRegex, TaskTime.regex] {
             for m in regex.matches(in: text, range: full) {
                 spans.append(MarkdownSpan(range: shift(m.range, by: lineRange.location), style: .dueDate))
             }

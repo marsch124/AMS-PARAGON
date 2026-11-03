@@ -171,10 +171,10 @@ struct CloseDayView: View {
                 SectionLabel(title: "Tomorrow's calendar events · " + tomorrowText)
                 CalendarEventRows(date: tomorrow, compact: true)
             }
-            SectionLabel(title: "Waiting for tomorrow")
+            SectionLabel(title: "To do tomorrow")
                 .padding(.top, model.showsCalendarEvents ? 8 : 0)
             if tomorrowShown.isEmpty {
-                Text("Nothing is waiting for tomorrow yet.")
+                Text("Nothing is planned for tomorrow yet.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } else {

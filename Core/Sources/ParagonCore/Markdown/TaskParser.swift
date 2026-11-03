@@ -27,6 +27,10 @@ public struct TaskItem: Equatable, Sendable {
     public var repeatRule: RepeatRule?
     /// `~45m`: how long the task takes, in minutes (build 248). Nil when no time is written.
     public var minutes: Int?
+    /// `@since(2026-11-01)`: the day a waiting line started waiting (build 279). Nil when none is
+    /// written. A task line has no creation date, so this is the only way to know "waited five
+    /// days", and a guess would be a lie.
+    public var since: DateOnly?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
     public var indent: String
@@ -49,7 +53,8 @@ public struct TaskItem: Equatable, Sendable {
                 indent: String = "",
                 bullet: String = "-",
                 lineIndex: Int = -1,
-                parentLineIndex: Int? = nil) {
+                parentLineIndex: Int? = nil,
+                since: DateOnly? = nil) {
         self.status = status
         self.title = title
         self.dueDate = dueDate
@@ -64,6 +69,7 @@ public struct TaskItem: Equatable, Sendable {
         self.bullet = bullet
         self.lineIndex = lineIndex
         self.parentLineIndex = parentLineIndex
+        self.since = since
     }
 
     public var isDone: Bool { status == .done || status == .cancelled }
@@ -117,6 +123,8 @@ public struct TaskItem: Equatable, Sendable {
         copy.doneStamp = nil
         copy.id = nil
         copy.dueDate = next
+        // A new copy has not started waiting (build 279).
+        copy.since = nil
         copy.lineIndex = -1
         return copy
     }
@@ -128,6 +136,7 @@ public struct TaskItem: Equatable, Sendable {
         if let minutes, let token = TaskTime.token(minutes) { parts.append(token) }
         if let dueDate { parts.append(">\(dueDate)" + (dueTime.map { "T\($0)" } ?? "")) }
         if let repeatRule { parts.append("@repeat(\(repeatRule))") }
+        if let since { parts.append("@since(\(since))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
         if let id { parts.append("^\(id)") }
         return "\(indent)\(bullet) [\(status.rawValue)] \(parts.joined(separator: " "))"
@@ -228,6 +237,8 @@ public enum TaskParser {
     static let dueRegex = try! NSRegularExpression(pattern: #"(?<!\S)>(\d{4}-\d{2}-\d{2})(?:T(\d{1,2}:\d{2}))?(?!\S)"#)
     static let priorityRegex = try! NSRegularExpression(pattern: #"(?<!\S)(!{1,3})(?!\S)"#)
     static let repeatRegex = try! NSRegularExpression(pattern: #"(?<!\S)@repeat\(([^)]*)\)"#)
+    /// `@since(2026-11-01)` (build 279), written like `@done(...)`.
+    static let sinceRegex = try! NSRegularExpression(pattern: #"(?<!\S)@since\((\d{4}-\d{2}-\d{2})\)"#)
     static let tagRegex = try! NSRegularExpression(pattern: #"(?<!\S)#([\p{L}\p{N}_/\-]+)"#)
 
     /// Parses a single line. Returns nil when the line is not a task.
@@ -247,10 +258,12 @@ public enum TaskParser {
         var priority = 0
         var repeatRule: RepeatRule?
         var minutes: Int?
+        var since: DateOnly?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
         rest = extract(repeatRegex, from: rest) { repeatRule = RepeatRule($0) }
+        rest = extract(sinceRegex, from: rest) { since = DateOnly($0) }
         let restNS = rest as NSString
         if let due = dueRegex.firstMatch(in: rest, range: NSRange(location: 0, length: restNS.length)) {
             dueDate = DateOnly(restNS.substring(with: due.range(at: 1)))
@@ -266,7 +279,7 @@ public enum TaskParser {
         let tags = allCaptures(tagRegex, in: title)
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
-                        indent: indent, bullet: bullet, lineIndex: lineIndex)
+                        indent: indent, bullet: bullet, lineIndex: lineIndex, since: since)
     }
 
     /// Parses every task line in a body, ignoring fenced code blocks. Indented tasks below another

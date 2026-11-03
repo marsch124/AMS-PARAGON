@@ -851,6 +851,140 @@ final class ScreenTests: XCTestCase {
         return condition()
     }
 
+    /// **Waiting for**, with nothing waiting (build 279). The test vault holds no line he is
+    /// waiting on anybody for, so the switch beside the column's name must open a list that says
+    /// *why* it is empty and what to do, never a blank one (build 100), and switching back must
+    /// bring the boxes and the actions back. With nothing waiting, the pointer under the boxes
+    /// draws nothing at all: there is nothing to point at.
+    func testNothingWaitingSaysSoAndTheSwitchGoesBack() {
+        go(to: .allActions)
+
+        let action = element("task.Book the night train")
+        XCTAssertTrue(action.waitForExistence(timeout: 20),
+                      "All actions does not list the test project's action. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("actions.waitingPointer").exists,
+                       "The pointer to the waiting list is drawn although nothing is waiting.")
+
+        let toggle = element("actions.waiting")
+        XCTAssertTrue(toggle.waitForExistence(timeout: 20),
+                      "The Waiting for switch is not beside the column's name. On screen: \(visibleTexts())")
+        toggle.pressCentre()
+
+        XCTAssertTrue(element("waiting.empty").waitForExistence(timeout: 20),
+                      "The switch was pressed and the screen did not say that nothing is waiting. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("waiting.emptyCloud").exists,
+                       "The screen claims notes are still coming from iCloud in a vault that is all here.")
+        XCTAssertFalse(element("waiting.list").exists, "A list is drawn although nothing is waiting.")
+
+        // The same switch is in the other header; pressing it brings the first half back.
+        let back = element("actions.waiting")
+        XCTAssertTrue(back.waitForExistence(timeout: 10),
+                      "The Waiting for half has no switch to go back with. On screen: \(visibleTexts())")
+        back.pressCentre()
+        XCTAssertTrue(element("actions.fold").waitForExistence(timeout: 20),
+                      "The switch was pressed again and the boxes did not come back. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("task.Book the night train").waitForExistence(timeout: 20),
+                      "The actions did not come back. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("waiting.empty").exists, "The empty message is still there after switching back.")
+    }
+
+    /// **Waiting for**, end to end (build 279). The line is made the way a person makes one,
+    /// through Quick capture (the task menu is a context menu and nothing has opened one in a
+    /// test yet, run 308): it carries the tag, an old follow-up date and the day the wait began.
+    /// Then **All actions** points at it, the switch opens the list, the person is a heading,
+    /// the count line says one thing and one person, and **Follow up next week** moves the date
+    /// on, which the caption shows by no longer saying the date has passed.
+    ///
+    /// The rule behind every word (who, what, how long, which day) is pinned in Core
+    /// (`WaitingForTests`); this asks only that the screens show it and the buttons work. Nothing
+    /// is compared with a date: the caption's words depend on the day the runner has, so the
+    /// test reads what changed, not what it changed to.
+    func testAWaitingLineIsListedByPersonAndFollowedUpNextWeek() {
+        let title = "Waiting for Anna: the quote #waiting"
+
+        go(to: .today)
+        let open = element("capture.open")
+        XCTAssertTrue(open.waitForExistence(timeout: 20), "There is no Quick capture button.")
+        open.press()
+        let field = element("capture.text")
+        XCTAssertTrue(field.waitForExistence(timeout: 20), "The capture screen did not open, or has no field.")
+        field.press()
+        field.typeText("Waiting for Anna: the quote >2020-01-01 #waiting @since(2020-01-01)")
+        let save = element("capture.save")
+        XCTAssertTrue(save.waitForExistence(timeout: 10), "The capture screen has no Save button.")
+        XCTAssertTrue(save.isEnabled, "Save stayed grey after a line was typed.")
+        save.press()
+        // Thirty seconds, for the reason the capture test gives (build 193): the screen closes
+        // itself a moment after Save, and a cold runner is slow.
+        let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 30), .completed,
+                       "The capture screen did not close after Save. On screen: \(visibleTexts())")
+
+        go(to: .allActions)
+
+        // Off, the screen still says the line exists and is one press from the list.
+        let pointer = element("actions.waitingPointer")
+        XCTAssertTrue(pointer.waitForExistence(timeout: 20),
+                      "All actions does not point at the waiting line. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: pointer).contains("1 waiting") },
+                      "The pointer does not say one line is waiting. It says: \(words(of: pointer))")
+
+        let toggle = element("actions.waiting")
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10), "The Waiting for switch is missing.")
+        toggle.pressCentre()
+
+        XCTAssertTrue(element("waiting.person.Anna").waitForExistence(timeout: 20),
+                      "The list has no heading for Anna. On screen: \(visibleTexts())")
+        let summary = element("waiting.summary")
+        XCTAssertTrue(summary.waitForExistence(timeout: 10), "The list has no count line.")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: summary) == "1 thing \u{00B7} 1 person" },
+                      "The count line is wrong. It says: \(words(of: summary))")
+        XCTAssertFalse(element("waiting.empty").exists, "The list says nothing is waiting although a line is.")
+
+        // The caption: an old follow-up date and a known start, so both parts are there.
+        let caption = element("waiting.caption.\(title)")
+        XCTAssertTrue(caption.waitForExistence(timeout: 10),
+                      "The line has no caption under it. On screen: \(visibleTexts())")
+        let before = words(of: caption)
+        XCTAssertTrue(before.contains(" was "),
+                      "The follow-up date is years ago and the caption does not say it has passed. It says: \(before)")
+        XCTAssertTrue(before.contains("waited"),
+                      "The line carries @since and the caption does not say how long it has waited. It says: \(before)")
+
+        // **Follow up next week** is a short button beside a Spacer, the shape whose frame the
+        // Mac gets wrong (build 247): pressed at its middle, then by a plain click if that did
+        // nothing.
+        let follow = app.buttons.matching(identifier: "waiting.followUp.\(title)").firstMatch
+        XCTAssertTrue(follow.waitForExistence(timeout: 10),
+                      "The line has no Follow up next week button. On screen: \(visibleTexts())")
+        let followFrame = follow.frame
+        if Self.isOnScreen(followFrame) { press(follow, at: followFrame) } else { follow.pressCentre() }
+        let moved: () -> Bool = {
+            let now = self.words(of: caption)
+            return now != before && !now.contains(" was ") && now.hasPrefix("Follow up ")
+        }
+        var followedUp = becomes(within: 10, moved)
+        #if os(macOS)
+        if !followedUp, follow.exists, follow.isHittable {
+            follow.click()
+            followedUp = becomes(within: 10, moved)
+        }
+        #endif
+        XCTAssertTrue(followedUp,
+                      "Follow up next week was pressed and the caption did not move on. It says: \(words(of: caption)) (before: \(before))")
+        XCTAssertTrue(words(of: caption).contains("waited"), "The start of the wait was lost when the date moved.")
+
+        // And back to the actions, with the pointer there again.
+        let back = element("actions.waiting")
+        XCTAssertTrue(back.waitForExistence(timeout: 10), "The Waiting for half has no switch to go back with.")
+        back.pressCentre()
+        XCTAssertTrue(element("actions.fold").waitForExistence(timeout: 20),
+                      "The boxes did not come back. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("actions.waitingPointer").waitForExistence(timeout: 10),
+                      "The pointer to the waiting line is gone after switching back.")
+        XCTAssertEqual(app.state, .runningForeground, "PARAGON stopped while the Waiting for list was used.")
+    }
+
     /// The focus timer (build 256): **Focus on this** under a task's time button starts the
     /// clock and the bar appears; **Pause** turns into **Go on** and back; **Stop** takes the
     /// bar away. A clock stopped inside half a minute writes nothing and asks nothing, so the

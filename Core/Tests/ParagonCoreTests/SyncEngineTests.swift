@@ -348,6 +348,41 @@ final class SyncEngineTests: XCTestCase {
         XCTAssertEqual(again.remindersCreated, 1, "the next occurrence gets its own reminder")
     }
 
+    /// Build 279: `@since(...)` is the day a waiting line started waiting, and nothing in
+    /// Reminders knows it. The engine sets a task's fields one by one when a reminder is edited
+    /// or completed, so the day must come through both untouched — or "waited 5 days" would
+    /// quietly turn into no figure at all.
+    func testTheDayAWaitStartedSurvivesAReminderEditAndACompletion() async throws {
+        try writeInbox("- [ ] Waiting for Anna: the quote #waiting >2026-09-08 @since(2026-09-01)\n")
+        try await engine.run()
+        let linked = try XCTUnwrap(try inbox().tasks.first)
+        XCTAssertEqual(linked.since, DateOnly("2026-09-01"), "Giving the line an id keeps the marker")
+        XCTAssertNotNil(linked.id)
+
+        let reminder = try await store.reminders(inList: "Inbox")[0]
+        store.simulateUserEdit(identifier: reminder.identifier) {
+            $0.title = "Waiting for Anna: the signed quote #waiting"
+            $0.dueDate = DateOnly(year: 2026, month: 9, day: 12)
+        }
+        try await engine.run()
+        let edited = try XCTUnwrap(try inbox().tasks.first)
+        XCTAssertEqual(edited.title, "Waiting for Anna: the signed quote #waiting")
+        XCTAssertEqual(edited.dueDate, DateOnly("2026-09-12"))
+        XCTAssertEqual(edited.since, DateOnly("2026-09-01"), "A reminder edit keeps the day the wait began")
+        XCTAssertTrue(edited.isWaiting)
+
+        store.simulateUserEdit(identifier: reminder.identifier) {
+            $0.isCompleted = true
+            $0.completedAt = self.fixedNow
+        }
+        try await engine.run()
+        let answered = try XCTUnwrap(try inbox().tasks.first)
+        XCTAssertEqual(answered.status, .done)
+        XCTAssertEqual(answered.since, DateOnly("2026-09-01"), "So does the answer coming in")
+        XCTAssertTrue(answered.serialized.contains("@since(2026-09-01)"))
+        XCTAssertFalse(answered.isWaiting, "A ticked line is not waiting any more")
+    }
+
     func testATaskThatLostItsMarkerKeepsItsReminder() async throws {
         try writeInbox("- [ ] Buy milk\n")
         try await engine.run()
