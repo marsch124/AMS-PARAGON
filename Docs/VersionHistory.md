@@ -4,16 +4,16 @@ The build number is shown at the bottom of the sidebar. Newest first.
 
 ## Build 278 · 3 November 2026
 
-**The iPad mini held sideways: the note column fits on the screen.** You use the iPad mini sideways only. In the test pictures of build 276, held sideways, the note column was cut off on the right. About half of it was on the screen. The end of a note's name, the buttons at the top right of the note, and the end of **Add a task…** were off the edge.
+**The iPad mini in landscape: the note column fits on the screen.** You use the iPad mini in landscape only. In the test pictures of build 276, in landscape, the note column was cut off on the right. About half of it was on the screen. The end of a note's name, the buttons at the top right of the note, and the end of **Add a task…** were off the edge.
 
 - The reason: PARAGON left it to iPadOS to place the three columns. When the sidebar was shown, iPadOS pushed the note column to the right instead of making it narrower.
 - Now PARAGON asks for the other way: the note column gets narrower, so the sidebar, the list and the note all fit side by side, as on the Mac. On the iPad mini the note column is about as wide as an iPhone screen.
 - Nothing changes on the Mac or on the iPhone.
-- **Held upright**, iPadOS still decides how the columns are shown. PARAGON is made for the iPad held sideways, as you use it.
+- **In portrait**, iPadOS still decides how the columns are shown. PARAGON is made for the iPad in landscape, as you use it.
 
 **To try it**
 
-1. On the iPad mini, press **Update** in TestFlight and open PARAGON. Hold the iPad sideways.
+1. On the iPad mini, press **Update** in TestFlight and open PARAGON. Hold the iPad in landscape.
 2. Press **Projects** in the sidebar and then a project. The whole note is on the screen: its name, the buttons at the top right, and **Add a task…** at the bottom, all the way to the right edge.
 
 ## Build 277 · 2 November 2026

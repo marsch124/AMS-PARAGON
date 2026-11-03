@@ -1406,8 +1406,8 @@ The iPhone app is also an iPad app. Install it from TestFlight on the iPad in th
 
 The iPad shows the Mac's three columns, not the iPhone's tabs: the sidebar, the list, and the note.
 
-- **Held sideways**, all three columns fit on the screen, side by side. On the iPad mini the note column is about as wide as an iPhone screen.
-- **Held upright**, iPadOS decides how the columns are shown. PARAGON is made for the iPad held sideways.
+- **In landscape** (wider than tall), all three columns fit on the screen, side by side. On the iPad mini the note column is about as wide as an iPhone screen.
+- **In portrait** (taller than wide), iPadOS decides how the columns are shown. PARAGON is made for the iPad in landscape.
 
 ## Widgets
 

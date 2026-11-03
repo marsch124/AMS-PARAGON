@@ -4765,6 +4765,11 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
   iPad Mini in landscape mode"*). I had drawn three ways to fix the **upright** layout
   (https://claude.ai/artifact/6zNBwCkXWowPyjnouGnEm6) before asking how he holds it; the
   drawings are set aside. **Ask how a device is held before designing for one orientation.**
+- **Say "landscape" and "portrait" to him, never "sideways" or "upright"** (3 November 2026, his
+  words: *"Isn't 'landscape' the correct and commonly used term?"*). They are the words Apple and
+  his iPad use. Build 278's version note and manual said "sideways" in the build that shipped;
+  the wording was fixed in the next push. ("On its side" in the iPad test notes above means
+  landscape.)
 - **Build 278: `ColumnsFitTheScreen` (ContentView.swift), `.navigationSplitViewStyle(.balanced)`
   on iOS only.** The landscape pictures showed the detail column about 760 points wide with only
   about 440 on screen: with no style of its own, iPadOS *displaced* the detail column when the

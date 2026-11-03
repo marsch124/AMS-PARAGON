@@ -279,12 +279,12 @@ private struct MainWindowMarking: ViewModifier {
 /// On the iPad, every column fits on the screen (build 278).
 ///
 /// With no style of its own the split view left the arrangement to iPadOS, and on the iPad mini
-/// held sideways (1133 points) iPadOS **pushed** the note column to the right when the sidebar
+/// in landscape (1133 points) iPadOS **pushed** the note column to the right when the sidebar
 /// came out instead of making it narrower: about 440 of its 760 points were on screen, and the
 /// rest — the end of the title, the toolbar buttons, the end of **Add a task…** — was off the
 /// right edge (the CI pictures of build 276). `.balanced` asks for the other arrangement: the
 /// note column gets narrower so all three sit side by side, as on the Mac. **He always holds
-/// the iPad sideways** (3 November 2026), so that is the one shape this is for; upright is
+/// the iPad in landscape** (3 November 2026), so that is the one shape this is for; portrait is
 /// whatever iPadOS makes of it, and the CI pictures show both.
 /// The Mac is untouched: it has always tiled its columns.
 private struct ColumnsFitTheScreen: ViewModifier {
