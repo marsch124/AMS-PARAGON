@@ -4761,6 +4761,16 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
   Time Blocks, whose `PlannerView` is titled "Plan the day" (`IPadScreens.titles`). **A check
   that any screen passes is no check of which screen** — the same lesson as build 211's
   `actions.noMatch` versus `actions.nothingOpen`.
+- **He uses the iPad mini sideways only** (3 November 2026, his words: *"I will always use the
+  iPad Mini in landscape mode"*). I had drawn three ways to fix the **upright** layout
+  (https://claude.ai/artifact/6zNBwCkXWowPyjnouGnEm6) before asking how he holds it; the
+  drawings are set aside. **Ask how a device is held before designing for one orientation.**
+- **Build 278: `ColumnsFitTheScreen` (ContentView.swift), `.navigationSplitViewStyle(.balanced)`
+  on iOS only.** The landscape pictures showed the detail column about 760 points wide with only
+  about 440 on screen: with no style of its own, iPadOS *displaced* the detail column when the
+  sidebar was out (the column kept its width and was pushed right) rather than narrowing it.
+  `.balanced` asks for tiling. Measured from the build 276 picture: sidebar about 320, list
+  about 375, so the note column gets about 440 points sideways. Upright is left to iPadOS.
 - **`continue-on-error: true` on the iPad job while it is new**, and `commit-project` does not
   wait for it: the first runs went red on the other session's build 276 pushes, and a red run
   stops the TestFlight routine. Take it out once the job has been green a few runs in a row.

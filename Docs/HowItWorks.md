@@ -1400,6 +1400,15 @@ A drag from the very **left edge** still means *go back*, as it does everywhere 
 **Actions** has its own filter at the top: **All**, **With a date**, **No date** and **Next
 actions**.
 
+## On the iPad
+
+The iPhone app is also an iPad app. Install it from TestFlight on the iPad in the same way.
+
+The iPad shows the Mac's three columns, not the iPhone's tabs: the sidebar, the list, and the note.
+
+- **Held sideways**, all three columns fit on the screen, side by side. On the iPad mini the note column is about as wide as an iPhone screen.
+- **Held upright**, iPadOS decides how the columns are shown. PARAGON is made for the iPad held sideways.
+
 ## Widgets
 
 Three widgets on the Mac and two on the iPhone. **Today's plan** is for the Mac only.
