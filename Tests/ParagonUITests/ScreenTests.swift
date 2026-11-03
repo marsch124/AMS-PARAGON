@@ -1375,6 +1375,29 @@ final class ScreenTests: XCTestCase {
     }
 
     #if os(macOS)
+    /// Scrolls the list a target sits in until the target lies wholly inside the window (build
+    /// 279's CI). The scroll is made at the target's own left and right position, low in the
+    /// window, which is where a column's list is: a list's row that has scrolled out of sight
+    /// is still in the accessibility tree, with a frame outside the window. The first four
+    /// steps go the way that should bring it in; if they do not, the next eight go the other
+    /// way, so a wrong guess about which way the wheel scrolls costs steps, not the test.
+    private func scrollIntoWindow(_ target: XCUIElement) {
+        let window = app.windows.firstMatch
+        for attempt in 0..<12 {
+            let frame = target.frame
+            let room = window.frame
+            if target.exists, !frame.isEmpty, room.contains(frame) { return }
+            guard room.width > 0, room.height > 0 else { return }
+            let below = frame.isEmpty || frame.midY > room.midY
+            let firstWay: CGFloat = below ? -120 : 120
+            let x = frame.isEmpty ? room.midX : min(max(frame.midX, room.minX + 20), room.maxX - 20)
+            let spot = window.coordinate(withNormalizedOffset: CGVector(
+                dx: (x - room.minX) / room.width,
+                dy: max(0.5, (room.height - 40) / room.height)))
+            spot.scroll(byDeltaX: 0, deltaY: attempt < 4 ? firstWay : -firstWay)
+        }
+    }
+
     /// A row of the sidebar that has been scrolled out of the window reports an empty frame,
     /// and the Mac refuses to click it ("Not hittable", build 271's first CI run): choosing a
     /// row far down the list, such as **Areas**, scrolls the list, and a second `go(to:)` in
@@ -1598,6 +1621,16 @@ final class ScreenTests: XCTestCase {
         let tick = app.buttons.matching(identifier: "task.tick.Book the night train").firstMatch
         XCTAssertTrue(tick.waitForExistence(timeout: 20),
                       "All actions has no tick for the test task. On screen: \(visibleTexts())")
+        #if os(macOS)
+        // **The row can be below the drawn part of the list** (build 279's CI, two runs alike).
+        // The runner's window is 450 points tall, the filter boxes take half of what is left
+        // under the column's header, and build 279's Waiting for switch most likely made that
+        // header about ten points taller. The tick's frame (280, 590) then seems to lie below
+        // the window, where the press and XCUITest's own click both land outside it. A frame
+        // below the window is still a finite frame, so `isOnScreen` said yes. Scroll the list
+        // until the row is drawn inside the window.
+        scrollIntoWindow(tick)
+        #endif
         let frame = tick.frame
         guard Self.isOnScreen(frame) else {
             XCTFail("The tick has no place on screen: \(frame)")
@@ -1626,7 +1659,7 @@ final class ScreenTests: XCTestCase {
             let pointFrame = again.frame
             if again.exists && again.isHittable { again.click() }
             ticked = becomes(within: 15, finished)
-            XCTAssertTrue(ticked, "Neither a press at the tick's middle \(pointFrame) nor a click on the tick itself finished the task in All actions. The app's log: \(log)")
+            XCTAssertTrue(ticked, "Neither a press at the tick's middle \(pointFrame) nor a click on the tick itself finished the task in All actions. The window is \(app.windows.firstMatch.frame). The app's log: \(log)")
         }
         #endif
         XCTAssertTrue(ticked, "The press on the tick in All actions did not finish the task. On screen: \(visibleTexts())")
@@ -2385,13 +2418,31 @@ final class ScreenTests: XCTestCase {
                       "The link amspara:///plan did not open Time Blocks. On screen: \(visibleTexts())")
         let grew = becomes(within: 5) { windowsWithAFrame() > before }
         XCTAssertFalse(grew,
-                       "The link opened another window: \(before) before, \(windowsWithAFrame()) now.")
+                       "The link opened another window: \(before) before, \(windowsWithAFrame()) now. The windows: \(describeWindows())")
     }
 
-    /// The app's windows that have a place on screen. A window with no frame is a panel that is
-    /// not showing, such as the menu bar item's.
+    /// The app's PARAGON windows on screen: the main window or **Plan the day**, never smaller
+    /// than 500 × 300 points (the main window's least width is 720). A window with no frame is
+    /// a panel that is not showing, such as the menu bar item's.
+    ///
+    /// **Why a size** (build 279's CI): this test failed twice in about six runs, "1 before,
+    /// 2 now", and passed on the next run with nothing changed. Counting every window with a
+    /// frame also counts a help tag or a popover, which macOS draws in a small window of its
+    /// own, and whether one shows depends on where the pointer was left by the test before.
+    /// That is a guess, not seen: if the test still fails, `describeWindows()` in the message
+    /// says what the second window is.
     private func windowsWithAFrame() -> Int {
-        app.windows.allElementsBoundByIndex.filter { !$0.frame.isEmpty }.count
+        app.windows.allElementsBoundByIndex.filter {
+            let frame = $0.frame
+            return !frame.isEmpty && frame.width >= 500 && frame.height >= 300
+        }.count
+    }
+
+    /// Every window the app has, with its title, name and frame, for a failure message.
+    private func describeWindows() -> String {
+        app.windows.allElementsBoundByIndex.map {
+            "'\($0.title)' id '\($0.identifier)' \($0.frame)"
+        }.joined(separator: " | ")
     }
 
     /// The link behind a click on the **Today's plan** widget (build 273), opened the way the

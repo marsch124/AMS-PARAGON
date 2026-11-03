@@ -4713,6 +4713,30 @@ vertical-axis `TextField` on the Mac** — the manual says only "press Done".
 
 **The review of the merged build 279 found three things, all fixed before upload.** (1) **The Tags screen could rename or delete `#waiting`**, leaving a tag-only waiting line out of the list and possibly a next action again; `changeTag` refuses it as it refuses `#next` (build 145's rule: any tag the app gives a meaning needs the guard — **asked of the next tag the app names, not only of the first**). (2) **The caption in a waiting row sat beside a fixed-width button**, so the Mac's 220-point middle column left it about 66 points and cut off "waited N days", the one fact `@since` exists for (builds 138, 255); the button is under the caption now. (3) **Close the day's heading "Waiting for tomorrow" meant "to do tomorrow"** and now sat above rows that can themselves begin with "Waiting for Anna:" — **a word that becomes the name of a feature must be searched for on every screen that already used it in its everyday sense** (build 159's rule): the heading is **To do tomorrow**, its empty line "Nothing is planned for tomorrow yet.", Start the day's "Nothing is waiting for today." is "Nothing to do today.", and the manual's sentence about the tray no longer says "nothing is waiting". A first push of the review lost its behaviour part to the five-hour usage limit; it was resumed from the journal, which re-ran only the agents that had failed.
 
+**Build 279's CI: two Mac tests failed twice, and both were the tests (3 November, test-only push, no new build number).**
+- **`testATickedTaskShowsInDone`** failed the same way in both runs of CI 368: neither the press nor
+  XCUITest's own click ticked **Book the night train** in **All actions**, and the tick's frame was the
+  same both times, (280, 590). The runner's screen is 1024 wide (the 900-point window starts at x 62)
+  and the window is 450 points tall. The filter boxes and the list share what is left under the
+  column's header, and build 279's **Waiting for** switch (a 26-point `StateToggle`) made the header
+  about ten points taller, so the row went below the drawn part of the list. **A row scrolled out of a
+  `List` keeps a finite frame outside the window**, so `isOnScreen` said yes and the press landed below
+  the window. `scrollIntoWindow(_:)` (ScreenTests.swift, Mac only) scrolls the list at the target's own
+  x, low in the window, until the frame is wholly inside it (four steps the likely way, eight the
+  other). The failure message now names the window's frame too. **Not seen, inferred** from the frame
+  and the layout dump in the log; the next CI run says whether it was right. Build 268's first run of
+  this test failed the same way and was put down to the press point: probably the same cause.
+- **`testAnOpenLinkReusesTheOpenWindow`** failed for the second time ("1 before, 2 now"; first in
+  build 277's CI) and passed on other runs with nothing changed. It counted **every** window with a
+  frame. It now counts only windows at least 500 × 300 (a PARAGON main window is at least 720 wide;
+  **Plan the day** is 720 × 640), on the guess that the second window was a help tag or a popover that
+  macOS draws in a small window of its own, shown or not depending on where the previous test left the
+  pointer. **That is a guess.** The failure message now lists every window's title, identifier and
+  frame, so a third failure says what the second window is. If it is a real second main window, the
+  place to look is still `TakesLinksInOpenWindow` (ParagonApp.swift).
+- **The iPhone screen-test job's limit went from 30 to 45 minutes**: run 368 took 29 minutes with every
+  test passing. The Mac and iPad jobs keep 30.
+
 **Build 277 was never uploaded on its own (3 November), and a flaky test showed itself.** The CI run of build 277 had one Mac failure, `testAnOpenLinkReusesTheOpenWindow` ("The link opened another window: 1 before, 2 now"), which passed on the first push and on the one re-run — the first failure of the one-window link (build 276) in three runs; **a second failure is real: look at `TakesLinksInOpenWindow` in `ParagonApp.swift` and at how `app.windows` is counted before touching anything else.** While that re-run was going, another session pushed build 278 (the iPad's columns) on top of 277, and the TestFlight run I dispatched took the branch head: **277's changes reached him inside the upload labelled 278**. Nothing was lost, but I had dispatched without looking at the branch. **Before dispatching TestFlight, read `git log origin/<branch>` as well as CI — the run builds the head, not the commit CI checked.** My Waiting for work (planned as 278) became **279** because the number was taken.
 
 **Found while planning, not in the eight** (offered on the page as small builds of their own),
