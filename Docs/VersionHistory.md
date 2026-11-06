@@ -1,101 +1,52 @@
 # Version history
 
-The version is shown as 1.0 (280) at the foot of the sidebar and in Settings. Newest first.
+The version is shown as 1.0 (280) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
 
 ## Build 280 · 6 November 2026
 
-**A new look: coloured panels with meaning.** PARAGON now has one type scale, one colour for each part, white pop-up menus with a border, and the same kind of edit window everywhere. Nothing it does has changed. Only how it looks and feels is new.
+**A new look: coloured panels with meaning.** PARAGON now has one text scale, one colour for each part, hand-drawn icons everywhere, and the same kind of edit window on every screen that has one. What PARAGON does has not changed. Only how it looks is new.
 
-**The Mac window.**
+**One text scale.** Before, each screen chose its own sizes. Now there is one scale, kept in one place.
 
-- The sidebar uses the system's own see-through material. Before, parts of it had colours of their own. Now it is plain, and the colour sits in the icons. It hides and shows with the standard sidebar button, or ⌃⌘S. Its width is at least 180 points and normally 210.
-- Every button that belongs to the whole window is now in one toolbar at the top: Search, New Note (the **+**, in the colour of the section you are in), Quick capture, Sync, the Edit switch, and Back and Forward. Before, the list column had a second **+** of its own in its own bar. That second **+** is gone.
-- The three columns have set sizes: sidebar 180 to 210, list 240 to 300 (the Map list 480 to 760), and the note takes the rest. The window remembers the sizes.
-- The note's text stops at 680 points wide and sits in the middle of the column. The note's header and the panels under it (Tasks, Linked notes, Goal chain) are the same 680 points wide. On a 13-inch laptop the text fills the column with 24 points of room on each side. On a big screen the text stays 680 points wide and the extra space is calm margin. Before, lines on a big screen could run to 150 letters.
-- The colour wash over the whole note column (8.5 %) is gone. Colour now sits on the panels that mean something, and never over the words you read.
-- **Start the day** and **Close the day** stay in Today's date row. **Show all** stays in the Goals header. You placed them there, so they do not move.
-
-**One type scale.** Before, sizes were chosen screen by screen: most words were 12 points, and the note's header was 12 points too. Now there is one scale.
-
-- Page title: 26 points, bold. It stands alone at the top of a column: the open note's title, Today, Weekly review, Map, Plan the day and the Settings title.
-- Headings: 17 points, semibold, in the colour of the part. Tasks, Linked notes, Calendar, Due today, Next actions, the review steps, Goal chain and the titles of edit windows. Before they were 12 points, grey, in capitals.
-- Text: 15 points. Note text, task titles, facts, fields, dates and the words in panels.
-- Small labels: 12 points, soft grey. The small word above a value ("Deadline", "Serves", "List"), counts in headings and footers.
-- Lists: 13 points for the title of a row, the sidebar, menus and the toolbar. 11 points for the one second line of a row and for the numbers in the sidebar.
+- Page title: 26 points, bold. The open note's title and the title of a screen that fills a column.
+- Headings: 17 points, semibold, in the colour of the part. Before they were small grey words in capitals, 12 points. The capitals are gone.
+- Text: 15 points. Note text, facts, fields.
+- Small labels: 12 points, soft grey.
+- Lists: 13 points for a row's title (semibold), 11 points for its second line.
 - Code: 14 points, in Apple's monospaced font.
-- A 12-point label is never put beside a 22-point value. In one panel the steps are 12, 15 and 17 points.
-- Nothing in the app is smaller than 11 points. Before, the planner's hour ruler, the Map's boxes and the Done squares used 10 points. They now use 12 or 11.
+- On the iPhone the same names are Apple's own text styles, so the text grows and shrinks with the text size you set in the iPhone's settings.
 
-**Colour with meaning.** Every part has one colour, and it is the same colour everywhere it shows: the sidebar icon, the heading, the main button, the dot in a list, the tint of a panel, and the links in a note of that part. Day and night each have their own shade.
+**The note editor.** Edit and Read now draw with the same sizes, so the text no longer jumps when you switch. On the Mac: text 15 points; headings with #, ## and ### are 22, 18 and 15 points, semibold; code 14 points. Before, Edit used smaller sizes than Read. On the iPhone the editor follows Apple's text styles.
 
-- Projects and All actions: green.
-- Areas and Tags: pink.
-- Resources, Recent, Templates and Search: blue.
-- Archive, Deleted and Work: grey.
-- Goals and Map: gold. The day shade is darker than before (from #A7811A to #8F6E10), because the old one was too light to read at 17 points.
-- Aspirations: a deeper gold.
-- Inbox, Snippets and Quick capture: amber. The day shade is a little darker than before.
-- Calendar, Today, Time Blocks, and daily and weekly notes: purple.
-- Weekly review and Done: teal.
-- Blocks in Plan the day, the block window and the focus bar: orange.
-- Start the day: a clear orange. Close the day: a dark lilac.
-- The now-line: slate blue, never red.
-- "Look at this" (warnings, old flags, priority): orange.
-- Overdue dates, Delete and Delete for good: red.
-- Selection in a list is Apple's own: the system colour with white words. The dots keep their colour.
-- The widgets now take the same colours. Before they had a colour table of their own, which could drift.
+**Colour.** Each part keeps the colour it had. Three day shades are darker, so the 17-point headings read well on white: Goals gold (from #A7811A to #8F6E10), Inbox amber (from #C2701B to #B0631A) and Start the day orange (from #E06C00 to #D4640A). The widgets use the same colours.
 
-**Panels.** Before, panels had no colour and no edge. Now a panel is white by day (dark grey, #1E2228, at night) with the colour of its part laid over it: 7 % by day, 13 % at night. The corners are 10 points round. By day there is no border. At night there is a thin 1-point line. Inside a panel there are 12 points of room, and 12 points between panels. At night the page behind the panels is darker (#15181C), so the panels lift off it. Before, night mode was a tint on a tint and looked brown-grey. A section with nothing in it draws nothing, not even its heading.
+**Panels instead of a colour wash.** Before, the whole note column had a light coat of the part's colour. That coat is gone. Colour now sits on panels: a panel is white by day and dark grey at night, with the part's colour laid lightly over it (7 % by day, 13 % at night). Corners are 10 points round. At night a panel has a thin line.
 
-**Pop-up menus.** Before, the choices in a note's header, on chips and in windows were blue words with no border, so you could not tell what to press. Now every choice is a pop-up menu: white, a thin border, a grey chevron, 13 points. Facts you cannot change are plain words. The old chips in five different styles are now two things: one small label for a fact (12 points, medium, the part's colour on a light tint) and one bordered pop-up for a choice.
+**The note's header (Mac and iPad).** Before, it was a row of small chips. Now it is the title at 26 points, and under it a facts panel in the note's colour. The panel's heading says what kind of note it is, for example "Project". Inside are the same facts as before: Status, In area or Part of, Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, List and Icon. Each fact is a small grey label with its value under it. Where you can change a fact, it is a bordered pop-up or button. Before, these were coloured words with no border, so you could not tell what to press. **Tasks** and **Linked notes** are tinted panels too.
 
-**The note's header.** Before it was a row of up to twelve chips at 12 points. Now it is a facts panel: the title in 26 points, bold, with the note's icon beside it. Under it is a table with two columns. The left column is the small label (12 points, grey). The right column is the value (15 points): a pop-up where you can change it, plain words where you cannot.
+**Reading width.** On the Mac the header, the panels and the text stop at 680 points and sit in the middle of the column. Before, lines on a wide window could run very long. On a big screen the rest is calm margin.
 
-**List rows.** Before, a row had a 3-point stripe, a 13-point bold title and up to six small facts. Now a row is one title (13 points, one line), one quiet second line (11 points, grey) and one coloured dot (8 points) at the left. A note with its own icon shows that icon (18 points) in place of the dot. A one-line row is about 24 points tall and a two-line row about 40.
+**List rows.** Before, a row had a coloured stripe and up to six small facts. Now a row is a coloured dot (8 points) or the note's own icon, one title, and at most one quiet second line, for example "0 of 2 · Due in 12 d". A project shows its progress and its due date. A goal shows its progress and its target date or horizon. An area shows how many tasks are open. A resource shows how many links it has. A daily note shows its date. The other facts are in the note's facts panel. An overdue date is red. Paused, Someday and Ended show as a small capsule at the right.
 
-- The second line keeps the two facts that matter for that kind: a project shows progress and the date due; a goal shows progress and the target; an area shows its open projects; a resource shows its number of links; a daily note shows its date; an Inbox line shows where it came from. The other facts are now in the note's facts panel.
-- Overdue dates are red. "Look at this" is orange. Everything else is grey.
-- Paused, Someday and Ended show as a small capsule at the right edge, 11 points, in the part's colour.
-- Grouped lists (Projects by aspiration, the Browse groups, Today's sections) use the 17-point heading in the part's colour on the Mac, and Apple's section header on the iPhone. The fold arrow is 13 points, in the part's colour.
+**Edit windows.** New note, Make this note from a link, Close the day, Start the day, and Quick capture on the Mac.
 
-**Edit windows** (New Note, Quick capture, the block window, Start the day, Close the day, Snippet, New template).
+- On the Mac, **Cancel** and the doing button (**Create**, **Done** or **Save**) are side by side at the top right, under the window's title in the part's colour. Before they were at the foot. **Escape** is Cancel. **Return** and **⌘S** do the doing button. **Tab** moves between text fields as it does everywhere on the Mac. The choice chips are buttons, not fields.
+- On the iPhone, **Cancel** is on the left of the bar and the doing button on the right. Quick capture's own screen on the iPhone keeps its full-width **Save** button as before. Inside New note, the Quick capture form keeps its own **Save**.
+- In the Date window, **Set** is now a filled button. Before it was plain.
 
-- On the Mac, **Cancel** and **Save** (or **Create**, or **Done**) are now side by side at the top right. Before they were at the bottom right. **Save** is filled in the colour of the part; **Cancel** has a border. Under the title row there is one thin grey line.
-- The title is 17 points, semibold, in the part's colour. The fields are in a grouped form: the label at the left, the control at the right.
-- Widths: 520 points; Quick capture 480; Start the day and Close the day 640. A window is only as tall as its content and never has a scroll inside a scroll.
-- Keys: **Escape** is Cancel. **⌘S** is Save, and so is Return in a one-line field. **Tab** moves from field to field in order. The first field is ready when the window opens, and the focus ring shows on every control. Before, Tab did not reach every field in New Note, because the chips were buttons.
-- On the iPhone: the window slides up, the title is small and in the middle, **Cancel** is on the left and **Save** is on the right in the colour of the part, in bold. Quick capture opens to half height. Start the day and Close the day keep their full-width button at the foot.
-- The Date window keeps its field and calendar. **Set** is now a filled button in colour. Before it was a plain button.
+**The main button is always in colour.** When it cannot act yet, it is the same colour, paler (40 %). It is never grey. Before, Quick capture's **Save** on the iPhone turned grey.
 
-**The main button is always in colour.** Filled in the part's colour with white words (dark words on the night golds and oranges, so they stay easy to read). When it cannot be used yet, it is the same colour at 40 %. It is never grey. Before, **Save** in the iPhone's windows turned grey until it could act.
+**Empty screens.** Before, an empty screen had a large symbol, a headline, a paragraph and a loud button. Now it has the part's icon, one calm line, the explanation in small grey, and, where there was a button, a quiet bordered one.
 
-**Controls.** On the Mac an on/off choice is a switch, as in Apple's own Settings. A tick box is only used in lists of options. A time is a compact time picker. The task circle (15 points) lines up with the text. Text fields have a rounded border. A secondary button has a border; the main one is filled in colour. The Day, Week, Month and Notes choice in the toolbar is Apple's segmented control. Every control shows the standard focus ring.
+**Hand-drawn icons everywhere.** Before, the app, the widgets and the share sheet used Apple's stock symbols. Now every icon is a hand-drawn mark from the AMS-Icons package, drawn on one grid with one line weight and round ends. There is no stock symbol and no emoji left. The icon you choose for a note from Apple's symbols in the icon picker still works. That is your choice, not the app's.
 
-**Empty screens.** Before, an empty screen had a 38-point symbol, a headline, a long paragraph and a big button. Now it has one calm line (15 points, grey, in the middle) with the part's icon above it (28 points, in the part's colour at 60 %). For example: "Nothing in the Inbox." or "No note open — choose one on the left." The New Note button is in the toolbar already, so the screen does not repeat it.
+**On the iPhone.** Browse now has a large title that shrinks when you scroll. The long press that reveals Work is now on the version line at the foot of Browse, because the title could not take it. The tab bar icons are the hand-drawn marks too.
 
-**Hand-drawn icons everywhere.** Before, the sidebar and toolbar used 88 of Apple's stock symbols of uneven weight, in nine colours. Now every icon is hand-drawn on the same grid with one line weight and round ends, with no fill, in the colour of its part. Sizes: sidebar 16 points, toolbar 17, heading 17, empty screen 28. New icons were drawn for: Inbox, Today, Calendar, Time Blocks, Weekly review, Map, All actions, Recent, Done, Deleted, Templates, Snippets, Tags, Search, Aspiration, Goal, Project, Area, Resource, Archive, Work, New Note (+), Quick capture, Sync, Edit (pencil), Back and Forward, Archive, Settings, Close the day (moon) and Start the day (sunrise).
+**The version.** It shows as "PARAGON 1.0 (280)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Before, it showed "Build 279". It is not in Settings.
 
-**The note editor.** It should read like a good book. Edit and Read now use the same sizes, so switching between them no longer moves the text. Before, Edit used 14 points and Read used 17.
+**Not moved.** **Start the day** and **Close the day** stay in Today's date row. **Show all** stays in the Goals header. The **+** New note button stays over the list column. Search, Quick capture and Sync stay in the window toolbar.
 
-- Text: 15 points, with comfortable line spacing (6 points between lines) and 8 points between paragraphs.
-- Headings are stepped: **#** 22 points, **##** 18 points, **###** 15 points, all semibold, with room above and below each.
-- The checkbox is a 15-point circle that lines up with the top of the text. A finished task is filled in the part's colour with a white tick.
-- Code and the settings block: 14 points in Apple's monospaced font, on a light grey block.
-- Links, [[links]] and #tags are in the part's colour. Before they were blue.
-- A due date such as >2026-11-20 is in the part's colour. A `!!` priority is bold and orange. A finished task is grey with a line through it. A quote is italic and grey with a thin bar at the left in the part's colour. A line `---` is a thin pale line.
-- The marks (`#`, `-`, `[ ]`) are the size of their line and pale grey. They are never smaller.
-
-**Day and night.** Every colour above has a day shade and a night shade, decided together. Day shades are dark enough to read at 17 points on white. Night shades are light enough to read on the dark panel. Night panels are lighter than the page behind them and have a thin line.
-
-**The iPhone.** The iPhone uses Apple's own navigation and text styles. The text now grows and shrinks with the iPhone's text size setting.
-
-- Page title: Apple's large title (34 points), which shrinks to a small title (17 points) when you scroll. Today, Plan, Actions, Inbox and Browse all have it. Before they had small titles. On Browse, the long press that used to be on the title is now on the **Build** row.
-- Headings: 17 points, in the part's colour. Text: 17 points. Small labels and second lines: 13 points. Tiny counts: 11 points.
-- In the note editor: text 17 points with 5 points between lines; headings 22, 20 and 17 points; code 16 points.
-- Swipe actions on rows are as before.
-- On the iPad the three columns and the Mac scale are used.
-
-**The version number.** It now shows as 1.0 (280) at the foot of the sidebar and in Settings. Before it showed only "Build 279" at the foot of the sidebar and under Browse.
+**Checked.** A rule test fails if any text size is named outside the scale, or if any stock icon or emoji is used. Screen tests check the edit window's bar, the version line, Escape and ⌘S. Day and night were both drawn.
 
 **What did not change: every function, every piece of data, every setting and every shortcut.**
 
