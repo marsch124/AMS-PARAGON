@@ -146,7 +146,7 @@ struct MapView: View {
             Button("Done") { arranging = false }
                 .keyboardShortcut(.escape, modifiers: [])
         }
-        .font(.callout)
+        .font(Txt.value)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color.accentColor.opacity(0.12))
@@ -771,7 +771,7 @@ struct MapFooter: View {
                 Text("Solid line: sits under.  Dashed: also serves.")
                     .foregroundStyle(.secondary)
             }
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(1)
             if let selectedID, let node = map.node(selectedID) {
                 let up = names(map.upstream(of: selectedID))
@@ -781,16 +781,16 @@ struct MapFooter: View {
                         KindBadge(kind: kind, size: 18, systemImage: node.chainSymbol)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(node.title).font(.subheadline.weight(.semibold))
+                        Text(node.title).font(Txt.label.weight(.semibold))
                         Text("Serves: " + (up.isEmpty ? "nothing above it" : up.joined(separator: " › ")))
                         Text("Served by: " + (down.isEmpty ? "nothing yet" : down.joined(separator: ", ")))
                     }
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                 }
             } else {
                 Text("Click a box to see what it serves and what serves it. The note opens on the right.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
         }

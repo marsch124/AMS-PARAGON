@@ -209,7 +209,7 @@ struct NewNoteSheet: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Name")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                 TextField("What is it called?", text: $title)
                     .textFieldStyle(.roundedBorder)
@@ -219,7 +219,7 @@ struct NewNoteSheet: View {
             }
 
             Text(hint)
-                .font(.footnote)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -597,7 +597,7 @@ private struct ThingChoice: View {
                 KindBadge(kind: thing.kind, size: 18, systemImage: symbol, tint: tint)
                     .opacity(chosen ? 1 : 0.45)
                 Text(thing.name)
-                    .font(.caption)
+                    .font(Txt.label)
                     .fontWeight(chosen ? .semibold : .regular)
                     .lineLimit(1)
                     .minimumScaleFactor(0.65)
@@ -652,7 +652,7 @@ private struct ChipLabel: View {
 
     var body: some View {
         Label(text, systemImage: systemImage)
-            .font(.callout)
+            .font(Txt.value)
             .lineLimit(1)
             .foregroundStyle(isSet ? tint : Color.primary.opacity(0.62))
             .padding(.horizontal, 11)
@@ -778,7 +778,7 @@ private struct PickerChip: View {
     private var list: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(name)
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             if let make = make {
                 // The same shape the tag list has had since build 145: a field at the top for
                 // the one you have not made yet. His ask — *"Would it be possible to add a
@@ -805,7 +805,7 @@ private struct PickerChip: View {
                 // his screenshot caught it before I did.
                 if let hint = make.hint {
                     Text(hint)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -813,7 +813,7 @@ private struct PickerChip: View {
                 // at this" and never red (build 167); on its own line, like the hint (build 138).
                 if let notice {
                     Text(notice)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(Color.orange)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("pick.notice")
@@ -828,7 +828,7 @@ private struct PickerChip: View {
                     ForEach(grouped) { group in
                         if let name = group.name {
                             Text(name.uppercased())
-                                .font(.caption2.weight(.semibold))
+                                .font(Txt.listSecond.weight(.semibold))
                                 .foregroundStyle(.secondary)
                                 .padding(.top, 6)
                         }
@@ -998,14 +998,14 @@ struct NoteFromLinkSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Make this note")
-                .font(.title2.bold())
+                .font(Txt.sectionTitle.bold())
                 .foregroundStyle(tint)
             Text(linkTitle)
-                .font(.title3.weight(.semibold))
+                .font(Txt.sectionTitle.weight(.semibold))
                 .textSelection(.enabled)
             if model.linkToCreate?.isWork == true {
                 Text("A work note, kept with the rest of your work notes.")
-                    .font(.footnote)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else {
                 Picker("Type", selection: $kind) {
@@ -1017,7 +1017,7 @@ struct NoteFromLinkSheet: View {
                 .pickerStyle(.segmented)
             }
             Text("The link becomes a real link as soon as the note is there.")
-                .font(.footnote)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             SheetFooter(actionTitle: "Create", tint: tint, cancel: cancel, act: create)
         }

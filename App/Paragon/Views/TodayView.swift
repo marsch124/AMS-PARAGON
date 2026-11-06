@@ -62,7 +62,7 @@ struct TodayView: View {
                 // The date keeps its width first, so what gives way is the buttons' words and
                 // never the date breaking over two lines (build 138).
                 Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .layoutPriority(1)
@@ -172,7 +172,7 @@ struct TodayView: View {
                         Text(overdue.isEmpty && nextActions.isEmpty
                              ? "Nothing is due today. Give a task a date, or pick a next action in a project."
                              : "Nothing else is due today.")
-                            .font(.callout)
+                            .font(Txt.value)
                             .foregroundStyle(.secondary)
                     } else {
                         rows(dueToday)
@@ -294,7 +294,7 @@ private struct NowAndNextLines: View {
                     .lineLimit(1)
                     .layoutPriority(-1)
             }
-            .font(.caption)
+            .font(Txt.label)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Self.nowWords(block))
             .accessibilityIdentifier("today.now")
@@ -316,7 +316,7 @@ private struct NowAndNextLines: View {
                 .lineLimit(1)
                 .layoutPriority(-1)
         }
-        .font(.caption)
+        .font(Txt.label)
         .foregroundStyle(.secondary)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Self.thenWords(block))
@@ -395,7 +395,7 @@ private struct HeaderActionButton: View {
     var body: some View {
         Button(action: action) {
             label
-                .font(.caption.weight(strong ? .bold : .semibold))
+                .font(Txt.label.weight(strong ? .bold : .semibold))
                 .lineLimit(1)
                 .foregroundStyle(tint)
                 .padding(.horizontal, 9)

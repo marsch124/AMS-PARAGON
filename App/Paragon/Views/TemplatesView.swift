@@ -64,9 +64,9 @@ struct TemplatesView: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: folded.contains(group.title) ? "chevron.right" : "chevron.down")
-                                        .font(.caption2)
+                                        .font(Txt.listSecond)
                                     Text(group.title.uppercased())
-                                        .font(.caption.weight(.semibold))
+                                        .font(Txt.label.weight(.semibold))
                                     Spacer(minLength: 0)
                                 }
                                 .foregroundStyle(group.tint)
@@ -171,9 +171,9 @@ struct TemplateRow: View {
         HStack(spacing: 10) {
             TintStripe(color: tint, height: 30)
             VStack(alignment: .leading, spacing: 2) {
-                Text(file.name).font(.headline)
+                Text(file.name).font(Txt.listTitle)
                 Text(detail)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -211,7 +211,7 @@ struct TemplateEditorView: View {
                         .keyboardShortcut("s", modifiers: [.command])
                 } else {
                     Text("Saved")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -230,9 +230,9 @@ struct TemplateEditorView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(explanation)
-                .font(.callout)
+                .font(Txt.value)
             Text("`{{title}}` becomes the note's name and `{{date}}` today's date. In snippets, `{{tomorrow}}` and `{{week}}` work too, and anything else in braces is asked for when you use it.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -289,14 +289,14 @@ struct SnippetSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(snippet.name)
-                .font(.title2.bold())
+                .font(Txt.sectionTitle.bold())
             Text("Fill these in and the block is added to the note's tasks. Dates are worked out for you.")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
             ForEach(snippet.questions, id: \.self) { question in
                 VStack(alignment: .leading, spacing: 3) {
                     Text(question.capitalized)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                     TextField(question, text: binding(for: question))
                         .textFieldStyle(.roundedBorder)
@@ -334,19 +334,19 @@ struct NewTemplateSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("New template")
-                .font(.title2.bold())
+                .font(Txt.sectionTitle.bold())
             Text("A template is how a note starts. You can have as many as you like for the same kind of note — a plain project and a client project, say — and pick between them when you make one.")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Name").font(.caption).foregroundStyle(.secondary)
+                Text("Name").font(Txt.label).foregroundStyle(.secondary)
                 TextField("Client project", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("Makes a").font(.caption).foregroundStyle(.secondary)
+                Text("Makes a").font(Txt.label).foregroundStyle(.secondary)
                 Picker("Makes a", selection: $kind) {
                     ForEach([ParaKind.goal, .project, .area, .resource], id: \.self) { kind in
                         Text(kind.displayName).tag(kind)
@@ -356,7 +356,7 @@ struct NewTemplateSheet: View {
                 .labelsHidden()
             }
             Text("It starts as a copy of the \(kind.displayName.lowercased()) template you use now. Change it afterwards to whatever you want.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

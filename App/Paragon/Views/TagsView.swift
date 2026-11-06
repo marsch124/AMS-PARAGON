@@ -109,15 +109,15 @@ struct TagsView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: isOpen ? "chevron.down" : "chevron.right")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .frame(width: 12)
                 Text("#\(use.tag)")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .foregroundStyle(SidebarSection.tags.tint)
                 Spacer(minLength: 6)
                 Text(summary(of: use))
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .fixedSize()
@@ -156,7 +156,7 @@ struct TagsView: View {
         let tasks = model.index.tasksTagged(tag)
         if notes.isEmpty && tasks.isEmpty {
             Text("Nothing carries this tag any more.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
         ForEach(notes) { note in
@@ -210,9 +210,9 @@ struct SnippetsView: View {
                         ForEach(model.snippets) { snippet in
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(snippet.name)
-                                    .font(.headline)
+                                    .font(Txt.listTitle)
                                 Text(firstLines(of: snippet))
-                                    .font(.caption)
+                                    .font(Txt.label)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(2)
                             }
@@ -307,7 +307,7 @@ struct TagChoices: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             HStack(spacing: 6) {
                 TextField("New tag", text: $draft)
                     .textFieldStyle(.roundedBorder)
@@ -317,7 +317,7 @@ struct TagChoices: View {
             }
             choices
             Text(hint)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -339,7 +339,7 @@ struct TagChoices: View {
         let tags = offered
         if tags.isEmpty {
             Text("No tags anywhere yet. Write the first one above.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         } else {
             ScrollView {
@@ -364,7 +364,7 @@ struct TagChoices: View {
                     .lineLimit(1)
                 Spacer(minLength: 6)
                 Text(countText(for: tag))
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
             .contentShape(Rectangle())

@@ -135,7 +135,7 @@ struct AllActionsView: View {
                 showsWaiting = true
             } label: {
                 Label(text, systemImage: WaitingShowing.symbol)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(tint)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
@@ -164,12 +164,12 @@ struct AllActionsView: View {
             Spacer()
             if !model.actionFilter.isEmpty {
                 Text("of \(total)")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize()
                 Button("Clear") { model.actionFilter = ActionFilter() }
                     .buttonStyle(.borderless)
-                    .font(.caption)
+                    .font(Txt.label)
                     .fixedSize()
                     .help("Untick every box")
                     .accessibilityIdentifier("actions.clear")
@@ -194,7 +194,7 @@ struct AllActionsView: View {
     /// 161's lesson: a screen may not narrow what it shows without saying so where you can see.
     private var foldedLine: some View {
         Text(model.actionFilter.summary)
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(.secondary)
             .lineLimit(2)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -277,7 +277,7 @@ struct AllActionsView: View {
                                      tint: group.note.tint)
                         Spacer()
                         Button("Open") { model.show(section: .kind(group.note.kind), notePath: group.note.relativePath) }
-                            .font(.caption)
+                            .font(Txt.label)
                             .buttonStyle(.borderless)
                     }
                 }

@@ -371,7 +371,7 @@ struct NoteEditorView: View {
                             // plain caption beside it, because it is a fact about the note
                             // rather than part of the button.
                             Text("\(finished) finished")
-                                .font(.caption)
+                                .font(Txt.label)
                                 .foregroundStyle(.secondary)
                             StateToggle(systemImage: "eye.slash", title: "Hide finished",
                                         isOn: hideFinishedTasks, tint: note.tint) {
@@ -403,24 +403,24 @@ struct NoteEditorView: View {
                         SectionLabel(title: "Linked notes",
                                      count: linksTo.count + linkedFrom.count + notYetMade.count,
                                      systemImage: "link", tint: note.tint)
-                            .font(.subheadline.weight(.medium))
+                            .font(Txt.label.weight(.medium))
                     }
                     .accessibilityIdentifier("note.links")
                     if showLinks {
                         VStack(alignment: .leading, spacing: 8) {
                             if !linksTo.isEmpty {
                                 SectionLabel(title: "Links to", count: linksTo.count, systemImage: "arrow.up.right")
-                                    .font(.caption)
+                                    .font(Txt.label)
                                 LinkedNotesList(notes: linksTo)
                             }
                             if !notYetMade.isEmpty {
                                 SectionLabel(title: "Not made yet", count: notYetMade.count, systemImage: "plus.circle")
-                                    .font(.caption)
+                                    .font(Txt.label)
                                 MissingLinksList(titles: notYetMade, notePath: note.relativePath)
                             }
                             if !linkedFrom.isEmpty {
                                 SectionLabel(title: "Linked from", count: linkedFrom.count, systemImage: "arrow.down.left")
-                                    .font(.caption)
+                                    .font(Txt.label)
                                 LinkedNotesList(notes: linkedFrom)
                             }
                         }
@@ -447,7 +447,7 @@ struct NoteEditorView: View {
             // into the note list, which deselected the note (build 247's first three runs).
             FoldButton(isOpen: frontmatterOpen, accessibilityName: "Settings block at the top of the note") {
                 Text(frontmatterFolded ? "Settings block hidden" : "Settings block")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -913,9 +913,9 @@ struct GoalMeasureEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Measure")
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             Text("One line that says how you will know this goal is reached.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("All 440 km in 30 days", text: $typed)
@@ -925,7 +925,7 @@ struct GoalMeasureEditor: View {
                 .accessibilityIdentifier("measure.field")
             if let notice {
                 Text(notice)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("measure.notice")
@@ -1040,10 +1040,10 @@ struct ProjectEndedLine: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .font(.caption)
+            .font(Txt.label)
         } else {
             Label("Set the day it ended\u{2026}", systemImage: status.systemImage)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
@@ -1206,7 +1206,7 @@ struct NoteHeader: View {
                       systemImage: "arrow.triangle.2.circlepath")
             }
         }
-        .font(.caption)
+        .font(Txt.label)
         .foregroundStyle(.secondary)
         .lineLimit(1)
         // The wrapping row is only as wide as its longest line; the tinted band is the
@@ -1338,7 +1338,7 @@ struct TaskRow: View {
                             .foregroundStyle(ref.task.isDone ? .secondary : .primary)
                         if isNext && !ref.task.isDone {
                             Text("next")
-                                .font(.caption2.weight(.semibold))
+                                .font(Txt.listSecond.weight(.semibold))
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 1)
                                 .background(tint.opacity(0.2), in: Capsule())
@@ -1366,7 +1366,7 @@ struct TaskRow: View {
                             .rowTint(tint)
                     }
                 }
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             }
             // **Who?** hangs off the title, not off the row: the row already carries the date
@@ -1383,7 +1383,7 @@ struct TaskRow: View {
                     TaskTimeButton(ref: ref, tint: tint, offersFocus: focusBarShown)
                 } else if let minutes = ref.task.minutes {
                     Text(TaskTime.label(minutes))
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -1479,7 +1479,7 @@ struct DayAgendaView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Due on this day")
-                    .font(.subheadline.weight(.medium))
+                    .font(Txt.label.weight(.medium))
                 Spacer()
                 Button {
                     model.openDailyNote(for: date.adding(days: -1))
@@ -1499,7 +1499,7 @@ struct DayAgendaView: View {
             }
             if refs.isEmpty {
                 Text("Nothing from other notes is due on this day.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(refs) { ref in
@@ -1530,7 +1530,7 @@ struct WeekAgendaView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Due this week (\(overview.dueCount))")
-                    .font(.subheadline.weight(.medium))
+                    .font(Txt.label.weight(.medium))
                 Spacer()
                 Button { model.openWeeklyNote(for: week.adding(weeks: -1)) } label: { Image(systemName: "chevron.left") }
                 Button("This week") { model.openWeeklyNote(for: .current()) }
@@ -1538,21 +1538,21 @@ struct WeekAgendaView: View {
             }
             .buttonStyle(.borderless)
             Text("Drag a task onto a day to plan it there. Tick it here when it is done.")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.tertiary)
             ForEach(overview.days) { day in
                 HStack {
                     Text(day.date.date().map(Self.dayFormatter.string(from:)) ?? day.date.description)
-                        .font(.caption.weight(day.date == .today() ? .bold : .semibold))
+                        .font(Txt.label.weight(day.date == .today() ? .bold : .semibold))
                     Spacer()
                     if !day.due.isEmpty {
                         Text("\(day.due.count)")
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
                     }
                     if !day.completed.isEmpty {
                         Text("✓ \(day.completed.count)")
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -1599,7 +1599,7 @@ struct GoalDashboardView: View {
                 HStack(spacing: 6) {
                     ForEach(health.flags, id: \.self) { flag in
                         Text(flag.label)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? goal.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
@@ -1614,7 +1614,7 @@ struct GoalDashboardView: View {
                 // Build 269: the old line asked him to type `goal:` into another note's
                 // settings block. The button under it makes the note that serves this one.
                 Text(emptyText)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(serving) { note in
@@ -1629,11 +1629,11 @@ struct GoalDashboardView: View {
                             let open = note.openTasks.count
                             if note.isFinishedProject {
                                 Text("done")
-                                    .font(.caption)
+                                    .font(Txt.label)
                                     .foregroundStyle(.secondary)
                             } else if open > 0 {
                                 Text("\(open) open")
-                                    .font(.caption)
+                                    .font(Txt.label)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -1656,8 +1656,8 @@ struct GoalDashboardView: View {
 
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(.headline).foregroundStyle(goal.tint)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(value).font(Txt.listTitle).foregroundStyle(goal.tint)
+            Text(label).font(Txt.listSecond).foregroundStyle(.secondary)
         }
     }
 
@@ -1759,22 +1759,22 @@ private struct TaskSyntaxHelp: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("What can I type here?")
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 12, verticalSpacing: 7) {
                 ForEach(Self.rows) { row in
                     GridRow {
                         Text(row.code)
-                            .font(.system(.caption, design: .monospaced))
+                            .font(Txt.mono)
                             .foregroundStyle(ParaKind.project.tint)
                         Text(row.meaning)
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
             Text("Write them in any order, after the task's own words. What you add here becomes a task in this note and a reminder in Apple Reminders.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

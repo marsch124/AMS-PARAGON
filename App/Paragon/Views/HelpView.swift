@@ -84,7 +84,7 @@ struct HelpDocument: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 Text(document.title)
-                    .font(.title.bold())
+                    .font(Txt.pageTitle.bold())
                 ForEach(Array(document.intro.enumerated()), id: \.offset) { _, block in
                     render(block)
                 }
@@ -104,7 +104,7 @@ struct HelpDocument: View {
                         .padding(.leading, 2)
                     } label: {
                         Text(section.title)
-                            .font(.title3.weight(.semibold))
+                            .font(Txt.sectionTitle.weight(.semibold))
                     }
                     Divider()
                 }
@@ -138,11 +138,11 @@ struct HelpDocument: View {
     private func render(_ block: HelpBlock) -> some View {
         switch block {
         case .title(let text):
-            Text(text).font(.title.bold()).padding(.bottom, 4)
+            Text(text).font(Txt.pageTitle.bold()).padding(.bottom, 4)
         case .heading(let text):
-            Text(text).font(.title3.weight(.semibold)).padding(.top, 10)
+            Text(text).font(Txt.sectionTitle.weight(.semibold)).padding(.top, 10)
         case .subheading(let text):
-            Text(text).font(.headline).padding(.top, 8)
+            Text(text).font(Txt.listTitle).padding(.top, 8)
         case .paragraph(let text):
             Text(Self.inline(text))
         case .bullets(let items):
@@ -157,7 +157,7 @@ struct HelpDocument: View {
             .padding(.leading, 4)
         case .code(let text):
             Text(text)
-                .font(.system(.callout, design: .monospaced))
+                .font(Txt.mono)
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))

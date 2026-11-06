@@ -67,7 +67,7 @@ struct ProjectsListView: View {
                         .foregroundStyle(.orange)
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(1)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
@@ -95,7 +95,7 @@ struct ProjectsListView: View {
                 } footer: {
                     if isOpen(group), let text = footerText(for: group) {
                         Text(text)
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -226,12 +226,12 @@ struct ProjectGroupHeader: View {
                     .rotationEffect(.degrees(open ? 90 : 0))
                 badge
                 Text(group.title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(Txt.label.weight(.semibold))
                     .foregroundStyle(group.isEnded ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 Text("\(group.lines.count)")
-                    .font(.caption.monospacedDigit())
+                    .font(Txt.label.monospacedDigit())
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 1)
@@ -240,7 +240,7 @@ struct ProjectGroupHeader: View {
                     // Build 269: on Done alone, how many ended this year. Grey, and it gives
                     // way before the name does in a narrow column (builds 138, 212).
                     Text("\u{00B7} " + caption)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                         .layoutPriority(-1)
@@ -249,7 +249,7 @@ struct ProjectGroupHeader: View {
                     // Orange, as everywhere in PARAGON: look at this. On the heading, so a
                     // folded group still says it (build 100).
                     Label("\(group.needsALookCount)", systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption.weight(.semibold))
+                        .font(Txt.label.weight(.semibold))
                         .foregroundStyle(.orange)
                 }
             }
@@ -358,7 +358,7 @@ struct ProjectBox: View {
                 // `strikethrough` while it is still a `Text`, before `lineLimit` makes it a view.
                 Text(line.note.title)
                     .strikethrough(isCalledOff)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .lineLimit(2)
                     .foregroundStyle(isOver ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
                 need
@@ -374,7 +374,7 @@ struct ProjectBox: View {
                             // finished about a month ago" is wider than the room beside the bars,
                             // and the cut part is the fact (review of build 255, build 138).
                             Text(caption)
-                                .font(.caption)
+                                .font(Txt.label)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -435,14 +435,14 @@ struct ProjectBox: View {
                 Image(systemName: ChainSymbol.task)
                     .rowTint(ParaKind.project.tint)
             }
-            .font(.subheadline)
+            .font(Txt.label)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(needWords)
             .accessibilityIdentifier("project.next.\(line.id)")
         case .allFinished(let count):
             WrappingHStack(spacing: 6, lineSpacing: 4) {
                 Label(ProjectLine.finishedText(count: count), systemImage: "checkmark.circle.fill")
-                    .font(.subheadline)
+                    .font(Txt.label)
                     .rowTint(ParaKind.project.tint)
                 if line.status == .active {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
@@ -458,7 +458,7 @@ struct ProjectBox: View {
             // next action — but not "finished", which would be false.
             WrappingHStack(spacing: 6, lineSpacing: 4) {
                 Label(ProjectLine.waitingText(count: count), systemImage: WaitingShowing.symbol)
-                    .font(.subheadline)
+                    .font(Txt.label)
                     .rowTint(ParaKind.project.tint)
                 if line.status == .active {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
@@ -632,7 +632,7 @@ struct ProjectPill: View {
                 .lineLimit(lines)
                 .multilineTextAlignment(.leading)
         }
-        .font(.caption)
+        .font(Txt.label)
         .rowTint(fact.tint)
         .padding(.horizontal, 7)
         .padding(.vertical, 2)
@@ -664,7 +664,7 @@ struct ProjectProgress: View {
             }
             .frame(width: 40, height: 5)
             Text(ProjectLine.progressText(done: done, total: total))
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
     }

@@ -93,7 +93,7 @@ struct QuickCaptureView: View {
                 TextEditor(text: $text)
                     .focused($focused)
                     .scrollContentBackground(.hidden)
-                    .font(.body)
+                    .font(Txt.value)
                     .accessibilityIdentifier("capture.text")
             }
             .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
@@ -162,7 +162,7 @@ struct QuickCaptureView: View {
             caughtToday
             if model.vault == nil {
                 Text("No vault is open. Captures are kept and filed the next time the app opens a vault.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
         }
@@ -183,13 +183,13 @@ struct QuickCaptureView: View {
         HStack(spacing: 8) {
             if !embedded {
                 Label("Quick capture", systemImage: "tray.and.arrow.down")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .foregroundStyle(SidebarSection.inbox.tint)
             }
             Spacer()
             if let confirmation {
                 Text(confirmation)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(SidebarSection.inbox.tint)
                     .transition(.opacity)
             }
@@ -281,7 +281,7 @@ struct QuickCaptureView: View {
     private var caughtToday: some View {
         if model.caughtToday > 0 {
             Text(model.caughtToday == 1 ? "1 saved today." : "\(model.caughtToday) saved today.")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
         }
     }
@@ -295,7 +295,7 @@ struct QuickCaptureView: View {
             }
             Button(action: save) {
                 Text("Save")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
                     .background(canSave ? SidebarSection.inbox.tint : Color.secondary.opacity(0.3),
@@ -313,7 +313,7 @@ struct QuickCaptureView: View {
     private var flight: some View {
         if flying && !reduceMotion {
             Image(systemName: "tray.and.arrow.down.fill")
-                .font(.title)
+                .font(Txt.pageTitle)
                 .foregroundStyle(SidebarSection.inbox.tint)
                 .transition(.scale(scale: 0.2).combined(with: .opacity))
                 .allowsHitTesting(false)
@@ -368,7 +368,7 @@ struct ReadChip: View {
 
     var body: some View {
         Label(title, systemImage: systemImage)
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(tint)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -400,7 +400,7 @@ struct CaptureTagsChip: View {
             showing = true
         } label: {
             Text("#tag\u{2026}")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
@@ -426,7 +426,7 @@ struct AddChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
@@ -447,7 +447,7 @@ struct PickChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.caption)
+                .font(Txt.label)
                 .fontWeight(isOn ? .semibold : .regular)
                 .foregroundStyle(isOn ? tint : Color.secondary)
                 .padding(.horizontal, 10)
@@ -470,7 +470,7 @@ struct CaptureSyntaxHelp: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("What you can write")
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             Group {
                 line(">2026-09-15", "a date")
                 line(">2026-09-15T14:30", "a date and a time")
@@ -478,7 +478,7 @@ struct CaptureSyntaxHelp: View {
                 line("#travel", "a tag")
             }
             Text("The chips under the field show what the app read, so you can see it went in right. The buttons write these for you.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -490,9 +490,9 @@ struct CaptureSyntaxHelp: View {
     private func line(_ code: String, _ what: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(code)
-                .font(.system(.caption, design: .monospaced))
+                .font(Txt.mono)
             Text(what)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
         }

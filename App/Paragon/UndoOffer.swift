@@ -147,12 +147,12 @@ struct FlashCapsule: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(message)
-                .font(.callout)
+                .font(Txt.value)
                 .accessibilityIdentifier("flash.message")
             if offersUndo {
                 Button(action: undo) {
                     Text("Undo")
-                        .font(.callout.weight(.semibold))
+                        .font(Txt.value.weight(.semibold))
                         .padding(.horizontal, 6)
                         .frame(minHeight: undoHeight)
                         // The tap area is the label, so the room goes inside it (build 186).

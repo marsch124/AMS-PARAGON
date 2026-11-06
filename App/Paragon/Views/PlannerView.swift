@@ -164,10 +164,10 @@ struct PlannerDayView: View {
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(dayTitle)
-                .font(.headline)
+                .font(Txt.listTitle)
                 .lineLimit(1)
             Text(summary)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
@@ -257,7 +257,7 @@ struct PlannerDayView: View {
         VStack(alignment: .trailing, spacing: 0) {
             ForEach(firstHour...lastHour, id: \.self) { hour in
                 Text(String(format: "%02d", hour))
-                    .font(.caption2.monospacedDigit())
+                    .font(Txt.listSecond.monospacedDigit())
                     .foregroundStyle(.tertiary)
                     .frame(height: hourHeight, alignment: .top)
                     .padding(.trailing, 6)
@@ -581,7 +581,7 @@ struct PlannerDayView: View {
     private var editorSheet: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(editing == nil ? "New block" : "Edit block")
-                .font(.headline)
+                .font(Txt.listTitle)
             TextField("What is this time for?", text: $draftTitle)
                 .textFieldStyle(.roundedBorder)
             // Build 152, at his word: "the time editing process is very crude". Two long
@@ -617,13 +617,13 @@ struct PlannerDayView: View {
                 .lineLimit(1)
             }
             Text(draftSummary)
-                .font(.callout.weight(.semibold))
+                .font(Txt.value.weight(.semibold))
                 .foregroundStyle(Theme.planBlockTint)
             Toggle("Also put this block in Apple Calendar", isOn: $draftInCalendar)
             Text(draftInCalendar
                  ? "An event is written to the calendar under Settings \u{203a} Apple Calendar \u{203a} Time blocks go to. Change the block here and the event follows it; remove the block, or take the tick off, and the event goes."
                  : "A block is only for you. It is a line in this day's note under Plan, it never becomes a task, and nothing outside PARAGON sees it.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
@@ -648,7 +648,7 @@ struct PlannerDayView: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Blocks in Apple Calendar")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                 Spacer()
                 Button("Done") { sheet = nil }
             }
@@ -777,14 +777,14 @@ private struct PlanCardFace: View {
         if oneLine {
             HStack(spacing: 4) {
                 Text(startTime)
-                    .font(.caption2.monospacedDigit())
+                    .font(Txt.listSecond.monospacedDigit())
                     .foregroundStyle(tint.opacity(0.85))
                     .fixedSize()
                 if alsoAnEvent {
                     calendarMark
                 }
                 Text(title)
-                    .font(.caption.weight(filled ? .semibold : .regular))
+                    .font(Txt.label.weight(filled ? .semibold : .regular))
                     .foregroundStyle(tint)
                     .lineLimit(1)
             }
@@ -792,7 +792,7 @@ private struct PlanCardFace: View {
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 3) {
                     Text(time)
-                        .font(.caption2.monospacedDigit())
+                        .font(Txt.listSecond.monospacedDigit())
                         .foregroundStyle(tint.opacity(0.85))
                     if alsoAnEvent {
                         calendarMark
@@ -800,7 +800,7 @@ private struct PlanCardFace: View {
                     Spacer(minLength: 0)
                 }
                 Text(title)
-                    .font(.caption.weight(filled ? .semibold : .regular))
+                    .font(Txt.label.weight(filled ? .semibold : .regular))
                     .foregroundStyle(tint)
                     .lineLimit(3)
                 Spacer(minLength: 0)
@@ -810,7 +810,7 @@ private struct PlanCardFace: View {
 
     private var calendarMark: some View {
         Image(systemName: "calendar")
-            .font(.caption2)
+            .font(Txt.listSecond)
             .foregroundStyle(SidebarSection.calendar.tint)
     }
 }
@@ -869,14 +869,14 @@ private struct PlanTaskCard: View {
         if oneLine {
             HStack(spacing: 4) {
                 Image(systemName: "circle")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                 Text(startTime)
-                    .font(.caption2.monospacedDigit())
+                    .font(Txt.listSecond.monospacedDigit())
                     .foregroundStyle(.secondary)
                     .fixedSize()
                 Text(title)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
@@ -884,15 +884,15 @@ private struct PlanTaskCard: View {
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 3) {
                     Image(systemName: "circle")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                     Text(time)
-                        .font(.caption2.monospacedDigit())
+                        .font(Txt.listSecond.monospacedDigit())
                         .foregroundStyle(.secondary)
                     Spacer(minLength: 0)
                 }
                 Text(title)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.primary)
                     .lineLimit(3)
                 Spacer(minLength: 0)
@@ -1063,7 +1063,7 @@ private struct LengthChip: View {
     var body: some View {
         Button(action: choose) {
             Text(title)
-                .font(.caption.weight(isOn ? .semibold : .regular))
+                .font(Txt.label.weight(isOn ? .semibold : .regular))
                 .foregroundStyle(isOn ? Theme.planBlockTint : Color.secondary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
@@ -1161,14 +1161,14 @@ struct PlannerActionsView: View {
                 .padding(.bottom, 2)
                 .frame(height: 26, alignment: .bottom)
             Text("Due today or earlier, then your next actions.")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 10)
                 .padding(.bottom, 6)
             Divider()
             if actions.isEmpty {
                 Text("Nothing due today and no next actions. Give a task a date, or mark one as the next action.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(12)
@@ -1206,7 +1206,7 @@ struct PlannerActionsView: View {
     private func servesLine(for ref: TaskRef) -> some View {
         if let serves = serves(ref) {
             Label(serves.title, systemImage: serves.symbol)
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(serves.tint)
                 .lineLimit(1)
                 .padding(.leading, 22)

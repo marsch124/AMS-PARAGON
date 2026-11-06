@@ -19,6 +19,14 @@ Throughout: **right-click** on the Mac is **long-press** on the iPhone. Where th
 
 That is PARA with a Goals layer on top. Every note answers "what does this serve?".
 
+## How PARAGON looks
+
+Every part of PARAGON has one colour, and the colour means the same thing everywhere. **Projects** and **All actions** are green. **Areas** and **Tags** are pink. **Resources**, **Recent**, **Templates** and **Search** are blue. **Archive**, **Deleted** and **Work** are grey. **Goals** and the **Map** are gold, and **Aspirations** a deeper gold. **Inbox**, **Snippets** and **Quick capture** are amber. **Today**, **Calendar**, **Time Blocks** and the daily and weekly notes are purple. **Weekly review** and **Done** are teal. Blocks in **Plan the day** are orange. Red is only for things that are overdue or will be deleted. The colour shows in the icon in the sidebar, in the headings, in the main button, in the small dot at the left of a list row, and in the links of a note of that part. Day and night each have their own shade.
+
+Information sits in panels. A panel is white by day and dark grey at night, with a light tint of its part's colour over it. At night it also has a thin line round it. The words you read in a note are on plain white, so the colour is around them and never over them. Where you can choose, you see a pop-up menu: white, with a thin border and a grey arrow. Where you cannot change something, you see plain words. The main button of a screen is always in colour. When it cannot be used yet, it is the same colour, only paler.
+
+There is one set of text sizes. On the Mac the page title is 26 points. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, and its headings step from 22 to 18 to 15 points. Edit and Read show the note at the same size. The text of a note stops at 680 points wide and sits in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's Settings. All icons are drawn by hand in one line weight. Your own icon for a note (see **Your own icon**) is not changed. On the Mac, the buttons that belong to the whole window are in the toolbar at the top: **Search**, **New Note**, **Quick capture**, Sync, the Edit switch, and Back and Forward. The sidebar is plain and see-through, and the standard sidebar button (or ⌃⌘S) hides it. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header.
+
 ## Your vault
 
 The vault is one folder. Pick it once under Settings › Vault. Inside it the app keeps:
@@ -51,6 +59,8 @@ Useful keys: `status` (active, on hold, done, missed, dropped — see **How a no
 
 Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Icon…** for `icon` and `icon-colour` (projects, areas, goals, aspirations and resources). On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
 
+The top of a note is a panel of facts. The note's icon and its title (26 points, bold) come first. Under them is a table: the small grey label at the left (**Status**, **In area**, **Serves**, **Due**, **Tags** and so on) and its value at the right in 15 points. A value you can change is a white pop-up menu with a border and a grey arrow. A value you cannot change is plain words. Before this look, the same facts were a row of small chips.
+
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
 **⌘Z** undoes your typing in the note you are in. Each note has its own undo, so after you open another note, ⌘Z does not reach back into the one you left. When anything other than your typing changes the note while it is open — your other device, **Settings block**, a tick or a new task in the task box, a button at the top of the note, or a title picked from the `[[` list — its undo starts again from that point. On the Mac, the grey word suggestions macOS can show after the cursor, and the grey answer after a sum such as "120+35=", are switched off in notes, because they made PARAGON crash. Spelling is still checked and underlined.
@@ -61,7 +71,7 @@ Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below
 
 **⌘N** opens one screen with six buttons across the top: **Aspiration**, **Goal**, **Project**, **Area**, **Resource** and **Capture**, each in its own colour. Under them is the name field with the cursor already in it, so a note is usually a name and Return, and one line says what the kind you chose is for.
 
-Under that, everything else a note can be given as it is made, drawn as chips you press. A chip you have set is filled in its own colour with a solid line around it; one you have not set is grey with a dashed line.
+Under that, everything else a note can be given as it is made. Each choice is a white pop-up menu with a thin border and a grey arrow, with its small label at the left. **Cancel** and **Create** are side by side at the top right of the window. **Create** is filled in the colour of the kind. **Escape** is Cancel, **⌘S** is Create, and **Tab** moves from one field to the next.
 
 - **Aspiration** — the aspiration it serves is not asked for: an aspiration is the top of the chain. Only its name and its tags.
 - **Goal** — a **Target** date and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The two buttons carry the two icons: the star for an aspiration, the target for a goal with a date. The measure is not asked for here. Set it later with **Set a measure…** at the top of the goal.
@@ -70,7 +80,7 @@ Under that, everything else a note can be given as it is made, drawn as chips yo
 - **Tags** — the whole list of tags you already have, with a tick on the ones you pick and a number beside each saying how much of your vault carries it, so a tag that means the same as one you already use but is spelled differently stands out. A field at the top makes a tag that does not exist yet. It is the same list the tag button in a note's header opens.
 - **Template** — which template to start from, when that kind has more than one.
 
-Only the chips that apply to the kind you have chosen are shown.
+Only the choices that apply to the kind you have chosen are shown.
 
 Two lists have a field at the top to make a new thing: **Serves…** (a goal or an aspiration) and **In area…** (an area). They work the same way. If a thing of that kind already has the name, it is chosen and nothing new is made. If the name cannot be used, the box says why in orange and your words stay in the field. For example, an aspiration and a goal with a date cannot have the same name, because both are kept in the **Goals** folder. And a goal that is Done, Missed or Dropped, and still in the **Goals** folder, is not in the list, so it cannot be chosen: the box tells you, and you use another name. A goal or an area that you put away with **Archive** is not looked at: its name can be used again, because the archived note is parked in the **Archive** folder.
 
@@ -1402,7 +1412,7 @@ Sync with Reminders from the phone with the button in the top right of Today and
 
 On the phone, a note's own actions — Rename, Archive and Delete — are behind the **⋯** button at the top right of the note. On the Mac they are buttons in the toolbar. The pencil is not in there: it is always on screen.
 
-The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Every tab except **Browse** has a **+** at the top left. On **Today** it opens **Capture**, for a quick line into the Inbox. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
+On the phone, **Today**, **Plan**, **Actions**, **Inbox** and **Browse** open with a large title. It becomes a small title when you scroll. The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. Every tab except **Browse** has a **+** at the top left. On **Today** it opens **Capture**, for a quick line into the Inbox. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
 ## Moving between the tabs
 
@@ -1547,6 +1557,7 @@ lives in your Applications folder like any other app.
 
 ## Keyboard shortcuts
 
+- **Escape** closes a window without saving (Cancel). **⌘S** saves it. **Tab** moves to the next field.
 - ⌘N new note, ⇧⌘N quick capture, ⇧⌘F search everywhere, ⇧⌘R sync with Reminders
 - ⌃⌘← back to the note you came from, ⌃⌘→ forward again
 - ⌘⌫ delete the open note (it waits in Deleted)
@@ -1555,4 +1566,4 @@ lives in your Applications folder like any other app.
 
 ## When something looks wrong
 
-Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: the build number, what was clicked, which section and note are open, and the window layout. Paste it into the chat with the developer. The build number is also shown at the bottom of the sidebar.
+Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: the build number, what was clicked, which section and note are open, and the window layout. Paste it into the chat with the developer. The version is also shown, as 1.0 (280), at the foot of the sidebar and in Settings.

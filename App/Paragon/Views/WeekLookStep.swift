@@ -72,7 +72,7 @@ struct WeekLookStep: View {
 
         if eveningLines(look).isEmpty {
             Text("No evening lines \(weekWords). **Close the day** writes them.")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
         } else {
             ForEach(eveningLines(look)) { line in
@@ -98,7 +98,7 @@ struct WeekLookStep: View {
                 }
                 if let more = servedMore(look) {
                     Text(more)
-                        .font(.callout)
+                        .font(Txt.value)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -108,7 +108,7 @@ struct WeekLookStep: View {
         // Build 100's rule: a note not yet on this device must never read as a quiet week.
         if !model.notesWaitingForCloud.isEmpty {
             Label(cloudText, systemImage: "icloud")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -132,7 +132,7 @@ struct WeekLookStep: View {
             .accessibilityIdentifier("review.lookBack.earlier")
 
             Text(shownWeek.title)
-                .font(.callout.weight(.semibold))
+                .font(Txt.value.weight(.semibold))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .frame(maxWidth: .infinity)
@@ -167,7 +167,7 @@ struct WeekLookStep: View {
             // Named as Calendar › Week names it ("Goal for last week"), so the two boxes never call
             // one week by two names; the sentences below keep "that week" (review of 264).
             Text(WeekLook.goalTitle(for: shownWeek, today: DateOnly.today()))
-                .font(.caption2.weight(.semibold))
+                .font(Txt.listSecond.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(goal == nil ? Color.secondary : tint)
             Text(goal ?? missing)
@@ -191,14 +191,14 @@ struct WeekLookStep: View {
             CountPill(text: text, systemImage: "checkmark.circle", tint: .green)
         } else {
             Text("No task was ticked off \(weekWords).")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
         }
     }
 
     private func timerLine(_ look: WeekLook) -> some View {
         Label(look.workedText ?? "The focus timer was not used \(weekWords).", systemImage: "timer")
-            .font(.callout)
+            .font(Txt.value)
             .foregroundStyle(look.workedText == nil ? Color.secondary : Color.primary)
     }
 
@@ -335,7 +335,7 @@ struct WeekLineBox: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(Self.title)
-                    .font(.caption2.weight(.semibold))
+                    .font(Txt.listSecond.weight(.semibold))
                     .textCase(.uppercase)
                     .foregroundStyle(hasLine ? tint : Color.secondary)
                 Text(restingText)
@@ -365,7 +365,7 @@ struct WeekLineBox: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text(Self.title)
-                    .font(.caption2.weight(.semibold))
+                    .font(Txt.listSecond.weight(.semibold))
                     .textCase(.uppercase)
                     .foregroundStyle(tint)
                     .lineLimit(1)
@@ -395,12 +395,12 @@ struct WeekLineBox: View {
                 .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
                 .accessibilityIdentifier("review.weekLine.field")
             Text("Goes into the note for \(weekName), under **Looking back**.")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let problem {
                 Text(problem)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -481,16 +481,16 @@ private struct EveningLineRow: View {
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(dayName)
-                    .font(.caption.weight(.semibold))
+                    .font(Txt.label.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 36, alignment: .leading)
                 if line.waiting {
                     Label(line.text, systemImage: "icloud")
-                        .font(.callout)
+                        .font(Txt.value)
                         .foregroundStyle(.orange)
                 } else {
                     Text(line.text)
-                        .font(.callout)
+                        .font(Txt.value)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
                         .lineLimit(4)
@@ -534,7 +534,7 @@ private struct EndedProjectRow: View {
                     .foregroundStyle(project.status.tint(onNote: ParaKind.project.tint))
                 Spacer(minLength: 0)
             }
-            .font(.callout)
+            .font(Txt.value)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -576,13 +576,13 @@ private struct WeekDayBars: View {
                     .monospacedDigit()
                     .foregroundStyle(count == 0 ? Color.secondary : Color.primary)
             }
-            .font(.caption2.weight(.semibold))
+            .font(Txt.listSecond.weight(.semibold))
             RoundedRectangle(cornerRadius: 3)
                 .fill(barFill(count, future: future, waiting: waiting))
                 .frame(height: barHeight(count))
                 .frame(height: barArea, alignment: .bottom)
             Text(dayName(record.day))
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)

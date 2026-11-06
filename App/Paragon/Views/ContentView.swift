@@ -332,7 +332,7 @@ struct WelcomeView: View {
                 }
             }
             Text("PARAGON")
-                .font(.largeTitle.bold())
+                .font(Txt.pageTitle.bold())
             Text(explanation)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(model.vaultProblem == nil ? Color.secondary : Color.orange)
@@ -348,7 +348,7 @@ struct WelcomeView: View {
                     .buttonStyle(.borderedProminent)
             }
             Text("Pick an empty folder or an existing NotePlan style folder. The PARA folders, an Inbox note and templates are created if missing.")
-                .font(.footnote)
+                .font(Txt.label)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
@@ -397,7 +397,7 @@ struct SidebarView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: toolsFolded ? "chevron.right" : "chevron.down")
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                         Text("Tools")
                         Spacer(minLength: 0)
                     }
@@ -437,7 +437,7 @@ struct SidebarView: View {
                     VaultWarningBar(text: warning) { model.fetchMissingNotes() }
                 }
                 Text("Build \(BuildStamp.number)")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
             }
@@ -563,7 +563,7 @@ struct NoteListView: View {
                     fold(note)
                 } label: {
                     Image(systemName: foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                         .frame(width: 14)
                 }
@@ -1057,12 +1057,12 @@ struct NoteRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(note.title)
-                        .font(.headline)
+                        .font(Txt.listTitle)
                         .lineLimit(1)
                     Spacer()
                     if let status = note.status, status != "active" {
                         Text(status.capitalized)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(note.tint.opacity(0.18), in: Capsule())
@@ -1107,7 +1107,7 @@ struct NoteRow: View {
                         Label("\(note.related.count)", systemImage: "link")
                     }
                 }
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             }

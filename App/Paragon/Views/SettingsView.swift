@@ -30,14 +30,14 @@ struct SettingsView: View {
                 Toggle("Use task times", isOn: $useTaskTimes)
                     .accessibilityIdentifier("settings.useTaskTimes")
                 Text("Each task can say how long it takes, for example 45 minutes. Off, no task shows a time and nothing asks for one. Times already written in your notes stay there.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                 if useTaskTimes {
                     WorkdayEndRow()
                 }
                 Toggle("Hide finished tasks in notes", isOn: $hideFinishedTasks)
                 Text("Done and cancelled tasks stay in the file and in the editor; this only hides them from the checklist. A finished task with open subtasks is always shown.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
 
@@ -104,7 +104,7 @@ struct SettingsView: View {
                 }
                 if model.backups.isEmpty {
                     Text("No backups yet. One is saved automatically each day and before each sync, and the last ten are kept.")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 } else {
                     DisclosureGroup("Restore a copy (\(model.backups.count))") {
@@ -113,7 +113,7 @@ struct SettingsView: View {
                                 VStack(alignment: .leading, spacing: 1) {
                                     Text(backup.date.formatted(date: .abbreviated, time: .shortened))
                                     Text("\(backup.noteCount) notes · \(backup.reason)")
-                                        .font(.caption)
+                                        .font(Txt.label)
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
@@ -122,7 +122,7 @@ struct SettingsView: View {
                         }
                     }
                     Text("Restoring puts those notes back and saves what you have now as another backup first. Notes you made since then are left alone.")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -135,7 +135,7 @@ struct SettingsView: View {
                 ))
                 if model.calendarAccessGranted == false {
                     Text("Calendar access is off. Allow it in System Settings › Privacy & Security › Calendars.")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.orange)
                 }
                 if model.calendarAccessGranted == true, !model.calendars.isEmpty {
@@ -167,7 +167,7 @@ struct SettingsView: View {
                     }
                 }
                 Text("Events are only read. The one thing written to your calendar is the time blocks you add in the Time Blocks section.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
 
@@ -192,7 +192,7 @@ struct SettingsView: View {
                 Toggle("Show capture panel in the menu bar", isOn: $showMenuBarItem)
                 #endif
                 Text("⇧⌘N opens the capture panel in the app. Other apps can add to the Inbox with a link like amspara://capture?text=Call%20the%20bank&target=inbox (Shortcuts: Open URL). On iOS, use Share › PARAGON.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
 
@@ -222,8 +222,8 @@ struct SettingsView: View {
             Section("Last sync") {
                 if let report = model.lastReport {
                     Text(report.summary)
-                    ForEach(report.conflicts, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
-                    ForEach(report.warnings, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+                    ForEach(report.conflicts, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.orange) }
+                    ForEach(report.warnings, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.secondary) }
                 } else {
                     Text("Not synced yet in this session.").foregroundStyle(.secondary)
                 }
@@ -236,7 +236,7 @@ struct SettingsView: View {
             Section("About") {
                 LabeledContent("Device id", value: model.deviceID)
                 Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
         }
@@ -297,7 +297,7 @@ struct ReviewRhythmStepper: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(level.label)
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             // **Build 175: named lengths, not a stepper.** He asked for "every 6 months" and
             // build 174's stepper counted 30 days at a time from 365, so it could not reach
             // 182 at all. Build 136 had already taught this with the date picker: a person
@@ -315,7 +315,7 @@ struct ReviewRhythmStepper: View {
             }
             .lineLimit(1)
             Text(level.reason)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -382,12 +382,12 @@ struct WidgetStatusSection: View {
             if !model.notesWaitingForCloud.isEmpty {
                 // Build 261: the widget is not written from part of the vault.
                 Text("Not written while \(model.notesWaitingForCloud.count) notes are still coming from iCloud: it would show only part of your vault.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Text(explanation)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(Color.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -438,7 +438,7 @@ struct DayReminderSection: View {
                 // Build 100's rule: a switch that is on and does nothing must say why. Since
                 // build 243 that includes "never asked", which used to look like "all fine".
                 Text(problem)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                 if reminder.permission == .notAsked {
@@ -446,18 +446,18 @@ struct DayReminderSection: View {
                 }
             } else if isOn {
                 Text(nextText)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
             Text(kind.explanation)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             Button("Send one in 10 seconds") { reminder.sendTest(kind) }
                 .disabled(reminder.isTesting(kind))
                 .accessibilityIdentifier(kind.testButtonIdentifier)
             if let line = testLine {
                 Text(line.text)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(line.isProblem ? Color.orange : Color.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -561,7 +561,7 @@ struct WorkdayEndRow: View {
         DatePicker("Working day ends", selection: time, displayedComponents: .hourAndMinute)
             .accessibilityIdentifier("settings.workdayEnds")
         Text("Start the day says whether what you pick fits before this time. Tasks can still be planned after it.")
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(.secondary)
     }
 

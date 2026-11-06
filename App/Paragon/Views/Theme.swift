@@ -57,11 +57,11 @@ struct SectionLabel: View {
                     .foregroundStyle(tint)
             }
             Text(title.uppercased())
-                .font(.caption.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
                 .tracking(0.6)
             if let count, count > 0 {
                 Text("\(count)")
-                    .font(.caption2.monospacedDigit())
+                    .font(Txt.listSecond.monospacedDigit())
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
                     .background(.quaternary, in: Capsule())
@@ -89,7 +89,7 @@ struct WeekGoalLine: View {
     var body: some View {
         (Text("This week: ").fontWeight(.semibold).foregroundColor(ParaKind.goal.tint)
             + Text(goal))
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(2)
             .accessibilityIdentifier(identifier)
     }
@@ -111,9 +111,9 @@ struct EmptyStateView: View {
                 .font(.system(size: 38, weight: .light))
                 .foregroundStyle(tint.opacity(0.8))
             Text(title)
-                .font(.headline)
+                .font(Txt.listTitle)
             Text(message)
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 380)
@@ -138,11 +138,11 @@ struct VaultWarningBar: View {
     var body: some View {
         VStack(spacing: 2) {
             Label(text, systemImage: "exclamationmark.triangle.fill")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.orange)
                 .multilineTextAlignment(.center)
             Button("Ask iCloud again", action: retry)
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .buttonStyle(.plain)
                 .foregroundStyle(.tint)
         }
@@ -266,12 +266,12 @@ struct DateTimeChoiceView: View {
         VStack(alignment: .leading, spacing: 10) {
             TextField("2031-12-01", text: $typed)
                 .textFieldStyle(.roundedBorder)
-                .font(.body.monospacedDigit())
+                .font(Txt.value.monospacedDigit())
                 .onSubmit(set)
                 // Named for the screen tests (build 268). Accessibility only.
                 .accessibilityIdentifier("date.field")
             Text(parsed == nil ? "Write the date as 2031-12-01." : "Or pick it below.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(parsed == nil ? Color.red : Color.secondary)
             DatePicker("Date", selection: $date, displayedComponents: .date)
                 .datePickerStyle(.graphical)
@@ -330,10 +330,10 @@ struct DateTimeChoiceView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text("At")
-                    .font(.callout.weight(.semibold))
+                    .font(Txt.value.weight(.semibold))
                 TextField("14:00", text: $atText)
                     .textFieldStyle(.roundedBorder)
-                    .font(.body.monospacedDigit())
+                    .font(Txt.value.monospacedDigit())
                     .frame(width: 84)
                     .submitLabel(.done)
                     .onSubmit(set)
@@ -352,7 +352,7 @@ struct DateTimeChoiceView: View {
                 }
             }
             Text(atHint)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(reading == .invalid ? Color.red : Color.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -483,7 +483,7 @@ struct SheetFooter: View {
         HStack(spacing: 12) {
             Button(action: cancel) {
                 Text("Cancel")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 18)
@@ -493,7 +493,7 @@ struct SheetFooter: View {
             .accessibilityIdentifier("sheet.cancel")
             Button(action: act) {
                 Text(actionTitle)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(canAct ? tint : Color.secondary.opacity(0.3),
@@ -544,7 +544,7 @@ struct GoalProgressBar: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(1)
         }
     }
@@ -849,13 +849,13 @@ struct TaskTray: View {
                         Spacer(minLength: 0)
                         if items.count > shown {
                             Text("\(items.count - shown) more not shown")
-                                .font(.caption2)
+                                .font(Txt.listSecond)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     if let caption {
                         Text(caption)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -879,11 +879,11 @@ struct TaskTray: View {
             Text(ref.task.title)
                 .lineLimit(1)
             Text(ref.noteTitle)
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.tertiary)
                 .lineLimit(1)
         }
-        .font(.caption)
+        .font(Txt.label)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .overlay(

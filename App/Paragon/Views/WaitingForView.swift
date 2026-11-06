@@ -103,7 +103,7 @@ struct WaitingWhoView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Text("Who?")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                 Spacer()
                 Button("Cancel") { isPresented = false }
                     .accessibilityIdentifier("waiting.who.cancel")
@@ -119,7 +119,7 @@ struct WaitingWhoView: View {
                 .accessibilityIdentifier("waiting.who.field")
             if !offered.isEmpty {
                 Text("Already waiting for")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                 WrappingHStack(spacing: 6, lineSpacing: 6) {
                     ForEach(offered, id: \.self) { name in
@@ -130,7 +130,7 @@ struct WaitingWhoView: View {
             }
             if let writes {
                 Text(writes)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("waiting.who.writes")
@@ -176,7 +176,7 @@ struct WaitingForList: View {
         VStack(spacing: 0) {
             if !list.isEmpty {
                 Text(list.summary)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
@@ -243,7 +243,7 @@ struct WaitingForList: View {
                          tint: tint)
             if let note = group.note {
                 Text(note)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
         }
@@ -262,7 +262,7 @@ struct WaitingForList: View {
             // which cut off "waited N days" — the fact **@since** is there for (builds 138, 255).
             VStack(alignment: .leading, spacing: 2) {
                 Text(line.captionText(today: today))
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(overdue ? Color.red : Color.secondary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -270,7 +270,7 @@ struct WaitingForList: View {
                 // Borderless, or on the phone a List row with two buttons in it presses both.
                 Button("Follow up next week") { model.followUpNextWeek(line.ref) }
                     .buttonStyle(.borderless)
-                    .font(.caption)
+                    .font(Txt.label)
                     .fixedSize()
                     .accessibilityIdentifier("waiting.followUp.\(title)")
             }

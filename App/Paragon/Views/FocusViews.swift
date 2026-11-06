@@ -60,7 +60,7 @@ struct FocusBar: View {
                 .frame(width: 9, height: 9)
             VStack(alignment: .leading, spacing: 1) {
                 Text(session.title)
-                    .font(.subheadline)
+                    .font(Txt.label)
                     .lineLimit(1)
                 clockLine(session, now: now)
             }
@@ -104,14 +104,14 @@ struct FocusBar: View {
         let clock = FocusSession.clock(session.workedSeconds(at: now))
         HStack(spacing: 4) {
             Text(clock)
-                .font(.subheadline.weight(.bold).monospacedDigit())
+                .font(Txt.label.weight(.bold).monospacedDigit())
             if let planned = session.plannedMinutes {
                 Text("of " + TaskTime.label(planned))
-                    .font(.caption)
+                    .font(Txt.label)
             }
             if session.isPaused {
                 Text("\u{00B7} paused")
-                    .font(.caption)
+                    .font(Txt.label)
             }
         }
         .accessibilityIdentifier("focus.clock")
@@ -201,7 +201,7 @@ struct FocusStopView: View {
         let forgotten = session.workedSeconds(at: Date()) > FocusSession.forgottenAfter
         return VStack(alignment: .leading, spacing: 12) {
             Text(headline)
-                .font(.title3.weight(.bold))
+                .font(Txt.sectionTitle.weight(.bold))
             Text(Self.sentence(session))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -209,7 +209,7 @@ struct FocusStopView: View {
                 // Why the last answer could not be written, here in the sheet rather than in an
                 // alert behind it (builds 238, 246).
                 Text(problem)
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -240,13 +240,13 @@ struct FocusStopView: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier("focus.notDone")
             Text("Either way, \(range) goes into \(whereTo) under Worked.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if forgotten {
                 // A clock left running overnight would write whole days of 00:00–24:00 lines.
                 Text("The clock ran for over 12 hours. If it was left running by mistake, choose Don\u{2019}t save the time.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -256,7 +256,7 @@ struct FocusStopView: View {
                 model.discardFocus()
             } label: {
                 Text("Don\u{2019}t save the time")
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)

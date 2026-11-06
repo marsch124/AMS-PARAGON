@@ -159,7 +159,7 @@ struct MarkdownPreview: View {
         case .planBlock(let plan):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(plan.timeText)
-                    .font(.callout.monospacedDigit())
+                    .font(Txt.value.monospacedDigit())
                     .foregroundStyle(Theme.planBlockTint)
                 inline(plan.title)
                 Spacer(minLength: 0)
@@ -186,7 +186,7 @@ struct MarkdownPreview: View {
             }
         case .code(let lines):
             Text(lines.joined(separator: "\n"))
-                .font(.system(.body, design: .monospaced))
+                .font(Txt.mono)
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))

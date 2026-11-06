@@ -94,10 +94,10 @@ struct DayCalendarView: View {
                 // A narrow column squeezes an HStack's children until the text inside breaks
                 // (build 138), and this row gained a button. Both lines stop at two.
                 Text(dayTitle(day))
-                    .font(.title3.weight(.semibold))
+                    .font(Txt.sectionTitle.weight(.semibold))
                     .lineLimit(2)
                 Text(summary(day: day, overview: overview))
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -135,7 +135,7 @@ struct DayCalendarView: View {
             Section("Due") {
                 if overview.due.isEmpty {
                     Text("Nothing due.")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
                 ForEach(overview.due) { ref in
@@ -207,7 +207,7 @@ struct MonthGrid: View {
         VStack(spacing: 4) {
             HStack {
                 Text(month.title)
-                    .font(.subheadline.weight(.medium))
+                    .font(Txt.label.weight(.medium))
                 Spacer()
                 Button { previous() } label: { Image(systemName: "chevron.left") }
                     .help("Previous month")
@@ -224,7 +224,7 @@ struct MonthGrid: View {
                         .frame(width: 22)
                     ForEach(Self.weekdaySymbols, id: \.self) { symbol in
                         Text(symbol)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity)
                     }
@@ -232,7 +232,7 @@ struct MonthGrid: View {
                 ForEach(rows.indices, id: \.self) { row in
                     GridRow {
                         Text(weekNumber(of: rows[row]))
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .foregroundStyle(.tertiary)
                             .frame(width: 22)
                         ForEach(0..<7, id: \.self) { column in
@@ -273,7 +273,7 @@ struct MonthGridCell: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(date.day)")
-                .font(.callout)
+                .font(Txt.value)
                 .fontWeight(isToday ? .bold : .regular)
                 .foregroundStyle(isSelected ? Color.white : (isToday ? ParaKind.daily.tint : Color.primary))
                 .frame(width: 22, height: 20)
@@ -372,10 +372,10 @@ struct DailyNoteRow: View {
             VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(note.displayTitle)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                 if note.isWeeklyNote {
                     Text("week")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 1)
                         .background(.quaternary, in: Capsule())
@@ -384,11 +384,11 @@ struct DailyNoteRow: View {
             let open = note.openTasks.count
             let total = note.tasks.count
             Text(total == 0 ? "No tasks" : "\(open) open of \(total)")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             if preview, let firstLine {
                 Text(firstLine)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -434,13 +434,13 @@ private struct WeekStrip: View {
         let tint = SidebarSection.calendar.tint
         return VStack(spacing: 2) {
             Text(name(day.date))
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             // A dash, never a 0: an empty day is a day with room in it, not a score
             // (build 141's rule about a number that reads as an answer).
             Text(day.due.isEmpty ? "–" : "\(day.due.count)")
-                .font(.callout.weight(day.due.isEmpty ? .regular : .semibold))
+                .font(Txt.value.weight(day.due.isEmpty ? .regular : .semibold))
                 // Both arms name their type: a bare `.primary` is ambiguous with
                 // `Color.primary`, and there is no compiler here to settle it (build 200).
                 .foregroundStyle(day.due.isEmpty
@@ -451,7 +451,7 @@ private struct WeekStrip: View {
             // tasks here too, so a long day is a fact, not a warning — the rule build 249 set
             // for the working day. Nothing at all when no time is written, never "0 min".
             Text(day.plannedMinutes > 0 ? TaskTime.label(day.plannedMinutes) : " ")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -514,7 +514,7 @@ struct WeekOverviewView: View {
                 Button { model.selectedWeek = model.selectedWeek.adding(weeks: 1) } label: { Image(systemName: "chevron.right") }
                 Spacer()
                 Text("\(overview.dueCount) due · \(overview.completedCount) done")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.borderless)
@@ -550,7 +550,7 @@ struct WeekOverviewView: View {
                     Section {
                         if day.due.isEmpty && day.undated.isEmpty && day.completed.isEmpty {
                             Text("Nothing planned")
-                                .font(.caption)
+                                .font(Txt.label)
                                 .foregroundStyle(.tertiary)
                         }
                         ForEach(day.due + day.undated) { ref in
@@ -559,7 +559,7 @@ struct WeekOverviewView: View {
                         }
                         if !day.completed.isEmpty {
                             Text("\(day.completed.count) done: " + day.completed.map(\.task.title).joined(separator: ", "))
-                                .font(.caption)
+                                .font(Txt.label)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                         }
@@ -569,11 +569,11 @@ struct WeekOverviewView: View {
                                 .fontWeight(day.date == .today() ? .bold : .regular)
                             if day.dailyNotePath != nil {
                                 Image(systemName: "doc.text")
-                                    .font(.caption2)
+                                    .font(Txt.listSecond)
                             }
                             Spacer()
                             Button("Open day") { model.openDailyNote(for: day.date) }
-                                .font(.caption)
+                                .font(Txt.label)
                                 .buttonStyle(.borderless)
                         }
                         .acceptsTaskDrop { ref in model.setDueDate(ref, day.date) }
@@ -612,7 +612,7 @@ struct MonthOverviewView: View {
                 Button { model.selectedMonth = model.selectedMonth.adding(months: 1) } label: { Image(systemName: "chevron.right") }
                 Spacer()
                 Text(overview.month.title)
-                    .font(.headline)
+                    .font(Txt.listTitle)
             }
             .buttonStyle(.borderless)
             .padding(.horizontal, 12)
@@ -622,7 +622,7 @@ struct MonthOverviewView: View {
                 LazyVGrid(columns: columns, spacing: 2) {
                     ForEach(weekdaySymbols, id: \.self) { symbol in
                         Text(symbol)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
                     }
                     ForEach(0..<leading, id: \.self) { _ in Color.clear.frame(height: 44) }
@@ -634,7 +634,7 @@ struct MonthOverviewView: View {
                 }
                 .padding(8)
                 Text("\(overview.dueCount) tasks due this month, \(overview.completedCount) completed.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .padding(.bottom, 8)
             }
@@ -649,18 +649,18 @@ struct MonthDayCell: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(day.date.day)")
-                .font(.caption)
+                .font(Txt.label)
                 .fontWeight(day.date == .today() ? .bold : .regular)
             HStack(spacing: 3) {
                 if !day.due.isEmpty {
                     Text("\(day.due.count)")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .padding(.horizontal, 4)
                         .background(day.overdueCount > 0 ? Color.red.opacity(0.22) : ParaKind.daily.tint.opacity(0.25), in: Capsule())
                 }
                 if !day.completed.isEmpty {
                     Text("✓\(day.completed.count)")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                 }
                 if day.dailyNotePath != nil && day.due.isEmpty && day.completed.isEmpty {
@@ -752,7 +752,7 @@ struct WeekGoalBox: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(shownTitle)
-                    .font(.caption2.weight(.semibold))
+                    .font(Txt.listSecond.weight(.semibold))
                     .textCase(.uppercase)
                     .foregroundStyle(goal == nil ? Color.secondary : tint)
                 Text(goal ?? emptyText)

@@ -169,7 +169,7 @@ struct AspirationsListView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: isOpen ? "chevron.down" : "chevron.right")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .frame(width: 14)
                 AspirationRow(chain: chain)
@@ -380,10 +380,10 @@ struct GoalEndedHeader: View {
         Button(action: toggle) {
             HStack(spacing: 6) {
                 Image(systemName: folded ? "chevron.right" : "chevron.down")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                 Text(status.label)
                 Text("\(count)")
-                    .font(.caption2.monospacedDigit())
+                    .font(Txt.listSecond.monospacedDigit())
                     .padding(.horizontal, 5)
                     .background(.quaternary, in: Capsule())
                 Spacer(minLength: 0)
@@ -553,7 +553,7 @@ struct AspirationRow: View {
             GoalMark(note: chain.note, size: 24)
             VStack(alignment: .leading, spacing: 3) {
                 Text(chain.note.title)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .lineLimit(2)
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
                     if !chain.goals.isEmpty {
@@ -585,12 +585,12 @@ struct AspirationRow: View {
                             .rowTint(.orange)
                     }
                 }
-                .font(.caption)
+                .font(Txt.label)
                 .lineLimit(1)
                 // The measure, on the row rather than only inside the goal (build 163).
                 if let measure = chain.note.measure, !measure.isEmpty {
                     Text(measure)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -615,7 +615,7 @@ struct DatedGoalRow: View {
                 Text(note.title)
                     // Struck through however it ended: done, missed or dropped, it is over.
                     .strikethrough(note.isEnded)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .lineLimit(2)
                 WrappingHStack(spacing: 8, lineSpacing: 4) {
                     if health.progress.fraction != nil {
@@ -637,11 +637,11 @@ struct DatedGoalRow: View {
                             .rowTint(.orange)
                     }
                 }
-                .font(.caption)
+                .font(Txt.label)
                 .lineLimit(1)
                 if let measure = note.measure, !measure.isEmpty {
                     Text(measure)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -730,14 +730,14 @@ struct AspirationChainBody: View {
                 // button under it makes the goal instead, already serving this aspiration.
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Nothing works towards this yet.")
-                        .font(.callout)
+                        .font(Txt.value)
                         .foregroundStyle(.secondary)
                     AddServingNoteButton(model: model, parent: chain.note)
                 }
             }
             if let changed = chain.activity.summary {
                 Label(changed, systemImage: "clock.arrow.circlepath")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -807,7 +807,7 @@ struct AspirationChainBody: View {
                     .lineLimit(1)
                 if let target = goal.note.targetDate {
                     Text(target.description)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
@@ -826,7 +826,7 @@ struct AspirationChainBody: View {
                 .accessibilityHidden(true)
         } else {
             Image(systemName: ChainSymbol.datedGoal)
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
         }
     }
@@ -836,7 +836,7 @@ struct AspirationChainBody: View {
             HStack(spacing: 8) {
                 GoalMark(note: chain.note, size: 26)
                 Text(chain.note.title)
-                    .font(.title2.weight(.semibold))
+                    .font(Txt.sectionTitle.weight(.semibold))
                     .lineLimit(3)
             }
             // Build 277: his own reason, straight under the name — why this matters, from the
@@ -859,7 +859,7 @@ struct AspirationChainBody: View {
                               tint: flag == .achieved ? ChainTint.aspiration : .orange, filled: false)
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(2)
             // **No bar here either (build 199).** An aspiration is never finished, so a per
             // cent on one is a promise the idea does not make — and the average it was made
@@ -913,7 +913,7 @@ struct ChainGoalBlock: View {
             }
             if lead, let changed = goal.activity.summary {
                 Label(changed, systemImage: "clock.arrow.circlepath")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -930,7 +930,7 @@ struct ChainGoalBlock: View {
                 .accessibilityHidden(true)
         } else {
             Image(systemName: ChainSymbol.datedGoal)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(ParaKind.goal.tint)
         }
     }
@@ -999,7 +999,7 @@ struct ChainGoalBlock: View {
                               filled: false)
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(2)
         }
     }
@@ -1013,7 +1013,7 @@ struct ChainGoalBlock: View {
         VStack(alignment: .leading, spacing: 4) {
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
                 Text("No project delivers this goal yet.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                 if !lead {
                     AddServingNoteButton(model: model, parent: goal.note)
@@ -1028,7 +1028,7 @@ struct ChainGoalBlock: View {
             ForEach(goal.areas) { area in
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
                     Label(area.title, systemImage: ChainSymbol.area)
-                        .font(.callout)
+                        .font(Txt.value)
                         .foregroundStyle(ParaKind.area.tint)
                 }
                 .buttonStyle(.plain)
@@ -1060,10 +1060,10 @@ struct ChainProjectRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Image(systemName: ChainSymbol.project)
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                     Text(project.note.title)
-                        .font(.callout)
+                        .font(Txt.value)
                         .strikethrough(project.note.isEnded)
                         .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                         .lineLimit(2)
@@ -1073,27 +1073,27 @@ struct ChainProjectRow: View {
                     // column of their own that read as a separate list.
                     if project.note.isEnded {
                         Text(project.note.noteStatus.label.lowercased())
-                            .font(.caption2).foregroundStyle(.secondary)
+                            .font(Txt.listSecond).foregroundStyle(.secondary)
                     } else if project.openTaskCount > 0 {
-                        Text("\(project.openTaskCount) open").font(.caption2).foregroundStyle(.secondary)
+                        Text("\(project.openTaskCount) open").font(Txt.listSecond).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 0)
                 }
                 if let next = project.nextAction {
                     Label("Next: \(next.title)", systemImage: ChainSymbol.task)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 } else if project.hasNothingToDo {
                     Text("No next action")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.orange)
                 } else if project.waitingCount > 0, !project.note.isEnded {
                     // Build 279: nothing he can do himself, but not idle: every open line waits
                     // for somebody else. The same words and the same calm grey as the Projects
                     // list (build 168), never the orange of a project nobody can act on.
                     Label(ProjectLine.waitingText(count: project.waitingCount), systemImage: WaitingShowing.symbol)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
@@ -1116,7 +1116,7 @@ struct ChainChip: View {
 
     var body: some View {
         Text(text)
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(1)
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
@@ -1160,7 +1160,7 @@ struct NoteStatusChip: View {
             .labelsHidden()
         } label: {
             Label(status.label, systemImage: symbol(for: status))
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(tint(for: status))
         }
         .menuStyle(.borderlessButton)
@@ -1232,7 +1232,7 @@ struct AllAspirationsView: View {
                         SectionLabel(title: "Goals with no aspiration", count: loose.count,
                                      systemImage: ChainSymbol.datedGoal, tint: .orange)
                         Text("Each of these is working towards nothing. Give it the aspiration it is in service of.")
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.orange)
                         ForEach(loose) { note in
                             VStack(alignment: .leading, spacing: 4) {
@@ -1320,7 +1320,7 @@ struct NoAspirationPrompt: View {
             NoteGoalOptions(model: model, note: note)
         } label: {
             Label("Give it an aspiration", systemImage: "exclamationmark.triangle.fill")
-                .font(.caption)
+                .font(Txt.label)
                 .rowTint(.orange)
         }
         .menuStyle(.borderlessButton)
@@ -1362,7 +1362,7 @@ struct AddServingNoteButton: View {
         let plan = ServingNote(under: live, link: link)
         Button { adding = true } label: {
             Label(plan.buttonTitle, systemImage: "plus.circle")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(plan.tint)
                 .helpWhenClosed(plan.helpText, open: adding)
         }
@@ -1430,7 +1430,7 @@ struct AddServingNoteBox: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label(plan.heading, systemImage: plan.symbol)
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
                 .foregroundStyle(plan.tint)
             TextField("Name", text: $typed)
                 .textFieldStyle(.roundedBorder)
@@ -1438,12 +1438,12 @@ struct AddServingNoteBox: View {
                 .onSubmit(commit)
                 .accessibilityIdentifier("addNote.field")
             Text(plan.sentence)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let notice {
                 Text(notice)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("addNote.notice")
@@ -1616,7 +1616,7 @@ struct LookedAtChip: View {
     private func face(_ due: ReviewDue) -> some View {
         if onChainPage {
             Label(due.lookedAtText, systemImage: "eye")
-                .font(.caption)
+                .font(Txt.label)
                 .lineLimit(1)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
@@ -1651,13 +1651,13 @@ struct LookedAtBox: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label(due.lookedAtText, systemImage: "eye")
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             Text(due.rhythmText + " " + due.nextText)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text("How often is set in **Settings \u{203A} Review rhythm**.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {

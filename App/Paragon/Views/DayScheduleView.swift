@@ -140,7 +140,7 @@ struct DayScheduleView: View {
     private var header: some View {
         HStack {
             Text("Schedule")
-                .font(.subheadline.weight(.medium))
+                .font(Txt.label.weight(.medium))
             Spacer()
             Button {
                 sheet = .new(defaultStart())
@@ -164,7 +164,7 @@ struct DayScheduleView: View {
                     ForEach(chips) { chip in
                         HStack(spacing: 5) {
                             Circle().fill(chip.color).frame(width: 6, height: 6)
-                            Text(chip.title).font(.caption).lineLimit(1)
+                            Text(chip.title).font(Txt.label).lineLimit(1)
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -211,7 +211,7 @@ struct DayScheduleView: View {
             ForEach(range.lowerBound..<range.upperBound, id: \.self) { hour in
                 HStack(alignment: .top, spacing: 0) {
                     Text(hourText(hour))
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(.tertiary)
                         .frame(width: Self.gutter - 6, alignment: .trailing)
                         .padding(.trailing, 6)
@@ -411,10 +411,10 @@ struct ScheduleItemView: View {
                 .frame(width: 3)
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.title)
-                    .font(.caption.weight(item.isBlock ? .semibold : .regular))
+                    .font(Txt.label.weight(item.isBlock ? .semibold : .regular))
                     .lineLimit(2)
                 Text(item.subtitle)
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -452,7 +452,7 @@ struct TimeBlockSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(block == nil ? "New time block" : "Time block")
-                .font(.headline)
+                .font(Txt.listTitle)
             Form {
                 TextField("Title", text: $title)
                 DatePicker("Starts", selection: $startDate)

@@ -309,7 +309,7 @@ struct PhoneBrowseView: View {
                 // The other way in, and the one that can actually be found: a long press here.
                 // The title in the navigation bar is small and easy to miss (build 117).
                 Text("Build \(BuildStamp.number)")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
@@ -342,7 +342,7 @@ struct PhoneBrowseView: View {
             // gesture, so the title is drawn here instead (build 112).
             ToolbarItem(placement: .principal) {
                 Text("Browse")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .contentShape(Rectangle())
                     .onLongPressGesture(minimumDuration: 1.2) { model.revealWork() }
             }

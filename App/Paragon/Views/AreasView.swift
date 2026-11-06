@@ -89,13 +89,13 @@ struct AreaDashboardView: View {
                 Text("\u{00B7} " + weekly.bandWeek)
                     .foregroundStyle(.secondary)
             }
-            .font(.caption)
+            .font(Txt.label)
             .lineLimit(1)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("area.weekly")
         } else if let caption = weekly.caption(today: .today()) {
             Text(caption)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("area.weekly")
@@ -140,7 +140,7 @@ struct AreaDashboardView: View {
     private var comingLine: some View {
         Label("Some notes are still coming from iCloud. More projects may appear here.",
               systemImage: "icloud")
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(Color.orange)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("area.stillComing")
@@ -152,7 +152,7 @@ struct AreaDashboardView: View {
             if overview.projects.isEmpty {
                 if !stillComing {
                     Text(overview.emptyText)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("area.noProjects")
                 }
@@ -163,7 +163,7 @@ struct AreaDashboardView: View {
             }
             if let over = overview.overText {
                 Text(over)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -203,7 +203,7 @@ struct AreaProjectRow: View {
                 ProjectTile(status: line.status, note: line.note)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(line.note.title)
-                        .font(.subheadline.weight(.semibold))
+                        .font(Txt.label.weight(.semibold))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     need
@@ -247,11 +247,11 @@ struct AreaProjectRow: View {
                 Image(systemName: ChainSymbol.task)
                     .foregroundStyle(ParaKind.project.tint)
             }
-            .font(.caption)
+            .font(Txt.label)
         case .allFinished(let count):
             WrappingHStack(spacing: 6, lineSpacing: 4) {
                 Label(ProjectLine.finishedText(count: count), systemImage: "checkmark.circle.fill")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(ParaKind.project.tint)
                 if isRunning {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
@@ -262,7 +262,7 @@ struct AreaProjectRow: View {
             // Build 279: the open lines are all waiting for somebody else, not finished.
             WrappingHStack(spacing: 6, lineSpacing: 4) {
                 Label(ProjectLine.waitingText(count: count), systemImage: WaitingShowing.symbol)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(ParaKind.project.tint)
                 if isRunning {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
@@ -328,11 +328,11 @@ struct SubAreaRow: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 mark
                 Text(line.note.title)
-                    .font(.subheadline)
+                    .font(Txt.label)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 Text("\u{00B7} " + line.factsText)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize()
                 // At the end, so the facts follow the name instead of standing at the far
@@ -360,7 +360,7 @@ struct SubAreaRow: View {
                 .accessibilityHidden(true)
         } else {
             Image(systemName: ChainSymbol.area)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(ParaKind.area.tint)
         }
     }

@@ -204,7 +204,7 @@ struct InboxTriageView: View {
                          count: nil, systemImage: "tray.full", tint: SidebarSection.inbox.tint)
             Spacer()
             Text("T today · M tomorrow · D done · ⌫ delete")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 12)
@@ -274,7 +274,7 @@ struct InboxRow: View {
                     // reached from the Inbox's **Pick a date**, so this row has to show it.
                     Label(ref.task.dueText ?? due.description,
                           systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .rowTint(due < .today() ? Color.red : .secondary)
                 }
             }
@@ -422,7 +422,7 @@ struct InboxQuadrant: View {
             Image(systemName: symbol)
                 .font(.system(size: 15, weight: .medium))
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(Txt.listSecond.weight(.semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
@@ -481,7 +481,7 @@ struct InboxFileItView: View {
                 .padding(.top, 16)
             if destinations.isEmpty {
                 Text("You have no active projects or areas yet. Make one from a line with the button below.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 16)
                     .padding(.top, 6)
@@ -522,7 +522,7 @@ struct InboxFileItView: View {
     /// point here is that green means project and pink means area.
     private func groupLabel(_ title: String, tint: Color) -> some View {
         Text(title.uppercased())
-            .font(.caption.weight(.semibold))
+            .font(Txt.label.weight(.semibold))
             .tracking(0.6)
             .foregroundStyle(tint)
             .padding(.top, 4)
@@ -533,12 +533,12 @@ struct InboxFileItView: View {
         if let ref = selected {
             VStack(alignment: .leading, spacing: 6) {
                 Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
-                    .font(.title3)
+                    .font(Txt.sectionTitle)
                     .fixedSize(horizontal: false, vertical: true)
                 if let due = ref.task.dueDate {
                     Label(ref.task.dueText ?? due.description,
                           systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(due < .today() ? Color.red : .secondary)
                 }
             }
@@ -547,7 +547,7 @@ struct InboxFileItView: View {
             .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
         } else {
             Text("Pick a line on the left, then click where it should go.")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
@@ -571,7 +571,7 @@ struct InboxFileItView: View {
                 model.selectedNotePath = InboxItems.note(model)?.relativePath
             }
             .buttonStyle(.borderless)
-            .font(.callout)
+            .font(Txt.value)
         }
     }
 
@@ -606,7 +606,7 @@ struct AreaDestinationGroup: View {
                 if !branch.subAreas.isEmpty {
                     Button(action: toggle) {
                         Image(systemName: isFolded ? "chevron.right" : "chevron.down")
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                             .frame(width: 16)
                     }
@@ -654,7 +654,7 @@ struct DestinationRow: View {
                     Text(note.displayTitle)
                         .lineLimit(1)
                     Text(subtitle)
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)

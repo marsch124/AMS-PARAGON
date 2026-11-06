@@ -142,7 +142,7 @@ struct AreaStandardBox: View {
         } else {
             Button(action: begin) {
                 Label(buttonTitle, systemImage: "square.and.pencil")
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(tint)
             }
             .buttonStyle(.plain)
@@ -157,7 +157,7 @@ struct AreaStandardBox: View {
     private var shown: some View {
         if let standard {
             Text(AreaStandard.firstSentence(of: standard))
-                .font(.callout)
+                .font(Txt.value)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
@@ -186,7 +186,7 @@ struct AreaStandardBox: View {
                 .accessibilityIdentifier("area.standard.field")
             if let notice {
                 Text(notice)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("area.standard.notice")

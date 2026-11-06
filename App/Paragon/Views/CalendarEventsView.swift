@@ -14,13 +14,13 @@ struct CalendarEventRows: View {
     var body: some View {
         if model.calendarAccessGranted == false {
             Text("Calendar access is off. Allow it in System Settings › Privacy & Security › Calendars, or turn events off in Settings.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         } else {
             let events = model.events(on: date)
             if events.isEmpty {
                 Text(model.calendarAccessGranted == nil ? "Loading events…" : "No events.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else if compact {
                 // **One list row holding every event, not one row each** (build 213). A `List`
@@ -72,14 +72,14 @@ struct CalendarEventRow: View {
                         .lineLimit(1)
                     if let location = event.location, compact {
                         Text("· \(location)")
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .layoutPriority(-1)
                     }
                     if event.isTimeBlock {
                         Text("block")
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1)
                             .background(event.color.opacity(0.18), in: Capsule())
@@ -87,7 +87,7 @@ struct CalendarEventRow: View {
                 }
                 if let location = event.location, !compact {
                     Text(location)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }

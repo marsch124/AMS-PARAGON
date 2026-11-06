@@ -194,7 +194,7 @@ struct SearchView: View {
                 } label: {
                     Label("Saved searches",
                           systemImage: savedFolded ? "chevron.right" : "chevron.down")
-                        .font(.caption.weight(.semibold))
+                        .font(Txt.label.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -228,7 +228,7 @@ struct SearchView: View {
     /// What the boxes say while they are folded away, so the query is never invisible.
     private func foldedLine(_ query: SearchQuery) -> some View {
         Text(query.summary)
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(.secondary)
             .lineLimit(2)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -296,7 +296,7 @@ struct SearchView: View {
             SectionLabel(title: title, count: nil, tint: tint)
             if let note {
                 Text(note)
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -390,10 +390,10 @@ struct FilterBox: View {
         Button(action: action) {
             HStack(spacing: 5) {
                 Image(systemName: isOn ? "checkmark.square.fill" : "square")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(isOn ? tint : Color.secondary)
                 Text(title)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(isOn ? Color.primary : Color.secondary)
             }
             .padding(.horizontal, 8)
@@ -419,11 +419,11 @@ struct SearchHitRow: View {
             HStack(spacing: 8) {
                 KindBadge(kind: hit.note.declaredKind, size: 20)
                 Text(hit.note.displayTitle)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                 Spacer()
                 if let status = hit.note.status, status != "active" {
                     Text(status.capitalized)
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(hit.note.tint.opacity(0.18), in: Capsule())
@@ -432,13 +432,13 @@ struct SearchHitRow: View {
             }
             ForEach(hit.snippets.prefix(2), id: \.self) { snippet in
                 Text(snippet)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             if !hit.tasks.isEmpty && hit.snippets.isEmpty {
                 Text("\(hit.tasks.count) matching task\(hit.tasks.count == 1 ? "" : "s")")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
         }
@@ -461,7 +461,7 @@ struct SearchHelpView: View {
         List {
             Section {
                 Text("Write a word above, or tick any of the boxes. Ticking two boxes in the same row means either of them; boxes in different rows are added together.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -473,8 +473,8 @@ struct SearchHelpView: View {
                         model.queryText = example.0
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(example.0).font(.system(.caption, design: .monospaced))
-                            Text(example.1).font(.caption).foregroundStyle(.secondary)
+                            Text(example.0).font(Txt.mono)
+                            Text(example.1).font(Txt.label).foregroundStyle(.secondary)
                         }
                     }
                     .buttonStyle(.plain)
@@ -483,7 +483,7 @@ struct SearchHelpView: View {
                 Text("The same thing, typed")
             } footer: {
                 Text("Every box has a word you can type instead: type:, status:, tag: or #tag, area:, in:, due:, is:. A \"quoted phrase\" matches as a whole.")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -515,7 +515,7 @@ struct SavedSearchChip: View {
     var body: some View {
         Button(action: run) {
             Label(search.name, systemImage: "bookmark")
-                .font(.caption)
+                .font(Txt.label)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(isCurrent ? tint.opacity(0.24) : Color.clear, in: Capsule())

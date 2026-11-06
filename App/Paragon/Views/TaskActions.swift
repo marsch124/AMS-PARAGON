@@ -277,7 +277,7 @@ struct TaskTimeButton: View {
                         .rowTint(Color.secondary)
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .monospacedDigit()
             .padding(.horizontal, 7)
             .padding(.vertical, 2)
@@ -315,7 +315,7 @@ struct TaskTimeChoices: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("How long does \u{201C}\(ref.task.title)\u{201D} take?")
-                .font(.callout)
+                .font(Txt.value)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
             WrappingHStack(spacing: 6, lineSpacing: 6) {
@@ -332,13 +332,13 @@ struct TaskTimeChoices: View {
                     model.setMinutes(ref, nil)
                     done()
                 }
-                .font(.caption)
+                .font(Txt.label)
             }
             if let focus, model.canFocus(on: ref) {
                 Divider()
                 Button(action: focus) {
                     Label("Focus on this", systemImage: "timer")
-                        .font(.callout.weight(.semibold))
+                        .font(Txt.value.weight(.semibold))
                         .foregroundStyle(Theme.planBlockTint)
                         .contentShape(Rectangle())
                 }

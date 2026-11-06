@@ -119,7 +119,7 @@ struct StartDayView: View {
                         nothingToPick
                     } else {
                         Text(instructions)
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         group("Marked first last evening", marked)
@@ -191,11 +191,11 @@ struct StartDayView: View {
                 .fixedSize(horizontal: false, vertical: true)
             if untimed > 0 {
                 Text(untimed == 1 ? "One pick has no time and counts as 1 h." : "\(untimed) picks have no time and count as 1 h each.")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
             }
         }
-        .font(.caption)
+        .font(Txt.label)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("startDay.fit")
     }
@@ -239,12 +239,12 @@ struct StartDayView: View {
     private var heading: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Label("Start the day", systemImage: StartDayView.symbol)
-                .font(.headline)
+                .font(Txt.listTitle)
                 .foregroundStyle(tint)
             Spacer(minLength: 0)
             Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
                  ?? day.description)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, isPhone ? 14 : 20)
@@ -279,7 +279,7 @@ struct StartDayView: View {
             VStack(alignment: .leading, spacing: 4) {
                 SectionLabel(title: "Last evening you wrote")
                 Text(lastEveningText)
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(.secondary)
                     .lineLimit(4)
                     .fixedSize(horizontal: false, vertical: true)
@@ -292,7 +292,7 @@ struct StartDayView: View {
             .accessibilityIdentifier("startDay.lastEvening")
         } else if model.dailyNoteIsWaitingForCloud(yesterday) {
             Label("Last evening's note is still coming from iCloud.", systemImage: "icloud")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("startDay.lastEvening")
@@ -309,7 +309,7 @@ struct StartDayView: View {
             WeekGoalLine(goal: goal, identifier: "startDay.weekGoal")
         } else if model.weeklyNoteIsWaitingForCloud(.current()) {
             Label("This week's note is still coming from iCloud.", systemImage: "icloud")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("startDay.weekGoal")
@@ -399,7 +399,7 @@ struct StartDayView: View {
                     addAction()
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title2)
+                        .font(Txt.sectionTitle)
                         .foregroundStyle(canAdd ? tint : Color.secondary.opacity(0.5))
                         .contentShape(Rectangle())
                 }
@@ -411,12 +411,12 @@ struct StartDayView: View {
             }
             if let addNote {
                 Text(addNote)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("Goes to the Inbox, dated today, and is picked for your plan.")
-                    .font(.caption2)
+                    .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
             }
         }
@@ -453,9 +453,9 @@ struct StartDayView: View {
     private var nothingToPick: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Nothing to do today.")
-                .font(.callout.weight(.semibold))
+                .font(Txt.value.weight(.semibold))
             Text("No task is due today or overdue, and no note has a next action. Add one above with +.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -489,9 +489,9 @@ struct StartDayView: View {
             if let start = plannedAt[planBlockTitle(from: ref.task)] {
                 VStack(spacing: 0) {
                     Text("In plan")
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                     Text(PlanBlock.clock(start))
-                        .font(.caption.monospacedDigit())
+                        .font(Txt.label.monospacedDigit())
                 }
                 .foregroundStyle(.secondary)
                 .frame(width: PickButton.largeWidth)

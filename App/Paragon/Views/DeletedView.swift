@@ -24,7 +24,7 @@ struct DeletedView: View {
                         }
                     } footer: {
                         Text("Kept for \(AppModel.deletedKeptForDays) days, then cleared out.")
-                            .font(.caption)
+                            .font(Txt.label)
                     }
                 }
             }
@@ -63,10 +63,10 @@ struct DeletedRow: View {
             TintStripe(color: deleted.kind.tint, height: 34)
             VStack(alignment: .leading, spacing: 3) {
                 Text(deleted.title)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .lineLimit(1)
                 Text("\(deleted.kind.displayName) · \(when)")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 6)

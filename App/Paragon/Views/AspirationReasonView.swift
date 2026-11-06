@@ -181,7 +181,7 @@ struct AspirationReasonBox: View {
         } else {
             Button(action: begin) {
                 Label(buttonTitle, systemImage: "square.and.pencil")
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(tint)
             }
             .buttonStyle(.plain)
@@ -201,7 +201,7 @@ struct AspirationReasonBox: View {
     private var shown: some View {
         if let reason {
             Text(reason)
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(tint)
                 .lineLimit(4)
                 .multilineTextAlignment(.leading)
@@ -213,7 +213,7 @@ struct AspirationReasonBox: View {
             // reason written", which would be an absence drawn for a note that cannot be read
             // yet (builds 100, 261). Orange with the cloud, as Start the day draws the same state.
             Label("Being updated from iCloud. The reason may show here in a moment.", systemImage: "icloud")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(Color.orange)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("aspiration.reason.waiting")
@@ -240,7 +240,7 @@ struct AspirationReasonBox: View {
                 .accessibilityIdentifier("aspiration.reason.field")
             if let notice {
                 Text(notice)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("aspiration.reason.notice")

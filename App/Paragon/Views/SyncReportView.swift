@@ -12,7 +12,7 @@ struct SyncReportView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Label(preview ? "If you sync now" : "Last sync", systemImage: preview ? "eye" : "arrow.triangle.2.circlepath")
-                    .font(.headline)
+                    .font(Txt.listTitle)
                 Spacer()
                 if let finished = report?.finishedAt {
                     Text(finished.formatted(date: .omitted, time: .shortened))
@@ -37,7 +37,7 @@ struct SyncReportView: View {
                             section("Worth knowing", report.warnings, icon: "info.circle", tint: .secondary)
                         }
                         Text("\(report.notesSynced) note\(report.notesSynced == 1 ? "" : "s") take part in the sync. Goals and archived notes never do.")
-                            .font(.caption)
+                            .font(Txt.label)
                             .foregroundStyle(.tertiary)
                     } else {
                         Text("No sync has run yet.")
@@ -50,7 +50,7 @@ struct SyncReportView: View {
             HStack {
                 if preview {
                     Text("Nothing was changed. This was a rehearsal on a copy.")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -97,11 +97,11 @@ struct SyncReportView: View {
     private func section(_ title: String, _ lines: [String], icon: String, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Label(title, systemImage: icon)
-                .font(.subheadline.weight(.medium))
+                .font(Txt.label.weight(.medium))
                 .foregroundStyle(tint)
             ForEach(lines, id: \.self) { line in
                 Text(line)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

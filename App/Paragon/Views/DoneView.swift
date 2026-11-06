@@ -61,7 +61,7 @@ struct DoneView: View {
                         Image(systemName: "checkmark.circle")
                             .foregroundStyle(SidebarSection.done.tint)
                     }
-                    .font(.callout)
+                    .font(Txt.value)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 12)
@@ -164,26 +164,26 @@ private struct DoneDayCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title)
-                .font(.headline)
+                .font(Txt.listTitle)
             // On its own line, never squeezed beside the name in a narrow column (build 138).
             Text(day.factsText)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             if let evening = day.eveningLine {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Image(systemName: CloseDayView.symbol)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(Theme.eveningTint)
                     // The whole line, as he wrote it: it is his own words.
                     Text(evening)
-                        .font(.callout)
+                        .font(Txt.value)
                         .italic()
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else if waiting {
                 Label("Still coming from iCloud", systemImage: "icloud")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
             }
             if !day.served.isEmpty {
@@ -301,7 +301,7 @@ struct DoneSquaresView: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("done.squares")
                 Text(caption(weeks))
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -337,7 +337,7 @@ struct DoneSquaresView: View {
             ZStack(alignment: .topLeading) {
                 ForEach(marks) { mark in
                     Text(monthName(mark.firstDay))
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .fixedSize()

@@ -121,12 +121,12 @@ struct CloseDayView: View {
     private var heading: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Label("Close the day", systemImage: Self.symbol)
-                .font(.headline)
+                .font(Txt.listTitle)
                 .foregroundStyle(tint)
             Spacer(minLength: 0)
             Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
                  ?? day.description)
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, isPhone ? 14 : 20)
@@ -148,7 +148,7 @@ struct CloseDayView: View {
                       systemImage: "checkmark.circle", tint: .green)
             if finished.isEmpty {
                 Text("No task was ticked off today.")
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(model.index.servedCounts(of: finished)) { served in
@@ -175,11 +175,11 @@ struct CloseDayView: View {
                 .padding(.top, model.showsCalendarEvents ? 8 : 0)
             if tomorrowShown.isEmpty {
                 Text("Nothing is planned for tomorrow yet.")
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(.secondary)
             } else {
                 Text("Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ForEach(tomorrowShown) { ref in
@@ -196,7 +196,7 @@ struct CloseDayView: View {
                 }
                 if tomorrowHidden > 0 {
                     Text(tomorrowHidden == 1 ? "…and 1 more next action." : "…and \(tomorrowHidden) more next actions.")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -239,9 +239,9 @@ struct CloseDayView: View {
     private var allClear: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Nothing was left over.")
-                .font(.callout.weight(.semibold))
+                .font(Txt.value.weight(.semibold))
             Text("Everything with a date for today or earlier is done or dropped.")
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -261,7 +261,7 @@ struct CloseDayView: View {
                 Button("Move all \(leftovers.count) to tomorrow") {
                     model.moveTasks(leftovers, to: day.adding(days: 1))
                 }
-                .font(.caption)
+                .font(Txt.label)
                 .padding(.top, 2)
             }
         }
@@ -277,11 +277,11 @@ struct CloseDayView: View {
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
                 .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
             Text("Goes into today's daily note, under **Looking back**.")
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
             if let saveProblem {
                 Text(saveProblem)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -320,7 +320,7 @@ struct CountPill: View {
 
     var body: some View {
         Label(text, systemImage: systemImage)
-            .font(.caption.weight(.semibold))
+            .font(Txt.label.weight(.semibold))
             .foregroundStyle(tint)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
@@ -357,19 +357,19 @@ private struct PlannedWorkedSection: View {
             SectionLabel(title: "Planned and worked")
             if table.isEmpty {
                 Text(emptyMessage)
-                    .font(.callout)
+                    .font(Txt.value)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 grid
                 Text(caption)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let clockOn {
                 Text("The focus timer on \u{201C}\(clockOn)\u{201D} is not stopped yet. Its time is added here when you stop it.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -429,13 +429,13 @@ private struct PlannedWorkedSection: View {
                     .bold()
             }
         }
-        .font(.callout)
+        .font(Txt.value)
     }
 
     /// Spelled like `SectionLabel`, as the drawing has it.
     private func header(_ title: String) -> some View {
         Text(title.uppercased())
-            .font(.caption.weight(.semibold))
+            .font(Txt.label.weight(.semibold))
             .tracking(0.6)
             .foregroundStyle(.secondary)
     }
@@ -499,7 +499,7 @@ struct ServedRow: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
-        .font(.caption.weight(.medium))
+        .font(Txt.label.weight(.medium))
         .foregroundStyle(tint)
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
@@ -513,11 +513,11 @@ struct ServedRow: View {
                 .foregroundStyle(tint)
                 .frame(width: 18)
             Text(served.title)
-                .font(.callout.weight(.medium))
+                .font(Txt.value.weight(.medium))
                 .foregroundStyle(tint)
                 .lineLimit(2)
             Text(served.count == 1 ? "1 task" : "\(served.count) tasks")
-                .font(.callout)
+                .font(Txt.value)
                 .foregroundStyle(.secondary)
             Spacer(minLength: 0)
         }
@@ -583,7 +583,7 @@ private struct LeftoverRow: View {
 
     private func capsule(_ title: String, colour: Color) -> some View {
         Text(title)
-            .font(.caption.weight(.semibold))
+            .font(Txt.label.weight(.semibold))
             .foregroundStyle(colour)
             .padding(.horizontal, 9)
             .padding(.vertical, 3)

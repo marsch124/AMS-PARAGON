@@ -60,7 +60,7 @@ struct GoalHorizonChip: View {
     private func choices(current: GoalHorizon) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("How far ahead is this goal?")
-                .font(.subheadline.weight(.semibold))
+                .font(Txt.label.weight(.semibold))
             ForEach(GoalFields.datedHorizons, id: \.rawValue) { option in
                 row(option, current: current)
             }
@@ -85,7 +85,7 @@ struct GoalHorizonChip: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(option.label)
                     Text(Self.explanation(option))
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

@@ -202,7 +202,7 @@ struct ReviewView: View {
                     // step has not been looked at yet.
                     if isOpen("5") {
                         Button("I looked at all of them") { model.markAllReviewed() }
-                            .font(.caption)
+                            .font(Txt.label)
                             .fixedSize()
                     }
                 }
@@ -383,7 +383,7 @@ struct ReviewOpenAllButton: View {
     var body: some View {
         Button(action: action) {
             Label(words, systemImage: symbol)
-                .font(.callout)
+                .font(Txt.value)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
         }
@@ -462,10 +462,10 @@ struct ReviewSummary: View {
             // The same wording Today uses, so the two screens name a day the same way.
             Text(DateOnly.today().date()?.formatted(.dateTime.weekday(.wide).day().month(.wide))
                  ?? DateOnly.today().description)
-                .font(.headline)
+                .font(Txt.listTitle)
             Text(report.completedLast7Days == 1 ? "1 task finished in the last 7 days"
                                                 : "\(report.completedLast7Days) tasks finished in the last 7 days")
-                .font(.subheadline)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
             WrappingHStack(spacing: 6, lineSpacing: 5) {
                 if worries.isEmpty {
@@ -491,7 +491,7 @@ struct ReviewStat: View {
 
     var body: some View {
         Label(text, systemImage: symbol)
-            .font(.caption)
+            .font(Txt.label)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(tint.opacity(0.16), in: Capsule())
@@ -514,7 +514,7 @@ struct HealthRow: View {
                 Image(systemName: health.needsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle")
                     .rowTint(health.needsAttention ? Color.orange : health.note.tint)
                 Text(health.note.title)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .lineLimit(2)
             }
             if showsStandard {
@@ -544,14 +544,14 @@ struct HealthRow: View {
                     Label(due.description, systemImage: "calendar")
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(.secondary)
             .lineLimit(1)
             if !health.flags.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 3) {
                     ForEach(health.flags, id: \.self) { flag in
                         Text(flag.label)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .onHold ? Color.secondary.opacity(0.15) : Color.orange.opacity(0.18), in: Capsule())
@@ -587,7 +587,7 @@ struct HealthRow: View {
     private var standardLine: some View {
         if let standard = model.standard(of: health.note) {
             Text("Standard: " + AreaStandard.firstSentence(of: standard))
-                .font(.caption)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
@@ -615,11 +615,11 @@ struct GoalHealthRow: View {
                 // he has chosen one (build 276).
                 GoalMark(note: health.note, size: 20)
                 Text(health.note.title)
-                    .font(.headline)
+                    .font(Txt.listTitle)
                     .lineLimit(2)
                 if let horizon = health.note.horizon {
                     Text(horizon.label)
-                        .font(.caption2)
+                        .font(Txt.listSecond)
                         .lineLimit(1)
                         .fixedSize()
                         .padding(.horizontal, 6)
@@ -630,7 +630,7 @@ struct GoalHealthRow: View {
                 Spacer(minLength: 6)
                 if let days = health.daysSinceActivity {
                     Text(days == 0 ? "moved today" : "moved \(days)d ago")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .fixedSize()
@@ -652,14 +652,14 @@ struct GoalHealthRow: View {
                     Label(target.description, systemImage: "flag.checkered")
                 }
             }
-            .font(.caption)
+            .font(Txt.label)
             .foregroundStyle(.secondary)
             .lineLimit(1)
             if !health.flags.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 3) {
                     ForEach(health.flags, id: \.self) { flag in
                         Text(flag.label)
-                            .font(.caption2)
+                            .font(Txt.listSecond)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? health.note.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
@@ -732,13 +732,13 @@ struct ReviewDueRow: View {
                     Text(item.note.displayTitle)
                         .lineLimit(2)
                     Text("\(item.level.label) \u{00B7} \(item.lastText)")
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
                 Spacer(minLength: 6)
                 Text(item.whenText)
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
                     .lineLimit(1)
                     .fixedSize()

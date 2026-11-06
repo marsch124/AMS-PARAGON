@@ -48,7 +48,7 @@ struct TimeBlocksView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(editingID == nil ? "New event in Apple Calendar" : "Edit calendar event")
-                    .font(.subheadline.weight(.medium))
+                    .font(Txt.label.weight(.medium))
                 Spacer()
                 if editingID != nil {
                     Button("Cancel", action: reset)
@@ -95,7 +95,7 @@ struct TimeBlocksView: View {
                 .lineLimit(1...3)
             if model.calendarAccessGranted == false {
                 Text("Calendar access is off. Allow it in System Settings › Privacy & Security › Calendars.")
-                    .font(.caption)
+                    .font(Txt.label)
                     .foregroundStyle(.orange)
             }
         }
@@ -131,7 +131,7 @@ struct TimeBlocksView: View {
                 .frame(width: 8, height: 8)
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 3 }
             Text("\(block.start.formatted(date: .omitted, time: .shortened)) – \(block.end.formatted(date: .omitted, time: .shortened))")
-                .font(.callout.monospacedDigit())
+                .font(Txt.value.monospacedDigit())
                 .foregroundStyle(.secondary)
                 .frame(minWidth: 110, alignment: .leading)
             VStack(alignment: .leading, spacing: 1) {
@@ -140,14 +140,14 @@ struct TimeBlocksView: View {
                     .lineLimit(1)
                 if !block.notes.isEmpty {
                     Text(block.notes)
-                        .font(.caption)
+                        .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
             Spacer(minLength: 0)
             Text(block.calendarTitle)
-                .font(.caption2)
+                .font(Txt.listSecond)
                 .foregroundStyle(.tertiary)
         }
         .contentShape(Rectangle())
