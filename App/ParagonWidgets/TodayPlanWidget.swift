@@ -155,7 +155,7 @@ struct TodayPlanView: View {
 
     private var header: some View {
         HStack(spacing: 5) {
-            Image(systemName: PlanLook.symbol)
+            WidgetMark(name: PlanLook.symbol)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(PlanLook.plan)
             Text("Today's plan")

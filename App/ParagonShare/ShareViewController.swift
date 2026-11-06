@@ -100,7 +100,7 @@ struct ShareCaptureView: View {
                     TextField("Text", text: $text, axis: .vertical)
                         .lineLimit(2...8)
                     if let url {
-                        Label(url.absoluteString, systemImage: "link")
+                        Text(url.absoluteString)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)

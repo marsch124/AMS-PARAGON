@@ -11,6 +11,7 @@
 		156E7AB9FEFEAE96BDD7D5DB /* HowItWorks.md in Resources */ = {isa = PBXBuildFile; fileRef = 6BD311D35F38F0FEFC26141A /* HowItWorks.md */; };
 		22C9DAD4998A986F0473429B /* ParagonWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		257B573BA8DBE27CEC19DF21 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = F7C362F03D42E9BC8FBE7A65 /* ParagonCore */; };
+		2DE65A6140F1B8674A911988 /* AMSIcons in Frameworks */ = {isa = PBXBuildFile; productRef = B6C6B82F7E49A3CAFD602C03 /* AMSIcons */; };
 		3752069BA243D43F74CAC588 /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = B5861B3AD6F50041A1F8A8B9 /* ParagonCore */; };
 		627482B9308CA63E70129D95 /* VersionHistory.md in Resources */ = {isa = PBXBuildFile; fileRef = E6919AFBC2371667D46DD399 /* VersionHistory.md */; };
 		71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = 972619FBA5280A0A9364E4D7 /* ParagonCore */; };
@@ -113,6 +114,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */,
+				2DE65A6140F1B8674A911988 /* AMSIcons in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,6 +250,7 @@
 			name = ParagonWidgets;
 			packageProductDependencies = (
 				972619FBA5280A0A9364E4D7 /* ParagonCore */,
+				B6C6B82F7E49A3CAFD602C03 /* AMSIcons */,
 			);
 			productName = ParagonWidgets;
 			productReference = 1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */;
@@ -845,6 +848,11 @@
 		B5861B3AD6F50041A1F8A8B9 /* ParagonCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ParagonCore;
+		};
+		B6C6B82F7E49A3CAFD602C03 /* AMSIcons */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E694B7E91D997065C1A14207 /* XCRemoteSwiftPackageReference "AMS-Icons" */;
+			productName = AMSIcons;
 		};
 		F7C362F03D42E9BC8FBE7A65 /* ParagonCore */ = {
 			isa = XCSwiftPackageProductDependency;

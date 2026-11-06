@@ -292,7 +292,7 @@ struct ActionsWidgetView: View {
 
     private var header: some View {
         HStack(spacing: 5) {
-            Image(systemName: "circle")
+            WidgetMark(name: "circle")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(WidgetLook.project)
             Text(family == .systemSmall ? "Actions" : "Today's actions")
@@ -313,7 +313,7 @@ struct ActionsWidgetView: View {
     @ViewBuilder
     private var emptyLine: some View {
         if entry.snapshot != nil, entry.folderFound, !(entry.snapshot?.isStale(on: .today()) ?? false) {
-            Label("Nothing due, nothing waiting", systemImage: "checkmark.circle")
+            Label { Text("Nothing due, nothing waiting") } icon: { WidgetMark(name: "checkmark.circle") }
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
@@ -347,7 +347,7 @@ struct ActionRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
-            Image(systemName: WidgetLook.symbol(forKind: item.noteKind))
+            WidgetMark(name: WidgetLook.symbol(forKind: item.noteKind))
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(WidgetLook.tint(forKind: item.noteKind))
             VStack(alignment: .leading, spacing: 0) {
@@ -425,7 +425,7 @@ struct CountLine: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: symbol)
+            WidgetMark(name: symbol)
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(number == 0 ? Color.secondary : tint)
                 .frame(width: 13)

@@ -17,12 +17,16 @@ final class LookRulesTests: XCTestCase {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("App/Paragon", isDirectory: true)
+            .appendingPathComponent("App", isDirectory: true)
     }
 
     /// The one place sizes are allowed: the scale itself. The two markdown renderers take
     /// their numbers from `Txt.Editor`, which is still the scale, through `Font.system(size:)`.
-    private let filesThatMayNameASize: Set<String> = ["Look.swift", "MarkdownSyntaxEditor.swift", "MarkdownPreview.swift"]
+    /// The widgets are their own target with Apple's small widget styles; they keep theirs.
+    private let filesThatMayNameASize: Set<String> = ["Look.swift", "MarkdownSyntaxEditor.swift", "MarkdownPreview.swift",
+                                                       "ParagonWidgets.swift", "TodayPlanWidget.swift", "WidgetMarks.swift",
+                                                       // The share sheet is iPhone-only and uses Apple's text styles, as his brief asks there.
+                                                       "ShareViewController.swift"]
 
     private func swiftFiles() throws -> [URL] {
         let folder = appFolder
