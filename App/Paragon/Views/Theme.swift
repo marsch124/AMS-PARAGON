@@ -875,6 +875,8 @@ struct TaskTray: View {
                 .lineLimit(1)
         }
         .font(Txt.label)
+        // 1.0: a tile is never wider than a phone; a long title truncates instead.
+        .frame(maxWidth: 340, alignment: .leading)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .overlay(

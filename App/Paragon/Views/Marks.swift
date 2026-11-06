@@ -95,6 +95,8 @@ enum Marks {
         "arrow.turn.left.up": .init(kind: .app(.undo)),
         "circle.fill": .init(kind: .app(.dot)),
         "lock": .init(kind: .app(.lock)),
+        "square": .init(kind: .control(.circle)),
+        "checkmark.square.fill": .init(kind: .control(.ticked)),
         "minus.circle": .init(kind: .app(.minus)),
         "square.grid.2x2": .init(kind: .app(.area)),
         "questionmark.folder": .init(kind: .app(.question)),
@@ -149,14 +151,31 @@ struct MarkImage: View {
     }
 
     var body: some View {
-        let ref = Marks.ref(name)
-        Group {
-            switch ref.kind {
-            case .app(let mark): AppMarkView(mark, size: size)
-            case .control(let mark): ControlMarkView(mark, size: size)
-            }
-        }
-        .rotationEffect(.degrees(ref.rotation))
+        // A template image rather than a stroked shape: a macOS toolbar, a menu, a context
+        // menu and the iPhone's tab bar draw only images, and a shape there came out blank
+        // (the first pictures of build 280). The image is drawn by a handler, so it is crisp
+        // at any scale, and it takes the colour of the text around it as the symbol did.
+        Marks.templateImage(name, size: size)
+            .renderingMode(.template)
+            .resizable()
+            .frame(width: size, height: size)
+    }
+}
+
+extension Marks {
+    /// One image per name and size, drawn once.
+    private static var cache: [String: Image] = [:]
+
+    static func templateImage(_ name: String, size: CGFloat) -> Image {
+        let key = "\(name)@\(size)"
+        if let done = cache[key] { return done }
+        #if canImport(UIKit)
+        let made = image(name, size: size)
+        #else
+        let made = Image(nsImage: nsImage(name, size: size))
+        #endif
+        cache[key] = made
+        return made
     }
 }
 

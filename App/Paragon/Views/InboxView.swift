@@ -203,9 +203,12 @@ struct InboxTriageView: View {
             SectionLabel(title: items.count == 1 ? "1 to sort" : "\(items.count) to sort",
                          count: nil, markName: "tray.full", tint: SidebarSection.inbox.tint)
             Spacer()
+            #if os(macOS)
+            // The keys exist on the Mac only; on the phone the line only wrapped beside the heading.
             Text("T today · M tomorrow · D done · ⌫ delete")
                 .font(Txt.listSecond)
                 .foregroundStyle(.tertiary)
+            #endif
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)

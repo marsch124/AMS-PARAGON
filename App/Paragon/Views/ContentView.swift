@@ -445,6 +445,7 @@ struct SidebarView: View {
                     .accessibilityIdentifier("sidebar.version")
             }
             .padding(.vertical, 4)
+            .background(.bar)
         }
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)

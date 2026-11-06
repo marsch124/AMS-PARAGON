@@ -262,6 +262,8 @@ struct SheetBar: View {
     var canAct = true
     /// What the screen tests call the doing button; the Quick capture sheet keeps its old name.
     var actionIdentifier = "sheet.action"
+    /// False when the content carries its own doing button (the capture inside New note).
+    var showsAction = true
     let cancel: () -> Void
     let act: () -> Void
 
@@ -276,21 +278,23 @@ struct SheetBar: View {
                 .keyboardShortcut(.cancelAction)
                 .controlSize(.large)
                 .accessibilityIdentifier("sheet.cancel")
-            Button(actionTitle, action: act)
-                .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
-                .tint(tint)
-                .controlSize(.large)
-                .disabled(!canAct)
-                .accessibilityIdentifier(actionIdentifier)
-            // ⌘S saves too. A button carries one shortcut, so the second lives on a button
-            // that takes no space; it is still a button, so the key reaches it.
-            Button("Save", action: act)
-                .keyboardShortcut("s", modifiers: .command)
-                .disabled(!canAct)
-                .frame(width: 0, height: 0)
-                .opacity(0)
-                .accessibilityHidden(true)
+            if showsAction {
+                Button(actionTitle, action: act)
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .tint(tint)
+                    .controlSize(.large)
+                    .disabled(!canAct)
+                    .accessibilityIdentifier(actionIdentifier)
+                // ⌘S saves too. A button carries one shortcut, so the second lives on a button
+                // that takes no space; it is still a button, so the key reaches it.
+                Button("Save", action: act)
+                    .keyboardShortcut("s", modifiers: .command)
+                    .disabled(!canAct)
+                    .frame(width: 0, height: 0)
+                    .opacity(0)
+                    .accessibilityHidden(true)
+            }
         }
     }
 }
@@ -304,6 +308,7 @@ struct SheetChrome: ViewModifier {
     let actionTitle: String
     var canAct = true
     var actionIdentifier = "sheet.action"
+    var showsAction = true
     let cancel: () -> Void
     let act: () -> Void
 
@@ -311,7 +316,7 @@ struct SheetChrome: ViewModifier {
         #if os(macOS)
         VStack(spacing: 0) {
             SheetBar(title: title, tint: tint, actionTitle: actionTitle, canAct: canAct,
-                     actionIdentifier: actionIdentifier, cancel: cancel, act: act)
+                     actionIdentifier: actionIdentifier, showsAction: showsAction, cancel: cancel, act: act)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
             Divider()
@@ -327,12 +332,14 @@ struct SheetChrome: ViewModifier {
                         Button("Cancel", action: cancel)
                             .accessibilityIdentifier("sheet.cancel")
                     }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(actionTitle, action: act)
-                            .fontWeight(.semibold)
-                            .tint(tint)
-                            .disabled(!canAct)
-                            .accessibilityIdentifier(actionIdentifier)
+                    if showsAction {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(actionTitle, action: act)
+                                .fontWeight(.semibold)
+                                .tint(tint)
+                                .disabled(!canAct)
+                                .accessibilityIdentifier(actionIdentifier)
+                        }
                     }
                 }
         }
@@ -343,10 +350,11 @@ struct SheetChrome: ViewModifier {
 extension View {
     /// Gives an edit sheet its Cancel and doing button, the keys that drive them, and its title.
     func sheetChrome(title: String, tint: Color, actionTitle: String, canAct: Bool = true,
-                     actionIdentifier: String = "sheet.action",
+                     actionIdentifier: String = "sheet.action", showsAction: Bool = true,
                      cancel: @escaping () -> Void, act: @escaping () -> Void) -> some View {
         modifier(SheetChrome(title: title, tint: tint, actionTitle: actionTitle, canAct: canAct,
-                             actionIdentifier: actionIdentifier, cancel: cancel, act: act))
+                             actionIdentifier: actionIdentifier, showsAction: showsAction,
+                             cancel: cancel, act: act))
     }
 }
 
