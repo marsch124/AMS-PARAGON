@@ -4861,3 +4861,49 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
 All five of the 14 September list shipped: the Map (170), the Weekly review (171), the review
 rhythm (172), saved searches (173) and the iPhone widget (174).
 
+
+## The look (build 280, 6 November 2026)
+
+His brief: "make it a real Apple app" — look and feel only, every function, setting and
+shortcut untouched. He picked **look B, coloured panels with meaning**, from a picture of
+three (`Work/look-1.0/design/looks.png`); the spec is `Docs/Look.md` and the design lead's
+system `Work/look-1.0/design/design-system.md`; the walk list of every screen, sheet and menu
+is `Work/look-1.0/design/screens.md`; the pictures before and after are under `Work/look-1.0/`.
+
+- **One type scale: `Txt` in `Views/Look.swift`.** Mac: page title 26 bold, section heading
+  17 semibold in the part's colour, text 15, label 12 soft, lists 13 / 11. iPhone: Apple's
+  text styles. The editor draws from `Txt.Editor` (15; headings 22 / 18 / 15; code 14), the
+  same numbers in Edit (`MarkdownSyntaxEditor`) and Read (`MarkdownPreview`).
+  **`LookRulesTests` (Core) fails any `.font(…)` that is not `Txt.…` and any `size:` outside
+  Look.swift and the two renderers.** The sweep of 6 November mapped the old styles blindly
+  (caption → label, headline → listTitle, callout/body → value …); a screen that looks off is
+  most likely one of those blind mappings.
+- **No stock icons.** `Views/Marks.swift` maps every old SF Symbol *name* to a hand-drawn mark
+  in the AMS-Icons package (`AppMark`, 66 marks drawn for this build, plus `ControlMark`);
+  `MarkImage(name)` replaces `Image(systemName:)`, `MarkLabel(title, name)` replaces
+  `Label(_:systemImage:)`, and `systemImage` properties are now `markName`. The old names stay
+  as the names. A name with no drawing draws the dot and prints a line in a debug build.
+  `Marks.image` (UIKit, the tab bar) and `Marks.nsImage` (the menu bar) render a mark to a
+  template image. The widgets have their own `WidgetMark`. `LookRulesTests` fails on
+  `Image(systemName:`, `systemImage:` and `systemSymbolName:` anywhere under `App/`. A
+  user's own note icon from Apple's symbols (the icon picker) is drawn by the package and is
+  his choice, not the app's icon.
+- **Colour with meaning.** The colour sets kept their meanings; GoalTint, InboxTint and
+  MorningTint day shades were darkened for 17-pt headings on white, and `WidgetLook` takes the
+  same values. `SectionLabel` is `Heading` (17 in the part's colour; nil tint → `Theme.soft`);
+  `ModeAccent` is a no-op; panels are `.panel(tint)` (surface + 7 % / 13 % tint, 1-pt line at
+  night). The note header is the title at 26 and a facts panel (`NoteHeader.facts`); the chips
+  are bordered (`.menuStyle(.button)`, `.buttonStyle(.bordered)`, no `.menuIndicator(.hidden)`).
+- **Sheets:** `.sheetChrome(title:tint:actionTitle:…)` (Look.swift) puts Cancel and the doing
+  button at the top right on the Mac (Escape, Return, ⌘S) and in the iPhone's navigation bar.
+  `SheetFooter` is no longer used. The iPhone's own Quick capture screen keeps its Save bar.
+  `sheet.cancel` / `sheet.action` keep their names; the Mac capture sheet's Save is
+  `capture.save` (`actionIdentifier`).
+- **Rows:** `NoteRow` is one title, one `secondLine` of at most two facts, an 8-pt dot
+  (`TintStripe` now draws the dot). Browse on the iPhone has a large title; the Work long
+  press is on the version row (`browse.version`). The version shows as `AppVersion.text`,
+  "1.0 (280)" (`sidebar.version`); `MARKETING_VERSION` is 1.0.
+- **Kept where he placed them:** Start the day / Close the day on Today's date row, Show all
+  in the Goals header, "+" over the list column.
+- Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
+  drive the local Mac build; never `open amspara://` (it opens his real app).
