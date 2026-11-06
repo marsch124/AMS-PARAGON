@@ -1297,7 +1297,7 @@ struct KindBadge: View {
 
     var body: some View {
         Image(systemName: systemImage ?? SidebarSection.kind(kind).systemImage)
-            .font(.system(size: size * 0.5, weight: .semibold))
+            .font(Txt.list.weight(.semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             .background(tint ?? kind.tint, in: Circle())

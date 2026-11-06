@@ -93,6 +93,11 @@ enum Txt {
         static let paragraphSpacing: CGFloat = 8
     }
     #endif
+
+    /// The Map draws at a zoom of its own; its box titles and labels scale with it, from
+    /// Apple's list sizes. Nothing on the Map is drawn under 11 points at zoom 1.
+    static func mapTitle(_ zoom: CGFloat) -> Font { .system(size: 12.5 * zoom, weight: .semibold) }
+    static func mapLabel(_ zoom: CGFloat) -> Font { .system(size: 11 * zoom) }
 }
 
 extension Theme {

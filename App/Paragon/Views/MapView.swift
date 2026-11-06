@@ -645,10 +645,10 @@ struct MapNodeView: View {
                       tint: chainTint(for: note))
             VStack(alignment: .leading, spacing: 1) {
                 Text(note.displayTitle)
-                    .font(.system(size: 12.5 * zoom, weight: .semibold))
+                    .font(Txt.mapTitle(zoom))
                     .lineLimit(1)
                 Text(subtitle(for: note))
-                    .font(.system(size: 10 * zoom))
+                    .font(Txt.mapLabel(zoom))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -663,14 +663,14 @@ struct MapNodeView: View {
     private func groupCard(_ group: MapNode.Group) -> some View {
         HStack(spacing: 8 * zoom) {
             Image(systemName: group == .archive ? "archivebox" : "questionmark.folder")
-                .font(.system(size: 12 * zoom, weight: .semibold))
+                .font(Txt.mapTitle(zoom))
                 .foregroundStyle(node.tint)
             VStack(alignment: .leading, spacing: 1) {
                 Text(group.title)
-                    .font(.system(size: 12 * zoom, weight: .semibold))
+                    .font(Txt.mapTitle(zoom))
                     .lineLimit(2)
                 Text("\(node.children.count) note\(node.children.count == 1 ? "" : "s")")
-                    .font(.system(size: 10 * zoom))
+                    .font(Txt.mapLabel(zoom))
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
@@ -684,15 +684,15 @@ struct MapNodeView: View {
     private func chip(icon: String, title: String, detail: String?, tint: Color) -> some View {
         HStack(spacing: 6 * zoom) {
             Image(systemName: icon)
-                .font(.system(size: 10 * zoom))
+                .font(Txt.mapLabel(zoom))
                 .foregroundStyle(tint)
             Text(title)
-                .font(.system(size: 11 * zoom))
+                .font(Txt.mapLabel(zoom))
                 .lineLimit(1)
             Spacer(minLength: 0)
             if let detail {
                 Text(detail)
-                    .font(.system(size: 9 * zoom))
+                    .font(Txt.mapLabel(zoom))
                     .foregroundStyle(.secondary)
             }
         }

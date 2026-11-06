@@ -564,7 +564,7 @@ struct NoteEditorView: View {
                 snippetMenu(iconOnly: true)
                 Button(action: addTask) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 22))
+                        .font(Txt.pageTitle)
                         .foregroundStyle(canAdd ? ParaKind.project.tint : Color.secondary.opacity(0.35))
                 }
                 .buttonStyle(.plain)
@@ -1714,7 +1714,7 @@ struct TaskSyntaxButton: View {
             showing = true
         } label: {
             Image(systemName: "info.circle")
-                .font(.system(size: 14))
+                .font(Txt.list)
                 .foregroundStyle(.secondary)
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())

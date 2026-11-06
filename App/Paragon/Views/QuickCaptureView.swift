@@ -314,7 +314,7 @@ struct QuickCaptureView: View {
                     .font(Txt.listTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
-                    .background(canSave ? SidebarSection.inbox.tint : Color.secondary.opacity(0.3),
+                    .background(canSave ? SidebarSection.inbox.tint : SidebarSection.inbox.tint.opacity(0.4),
                                 in: RoundedRectangle(cornerRadius: 11))
                     .foregroundStyle(.white)
             }

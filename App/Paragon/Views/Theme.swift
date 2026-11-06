@@ -281,7 +281,7 @@ struct DateTimeChoiceView: View {
                     Button("Cancel", action: cancel)
                         .accessibilityIdentifier("date.cancel")
                 }
-                Button("Set", action: set)
+                Button("Set", action: set).buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(!canSet)
                     .accessibilityIdentifier("date.set")
@@ -303,7 +303,7 @@ struct DateTimeChoiceView: View {
             if offersTime {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("Set", action: set)
+                    Button("Set", action: set).buttonStyle(.borderedProminent)
                         .disabled(!canSet)
                 }
             }
@@ -487,7 +487,7 @@ struct SheetFooter: View {
                     .font(Txt.listTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(canAct ? tint : Color.secondary.opacity(0.3),
+                    .background(canAct ? tint : tint.opacity(0.4),
                                 in: RoundedRectangle(cornerRadius: 12))
                     .foregroundStyle(.white)
             }
@@ -568,9 +568,9 @@ struct MoveToArchiveIcon: View {
     var body: some View {
         VStack(spacing: 0) {
             Image(systemName: "arrow.down")
-                .font(.system(size: 7, weight: .bold))
+                .font(Txt.listSecond.weight(.bold))
             Image(systemName: "archivebox")
-                .font(.system(size: 12))
+                .font(Txt.list)
         }
         .frame(height: 21)
         .accessibilityLabel("Move to the Archive")
@@ -588,7 +588,7 @@ struct StateToggle: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 13, weight: .semibold))
+                .font(Txt.list.weight(.semibold))
                 .frame(width: 30, height: 26)
                 .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
                 .background { fill }

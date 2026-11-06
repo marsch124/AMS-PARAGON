@@ -221,7 +221,7 @@ struct ProjectGroupHeader: View {
         Button(action: toggle) {
             HStack(spacing: 8) {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(Txt.listSecond.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(open ? 90 : 0))
                 badge
@@ -294,14 +294,14 @@ struct ProjectGroupHeader: View {
         case .noGoal:
             // Dashed and grey: not connected, as on the Map (build 82).
             Image(systemName: ChainSymbol.datedGoal)
-                .font(.system(size: 10, weight: .semibold))
+                .font(Txt.listSecond.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .frame(width: 20, height: 20)
                 .overlay(Circle().strokeBorder(Color.secondary.opacity(0.7),
                                                style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         case .ended(let status):
             Image(systemName: status.systemImage)
-                .font(.system(size: 14, weight: .semibold))
+                .font(Txt.listTitle)
                 .foregroundStyle(endedTint(status))
                 .frame(width: 20, height: 20)
         }
@@ -727,10 +727,10 @@ struct ProjectTile: View {
     private var mark: some View {
         if let emoji {
             Text(emoji)
-                .font(.system(size: 19))
+                .font(Txt.sectionTitle)
         } else {
             Image(systemName: ChainSymbol.project)
-                .font(.system(size: 14, weight: .semibold))
+                .font(Txt.listTitle)
                 .rowTint(tint)
         }
     }

@@ -420,7 +420,7 @@ struct InboxQuadrant: View {
     private func face(_ symbol: String, _ title: String, isOn: Bool, dashed: Bool) -> some View {
         VStack(spacing: 3) {
             Image(systemName: symbol)
-                .font(.system(size: 15, weight: .medium))
+                .font(Txt.value.weight(.medium))
             Text(title)
                 .font(Txt.listSecond.weight(.semibold))
                 .lineLimit(1)

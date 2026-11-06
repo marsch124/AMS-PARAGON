@@ -134,11 +134,11 @@ struct ParagonProvider: TimelineProvider {
 /// Not carried: the deeper gold of an aspiration (`AspirationTint`). The snapshot says whether
 /// an action serves a goal, not which kind of goal, so the widget draws both in `GoalTint`.
 enum WidgetLook {
-    static let goal = Color(lightHex: 0xA7811A, darkHex: 0xE5BE55)       // GoalTint
+    static let goal = Color(lightHex: 0x8F6E10, darkHex: 0xE5BE55)       // GoalTint
     static let project = Color(lightHex: 0x2E7D5B, darkHex: 0x5FBF92)    // ProjectTint
     static let area = Color(lightHex: 0xC2417C, darkHex: 0xF07FB2)       // AreaTint
     static let resource = Color(lightHex: 0x2C6FB5, darkHex: 0x6FAEE8)   // ResourceTint
-    static let inbox = Color(lightHex: 0xC2701B, darkHex: 0xE8A053)      // InboxTint
+    static let inbox = Color(lightHex: 0xB0631A, darkHex: 0xEBA45A)      // InboxTint
     static let calendar = Color(lightHex: 0x6B4EA8, darkHex: 0xA98FE0)   // CalendarTint
     static let archive = Color(lightHex: 0x6E6E73, darkHex: 0x9A9AA2)    // ArchiveTint
     static let attention = Color.orange
