@@ -40,7 +40,7 @@ The version is shown as 1.0 (280) at the foot of the Mac sidebar and at the foot
 
 **Hand-drawn icons everywhere.** Before, the app, the widgets and the share sheet used Apple's stock symbols. Now every icon is a hand-drawn mark from the AMS-Icons package, drawn on one grid with one line weight and round ends. There is no stock symbol and no emoji left. The icon you choose for a note from Apple's symbols in the icon picker still works. That is your choice, not the app's.
 
-**On the iPhone.** Browse now has a large title that shrinks when you scroll. The long press that reveals Work is now on the version line at the foot of Browse, because the title could not take it. The tab bar icons are the hand-drawn marks too.
+**On the iPhone.** Browse now has a large title that shrinks when you scroll. The long press that reveals Work is now on the version line at the foot of Browse, because the title could not take it. The tab bar icons are the hand-drawn marks too. At the top of each tab, **New note** and **Sync with Reminders** are now hand-drawn icons in the tab's colour, where they used to be words; the buttons of each tab wear that colour as well.
 
 **The version.** It shows as "PARAGON 1.0 (280)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Before, it showed "Build 279". It is not in Settings.
 
