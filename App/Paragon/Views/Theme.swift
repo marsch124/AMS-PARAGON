@@ -47,28 +47,17 @@ enum Theme {
 struct SectionLabel: View {
     let title: String
     var count: Int?
+    /// Kept for the callers that still name one; 1.0 draws no symbol beside a heading.
     var systemImage: String?
-    var tint: Color = .secondary
+    /// The part's colour (1.0): a heading pops in its part's colour. Nil for the few groups
+    /// that belong to no part, which take the quiet grey.
+    var tint: Color? = nil
 
     var body: some View {
         HStack(spacing: 6) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .foregroundStyle(tint)
-            }
-            Text(title.uppercased())
-                .font(Txt.label.weight(.semibold))
-                .tracking(0.6)
-            if let count, count > 0 {
-                Text("\(count)")
-                    .font(Txt.listSecond.monospacedDigit())
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
-                    .background(.quaternary, in: Capsule())
-            }
+            Heading(text: title, color: tint ?? Theme.soft, count: count)
             Spacer(minLength: 0)
         }
-        .foregroundStyle(.secondary)
     }
 }
 
@@ -106,21 +95,27 @@ struct EmptyStateView: View {
     var action: (() -> Void)?
 
     var body: some View {
-        VStack(spacing: 12) {
+        // 1.0: one calm line and the part's icon. The explanation stays, small and quiet;
+        // the way in (the New note button) is a bordered button, never a loud one.
+        VStack(spacing: 8) {
             Image(systemName: systemImage)
-                .font(.system(size: 38, weight: .light))
-                .foregroundStyle(tint.opacity(0.8))
+                .font(Txt.sectionTitle)
+                .imageScale(.large)
+                .foregroundStyle(tint.opacity(0.6))
+                .padding(.bottom, 2)
             Text(title)
-                .font(Txt.listTitle)
-            Text(message)
                 .font(Txt.value)
                 .foregroundStyle(.secondary)
+            Text(message)
+                .font(Txt.label)
+                .foregroundStyle(Theme.soft)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 380)
+                .frame(maxWidth: 320)
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .buttonStyle(.borderedProminent)
-                    .padding(.top, 2)
+                    .buttonStyle(.bordered)
+                    .tint(tint)
+                    .padding(.top, 4)
             }
         }
         .padding(28)
@@ -162,13 +157,9 @@ struct ModeAccent: ViewModifier {
     let tint: Color
 
     func body(content: Content) -> some View {
+        // 1.0 (look B): the wash over the whole column is gone. Colour now sits on the panels
+        // that mean something — the facts, the tasks, the linked notes — not over the words.
         content
-            .background {
-                // One even tint over the whole column, at the strength he picked from the
-                // preview. The gradient at the top went out in build 110: he wanted the colour
-                // to sit evenly rather than pool under the toolbar.
-                tint.opacity(0.085).allowsHitTesting(false)
-            }
     }
 }
 
@@ -656,7 +647,7 @@ struct FoldButton<Label: View>: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(Txt.list.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(isOpen ? 90 : 0))
                 label()

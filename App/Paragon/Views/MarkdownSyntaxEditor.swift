@@ -75,22 +75,25 @@ struct LinkCompletion: Equatable {
 
 /// Turns the spans from the Core highlighter into text attributes.
 enum MarkdownAttributes {
-    static let baseSize: CGFloat = 14
-    static let lineSpacing: CGFloat = 3.5
+    // 1.0: the editor reads like a good book — the one scale in `Txt.Editor`: text 15, the
+    // headings stepped 22 / 18 / 15 semibold, code 14 in Apple's monospaced font, and
+    // comfortable line spacing. Edit and Read draw with the same numbers.
+    static var baseSize: CGFloat { Txt.Editor.text }
+    static var lineSpacing: CGFloat { Txt.Editor.lineSpacing }
 
     static var baseFont: PlatformFont { .systemFont(ofSize: baseSize) }
-    static var monospaceFont: PlatformFont { .monospacedSystemFont(ofSize: baseSize - 1, weight: .regular) }
+    static var monospaceFont: PlatformFont { .monospacedSystemFont(ofSize: Txt.Editor.code, weight: .regular) }
 
     static func headingFont(level: Int) -> PlatformFont {
-        let sizes: [CGFloat] = [baseSize + 9, baseSize + 6, baseSize + 3, baseSize + 1, baseSize, baseSize]
+        let sizes: [CGFloat] = [Txt.Editor.h1, Txt.Editor.h2, Txt.Editor.h3, baseSize, baseSize, baseSize]
         let size = sizes[min(max(level, 1), 6) - 1]
-        return .systemFont(ofSize: size, weight: level <= 2 ? .bold : .semibold)
+        return .systemFont(ofSize: size, weight: .semibold)
     }
 
     static var paragraphStyle: NSParagraphStyle {
         let style = NSMutableParagraphStyle()
         style.lineSpacing = lineSpacing
-        style.paragraphSpacing = 2
+        style.paragraphSpacing = Txt.Editor.paragraphSpacing
         return style
     }
 

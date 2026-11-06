@@ -275,7 +275,7 @@ struct NoteTagsChip: View {
                 .contentShape(Rectangle())
                 .helpWhenClosed("Add or remove this note's tags", open: showing)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .foregroundStyle(live.tags.isEmpty ? Color.secondary : SidebarSection.tags.tint)
         .popover(isPresented: $showing) {
             TagChoices(model: model, title: "Tags on this note", chosen: chosen)

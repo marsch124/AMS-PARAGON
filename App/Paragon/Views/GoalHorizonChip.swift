@@ -39,7 +39,7 @@ struct GoalHorizonChip: View {
                 .helpWhenClosed("How far ahead this goal reaches: this year, or a longer time.",
                                 open: picking)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .accessibilityLabel(Text(Self.spoken(current)))
         .accessibilityIdentifier("goal.horizon")
         .popover(isPresented: $picking) {

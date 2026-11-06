@@ -1163,7 +1163,6 @@ struct NoteStatusChip: View {
                 .font(Txt.label)
                 .foregroundStyle(tint(for: status))
         }
-        .menuStyle(.borderlessButton)
         .fixedSize()
         .help("How this note stands. Done means it delivered; Missed means it is over and did not happen; Dropped means you called it off.")
     }
@@ -1598,7 +1597,7 @@ struct LookedAtChip: View {
                     .helpWhenClosed("When you last looked at this, how often it gets a look, and a button to say you looked at it today.",
                                     open: showingBox)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.bordered)
             .accessibilityLabel(Text(due.lookedAtText))
             // `note.lookedAt` on every kind it is drawn on, never `goal.…`: an area carries it
             // too, and a name that says "goal" on an area would be a name that lies (build 196).

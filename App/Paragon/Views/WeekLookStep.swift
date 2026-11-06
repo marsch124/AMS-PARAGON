@@ -91,7 +91,7 @@ struct WeekLookStep: View {
                 EndedProjectRow(project: project, weekWords: weekWords)
             }
             if !look.finished.isEmpty {
-                SectionLabel(title: "What it served")
+                SectionLabel(title: "What it served", tint: SidebarSection.review.tint)
                     .padding(.top, 4)
                 ForEach(servedShown(look)) { served in
                     ServedRow(served: served)

@@ -213,7 +213,6 @@ struct ProjectAreaChip: View {
             Label(title, systemImage: ChainSymbol.area)
                 .lineLimit(1)
         }
-        .menuIndicator(.hidden)
         // On the chip itself, never on the row: the row is a `WrappingHStack` (build 250).
         .fixedSize()
         .foregroundStyle(tint)

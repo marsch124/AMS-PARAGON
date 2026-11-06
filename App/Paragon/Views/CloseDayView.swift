@@ -140,7 +140,7 @@ struct CloseDayView: View {
     @ViewBuilder
     private var whatYouDid: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title: "What you did today")
+            SectionLabel(title: "What you did today", tint: Theme.eveningTint)
             // The count once, as the green capsule it has been since build 223; the section
             // headings below carry their own counts, so the old row of two capsules would only
             // have repeated them (build 169).
@@ -168,10 +168,10 @@ struct CloseDayView: View {
             // it were calendar events, and one heading over both the events and the actions
             // could only be true of one of them.
             if model.showsCalendarEvents {
-                SectionLabel(title: "Tomorrow's calendar events · " + tomorrowText)
+                SectionLabel(title: "Tomorrow's calendar events · " + tomorrowText, tint: Theme.eveningTint)
                 CalendarEventRows(date: tomorrow, compact: true)
             }
-            SectionLabel(title: "To do tomorrow")
+            SectionLabel(title: "To do tomorrow", tint: Theme.eveningTint)
                 .padding(.top, model.showsCalendarEvents ? 8 : 0)
             if tomorrowShown.isEmpty {
                 Text("Nothing is planned for tomorrow yet.")
@@ -249,7 +249,7 @@ struct CloseDayView: View {
 
     private var didNotHappen: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title: "Did not happen", count: leftovers.count)
+            SectionLabel(title: "Did not happen", count: leftovers.count, tint: Theme.eveningTint)
             // Real `TaskRow`s: a tick here ticks the task in its own note, and the task menu and
             // the date popover come with it. Build 149's rule — reach for `TaskRow` for any list
             // of tasks, because a second one only repeats work and then drifts. Its `.draggable`
@@ -269,7 +269,7 @@ struct CloseDayView: View {
 
     private var lookingBackField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(title: "How was today?")
+            SectionLabel(title: "How was today?", tint: Theme.eveningTint)
             TextField("One line, if you feel like it", text: $lookingBack, axis: .vertical)
                 .lineLimit(1...5)
                 .textFieldStyle(.plain)
@@ -354,7 +354,7 @@ private struct PlannedWorkedSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title: "Planned and worked")
+            SectionLabel(title: "Planned and worked", tint: Theme.eveningTint)
             if table.isEmpty {
                 Text(emptyMessage)
                     .font(Txt.value)

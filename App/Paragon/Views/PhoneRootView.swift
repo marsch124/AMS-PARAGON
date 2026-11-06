@@ -308,7 +308,7 @@ struct PhoneBrowseView: View {
             Section {
                 // The other way in, and the one that can actually be found: a long press here.
                 // The title in the navigation bar is small and easy to miss (build 117).
-                Text("Build \(BuildStamp.number)")
+                Text("PARAGON \(AppVersion.text)")
                     .font(Txt.label)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)

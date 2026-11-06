@@ -288,7 +288,7 @@ struct DoneSquaresView: View {
             // The whole line is the button, so a press anywhere on it folds — a short button
             // beside a `Spacer` gets a wrong frame on the Mac (build 247).
             FoldButton(isOpen: squaresOpen, accessibilityName: "Last 12 weeks") {
-                SectionLabel(title: "Last \(DoneDiary.weeks) weeks")
+                SectionLabel(title: "Last \(DoneDiary.weeks) weeks", tint: SidebarSection.done.tint)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .accessibilityIdentifier("done.squares.fold")

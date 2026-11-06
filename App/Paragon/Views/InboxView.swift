@@ -476,7 +476,7 @@ struct InboxFileItView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 10)
             }
-            SectionLabel(title: destinationsTitle, count: nil, systemImage: nil)
+            SectionLabel(title: destinationsTitle, count: nil, systemImage: nil, tint: SidebarSection.inbox.tint)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
             if destinations.isEmpty {

@@ -304,7 +304,7 @@ struct NoteEditorView: View {
         }
         // The phone has no third column, so the note screen itself carries the section's
         // colour (build 111). Same tint, same rule as the Mac's right-hand panel.
-        .modeAccent(model.section?.tint ?? .secondary)
+
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 Divider()
@@ -409,17 +409,17 @@ struct NoteEditorView: View {
                     if showLinks {
                         VStack(alignment: .leading, spacing: 8) {
                             if !linksTo.isEmpty {
-                                SectionLabel(title: "Links to", count: linksTo.count, systemImage: "arrow.up.right")
+                                SectionLabel(title: "Links to", count: linksTo.count, systemImage: "arrow.up.right", tint: note.tint)
                                     .font(Txt.label)
                                 LinkedNotesList(notes: linksTo)
                             }
                             if !notYetMade.isEmpty {
-                                SectionLabel(title: "Not made yet", count: notYetMade.count, systemImage: "plus.circle")
+                                SectionLabel(title: "Not made yet", count: notYetMade.count, systemImage: "plus.circle", tint: note.tint)
                                     .font(Txt.label)
                                 MissingLinksList(titles: notYetMade, notePath: note.relativePath)
                             }
                             if !linkedFrom.isEmpty {
-                                SectionLabel(title: "Linked from", count: linkedFrom.count, systemImage: "arrow.down.left")
+                                SectionLabel(title: "Linked from", count: linkedFrom.count, systemImage: "arrow.down.left", tint: note.tint)
                                     .font(Txt.label)
                                 LinkedNotesList(notes: linkedFrom)
                             }
@@ -706,7 +706,7 @@ struct ProjectDeadlineChip: View {
             Label(note.dueDate.map { "Due \($0.description)" } ?? "Set a deadline\u{2026}",
                   systemImage: "calendar")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .foregroundStyle(note.dueDate == nil ? Color.secondary : ParaKind.project.tint)
         .help("When this project has to be finished. The weekly review compares it with the goal it serves.")
         .popover(isPresented: $picking) {
@@ -747,7 +747,7 @@ struct GoalTargetChip: View {
                 .helpWhenClosed("The day this goal should be reached by. The weekly review compares it with today and with the deadlines of the projects under the goal.",
                                 open: picking)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .accessibilityLabel(Text(Self.spoken(target)))
         .accessibilityIdentifier("goal.target")
         .popover(isPresented: $picking) {
@@ -831,7 +831,7 @@ struct GoalMeasureChip: View {
             face(measure, tint: ChainTint.forGoal(current))
                 .helpWhenClosed("How you will know this goal is reached, in one line.", open: editing)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
         .accessibilityLabel(Text(Self.spoken(measure)))
         .accessibilityIdentifier("goal.measure")
         .popover(isPresented: $editing) {
@@ -1093,128 +1093,116 @@ struct NoteHeader: View {
         note.kind == .goal && !GoalWording.isAspiration(note)
     }
 
+    /// 1.0: the title at 26 pt above, and under it the **facts panel** in the note's colour —
+    /// the heading says what kind of note this is, and every fact is either a bordered control
+    /// (a pop-up or a button that opens a small window) or a plain value. The twelve chips of
+    /// build 250 are the same twelve facts; only how they are drawn changed. Nothing was taken
+    /// away.
     var body: some View {
-        // **A row that wraps, not an `HStack`** (build 250). On a project the kind, the name,
-        // Status, Serves…, Deadline, Tags and the List label want about 556 points on one
-        // line. An `HStack` of things that will not shrink makes that the column's smallest
-        // width, and on the Mac a narrower column then drew the whole note at 556 points,
-        // centred, with about 67 cut off on each side — the time button on every task row
-        // was among what disappeared. Build 138's `WrappingHStack` moves whole items to a
-        // second line instead.
-        WrappingHStack(spacing: 12, lineSpacing: 6) {
-            // A goal note says which of the two it is: the star for an aspiration, the
-            // target for a goal with a date (build 168), and the word to match (build 268).
-            // Every other kind has one symbol.
-            Label(kindWord(for: note),
-                  systemImage: note.kind == .goal ? ChainSymbol.forGoal(note)
-                                                  : SidebarSection.kind(note.kind).systemImage)
-                .foregroundStyle(note.tint)
-                .fontWeight(.semibold)
-            if showsIconChip(for: note) {
-                // Right after the kind, as in the drawing he approved (build 254): the icon
-                // is the note's own mark (build 274 made it an icon from the AMS-Icons package,
-                // for areas as well as projects; build 276 added aspirations, goals with a date
-                // and resources). It is one small item in the wrapping row, which is what
-                // build 250 asks of everything in it: nothing here demands width.
-                NoteIconChip(model: model, note: note)
-            }
-            if let rename {
-                Button(action: rename) {
-                    Text(note.displayTitle)
-                        .fontWeight(.semibold)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        // A wrapping row measures each item at its natural width, so a very
-                        // long name would still be wider than the column on its own line.
-                        .frame(maxWidth: 260)
-                        .foregroundStyle(note.tint)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(note.tint.opacity(0.12), in: Capsule())
-                        .contentShape(Capsule())
+        VStack(alignment: .leading, spacing: 10) {
+            titleRow
+            VStack(alignment: .leading, spacing: Theme.headGap) {
+                HStack(spacing: 8) {
+                    Heading(text: kindWord(for: note), color: note.tint)
+                    if showsIconChip(for: note) {
+                        NoteIconChip(model: model, note: note)
+                    }
+                    Spacer(minLength: 0)
                 }
-                .buttonStyle(.plain)
-                .help("Press to rename this note. The file is renamed too, and links to it follow.")
+                facts
             }
+            .panel(note.tint)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("note.facts")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Theme.gutter)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
+    }
+
+    /// The name, big. Pressing it renames the note where that is allowed (build 154).
+    @ViewBuilder
+    private var titleRow: some View {
+        if let rename {
+            Button(action: rename) {
+                Text(note.displayTitle)
+                    .font(Txt.pageTitle)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Press to rename this note. The file is renamed too, and links to it follow.")
+            .accessibilityIdentifier("note.title")
+        } else {
+            Text(note.displayTitle)
+                .font(Txt.pageTitle)
+                .lineLimit(2)
+                .accessibilityIdentifier("note.title")
+        }
+    }
+
+    /// A plain fact: a small label in soft grey, the value under it at text size.
+    private func fact(_ label: String, _ value: String, tint: Color? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label).font(Txt.label).foregroundStyle(Theme.soft)
+            Text(value).font(Txt.value).foregroundStyle(tint ?? Color.primary)
+        }
+    }
+
+    /// The facts, as a row that wraps (build 250's reason stands: an `HStack` of things that
+    /// will not shrink makes its width the column's smallest width).
+    private var facts: some View {
+        WrappingHStack(spacing: 10, lineSpacing: 8) {
             if note.kind != .inbox, note.kind != .daily {
                 NoteStatusChip(model: model, note: note)
             }
             if note.kind == .project {
-                // **In area…** (build 269): until then nothing but a drag on the Map could
-                // write a project's `area:` line, and this was a label you could not press.
                 ProjectAreaChip(model: model, note: note)
             } else if let area = note.area {
-                Label(area, systemImage: "circle.grid.2x2")
-                    .foregroundStyle(ParaKind.area.tint)
+                fact("In area", area, tint: ParaKind.area.tint)
             }
             if note.kind == .area {
                 AreaParentChip(model: model, note: note)
             }
             if note.kind == .area || note.kind == .project || isDatedGoal(note) {
-                // The weekly review asks which goal a project serves; before build 140 the
-                // only way to answer was dragging its box onto a goal on the Map. A goal with
-                // a date chooses its aspiration here too since build 268.
                 NoteGoalChip(model: model, note: note)
             } else if let goal = note.goal {
-                // An aspiration serves nothing above it, but a `goal:` line someone typed is
-                // still shown: what the file holds is never hidden (build 100).
-                Label(goal, systemImage: ChainSymbol.forGoal(named: goal, in: model.index))
-                    .foregroundStyle(ChainTint.forGoal(named: goal, in: model.index))
-                    .contentShape(Rectangle())
-                    .onTapGesture { model.openGoal(reference: goal) }
+                Button { model.openGoal(reference: goal) } label: {
+                    fact("Serves", goal, tint: ChainTint.forGoal(named: goal, in: model.index))
+                }
+                .buttonStyle(.plain)
             }
-            // "This year" or "Long term", and since build 276 a button: the line was written
-            // once, when the goal was made, and nothing could change it. Not on an aspiration:
-            // its horizon's word is "Aspiration", which the start of the header already says,
-            // and switching it would move the note to the other room.
             if isDatedGoal(note) {
                 GoalHorizonChip(model: model, note: note)
-            }
-            if isDatedGoal(note) {
-                // Build 268: `target:` was written only when a goal was made, so the date
-                // could not be moved from the app.
                 GoalTargetChip(model: model, note: note)
             } else if let target = note.targetDate {
-                // An aspiration has no date, so it gets no button. A target line left in one
-                // by hand stays a plain grey label rather than vanishing (build 100).
-                Label("Target \(target.description)", systemImage: "flag.checkered")
+                fact("Target", target.description)
             }
             if note.kind == .goal {
-                // Build 268: read by the Goals list, the chain and the aspiration's page, and
-                // never written by anything in the app before.
                 GoalMeasureChip(model: model, note: note)
             }
             if note.kind == .goal || note.kind == .area {
-                // Build 270: when you last looked at it, and **I looked at it today**. Until
-                // now `reviewed:` could only be written from the Weekly review's right-click
-                // menu. Projects are left out: the review looks at them every week, step 5.
                 LookedAtChip(model: model, note: note)
             }
             if note.kind == .project {
                 ProjectDeadlineChip(model: model, note: note)
             } else if let due = note.dueDate {
-                Label("Due \(due.description)", systemImage: "calendar")
+                fact("Due", due.description)
             }
             if note.kind != .inbox {
-                // A button, not a label: build 143's Tags screen listed tags that nothing in
-                // the app could write. Four times now a screen has asked a question the app
-                // could not answer.
                 NoteTagsChip(model: model, note: note)
             }
             if note.kind.isTaskKind {
-                Label(note.isSyncEnabled && !note.isArchived ? "List: \(listName(for: note))" : "Not synced",
-                      systemImage: "arrow.triangle.2.circlepath")
+                fact("List", note.isSyncEnabled && !note.isArchived ? listName(for: note) : "Not synced")
             }
         }
-        .font(Txt.label)
-        .foregroundStyle(.secondary)
+        .font(Txt.value)
         .lineLimit(1)
-        // The wrapping row is only as wide as its longest line; the tinted band is the
-        // column's width, as it was.
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(note.tint.opacity(0.10))
+        .menuStyle(.button)
+        .buttonStyle(.bordered)
     }
 }
 

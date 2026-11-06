@@ -143,7 +143,7 @@ struct AspirationReasonBox: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                SectionLabel(title: "Reason")
+                SectionLabel(title: "Reason", tint: ChainTint.aspiration)
                 controls
             }
             if editing {

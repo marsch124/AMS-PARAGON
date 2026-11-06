@@ -436,10 +436,13 @@ struct SidebarView: View {
                 if let warning = model.vaultWarning {
                     VaultWarningBar(text: warning) { model.fetchMissingNotes() }
                 }
-                Text("Build \(BuildStamp.number)")
+                // 1.0: the version as he reads it, "1.0 (280)". The long press that reveals
+                // Work lives on the PARA heading above, so nothing else is on this line.
+                Text("PARAGON \(AppVersion.text)")
                     .font(Txt.listSecond)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("sidebar.version")
             }
             .padding(.vertical, 4)
         }
@@ -978,7 +981,6 @@ struct NoteGoalChip: View {
         } label: {
             Label(title, systemImage: symbol)
         }
-        .menuIndicator(.hidden)
         .fixedSize()
         .foregroundStyle(note.goal == nil ? Color.secondary : tint)
         .help(helpText)
@@ -1012,7 +1014,6 @@ struct AreaParentChip: View {
         } label: {
             Label(title, systemImage: "arrow.turn.left.up")
         }
-        .menuIndicator(.hidden)
         .fixedSize()
         .foregroundStyle(ParaKind.area.tint)
         .help("Put this area under another area, or take it back out")
@@ -1051,65 +1052,66 @@ struct NoteRow: View {
         }
     }
 
+    /// 1.0: the row is as tall as its words — a title and at most one quiet second line with
+    /// the two facts that matter for this kind of note. Everything else is in the note's own
+    /// facts panel. The due date goes red only when it has passed.
+    private var secondLine: (text: String, overdue: Bool)? {
+        var parts: [String] = []
+        var overdue = false
+        let progress = note.progress
+        switch note.kind {
+        case .project:
+            if progress.total > 0 { parts.append("\(progress.done) of \(progress.total)") }
+            if let due = note.dueDate {
+                let days = due.days(since: .today())
+                if days < 0 { overdue = true }
+                parts.append(days == 0 ? "Due today" : (days > 0 ? "Due in \(days) d" : "\(-days) d overdue"))
+            }
+        case .goal:
+            if let roll = goalProgress, let fraction = roll.fraction {
+                parts.append("\(Int((fraction * 100).rounded())) %")
+            }
+            if let target = note.targetDate { parts.append("by \(target.description)") }
+            else if let horizon = note.horizon { parts.append(horizon.label) }
+        case .area:
+            if note.openTasks.count > 0 { parts.append("\(note.openTasks.count) open") }
+        case .resource:
+            if !note.related.isEmpty { parts.append("\(note.related.count) linked") }
+        case .daily:
+            if let due = note.dueDate { parts.append(due.description) }
+        default:
+            if note.openTasks.count > 0 { parts.append("\(note.openTasks.count) open") }
+            if let due = note.dueDate {
+                let days = due.days(since: .today())
+                if days < 0 { overdue = true }
+                parts.append(days == 0 ? "Due today" : (days > 0 ? "Due in \(days) d" : "\(-days) d overdue"))
+            }
+        }
+        if parts.isEmpty, let goal = note.goal, note.kind != .goal { parts.append(goal) }
+        if parts.isEmpty, let area = note.area, note.kind == .project { parts.append(area) }
+        guard !parts.isEmpty else { return nil }
+        return (parts.joined(separator: " · "), overdue)
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             leadingMark
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline) {
                     Text(note.title)
                         .font(Txt.listTitle)
                         .lineLimit(1)
-                    Spacer()
+                    Spacer(minLength: 6)
                     if let status = note.status, status != "active" {
-                        Text(status.capitalized)
-                            .font(Txt.listSecond)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(note.tint.opacity(0.18), in: Capsule())
-                            .rowTint(note.tint)
+                        Pill(text: status.capitalized, color: note.tint)
                     }
                 }
-                HStack(spacing: 8) {
-                    let progress = note.progress
-                    if note.kind == .project, progress.total > 0 {
-                        ProgressView(value: Double(progress.done), total: Double(progress.total))
-                            .tint(note.tint)
-                            .frame(width: 56)
-                        Text("\(progress.done) of \(progress.total)")
-                            .rowTint(note.tint)
-                    } else if let roll = goalProgress, roll.fraction != nil {
-                        GoalProgressBar(progress: roll, width: 56, showsCounts: false, tint: note.tint)
-                    } else if note.openTasks.count > 0 {
-                        Label("\(note.openTasks.count)", systemImage: "checklist")
-                            .rowTint(note.tint)
-                    }
-                    if let due = note.dueDate {
-                        let days = due.days(since: .today())
-                        Label(days == 0 ? "Due today" : (days > 0 ? "Due in \(days) d" : "\(-days) d overdue"), systemImage: "calendar")
-                            .rowTint(days < 0 ? Color.red : Color.secondary)
-                    }
-                    if let horizon = note.horizon {
-                        Label(horizon.label, systemImage: "scope")
-                            .rowTint(note.tint)
-                    }
-                    if let target = note.targetDate {
-                        Label(target.description, systemImage: "flag.checkered")
-                    }
-                    if let goal = note.goal, note.kind != .goal {
-                        Label(goal, systemImage: goalSymbol)
-                            .rowTint(goalTint)
-                    }
-                    if let area = note.area {
-                        Label(area, systemImage: "circle.grid.2x2")
-                            .rowTint(ParaKind.area.tint)
-                    }
-                    if note.kind == .resource, !note.related.isEmpty {
-                        Label("\(note.related.count)", systemImage: "link")
-                    }
+                if let second = secondLine {
+                    Text(second.text)
+                        .font(Txt.listSecond)
+                        .foregroundStyle(second.overdue ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
+                        .lineLimit(1)
                 }
-                .font(Txt.label)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
             }
         }
         .padding(.vertical, 2)
@@ -1130,7 +1132,7 @@ struct DetailView: View {
     var body: some View {
         // The colour follows the section, not the note: it is there to say which mode you are
         // in, and it stays put while you click from note to note.
-        detail.modeAccent(model.section?.tint ?? .secondary)
+        detail
     }
 
     @ViewBuilder
@@ -1306,11 +1308,13 @@ struct KindBadge: View {
 /// The coloured stripe down the leading edge of a row.
 struct TintStripe: View {
     let color: Color
+    /// Ignored since 1.0: the mark is a dot, not a stripe, and a dot has one size.
     var height: CGFloat = 30
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 2)
+        // 1.0: an 8-point dot in the part's colour, the one list mark in the app.
+        Circle()
             .fill(color)
-            .frame(width: 3, height: height)
+            .frame(width: 8, height: 8)
     }
 }

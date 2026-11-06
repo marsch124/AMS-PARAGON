@@ -277,7 +277,7 @@ struct StartDayView: View {
     private var lastEvening: some View {
         if !lastEveningText.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
-                SectionLabel(title: "Last evening you wrote")
+                SectionLabel(title: "Last evening you wrote", tint: Theme.morningTint)
                 Text(lastEveningText)
                     .font(Txt.value)
                     .foregroundStyle(.secondary)
@@ -467,7 +467,7 @@ struct StartDayView: View {
     private func group(_ title: String, _ refs: [TaskRef]) -> some View {
         if !refs.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(title: title, count: refs.count)
+                SectionLabel(title: title, count: refs.count, tint: Theme.morningTint)
                 ForEach(refs) { ref in
                     row(ref)
                 }

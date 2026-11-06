@@ -114,7 +114,7 @@ struct TodayView: View {
                     HStack(spacing: 8) {
                         // No symbol on the heading: the button beside it already carries the
                         // calendar, and two of one symbol in a row says nothing twice.
-                        SectionLabel(title: "Today's note")
+                        SectionLabel(title: "Today's note", tint: SidebarSection.today.tint)
                         HeaderActionButton(title: model.todayNote == nil ? "Create" : "Open",
                                            spokenTitle: model.todayNote == nil
                                                 ? "Create today's note" : "Open today's note",
@@ -141,7 +141,7 @@ struct TodayView: View {
                         // own header rather than the window's toolbar (build 167), and
                         // `.textCase(nil)` keeps a `List` from shouting them (build 214).
                         WrappingHStack(spacing: 8, lineSpacing: 6) {
-                            SectionLabel(title: "Overdue", count: overdue.count)
+                            SectionLabel(title: "Overdue", count: overdue.count, tint: Theme.attention)
                             // **The Inbox's own two symbols, not new ones.** `InboxQuadrant`
                             // has drawn `sun.max` for today and `sunrise` for tomorrow since
                             // build 215, with the words beside them, so these are already

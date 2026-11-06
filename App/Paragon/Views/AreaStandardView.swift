@@ -106,7 +106,7 @@ struct AreaStandardBox: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                SectionLabel(title: "Standard")
+                SectionLabel(title: "Standard", tint: ParaKind.area.tint)
                 controls
             }
             if editing {
