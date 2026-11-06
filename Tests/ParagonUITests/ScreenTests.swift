@@ -1402,7 +1402,8 @@ final class ScreenTests: XCTestCase {
             swipes += 1
         }
         XCTAssertTrue(version.waitForExistence(timeout: 20), "The version line is not on screen.")
-        let words = version.label
+        // A static text's words are its label on the iPhone and its value on the Mac.
+        let words = version.label.isEmpty ? (version.value as? String ?? "") : version.label
         let shape = try? NSRegularExpression(pattern: #"\d+\.\d+ \(\d+\)"#)
         let found = shape?.firstMatch(in: words, range: NSRange(words.startIndex..., in: words)) != nil
         XCTAssertTrue(found, "The version line does not read like 1.0 (280). It says: \(words)")

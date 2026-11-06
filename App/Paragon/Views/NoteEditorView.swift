@@ -253,25 +253,35 @@ struct NoteEditorView: View {
     /// Builds 30 and 34 are both about this — anything here that reports its full
     /// intrinsic height makes the window grow past itself — so it is left alone.
     private var deskBody: some View {
-        VStack(spacing: 0) {
-            // 1.0: the header, the panels and the text stop at the reading width and sit
-            // centred; on a wide window the rest is calm margin.
-            sections
-                .readingWidth()
-            // The editor takes whatever height is left and never asks for more. Without this
-            // guard, expanding a disclosure above it made the text editor report its full
-            // text height as a minimum, and the window's content grew past the window.
-            frontmatterRow
-                .readingWidth()
-            GeometryReader { geo in
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                // 1.0: the header, the panels and the text stop at the reading width and sit
+                // centred; on a wide window the rest is calm margin. **The header and panels
+                // may take at most half the column**: above that they scroll on their own, so
+                // the text below always has room (the first Mac run of build 280 found the
+                // editor at zero height on a 620-point window). `CappedHeight` is the shape the
+                // area page has used since build 270.
+                CappedHeight(limit: max(160, geo.size.height * 0.5)) {
+                    ScrollView(.vertical) {
+                        VStack(spacing: 0) {
+                            sections
+                        }
+                        .readingWidth()
+                    }
+                }
+                frontmatterRow
+                    .readingWidth()
+                // The editor takes whatever height is left and never asks for more (builds 30
+                // and 34): the GeometryReader's frame is the column, and this is what is left.
                 editorPane(scrolls: true)
-                    .frame(width: min(geo.size.width, Theme.readingWidth + 2 * Theme.gutter), height: geo.size.height)
+                    .frame(maxWidth: Theme.readingWidth + 2 * Theme.gutter)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    .frame(width: geo.size.width)
+                Divider()
+                addTaskBar
+                    .readingWidth()
             }
-            Divider()
-            addTaskBar
-                .readingWidth()
+            .frame(width: geo.size.width, height: geo.size.height)
         }
     }
 
@@ -1306,8 +1316,13 @@ struct TaskRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Button(action: toggle) {
-                MarkImage(ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"))
+                // 1.0: the circle is the size of the text (15) and sits in a 22-point box that
+                // takes the press anywhere inside it — a stroked ring alone only took a press on
+                // its line, which is what the first Mac run of build 280 found.
+                MarkImage(ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"), size: 15)
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
+                    .frame(width: 22, height: 22)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             // For the screen tests (build 255): the tick a test presses to finish a task.
