@@ -107,7 +107,7 @@ struct WeekLookStep: View {
 
         // Build 100's rule: a note not yet on this device must never read as a quiet week.
         if !model.notesWaitingForCloud.isEmpty {
-            Label(cloudText, systemImage: "icloud")
+            MarkLabel(cloudText, "icloud")
                 .font(Txt.value)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -121,7 +121,7 @@ struct WeekLookStep: View {
             Button {
                 chosenWeek = shownWeek.adding(weeks: -1)
             } label: {
-                Image(systemName: "chevron.left")
+                MarkImage("chevron.left")
                     .frame(width: 30, height: 28)
                     .contentShape(Rectangle())
             }
@@ -142,7 +142,7 @@ struct WeekLookStep: View {
             Button {
                 chosenWeek = shownWeek.adding(weeks: 1)
             } label: {
-                Image(systemName: "chevron.right")
+                MarkImage("chevron.right")
                     .frame(width: 30, height: 28)
                     .contentShape(Rectangle())
             }
@@ -188,7 +188,7 @@ struct WeekLookStep: View {
     @ViewBuilder
     private func finishedLine(_ look: WeekLook) -> some View {
         if let text = look.finishedText {
-            CountPill(text: text, systemImage: "checkmark.circle", tint: .green)
+            CountPill(text: text, markName: "checkmark.circle", tint: .green)
         } else {
             Text("No task was ticked off \(weekWords).")
                 .font(Txt.value)
@@ -197,7 +197,7 @@ struct WeekLookStep: View {
     }
 
     private func timerLine(_ look: WeekLook) -> some View {
-        Label(look.workedText ?? "The focus timer was not used \(weekWords).", systemImage: "timer")
+        MarkLabel(look.workedText ?? "The focus timer was not used \(weekWords).", "timer")
             .font(Txt.value)
             .foregroundStyle(look.workedText == nil ? Color.secondary : Color.primary)
     }
@@ -485,7 +485,7 @@ private struct EveningLineRow: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 36, alignment: .leading)
                 if line.waiting {
-                    Label(line.text, systemImage: "icloud")
+                    MarkLabel(line.text, "icloud")
                         .font(Txt.value)
                         .foregroundStyle(.orange)
                 } else {
@@ -522,7 +522,7 @@ private struct EndedProjectRow: View {
             model.show(section: .review, notePath: project.path)
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Image(systemName: project.status.systemImage)
+                MarkImage(project.status.markName)
                     .foregroundStyle(project.status.tint(onNote: ParaKind.project.tint))
                     .frame(width: 18)
                 Text("Ended \(weekWords):")
@@ -569,7 +569,7 @@ private struct WeekDayBars: View {
         return VStack(spacing: 3) {
             HStack(spacing: 1) {
                 if waiting {
-                    Image(systemName: "icloud")
+                    MarkImage("icloud")
                         .foregroundStyle(.orange)
                 }
                 Text(countText(count, future: future, waiting: waiting))

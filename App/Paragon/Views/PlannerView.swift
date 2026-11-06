@@ -176,11 +176,11 @@ struct PlannerDayView: View {
     private var controls: some View {
         HStack(spacing: 10) {
             HStack(spacing: 2) {
-                Button { move(-1) } label: { Image(systemName: "chevron.left") }
+                Button { move(-1) } label: { MarkImage("chevron.left") }
                     .help("The day before")
                 Button("Today") { model.plannerDay = .today() }
                     .disabled(day == .today())
-                Button { move(1) } label: { Image(systemName: "chevron.right") }
+                Button { move(1) } label: { MarkImage("chevron.right") }
                     .help("The day after")
             }
             .buttonStyle(.borderless)
@@ -188,7 +188,7 @@ struct PlannerDayView: View {
             Button {
                 startNewBlock(at: nextFreeStart())
             } label: {
-                Label("Block", systemImage: "plus")
+                MarkLabel("Block", "plus")
             }
             .fixedSize()
             .help("Add a block to this day's plan")
@@ -201,7 +201,7 @@ struct PlannerDayView: View {
                 model.selectedWeek = WeekRef(containing: day)
                 model.openSection(.calendar)
             } label: {
-                Label("Week", systemImage: "calendar")
+                MarkLabel("Week", "calendar")
             }
             .fixedSize()
             .accessibilityIdentifier("plan.week")
@@ -209,7 +209,7 @@ struct PlannerDayView: View {
             Button {
                 sheet = .calendarBlocks
             } label: {
-                Image(systemName: "calendar.badge.clock")
+                MarkImage("calendar.badge.clock")
             }
             .buttonStyle(.borderless)
             .fixedSize()
@@ -595,12 +595,12 @@ struct PlannerDayView: View {
                 Button {
                     draftStart = max(firstHour * 60, draftStart - 15)
                 } label: {
-                    Image(systemName: "minus")
+                    MarkImage("minus")
                 }
                 Button {
                     draftStart = min((lastHour + 1) * 60 - 15, draftStart + 15)
                 } label: {
-                    Image(systemName: "plus")
+                    MarkImage("plus")
                 }
                 Spacer(minLength: 0)
             }
@@ -809,7 +809,7 @@ private struct PlanCardFace: View {
     }
 
     private var calendarMark: some View {
-        Image(systemName: "calendar")
+        MarkImage("calendar")
             .font(Txt.listSecond)
             .foregroundStyle(SidebarSection.calendar.tint)
     }
@@ -868,7 +868,7 @@ private struct PlanTaskCard: View {
     @ViewBuilder private var content: some View {
         if oneLine {
             HStack(spacing: 4) {
-                Image(systemName: "circle")
+                MarkImage("circle")
                     .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                 Text(startTime)
@@ -883,7 +883,7 @@ private struct PlanTaskCard: View {
         } else {
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 3) {
-                    Image(systemName: "circle")
+                    MarkImage("circle")
                         .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                     Text(time)
@@ -970,7 +970,7 @@ private struct PlanBlockCard: View {
     private var menu: some View {
         if let focus {
             Button(action: focus) {
-                Label("Focus on this", systemImage: "timer")
+                MarkLabel("Focus on this", "timer")
             }
             Divider()
         }
@@ -1184,7 +1184,7 @@ struct PlannerActionsView: View {
                                                          title: planBlockTitle(from: ref.task)),
                                                on: day)
                         } label: {
-                            Image(systemName: "plus.circle")
+                            MarkImage("plus.circle")
                                 .foregroundStyle(Theme.planBlockTint)
                         }
                         .buttonStyle(.plain)
@@ -1205,7 +1205,7 @@ struct PlannerActionsView: View {
     @ViewBuilder
     private func servesLine(for ref: TaskRef) -> some View {
         if let serves = serves(ref) {
-            Label(serves.title, systemImage: serves.symbol)
+            MarkLabel(serves.title, serves.symbol)
                 .font(Txt.listSecond)
                 .foregroundStyle(serves.tint)
                 .lineLimit(1)

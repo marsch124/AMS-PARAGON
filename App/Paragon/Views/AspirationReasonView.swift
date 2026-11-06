@@ -180,7 +180,7 @@ struct AspirationReasonBox: View {
             .fixedSize()
         } else {
             Button(action: begin) {
-                Label(buttonTitle, systemImage: "square.and.pencil")
+                MarkLabel(buttonTitle, "square.and.pencil")
                     .font(Txt.value)
                     .foregroundStyle(tint)
             }
@@ -212,7 +212,7 @@ struct AspirationReasonBox: View {
             // An older copy with no reason in it says nothing about the newer one: not "no
             // reason written", which would be an absence drawn for a note that cannot be read
             // yet (builds 100, 261). Orange with the cloud, as Start the day draws the same state.
-            Label("Being updated from iCloud. The reason may show here in a moment.", systemImage: "icloud")
+            MarkLabel("Being updated from iCloud. The reason may show here in a moment.", "icloud")
                 .font(Txt.label)
                 .foregroundStyle(Color.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -222,7 +222,7 @@ struct AspirationReasonBox: View {
             // PARAGON (build 142). One element with one sentence, so a test and a screen reader
             // hear the same words on both platforms (builds 196, 253).
             ProjectPill(fact: ProjectFact(id: "noReason", text: "No reason written yet.",
-                                          systemImage: "circle.dashed", dashed: true))
+                                          markName: "circle.dashed", dashed: true))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("No reason written yet.")
                 .accessibilityIdentifier("aspiration.reason.missing")

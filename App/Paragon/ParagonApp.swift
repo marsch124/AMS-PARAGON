@@ -93,10 +93,14 @@ struct ParagonApp: App {
                 .modifier(HandsInMainWindowOpener(model: model))
         }
         .defaultSize(width: 900, height: 620)
-        MenuBarExtra("PARAGON quick capture", systemImage: "tray.and.arrow.down", isInserted: $showMenuBarItem) {
+        MenuBarExtra(isInserted: $showMenuBarItem) {
             QuickCaptureView(compact: true)
                 .environmentObject(model)
                 .modifier(HandsInMainWindowOpener(model: model))
+        } label: {
+            // 1.0: the hand-drawn capture tray, as a template image the menu bar can draw.
+            Image(nsImage: Marks.nsImage("tray.and.arrow.down"))
+            Text("PARAGON quick capture")
         }
         .menuBarExtraStyle(.window)
         Settings {

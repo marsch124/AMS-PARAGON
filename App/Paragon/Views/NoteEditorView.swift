@@ -174,7 +174,7 @@ struct NoteEditorView: View {
                                 noteTitleDraft = note.displayTitle
                                 renamingNote = true
                             } label: {
-                                Label("Rename", systemImage: "pencil")
+                                MarkLabel("Rename", "pencil")
                             }
                         }
                         if let note, model.canArchive(note) {
@@ -182,18 +182,18 @@ struct NoteEditorView: View {
                                 flushSave()
                                 model.archive(note)
                             } label: {
-                                Label("Archive", systemImage: "archivebox")
+                                MarkLabel("Archive", "archivebox")
                             }
                         }
                         if let note, note.kind != .inbox {
                             Button(role: .destructive) {
                                 confirmTrash = true
                             } label: {
-                                Label("Delete", systemImage: "trash")
+                                MarkLabel("Delete", "trash")
                             }
                         }
                     } label: {
-                        Label("More", systemImage: "ellipsis.circle")
+                        MarkLabel("More", "ellipsis.circle")
                     }
                 }
             } else {
@@ -203,14 +203,14 @@ struct NoteEditorView: View {
                 Button {
                     model.goBack()
                 } label: {
-                    Label("Back", systemImage: "chevron.backward")
+                    MarkLabel("Back", "chevron.backward")
                 }
                 .disabled(!model.canGoBack)
                 .help("Back to the note you came from (\u{2303}\u{2318}\u{2190})")
                 Button {
                     model.goForward()
                 } label: {
-                    Label("Forward", systemImage: "chevron.forward")
+                    MarkLabel("Forward", "chevron.forward")
                 }
                 .disabled(!model.canGoForward)
                 .help("Forward again (\u{2303}\u{2318}\u{2192})")
@@ -219,7 +219,7 @@ struct NoteEditorView: View {
                 // The same control as the phone's, for the same reason: one symbol whose
                 // state you can see, rather than a row of words where the selected one is
                 // easy to miss.
-                StateToggle(systemImage: "pencil", title: "Edit", isOn: mode == .edit,
+                StateToggle(markName: "pencil", title: "Edit", isOn: mode == .edit,
                             tint: note?.tint ?? .accentColor) {
                     mode = mode == .edit ? .preview : .edit
                 }
@@ -239,7 +239,7 @@ struct NoteEditorView: View {
                     Button {
                         confirmTrash = true
                     } label: {
-                        Label("Delete", systemImage: "trash")
+                        MarkLabel("Delete", "trash")
                     }
                     .help("Delete this note; it waits in Deleted (⌘⌫)")
                     .keyboardShortcut(.delete, modifiers: [.command])
@@ -366,7 +366,7 @@ struct NoteEditorView: View {
                         // button inside a button is the builds 71–74 fault in a new place.
                         FoldButton(isOpen: $showTasks, accessibilityName: "Tasks") {
                             SectionLabel(title: note.openTasks.isEmpty ? "Tasks" : "Tasks, \(note.openTasks.count) open",
-                                         count: nil, systemImage: "checklist", tint: note.tint)
+                                         count: nil, markName: "checklist", tint: note.tint)
                         }
                         Spacer()
                         let finished = note.tasks.count - note.openTasks.count
@@ -379,7 +379,7 @@ struct NoteEditorView: View {
                             Text("\(finished) finished")
                                 .font(Txt.label)
                                 .foregroundStyle(.secondary)
-                            StateToggle(systemImage: "eye.slash", title: "Hide finished",
+                            StateToggle(markName: "eye.slash", title: "Hide finished",
                                         isOn: hideFinishedTasks, tint: note.tint) {
                                 hideFinishedTasks.toggle()
                             }
@@ -408,7 +408,7 @@ struct NoteEditorView: View {
                     FoldButton(isOpen: $showLinks, accessibilityName: "Linked notes") {
                         SectionLabel(title: "Linked notes",
                                      count: linksTo.count + linkedFrom.count + notYetMade.count,
-                                     systemImage: "link", tint: note.tint)
+                                     markName: "link", tint: note.tint)
                             .font(Txt.label.weight(.medium))
                     }
                     .accessibilityIdentifier("note.links")
@@ -546,7 +546,7 @@ struct NoteEditorView: View {
             // just as easily as "you are reading now". It is always a pencil now, lit while
             // Edit is on. No Split on the phone: he asked for it gone.
             if isPhone {
-                StateToggle(systemImage: "pencil", title: "Edit", isOn: mode == .edit,
+                StateToggle(markName: "pencil", title: "Edit", isOn: mode == .edit,
                             tint: note?.tint ?? .accentColor) {
                     mode = mode == .edit ? .preview : .edit
                 }
@@ -563,7 +563,7 @@ struct NoteEditorView: View {
                 // and Add only takes its colour once there is something to add.
                 snippetMenu(iconOnly: true)
                 Button(action: addTask) {
-                    Image(systemName: "arrow.up.circle.fill")
+                    MarkImage("arrow.up.circle.fill")
                         .font(Txt.pageTitle)
                         .foregroundStyle(canAdd ? ParaKind.project.tint : Color.secondary.opacity(0.35))
                 }
@@ -588,10 +588,10 @@ struct NoteEditorView: View {
             }
         } label: {
             if iconOnly {
-                Label("Snippet", systemImage: "text.append")
+                MarkLabel("Snippet", "text.append")
                     .labelStyle(.iconOnly)
             } else {
-                Label("Snippet", systemImage: "text.append")
+                MarkLabel("Snippet", "text.append")
             }
         }
         .menuIndicator(.hidden)
@@ -706,8 +706,7 @@ struct ProjectDeadlineChip: View {
 
     var body: some View {
         Button { picking = true } label: {
-            Label(note.dueDate.map { "Due \($0.description)" } ?? "Set a deadline\u{2026}",
-                  systemImage: "calendar")
+            MarkLabel(note.dueDate.map { "Due \($0.description)" } ?? "Set a deadline\u{2026}", "calendar")
         }
         .buttonStyle(.bordered)
         .foregroundStyle(note.dueDate == nil ? Color.secondary : ParaKind.project.tint)
@@ -773,7 +772,7 @@ struct GoalTargetChip: View {
                 ChainChip(text: "Set a target date\u{2026}", tint: .secondary, filled: false, dashed: true)
             }
         } else {
-            Label(Self.headerWords(target), systemImage: "flag.checkered")
+            MarkLabel(Self.headerWords(target), "flag.checkered")
                 .foregroundStyle(Self.color(for: target, ended: ended))
         }
     }
@@ -859,7 +858,7 @@ struct GoalMeasureChip: View {
                 ChainChip(text: "Set a measure\u{2026}", tint: .secondary, filled: false, dashed: true)
             }
         } else {
-            Label(Self.words(measure), systemImage: "ruler")
+            MarkLabel(Self.words(measure), "ruler")
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: 260, alignment: .leading)
@@ -1037,7 +1036,7 @@ struct ProjectEndedLine: View {
         let status = live.noteStatus
         if let words {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Image(systemName: status.systemImage)
+                MarkImage(status.markName)
                     .foregroundStyle(status.tint(onNote: live.tint))
                 Text(words)
                     .foregroundStyle(.secondary)
@@ -1045,7 +1044,7 @@ struct ProjectEndedLine: View {
             }
             .font(Txt.label)
         } else {
-            Label("Set the day it ended\u{2026}", systemImage: status.systemImage)
+            MarkLabel("Set the day it ended\u{2026}", status.markName)
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 8)
@@ -1301,13 +1300,13 @@ struct TaskRow: View {
     /// still shows as a project.
     private var noteSymbol: String {
         let kind = model.note(at: ref.notePath)?.declaredKind ?? .resource
-        return SidebarSection.kind(kind).systemImage
+        return SidebarSection.kind(kind).markName
     }
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Button(action: toggle) {
-                Image(systemName: ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"))
+                MarkImage(ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"))
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
             }
             .buttonStyle(.plain)
@@ -1345,15 +1344,14 @@ struct TaskRow: View {
                     if let due = ref.task.dueDate {
                         // The date and, since build 277 when the **At** line can write one, the
                         // time of day: `dueText` in Core is the one wording of it.
-                        Label(ref.task.dueText ?? due.description,
-                              systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
+                        MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
                             .rowTint(due < .today() && !ref.task.isDone ? Color.red : Color.secondary)
                     }
                     if let rule = ref.task.repeatRule {
-                        Label(rule.label, systemImage: "repeat")
+                        MarkLabel(rule.label, "repeat")
                     }
                     if showNote {
-                        Label(ref.noteTitle, systemImage: noteSymbol)
+                        MarkLabel(ref.noteTitle, noteSymbol)
                             .rowTint(tint)
                     }
                 }
@@ -1447,7 +1445,7 @@ struct MissingLinksList: View {
                     model.openWikiLink(title, from: notePath)
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "plus.circle")
+                        MarkImage("plus.circle")
                         Text(title)
                     }
                     .foregroundStyle(.secondary)
@@ -1475,13 +1473,13 @@ struct DayAgendaView: View {
                 Button {
                     model.openDailyNote(for: date.adding(days: -1))
                 } label: {
-                    Image(systemName: "chevron.left")
+                    MarkImage("chevron.left")
                 }
                 Button("Today") { model.openDailyNote(for: .today()) }
                 Button {
                     model.openDailyNote(for: date.adding(days: 1))
                 } label: {
-                    Image(systemName: "chevron.right")
+                    MarkImage("chevron.right")
                 }
             }
             .buttonStyle(.borderless)
@@ -1523,9 +1521,9 @@ struct WeekAgendaView: View {
                 Text("Due this week (\(overview.dueCount))")
                     .font(Txt.label.weight(.medium))
                 Spacer()
-                Button { model.openWeeklyNote(for: week.adding(weeks: -1)) } label: { Image(systemName: "chevron.left") }
+                Button { model.openWeeklyNote(for: week.adding(weeks: -1)) } label: { MarkImage("chevron.left") }
                 Button("This week") { model.openWeeklyNote(for: .current()) }
-                Button { model.openWeeklyNote(for: week.adding(weeks: 1)) } label: { Image(systemName: "chevron.right") }
+                Button { model.openWeeklyNote(for: week.adding(weeks: 1)) } label: { MarkImage("chevron.right") }
             }
             .buttonStyle(.borderless)
             Text("Drag a task onto a day to plan it there. Tick it here when it is done.")
@@ -1713,7 +1711,7 @@ struct TaskSyntaxButton: View {
         Button {
             showing = true
         } label: {
-            Image(systemName: "info.circle")
+            MarkImage("info.circle")
                 .font(Txt.list)
                 .foregroundStyle(.secondary)
                 .frame(width: 22, height: 22)

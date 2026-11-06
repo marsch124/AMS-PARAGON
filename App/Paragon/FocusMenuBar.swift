@@ -111,20 +111,19 @@ final class FocusStatusItem: NSObject {
     /// see-through menu bar and vanished — his words, *"maybe it's the same color as the menu
     /// bar"*. The two states now also differ in shape, not only in colour.
     private static func dot(paused: Bool) -> NSImage? {
+        // 1.0: the pause mark is the hand-drawn one (a template, so it follows the bar); the
+        // running dot is a plain filled circle in the planner's orange, as before.
         if paused {
-            let shape = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
-            let image = NSImage(systemSymbolName: "pause.fill", accessibilityDescription: nil)?
-                .withSymbolConfiguration(shape)
-            // A symbol image is a template already; said out loud, because this is the whole fix.
-            image?.isTemplate = true
-            return image
+            return Marks.nsImage("pause.circle", size: 12)
         }
         let colour = NSColor(named: "PlanTint") ?? .systemOrange
-        let shape = NSImage.SymbolConfiguration(pointSize: 8, weight: .regular)
-            .applying(NSImage.SymbolConfiguration(paletteColors: [colour]))
-        let image = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: nil)?
-            .withSymbolConfiguration(shape)
-        image?.isTemplate = false
+        let size: CGFloat = 8
+        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
+            colour.setFill()
+            NSBezierPath(ovalIn: rect).fill()
+            return true
+        }
+        image.isTemplate = false
         return image
     }
 

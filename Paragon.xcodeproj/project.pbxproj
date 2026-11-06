@@ -15,8 +15,10 @@
 		627482B9308CA63E70129D95 /* VersionHistory.md in Resources */ = {isa = PBXBuildFile; fileRef = E6919AFBC2371667D46DD399 /* VersionHistory.md */; };
 		71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = 972619FBA5280A0A9364E4D7 /* ParagonCore */; };
 		7E1A76B853569E06501D44E8 /* AMSIcons in Frameworks */ = {isa = PBXBuildFile; productRef = 02CF9E46CEF81012CA8D1897 /* AMSIcons */; };
+		A149D28F88891DAD8F4674CA /* IPadScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199611C16C9E127ECDA36B8E /* IPadScreens.swift */; };
 		C202C2E162F6A9616899BDAE /* Words.md in Resources */ = {isa = PBXBuildFile; fileRef = 37E5572E0E65566F6BC49B8C /* Words.md */; };
 		C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2714DD3A4254950C4A439829 /* ParagonShare.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FE7F5DC055850D7FC4750F90 /* Look.md in Resources */ = {isa = PBXBuildFile; fileRef = C1D60C15B6874D11DD911583 /* Look.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,12 +63,14 @@
 /* Begin PBXFileReference section */
 		1847519BE0051EFAB44AA4D3 /* ParagonWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1948F57C2B6673ACAA4E203E /* Paragon.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Paragon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		199611C16C9E127ECDA36B8E /* IPadScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPadScreens.swift; sourceTree = "<group>"; };
 		2714DD3A4254950C4A439829 /* ParagonShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ParagonShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E5572E0E65566F6BC49B8C /* Words.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Words.md; sourceTree = "<group>"; };
 		446EED97021901C80DE8243E /* ScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTests.swift; sourceTree = "<group>"; };
 		55B3B1883D9DE44B343B78C6 /* Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Core; path = Core; sourceTree = SOURCE_ROOT; };
 		6BD311D35F38F0FEFC26141A /* HowItWorks.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HowItWorks.md; sourceTree = "<group>"; };
 		78AE22FC8C9C0A80A3D7CF78 /* ParagonUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ParagonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1D60C15B6874D11DD911583 /* Look.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Look.md; sourceTree = "<group>"; };
 		E6919AFBC2371667D46DD399 /* VersionHistory.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = VersionHistory.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -145,6 +149,7 @@
 		1E845C6854A70724BDF46B81 /* ParagonUITests */ = {
 			isa = PBXGroup;
 			children = (
+				199611C16C9E127ECDA36B8E /* IPadScreens.swift */,
 				446EED97021901C80DE8243E /* ScreenTests.swift */,
 			);
 			path = ParagonUITests;
@@ -176,6 +181,7 @@
 			isa = PBXGroup;
 			children = (
 				6BD311D35F38F0FEFC26141A /* HowItWorks.md */,
+				C1D60C15B6874D11DD911583 /* Look.md */,
 				E6919AFBC2371667D46DD399 /* VersionHistory.md */,
 				37E5572E0E65566F6BC49B8C /* Words.md */,
 			);
@@ -352,6 +358,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				156E7AB9FEFEAE96BDD7D5DB /* HowItWorks.md in Resources */,
+				FE7F5DC055850D7FC4750F90 /* Look.md in Resources */,
 				627482B9308CA63E70129D95 /* VersionHistory.md in Resources */,
 				C202C2E162F6A9616899BDAE /* Words.md in Resources */,
 			);
@@ -378,6 +385,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A149D28F88891DAD8F4674CA /* IPadScreens.swift in Sources */,
 				13E458BE7B29FB9402EBF563 /* ScreenTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -439,7 +447,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Share;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -465,7 +473,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara;
 				PRODUCT_NAME = PARAGON;
 				SDKROOT = auto;
@@ -574,7 +582,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Widgets;
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -626,7 +634,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Share;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -650,7 +658,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara.Widgets;
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
@@ -680,7 +688,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.schabbauer.AMSPara;
 				PRODUCT_NAME = PARAGON;
 				SDKROOT = auto;
@@ -819,7 +827,7 @@
 			repositoryURL = "https://github.com/marsch124/AMS-Icons";
 			requirement = {
 				kind = revision;
-				revision = 43cbcb1f0ab543070cdbc4b8879c4fa00cba6e57;
+				revision = 355a839;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

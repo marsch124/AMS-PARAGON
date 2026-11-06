@@ -109,7 +109,7 @@ struct AllActionsView: View {
     /// column's name beside it, which reads **Waiting for** on this half (build 159: a control
     /// that shrinks hands its words to the row it sits in).
     private var waitingSwitch: some View {
-        StateToggle(systemImage: WaitingShowing.symbol, title: "The Waiting for list", isOn: showsWaiting, tint: tint) {
+        StateToggle(markName: WaitingShowing.symbol, title: "The Waiting for list", isOn: showsWaiting, tint: tint) {
             showsWaiting.toggle()
         }
         .accessibilityIdentifier("actions.waiting")
@@ -118,7 +118,7 @@ struct AllActionsView: View {
     private func waitingHeader(count: Int) -> some View {
         HStack(spacing: 8) {
             SectionLabel(title: "Waiting for", count: count,
-                         systemImage: WaitingShowing.symbol, tint: tint)
+                         markName: WaitingShowing.symbol, tint: tint)
             Spacer()
             waitingSwitch
         }
@@ -134,7 +134,7 @@ struct AllActionsView: View {
             Button {
                 showsWaiting = true
             } label: {
-                Label(text, systemImage: WaitingShowing.symbol)
+                MarkLabel(text, WaitingShowing.symbol)
                     .font(Txt.label)
                     .foregroundStyle(tint)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -156,7 +156,7 @@ struct AllActionsView: View {
     private func header(shown: Int, total: Int) -> some View {
         HStack(spacing: 8) {
             SectionLabel(title: "Actions", count: shown,
-                         systemImage: SidebarSection.allActions.systemImage, tint: tint)
+                         markName: SidebarSection.allActions.markName, tint: tint)
                 // The name gives way before the controls beside it (build 138: an HStack in a
                 // narrow column squeezes, it does not overflow).
                 .lineLimit(1)
@@ -177,8 +177,7 @@ struct AllActionsView: View {
             Button {
                 if isPhone { phoneFolded.toggle() } else { deskFolded.toggle() }
             } label: {
-                Label(folded ? "Show the boxes" : "Hide the boxes",
-                      systemImage: folded ? "line.3.horizontal.decrease.circle" : "chevron.up")
+                MarkLabel(folded ? "Show the boxes" : "Hide the boxes", folded ? "line.3.horizontal.decrease.circle" : "chevron.up")
                     .labelStyle(.iconOnly)
                     .foregroundStyle(model.actionFilter.isEmpty ? Color.secondary : tint)
             }
@@ -273,7 +272,7 @@ struct AllActionsView: View {
                     HStack {
                         SectionLabel(title: group.note.displayTitle,
                                      count: group.tasks.count,
-                                     systemImage: SidebarSection.kind(group.note.kind).systemImage,
+                                     markName: SidebarSection.kind(group.note.kind).markName,
                                      tint: group.note.tint)
                         Spacer()
                         Button("Open") { model.show(section: .kind(group.note.kind), notePath: group.note.relativePath) }
@@ -291,13 +290,13 @@ struct AllActionsView: View {
     private func empty(total: Int) -> some View {
         if total == 0 {
             EmptyStateView(title: "Nothing open",
-                           systemImage: "checkmark.circle",
+                           markName: "checkmark.circle",
                            message: "No open action anywhere in the vault. Capture something in the Inbox, and it will show up here.",
                            tint: tint)
                 .accessibilityIdentifier("actions.nothingOpen")
         } else {
             EmptyStateView(title: "No action matches",
-                           systemImage: "line.3.horizontal.decrease.circle",
+                           markName: "line.3.horizontal.decrease.circle",
                            message: "There are \(total) open actions, but none of them matches the boxes you ticked: \(model.actionFilter.summary).",
                            tint: tint,
                            actionTitle: "Untick every box",

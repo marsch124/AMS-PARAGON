@@ -141,7 +141,7 @@ struct CloseDayView: View {
             // headings below carry their own counts, so the old row of two capsules would only
             // have repeated them (build 169).
             CountPill(text: pillText(finished.count, "finished today"),
-                      systemImage: "checkmark.circle", tint: .green)
+                      markName: "checkmark.circle", tint: .green)
             if finished.isEmpty {
                 Text("No task was ticked off today.")
                     .font(Txt.value)
@@ -311,11 +311,11 @@ struct CloseDayView: View {
 /// `Theme.swift` — the note build 214 left about `HeaderActionButton`.
 struct CountPill: View {
     let text: String
-    let systemImage: String
+    let markName: String
     let tint: Color
 
     var body: some View {
-        Label(text, systemImage: systemImage)
+        MarkLabel(text, markName)
             .font(Txt.label.weight(.semibold))
             .foregroundStyle(tint)
             .padding(.horizontal, 10)
@@ -481,7 +481,7 @@ struct ServedRow: View {
 
     private var capsule: some View {
         HStack(spacing: 4) {
-            Image(systemName: symbol)
+            MarkImage(symbol)
                 .imageScale(.small)
             // A wrapping row places each item at its full width and never squeezes one, so the
             // whole capsule has to fit the narrowest column it lives in (builds 250, 255): the
@@ -505,7 +505,7 @@ struct ServedRow: View {
 
     private var roomy: some View {
         HStack(spacing: 8) {
-            Image(systemName: symbol)
+            MarkImage(symbol)
                 .foregroundStyle(tint)
                 .frame(width: 18)
             Text(served.title)
@@ -523,7 +523,7 @@ struct ServedRow: View {
         switch served.kind {
         case .goal: return ChainSymbol.forGoal(named: served.title, in: model.index)
         case .area: return ChainSymbol.area
-        case .note(let kind): return SidebarSection.kind(kind).systemImage
+        case .note(let kind): return SidebarSection.kind(kind).markName
         }
     }
 

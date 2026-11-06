@@ -1358,6 +1358,89 @@ final class ScreenTests: XCTestCase {
     /// `go(to:)` alone knows how to get there on each platform.
     private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations }
 
+    // MARK: The look (1.0, build 280)
+
+    /// 1.0: an edit sheet has **Cancel** and its doing button in a bar above the fields — side
+    /// by side at the top right on the Mac, Cancel on the left and the doing button on the
+    /// right of the navigation bar on the iPhone. The old footer put them at the foot.
+    func testTheNewNoteSheetHasCancelAndCreateInItsBar() {
+        go(to: .projects)
+        let newNote = element("list.newNote")
+        XCTAssertTrue(newNote.waitForExistence(timeout: 20), "The Projects list has no New note button.")
+        newNote.press()
+        let create = element("sheet.action")
+        let cancel = element("sheet.cancel")
+        let name = element("new.name")
+        XCTAssertTrue(create.waitForExistence(timeout: 10), "The New note sheet has no Create button.")
+        XCTAssertTrue(cancel.exists, "The New note sheet has no Cancel button.")
+        XCTAssertTrue(name.waitForExistence(timeout: 10), "The New note sheet has no name field.")
+        XCTAssertLessThan(cancel.frame.maxY, name.frame.minY + 1, "Cancel is not above the fields.")
+        XCTAssertLessThan(create.frame.maxY, name.frame.minY + 1, "Create is not above the fields.")
+        XCTAssertLessThan(cancel.frame.midX, create.frame.midX, "Cancel is not to the left of Create.")
+        #if os(macOS)
+        XCTAssertGreaterThan(create.frame.midX, name.frame.midX, "Create is not at the right of the sheet.")
+        #endif
+        cancel.press()
+        XCTAssertTrue(create.waitForNonExistence(timeout: 10), "Cancel did not close the sheet.")
+    }
+
+    /// 1.0: the version shows as "1.0 (280)" — at the foot of the sidebar on the Mac, at the
+    /// foot of Browse on the iPhone. Before 1.0 only "Build 279" was shown.
+    func testTheVersionNumberShows() {
+        #if os(macOS)
+        let version = element("sidebar.version")
+        #else
+        let browse = element("tab.browse")
+        XCTAssertTrue(browse.waitForExistence(timeout: appears), "No Browse tab.")
+        browse.press()
+        let version = element("browse.version")
+        #endif
+        // The line is the last row of a long list; on the phone it has to be scrolled to.
+        var swipes = 0
+        while !version.exists && swipes < 8 {
+            app.swipeUp()
+            swipes += 1
+        }
+        XCTAssertTrue(version.waitForExistence(timeout: 20), "The version line is not on screen.")
+        let words = version.label
+        let shape = try? NSRegularExpression(pattern: #"\d+\.\d+ \(\d+\)"#)
+        let found = shape?.firstMatch(in: words, range: NSRange(words.startIndex..., in: words)) != nil
+        XCTAssertTrue(found, "The version line does not read like 1.0 (280). It says: \(words)")
+    }
+
+    #if os(macOS)
+    /// 1.0: Escape is Cancel on every edit sheet.
+    func testEscapeClosesTheNewNoteSheet() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears), "\(Self.home) never appeared.")
+        app.typeKey("n", modifierFlags: .command)
+        let create = element("sheet.action")
+        XCTAssertTrue(create.waitForExistence(timeout: 10), "Command-N did not open the New note sheet.")
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(create.waitForNonExistence(timeout: 10), "Escape did not close the New note sheet.")
+    }
+
+    /// 1.0: Command-S is Save on every edit sheet — here it creates the note.
+    func testCommandSCreatesFromTheNewNoteSheet() {
+        go(to: .projects)
+        let newNote = element("list.newNote")
+        XCTAssertTrue(newNote.waitForExistence(timeout: 20), "The Projects list has no New note button.")
+        newNote.press()
+        let projectButton = element("new.project")
+        XCTAssertTrue(projectButton.waitForExistence(timeout: 20), "The New note sheet has no Project button.")
+        projectButton.press()
+        let name = element("new.name")
+        XCTAssertTrue(name.waitForExistence(timeout: 10), "The New note sheet has no name field.")
+        name.press()
+        name.typeText("Saved with command S")
+        app.typeKey("s", modifierFlags: .command)
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "Command-S did not create the note.")
+        let shown = editor.value as? String ?? ""
+        XCTAssertTrue(shown.contains("Saved with command S"),
+                      "The note that opened does not carry the name that was typed. It shows: \(shown.prefix(200))")
+    }
+    #endif
+
     /// Waits for the home to be drawn first, so every test starts from the same proof that
     /// the vault opened; a test that walked on from the welcome screen would fail on the wrong
     /// step with the wrong words.

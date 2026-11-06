@@ -287,7 +287,7 @@ struct StartDayView: View {
             .accessibilityLabel("Last evening you wrote: \(lastEveningText)")
             .accessibilityIdentifier("startDay.lastEvening")
         } else if model.dailyNoteIsWaitingForCloud(yesterday) {
-            Label("Last evening's note is still coming from iCloud.", systemImage: "icloud")
+            MarkLabel("Last evening's note is still coming from iCloud.", "icloud")
                 .font(Txt.label)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -304,7 +304,7 @@ struct StartDayView: View {
         if let goal = model.weekGoal(for: .current()) {
             WeekGoalLine(goal: goal, identifier: "startDay.weekGoal")
         } else if model.weeklyNoteIsWaitingForCloud(.current()) {
-            Label("This week's note is still coming from iCloud.", systemImage: "icloud")
+            MarkLabel("This week's note is still coming from iCloud.", "icloud")
                 .font(Txt.label)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -338,7 +338,7 @@ struct StartDayView: View {
                 FoldButton(isOpen: calendarOpen, accessibilityName: "Today's calendar events") {
                     SectionLabel(title: "Today's calendar events",
                                  count: model.events(on: day).count,
-                                 systemImage: SidebarSection.calendar.systemImage,
+                                 markName: SidebarSection.calendar.markName,
                                  tint: SidebarSection.calendar.tint)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -358,13 +358,13 @@ struct StartDayView: View {
         WrappingHStack(spacing: 8, lineSpacing: 8) {
             if !overdue.isEmpty {
                 CountPill(text: "\(overdue.count) overdue",
-                          systemImage: "exclamationmark.circle", tint: .orange)
+                          markName: "exclamationmark.circle", tint: .orange)
             }
             CountPill(text: "\(dueToday.count) due today",
-                      systemImage: "calendar", tint: tint)
+                      markName: "calendar", tint: tint)
             if !picked.isEmpty {
                 CountPill(text: "\(picked.count) picked",
-                          systemImage: "checkmark.circle", tint: .green)
+                          markName: "checkmark.circle", tint: .green)
             }
         }
     }
@@ -394,7 +394,7 @@ struct StartDayView: View {
                 Button {
                     addAction()
                 } label: {
-                    Image(systemName: "plus.circle.fill")
+                    MarkImage("plus.circle.fill")
                         .font(Txt.sectionTitle)
                         .foregroundStyle(canAdd ? tint : Color.secondary.opacity(0.5))
                         .contentShape(Rectangle())

@@ -67,7 +67,7 @@ struct ReviewView: View {
             Section {
                 if isOpen("due") {
                     if due.isEmpty {
-                        Label("Everything has been looked at recently", systemImage: "checkmark.circle")
+                        MarkLabel("Everything has been looked at recently", "checkmark.circle")
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(due) { item in
@@ -90,13 +90,13 @@ struct ReviewView: View {
             Section {
                 if isOpen("1") {
                     if report.inboxOpenTasks == 0 {
-                        Label("Inbox is empty", systemImage: "checkmark.circle")
+                        MarkLabel("Inbox is empty", "checkmark.circle")
                             .foregroundStyle(.secondary)
                     } else {
                         Button {
                             model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
                         } label: {
-                            Label("\(report.inboxOpenTasks) open items to file into projects or areas", systemImage: "tray")
+                            MarkLabel("\(report.inboxOpenTasks) open items to file into projects or areas", "tray")
                         }
                     }
                 }
@@ -114,7 +114,7 @@ struct ReviewView: View {
             Section {
                 if isOpen("2") {
                     if report.overdueTasks.isEmpty {
-                        Label("Nothing is overdue", systemImage: "checkmark.circle")
+                        MarkLabel("Nothing is overdue", "checkmark.circle")
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(report.overdueTasks) { ref in
@@ -136,7 +136,7 @@ struct ReviewView: View {
             Section {
                 if isOpen("3") {
                     if aspirations(report).isEmpty {
-                        Label("No aspirations yet", systemImage: ChainSymbol.aspiration)
+                        MarkLabel("No aspirations yet", ChainSymbol.aspiration)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(aspirations(report)) { health in
@@ -160,7 +160,7 @@ struct ReviewView: View {
             Section {
                 if isOpen("4") {
                     if datedGoals(report).isEmpty {
-                        Label("No goals with a date yet", systemImage: ChainSymbol.datedGoal)
+                        MarkLabel("No goals with a date yet", ChainSymbol.datedGoal)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(datedGoals(report)) { health in
@@ -186,7 +186,7 @@ struct ReviewView: View {
                             .tag(health.note.relativePath)
                     }
                     if report.projects.isEmpty {
-                        Label("No active projects", systemImage: SidebarSection.kind(.project).systemImage)
+                        MarkLabel("No active projects", SidebarSection.kind(.project).markName)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -211,7 +211,7 @@ struct ReviewView: View {
             Section {
                 if isOpen("6") {
                     if report.areas.isEmpty {
-                        Label("No areas yet", systemImage: SidebarSection.kind(.area).systemImage)
+                        MarkLabel("No areas yet", SidebarSection.kind(.area).markName)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(report.areas) { health in
@@ -257,7 +257,7 @@ struct ReviewView: View {
                                 // threw the review away and gave Back nowhere sensible to return to.
                                 model.show(section: .review, notePath: health.note.relativePath)
                             } label: {
-                                Label(health.note.displayTitle, systemImage: "questionmark.circle")
+                                MarkLabel(health.note.displayTitle, "questionmark.circle")
                             }
                         }
                     }
@@ -382,7 +382,7 @@ struct ReviewOpenAllButton: View {
 
     var body: some View {
         Button(action: action) {
-            Label(words, systemImage: symbol)
+            MarkLabel(words, symbol)
                 .font(Txt.value)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
@@ -430,7 +430,7 @@ struct ReviewSummary: View {
         if projects > 0 {
             out.append(Worry(text: projects == 1 ? "1 project needs attention"
                                                   : "\(projects) projects need attention",
-                             symbol: SidebarSection.kind(.project).systemImage))
+                             symbol: SidebarSection.kind(.project).markName))
         }
         let goals = report.goalsNeedingAttention.count
         if goals > 0 {
@@ -441,7 +441,7 @@ struct ReviewSummary: View {
         if report.inboxOpenTasks > 0 {
             out.append(Worry(text: report.inboxOpenTasks == 1 ? "1 item in the Inbox"
                                                                : "\(report.inboxOpenTasks) items in the Inbox",
-                             symbol: SidebarSection.inbox.systemImage))
+                             symbol: SidebarSection.inbox.markName))
         }
         if dueForReview > 0 {
             out.append(Worry(text: dueForReview == 1 ? "1 note due for a look"
@@ -490,7 +490,7 @@ struct ReviewStat: View {
     let tint: Color
 
     var body: some View {
-        Label(text, systemImage: symbol)
+        MarkLabel(text, symbol)
             .font(Txt.label)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
@@ -511,7 +511,7 @@ struct HealthRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
                 KindBadge(kind: health.note.kind, size: 20)
-                Image(systemName: health.needsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle")
+                MarkImage(health.needsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle")
                     .rowTint(health.needsAttention ? Color.orange : health.note.tint)
                 Text(health.note.title)
                     .font(Txt.listTitle)
@@ -526,22 +526,22 @@ struct HealthRow: View {
                 // (build 141). On this line, not beside the name: "looked at about a month ago"
                 // kept its full width there and squeezed the name in the Mac's narrow middle
                 // column (builds 138, 250). Here it wraps as one whole item.
-                Label(ReviewWording.lookedAt(daysAgo: health.daysSinceReview), systemImage: "eye")
+                MarkLabel(ReviewWording.lookedAt(daysAgo: health.daysSinceReview), "eye")
                 // Not for an area (build 276): the count is the area note's own tasks, and its
                 // work lives in its projects, so "0 open" would sit beside a row with no
                 // "No next action" flag. The two facts could not both be true of that row.
                 if health.note.kind != .area {
-                    Label("\(health.openTaskCount) open", systemImage: "checklist")
+                    MarkLabel("\(health.openTaskCount) open", "checklist")
                 }
                 if health.overdueTaskCount > 0 {
-                    Label("\(health.overdueTaskCount) overdue", systemImage: "clock.badge.exclamationmark")
+                    MarkLabel("\(health.overdueTaskCount) overdue", "clock.badge.exclamationmark")
                         .rowTint(.red)
                 }
                 // "In 7 days", not "this week": it counts back from today, and the step 7 week
                 // is Monday to Sunday (review of 263).
-                Label("\(health.completedLast7Days) done in 7 days", systemImage: "checkmark")
+                MarkLabel("\(health.completedLast7Days) done in 7 days", "checkmark")
                 if let due = health.note.dueDate {
-                    Label(due.description, systemImage: "calendar")
+                    MarkLabel(due.description, "calendar")
                 }
             }
             .font(Txt.label)
@@ -595,7 +595,7 @@ struct HealthRow: View {
                 .accessibilityIdentifier("review.standard.\(health.note.relativePath)")
         } else {
             ProjectPill(fact: ProjectFact(id: "noStandard", text: "No standard written yet",
-                                          systemImage: "circle.dashed", dashed: true))
+                                          markName: "circle.dashed", dashed: true))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("No standard written yet")
                 .accessibilityIdentifier("review.standard.\(health.note.relativePath)")
@@ -641,15 +641,15 @@ struct GoalHealthRow: View {
                 GoalProgressBar(progress: health.progress, width: 54, showsCounts: false,
                                 tint: ChainTint.forGoal(health.note))
                 if health.progress.projectsTotal > 0 {
-                    Label("\(health.progress.projectsDone) of \(health.progress.projectsTotal) projects done", systemImage: "flag")
+                    MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) projects done", "flag")
                 } else {
-                    Label("no projects yet", systemImage: "flag")
+                    MarkLabel("no projects yet", "flag")
                 }
-                Label("\(health.areas.count) areas", systemImage: "circle.grid.2x2")
-                Label("\(health.openTaskCount) open", systemImage: "checklist")
-                Label("\(health.completedLast30Days) done in 30d", systemImage: "checkmark")
+                MarkLabel("\(health.areas.count) areas", "circle.grid.2x2")
+                MarkLabel("\(health.openTaskCount) open", "checklist")
+                MarkLabel("\(health.completedLast30Days) done in 30d", "checkmark")
                 if let target = health.note.targetDate {
-                    Label(target.description, systemImage: "flag.checkered")
+                    MarkLabel(target.description, "flag.checkered")
                 }
             }
             .font(Txt.label)
@@ -725,7 +725,7 @@ struct ReviewDueRow: View {
             model.show(section: .review, notePath: item.note.relativePath)
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: symbol)
+                MarkImage(symbol)
                     .foregroundStyle(tint)
                     .frame(width: 18)
                 VStack(alignment: .leading, spacing: 1) {

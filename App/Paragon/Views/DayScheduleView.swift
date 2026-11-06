@@ -15,9 +15,9 @@ struct CalendarDetailView: View {
             HStack(spacing: 8) {
                 SectionLabel(title: showsNote ? "Note" : "Schedule",
                              count: nil,
-                             systemImage: showsNote ? "doc.text" : "clock",
+                             markName: showsNote ? "doc.text" : "clock",
                              tint: ParaKind.daily.tint)
-                StateToggle(systemImage: "doc.text", title: "Note",
+                StateToggle(markName: "doc.text", title: "Note",
                             isOn: showsNote, tint: ParaKind.daily.tint) {
                     showsNote.toggle()
                 }
@@ -40,7 +40,7 @@ struct CalendarDetailView: View {
                     .id(path)
             } else {
                 EmptyStateView(title: "No note for this day yet",
-                               systemImage: "doc.text",
+                               markName: "doc.text",
                                message: "Open or create the daily note from the list on the left, and it appears here.",
                                tint: ParaKind.daily.tint)
             }
@@ -145,7 +145,7 @@ struct DayScheduleView: View {
             Button {
                 sheet = .new(defaultStart())
             } label: {
-                Label("Block time", systemImage: "plus")
+                MarkLabel("Block time", "plus")
             }
             .buttonStyle(.borderless)
             .help("Reserve a block of time on this day")

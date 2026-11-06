@@ -11,7 +11,7 @@ struct SyncReportView: View {
         let preview = model.reportIsPreview
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Label(preview ? "If you sync now" : "Last sync", systemImage: preview ? "eye" : "arrow.triangle.2.circlepath")
+                MarkLabel(preview ? "If you sync now" : "Last sync", preview ? "eye" : "arrow.triangle.2.circlepath")
                     .font(Txt.listTitle)
                 Spacer()
                 if let finished = report?.finishedAt {
@@ -25,7 +25,7 @@ struct SyncReportView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     if let report {
                         if report.changeCount == 0 {
-                            Label("Nothing to change. Notes and Reminders already match.", systemImage: "checkmark.circle")
+                            MarkLabel("Nothing to change. Notes and Reminders already match.", "checkmark.circle")
                                 .foregroundStyle(.secondary)
                         } else {
                             rows(report)
@@ -86,7 +86,7 @@ struct SyncReportView: View {
     private func row(_ title: String, _ count: Int, _ icon: String, _ tint: Color) -> some View {
         if count > 0 {
             HStack(spacing: 8) {
-                Image(systemName: icon).foregroundStyle(tint)
+                MarkImage(icon).foregroundStyle(tint)
                 Text(title)
                 Spacer()
                 Text("\(count)").monospacedDigit().fontWeight(.medium)
@@ -96,7 +96,7 @@ struct SyncReportView: View {
 
     private func section(_ title: String, _ lines: [String], icon: String, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label(title, systemImage: icon)
+            MarkLabel(title, icon)
                 .font(Txt.label.weight(.medium))
                 .foregroundStyle(tint)
             ForEach(lines, id: \.self) { line in

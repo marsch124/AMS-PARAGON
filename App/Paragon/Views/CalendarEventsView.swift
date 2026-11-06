@@ -96,7 +96,7 @@ struct CalendarEventRow: View {
             Button {
                 model.openInCalendar(event)
             } label: {
-                Image(systemName: "arrow.up.forward.app")
+                MarkImage("arrow.up.forward.app")
                     .font(compact ? .caption : .body)
             }
             .buttonStyle(.plain)

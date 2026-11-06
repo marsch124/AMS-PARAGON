@@ -194,7 +194,7 @@ struct NewNoteSheet: View {
         case .aspiration: return ChainSymbol.aspiration
         case .goal: return ChainSymbol.datedGoal
         case .capture: return "tray.and.arrow.down"
-        default: return SidebarSection.kind(choice.kind).systemImage
+        default: return SidebarSection.kind(choice.kind).markName
         }
     }
 
@@ -265,7 +265,7 @@ struct NewNoteSheet: View {
                 PickerChip(name: serves.name,
                            emptyLabel: serves.empty,
                            noneLabel: "Nothing yet",
-                           systemImage: ChainSymbol.datedGoal,
+                           markName: ChainSymbol.datedGoal,
                            tint: servesGoal.isEmpty ? ChainTint.datedGoal
                                : ChainTint.forGoal(named: servesGoal, in: model.index),
                            options: serves.options,
@@ -279,7 +279,7 @@ struct NewNoteSheet: View {
                 PickerChip(name: "In area",
                            emptyLabel: "In area\u{2026}",
                            noneLabel: "In no area",
-                           systemImage: ChainSymbol.area,
+                           markName: ChainSymbol.area,
                            tint: ParaKind.area.tint,
                            options: areaOptions,
                            choice: $inArea,
@@ -290,7 +290,7 @@ struct NewNoteSheet: View {
                 PickerChip(name: "Part of another area",
                            emptyLabel: "Part of\u{2026}",
                            noneLabel: "An area of its own",
-                           systemImage: "arrow.turn.left.up",
+                           markName: "arrow.turn.left.up",
                            tint: ParaKind.area.tint,
                            options: possibleParents.map { ChipOption(value: $0.displayTitle, label: $0.displayTitle) },
                            choice: $parentArea)
@@ -300,7 +300,7 @@ struct NewNoteSheet: View {
                 PickerChip(name: "Template",
                            emptyLabel: "Template",
                            noneLabel: nil,
-                           systemImage: SidebarSection.templates.systemImage,
+                           markName: SidebarSection.templates.markName,
                            tint: SidebarSection.templates.tint,
                            options: templateOptions,
                            choice: $template)
@@ -597,7 +597,7 @@ private struct ThingChoice: View {
     var body: some View {
         Button(action: choose) {
             VStack(spacing: 5) {
-                KindBadge(kind: thing.kind, size: 18, systemImage: symbol, tint: tint)
+                KindBadge(kind: thing.kind, size: 18, markName: symbol, tint: tint)
                     .opacity(chosen ? 1 : 0.45)
                 Text(thing.name)
                     .font(Txt.label)
@@ -649,12 +649,12 @@ struct ChipOption: Identifiable {
 /// tint filled with a solid border, not chosen is grey with a dashed one.
 private struct ChipLabel: View {
     let text: String
-    let systemImage: String
+    let markName: String
     let tint: Color
     let isSet: Bool
 
     var body: some View {
-        Label(text, systemImage: systemImage)
+        MarkLabel(text, markName)
             .font(Txt.value)
             .lineLimit(1)
             .foregroundStyle(isSet ? tint : Color.primary.opacity(0.62))
@@ -680,7 +680,7 @@ private struct PickerChip: View {
     let emptyLabel: String
     /// The first row, for choosing nothing. Nil when there must always be an answer.
     let noneLabel: String?
-    let systemImage: String
+    let markName: String
     let tint: Color
     let options: [ChipOption]
     @Binding var choice: String
@@ -766,7 +766,7 @@ private struct PickerChip: View {
             showing = true
         } label: {
             ChipLabel(text: chosen?.label ?? emptyLabel,
-                      systemImage: chosen?.symbol ?? systemImage,
+                      markName: chosen?.symbol ?? markName,
                       tint: tint,
                       isSet: chosen != nil)
                 .helpWhenClosed(name, open: showing)
@@ -797,7 +797,7 @@ private struct PickerChip: View {
                 HStack(spacing: 6) {
                     ForEach(make.actions) { action in
                         Button { commitDraft(action) } label: {
-                            Label(action.title, systemImage: action.symbol)
+                            MarkLabel(action.title, action.symbol)
                         }
                         .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
@@ -879,10 +879,10 @@ private struct PickerChip: View {
             showing = false
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: choice == option.value ? "checkmark.circle.fill" : "circle")
+                MarkImage(choice == option.value ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(choice == option.value ? tint : Color.secondary)
                 if let symbol = option.symbol {
-                    Image(systemName: symbol)
+                    MarkImage(symbol)
                         .foregroundStyle(option.tint ?? tint)
                 }
                 Text(option.label)
@@ -912,7 +912,7 @@ private struct NewNoteTagsChip: View {
             showing = true
         } label: {
             ChipLabel(text: tags.isEmpty ? "Tags\u{2026}" : tags.map { "#\($0)" }.joined(separator: " "),
-                      systemImage: SidebarSection.tags.systemImage,
+                      markName: SidebarSection.tags.markName,
                       tint: SidebarSection.tags.tint,
                       isSet: !tags.isEmpty)
                 .helpWhenClosed("Tags for this note", open: showing)
@@ -940,7 +940,7 @@ private struct DateChip: View {
             picking = true
         } label: {
             ChipLabel(text: current.map { "\(name) \($0.description)" } ?? emptyLabel,
-                      systemImage: "flag.checkered",
+                      markName: "flag.checkered",
                       tint: tint,
                       isSet: current != nil)
                 .helpWhenClosed(name, open: picking)

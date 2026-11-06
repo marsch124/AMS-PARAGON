@@ -105,7 +105,7 @@ struct TaskContextMenu: View {
             Button {
                 model.startFocus(on: ref)
             } label: {
-                Label("Focus on this", systemImage: "timer")
+                MarkLabel("Focus on this", "timer")
             }
             Divider()
         }
@@ -337,7 +337,7 @@ struct TaskTimeChoices: View {
             if let focus, model.canFocus(on: ref) {
                 Divider()
                 Button(action: focus) {
-                    Label("Focus on this", systemImage: "timer")
+                    MarkLabel("Focus on this", "timer")
                         .font(Txt.value.weight(.semibold))
                         .foregroundStyle(Theme.planBlockTint)
                         .contentShape(Rectangle())

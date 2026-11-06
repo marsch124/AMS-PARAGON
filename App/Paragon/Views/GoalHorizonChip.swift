@@ -52,7 +52,7 @@ struct GoalHorizonChip: View {
         if onChainPage {
             ChainChip(text: Self.words(horizon), tint: ChainTint.datedGoal, filled: false)
         } else {
-            Label(Self.words(horizon), systemImage: "scope")
+            MarkLabel(Self.words(horizon), "scope")
                 .foregroundStyle(ChainTint.datedGoal)
         }
     }
@@ -80,7 +80,7 @@ struct GoalHorizonChip: View {
             picking = false
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Image(systemName: option == current ? "checkmark.circle.fill" : "circle")
+                MarkImage(option == current ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(option == current ? ChainTint.datedGoal : Color.secondary)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(option.label)

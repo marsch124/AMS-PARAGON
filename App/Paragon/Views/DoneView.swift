@@ -58,7 +58,7 @@ struct DoneView: View {
                     Label {
                         Text(count)
                     } icon: {
-                        Image(systemName: "checkmark.circle")
+                        MarkImage("checkmark.circle")
                             .foregroundStyle(SidebarSection.done.tint)
                     }
                     .font(Txt.value)
@@ -88,8 +88,7 @@ struct DoneView: View {
                             Text("Nothing in the last \(DoneDiary.weeks) weeks. A task you tick off shows up here on the day you did it. So does a day you wrote about in **Close the day**, or worked on with the focus timer.")
                                 .foregroundStyle(.secondary)
                         } else {
-                            Label("Some notes are still coming from iCloud, so days may be missing here. They appear as the notes arrive.",
-                                  systemImage: "icloud")
+                            MarkLabel("Some notes are still coming from iCloud, so days may be missing here. They appear as the notes arrive.", "icloud")
                                 .foregroundStyle(.orange)
                         }
                     }
@@ -171,7 +170,7 @@ private struct DoneDayCard: View {
                 .foregroundStyle(.secondary)
             if let evening = day.eveningLine {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Image(systemName: CloseDayView.symbol)
+                    MarkImage(CloseDayView.symbol)
                         .font(Txt.label)
                         .foregroundStyle(Theme.eveningTint)
                     // The whole line, as he wrote it: it is his own words.
@@ -182,7 +181,7 @@ private struct DoneDayCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else if waiting {
-                Label("Still coming from iCloud", systemImage: "icloud")
+                MarkLabel("Still coming from iCloud", "icloud")
                     .font(Txt.label)
                     .foregroundStyle(.orange)
             }

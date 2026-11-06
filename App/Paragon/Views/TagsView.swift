@@ -32,7 +32,7 @@ struct TagsView: View {
         Group {
             if model.allTagNames.isEmpty {
                 EmptyStateView(title: "No tags yet",
-                               systemImage: SidebarSection.tags.systemImage,
+                               markName: SidebarSection.tags.markName,
                                message: "Write #travel, #waiting or any other word with a # in front of it, in a note or in a task. Or make one here and put it on a note later.",
                                tint: SidebarSection.tags.tint)
             } else {
@@ -108,7 +108,7 @@ struct TagsView: View {
             toggle(use.tag)
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: isOpen ? "chevron.down" : "chevron.right")
+                MarkImage(isOpen ? "chevron.down" : "chevron.right")
                     .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .frame(width: 12)
@@ -201,7 +201,7 @@ struct SnippetsView: View {
         Group {
             if model.snippets.isEmpty {
                 EmptyStateView(title: "No snippets yet",
-                               systemImage: SidebarSection.snippets.systemImage,
+                               markName: SidebarSection.snippets.markName,
                                message: "A snippet is a block of tasks you use again and again \u{2014} packing for a trip, closing a project. They live in one file, Templates \u{203a} Snippets, with a ## heading above each block.",
                                tint: SidebarSection.snippets.tint)
             } else {
@@ -271,7 +271,7 @@ struct NoteTagsChip: View {
         Button {
             showing = true
         } label: {
-            Label(title, systemImage: "number")
+            MarkLabel(title, "number")
                 .contentShape(Rectangle())
                 .helpWhenClosed("Add or remove this note's tags", open: showing)
         }
@@ -358,7 +358,7 @@ struct TagChoices: View {
             toggle(tag)
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: isOn(tag) ? "checkmark.circle.fill" : "circle")
+                MarkImage(isOn(tag) ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(isOn(tag) ? SidebarSection.tags.tint : Color.secondary)
                 Text("#\(tag)")
                     .lineLimit(1)

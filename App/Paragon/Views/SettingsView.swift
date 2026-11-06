@@ -45,7 +45,7 @@ struct SettingsView: View {
                 Button {
                     Task { await model.syncNow() }
                 } label: {
-                    Label(model.isSyncing ? "Syncing…" : "Sync now", systemImage: "arrow.triangle.2.circlepath")
+                    MarkLabel(model.isSyncing ? "Syncing…" : "Sync now", "arrow.triangle.2.circlepath")
                 }
                 .disabled(model.isSyncing || model.vault == nil)
                 Picker("Sync automatically", selection: Binding(
@@ -148,7 +148,7 @@ struct SettingsView: View {
                                 Label {
                                     Text(calendar.title) + Text("  \(calendar.sourceTitle)").foregroundStyle(.secondary)
                                 } icon: {
-                                    Image(systemName: "circle.fill").foregroundStyle(calendar.color)
+                                    MarkImage("circle.fill").foregroundStyle(calendar.color)
                                 }
                             }
                         }

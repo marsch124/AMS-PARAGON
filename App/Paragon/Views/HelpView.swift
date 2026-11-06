@@ -115,7 +115,7 @@ struct HelpDocument: View {
         }
         .safeAreaInset(edge: .top) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
+                MarkImage("magnifyingglass")
                     .foregroundStyle(.secondary)
                 TextField("Search this page", text: $search)
                     .textFieldStyle(.roundedBorder)

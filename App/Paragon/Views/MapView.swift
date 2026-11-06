@@ -27,8 +27,9 @@ struct MapView: View {
                 Divider()
             }
             if map.isEmpty {
-                ContentUnavailableView("Nothing to map yet", systemImage: SidebarSection.map.systemImage,
-                                       description: Text("Create a goal, then give your projects and areas a goal: line. They show up here, top down."))
+                EmptyStateView(title: "Nothing to map yet", markName: SidebarSection.map.markName,
+                               message: "Create a goal, then give your projects and areas a goal: line. They show up here, top down.",
+                               tint: SidebarSection.map.tint)
             } else {
                 let layout = MapLayout(map: map, zoom: zoom, pinned: model.pinnedMapPositions)
                 let lit = selectedID.map { map.neighbourhood(of: $0) }
@@ -57,14 +58,14 @@ struct MapView: View {
                 // buttons there pushed the word "Map" out past them while every other screen
                 // has its name hard left (build 155, his report). Only the New note button
                 // belongs in front of the title.
-                Button { step(-1) } label: { Label("Zoom out", systemImage: "minus.magnifyingglass") }
+                Button { step(-1) } label: { MarkLabel("Zoom out", "minus.magnifyingglass") }
                     .disabled(zoom <= Self.zoomSteps.first!)
-                Button { step(1) } label: { Label("Zoom in", systemImage: "plus.magnifyingglass") }
+                Button { step(1) } label: { MarkLabel("Zoom in", "plus.magnifyingglass") }
                     .disabled(zoom >= Self.zoomSteps.last!)
                 // Build 159: the app's own two-state control rather than a
                 // `Toggle(.button)`, which draws a plain macOS button that looks the same
                 // whichever way it is set.
-                StateToggle(systemImage: "hand.draw", title: "Arrange",
+                StateToggle(markName: "hand.draw", title: "Arrange",
                             isOn: arranging, tint: Color("GoalTint")) {
                     arranging.toggle()
                     if !arranging { marked = [] }
@@ -77,7 +78,7 @@ struct MapView: View {
                     Button("Copy image") { MapExport.copyImage(for: map) }
                     Button("Copy as outline") { MapExport.copyToPasteboard(map.outline()) }
                 } label: {
-                    Label("Export", systemImage: "square.and.arrow.up")
+                    MarkLabel("Export", "square.and.arrow.up")
                 }
                 .disabled(map.isEmpty)
                 .help("Save the map as a PDF or a picture, or copy it")
@@ -137,7 +138,7 @@ struct MapView: View {
     /// what a drag will do, and offers the way out.
     private var arrangingBanner: some View {
         HStack(spacing: 8) {
-            Image(systemName: "hand.draw")
+            MarkImage("hand.draw")
             Text(arrangingHint)
             Spacer(minLength: 8)
             Button("Reset all") { confirmResetAll = true }
@@ -602,7 +603,7 @@ struct MapNodeView: View {
         Group {
             switch node.content {
             case .note(let note) where note.kind == .resource && !note.isArchived:
-                chip(icon: SidebarSection.kind(.resource).systemImage, title: note.title, detail: nil, tint: ParaKind.resource.tint)
+                chip(icon: SidebarSection.kind(.resource).markName, title: note.title, detail: nil, tint: ParaKind.resource.tint)
             case .note(let note):
                 card(note)
             case .task(let ref, _):
@@ -641,7 +642,7 @@ struct MapNodeView: View {
             // the deeper gold that goes with the star. An archived goal's kind is `.archive`,
             // so `chainTint` leaves it nil and the badge stays grey.
             KindBadge(kind: note.kind, size: 20 * zoom,
-                      systemImage: note.kind == .goal ? ChainSymbol.forGoal(note) : nil,
+                      markName: note.kind == .goal ? ChainSymbol.forGoal(note) : nil,
                       tint: chainTint(for: note))
             VStack(alignment: .leading, spacing: 1) {
                 Text(note.displayTitle)
@@ -662,7 +663,7 @@ struct MapNodeView: View {
 
     private func groupCard(_ group: MapNode.Group) -> some View {
         HStack(spacing: 8 * zoom) {
-            Image(systemName: group == .archive ? "archivebox" : "questionmark.folder")
+            MarkImage(group == .archive ? "archivebox" : "questionmark.folder")
                 .font(Txt.mapTitle(zoom))
                 .foregroundStyle(node.tint)
             VStack(alignment: .leading, spacing: 1) {
@@ -683,7 +684,7 @@ struct MapNodeView: View {
 
     private func chip(icon: String, title: String, detail: String?, tint: Color) -> some View {
         HStack(spacing: 6 * zoom) {
-            Image(systemName: icon)
+            MarkImage(icon)
                 .font(Txt.mapLabel(zoom))
                 .foregroundStyle(tint)
             Text(title)
@@ -766,7 +767,7 @@ struct MapFooter: View {
                 symbolLegend(ChainSymbol.area, "Areas", ParaKind.area.tint)
                 symbolLegend(ChainSymbol.project, "Projects", ParaKind.project.tint)
                 symbolLegend(ChainSymbol.task, "Their actions", ParaKind.project.tint)
-                symbolLegend(SidebarSection.kind(.resource).systemImage, "Resources", ParaKind.resource.tint)
+                symbolLegend(SidebarSection.kind(.resource).markName, "Resources", ParaKind.resource.tint)
                 symbolLegend("archivebox", "Archive", ParaKind.archive.tint)
                 Text("Solid line: sits under.  Dashed: also serves.")
                     .foregroundStyle(.secondary)
@@ -778,7 +779,7 @@ struct MapFooter: View {
                 let down = names(map.downstream(of: selectedID))
                 HStack(alignment: .top, spacing: 8) {
                     if let kind = node.paraKind {
-                        KindBadge(kind: kind, size: 18, systemImage: node.chainSymbol)
+                        KindBadge(kind: kind, size: 18, markName: node.chainSymbol)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(node.title).font(Txt.label.weight(.semibold))
@@ -802,7 +803,7 @@ struct MapFooter: View {
     /// The two goal symbols, named. Colour alone cannot tell them apart — they are both gold.
     private func symbolLegend(_ symbol: String, _ text: String, _ tint: Color) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: symbol).foregroundStyle(tint)
+            MarkImage(symbol).foregroundStyle(tint)
             Text(text)
         }
     }

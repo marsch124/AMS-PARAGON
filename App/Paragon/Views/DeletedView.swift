@@ -14,7 +14,7 @@ struct DeletedView: View {
         Group {
             if listed.isEmpty {
                 EmptyStateView(title: "Nothing deleted",
-                               systemImage: "trash",
+                               markName: "trash",
                                message: "Notes you delete wait here for \(AppModel.deletedKeptForDays) days, so a mistake is never final. Tasks are not kept here — only whole notes.")
             } else {
                 List {
@@ -75,7 +75,7 @@ struct DeletedRow: View {
             Button {
                 model.deleteForGood(deleted)
             } label: {
-                Image(systemName: "trash")
+                MarkImage("trash")
             }
             .help("Delete this one for good")
         }

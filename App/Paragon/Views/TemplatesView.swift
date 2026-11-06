@@ -37,7 +37,7 @@ struct TemplatesView: View {
         Group {
             if model.templates.isEmpty {
                 EmptyStateView(title: "No templates",
-                               systemImage: SidebarSection.templates.systemImage,
+                               markName: SidebarSection.templates.markName,
                                message: "They live in the Templates folder inside your vault. Open a vault to see them.")
             } else {
                 // Plain sections with a fold button in the header. DisclosureGroups inside a
@@ -63,7 +63,7 @@ struct TemplatesView: View {
                                 toggleFold(group.title)
                             } label: {
                                 HStack(spacing: 6) {
-                                    Image(systemName: folded.contains(group.title) ? "chevron.right" : "chevron.down")
+                                    MarkImage(folded.contains(group.title) ? "chevron.right" : "chevron.down")
                                         .font(Txt.listSecond)
                                     Text(group.title.uppercased())
                                         .font(Txt.label.weight(.semibold))
@@ -80,8 +80,7 @@ struct TemplatesView: View {
                     if !model.templatesFromCloud.isEmpty {
                         Section {
                             ForEach(model.templatesFromCloud, id: \.self) { name in
-                                Label("\(name) \u{2014} coming from iCloud",
-                                      systemImage: "icloud.and.arrow.down")
+                                MarkLabel("\(name) \u{2014} coming from iCloud", "icloud.and.arrow.down")
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -96,7 +95,7 @@ struct TemplatesView: View {
                     newName = ""
                     making = true
                 } label: {
-                    Label("New template", systemImage: "plus")
+                    MarkLabel("New template", "plus")
                 }
                 .help("Add another template, so a kind of note can start in more than one way")
             }

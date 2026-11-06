@@ -70,7 +70,7 @@ final class LookRulesTests: XCTestCase {
     /// icon is a hand-drawn mark from the AMS-Icons package.
     func testNoStockIconsAnywhere() throws {
         let bad = try offending(try swiftFiles()) { line in
-            line.contains("Image(systemName:") || line.contains("systemImage:")
+            line.contains("Image(systemName:") || line.contains("systemImage:") || line.contains("systemSymbolName:")
         }
         XCTAssertTrue(bad.isEmpty, "Stock icons still in use (\(bad.count)); draw a mark instead:\n" + bad.prefix(40).joined(separator: "\n"))
     }

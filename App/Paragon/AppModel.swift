@@ -60,7 +60,7 @@ enum SidebarSection: Hashable, Identifiable {
         }
     }
 
-    var systemImage: String {
+    var markName: String {
         switch self {
         case .inbox: return "tray"
         case .today: return "sun.max"

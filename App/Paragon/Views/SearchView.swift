@@ -141,8 +141,7 @@ struct SearchView: View {
                 Button {
                     if isPhone { phoneFiltersFolded.toggle() } else { deskFiltersFolded.toggle() }
                 } label: {
-                    Label(filtersFolded ? "Show the boxes" : "Hide the boxes",
-                          systemImage: filtersFolded ? "chevron.down" : "chevron.up")
+                    MarkLabel(filtersFolded ? "Show the boxes" : "Hide the boxes", filtersFolded ? "chevron.down" : "chevron.up")
                         .labelStyle(.iconOnly)
                 }
                 .buttonStyle(.borderless)
@@ -155,7 +154,7 @@ struct SearchView: View {
                         savingName = SavedSearch.suggestedName(for: model.searchQuery)
                         savePrompt = true
                     } label: {
-                        Label("Save this search", systemImage: "bookmark")
+                        MarkLabel("Save this search", "bookmark")
                             .labelStyle(.iconOnly)
                     }
                     .buttonStyle(.borderless)
@@ -192,8 +191,7 @@ struct SearchView: View {
                 Button {
                     savedFolded.toggle()
                 } label: {
-                    Label("Saved searches",
-                          systemImage: savedFolded ? "chevron.right" : "chevron.down")
+                    MarkLabel("Saved searches", savedFolded ? "chevron.right" : "chevron.down")
                         .font(Txt.label.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -318,7 +316,7 @@ struct SearchView: View {
             // Never a bare "no results": say what was asked for, so a word that found nothing
             // can be told apart from a box that ruled everything out.
             EmptyStateView(title: "Nothing matches",
-                           systemImage: SidebarSection.search.systemImage,
+                           markName: SidebarSection.search.markName,
                            message: emptyMessage(query),
                            tint: SidebarSection.search.tint)
         } else if query.wantsTasks {
@@ -389,7 +387,7 @@ struct FilterBox: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 5) {
-                Image(systemName: isOn ? "checkmark.square.fill" : "square")
+                MarkImage(isOn ? "checkmark.square.fill" : "square")
                     .font(Txt.label)
                     .foregroundStyle(isOn ? tint : Color.secondary)
                 Text(title)
@@ -514,7 +512,7 @@ struct SavedSearchChip: View {
 
     var body: some View {
         Button(action: run) {
-            Label(search.name, systemImage: "bookmark")
+            MarkLabel(search.name, "bookmark")
                 .font(Txt.label)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)

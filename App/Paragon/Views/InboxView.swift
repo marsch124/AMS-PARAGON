@@ -118,14 +118,14 @@ struct InboxTriageView: View {
                 // Not "Inbox zero": the Inbox note has not reached this device yet (build 261),
                 // and an empty Inbox is something this app may only say when it knows.
                 EmptyStateView(title: "Still coming from iCloud",
-                               systemImage: "icloud.and.arrow.down",
+                               markName: "icloud.and.arrow.down",
                                message: "The Inbox note has not reached this device yet. Its lines appear here as soon as it arrives.",
                                tint: .orange,
                                actionTitle: "Ask iCloud again",
                                action: { model.fetchMissingNotes() })
             } else if items.isEmpty {
                 EmptyStateView(title: "Inbox zero",
-                               systemImage: "tray",
+                               markName: "tray",
                                message: "Nothing left to sort. Anything you capture — here, from the menu bar, or from the share sheet on the phone — lands in this list.",
                                tint: SidebarSection.inbox.tint)
             } else {
@@ -184,7 +184,7 @@ struct InboxTriageView: View {
     @ViewBuilder
     private var captureBar: some View {
         HStack(spacing: 8) {
-            Image(systemName: "tray.and.arrow.down")
+            MarkImage("tray.and.arrow.down")
                 .foregroundStyle(SidebarSection.inbox.tint)
             TextField("Capture something…", text: $newItem)
                 .textFieldStyle(.roundedBorder)
@@ -201,7 +201,7 @@ struct InboxTriageView: View {
     private var header: some View {
         HStack {
             SectionLabel(title: items.count == 1 ? "1 to sort" : "\(items.count) to sort",
-                         count: nil, systemImage: "tray.full", tint: SidebarSection.inbox.tint)
+                         count: nil, markName: "tray.full", tint: SidebarSection.inbox.tint)
             Spacer()
             Text("T today · M tomorrow · D done · ⌫ delete")
                 .font(Txt.listSecond)
@@ -253,7 +253,7 @@ struct InboxRow: View {
             Button {
                 model.toggle(ref)
             } label: {
-                Image(systemName: "circle")
+                MarkImage("circle")
                     .rowTint(SidebarSection.inbox.tint)
             }
             .buttonStyle(.plain)
@@ -272,8 +272,7 @@ struct InboxRow: View {
                 if let due = ref.task.dueDate {
                     // With the time of day when it has one (build 277): the At line can be
                     // reached from the Inbox's **Pick a date**, so this row has to show it.
-                    Label(ref.task.dueText ?? due.description,
-                          systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
+                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
                         .font(Txt.listSecond)
                         .rowTint(due < .today() ? Color.red : .secondary)
                 }
@@ -419,7 +418,7 @@ struct InboxQuadrant: View {
 
     private func face(_ symbol: String, _ title: String, isOn: Bool, dashed: Bool) -> some View {
         VStack(spacing: 3) {
-            Image(systemName: symbol)
+            MarkImage(symbol)
                 .font(Txt.value.weight(.medium))
             Text(title)
                 .font(Txt.listSecond.weight(.semibold))
@@ -460,7 +459,7 @@ struct InboxFileItView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionLabel(title: "File it", count: nil, systemImage: "tray.and.arrow.down",
+            SectionLabel(title: "File it", count: nil, markName: "tray.and.arrow.down",
                          tint: SidebarSection.inbox.tint)
                 .padding(.horizontal, 16)
                 .padding(.top, 14)
@@ -476,7 +475,7 @@ struct InboxFileItView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 10)
             }
-            SectionLabel(title: destinationsTitle, count: nil, systemImage: nil, tint: SidebarSection.inbox.tint)
+            SectionLabel(title: destinationsTitle, count: nil, markName: nil, tint: SidebarSection.inbox.tint)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
             if destinations.isEmpty {
@@ -536,8 +535,7 @@ struct InboxFileItView: View {
                     .font(Txt.sectionTitle)
                     .fixedSize(horizontal: false, vertical: true)
                 if let due = ref.task.dueDate {
-                    Label(ref.task.dueText ?? due.description,
-                          systemImage: ref.task.dueTime == nil ? "calendar" : "clock")
+                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
                         .font(Txt.label)
                         .foregroundStyle(due < .today() ? Color.red : .secondary)
                 }
@@ -563,7 +561,7 @@ struct InboxFileItView: View {
                 Button("Area") { make(.area) }
                 Button("Resource") { make(.resource) }
             } label: {
-                Label("New note from this line…", systemImage: "plus")
+                MarkLabel("New note from this line…", "plus")
             }
             .disabled(selected == nil)
             Button("Open the Inbox note") {
@@ -605,7 +603,7 @@ struct AreaDestinationGroup: View {
                 DestinationRow(note: branch.area, selected: selected)
                 if !branch.subAreas.isEmpty {
                     Button(action: toggle) {
-                        Image(systemName: isFolded ? "chevron.right" : "chevron.down")
+                        MarkImage(isFolded ? "chevron.right" : "chevron.down")
                             .font(Txt.label)
                             .foregroundStyle(.secondary)
                             .frame(width: 16)

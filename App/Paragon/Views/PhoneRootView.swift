@@ -41,8 +41,8 @@ struct PhoneRootView: View {
         var symbol: String {
             switch self {
             case .today: return "sun.max"
-            case .plan: return SidebarSection.timeBlocks.systemImage
-            case .actions: return SidebarSection.allActions.systemImage
+            case .plan: return SidebarSection.timeBlocks.markName
+            case .actions: return SidebarSection.allActions.markName
             case .inbox: return "tray"
             case .browse: return "square.grid.2x2"
             }
@@ -71,7 +71,7 @@ struct PhoneRootView: View {
                     .safeAreaInset(edge: .bottom, spacing: 0) {
                         FocusBar()
                     }
-                    .tabItem { Label(item.title, systemImage: item.symbol) }
+                    .tabItem { Label { Text(item.title) } icon: { Marks.image(item.symbol) } }
                     // Zero draws no badge, so only the Inbox ever shows a number.
                     .badge(item == .inbox ? model.count(for: .inbox) : 0)
                     .tag(item)
@@ -108,7 +108,7 @@ struct PhoneRootView: View {
                             Button {
                                 model.activeSheet = .newNote
                             } label: {
-                                Label("New", systemImage: "plus.circle.fill")
+                                MarkLabel("New", "plus.circle.fill")
                                     .foregroundStyle(SidebarSection.today.tint)
                             }
                             .accessibilityIdentifier("capture.open")
@@ -160,7 +160,7 @@ struct PhoneSyncButton: View {
             if model.isSyncing {
                 ProgressView()
             } else {
-                Label("Sync with Reminders", systemImage: "arrow.triangle.2.circlepath")
+                MarkLabel("Sync with Reminders", "arrow.triangle.2.circlepath")
             }
         }
         .disabled(model.isSyncing || model.vault == nil)
@@ -292,7 +292,7 @@ struct PhoneBrowseView: View {
                                     }
                                 }
                             } icon: {
-                                Image(systemName: section.systemImage)
+                                MarkImage(section.markName)
                                     .foregroundStyle(section.tint)
                             }
                         }
@@ -302,7 +302,7 @@ struct PhoneBrowseView: View {
             }
             Section {
                 NavigationLink(value: PhoneRoute.settings) {
-                    Label("Settings and Help", systemImage: "gear")
+                    MarkLabel("Settings and Help", "gear")
                 }
             }
             Section {
@@ -314,6 +314,7 @@ struct PhoneBrowseView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                     .onLongPressGesture(minimumDuration: 1.2) { model.revealWork() }
+                    .accessibilityIdentifier("browse.version")
             }
             // Only there once it has been asked for; see the long press below.
             if model.workRevealed {
@@ -326,7 +327,7 @@ struct PhoneBrowseView: View {
                                 Text("\(model.workNotes.count)").foregroundStyle(.secondary)
                             }
                         } icon: {
-                            Image(systemName: SidebarSection.work.systemImage)
+                            MarkImage(SidebarSection.work.markName)
                                 .foregroundStyle(SidebarSection.work.tint)
                         }
                     }

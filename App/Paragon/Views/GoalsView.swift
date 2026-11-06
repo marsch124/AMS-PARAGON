@@ -53,7 +53,7 @@ struct AspirationsListView: View {
         Group {
             if chains.isEmpty && over.isEmpty {
                 EmptyStateView(title: "No aspirations yet",
-                               systemImage: ChainSymbol.aspiration,
+                               markName: ChainSymbol.aspiration,
                                message: "An aspiration says what you are becoming. It has no date, because you never tick one off. Make one, and every goal working towards it appears beside it.",
                                tint: ChainTint.aspiration,
                                actionTitle: "New aspiration\u{2026}") { model.activeSheet = .newNote }
@@ -168,7 +168,7 @@ struct AspirationsListView: View {
             if isOpen { opened.remove(chain.note.relativePath) } else { opened.insert(chain.note.relativePath) }
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: isOpen ? "chevron.down" : "chevron.right")
+                MarkImage(isOpen ? "chevron.down" : "chevron.right")
                     .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .frame(width: 14)
@@ -250,7 +250,7 @@ struct DatedGoalsListView: View {
         Group {
             if split.wanting.isEmpty && split.rest.isEmpty && over.isEmpty {
                 EmptyStateView(title: "No goals with a date yet",
-                               systemImage: ChainSymbol.datedGoal,
+                               markName: ChainSymbol.datedGoal,
                                message: "A goal with a date says what you will have done, and by when. Make one, point projects at it, and its progress shows up here.",
                                tint: ChainTint.datedGoal,
                                actionTitle: "New goal\u{2026}") { model.activeSheet = .newNote }
@@ -272,7 +272,7 @@ struct DatedGoalsListView: View {
                         deskRow(note)
                     }
                 } header: {
-                    Label("Needs a look", systemImage: "exclamationmark.triangle.fill")
+                    MarkLabel("Needs a look", "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                 }
             }
@@ -379,7 +379,7 @@ struct GoalEndedHeader: View {
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: 6) {
-                Image(systemName: folded ? "chevron.right" : "chevron.down")
+                MarkImage(folded ? "chevron.right" : "chevron.down")
                     .font(Txt.listSecond)
                 Text(status.label)
                 Text("\(count)")
@@ -416,10 +416,10 @@ enum ChainSymbol {
     /// thing the New note button learned in build 156, where most of the pop turned out to be
     /// the fill rather than the glyph.
     static let aspiration = "star.fill"
-    static let datedGoal = SidebarSection.kind(.goal).systemImage   // target
-    static let project = SidebarSection.kind(.project).systemImage  // flag
-    static let area = SidebarSection.kind(.area).systemImage        // circle.grid.2x2
-    static let task = SidebarSection.allActions.systemImage         // circle
+    static let datedGoal = SidebarSection.kind(.goal).markName   // target
+    static let project = SidebarSection.kind(.project).markName  // flag
+    static let area = SidebarSection.kind(.area).markName        // circle.grid.2x2
+    static let task = SidebarSection.allActions.markName         // circle
 
     /// The right one for a goal note, whichever kind of goal it is.
     static func forGoal(_ note: Note) -> String {
@@ -493,7 +493,7 @@ struct GoalMark: View {
             NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: size)
                 .accessibilityHidden(true)
         } else {
-            KindBadge(kind: .goal, size: size, systemImage: ChainSymbol.forGoal(note),
+            KindBadge(kind: .goal, size: size, markName: ChainSymbol.forGoal(note),
                       tint: ChainTint.forGoal(note))
         }
     }
@@ -567,21 +567,19 @@ struct AspirationRow: View {
                         Text("Nothing serves this yet")
                             .foregroundStyle(.secondary)
                     }
-                    Label(ReviewWording.lookedAt(daysAgo: daysSinceLook), systemImage: "eye")
+                    MarkLabel(ReviewWording.lookedAt(daysAgo: daysSinceLook), "eye")
                         .foregroundStyle(.secondary)
                     if let area = chain.area {
-                        Label(area.title, systemImage: ChainSymbol.area)
+                        MarkLabel(area.title, ChainSymbol.area)
                             .rowTint(ParaKind.area.tint)
                     }
                     let wanting = chain.goalsNeedingAttention.count
                     if wanting > 0 {
-                        Label(wanting == 1 ? "1 goal needs attention" : "\(wanting) goals need attention",
-                              systemImage: "exclamationmark.triangle")
+                        MarkLabel(wanting == 1 ? "1 goal needs attention" : "\(wanting) goals need attention", "exclamationmark.triangle")
                             .rowTint(.orange)
                     }
                     if chain.needsAttention {
-                        Label(chain.flags.first?.label ?? "Needs attention",
-                              systemImage: "exclamationmark.triangle")
+                        MarkLabel(chain.flags.first?.label ?? "Needs attention", "exclamationmark.triangle")
                             .rowTint(.orange)
                     }
                 }
@@ -624,16 +622,16 @@ struct DatedGoalRow: View {
                     }
                     if let target = note.targetDate {
                         let left = target.timeLeftText(from: .today())
-                        Label("\(target.description) · \(left)", systemImage: "flag")
+                        MarkLabel("\(target.description) · \(left)", "flag")
                             .rowTint(overdue(target) ? Color.orange : ParaKind.goal.tint)
                     }
                     if note.isEnded {
-                        Label(note.noteStatus.label, systemImage: note.isAchieved ? "checkmark.seal" : "xmark.circle")
+                        MarkLabel(note.noteStatus.label, note.isAchieved ? "checkmark.seal" : "xmark.circle")
                             .rowTint(note.isAchieved ? ParaKind.goal.tint : Color.secondary)
                     } else if needsAnAspiration {
                         NoAspirationPrompt(model: model, note: note)
                     } else if health.needsAttention, let first = health.flags.first {
-                        Label(first.label, systemImage: "exclamationmark.triangle")
+                        MarkLabel(first.label, "exclamationmark.triangle")
                             .rowTint(.orange)
                     }
                 }
@@ -695,11 +693,11 @@ struct GoalDetailView: View {
 
     private var header: some View {
         GoalsHeader(title: showsNote ? "Note" : (isAspiration ? GoalWording.aspiration : GoalWording.datedGoal),
-                    systemImage: showsNote ? "doc.text" : ChainSymbol.forGoal(note),
+                    markName: showsNote ? "doc.text" : ChainSymbol.forGoal(note),
                     showsAll: model.section == .aspirations) {
             // Build 159's two-state control: it shows the state you are in, not the one you
             // would get.
-            StateToggle(systemImage: "doc.text", title: "Note",
+            StateToggle(markName: "doc.text", title: "Note",
                         isOn: showsNote, tint: ChainTint.forGoal(note)) {
                 showsNote.toggle()
             }
@@ -736,7 +734,7 @@ struct AspirationChainBody: View {
                 }
             }
             if let changed = chain.activity.summary {
-                Label(changed, systemImage: "clock.arrow.circlepath")
+                MarkLabel(changed, "clock.arrow.circlepath")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -755,7 +753,7 @@ struct AspirationChainBody: View {
             // may not hold a goal that was missed (build 165).
             ForEach(endedGroups, id: \.status) { group in
                 SectionLabel(title: group.status.label, count: group.goals.count,
-                             systemImage: group.status == .done ? "checkmark.seal" : "xmark.circle",
+                             markName: group.status == .done ? "checkmark.seal" : "xmark.circle",
                              tint: group.status == .done ? ParaKind.goal.tint : .secondary)
                 ForEach(group.goals) { goal in
                     endedRow(goal)
@@ -763,17 +761,17 @@ struct AspirationChainBody: View {
             }
             if !chain.projects.isEmpty {
                 SectionLabel(title: "Straight under the aspiration", count: nil,
-                             systemImage: "shippingbox", tint: ParaKind.project.tint)
+                             markName: "shippingbox", tint: ParaKind.project.tint)
                 ForEach(chain.projects) { project in
                     ChainProjectRow(project: project)
                 }
             }
             if !chain.areas.isEmpty {
                 SectionLabel(title: "Areas that hold this", count: nil,
-                             systemImage: ChainSymbol.area, tint: ParaKind.area.tint)
+                             markName: ChainSymbol.area, tint: ParaKind.area.tint)
                 ForEach(chain.areas) { area in
                     Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
-                        Label(area.title, systemImage: ChainSymbol.area)
+                        MarkLabel(area.title, ChainSymbol.area)
                             .foregroundStyle(ParaKind.area.tint)
                     }
                     .buttonStyle(.plain)
@@ -825,7 +823,7 @@ struct AspirationChainBody: View {
             NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: 16)
                 .accessibilityHidden(true)
         } else {
-            Image(systemName: ChainSymbol.datedGoal)
+            MarkImage(ChainSymbol.datedGoal)
                 .font(Txt.listSecond)
                 .foregroundStyle(.secondary)
         }
@@ -912,7 +910,7 @@ struct ChainGoalBlock: View {
                 .buttonStyle(.plain)
             }
             if lead, let changed = goal.activity.summary {
-                Label(changed, systemImage: "clock.arrow.circlepath")
+                MarkLabel(changed, "clock.arrow.circlepath")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -929,7 +927,7 @@ struct ChainGoalBlock: View {
             NoteIconTile(note: goal.note, fallbackTint: ChainTint.forGoal(goal.note), size: lead ? 24 : 20)
                 .accessibilityHidden(true)
         } else {
-            Image(systemName: ChainSymbol.datedGoal)
+            MarkImage(ChainSymbol.datedGoal)
                 .font(Txt.label)
                 .foregroundStyle(ParaKind.goal.tint)
         }
@@ -1027,7 +1025,7 @@ struct ChainGoalBlock: View {
             }
             ForEach(goal.areas) { area in
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
-                    Label(area.title, systemImage: ChainSymbol.area)
+                    MarkLabel(area.title, ChainSymbol.area)
                         .font(Txt.value)
                         .foregroundStyle(ParaKind.area.tint)
                 }
@@ -1059,7 +1057,7 @@ struct ChainProjectRow: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Image(systemName: ChainSymbol.project)
+                    MarkImage(ChainSymbol.project)
                         .font(Txt.listSecond)
                         .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                     Text(project.note.title)
@@ -1080,7 +1078,7 @@ struct ChainProjectRow: View {
                     Spacer(minLength: 0)
                 }
                 if let next = project.nextAction {
-                    Label("Next: \(next.title)", systemImage: ChainSymbol.task)
+                    MarkLabel("Next: \(next.title)", ChainSymbol.task)
                         .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -1092,7 +1090,7 @@ struct ChainProjectRow: View {
                     // Build 279: nothing he can do himself, but not idle: every open line waits
                     // for somebody else. The same words and the same calm grey as the Projects
                     // list (build 168), never the orange of a project nobody can act on.
-                    Label(ProjectLine.waitingText(count: project.waitingCount), systemImage: WaitingShowing.symbol)
+                    MarkLabel(ProjectLine.waitingText(count: project.waitingCount), WaitingShowing.symbol)
                         .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -1159,7 +1157,7 @@ struct NoteStatusChip: View {
             .pickerStyle(.inline)
             .labelsHidden()
         } label: {
-            Label(status.label, systemImage: symbol(for: status))
+            MarkLabel(status.label, symbol(for: status))
                 .font(Txt.label)
                 .foregroundStyle(tint(for: status))
         }
@@ -1172,7 +1170,7 @@ struct NoteStatusChip: View {
                 set: { model.setStatus($0, for: live) })
     }
 
-    private func symbol(for status: NoteStatus) -> String { status.systemImage }
+    private func symbol(for status: NoteStatus) -> String { status.markName }
 
     /// Done is the note's own colour because it is the good ending. Missed is orange, the
     /// colour this app already uses for "look at this". **Dropped is grey on purpose** — it is
@@ -1206,7 +1204,7 @@ struct AllAspirationsView: View {
         let chains = model.index.aspirationChains()
         let loose = model.index.goalsOutsideAnyAspiration()
         VStack(spacing: 0) {
-            GoalsHeader(title: "All of them", systemImage: "list.bullet.indent") { EmptyView() }
+            GoalsHeader(title: "All of them", markName: "list.bullet.indent") { EmptyView() }
             Divider()
             outline(chains: chains, loose: loose)
         }
@@ -1217,7 +1215,7 @@ struct AllAspirationsView: View {
             VStack(alignment: .leading, spacing: 26) {
                 if chains.isEmpty && loose.isEmpty {
                     EmptyStateView(title: "No aspirations yet",
-                                   systemImage: ChainSymbol.aspiration,
+                                   markName: ChainSymbol.aspiration,
                                    message: "An aspiration says what you are becoming. Make one and everything working towards it appears here.",
                                    tint: ChainTint.aspiration)
                 }
@@ -1229,7 +1227,7 @@ struct AllAspirationsView: View {
                 if !loose.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionLabel(title: "Goals with no aspiration", count: loose.count,
-                                     systemImage: ChainSymbol.datedGoal, tint: .orange)
+                                     markName: ChainSymbol.datedGoal, tint: .orange)
                         Text("Each of these is working towards nothing. Give it the aspiration it is in service of.")
                             .font(Txt.label)
                             .foregroundStyle(.orange)
@@ -1259,7 +1257,7 @@ struct AllAspirationsView: View {
 /// same shape and does not wander.
 struct GoalsHeader<Trailing: View>: View {
     private let title: String
-    private let systemImage: String
+    private let markName: String
     /// **Only the Aspirations room has All of them** (build 199). The Goals row is already one
     /// list of every dated goal, so there is nothing for the button to open there — and a
     /// control that does nothing where it is drawn is worse than no control (build 175).
@@ -1270,10 +1268,10 @@ struct GoalsHeader<Trailing: View>: View {
     /// Written out rather than left to the memberwise initializer: a struct that mixes a
     /// property wrapper with a `@ViewBuilder` stored property is exactly where the generated
     /// one is hard to predict, and there is no Swift compiler in this container to ask.
-    init(title: String, systemImage: String, showsAll: Bool = true,
+    init(title: String, markName: String, showsAll: Bool = true,
          @ViewBuilder trailing: () -> Trailing) {
         self.title = title
-        self.systemImage = systemImage
+        self.markName = markName
         self.showsAll = showsAll
         self.trailing = trailing()
     }
@@ -1285,11 +1283,11 @@ struct GoalsHeader<Trailing: View>: View {
     var body: some View {
         HStack(spacing: 8) {
             SectionLabel(title: showingAll ? "All of them" : title, count: nil,
-                         systemImage: showingAll ? "list.bullet.indent" : systemImage,
+                         markName: showingAll ? "list.bullet.indent" : markName,
                          tint: ParaKind.goal.tint)
             trailing
             if showsAll {
-                StateToggle(systemImage: "list.bullet.indent", title: "All of them",
+                StateToggle(markName: "list.bullet.indent", title: "All of them",
                             isOn: showAll, tint: ParaKind.goal.tint) {
                     showAll.toggle()
                 }
@@ -1318,7 +1316,7 @@ struct NoAspirationPrompt: View {
         Menu {
             NoteGoalOptions(model: model, note: note)
         } label: {
-            Label("Give it an aspiration", systemImage: "exclamationmark.triangle.fill")
+            MarkLabel("Give it an aspiration", "exclamationmark.triangle.fill")
                 .font(Txt.label)
                 .rowTint(.orange)
         }
@@ -1360,7 +1358,7 @@ struct AddServingNoteButton: View {
     var body: some View {
         let plan = ServingNote(under: live, link: link)
         Button { adding = true } label: {
-            Label(plan.buttonTitle, systemImage: "plus.circle")
+            MarkLabel(plan.buttonTitle, "plus.circle")
                 .font(Txt.value)
                 .foregroundStyle(plan.tint)
                 .helpWhenClosed(plan.helpText, open: adding)
@@ -1428,7 +1426,7 @@ struct AddServingNoteBox: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(plan.heading, systemImage: plan.symbol)
+            MarkLabel(plan.heading, plan.symbol)
                 .font(Txt.label.weight(.semibold))
                 .foregroundStyle(plan.tint)
             TextField("Name", text: $typed)
@@ -1537,7 +1535,7 @@ extension ServingNote {
 extension NoteStatus {
     /// The symbol for each way a note can stand. One place, because the status chip, the
     /// Projects list's headings and its On hold pill all draw them (build 253, build 168's rule).
-    var systemImage: String {
+    var markName: String {
         switch self {
         case .active: return "circle"
         case .onHold: return "pause.circle"
@@ -1614,7 +1612,7 @@ struct LookedAtChip: View {
     @ViewBuilder
     private func face(_ due: ReviewDue) -> some View {
         if onChainPage {
-            Label(due.lookedAtText, systemImage: "eye")
+            MarkLabel(due.lookedAtText, "eye")
                 .font(Txt.label)
                 .lineLimit(1)
                 .padding(.horizontal, 8)
@@ -1628,7 +1626,7 @@ struct LookedAtChip: View {
         } else {
             // A wrapping row measures each item at its natural width (build 250), so the words
             // are capped like the other chips in the header.
-            Label(due.lookedAtText, systemImage: "eye")
+            MarkLabel(due.lookedAtText, "eye")
                 .lineLimit(1)
                 .frame(maxWidth: 260, alignment: .leading)
                 .foregroundStyle(.secondary)
@@ -1649,7 +1647,7 @@ struct LookedAtBox: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(due.lookedAtText, systemImage: "eye")
+            MarkLabel(due.lookedAtText, "eye")
                 .font(Txt.label.weight(.semibold))
             Text(due.rhythmText + " " + due.nextText)
                 .font(Txt.label)

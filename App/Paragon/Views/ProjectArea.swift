@@ -210,7 +210,7 @@ struct ProjectAreaChip: View {
         Menu {
             ProjectAreaOptions(model: model, note: note)
         } label: {
-            Label(title, systemImage: ChainSymbol.area)
+            MarkLabel(title, ChainSymbol.area)
                 .lineLimit(1)
         }
         // On the chip itself, never on the row: the row is a `WrappingHStack` (build 250).

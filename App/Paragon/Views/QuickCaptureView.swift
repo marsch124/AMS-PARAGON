@@ -198,7 +198,7 @@ struct QuickCaptureView: View {
         HStack(spacing: 8) {
             // 1.0: on the Mac the sheet's bar carries the title; the phone's screen keeps it.
             if !embedded && compact {
-                Label("Quick capture", systemImage: "tray.and.arrow.down")
+                MarkLabel("Quick capture", "tray.and.arrow.down")
                     .font(Txt.listTitle)
                     .foregroundStyle(SidebarSection.inbox.tint)
             }
@@ -212,7 +212,7 @@ struct QuickCaptureView: View {
             Button {
                 showingSyntax = true
             } label: {
-                Image(systemName: "info.circle")
+                MarkImage("info.circle")
             }
             .buttonStyle(.borderless)
             .help("What you can write in a capture")
@@ -225,14 +225,14 @@ struct QuickCaptureView: View {
         if !reading.isPlain {
             WrappingHStack(spacing: 6, lineSpacing: 6) {
                 if let due = dueChipTitle {
-                    ReadChip(title: due, systemImage: "calendar", tint: SidebarSection.calendar.tint)
+                    ReadChip(title: due, markName: "calendar", tint: SidebarSection.calendar.tint)
                 }
                 if let marks = reading.priorityMarks {
-                    ReadChip(title: "Priority \(marks)", systemImage: "exclamationmark",
+                    ReadChip(title: "Priority \(marks)", markName: "exclamationmark",
                              tint: ParaKind.area.tint)
                 }
                 ForEach(reading.tags, id: \.self) { tag in
-                    ReadChip(title: "#\(tag)", systemImage: "number", tint: SidebarSection.tags.tint)
+                    ReadChip(title: "#\(tag)", markName: "number", tint: SidebarSection.tags.tint)
                 }
             }
             .lineLimit(1)
@@ -328,7 +328,7 @@ struct QuickCaptureView: View {
     @ViewBuilder
     private var flight: some View {
         if flying && !reduceMotion {
-            Image(systemName: "tray.and.arrow.down.fill")
+            MarkImage("tray.and.arrow.down.fill")
                 .font(Txt.pageTitle)
                 .foregroundStyle(SidebarSection.inbox.tint)
                 .transition(.scale(scale: 0.2).combined(with: .opacity))
@@ -379,11 +379,11 @@ struct QuickCaptureView: View {
 /// everywhere else in PARAGON (the Map, `StateToggle`, `FilterBox`).
 struct ReadChip: View {
     let title: String
-    let systemImage: String
+    let markName: String
     let tint: Color
 
     var body: some View {
-        Label(title, systemImage: systemImage)
+        MarkLabel(title, markName)
             .font(Txt.label)
             .foregroundStyle(tint)
             .padding(.horizontal, 8)

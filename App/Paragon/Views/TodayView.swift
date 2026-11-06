@@ -101,7 +101,7 @@ struct TodayView: View {
                         FoldButton(isOpen: calendarOpen, accessibilityName: "Calendar") {
                             SectionLabel(title: "Calendar",
                                          count: model.events(on: today).count,
-                                         systemImage: SidebarSection.calendar.systemImage,
+                                         markName: SidebarSection.calendar.markName,
                                          tint: SidebarSection.calendar.tint)
                         }
                     }
@@ -118,7 +118,7 @@ struct TodayView: View {
                         HeaderActionButton(title: model.todayNote == nil ? "Create" : "Open",
                                            spokenTitle: model.todayNote == nil
                                                 ? "Create today's note" : "Open today's note",
-                                           systemImage: "calendar",
+                                           markName: "calendar",
                                            tint: ParaKind.daily.tint) {
                             model.openDailyNote(for: today)
                         }
@@ -152,13 +152,13 @@ struct TodayView: View {
                             // same date, and each had its own, which nobody could put back by
                             // hand. The identifiers are for the screen test.
                             HeaderActionButton(spokenTitle: "Move every overdue task to today",
-                                               systemImage: "sun.max",
+                                               markName: "sun.max",
                                                tint: ParaKind.daily.tint,
                                                identifier: "today.overdue.today") {
                                 model.moveTasks(overdue, to: today, offersUndo: true)
                             }
                             HeaderActionButton(spokenTitle: "Move every overdue task to tomorrow",
-                                               systemImage: "sunrise",
+                                               markName: "sunrise",
                                                tint: ParaKind.daily.tint,
                                                identifier: "today.overdue.tomorrow") {
                                 model.moveTasks(overdue, to: today.adding(days: 1), offersUndo: true)
@@ -205,7 +205,7 @@ struct TodayView: View {
         HStack(spacing: 6) {
             HeaderActionButton(title: nil,
                                spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
-                               systemImage: StartDayView.symbol,
+                               markName: StartDayView.symbol,
                                tint: Theme.morningTint,
                                strong: true) {
                 model.activeSheet = .startDay
@@ -213,7 +213,7 @@ struct TodayView: View {
             .accessibilityIdentifier("today.startDay")
             HeaderActionButton(title: nil,
                                spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
-                               systemImage: CloseDayView.symbol,
+                               markName: CloseDayView.symbol,
                                tint: Theme.eveningTint) {
                 model.activeSheet = .closeDay
             }
@@ -343,7 +343,7 @@ private struct NowAndNextLines: View {
         } else if focusBarShown {
             // `timer`, the symbol **Focus on this** already has on every menu.
             HeaderActionButton(spokenTitle: "Start the focus timer on \(block.title)",
-                               systemImage: "timer",
+                               markName: "timer",
                                tint: Theme.planBlockTint) {
                 model.startFocus(onBlock: block, on: day)
             }
@@ -375,14 +375,14 @@ private struct NowAndNextLines: View {
 /// loud and shown as the Mac's tooltip — build 159's rule: a control that shrinks hands its
 /// words to the row it sits in, it does not lose them.
 private struct HeaderActionButton: View {
-    /// Nil for a button that is only its symbol. One of `title` and `systemImage` is always
+    /// Nil for a button that is only its symbol. One of `title` and `markName` is always
     /// given; a button with neither would be an invisible press.
     var title: String?
     let spokenTitle: String
     /// Optional: two buttons side by side with one symbol between them would be two icons
     /// that look alike, which is usually a sign one of them should not be there (build 154).
     /// The words already say where the tasks are going, so the pair over **Overdue** has none.
-    var systemImage: String?
+    var markName: String?
     let tint: Color
     /// A full-strength border and bolder words, for the one button on a row that should stand
     /// out (**Start the day**, build 241). Still no fill: a tinted fill means "this is on"
@@ -415,12 +415,12 @@ private struct HeaderActionButton: View {
     /// button, so an `if` changing the subtree's identity costs nothing here — unlike the
     /// popovers build 202 had to keep still.
     @ViewBuilder private var label: some View {
-        if let title, let systemImage {
-            Label(title, systemImage: systemImage)
+        if let title, let markName {
+            MarkLabel(title, markName)
         } else if let title {
             Text(title)
-        } else if let systemImage {
-            Image(systemName: systemImage)
+        } else if let markName {
+            MarkImage(markName)
         }
     }
 }

@@ -123,7 +123,7 @@ struct NoteIconChip: View {
         case .emoji(let emoji):
             framed(Text(emoji), isSet: true)
         case .unset:
-            framed(Label("Icon\u{2026}", systemImage: "paintpalette").foregroundStyle(.secondary), isSet: false)
+            framed(MarkLabel("Icon\u{2026}", "paintpalette").foregroundStyle(.secondary), isSet: false)
         }
     }
 

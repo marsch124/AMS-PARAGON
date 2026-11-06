@@ -141,7 +141,7 @@ struct AreaStandardBox: View {
             .fixedSize()
         } else {
             Button(action: begin) {
-                Label(buttonTitle, systemImage: "square.and.pencil")
+                MarkLabel(buttonTitle, "square.and.pencil")
                     .font(Txt.value)
                     .foregroundStyle(tint)
             }
@@ -168,7 +168,7 @@ struct AreaStandardBox: View {
             // PARAGON (build 142). One element with one sentence, so a test and a screen reader
             // hear the same words on both platforms (builds 196, 253).
             ProjectPill(fact: ProjectFact(id: "noStandard", text: "No standard written yet",
-                                          systemImage: "circle.dashed", dashed: true))
+                                          markName: "circle.dashed", dashed: true))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("No standard written yet")
                 .accessibilityIdentifier("area.standard.missing")

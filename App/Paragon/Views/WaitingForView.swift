@@ -206,13 +206,13 @@ struct WaitingForList: View {
     private var empty: some View {
         if model.notesWaitingForCloud.isEmpty {
             EmptyStateView(title: "Nothing is waiting for anyone",
-                           systemImage: WaitingShowing.symbol,
+                           markName: WaitingShowing.symbol,
                            message: "Open an action\u{2019}s menu (right-click on a Mac, press and hold on a phone) and choose \u{201C}Waiting for\u{2026}\u{201D}. The action then shows up here, under the person.",
                            tint: tint)
                 .accessibilityIdentifier("waiting.empty")
         } else {
             EmptyStateView(title: "Not everything is here yet",
-                           systemImage: "icloud",
+                           markName: "icloud",
                            message: "Some notes are still coming from iCloud, so this list may be missing lines. It fills in by itself.",
                            tint: .orange)
                 .accessibilityIdentifier("waiting.emptyCloud")
@@ -239,7 +239,7 @@ struct WaitingForList: View {
     private func heading(_ group: WaitingGroup) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             SectionLabel(title: group.title, count: group.lines.count,
-                         systemImage: group.name == nil ? "person.crop.circle.badge.questionmark" : "person.crop.circle",
+                         markName: group.name == nil ? "person.crop.circle.badge.questionmark" : "person.crop.circle",
                          tint: tint)
             if let note = group.note {
                 Text(note)

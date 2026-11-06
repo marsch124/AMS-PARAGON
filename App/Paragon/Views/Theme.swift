@@ -48,7 +48,7 @@ struct SectionLabel: View {
     let title: String
     var count: Int?
     /// Kept for the callers that still name one; 1.0 draws no symbol beside a heading.
-    var systemImage: String?
+    var markName: String?
     /// The part's colour (1.0): a heading pops in its part's colour. Nil for the few groups
     /// that belong to no part, which take the quiet grey.
     var tint: Color? = nil
@@ -88,7 +88,7 @@ struct WeekGoalLine: View {
 /// what belongs here, and the one button that fills it.
 struct EmptyStateView: View {
     let title: String
-    let systemImage: String
+    let markName: String
     let message: String
     var tint: Color = .secondary
     var actionTitle: String?
@@ -98,7 +98,7 @@ struct EmptyStateView: View {
         // 1.0: one calm line and the part's icon. The explanation stays, small and quiet;
         // the way in (the New note button) is a bordered button, never a loud one.
         VStack(spacing: 8) {
-            Image(systemName: systemImage)
+            MarkImage(markName)
                 .font(Txt.sectionTitle)
                 .imageScale(.large)
                 .foregroundStyle(tint.opacity(0.6))
@@ -132,7 +132,7 @@ struct VaultWarningBar: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            Label(text, systemImage: "exclamationmark.triangle.fill")
+            MarkLabel(text, "exclamationmark.triangle.fill")
                 .font(Txt.listSecond)
                 .foregroundStyle(.orange)
                 .multilineTextAlignment(.center)
@@ -567,9 +567,9 @@ struct GoalProgressBar: View {
 struct MoveToArchiveIcon: View {
     var body: some View {
         VStack(spacing: 0) {
-            Image(systemName: "arrow.down")
+            MarkImage("arrow.down")
                 .font(Txt.listSecond.weight(.bold))
-            Image(systemName: "archivebox")
+            MarkImage("archivebox")
                 .font(Txt.list)
         }
         .frame(height: 21)
@@ -578,7 +578,7 @@ struct MoveToArchiveIcon: View {
 }
 
 struct StateToggle: View {
-    let systemImage: String
+    let markName: String
     /// What the symbol stands for, e.g. "Edit". Read aloud and shown as the tooltip.
     let title: String
     let isOn: Bool
@@ -587,7 +587,7 @@ struct StateToggle: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemImage)
+            MarkImage(markName)
                 .font(Txt.list.weight(.semibold))
                 .frame(width: 30, height: 26)
                 .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
@@ -646,7 +646,7 @@ struct FoldButton<Label: View>: View {
             isOpen.toggle()
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: "chevron.right")
+                MarkImage("chevron.right")
                     .font(Txt.list.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(isOpen ? 90 : 0))

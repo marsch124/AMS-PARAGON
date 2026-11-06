@@ -63,7 +63,7 @@ struct ProjectsListView: View {
                         .foregroundStyle(.secondary)
                 }
                 if look > 0 {
-                    Label(WeeklyFinished.lookText(look), systemImage: "exclamationmark.triangle.fill")
+                    MarkLabel(WeeklyFinished.lookText(look), "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                 }
             }
@@ -220,7 +220,7 @@ struct ProjectGroupHeader: View {
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: 8) {
-                Image(systemName: "chevron.right")
+                MarkImage("chevron.right")
                     .font(Txt.listSecond.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(open ? 90 : 0))
@@ -248,7 +248,7 @@ struct ProjectGroupHeader: View {
                 if group.needsALookCount > 0 {
                     // Orange, as everywhere in PARAGON: look at this. On the heading, so a
                     // folded group still says it (build 100).
-                    Label("\(group.needsALookCount)", systemImage: "exclamationmark.triangle.fill")
+                    MarkLabel("\(group.needsALookCount)", "exclamationmark.triangle.fill")
                         .font(Txt.label.weight(.semibold))
                         .foregroundStyle(.orange)
                 }
@@ -288,19 +288,19 @@ struct ProjectGroupHeader: View {
     private var badge: some View {
         switch group.heading {
         case .aspiration:
-            KindBadge(kind: .goal, size: 20, systemImage: ChainSymbol.aspiration, tint: ChainTint.aspiration)
+            KindBadge(kind: .goal, size: 20, markName: ChainSymbol.aspiration, tint: ChainTint.aspiration)
         case .notLinked:
-            KindBadge(kind: .goal, size: 20, systemImage: ChainSymbol.datedGoal, tint: ChainTint.datedGoal)
+            KindBadge(kind: .goal, size: 20, markName: ChainSymbol.datedGoal, tint: ChainTint.datedGoal)
         case .noGoal:
             // Dashed and grey: not connected, as on the Map (build 82).
-            Image(systemName: ChainSymbol.datedGoal)
+            MarkImage(ChainSymbol.datedGoal)
                 .font(Txt.listSecond.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .frame(width: 20, height: 20)
                 .overlay(Circle().strokeBorder(Color.secondary.opacity(0.7),
                                                style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         case .ended(let status):
-            Image(systemName: status.systemImage)
+            MarkImage(status.markName)
                 .font(Txt.listTitle)
                 .foregroundStyle(endedTint(status))
                 .frame(width: 20, height: 20)
@@ -432,7 +432,7 @@ struct ProjectBox: View {
                 Text("Next: " + (line.nextTitle ?? ""))
                     .lineLimit(2)
             } icon: {
-                Image(systemName: ChainSymbol.task)
+                MarkImage(ChainSymbol.task)
                     .rowTint(ParaKind.project.tint)
             }
             .font(Txt.label)
@@ -441,12 +441,12 @@ struct ProjectBox: View {
             .accessibilityIdentifier("project.next.\(line.id)")
         case .allFinished(let count):
             WrappingHStack(spacing: 6, lineSpacing: 4) {
-                Label(ProjectLine.finishedText(count: count), systemImage: "checkmark.circle.fill")
+                MarkLabel(ProjectLine.finishedText(count: count), "checkmark.circle.fill")
                     .font(Txt.label)
                     .rowTint(ParaKind.project.tint)
                 if line.status == .active {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
-                                                  systemImage: "circle.dashed", dashed: true))
+                                                  markName: "circle.dashed", dashed: true))
                 }
             }
             .accessibilityElement(children: .ignore)
@@ -457,12 +457,12 @@ struct ProjectBox: View {
             // "All finished", and the same pill, because it is just as true that there is no
             // next action — but not "finished", which would be false.
             WrappingHStack(spacing: 6, lineSpacing: 4) {
-                Label(ProjectLine.waitingText(count: count), systemImage: WaitingShowing.symbol)
+                MarkLabel(ProjectLine.waitingText(count: count), WaitingShowing.symbol)
                     .font(Txt.label)
                     .rowTint(ParaKind.project.tint)
                 if line.status == .active {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
-                                                  systemImage: "circle.dashed", dashed: true))
+                                                  markName: "circle.dashed", dashed: true))
                 }
             }
             .accessibilityElement(children: .ignore)
@@ -470,7 +470,7 @@ struct ProjectBox: View {
             .accessibilityIdentifier("project.next.\(line.id)")
         case .noTasks:
             ProjectPill(fact: ProjectFact(id: "noTasks", text: "No tasks yet",
-                                          systemImage: "circle.dashed", dashed: true))
+                                          markName: "circle.dashed", dashed: true))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(needWords)
                 .accessibilityIdentifier("project.next.\(line.id)")
@@ -497,12 +497,12 @@ struct ProjectBox: View {
         if let goal = line.goal {
             if goal.relativePath != under?.relativePath {
                 ProjectPill(fact: ProjectFact(id: "goal", text: goal.title,
-                                              systemImage: ChainSymbol.forGoal(goal),
+                                              markName: ChainSymbol.forGoal(goal),
                                               tint: ChainTint.forGoal(goal)),
                             lines: 2)
             }
         } else if line.goalIsMissing, let name = line.note.goal {
-            ProjectPill(fact: ProjectFact(id: "goal", text: name, systemImage: ChainSymbol.datedGoal, dashed: true),
+            ProjectPill(fact: ProjectFact(id: "goal", text: name, markName: ChainSymbol.datedGoal, dashed: true),
                         lines: 2)
                 .help("No goal has this name. Right-click the project and choose Serves.")
         }
@@ -526,38 +526,38 @@ struct ProjectBox: View {
             // already says Done (build 169). An old project with no `ended:` day gets no pill,
             // never a guessed one (build 262).
             let day = ProjectEnding.dayText(ended, today: today)
-            facts.append(ProjectFact(id: "ended", text: day, systemImage: "calendar",
+            facts.append(ProjectFact(id: "ended", text: day, markName: "calendar",
                                      identifier: "project.endedDay.\(line.id)",
                                      spoken: "Ended on " + day))
         }
         if let next = line.nextTask {
             if useTaskTimes, let minutes = next.minutes {
-                facts.append(ProjectFact(id: "time", text: TaskTime.label(minutes), systemImage: "clock"))
+                facts.append(ProjectFact(id: "time", text: TaskTime.label(minutes), markName: "clock"))
             }
             // On a box that is over, the day it ended is the one date (build 269): a second
             // calendar pill for an open task's date would read as the same kind of fact.
             if !isOver, let due = next.dueDate {
                 facts.append(ProjectFact(id: "date", text: due.timeLeftText(from: today),
-                                         systemImage: "calendar",
+                                         markName: "calendar",
                                          tint: isRunning && due < today ? Color.red : Color.secondary))
             }
         }
         if line.status == .onHold {
             facts.append(ProjectFact(id: "onHold", text: NoteStatus.onHold.label,
-                                     systemImage: NoteStatus.onHold.systemImage))
+                                     markName: NoteStatus.onHold.markName))
         }
         if let deadline = line.deadline, !isOver {
             facts.append(ProjectFact(id: "deadline", text: ProjectLine.deadlineText(deadline, today: today),
-                                     systemImage: "flag.checkered",
+                                     markName: "flag.checkered",
                                      tint: isRunning && line.deadlinePassed ? Color.red : Color.secondary))
         }
         if isRunning, line.overdueCount > 0 {
             facts.append(ProjectFact(id: "overdue", text: ProjectLine.overdueText(line.overdueCount),
-                                     systemImage: "exclamationmark.circle", tint: Color.red))
+                                     markName: "exclamationmark.circle", tint: Color.red))
         }
         if isRunning, line.dueAfterGoal {
             facts.append(ProjectFact(id: "afterGoal", text: "Due after its goal",
-                                     systemImage: "exclamationmark.triangle.fill", tint: Color.orange))
+                                     markName: "exclamationmark.triangle.fill", tint: Color.orange))
         }
         let tags = line.note.tags
         for tag in tags.prefix(2) {
@@ -607,7 +607,7 @@ struct WeekBars: View {
 struct ProjectFact: Identifiable {
     let id: String
     let text: String
-    var systemImage: String? = nil
+    var markName: String? = nil
     var tint: Color = .secondary
     /// Dashed and unfilled: something missing rather than something there, as everywhere in
     /// PARAGON (`StateToggle` off, a loose Map box).
@@ -625,8 +625,8 @@ struct ProjectPill: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
-            if let symbol = fact.systemImage {
-                Image(systemName: symbol)
+            if let symbol = fact.markName {
+                MarkImage(symbol)
             }
             Text(fact.text)
                 .lineLimit(lines)
@@ -729,7 +729,7 @@ struct ProjectTile: View {
             Text(emoji)
                 .font(Txt.sectionTitle)
         } else {
-            Image(systemName: ChainSymbol.project)
+            MarkImage(ChainSymbol.project)
                 .font(Txt.listTitle)
                 .rowTint(tint)
         }

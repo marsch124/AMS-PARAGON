@@ -82,7 +82,7 @@ struct ContentView: View {
                         Button {
                             model.activeSheet = .quickCapture
                         } label: {
-                            Label("Quick capture", systemImage: "tray.and.arrow.down")
+                            MarkLabel("Quick capture", "tray.and.arrow.down")
                         }
                         .help("Capture a thought into the Inbox, today's note or a project (⇧⌘N)")
                         // The same name the phone's Today button carries, so one screen test
@@ -93,7 +93,7 @@ struct ContentView: View {
                         Button {
                             model.activeSheet = .settings
                         } label: {
-                            Label("Settings", systemImage: "gear")
+                            MarkLabel("Settings", "gear")
                         }
                         #endif
                     }
@@ -396,7 +396,7 @@ struct SidebarView: View {
                     toolsFolded.toggle()
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: toolsFolded ? "chevron.right" : "chevron.down")
+                        MarkImage(toolsFolded ? "chevron.right" : "chevron.down")
                             .font(Txt.listSecond)
                         Text("Tools")
                         Spacer(minLength: 0)
@@ -455,7 +455,7 @@ struct SidebarView: View {
         Label {
             Text(section.title)
         } icon: {
-            Image(systemName: section.systemImage)
+            MarkImage(section.markName)
                 .rowTint(section.tint)
         }
         .badge(model.count(for: section))
@@ -565,7 +565,7 @@ struct NoteListView: View {
                 Button {
                     fold(note)
                 } label: {
-                    Image(systemName: foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down")
+                    MarkImage(foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down")
                         .font(Txt.listSecond)
                         .foregroundStyle(.secondary)
                         .frame(width: 14)
@@ -719,7 +719,7 @@ struct NoteListView: View {
                     // toolbar can, and the plainest "add something" there is. The colour is the
                     // section's own — the same tint `ModeAccent` lays over the detail column
                     // (build 107) — so the button says which list it will add to.
-                    Label("New note", systemImage: "plus.circle.fill")
+                    MarkLabel("New note", "plus.circle.fill")
                         .foregroundStyle(shown?.tint ?? Color.accentColor)
                 }
                 .help("New note in this section (⌘N)")
@@ -787,48 +787,48 @@ struct NoteListView: View {
             // "No projects yet" in front of a vault the app cannot read is a lie, and a
             // frightening one: it looks exactly like losing everything (build 100).
             EmptyStateView(title: "Not everything is here yet",
-                           systemImage: "icloud.and.arrow.down",
+                           markName: "icloud.and.arrow.down",
                            message: "\(warning). Your notes are in the vault folder; this Mac has "
                                   + "their names but not their contents yet. They appear as they arrive.",
                            tint: .orange,
                            actionTitle: "Ask iCloud again") { model.fetchMissingNotes() }
         } else if searching {
             EmptyStateView(title: "Nothing found",
-                           systemImage: "magnifyingglass",
+                           markName: "magnifyingglass",
                            message: "No note in this section matches what you typed. Search Everywhere (⇧⌘F) looks inside every note and task.")
         } else {
             switch shown {
             case .kind(.project)?:
-                EmptyStateView(title: "No projects yet", systemImage: "flag",
+                EmptyStateView(title: "No projects yet", markName: "flag",
                                message: "A project is something with an end: a race, a move, a report. Give it an outcome and a first task.",
                                tint: ParaKind.project.tint, actionTitle: "New project…") { model.activeSheet = .newNote }
             case .kind(.area)?:
-                EmptyStateView(title: "No areas yet", systemImage: "circle.grid.2x2",
+                EmptyStateView(title: "No areas yet", markName: "circle.grid.2x2",
                                message: "An area is something you keep up over time: health, home, a client. It has no finish line.",
                                tint: ParaKind.area.tint, actionTitle: "New area…") { model.activeSheet = .newNote }
             case .kind(.resource)?:
-                EmptyStateView(title: "No resources yet", systemImage: "books.vertical",
+                EmptyStateView(title: "No resources yet", markName: "books.vertical",
                                message: "Resources are reference material: an article, a checklist, an idea you want to keep.",
                                tint: ParaKind.resource.tint, actionTitle: "New resource…") { model.activeSheet = .newNote }
             // Both goal rows fall through to the ordinary note list while a search is
             // running, so both land here (build 199).
             case .kind(.goal)?, .aspirations?:
-                EmptyStateView(title: "No goals yet", systemImage: SidebarSection.kind(.goal).systemImage,
+                EmptyStateView(title: "No goals yet", markName: SidebarSection.kind(.goal).markName,
                                message: "Goals sit above everything else. Write what you want, then point projects and areas at it with a goal: line.",
                                tint: ParaKind.goal.tint, actionTitle: "New goal…") { model.activeSheet = .newNote }
             case .kind(.archive)?:
-                EmptyStateView(title: "The archive is empty", systemImage: "archivebox",
+                EmptyStateView(title: "The archive is empty", markName: "archivebox",
                                message: "Finished projects and closed areas land here. They stay searchable and stop syncing to Reminders.",
                                tint: ParaKind.archive.tint)
             case .work?:
-                EmptyStateView(title: "No work notes yet", systemImage: SidebarSection.work.systemImage,
+                EmptyStateView(title: "No work notes yet", markName: SidebarSection.work.markName,
                                message: "A separate set of notes, kept out of Today, the map, the weekly review, the main search and Reminders. Nothing here is planned or synced.",
                                tint: SidebarSection.work.tint, actionTitle: "New work note…") { makingWorkNote = true }
             case .recent?:
-                EmptyStateView(title: "Nothing opened yet", systemImage: "clock.arrow.circlepath",
+                EmptyStateView(title: "Nothing opened yet", markName: "clock.arrow.circlepath",
                                message: "The notes you open show up here, newest first, so you can get back to what you were on.")
             default:
-                EmptyStateView(title: "Nothing here yet", systemImage: "doc.text",
+                EmptyStateView(title: "Nothing here yet", markName: "doc.text",
                                message: "Notes you add to this section show up in this list.")
             }
         }
@@ -979,7 +979,7 @@ struct NoteGoalChip: View {
         Menu {
             NoteGoalOptions(model: model, note: note)
         } label: {
-            Label(title, systemImage: symbol)
+            MarkLabel(title, symbol)
         }
         .fixedSize()
         .foregroundStyle(note.goal == nil ? Color.secondary : tint)
@@ -1012,7 +1012,7 @@ struct AreaParentChip: View {
         Menu {
             AreaParentOptions(model: model, note: note)
         } label: {
-            Label(title, systemImage: "arrow.turn.left.up")
+            MarkLabel(title, "arrow.turn.left.up")
         }
         .fixedSize()
         .foregroundStyle(ParaKind.area.tint)
@@ -1145,7 +1145,7 @@ struct DetailView: View {
                 TemplateEditorView(name: name).id(name)
             } else {
                 EmptyStateView(title: "Pick a template",
-                               systemImage: SidebarSection.templates.systemImage,
+                               markName: SidebarSection.templates.markName,
                                message: "On the left are the files a new note starts from, and the snippets you can drop into one. Choose one to edit it.",
                                tint: SidebarSection.templates.tint)
             }
@@ -1159,7 +1159,7 @@ struct DetailView: View {
             PlannerDayView()
         } else if model.section == .tags, model.selectedNotePath == nil {
             EmptyStateView(title: "Tags",
-                           systemImage: SidebarSection.tags.systemImage,
+                           markName: SidebarSection.tags.markName,
                            message: "Every tag in your notes, most used first. Open one to see the notes and tasks that carry it. Write a tag as #travel anywhere in a note or a task.",
                            tint: SidebarSection.tags.tint)
         } else if model.section == .inbox, !model.inboxShowsNote {
@@ -1178,12 +1178,12 @@ struct DetailView: View {
             GoalDetailView(note: note).id(path)
         } else if model.section == .aspirations, model.selectedNotePath == nil {
             EmptyStateView(title: "Pick an aspiration",
-                           systemImage: ChainSymbol.aspiration,
+                           markName: ChainSymbol.aspiration,
                            message: "An aspiration says what you are becoming. Choose one on the left and everything working towards it appears here: the goals with a date, the projects under them, and the next action on each. The button at the top right shows all of them at once.",
                            tint: ChainTint.aspiration)
         } else if model.section == .kind(.goal), model.selectedNotePath == nil {
             EmptyStateView(title: "Pick a goal",
-                           systemImage: ChainSymbol.datedGoal,
+                           markName: ChainSymbol.datedGoal,
                            message: "A goal with a date says what you will have done, and by when. Choose one on the left to see the projects under it and the next action on each.",
                            tint: ChainTint.datedGoal)
         } else if let path = model.selectedNotePath, model.note(at: path) != nil {
@@ -1191,12 +1191,12 @@ struct DetailView: View {
                 .id(path)
         } else if model.section == .done {
             EmptyStateView(title: "What you finished",
-                           systemImage: "checkmark.circle",
+                           markName: "checkmark.circle",
                            message: "Press a task on the left to open the note it came from.",
                            tint: SidebarSection.done.tint)
         } else {
             EmptyStateView(title: "No note open",
-                           systemImage: "doc.text",
+                           markName: "doc.text",
                            message: "Choose a note in the middle column, or make a new one.",
                            actionTitle: "New note…",
                            action: { model.activeSheet = .newNote })
@@ -1221,7 +1221,7 @@ struct SyncButton: View {
                 ProgressView()
                     .controlSize(.small)
             } else {
-                Label("Sync with Reminders", systemImage: "arrow.triangle.2.circlepath")
+                MarkLabel("Sync with Reminders", "arrow.triangle.2.circlepath")
             }
         } primaryAction: {
             Task { await model.syncNow() }
@@ -1289,14 +1289,14 @@ struct KindBadge: View {
     var size: CGFloat = 22
     /// Overrides the kind's own symbol. An aspiration and a goal with a date are both `.goal`
     /// notes and are not the same thing, so the Goals screen hands in its own (build 164).
-    var systemImage: String? = nil
+    var markName: String? = nil
     /// Overrides the kind's own colour, for the same reason and always in the same breath as
-    /// `systemImage`: since build 189 an aspiration is the deeper gold, so a badge that carries
+    /// `markName`: since build 189 an aspiration is the deeper gold, so a badge that carries
     /// the star must carry that colour too.
     var tint: Color? = nil
 
     var body: some View {
-        Image(systemName: systemImage ?? SidebarSection.kind(kind).systemImage)
+        MarkImage(markName ?? SidebarSection.kind(kind).markName)
             .font(Txt.list.weight(.semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)

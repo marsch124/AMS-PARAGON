@@ -78,7 +78,7 @@ struct TimeBlocksView: View {
                         Label {
                             Text(calendar.title)
                         } icon: {
-                            Image(systemName: "circle.fill").foregroundStyle(calendar.color)
+                            MarkImage("circle.fill").foregroundStyle(calendar.color)
                         }
                         .tag(Optional(calendar.id))
                     }

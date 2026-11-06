@@ -113,7 +113,7 @@ struct AreaDashboardView: View {
             // a spacer, so the button is as wide as the room it has (build 247).
             FoldButton(isOpen: projectsOpen, accessibilityName: foldName(overview)) {
                 SectionLabel(title: "Projects in this area", count: overview.projects.count,
-                             systemImage: ChainSymbol.project, tint: ParaKind.project.tint)
+                             markName: ChainSymbol.project, tint: ParaKind.project.tint)
             }
             .accessibilityIdentifier("area.projects")
             AddServingNoteButton(model: model, parent: area, link: .area)
@@ -138,8 +138,7 @@ struct AreaDashboardView: View {
 
     /// The orange line that says the list may be short. Drawn by `body`, never inside `rows`.
     private var comingLine: some View {
-        Label("Some notes are still coming from iCloud. More projects may appear here.",
-              systemImage: "icloud")
+        MarkLabel("Some notes are still coming from iCloud. More projects may appear here.", "icloud")
             .font(Txt.label)
             .foregroundStyle(Color.orange)
             .fixedSize(horizontal: false, vertical: true)
@@ -169,7 +168,7 @@ struct AreaDashboardView: View {
             }
             if !overview.subAreas.isEmpty {
                 SectionLabel(title: "Sub-areas", count: overview.subAreas.count,
-                             systemImage: ChainSymbol.area, tint: ParaKind.area.tint)
+                             markName: ChainSymbol.area, tint: ParaKind.area.tint)
                     .padding(.top, 4)
                 ForEach(overview.subAreas) { line in
                     SubAreaRow(line: line) { model.show(line.note) }
@@ -244,34 +243,34 @@ struct AreaProjectRow: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             } icon: {
-                Image(systemName: ChainSymbol.task)
+                MarkImage(ChainSymbol.task)
                     .foregroundStyle(ParaKind.project.tint)
             }
             .font(Txt.label)
         case .allFinished(let count):
             WrappingHStack(spacing: 6, lineSpacing: 4) {
-                Label(ProjectLine.finishedText(count: count), systemImage: "checkmark.circle.fill")
+                MarkLabel(ProjectLine.finishedText(count: count), "checkmark.circle.fill")
                     .font(Txt.label)
                     .foregroundStyle(ParaKind.project.tint)
                 if isRunning {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
-                                                  systemImage: "circle.dashed", dashed: true))
+                                                  markName: "circle.dashed", dashed: true))
                 }
             }
         case .waitingOnly(let count):
             // Build 279: the open lines are all waiting for somebody else, not finished.
             WrappingHStack(spacing: 6, lineSpacing: 4) {
-                Label(ProjectLine.waitingText(count: count), systemImage: WaitingShowing.symbol)
+                MarkLabel(ProjectLine.waitingText(count: count), WaitingShowing.symbol)
                     .font(Txt.label)
                     .foregroundStyle(ParaKind.project.tint)
                 if isRunning {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
-                                                  systemImage: "circle.dashed", dashed: true))
+                                                  markName: "circle.dashed", dashed: true))
                 }
             }
         case .noTasks:
             ProjectPill(fact: ProjectFact(id: "noTasks", text: "No tasks yet",
-                                          systemImage: "circle.dashed", dashed: true))
+                                          markName: "circle.dashed", dashed: true))
         }
     }
 
@@ -282,15 +281,15 @@ struct AreaProjectRow: View {
         var facts: [ProjectFact] = []
         if line.status == .onHold {
             facts.append(ProjectFact(id: "onHold", text: NoteStatus.onHold.label,
-                                     systemImage: NoteStatus.onHold.systemImage))
+                                     markName: NoteStatus.onHold.markName))
         }
         if isRunning, line.overdueCount > 0 {
             facts.append(ProjectFact(id: "overdue", text: ProjectLine.overdueText(line.overdueCount),
-                                     systemImage: "exclamationmark.circle", tint: Color.red))
+                                     markName: "exclamationmark.circle", tint: Color.red))
         }
         if let deadline = line.deadline {
             facts.append(ProjectFact(id: "deadline", text: ProjectLine.deadlineText(deadline, today: today),
-                                     systemImage: "flag.checkered",
+                                     markName: "flag.checkered",
                                      tint: isRunning && line.deadlinePassed ? Color.red : Color.secondary))
         }
         return facts
@@ -359,7 +358,7 @@ struct SubAreaRow: View {
                 .alignmentGuide(.firstTextBaseline) { dimensions in dimensions[.bottom] - 4 }
                 .accessibilityHidden(true)
         } else {
-            Image(systemName: ChainSymbol.area)
+            MarkImage(ChainSymbol.area)
                 .font(Txt.label)
                 .foregroundStyle(ParaKind.area.tint)
         }

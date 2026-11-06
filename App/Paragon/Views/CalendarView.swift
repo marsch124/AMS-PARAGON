@@ -104,16 +104,16 @@ struct DayCalendarView: View {
             Spacer(minLength: 6)
             // Build 142's rule: one symbol, lit when the thing is on. The calendar either
             // shows the month or it does not, and the button says which.
-            StateToggle(systemImage: "calendar", title: "Month", isOn: showsMonthGrid,
+            StateToggle(markName: "calendar", title: "Month", isOn: showsMonthGrid,
                         tint: SidebarSection.calendar.tint) {
                 showsMonthGrid.toggle()
             }
             HStack(spacing: 2) {
-                Button { move(days: -1) } label: { Image(systemName: "chevron.left") }
+                Button { move(days: -1) } label: { MarkImage("chevron.left") }
                     .help("Previous day")
                 Button("Today") { model.afterUpdate { model.openDailyNote(for: .today()) } }
                     .disabled(day == .today())
-                Button { move(days: 1) } label: { Image(systemName: "chevron.right") }
+                Button { move(days: 1) } label: { MarkImage("chevron.right") }
                     .help("Next day")
             }
             .buttonStyle(.borderless)
@@ -163,8 +163,7 @@ struct DayCalendarView: View {
                 Button {
                     model.afterUpdate { model.openDailyNote(for: day) }
                 } label: {
-                    Label(overview.dailyNotePath == nil ? "Create the daily note" : "Open the daily note",
-                          systemImage: "doc.text")
+                    MarkLabel(overview.dailyNotePath == nil ? "Create the daily note" : "Open the daily note", "doc.text")
                 }
                 .tag(overview.dailyNotePath ?? "")
             }
@@ -209,9 +208,9 @@ struct MonthGrid: View {
                 Text(month.title)
                     .font(Txt.label.weight(.medium))
                 Spacer()
-                Button { previous() } label: { Image(systemName: "chevron.left") }
+                Button { previous() } label: { MarkImage("chevron.left") }
                     .help("Previous month")
-                Button { next() } label: { Image(systemName: "chevron.right") }
+                Button { next() } label: { MarkImage("chevron.right") }
                     .help("Next month")
             }
             .buttonStyle(.borderless)
@@ -334,7 +333,7 @@ struct DailyNotesListView: View {
         Group {
             if listed.isEmpty {
                 EmptyStateView(title: searchText.isEmpty ? "No daily notes yet" : "Nothing found",
-                               systemImage: "calendar",
+                               markName: "calendar",
                                message: searchText.isEmpty
                                    ? "A daily note is made the first time you write in a day. Pick a day in the month grid to start one."
                                    : "No daily or weekly note matches what you typed.",
@@ -509,9 +508,9 @@ struct WeekOverviewView: View {
         let overview = model.index.weekOverview(for: model.selectedWeek)
         VStack(spacing: 0) {
             HStack {
-                Button { model.selectedWeek = model.selectedWeek.adding(weeks: -1) } label: { Image(systemName: "chevron.left") }
+                Button { model.selectedWeek = model.selectedWeek.adding(weeks: -1) } label: { MarkImage("chevron.left") }
                 Button("This week") { model.selectedWeek = .current() }
-                Button { model.selectedWeek = model.selectedWeek.adding(weeks: 1) } label: { Image(systemName: "chevron.right") }
+                Button { model.selectedWeek = model.selectedWeek.adding(weeks: 1) } label: { MarkImage("chevron.right") }
                 Spacer()
                 Text("\(overview.dueCount) due · \(overview.completedCount) done")
                     .font(Txt.label)
@@ -540,7 +539,7 @@ struct WeekOverviewView: View {
                     Button {
                         model.openWeeklyNote(for: overview.week)
                     } label: {
-                        Label(overview.weeklyNotePath == nil ? "Create weekly note" : "Open weekly note", systemImage: "calendar.badge.clock")
+                        MarkLabel(overview.weeklyNotePath == nil ? "Create weekly note" : "Open weekly note", "calendar.badge.clock")
                     }
                     .tag(overview.weeklyNotePath ?? "")
                 } header: {
@@ -568,7 +567,7 @@ struct WeekOverviewView: View {
                             Text(dayTitle(day.date))
                                 .fontWeight(day.date == .today() ? .bold : .regular)
                             if day.dailyNotePath != nil {
-                                Image(systemName: "doc.text")
+                                MarkImage("doc.text")
                                     .font(Txt.listSecond)
                             }
                             Spacer()
@@ -607,9 +606,9 @@ struct MonthOverviewView: View {
         let leading = (firstWeekday + 5) % 7
         VStack(spacing: 0) {
             HStack {
-                Button { model.selectedMonth = model.selectedMonth.adding(months: -1) } label: { Image(systemName: "chevron.left") }
+                Button { model.selectedMonth = model.selectedMonth.adding(months: -1) } label: { MarkImage("chevron.left") }
                 Button("This month") { model.selectedMonth = .current() }
-                Button { model.selectedMonth = model.selectedMonth.adding(months: 1) } label: { Image(systemName: "chevron.right") }
+                Button { model.selectedMonth = model.selectedMonth.adding(months: 1) } label: { MarkImage("chevron.right") }
                 Spacer()
                 Text(overview.month.title)
                     .font(Txt.listTitle)
