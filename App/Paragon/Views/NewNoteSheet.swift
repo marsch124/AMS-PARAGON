@@ -135,6 +135,10 @@ struct NewNoteSheet: View {
         // The phone's sheet is the whole screen, so the content is pinned to the top and the
         // footer pushed to the foot. On the Mac the sheet takes the size of what is in it.
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
+        // 1.0: Cancel and Create at the top right on the Mac (Escape, Return, ⌘S), in the
+        // navigation bar on the iPhone. `SheetChrome` in Look.swift is the one shape.
+        .sheetChrome(title: "New note", tint: tint(for: thing), actionTitle: "Create",
+                     canAct: canCreate, cancel: { dismiss() }, act: create)
         .onAppear {
             if let match = NewThing.forSection(model.section) {
                 thing = match
@@ -230,7 +234,6 @@ struct NewNoteSheet: View {
             settingsChips
 
             if isPhone { Spacer(minLength: 12) }
-            footer
         }
     }
 
@@ -997,9 +1000,6 @@ struct NoteFromLinkSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Make this note")
-                .font(Txt.sectionTitle.bold())
-                .foregroundStyle(tint)
             Text(linkTitle)
                 .font(Txt.sectionTitle.weight(.semibold))
                 .textSelection(.enabled)
@@ -1019,10 +1019,11 @@ struct NoteFromLinkSheet: View {
             Text("The link becomes a real link as soon as the note is there.")
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
-            SheetFooter(actionTitle: "Create", tint: tint, cancel: cancel, act: create)
         }
         .padding(isPhone ? 14 : 20)
         .frame(minWidth: sheetMinWidth)
+        .sheetChrome(title: "Make this note", tint: tint, actionTitle: "Create",
+                     cancel: cancel, act: create)
     }
 
     private var linkTitle: String { model.linkToCreate?.title ?? "" }

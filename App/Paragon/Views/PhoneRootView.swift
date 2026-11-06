@@ -333,20 +333,11 @@ struct PhoneBrowseView: View {
                 }
             }
         }
+        // 1.0: Apple's large title, which shrinks as the list scrolls. The long press that
+        // reveals Work lives on the version row at the foot of this list (build 117), which is
+        // the way in that can actually be found; the title's own long press (build 112) is gone
+        // with the inline title it needed.
         .navigationTitle("Browse")
-        // Inline, or iOS draws its own large title below the bar and the principal item is
-        // never the thing being pressed — which is why build 112's long press did nothing.
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            // The way in: a long press on the title. A plain navigation title cannot take a
-            // gesture, so the title is drawn here instead (build 112).
-            ToolbarItem(placement: .principal) {
-                Text("Browse")
-                    .font(Txt.listTitle)
-                    .contentShape(Rectangle())
-                    .onLongPressGesture(minimumDuration: 1.2) { model.revealWork() }
-            }
-        }
     }
 }
 

@@ -60,7 +60,7 @@ struct QuickCaptureView: View {
 
     var body: some View {
         Group {
-            if isPhone { phoneBody } else { deskBody }
+            if isPhone { phoneBody } else { deskBodyChromed }
         }
         .onAppear {
             focused = true
@@ -149,15 +149,16 @@ struct QuickCaptureView: View {
                 .frame(maxWidth: 220)
                 asRow
                 Spacer()
-                if !compact {
-                    Button("Cancel") { dismiss() }
-                        .keyboardShortcut(.cancelAction)
+                if embedded {
+                    // Inside the New note sheet the sheet's own bar has Cancel; this is the
+                    // one Save, where it always was.
+                    Button("Save", action: save)
+                        .keyboardShortcut(.defaultAction)
+                        .buttonStyle(.borderedProminent)
+                        .tint(SidebarSection.inbox.tint)
+                        .disabled(!canSave)
+                        .accessibilityIdentifier("capture.save")
                 }
-                Button("Save", action: save)
-                    .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!canSave)
-                    .accessibilityIdentifier("capture.save")
             }
             caughtToday
             if model.vault == nil {
@@ -168,6 +169,20 @@ struct QuickCaptureView: View {
         }
         .padding(embedded ? 0 : (compact ? 12 : 20))
         .frame(width: deskWidth)
+    }
+
+    /// 1.0: as a sheet of its own the Mac capture gets the bar with Cancel and Save at the top
+    /// right (Escape, Return, ⌘S); embedded in the New note sheet it has none, the sheet does.
+    @ViewBuilder
+    private var deskBodyChromed: some View {
+        if embedded {
+            deskBody
+        } else {
+            deskBody
+                .sheetChrome(title: "Quick capture", tint: SidebarSection.inbox.tint,
+                             actionTitle: "Save", canAct: canSave, actionIdentifier: "capture.save",
+                             cancel: { dismiss() }, act: save)
+        }
     }
 
     /// Nil while embedded: the sheet around it sets the width. Written out rather than a
@@ -181,7 +196,8 @@ struct QuickCaptureView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            if !embedded {
+            // 1.0: on the Mac the sheet's bar carries the title; the phone's screen keeps it.
+            if !embedded && compact {
                 Label("Quick capture", systemImage: "tray.and.arrow.down")
                     .font(Txt.listTitle)
                     .foregroundStyle(SidebarSection.inbox.tint)

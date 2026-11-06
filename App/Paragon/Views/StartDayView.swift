@@ -141,9 +141,6 @@ struct StartDayView: View {
                     .padding(.horizontal, isPhone ? 14 : 20)
                     .padding(.top, 10)
             }
-            SheetFooter(actionTitle: actionTitle, tint: tint,
-                        cancel: { close() }, act: { finish() })
-                .padding(isPhone ? 14 : 20)
         }
         // One name the screen test can wait for (build 190). Accessibility only.
         .accessibilityElement(children: .contain)
@@ -154,6 +151,8 @@ struct StartDayView: View {
         .task { await model.loadEvents(for: day) }
         .frame(minWidth: isPhone ? nil : 480, minHeight: isPhone ? nil : 420)
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
+        .sheetChrome(title: "Start the day", tint: tint, actionTitle: actionTitle,
+                     cancel: { close() }, act: { finish() })
     }
 
     private var instructions: String {
@@ -237,11 +236,8 @@ struct StartDayView: View {
     }
 
     private var heading: some View {
+        // 1.0: the title is in the bar above; this line is the day.
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Label("Start the day", systemImage: StartDayView.symbol)
-                .font(Txt.listTitle)
-                .foregroundStyle(tint)
-            Spacer(minLength: 0)
             Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
                  ?? day.description)
                 .font(Txt.label)

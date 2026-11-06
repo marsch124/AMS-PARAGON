@@ -255,6 +255,8 @@ struct SheetBar: View {
     let tint: Color
     let actionTitle: String
     var canAct = true
+    /// What the screen tests call the doing button; the Quick capture sheet keeps its old name.
+    var actionIdentifier = "sheet.action"
     let cancel: () -> Void
     let act: () -> Void
 
@@ -275,7 +277,7 @@ struct SheetBar: View {
                 .tint(tint)
                 .controlSize(.large)
                 .disabled(!canAct)
-                .accessibilityIdentifier("sheet.action")
+                .accessibilityIdentifier(actionIdentifier)
             // ⌘S saves too. A button carries one shortcut, so the second lives on a button
             // that takes no space; it is still a button, so the key reaches it.
             Button("Save", action: act)
@@ -296,6 +298,7 @@ struct SheetChrome: ViewModifier {
     let tint: Color
     let actionTitle: String
     var canAct = true
+    var actionIdentifier = "sheet.action"
     let cancel: () -> Void
     let act: () -> Void
 
@@ -303,7 +306,7 @@ struct SheetChrome: ViewModifier {
         #if os(macOS)
         VStack(spacing: 0) {
             SheetBar(title: title, tint: tint, actionTitle: actionTitle, canAct: canAct,
-                     cancel: cancel, act: act)
+                     actionIdentifier: actionIdentifier, cancel: cancel, act: act)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
             Divider()
@@ -324,7 +327,7 @@ struct SheetChrome: ViewModifier {
                             .fontWeight(.semibold)
                             .tint(tint)
                             .disabled(!canAct)
-                            .accessibilityIdentifier("sheet.action")
+                            .accessibilityIdentifier(actionIdentifier)
                     }
                 }
         }
@@ -335,9 +338,10 @@ struct SheetChrome: ViewModifier {
 extension View {
     /// Gives an edit sheet its Cancel and doing button, the keys that drive them, and its title.
     func sheetChrome(title: String, tint: Color, actionTitle: String, canAct: Bool = true,
+                     actionIdentifier: String = "sheet.action",
                      cancel: @escaping () -> Void, act: @escaping () -> Void) -> some View {
         modifier(SheetChrome(title: title, tint: tint, actionTitle: actionTitle, canAct: canAct,
-                             cancel: cancel, act: act))
+                             actionIdentifier: actionIdentifier, cancel: cancel, act: act))
     }
 }
 

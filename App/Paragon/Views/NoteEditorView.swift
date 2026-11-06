@@ -254,18 +254,24 @@ struct NoteEditorView: View {
     /// intrinsic height makes the window grow past itself — so it is left alone.
     private var deskBody: some View {
         VStack(spacing: 0) {
+            // 1.0: the header, the panels and the text stop at the reading width and sit
+            // centred; on a wide window the rest is calm margin.
             sections
+                .readingWidth()
             // The editor takes whatever height is left and never asks for more. Without this
             // guard, expanding a disclosure above it made the text editor report its full
             // text height as a minimum, and the window's content grew past the window.
             frontmatterRow
+                .readingWidth()
             GeometryReader { geo in
                 editorPane(scrolls: true)
-                    .frame(width: geo.size.width, height: geo.size.height)
+                    .frame(width: min(geo.size.width, Theme.readingWidth + 2 * Theme.gutter), height: geo.size.height)
                     .clipped()
+                    .frame(width: geo.size.width)
             }
             Divider()
             addTaskBar
+                .readingWidth()
         }
     }
 
@@ -383,9 +389,9 @@ struct NoteEditorView: View {
                         TaskChecklist(note: note, beforeToggle: flushSave)
                     }
                 }
-                .padding(.horizontal, 12)
+                .panel(note.tint)
+                .padding(.horizontal, Theme.gutter)
                 .padding(.vertical, 6)
-                Divider()
             }
             let linksTo = notesLinkedTo(from: note)
             let linkedFrom = notesLinking(to: note)
@@ -409,18 +415,15 @@ struct NoteEditorView: View {
                     if showLinks {
                         VStack(alignment: .leading, spacing: 8) {
                             if !linksTo.isEmpty {
-                                SectionLabel(title: "Links to", count: linksTo.count, systemImage: "arrow.up.right", tint: note.tint)
-                                    .font(Txt.label)
+                                Text("Links to").font(Txt.label).foregroundStyle(Theme.soft)
                                 LinkedNotesList(notes: linksTo)
                             }
                             if !notYetMade.isEmpty {
-                                SectionLabel(title: "Not made yet", count: notYetMade.count, systemImage: "plus.circle", tint: note.tint)
-                                    .font(Txt.label)
+                                Text("Not made yet").font(Txt.label).foregroundStyle(Theme.soft)
                                 MissingLinksList(titles: notYetMade, notePath: note.relativePath)
                             }
                             if !linkedFrom.isEmpty {
-                                SectionLabel(title: "Linked from", count: linkedFrom.count, systemImage: "arrow.down.left", tint: note.tint)
-                                    .font(Txt.label)
+                                Text("Linked from").font(Txt.label).foregroundStyle(Theme.soft)
                                 LinkedNotesList(notes: linkedFrom)
                             }
                         }
@@ -430,9 +433,9 @@ struct NoteEditorView: View {
                         .accessibilityIdentifier("note.links.open")
                     }
                 }
-                .padding(.horizontal, 12)
+                .panel(note.tint)
+                .padding(.horizontal, Theme.gutter)
                 .padding(.vertical, 6)
-                Divider()
             }
         }
     }

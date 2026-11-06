@@ -86,9 +86,6 @@ struct CloseDayView: View {
                 .padding(isPhone ? 14 : 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Divider()
-            SheetFooter(actionTitle: "Done", tint: tint, cancel: { close() }, act: { finish() })
-                .padding(isPhone ? 14 : 20)
         }
         // One name the screen test can wait for: what it is really checking is that this view
         // builds at all, on both platforms (build 190). Accessibility only — nothing here takes
@@ -97,6 +94,8 @@ struct CloseDayView: View {
         .accessibilityIdentifier("closeDay.screen")
         .frame(minWidth: isPhone ? nil : 480)
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
+        .sheetChrome(title: "Close the day", tint: tint, actionTitle: "Done",
+                     cancel: { close() }, act: { finish() })
         .onAppear {
             model.loadFirstPicks()
             guard !loaded else { return }
@@ -119,11 +118,8 @@ struct CloseDayView: View {
     static let symbol = "moon.fill"
 
     private var heading: some View {
+        // 1.0: the title is in the bar above; this line is the day.
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Label("Close the day", systemImage: Self.symbol)
-                .font(Txt.listTitle)
-                .foregroundStyle(tint)
-            Spacer(minLength: 0)
             Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
                  ?? day.description)
                 .font(Txt.label)

@@ -199,12 +199,14 @@ struct MarkdownPreview: View {
         }
     }
 
+    /// 1.0: the same steps the editor draws, so switching between Edit and Read never
+    /// reflows the note: 22 / 18 / 15 semibold on the Mac, Apple's title2 / title3 / headline
+    /// on the iPhone (`Txt.Editor`).
     private func headingFont(_ level: Int) -> Font {
         switch level {
-        case 1: return .title.bold()
-        case 2: return .title2.bold()
-        case 3: return .title3.bold()
-        default: return .headline
+        case 1: return Font.system(size: Txt.Editor.h1, weight: .semibold)
+        case 2: return Font.system(size: Txt.Editor.h2, weight: .semibold)
+        default: return Font.system(size: Txt.Editor.h3, weight: .semibold)
         }
     }
 
