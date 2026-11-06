@@ -141,7 +141,7 @@ struct CloseDayView: View {
             // headings below carry their own counts, so the old row of two capsules would only
             // have repeated them (build 169).
             CountPill(text: pillText(finished.count, "finished today"),
-                      markName: "checkmark.circle", tint: .green)
+                      markName: "checkmark.circle", tint: ParaKind.project.tint)
             if finished.isEmpty {
                 Text("No task was ticked off today.")
                     .font(Txt.value)

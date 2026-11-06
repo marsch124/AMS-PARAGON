@@ -128,11 +128,13 @@ struct DayCalendarView: View {
     private func dayContents(day: DateOnly, overview: DayOverview) -> some View {
         List(selection: model.noteSelection) {
             if model.showsCalendarEvents {
-                Section("Events") {
+                Section {
                     CalendarEventRows(date: day)
+                } header: {
+                    Heading(text: "Events", color: SidebarSection.calendar.tint).textCase(nil)
                 }
             }
-            Section("Due") {
+            Section {
                 if overview.due.isEmpty {
                     Text("Nothing due.")
                         .font(Txt.label)
@@ -142,6 +144,8 @@ struct DayCalendarView: View {
                     TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                         .tag(ref.notePath)
                 }
+            } header: {
+                Heading(text: "Due", color: SidebarSection.calendar.tint).textCase(nil)
             }
             if !overview.undated.isEmpty {
                 Section("In the daily note") {

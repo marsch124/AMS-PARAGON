@@ -573,15 +573,16 @@ struct NoteEditorView: View {
                 // and Add only takes its colour once there is something to add.
                 snippetMenu(iconOnly: true)
                 Button(action: addTask) {
-                    MarkImage("arrow.up.circle.fill")
-                        .font(Txt.pageTitle)
-                        .foregroundStyle(canAdd ? ParaKind.project.tint : Color.secondary.opacity(0.35))
+                    MarkImage("arrow.up.circle.fill", size: 26)
+                        .foregroundStyle(ParaKind.project.tint.opacity(canAdd ? 1 : 0.4))
                 }
                 .buttonStyle(.plain)
                 .disabled(!canAdd)
                 .accessibilityLabel("Add")
             } else {
                 Button("Add", action: addTask)
+                    .buttonStyle(.borderedProminent)
+                    .tint(ParaKind.project.tint)
                     .disabled(!canAdd)
                 snippetMenu(iconOnly: false)
             }
@@ -1088,7 +1089,11 @@ struct NoteHeader: View {
         switch note.kind {
         case .daily: return "Daily note"
         case .goal: return GoalWording.name(for: note)
-        default: return note.kind.displayName
+        case .project: return "Project"
+        case .area: return "Area"
+        case .resource: return "Resource"
+        case .archive: return "Archived"
+        case .inbox: return "Inbox"
         }
     }
 
@@ -1215,6 +1220,7 @@ struct NoteHeader: View {
         .lineLimit(1)
         .menuStyle(.button)
         .buttonStyle(.bordered)
+        .tint(note.tint)
     }
 }
 

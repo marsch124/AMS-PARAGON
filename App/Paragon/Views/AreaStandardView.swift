@@ -141,12 +141,16 @@ struct AreaStandardBox: View {
             .fixedSize()
         } else {
             Button(action: begin) {
-                MarkLabel(buttonTitle, "square.and.pencil")
-                    .font(Txt.value)
-                    .foregroundStyle(tint)
+                HStack(spacing: 5) {
+                    MarkImage("square.and.pencil", size: 14)
+                    Text(buttonTitle)
+                }
+                .font(Txt.value)
             }
-            .buttonStyle(.plain)
-            .fixedSize()
+            // 1.0: a bordered button in the part's colour, never coloured words on nothing; and no
+            // `.fixedSize()`, which inside a list row let the label claim a huge ideal height.
+            .buttonStyle(.bordered)
+            .tint(tint)
             .accessibilityIdentifier("area.standard.edit")
         }
     }

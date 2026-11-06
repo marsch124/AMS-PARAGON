@@ -282,7 +282,7 @@ struct DatedGoalsListView: View {
                         deskRow(note)
                     }
                 } header: {
-                    Text("By date")
+                    Heading(text: "By date", color: ChainTint.datedGoal).textCase(nil)
                 } footer: {
                     Text(GoalWording.datedGoalRule)
                         .fixedSize(horizontal: false, vertical: true)
@@ -312,8 +312,10 @@ struct DatedGoalsListView: View {
                 }
             }
             if !live.rest.isEmpty {
-                Section("By date") {
+                Section {
                     ForEach(live.rest) { note in row(note) }
+                } header: {
+                    Heading(text: "By date", color: ChainTint.datedGoal).textCase(nil)
                 }
             }
             ForEach(ended, id: \.status) { group in
@@ -1363,7 +1365,8 @@ struct AddServingNoteButton: View {
                 .foregroundStyle(plan.tint)
                 .helpWhenClosed(plan.helpText, open: adding)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+        .tint(plan.tint)
         .accessibilityIdentifier(plan.identifier)
         .popover(isPresented: $adding) {
             AddServingNoteBox(plan: plan, cancel: { adding = false }) { (name: String) -> String? in

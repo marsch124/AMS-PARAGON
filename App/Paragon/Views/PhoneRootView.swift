@@ -66,6 +66,9 @@ struct PhoneRootView: View {
         TabView(selection: $tab) {
             ForEach(Tab.allCases) { item in
                 page(for: item)
+                    // 1.0: colour with meaning — the bar items and buttons of a tab wear the
+                    // tab's colour, not the system blue.
+                    .tint(item.section?.tint ?? Color.accentColor)
                     // The focus timer's bar, above the tabs on every page (build 256). Nothing
                     // while no timer runs.
                     .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -108,8 +111,8 @@ struct PhoneRootView: View {
                             Button {
                                 model.activeSheet = .newNote
                             } label: {
-                                MarkLabel("New", "plus.circle.fill")
-                                    .foregroundStyle(SidebarSection.today.tint)
+                                MarkImage("plus.circle.fill", size: 22)
+                                    .accessibilityLabel("New note")
                             }
                             .accessibilityIdentifier("capture.open")
                         }
@@ -160,7 +163,8 @@ struct PhoneSyncButton: View {
             if model.isSyncing {
                 ProgressView()
             } else {
-                MarkLabel("Sync with Reminders", "arrow.triangle.2.circlepath")
+                MarkImage("arrow.triangle.2.circlepath", size: 22)
+                    .accessibilityLabel("Sync with Reminders")
             }
         }
         .disabled(model.isSyncing || model.vault == nil)

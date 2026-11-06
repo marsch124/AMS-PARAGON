@@ -191,6 +191,8 @@ struct InboxTriageView: View {
                 .focused($captureFocused)
                 .onSubmit(capture)
             Button("Add", action: capture)
+                .buttonStyle(.borderedProminent)
+                .tint(SidebarSection.inbox.tint)
                 .disabled(newItem.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         .padding(.horizontal, 12)
@@ -523,10 +525,7 @@ struct InboxFileItView: View {
     /// A coloured heading over each group. `SectionLabel` paints itself secondary, and the
     /// point here is that green means project and pink means area.
     private func groupLabel(_ title: String, tint: Color) -> some View {
-        Text(title.uppercased())
-            .font(Txt.label.weight(.semibold))
-            .tracking(0.6)
-            .foregroundStyle(tint)
+        Heading(text: title, color: tint)
             .padding(.top, 4)
     }
 

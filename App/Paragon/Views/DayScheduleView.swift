@@ -147,7 +147,8 @@ struct DayScheduleView: View {
             } label: {
                 MarkLabel("Block time", "plus")
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.bordered)
+            .tint(Theme.planBlockTint)
             .help("Reserve a block of time on this day")
         }
         .padding(.horizontal, 12)

@@ -54,10 +54,8 @@ struct SectionLabel: View {
     var tint: Color? = nil
 
     var body: some View {
-        HStack(spacing: 6) {
-            Heading(text: title, color: tint ?? Theme.soft, count: count)
-            Spacer(minLength: 0)
-        }
+        Heading(text: title, color: tint ?? Theme.soft, count: count)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

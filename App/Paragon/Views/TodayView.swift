@@ -129,7 +129,9 @@ struct TodayView: View {
                     .textCase(nil)
                 }
                 if !nextActions.isEmpty {
-                    Section("Next actions") { rows(nextActions) }
+                    Section { rows(nextActions) } header: {
+                        Heading(text: "Next actions", color: SidebarSection.today.tint).textCase(nil)
+                    }
                 }
                 if !overdue.isEmpty {
                     Section {
@@ -167,7 +169,7 @@ struct TodayView: View {
                         .textCase(nil)
                     }
                 }
-                Section("Due today") {
+                Section {
                     if dueToday.isEmpty {
                         Text(overdue.isEmpty && nextActions.isEmpty
                              ? "Nothing is due today. Give a task a date, or pick a next action in a project."
@@ -177,6 +179,8 @@ struct TodayView: View {
                     } else {
                         rows(dueToday)
                     }
+                } header: {
+                    Heading(text: "Due today", color: SidebarSection.today.tint).textCase(nil)
                 }
                 if !important.isEmpty {
                     Section("Important, no date") { rows(important) }

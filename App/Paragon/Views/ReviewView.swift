@@ -360,6 +360,8 @@ struct ReviewPartHeading: View {
     var body: some View {
         FoldButton(isOpen: $isOpen, accessibilityName: shown) {
             Text(shown)
+                .font(Txt.sectionTitle)
+                .foregroundStyle(SidebarSection.review.tint)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -472,7 +474,7 @@ struct ReviewSummary: View {
                     ReviewStat(text: "Nothing needs attention", symbol: "checkmark.circle", tint: ParaKind.project.tint)
                 } else {
                     ForEach(worries) { worry in
-                        ReviewStat(text: worry.text, symbol: worry.symbol, tint: .orange)
+                        ReviewStat(text: worry.text, symbol: worry.symbol, tint: Theme.attention)
                     }
                 }
             }
@@ -554,8 +556,8 @@ struct HealthRow: View {
                             .font(Txt.listSecond)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(flag == .onHold ? Color.secondary.opacity(0.15) : Color.orange.opacity(0.18), in: Capsule())
-                            .rowTint(flag == .onHold ? Color.secondary : Color.orange)
+                            .background(flag == .onHold ? Color.secondary.opacity(0.15) : Theme.attention.opacity(0.18), in: Capsule())
+                            .rowTint(flag == .onHold ? Color.secondary : Theme.attention)
                     }
                 }
             }
