@@ -252,36 +252,67 @@ struct NoteEditorView: View {
     /// Mac and iPad, unchanged: a fixed column whose editor absorbs the leftover height.
     /// Builds 30 and 34 are both about this — anything here that reports its full
     /// intrinsic height makes the window grow past itself — so it is left alone.
+    /// Below this height the Mac draws the note the way the phone does: one page that scrolls,
+    /// header and panels first, the text under them at a fixed height. Above it the text takes
+    /// what is left under the header and the header may take at most half the column.
+    private static let shortColumn: CGFloat = 620
+
     private var deskBody: some View {
         GeometryReader { geo in
-            VStack(spacing: 0) {
-                // 1.0: the header, the panels and the text stop at the reading width and sit
-                // centred; on a wide window the rest is calm margin. **The header and panels
-                // may take at most half the column**: above that they scroll on their own, so
-                // the text below always has room (the first Mac run of build 280 found the
-                // editor at zero height on a 620-point window). `CappedHeight` is the shape the
-                // area page has used since build 270.
-                CappedHeight(limit: max(160, geo.size.height * 0.5)) {
-                    ScrollView(.vertical) {
-                        VStack(spacing: 0) {
-                            sections
-                        }
-                        .readingWidth()
-                    }
-                }
-                frontmatterRow
-                    .readingWidth()
-                // The editor takes whatever height is left and never asks for more (builds 30
-                // and 34): the GeometryReader's frame is the column, and this is what is left.
-                editorPane(scrolls: true)
-                    .frame(maxWidth: Theme.readingWidth + 2 * Theme.gutter)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-                Divider()
-                addTaskBar
-                    .readingWidth()
+            if geo.size.height < Self.shortColumn {
+                shortDeskBody(height: geo.size.height)
+                    .frame(width: geo.size.width, height: geo.size.height)
+            } else {
+                tallDeskBody(height: geo.size.height)
+                    .frame(width: geo.size.width, height: geo.size.height)
             }
-            .frame(width: geo.size.width, height: geo.size.height)
+        }
+    }
+
+    /// A short window (the test runners' 450 points, a laptop with the window not maximised):
+    /// everything scrolls as one page, the panels on top where they can be reached, the text
+    /// under them at a fixed height. The old fixed layout left the text no room at all here,
+    /// and a capped header hid the Tasks and Linked notes panels from a press (the first Mac
+    /// runs of build 280).
+    private func shortDeskBody(height: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            ScrollView(.vertical) {
+                VStack(spacing: 0) {
+                    sections
+                    frontmatterRow
+                    editorPane(scrolls: true)
+                        .frame(height: max(260, height - 160))
+                }
+                .readingWidth()
+            }
+            Divider()
+            addTaskBar
+                .readingWidth()
+        }
+    }
+
+    /// A tall window: the header and the panels at the top (at most half the column; above
+    /// that they scroll), the text taking what is left (builds 30 and 34: it never asks for
+    /// its full height), at the reading width.
+    private func tallDeskBody(height: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            CappedHeight(limit: max(160, height * 0.5)) {
+                ScrollView(.vertical) {
+                    VStack(spacing: 0) {
+                        sections
+                    }
+                    .readingWidth()
+                }
+            }
+            frontmatterRow
+                .readingWidth()
+            editorPane(scrolls: true)
+                .frame(maxWidth: Theme.readingWidth + 2 * Theme.gutter)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+            Divider()
+            addTaskBar
+                .readingWidth()
         }
     }
 

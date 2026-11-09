@@ -446,6 +446,10 @@ struct SidebarView: View {
             }
             .padding(.vertical, 4)
             .background(.bar)
+            // The foot lies over the end of the list. Unless the iCloud warning (a button) is
+            // showing, a press goes through it to the row beneath — on a small iPad in portrait
+            // the Areas row sits exactly there (the iPad screen test of build 280).
+            .allowsHitTesting(model.vaultWarning != nil)
         }
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)
