@@ -342,23 +342,33 @@ struct SearchView: View {
                 hit.tasks.map { TaskRef(notePath: hit.note.relativePath, noteTitle: hit.note.displayTitle, task: $0) }
             }
             List(selection: model.noteSelection) {
-                Section("\(refs.count) task\(refs.count == 1 ? "" : "s")") {
+                Section {
                     ForEach(refs) { ref in
                         TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                             .tag(ref.notePath)
                     }
+                } header: {
+                    resultsHeading("\(refs.count) task\(refs.count == 1 ? "" : "s")")
                 }
             }
         } else {
             List(selection: model.noteSelection) {
-                Section("\(hits.count) note\(hits.count == 1 ? "" : "s")") {
+                Section {
                     ForEach(hits) { hit in
                         SearchHitRow(hit: hit)
                             .tag(hit.note.relativePath)
                     }
+                } header: {
+                    resultsHeading("\(hits.count) note\(hits.count == 1 ? "" : "s")")
                 }
             }
         }
+    }
+
+    /// The results' heading, "3 tasks" or "1 note", named for the screen tests.
+    private func resultsHeading(_ text: String) -> some View {
+        Text(text)
+            .accessibilityIdentifier("search.results")
     }
 
     /// Why there is nothing, not just that there is nothing.

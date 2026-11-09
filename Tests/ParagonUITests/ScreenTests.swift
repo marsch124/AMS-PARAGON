@@ -1995,6 +1995,11 @@ final class ScreenTests: XCTestCase {
         let add = app.buttons.matching(identifier: "goal.addProject").firstMatch
         XCTAssertTrue(add.waitForExistence(timeout: 20),
                       "The goal has no Add a project… button. On screen: \(visibleTexts())")
+        #if os(macOS)
+        // 1.0: the goal's page has the note's header and a Projects panel above this button,
+        // so on the runner's 450-point window it starts below the edge; the page scrolls.
+        scrollIntoWindow(add)
+        #endif
         let addFrame = add.frame
         guard Self.isOnScreen(addFrame) else {
             XCTFail("The Add a project… button has no place on screen: \(addFrame)")
@@ -2945,12 +2950,15 @@ final class ScreenTests: XCTestCase {
                       "Search has no Not done tick box (search.box.is:open) among its check boxes. On screen: \(visibleTexts())")
         if box.isHittable { box.press() } else { box.pressCentre() }
 
-        // The List's section title: "1 task" or "N tasks", and nothing else ends that way.
-        let heading = app.staticTexts
-            .matching(NSPredicate(format: "label MATCHES %@ OR value MATCHES %@", "^[0-9]+ tasks?$", "^[0-9]+ tasks?$"))
-            .firstMatch
+        // The results' own heading (`search.results`): "1 task" or "N tasks" once a task box
+        // is on; "N notes" before. Found by its name: a List's section title is not always a
+        // static text on the Mac (the first run of this test saw "3 tasks" on screen and
+        // found no such static text).
+        let heading = element("search.results")
         XCTAssertTrue(heading.waitForExistence(timeout: 20),
-                      "Ticking Not done did not turn the results into a task list with a heading counting tasks. On screen: \(visibleTexts())")
+                      "Search shows no results heading. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 20) { self.words(of: heading).range(of: "^[0-9]+ tasks?$", options: .regularExpression) != nil },
+                      "Ticking Not done did not turn the results into a task list with a heading counting tasks. The heading says: \(words(of: heading)). On screen: \(visibleTexts())")
     }
 
     /// **The cursor starts in the first field** (look 1.0): Start the day opens with the
