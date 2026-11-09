@@ -260,7 +260,7 @@ struct NoteEditorView: View {
     /// The text never gets less than this. On a column too short for the header, the panels
     /// and this much text, the part above the text scrolls instead (1.0's third Mac run: the
     /// editor had been given nothing at all and the test could not press it).
-    private static let minEditorHeight: CGFloat = 90
+    private static let minEditorHeight: CGFloat = 60
 
     /// The laid-out heights of the part above the editor and of the rows under it, measured,
     /// so the column can give the sections exactly their height while there is room.

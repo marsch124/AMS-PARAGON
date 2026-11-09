@@ -53,7 +53,7 @@ The version is shown as 1.0 (280) at the foot of the Mac sidebar and at the foot
 
 **Search on the Mac.** Before, the filter boxes were dashed capsules with a small circle in each. Now they are the Mac's own tick boxes. The list of boxes ends cleanly above the results bar; before, the bar cut through the middle of the last row. A result's line shows only the words of a task; before, it also showed the raw task marker, "- [ ] ". The same boxes at the top of **All actions** are tick boxes too. The iPhone is unchanged: it keeps its chips.
 
-**Fixed: a short window on the Mac.** Before, when the window was short, the header, **Tasks** and **Linked notes** kept all their height and the editor shrank until the text had no room at all. Now that top part scrolls, and the text always keeps at least 90 points.
+**Fixed: a short window on the Mac.** Before, when the window was short, the header, **Tasks** and **Linked notes** kept all their height and the editor shrank until the text had no room at all. Now that top part scrolls, and the text always keeps at least 60 points.
 
 **Not moved.** **Start the day** and **Close the day** stay in Today's date row. **Show all** stays in the Goals header. The **+** New note button stays over the list column. Search, Quick capture and Sync stay in the window toolbar.
 

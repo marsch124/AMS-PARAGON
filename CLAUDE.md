@@ -4923,6 +4923,6 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - **Sheet focus:** `StartDayView` / `CloseDayView` use `defaultFocus` on the Mac so the first
   field has the focus (`closeDay.lookingBack`), not Cancel.
 - **Short column:** `deskBody` puts the header, Tasks and Linked notes in a ScrollView sized to
-  min(content, column − 90 − the bars), so the editor keeps 90 points.
+  min(content, column − 60 − the bars), so the editor keeps 60 points.
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).

@@ -116,7 +116,7 @@ The title is 26 points, bold; pressing it renames the note where that is allowed
 
 The goal's page in **Goals** and the aspiration's page in **Aspirations** (Mac and iPad) use this same header: the title at 26 points and the facts panel, headed **Goal with a date** or **Aspiration** with the **Icon…** button beside it. Its facts are Status, Serves, Horizon (a labelled pop-up: This year / Long term), Target, Progress (the per cent), Measure, Looked at, Tags and List; only the ones that fit are shown. A notice such as "Target date passed" is a small orange capsule in the panel. Under the panel comes the aspiration's Reason box, then the projects (or the goals) in a panel in the project tint, headed **Projects**, with **Add a project…** at its foot. No rail or stripe beside them.
 
-When the note column is short (Mac), the editor keeps at least 90 points of height and the sections above it, the header, Tasks and Linked notes, scroll instead. The editor never shrinks to nothing.
+When the note column is short (Mac), the editor keeps at least 60 points of height and the sections above it, the header, Tasks and Linked notes, scroll instead. The editor never shrinks to nothing.
 
 ## 5. Edit windows
 
