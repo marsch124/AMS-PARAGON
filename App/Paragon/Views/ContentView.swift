@@ -429,27 +429,28 @@ struct SidebarView: View {
                     row(.work)
                 }
             }
-        }
-        .navigationTitle("PARAGON")
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 4) {
-                if let warning = model.vaultWarning {
-                    VaultWarningBar(text: warning) { model.fetchMissingNotes() }
-                }
-                // 1.0: the version as he reads it, "1.0 (280)". The long press that reveals
-                // Work lives on the PARA heading above, so nothing else is on this line.
+            // 1.0: the version as he reads it, "1.0 (280)", as the last line of the list — it
+            // scrolls with the rows, so it never lies over one. A bar at the foot did, and on a
+            // small iPad in portrait the Areas row sat exactly under it (the iPad screen test of
+            // build 280). The long press that reveals Work lives on the PARA heading above.
+            Section {
                 Text("PARAGON \(AppVersion.text)")
                     .font(Txt.listSecond)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .selectionDisabled()
                     .accessibilityIdentifier("sidebar.version")
             }
-            .padding(.vertical, 4)
-            .background(.bar)
-            // The foot lies over the end of the list. Unless the iCloud warning (a button) is
-            // showing, a press goes through it to the row beneath — on a small iPad in portrait
-            // the Areas row sits exactly there (the iPad screen test of build 280).
-            .allowsHitTesting(model.vaultWarning != nil)
+        }
+        .navigationTitle("PARAGON")
+        .safeAreaInset(edge: .bottom) {
+            // Only the iCloud warning stays at the foot: it is deliberately hard to miss.
+            if let warning = model.vaultWarning {
+                VaultWarningBar(text: warning) { model.fetchMissingNotes() }
+                    .padding(.vertical, 4)
+                    .background(.bar)
+            }
         }
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)
