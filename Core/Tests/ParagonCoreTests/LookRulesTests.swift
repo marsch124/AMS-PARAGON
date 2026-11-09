@@ -88,4 +88,23 @@ final class LookRulesTests: XCTestCase {
         }
         XCTAssertTrue(bad.isEmpty, "Emoji in the source:\n" + bad.joined(separator: "\n"))
     }
+
+    /// **A two-state button is never dashed** (build 281). `StateToggle` — Edit, Note, Month,
+    /// Arrange, Hide finished, All of them, The Waiting for list — drew its off state with a
+    /// dashed border since build 142, and in a Mac toolbar that read as an empty placeholder
+    /// (the reviewer of 280). Off is a thin solid line now; on is the tinted fill. The one
+    /// dashed shape left in the app is the Icon… button while nothing is chosen, which is a
+    /// placeholder and means to look like one.
+    func testTheTwoStateButtonIsNotDashed() throws {
+        let theme = appFolder.appendingPathComponent("Paragon/Views/Theme.swift")
+        let text = try String(contentsOf: theme, encoding: .utf8)
+        guard let start = text.range(of: "struct StateToggle") else {
+            XCTFail("Theme.swift has no StateToggle any more; move this test to where it went.")
+            return
+        }
+        let rest = text[start.upperBound...]
+        let end = rest.range(of: "\nstruct ")?.lowerBound ?? rest.endIndex
+        XCTAssertFalse(rest[..<end].contains("dash:"),
+                       "StateToggle draws a dashed line. Its off state is a thin solid border (build 281).")
+    }
 }

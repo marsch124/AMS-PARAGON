@@ -42,7 +42,9 @@ struct SearchView: View {
     private var filtersFolded: Bool { isPhone ? phoneFiltersFolded : deskFiltersFolded }
     /// The height of the boxes, measured, so the pane can be exactly that tall (1.0).
     @State private var filtersHeight: CGFloat = 0
-    private var filtersCap: CGFloat { isPhone ? 200 : 360 }
+    /// Build 281: the phone's groups are single rows now (see `group`), so all four fit under
+    /// 240 and the pane shows every group; 200 cut the third and the fourth off below its edge.
+    private var filtersCap: CGFloat { isPhone ? 240 : 360 }
 
     private static let kinds: [ParaKind] = [.goal, .project, .area, .resource, .archive, .daily, .inbox]
     /// Build 165: the boxes are the `NoteStatus` cases, so the list can never miss one the
@@ -152,6 +154,7 @@ struct SearchView: View {
                 }
                 .buttonStyle(.borderless)
                 .help(filtersFolded ? "Show the tick boxes" : "Put the tick boxes away")
+                .accessibilityIdentifier("search.boxes")
                 if !model.queryText.isEmpty {
                     // Build 173. Offered only when there is something to save, and it comes
                     // with a name already filled in — the query in the same plain words the
@@ -309,17 +312,37 @@ struct SearchView: View {
     private func group<Content: View>(_ title: String, tint: Color, note: String?,
                                       @ViewBuilder boxes: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(title: title, count: nil, tint: tint)
+            if isPhone {
+                // Build 281: on the phone a group is one row — its name at the left, the boxes
+                // sliding sideways after it. Wrapped, the seven kinds alone took three rows and
+                // the pane's 200 points ended in the middle of the second group (his 9 November
+                // test: the last groups were cut). The Mac keeps the wrapping boxes.
+                HStack(alignment: .center, spacing: 8) {
+                    SectionLabel(title: title, count: nil, tint: tint)
+                        .fixedSize()
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: boxSpacing) {
+                            boxes()
+                        }
+                        .lineLimit(1)
+                        .padding(.trailing, 10)
+                    }
+                }
+            } else {
+                SectionLabel(title: title, count: nil, tint: tint)
+            }
             if let note {
                 Text(note)
                     .font(Txt.listSecond)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            WrappingHStack(spacing: boxSpacing, lineSpacing: 6) {
-                boxes()
+            if !isPhone {
+                WrappingHStack(spacing: boxSpacing, lineSpacing: 6) {
+                    boxes()
+                }
+                .lineLimit(1)
             }
-            .lineLimit(1)
         }
     }
 

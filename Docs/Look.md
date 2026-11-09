@@ -1,6 +1,6 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
 The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
@@ -106,13 +106,13 @@ How a colour is worn:
 - There is at most one second line, for example "0 of 2 · Due in 12 d". It depends on the kind of note: a project shows its progress and what it needs; a goal shows its progress and its target date or horizon; an area shows its open tasks ("3 open"); a resource shows its links ("4 linked"); a daily note shows its date; any other note shows open tasks and a due date. When there is nothing to show, a project shows its area and another note its goal. Everything else is in the facts panel at the top of the note.
 - A date that has passed turns the row's second line red; "Due after its goal" turns a project's line orange. All else is grey.
 - A status such as Paused, Someday or Ended is a small capsule at the right edge (11 points, the part's colour on a 14 % tint).
-- A group heading in a list is the 17-point heading in the colour of what the group is (an aspiration's gold, grey for "No goal"), with the count beside it. No band behind it.
+- A group heading in a list is the 17-point heading in the colour of what the group is (an aspiration's gold, grey for "No goal"), with the count beside it. No band behind it. In a narrow column (the Projects list is about 280 points) the group's name wraps onto a second line. It is never cut off with "…" (`ProjectGroupHeader`, build 281).
 - Every list uses this row, the **Projects** list included. A project's second line is its progress and what it needs: "0 of 2 · Next: Define the outcome and the first step", "All 3 finished · No next action", "No tasks yet", or for an ended project "Ended 20 October · 2 tasks finished". Its weekly bars sit at the right of the row when something has been finished; On hold, Done, Missed and Dropped are the status capsule. No card, no frame, no tile, no progress bar and no chips in a row. The goal, the deadline and the tags are in the facts panel. After that, when there is room: its deadline, an overdue count, "Due after its goal" and the goal it serves when the heading does not already name it.
 - The goal rows and the aspiration rows are the same: "0 % · 2027-08-15 · in about 9 months", "1 goal · Never looked at · Health". A goal with no aspiration keeps its **Give it an aspiration** button at the right; a warning is an orange capsule there.
 
 ## 4. The top of a note
 
-The title is 26 points, bold; pressing it renames the note where that is allowed. Under it is the facts panel, in the note's colour. Its heading is the kind of note, for example "Project", with the note's icon beside it. Inside, the facts sit in a row that wraps. Each is a small grey label (12 points) with its value (15 points) under it: Status, In area (or Part of), Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, List and Icon. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button, not coloured words. A fact you cannot change is plain words. Tasks and Linked notes are tinted panels too.
+The title is 26 points, bold; pressing it renames the note where that is allowed. A daily or weekly note's title is a date. It keeps one line and shrinks down to 70 % when the column is narrow; every other title wraps to two lines (build 281). Under it is the facts panel, in the note's colour. Its heading is the kind of note, for example "Project", with the note's icon beside it. Inside, the facts sit in a row that wraps. Each is a small grey label (12 points) with its value (15 points) under it: Status, In area (or Part of), Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, List and Icon. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button, not coloured words. A fact you cannot change is plain words. Tasks and Linked notes are tinted panels too.
 
 The goal's page in **Goals** and the aspiration's page in **Aspirations** (Mac and iPad) use this same header: the title at 26 points and the facts panel, headed **Goal with a date** or **Aspiration** with the **Icon…** button beside it. Its facts are Status, Serves, Horizon (a labelled pop-up: This year / Long term), Target, Progress (the per cent), Measure, Looked at, Tags and List; only the ones that fit are shown. A notice such as "Target date passed" is a small orange capsule in the panel. Under the panel comes the aspiration's Reason box, then the projects (or the goals) in a panel in the project tint, headed **Projects**, with **Add a project…** at its foot. No rail or stripe beside them.
 
@@ -157,7 +157,7 @@ Browse has a large title that shrinks when you scroll. The long press that revea
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (280)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (281)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 
@@ -165,9 +165,16 @@ Each colour in section 2 has a day shade and a night shade. By day a panel is wh
 
 ## 12. Filters in Search
 
-The filter boxes in Search are the Mac's own checkbox control on the Mac (`Toggle` with the `.checkbox` style), in rows under the field, and the rows end above the results bar. On the iPhone they are chips, as before. A result's line shows the words of a task, never the "- [ ] " marker.
+The filter boxes in Search are the Mac's own checkbox control on the Mac (`Toggle` with the `.checkbox` style), in rows under the field, and the rows end above the results bar. On the iPhone each group is one row (build 281): the group's name at the left (Tasks, Kind of note, How the note stands, Tags) and its chips in a row that slides sideways. All four groups fit in the pane, which is up to 240 points tall (before 200, with wrapping chips and the last groups hidden). A result's line shows the words of a task, never the "- [ ] " marker.
 
-## 13. Checks for every new screen
+## 13. Two-state buttons and the Icon… button
+
+- A two-state button is one that is on or off: Edit (the pencil), Note / Schedule, Month, Arrange, Hide finished, All of them, The Waiting for list. The off state is a thin solid grey line. The on state is filled with a tint of the part's colour and has a stronger line. No dashed line (`StateToggle.border`; the Core test `testTheTwoStateButtonIsNotDashed` fails if `dash:` returns).
+- The one dashed shape is the **Icon…** button while nothing is chosen: a dashed grey capsule, a placeholder that means to look like one.
+- Once something is chosen, the **Icon…** button is the tile itself, 24 points, with a 1-point ring in the note's colour, 2 points outside it. Before it was a 22-point tile in a capsule with gaps at the round ends.
+- On an aspiration or a goal with a date, a colour alone draws the goal's own mark (the star or the target) on the colour. Other notes draw the first letter of the name.
+
+## 14. Checks for every new screen
 
 - The text sizes come from the scale in section 1. No new size.
 - The part's colour comes from section 2. No new colour.

@@ -1,6 +1,30 @@
 # Version history
 
-The version is shown as 1.0 (280) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (281) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 281 · 9 November 2026
+
+**A calmer start, a goal that keeps its mark, and solid buttons.** Eight small things, all shipped together. What PARAGON does has not changed.
+
+**1. The start no longer freezes.** Before, five seconds after PARAGON opened, it made the day's first backup copy of the vault and cleared the notes deleted more than 30 days ago, both on the same thread that draws the screen. With about 1,400 files in an iCloud Drive folder, the copy took several seconds, and the first screen froze for 5 to 10 seconds on the first start of the day. Now both jobs run on a thread of their own, a few seconds after the start, and the screen stays usable. Nothing about the backup has changed: one copy a day, the last 10 kept, and Settings shows them.
+
+**2. A goal keeps its star or target on a colour.** Before, on an aspiration or a goal with a date, choosing only a colour with **Icon…**, or pressing **No icon** after an icon, showed the first letter of the goal's name on the colour. Now the goal's own mark is drawn on the chosen colour: the star for an aspiration, the target for a goal with a date. One press on **No icon** brings the star or target back, and the colour stays. This holds everywhere the goal is drawn: the **Aspirations** and **Goals** lists, the goal's page, the goal rows in the Weekly review and the headings in the **Projects** list. Projects, areas and resources are unchanged. They have no mark of their own, so a colour alone still shows the first letter. A screen reader says "Icon: Star" or "Icon: Target" on the **Icon…** button.
+
+**3. The Icon… button once something is chosen.** Before, a 22-point square tile sat inside a capsule frame, and the colour did not fill the shape, so there were gaps at the round ends. Now the button is the tile itself, 24 points, with a thin ring in the note's colour 2 points outside it. Until something is chosen, the button still reads **Icon…** in a dashed grey capsule, as before.
+
+**4. Two-state buttons are solid, not dashed.** This covers: Edit (the pencil) in the note, **Note** / **Schedule** on the Calendar, **Month** on the day column, **Arrange** on the Map, **Hide finished** above a note's tasks, **All of them** on the **Goals** screen, and **The Waiting for list** on All actions. Before, the off state had a dashed grey border, which in the Mac window's toolbar looked like an empty placeholder. Now the off state is a thin solid grey line. The on state is unchanged: filled in the part's colour, with a stronger line. The one dashed shape left is the **Icon…** button while nothing is chosen. It is a placeholder, and it is meant to look like one.
+
+**5. A date title stays on one line.** Before, the title of a daily or weekly note, which is a date such as "Monday 9 November 2026", wrapped onto two lines at 26 points when the Calendar's column was narrow. Now a date title keeps one line and shrinks a little (down to 70 %) when the column is narrow. Every other note's title still wraps to two lines, as before.
+
+**6. Projects group headings wrap.** Before, in a narrow **Projects** column (about 280 points), the group's name, which is the aspiration's name, was cut off with "…". Now it wraps onto a second line.
+
+**7. Search on the iPhone shows every group of boxes.** Before, the boxes under the search field wrapped onto many lines, the pane was 200 points tall, and the last groups (How the note stands and Tags) were hidden below its edge with nothing to say so. Now each group is one row: the group's name at the left (Tasks, Kind of note, How the note stands, Tags) and its boxes in a row that slides sideways. All four groups fit in the pane, which is now up to 240 points tall. The Mac is unchanged: wrapping tick boxes in a wider pane. The **Show the boxes** / **Hide the boxes** button is unchanged. It now has the name `search.boxes` for the tests.
+
+**8. Checked.** Three new tests. A Mac screen test gives the test goal the colour red, then the Bike icon, then presses **No icon**. The **Icon…** button must say "Target" with only a colour, and again after **No icon**. The file keeps `icon-colour: red` and loses `icon:`. An iPhone screen test opens Browse › **Search** › **Show the boxes** and checks that the Active box of How the note stands is on screen and can be pressed. A rule test in Core fails if a dashed line comes back into the two-state button. Not covered by a test: the backup thread (a freeze cannot be measured in a test), the date title, the group heading wrap and the tile's ring. The target on a colour and the tile's ring were checked by eye on the iPad, by day and by night; the phone's Search rows on the iPhone, by day and by night. The date title and the heading wrap are two small layout rules, checked in the code only.
+
+**Not yet.** Your wish for more colour and big premium elements is not in this build. A picture with three directions is on its way, so you can choose one for the next build.
+
+**The version.** It shows as "PARAGON 1.0 (281)".
 
 ## Build 280 · 6 November 2026
 

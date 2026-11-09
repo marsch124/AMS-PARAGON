@@ -231,6 +231,10 @@ struct ProjectGroupHeader: View {
                     .foregroundStyle(headingTint)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
+                    // Build 281: a List measures its header one line tall unless the text says
+                    // how tall it is, so at 280 points the name was cut with "…" instead of
+                    // wrapping (the reviewer of 280).
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("\(group.lines.count)")
                     .font(Txt.label.monospacedDigit())
                     .foregroundStyle(Theme.soft)

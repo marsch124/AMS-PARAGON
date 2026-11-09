@@ -1216,6 +1216,13 @@ struct NoteHeader: View {
         }
     }
 
+    /// A daily or weekly note's title is a date ("Monday 9 November 2026"), and a date cut in
+    /// two reads wrong; the reviewer of 280 saw the 26-point date wrap in the Calendar's column.
+    /// So a date keeps one line and shrinks a little in a narrow column (build 281); any other
+    /// title wraps to two lines as before, since a name has no such seam.
+    private var titleLines: Int { note.kind == .daily ? 1 : 2 }
+    private var titleShrink: CGFloat { note.kind == .daily ? 0.7 : 1 }
+
     /// The name, big. Pressing it renames the note where that is allowed (build 154).
     @ViewBuilder
     private var titleRow: some View {
@@ -1224,7 +1231,8 @@ struct NoteHeader: View {
                 Text(note.displayTitle)
                     .font(compact ? Txt.sectionTitle : Txt.pageTitle)
                     .foregroundStyle(.primary)
-                    .lineLimit(2)
+                    .lineLimit(titleLines)
+                    .minimumScaleFactor(titleShrink)
                     .multilineTextAlignment(.leading)
                     .contentShape(Rectangle())
             }
@@ -1234,7 +1242,8 @@ struct NoteHeader: View {
         } else {
             Text(note.displayTitle)
                 .font(compact ? Txt.sectionTitle : Txt.pageTitle)
-                .lineLimit(2)
+                .lineLimit(titleLines)
+                .minimumScaleFactor(titleShrink)
                 .accessibilityIdentifier("note.title")
         }
     }

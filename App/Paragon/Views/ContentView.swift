@@ -1051,7 +1051,9 @@ struct NoteRow: View {
     @ViewBuilder
     private var leadingMark: some View {
         if note.declaredKind.takesIcon, note.ownIcon.isIconOrColour {
-            NoteIconTile(note: note, fallbackTint: note.tint, size: 30)
+            // A goal with a colour and no icon keeps its star or target (build 281).
+            NoteIconTile(note: note, fallbackTint: note.tint, size: 30,
+                         defaultMark: note.declaredKind == .goal ? ChainSymbol.forGoal(note) : nil)
                 .accessibilityHidden(true)
         } else {
             TintStripe(color: note.tint, height: 34)

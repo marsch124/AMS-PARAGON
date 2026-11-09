@@ -40,9 +40,34 @@ struct NoteIconTile: View {
     /// aspiration); everything else passes the kind's own colour (`Note.tint`).
     let fallbackTint: Color
     let size: CGFloat
+    /// The kind's own mark, drawn in place of the letter while no icon is written (build 281).
+    /// A goal passes its star or target: a goal with a colour and no icon kept showing the first
+    /// letter of its name on that colour (his 9 November test), when the star and the target
+    /// have been what "no icon" means on a goal since build 168. Nil for every other kind,
+    /// which has no default mark and keeps the letter.
+    var defaultMark: String? = nil
 
     var body: some View {
-        IconTile(choice, colour: colour, fallbackTint: fallbackTint, letter: shownLetter, size: size)
+        if let defaultMark, note.iconStored == nil {
+            markTile(defaultMark)
+        } else {
+            IconTile(choice, colour: colour, fallbackTint: fallbackTint, letter: shownLetter, size: size)
+        }
+    }
+
+    /// The same tile the package draws — its corner, its fill, its ink — with the app's own mark
+    /// where the letter would be, so a goal's row and a project's row stay one picture.
+    private func markTile(_ name: String) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.28)
+                .fill(IconColour.fill(for: colour, automatic: fallbackTint))
+            MarkImage(name, size: size * 0.62)
+                .foregroundStyle(IconColour.markInk(for: colour))
+        }
+        .frame(width: size, height: size)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("No icon"))
+        .accessibilityAddTraits(.isImage)
     }
 
     /// The icon written on the note, when the package can read it.
@@ -119,7 +144,16 @@ struct NoteIconChip: View {
     private func chipFace(_ current: Note) -> some View {
         switch current.ownIcon {
         case .icon, .colour:
-            framed(NoteIconTile(note: current, fallbackTint: current.tint, size: 22), isSet: true)
+            // Build 281: the tile is the button, in a thin ring of the note's colour two points
+            // out. Until then a 22-point square sat inside a capsule, and the colour never
+            // reached the capsule's round ends (his 9 November test: "the colour circle does
+            // not fill its box").
+            NoteIconTile(note: current, fallbackTint: current.tint, size: Self.chipTile,
+                         defaultMark: defaultMark(for: current))
+                .padding(2)
+                .overlay(RoundedRectangle(cornerRadius: Self.chipTile * 0.28 + 2)
+                    .strokeBorder(note.tint.opacity(0.6), lineWidth: 1))
+                .contentShape(RoundedRectangle(cornerRadius: Self.chipTile * 0.28 + 2))
         case .emoji(let emoji):
             framed(Text(emoji), isSet: true)
         case .unset:
@@ -141,11 +175,22 @@ struct NoteIconChip: View {
             .contentShape(Capsule())
     }
 
-    /// What a screen reader says. The visible chip has no words once an icon is set.
+    /// The tile's side once something is chosen.
+    private static let chipTile: CGFloat = 24
+
+    /// A goal's star or target (build 281); nil for the kinds that have no default mark.
+    private func defaultMark(for note: Note) -> String? {
+        note.kind == .goal ? ChainSymbol.forGoal(note) : nil
+    }
+
+    /// What a screen reader says. The visible chip has no words once an icon is set. A goal
+    /// with only a colour says "Icon: Star" or "Icon: Target" (build 281), which is what the
+    /// tile shows; the screen test for No icon reads it.
     private func spoken(_ current: Note) -> String {
         switch current.ownIcon {
         case .icon, .colour:
             if let name = NoteIconTile.iconName(of: current) { return "Icon: " + name }
+            if current.kind == .goal { return "Icon: " + ChainSymbol.word(for: current) }
             return "Icon"
         case .emoji(let emoji):
             return "Emoji " + emoji

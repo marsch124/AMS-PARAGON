@@ -609,10 +609,14 @@ struct StateToggle: View {
     private var border: some View {
         RoundedRectangle(cornerRadius: 6)
             // Build 154: both states were too faint to read in a macOS toolbar, which draws
-            // everything at low emphasis to begin with. Same two-state language he chose in
-            // build 142 — tinted and solid for on, grey and dashed for off — only stronger.
-            .strokeBorder(isOn ? tint.opacity(0.7) : Color.primary.opacity(0.3),
-                          style: StrokeStyle(lineWidth: isOn ? 1.4 : 1.2, dash: isOn ? [] : [3.5, 2.5]))
+            // everything at low emphasis to begin with. Build 281: the off state is a thin
+            // solid line, no longer dashed — in the window's toolbar the dashes read as an
+            // empty placeholder (the reviewer of 280), and no Mac control is dashed. On stays
+            // the tinted fill with a stronger line, so the two states are still told apart at
+            // a glance (build 142's two-state language, in solid lines). `LookRulesTests`
+            // fails this struct if a dash comes back.
+            .strokeBorder(isOn ? tint.opacity(0.7) : Color.primary.opacity(0.28),
+                          lineWidth: isOn ? 1.4 : 1)
     }
 }
 

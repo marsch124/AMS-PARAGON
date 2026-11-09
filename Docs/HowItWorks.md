@@ -25,7 +25,7 @@ Every part of PARAGON has one colour, and the colour means the same thing everyw
 
 Information sits in panels. A panel is white by day and dark grey at night, with a light tint of its part's colour over it. At night it also has a thin line round it. The note's facts, its **Tasks** and its **Linked notes** are panels. Where you can change something, you see a bordered pop-up or a bordered button. Where you cannot, you see plain words. The main button of a screen is always in colour. When it cannot be used yet, it is the same colour, only paler. Headings are in the colour of their part, not in grey capitals.
 
-There is one set of text sizes. On the Mac the page title is 26 points. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, its headings step from 22 to 18 to 15 points, and code is 14 points. Edit and Read show the note at the same size. The header, the panels and the text of a note stop at 680 points wide and sit in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's settings. Every icon is a hand-drawn mark in one line weight, in the app, the widgets and the share sheet. Your own icon for a note (see **Your own icon**), when you choose one of Apple's symbols in the icon picker, is not changed. On the Mac, **Search**, **Quick capture** and Sync are in the toolbar at the top of the window, and the **+** **New note** button stays over the list column. On **Time Blocks** and on the **Calendar**'s right-hand column, the page's own buttons are in that toolbar too: the day arrows with **Today**, **+ Block**, **Week** and the calendar-blocks button; **+ Block time** and the **Note** / **Schedule** switch. On the iPhone and the iPad they stay in the page. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. The version shows at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, as PARAGON 1.0 (280).
+There is one set of text sizes. On the Mac the page title is 26 points. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, its headings step from 22 to 18 to 15 points, and code is 14 points. Edit and Read show the note at the same size. The header, the panels and the text of a note stop at 680 points wide and sit in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's settings. Every icon is a hand-drawn mark in one line weight, in the app, the widgets and the share sheet. Your own icon for a note (see **Your own icon**), when you choose one of Apple's symbols in the icon picker, is not changed. On the Mac, **Search**, **Quick capture** and Sync are in the toolbar at the top of the window, and the **+** **New note** button stays over the list column. On **Time Blocks** and on the **Calendar**'s right-hand column, the page's own buttons are in that toolbar too: the day arrows with **Today**, **+ Block**, **Week** and the calendar-blocks button; **+ Block time** and the **Note** / **Schedule** switch. On the iPhone and the iPad they stay in the page. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. The version shows at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, as PARAGON 1.0 (281).
 
 A row in a list is a coloured dot (or the note's own icon), one title, and at most one quiet second line, for example "0 of 2 · Due in 12 d". That goes for every list, the **Projects** list included, and for the rows in **Goals** and **Aspirations**. A status such as Paused or Someday is a small capsule at the right. An empty screen shows the part's icon, one calm line, the explanation in small grey, and a quiet bordered button where there is one.
 
@@ -223,20 +223,20 @@ Each project, area, goal, aspiration and resource can have its own icon. Open th
 - **Find an icon** searches the names and some words that are not shown. English and Swedish words both work: **bike** and **cykel** find the same icon.
 - One press on a colour, an icon or **No icon** is a choice. It is written to the note at once and the picker closes. To change the colour and the icon, open the picker twice.
 - **Cancel** closes the picker and writes nothing. So does the Escape key on the Mac, when the search field is empty. (While something is typed there, Escape empties the field first.)
-- **No icon** takes the icon away. The colour you chose stays, and the tile shows the first letter of the name on it. Press **Automatic** to take the colour away as well.
+- **No icon** takes the icon away. The colour you chose stays. On a project, an area or a resource the tile then shows the first letter of the name. On an aspiration or a goal with a date it shows the star or the target on your colour. Press **Automatic** to take the colour away as well.
 
 Where the icon is shown:
 
 - At the left of the project's row in the **Projects** list, and in front of each project on its area's page.
 - At the left of an area's row in the **Areas** list, and in front of a sub-area's row on its parent's page.
 - At the left of a resource's row in the **Resources** list. A resource with no icon keeps its thin blue line.
-- On an aspiration or a goal with a date, **instead of the star or the target**: at the left of its row in the **Aspirations** and **Goals** lists, at the top of the aspiration's page, in front of each goal in an aspiration's chain, and on the goal rows in steps 3 and 4 of the **Weekly review**. A goal with no icon keeps its star or target.
+- On an aspiration or a goal with a date, **instead of the star or the target**: at the left of its row in the **Aspirations** and **Goals** lists, at the top of the aspiration's page, in front of each goal in an aspiration's chain, and on the goal rows in steps 3 and 4 of the **Weekly review**. A goal with no icon keeps its star or target. A goal with only a colour shows its star or target on that colour.
 - In **Recent**, in the **Archive** and when you search inside a list, where the row's thin coloured line is replaced by the icon. A note you put in the **Archive** keeps the icon it had; you can no longer choose a new one for it.
-- In the button at the top of the note itself, which says **Icon…** until something is chosen.
+- In the button at the top of the note itself. It says **Icon…** in a dashed grey capsule until something is chosen. Once something is chosen, the button is the tile itself, 24 points, with a thin ring in the note's colour just outside it. A screen reader says "Icon: Star" or "Icon: Target" for a goal that has only a colour.
 
 The **Map**, the sidebar, the **Search** screen and the lists of linked notes keep the symbols for the kind of note (the flag, the four squares, the books, the star and the target). There the symbol tells you what kind of note it is, and an icon of your own would hide that.
 
-**To go back to the star or the target:** press **Icon…** on the goal or the aspiration, then **No icon**. If you also chose a colour, open it again and press **Automatic**, or the colour stays and the tile shows the first letter of the name.
+**To go back to the star or the target:** press **Icon…** on the goal or the aspiration, then **No icon**. The star or the target comes back, drawn on your colour if you chose one. To lose the colour as well, open the picker again and press **Automatic**.
 
 An icon replaces an emoji:
 
@@ -1175,8 +1175,7 @@ Type two square brackets in any note and a list of your notes appears under the 
 
 Write a word in the field at the top. Under it are rows of boxes, and ticking them is the
 search — one look at the boxes tells you what you are asking for. On the Mac they are the Mac's
-own tick boxes, and the rows of boxes end above the results. On the iPhone they are chips you
-press.
+own tick boxes, and the rows of boxes end above the results. On the iPhone each group is one row: the group's name at the left (**Tasks**, **Kind of note**, **How the note stands**, **Tags**) and its boxes beside it, in a row that slides sideways. All four groups fit in the pane, so none is hidden. Before, the chips wrapped onto many lines and the last groups were out of sight.
 
 - **Tasks**: Not done, Done, Overdue, Today, This week, This month, No date. **Tick any one of
   these and the results are tasks rather than notes.**
@@ -1230,7 +1229,7 @@ something to save.
 
 **Running one.** Saved searches appear as chips under the field, above a line that keeps them apart from the tick boxes below, on the Mac and the phone.
 Press one and it runs. The one you are looking at right now is filled in and has a solid
-border; the others are grey with a dashed one — the same two states every other button in the
+border; the others have a thin solid grey line — the same two states every other button in the
 app uses. Press the heading **Saved searches** to fold them away.
 
 **Changing one.** Right-click a chip (long-press on the phone) for **Rename…** and **Delete**.
@@ -1414,7 +1413,7 @@ Under that, **where it goes** (Inbox, today's note, or one of your projects) and
 
 ## Backups
 
-The app saves a copy of the whole vault before every sync and once a day, keeping the last ten. They live inside the vault, in a hidden folder called `.ams-para/Backups`, as ordinary folders of markdown files.
+The app saves a copy of the whole vault before every sync and once a day, keeping the last ten. The day's first copy is made a few seconds after the app opens, on a thread of its own, so the screen does not freeze. So is the clearing of notes deleted more than 30 days ago. They live inside the vault, in a hidden folder called `.ams-para/Backups`, as ordinary folders of markdown files.
 
 - **Settings › Backups › Back up now** saves one immediately. Nothing is saved twice if nothing changed.
 - **Show in Finder** opens the folder, where you can drag a single note back by hand.
@@ -1424,7 +1423,7 @@ Time Machine covers the rest: these backups sit inside the vault folder, so they
 
 ## On the iPhone
 
-**Reading or writing.** A note opens ready to write in. The **pencil** button at the bottom of the note (in the toolbar on the Mac) turns writing on and off. When the pencil is lit and its frame is solid, you are writing. When it is grey with a dashed frame, you are reading: the note is shown rendered — headings, bold, tappable links — and there is no cursor. If a note ever seems to refuse your typing, look at that button.
+**Reading or writing.** A note opens ready to write in. The **pencil** button at the bottom of the note (in the toolbar on the Mac) turns writing on and off. When the pencil is lit and its frame is solid, you are writing. When it is grey with a thin solid frame, you are reading: the note is shown rendered — headings, bold, tappable links — and there is no cursor. If a note ever seems to refuse your typing, look at that button.
 
 
 Sync with Reminders from the phone with the button in the top right of Today and Inbox, or Settings › Reminders sync › Sync now. The first sync is when iOS asks for permission to use Reminders.

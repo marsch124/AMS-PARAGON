@@ -1412,7 +1412,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations, search }
 
     // MARK: The look (1.0, build 280)
 
@@ -1506,6 +1506,20 @@ final class ScreenTests: XCTestCase {
                       "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
         for name in Self.way(to: place) {
             let step = element(name)
+            #if os(iOS)
+            // A row far down Browse (Search is its last) is not in the list until it is scrolled
+            // to: the phone's List only holds the rows on screen (build 281). Each round waits
+            // for the row first, so the drag never lands on the screen before Browse. A drag
+            // through the middle of the screen, never `swipeUp()`: that starts at the bottom
+            // edge, and iOS took it for the home gesture (the first runs of this).
+            var drags = 0
+            while drags < 4, !step.waitForExistence(timeout: 3) {
+                let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+                let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+                from.press(forDuration: 0.05, thenDragTo: to)
+                drags += 1
+            }
+            #endif
             XCTAssertTrue(step.waitForExistence(timeout: 20), "\(name) is not on screen. On screen: \(visibleTexts())")
             #if os(macOS)
             bringIntoView(step)
@@ -1581,6 +1595,7 @@ final class ScreenTests: XCTestCase {
         case .goals: return ["sidebar.Goals"]
         case .areas: return ["sidebar.Areas"]
         case .aspirations: return ["sidebar.Aspirations"]
+        case .search: return ["sidebar.Search"]
         }
     }
 
@@ -1608,6 +1623,7 @@ final class ScreenTests: XCTestCase {
         case .goals: return ["tab.browse", "browse.Goals"]
         case .areas: return ["tab.browse", "browse.Areas"]
         case .aspirations: return ["tab.browse", "browse.Aspirations"]
+        case .search: return ["tab.browse", "browse.Search"]
         }
     }
 
@@ -2753,6 +2769,102 @@ final class ScreenTests: XCTestCase {
     }
 
     /// Presses **Icon…** at the top of the open note and waits for the picker's search field.
+    // MARK: No icon on a goal brings the target back (build 281)
+
+    /// **A goal with a colour and no icon shows its target on that colour** (build 281), and
+    /// **No icon** after an icon brings it back in one press. His 9 November test: Icon… ›
+    /// No icon on a goal he had given a colour showed the first letter of its name on the
+    /// colour, not the star. The proof is the Icon… button's own words (`note.icon`): "Icon:
+    /// Target" while only a colour is set, "Icon: Bike" with the icon, "Icon: Target" again
+    /// after No icon — and the file, read back from the editor: `icon-colour: red` stays and
+    /// `icon:` goes. The swatches and No icon are the picker's own buttons (`icon.colour.red`,
+    /// `icon.none`). The Mac only: the phone's goal page has no facts panel, so no Icon… button.
+    func testNoIconOnAGoalBringsTheTargetBack() {
+        #if os(macOS)
+        go(to: .goals)
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+                      "The goal opened without its editor. On screen: \(visibleTexts())")
+
+        // A colour first: the fault only showed on a goal that had one.
+        XCTAssertTrue(openTheIconPicker(),
+                      "Pressing Icon… did not show the picker. On screen: \(visibleTexts())")
+        let red = app.buttons.matching(identifier: "icon.colour.red").firstMatch
+        XCTAssertTrue(red.waitForExistence(timeout: 10),
+                      "The picker has no red swatch (icon.colour.red). On screen: \(visibleTexts())")
+        if red.isHittable { red.press() } else { red.pressCentre() }
+        XCTAssertTrue(iconPickerCloses(), "A colour was pressed and the picker stayed open.")
+        XCTAssertTrue(editorHolds(editor, "icon-colour: red", within: 10),
+                      "The note does not carry the colour: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Target") },
+                      "With only a colour, the Icon… button should show the goal's target. It says: \(wordsOfEvery("note.icon"))")
+
+        // Then an icon, so there is something for No icon to take away.
+        XCTAssertTrue(openTheIconPicker(),
+                      "Pressing Icon… the second time did not show the picker. On screen: \(visibleTexts())")
+        let search = element("icon.search")
+        if search.isHittable { search.press() } else { search.pressCentre() }
+        search.typeText("bike")
+        let bike = app.buttons.matching(identifier: "icon.choice.hand:bike").firstMatch
+        XCTAssertTrue(bike.waitForExistence(timeout: 10),
+                      "Searching for bike did not show the Bike icon. On screen: \(visibleTexts())")
+        for _ in 0..<6 where !bike.isHittable {
+            scrollTheIconPicker()
+        }
+        if bike.isHittable { bike.press() } else { bike.pressCentre() }
+        XCTAssertTrue(iconPickerCloses(), "An icon was pressed and the picker stayed open.")
+        XCTAssertTrue(editorHolds(editor, "icon: hand:bike", within: 10),
+                      "The note does not carry the icon: \(String(((editor.value as? String) ?? "").prefix(200)))")
+
+        // No icon: one press, and the target is back on the colour.
+        XCTAssertTrue(openTheIconPicker(),
+                      "Pressing Icon… the third time did not show the picker. On screen: \(visibleTexts())")
+        let none = app.buttons.matching(identifier: "icon.none").firstMatch
+        XCTAssertTrue(none.waitForExistence(timeout: 10),
+                      "The picker has no No icon button (icon.none). On screen: \(visibleTexts())")
+        if none.isHittable { none.press() } else { none.pressCentre() }
+        XCTAssertTrue(iconPickerCloses(), "No icon was pressed and the picker stayed open.")
+        XCTAssertTrue(editorLacks(editor, "icon: hand:bike", within: 10),
+                      "No icon left the icon line in the note: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(editorHolds(editor, "icon-colour: red", within: 10),
+                      "No icon took the colour away too; it should stay: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Target") },
+                      "After No icon the Icon… button should show the goal's target again. It says: \(wordsOfEvery("note.icon"))")
+        #endif
+    }
+
+    // MARK: The phone's Search shows every group of boxes (build 281)
+
+    /// **On the iPhone every group of boxes is in reach** (build 281). The pane under the field
+    /// was 200 points tall and the boxes wrapped, so the third group, **How the note stands**,
+    /// and **Tags** sat below its edge where nothing said they were. Now each group is one row
+    /// that slides sideways, and the pane holds them all. Browse › Search, **Show the boxes**
+    /// (`search.boxes`; the phone starts folded, so it is pressed only while no box is on
+    /// screen), then the first box of the third group, `search.box.status:active`, must be on
+    /// screen and pressable, and pressing it ticks it. The Mac keeps its tick boxes in a wider
+    /// pane; `testASearchBoxIsATickBoxThatTurnsUpTheTasks` covers it.
+    func testThePhonesSearchShowsEveryGroupOfBoxes() {
+        #if os(iOS)
+        go(to: .search)
+        let fold = element("search.boxes")
+        XCTAssertTrue(fold.waitForExistence(timeout: 20),
+                      "Search has no Show the boxes button (search.boxes). On screen: \(visibleTexts())")
+        let box = app.buttons.matching(identifier: "search.box.status:active").firstMatch
+        if !box.exists { fold.press() }
+        XCTAssertTrue(box.waitForExistence(timeout: 20),
+                      "Search has no Active box (search.box.status:active). On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { box.isHittable },
+                      "The How the note stands group is below the pane's edge: its Active box is not pressable. On screen: \(visibleTexts())")
+        box.press()
+        XCTAssertTrue(becomes(within: 10) { box.label.contains("ticked") && !box.label.contains("not ticked") },
+                      "Pressing Active did not tick it. It says: \(box.label)")
+        #endif
+    }
+
     private func openTheIconPicker() -> Bool {
         let chip = app.buttons.matching(identifier: "note.icon").firstMatch
         guard chip.waitForExistence(timeout: 10) else { return false }

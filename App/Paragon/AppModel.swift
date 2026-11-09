@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 280
+    static let number = 281
 }
 
 @MainActor
@@ -1728,9 +1728,23 @@ final class AppModel: ObservableObject {
     }
 
     /// Clears out what has been deleted for more than a month. Runs at launch and on open.
+    /// Clears out notes deleted more than thirty days ago. **Off the main thread since build
+    /// 281**, for the same reason as `backUpDaily`: it walks the Deleted folder, and it runs in
+    /// the same five-seconds-after-launch moment. A `Vault` of its own from the plain URL, as
+    /// there; the list on screen is re-read once it is done.
     func purgeOldDeleted() {
-        vault?.purgeDeleted(olderThan: Self.deletedKeptForDays)
-        refreshDeleted()
+        guard let vault else { return }
+        let root: URL = vault.rootURL
+        let days: Int = Self.deletedKeptForDays
+        Task { [weak self] in
+            let done: Bool = await AppModel.offMain { () -> Bool in
+                guard let own = try? Vault(rootURL: root) else { return false }
+                own.purgeDeleted(olderThan: days)
+                return true
+            }
+            guard done, let self, self.vault?.rootURL == root else { return }
+            self.refreshDeleted()
+        }
     }
 
     static let deletedKeptForDays = 30
@@ -3973,8 +3987,17 @@ final class AppModel: ObservableObject {
     }
 
     /// One copy a day, made at launch and when a vault is opened.
+    ///
+    /// **On a thread of its own since build 281.** Until then `backUp(reason:)` ran here, on the
+    /// main thread, five seconds after launch: copying some 1,400 files out of an iCloud Drive
+    /// folder took several seconds, and the first screen froze for them (his 9 November test:
+    /// "the app start freezes 5 to 10 seconds"). The copy needs nothing from this object but
+    /// the folder, so a `Vault` of its own is made on the GCD thread from the plain URL — the
+    /// same shape as `fetchCloudFiles`: a `Vault` is a class the main thread changes, so this
+    /// one's is never handed across. The day is marked done when the copy comes back, whatever
+    /// it found, as before; a folder changed meanwhile is left alone (`rootURL` is compared).
     private func backUpDaily() {
-        guard vault != nil else { return }
+        guard let vault else { return }
         let today = DateOnly.today().description
         guard defaults.string(forKey: lastBackupDayKey) != today else {
             refreshBackups()
@@ -3984,9 +4007,35 @@ final class AppModel: ObservableObject {
         // would hold nothing, and the day would be marked done anyway. The background pass calls
         // this again when notes arrive.
         if notes.isEmpty, !notesWaitingForCloud.isEmpty { return }
-        backUp(reason: "daily")
-        defaults.set(today, forKey: lastBackupDayKey)
+        guard !dailyBackupRunning else { return }
+        dailyBackupRunning = true
+        flushPendingEdits()
+        // A file iCloud has not sent is a file that cannot be copied, and a backup missing
+        // notes without saying so is worse than none.
+        fetchCloudFiles()
+        let root: URL = vault.rootURL
+        Task { [weak self] in
+            let outcome: Result<VaultBackup?, Error> = await AppModel.offMain {
+                Result { try Vault(rootURL: root).makeBackup(reason: "daily") }
+            }
+            guard let self else { return }
+            self.dailyBackupRunning = false
+            guard self.vault?.rootURL == root else { return }
+            self.defaults.set(today, forKey: self.lastBackupDayKey)
+            switch outcome {
+            case .success(let made):
+                if let made { self.log("backup saved: \(made.folderName)") }
+                self.refreshBackups()
+            case .failure(let error):
+                self.log("backup failed: \(error.localizedDescription)")
+                self.errorMessage = "The backup could not be saved: \(error.localizedDescription)"
+            }
+        }
     }
+
+    /// Whether the day's copy is being made on its thread, so a second call while it runs (the
+    /// background pass, a vault opened twice) does not start a second copy.
+    private var dailyBackupRunning = false
 
     func restore(_ backup: VaultBackup) {
         guard let vault else { return }

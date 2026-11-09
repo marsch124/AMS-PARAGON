@@ -428,6 +428,12 @@ enum ChainSymbol {
         (note.horizon ?? .year) == .life ? aspiration : datedGoal
     }
 
+    /// What that mark is called when it stands in for an icon (build 281): the Icon… button
+    /// says it, and so does a tile a screen reader lands on.
+    static func word(for note: Note) -> String {
+        (note.horizon ?? .year) == .life ? "Star" : "Target"
+    }
+
     /// The right one for a `goal:` line, which may name either kind. A name with no note
     /// behind it gets the dated goal's target: it is the section's own mark, so an unresolved
     /// link never claims to be an aspiration.
@@ -492,7 +498,9 @@ struct GoalMark: View {
 
     var body: some View {
         if note.ownIcon.isIconOrColour {
-            NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: size)
+            // Build 281: a colour with no icon keeps the star or the target, on that colour.
+            NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: size,
+                         defaultMark: ChainSymbol.forGoal(note))
                 .accessibilityHidden(true)
         } else {
             KindBadge(kind: .goal, size: size, markName: ChainSymbol.forGoal(note),
@@ -853,7 +861,8 @@ struct AspirationChainBody: View {
     @ViewBuilder
     private func endedMark(_ note: Note) -> some View {
         if note.ownIcon.isIconOrColour {
-            NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: 16)
+            NoteIconTile(note: note, fallbackTint: ChainTint.forGoal(note), size: 16,
+                         defaultMark: ChainSymbol.forGoal(note))
                 .accessibilityHidden(true)
         } else {
             MarkImage(ChainSymbol.datedGoal)
@@ -993,7 +1002,8 @@ struct ChainGoalBlock: View {
     @ViewBuilder
     private var mark: some View {
         if goal.note.ownIcon.isIconOrColour {
-            NoteIconTile(note: goal.note, fallbackTint: ChainTint.forGoal(goal.note), size: 20)
+            NoteIconTile(note: goal.note, fallbackTint: ChainTint.forGoal(goal.note), size: 20,
+                         defaultMark: ChainSymbol.forGoal(goal.note))
                 .accessibilityHidden(true)
         } else {
             MarkImage(ChainSymbol.datedGoal)

@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PARAGON — more colour: three directions</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #E3E3E7; font-family: -apple-system, "SF Pro Text", "SF Pro", "Helvetica Neue", sans-serif; -webkit-font-smoothing: antialiased; color: #1d1d1f; }
+  body { padding: 36px 40px 40px; width: 3700px; height: 1990px; overflow: hidden; }
+  h1 { font-size: 34px; font-weight: 700; margin-bottom: 6px; }
+  .sub { font-size: 18px; color: #555; margin-bottom: 26px; }
+  .dirs { display: grid; grid-template-columns: 1180px 1180px 1180px; column-gap: 40px; }
+  .head { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; height: 100px; }
+  .letter { width: 58px; height: 58px; border-radius: 14px; background: #2B2F36; color: #fff; font-size: 32px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: none; }
+  .head h2 { font-size: 28px; font-weight: 700; margin-bottom: 4px; line-height: 34px; }
+  .head .desc { font-size: 17px; color: #444; line-height: 23px; max-width: 1080px; }
+  .cap { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 6px; letter-spacing: .2px; }
+  .shelf2 { display: grid; grid-template-columns: 393px 1fr; column-gap: 36px; margin-top: 26px; align-items: start; }
+  .foot { background: #fff; border-radius: 12px; padding: 24px 28px; box-shadow: 0 1px 3px rgba(0,0,0,.12); margin-top: 26px; }
+  .foot h4 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .foot p { font-size: 18px; line-height: 27px; color: #333; margin-bottom: 20px; }
+  .foot p:last-child { margin-bottom: 0; }
+  .foot .mini { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .foot .mini span { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: #444; background: #F4F4F6; border-radius: 8px; padding: 5px 10px; }
+  .foot .mini i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+  /* ---------- colours: the parts, day ---------- */
+  .dir {
+    --green:#2E7D5B; --pink:#C2417C; --blue:#2C6FB5; --grey:#6E6E73; --gold:#8F6E10; --asp:#8A5A12;
+    --amber:#B0631A; --purple:#6B4EA8; --teal:#1E7F84; --orange:#C05E0C; --morning:#D4640A; --evening:#6E3A86;
+    --now:#4B7F9E; --red:#D93A3A; --onfill:#fff;
+    --canvas:#F3F5F8; --sidebar:#EBEDF1; --list:#FFFFFF; --surface:#FFFFFF; --line:#E2E6EB; --text:#1C2430; --text2:#5C6470; --text3:#7A8290;
+    --ctl:#FFFFFF; --ctlb:#D3D8DF; --sel:#3478F6; --tint:7%; --phonebg:#F3F5F8; --card:#FFFFFF; --bar:#F7F8FA; --field:#EDF0F4;
+  }
+
+  /* ---------- Mac window ---------- */
+  .mac { width:1180px; height:760px; border-radius:11px; overflow:hidden; background:var(--canvas); color:var(--text); box-shadow:0 18px 50px rgba(0,0,0,.28), 0 0 0 1px rgba(0,0,0,.18); display:flex; flex-direction:column; font-size:13px; position:relative; }
+  .mac .toolbar { height:52px; display:grid; grid-template-columns:210px 300px 670px; border-bottom:1px solid var(--line); flex:none; }
+  .mac .tb-side { background:var(--sidebar); display:flex; align-items:center; padding-left:13px; gap:8px; }
+  .tl { display:flex; gap:8px; margin-right:14px; }
+  .tl i { width:12px; height:12px; border-radius:50%; display:block; }
+  .tl i:nth-child(1){background:#FF5F57;border:1px solid #E0443E;} .tl i:nth-child(2){background:#FEBC2E;border:1px solid #D89E24;} .tl i:nth-child(3){background:#28C840;border:1px solid #1FA532;}
+  .tb-list { display:flex; align-items:center; padding:0 10px 0 14px; gap:8px; background:var(--list); border-left:1px solid var(--line); }
+  .tb-list .ttl { font-size:15px; font-weight:600; }
+  .tb-detail { display:flex; align-items:center; gap:4px; padding:0 12px 0 14px; border-left:1px solid var(--line); }
+  .tbtn { width:30px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--text2); }
+  .tbtn.on { color:var(--green); background:color-mix(in srgb, var(--green) 18%, transparent); }
+  .tbtn.dim { opacity:.4; }
+  .tsep { width:1px; height:18px; background:var(--line); margin:0 6px; }
+  .search { margin-left:auto; width:210px; height:26px; border-radius:7px; background:var(--field); border:1px solid var(--line); display:flex; align-items:center; gap:6px; padding:0 8px; color:var(--text3); font-size:13px; }
+  .mac .cols { display:grid; grid-template-columns:210px 300px 670px; flex:1; min-height:0; }
+
+  /* sidebar */
+  .sidebar { background:var(--sidebar); padding:8px 8px 10px; display:flex; flex-direction:column; }
+  .sb-h { font-size:11px; font-weight:600; color:var(--text3); padding:10px 10px 3px; }
+  .sb-r { display:flex; align-items:center; gap:8px; height:26px; padding:0 10px; border-radius:6px; font-size:13px; color:var(--text); }
+  .sb-r .ico { width:16px; height:16px; flex:none; display:flex; }
+  .sb-r .n { margin-left:auto; font-size:11px; color:var(--text3); }
+  .sb-r.sel { background:rgba(127,127,140,.22); font-weight:500; }
+  [data-dir="a"] .sb-r.sel, [data-dir="c"] .sb-r.sel { background:var(--rc); color:#fff; }
+  [data-dir="a"] .sb-r.sel .n, [data-dir="c"] .sb-r.sel .n { color:rgba(255,255,255,.85); }
+  .sb-foot { margin-top:auto; font-size:11px; color:var(--text3); text-align:center; padding-top:8px; }
+  .ctile { width:18px; height:18px; border-radius:5px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .ctile.lg { width:20px; height:20px; border-radius:6px; }
+
+  /* Today column */
+  .tcol { background:var(--list); border-left:1px solid var(--line); overflow:hidden; display:flex; flex-direction:column; }
+  .ctitle { font-size:26px; font-weight:700; line-height:32px; padding:10px 16px 2px; letter-spacing:-.2px; }
+  .daterow { display:flex; align-items:center; gap:8px; padding:2px 16px 6px; font-size:12px; color:var(--text2); }
+  .dbtns { margin-left:auto; display:flex; gap:6px; }
+  .dbtn { width:26px; height:24px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; }
+  .dbtn.wb { background:#fff; width:28px; height:28px; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.18); }
+  .line { display:flex; align-items:baseline; gap:6px; padding:1px 16px; font-size:12px; color:var(--text); line-height:17px; white-space:nowrap; overflow:hidden; }
+  .line b { font-weight:600; }
+  .line .mono { font-variant-numeric:tabular-nums; color:var(--text2); }
+  .line .clk { margin-left:auto; display:flex; align-self:center; }
+  .line.then { color:var(--text2); }
+  .line.week { align-items:center; padding-top:3px; padding-bottom:4px; }
+  .grp { padding:12px 16px 4px; display:flex; align-items:center; gap:7px; font-size:17px; font-weight:600; }
+  .grp .n { font-size:12px; font-weight:400; color:var(--text3); }
+  .hbtn { margin-left:auto; font-size:11px; font-weight:500; padding:2px 7px; border-radius:6px; border:1px solid var(--ctlb); background:var(--ctl); color:var(--text); display:inline-flex; gap:4px; align-items:center; }
+  .ibtn { width:22px; height:20px; border-radius:5px; background:color-mix(in srgb, var(--purple) 14%, transparent); display:inline-flex; align-items:center; justify-content:center; }
+  .ibtn:first-of-type { margin-left:auto; }
+  .crow { display:flex; align-items:center; gap:8px; padding:3px 16px 3px 24px; font-size:12px; }
+  .crow .ct { font-variant-numeric:tabular-nums; color:var(--text2); width:36px; }
+  .crow .cbar2 { width:3px; height:14px; border-radius:2px; background:var(--purple); }
+  .row { display:flex; gap:10px; align-items:flex-start; padding:5px 10px 5px 16px; margin:0 8px; border-radius:6px; position:relative; }
+  .row .mk { width:8px; height:8px; border-radius:50%; margin-top:6px; flex:none; }
+  .row .ctile { margin-top:0; }
+  .row .tx { flex:1; min-width:0; }
+  .row .t { font-size:13px; line-height:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .s { font-size:11px; line-height:14px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .tr { font-size:11px; color:var(--text3); white-space:nowrap; margin-top:2px; }
+  .row.sel { background:var(--sel); color:#fff; } .row.sel .s, .row.sel .tr { color:rgba(255,255,255,.85); }
+  .row.csel { background:var(--purple); color:#fff; } .row.csel .s, .row.csel .tr { color:rgba(255,255,255,.85); }
+  .pill { display:inline-block; font-size:11px; font-weight:500; padding:1px 6px; border-radius:6px; line-height:14px; }
+
+  /* A: the band */
+  .band { --pc:var(--purple); background:linear-gradient(135deg, var(--pc) 0%, color-mix(in srgb, var(--pc) 76%, #fff) 100%); color:#fff; padding:12px 16px 14px; position:relative; flex:none; }
+  .band .brow { display:flex; align-items:center; gap:10px; }
+  .band .btitle { font-size:26px; font-weight:700; line-height:32px; letter-spacing:-.2px; flex:1; min-width:0; }
+  .band .bdate { font-size:13px; opacity:.88; margin-top:2px; }
+  .band .bnum { display:flex; align-items:baseline; gap:8px; margin-top:10px; }
+  .band .big { font-size:34px; font-weight:700; line-height:36px; letter-spacing:-.5px; }
+  .band .unit { font-size:13px; opacity:.9; }
+  .band .btile { width:30px; height:30px; border-radius:7px; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; flex:none; }
+  .band.detail-band .read { padding:0; }
+
+  /* B: the big card */
+  .bigcard { --pc:var(--purple); background:var(--pc); color:#fff; border-radius:14px; padding:14px 16px; display:flex; gap:14px; align-items:center; margin:4px 16px 8px; box-shadow:0 8px 20px color-mix(in srgb, var(--pc) 32%, transparent); }
+  .bigcard .bc-top { display:flex; align-items:baseline; gap:8px; }
+  .bigcard .num { font-size:34px; font-weight:700; line-height:38px; letter-spacing:-.5px; }
+  .bigcard .lab { font-size:13px; opacity:.9; }
+  .bigcard .stats { display:flex; gap:8px; margin-top:6px; font-size:12px; opacity:.85; white-space:nowrap; }
+  .bigcard .stats span + span::before { content:"·"; margin-right:8px; opacity:.7; }
+  
+  /* C: bars, edges, tiles */
+  .cpanel { --pc:var(--green); position:relative; overflow:hidden; background:var(--surface); border-radius:10px; margin-bottom:10px; box-shadow:0 0 0 1px var(--line); }
+  .cpanel::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pc); }
+  .cbar { background:var(--pc); color:#fff; font-size:17px; font-weight:600; padding:3px 12px 3px 14px; display:flex; align-items:center; gap:8px; line-height:24px; }
+  .cbar .n { font-size:12px; font-weight:400; opacity:.88; }
+  .cbar .chev { margin-left:auto; display:flex; opacity:.9; }
+  .cbar .hbtn { background:rgba(255,255,255,.2); border-color:transparent; color:#fff; }
+  .cbar .ibtn { background:rgba(255,255,255,.22); }
+  .cbody { padding:6px 10px 8px 13px; }
+  .tcol .cpanel { margin:0 10px 8px; }
+  .tcol .cpanel:first-of-type { margin-top:4px; }
+  .cbody .row { margin:0; padding:4px 4px; }
+  .cbody .crow { padding:3px 4px; }
+
+  /* detail */
+  .detail { overflow:hidden; display:flex; flex-direction:column; background:var(--canvas); }
+  .scrollarea { flex:1; overflow:hidden; padding:14px 0 0; }
+  [data-dir="a"] .scrollarea { padding-top:0; }
+  .read { width:638px; margin:0 auto; }
+  .title { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .title h1 { font-size:26px; font-weight:700; line-height:32px; color:var(--text); margin:0; letter-spacing:-.2px; }
+  .tile { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .panel { --pc: var(--green); border-radius:10px; padding:12px 14px; margin-bottom:12px; background:color-mix(in srgb, var(--pc) var(--tint), var(--surface)); }
+  .ph { display:flex; align-items:baseline; gap:8px; font-size:17px; font-weight:600; color:var(--pc); margin-bottom:6px; }
+  .ph .n { font-size:12px; font-weight:400; color:var(--text3); }
+  .ph .chev { margin-left:auto; color:var(--pc); opacity:.8; }
+  .facts { display:grid; grid-template-columns:1fr 1fr; column-gap:18px; row-gap:7px; }
+  .f { display:grid; grid-template-columns:70px 1fr; align-items:center; gap:8px; font-size:15px; min-height:24px; }
+  .f .l { font-size:12px; color:var(--text3); }
+  .pop { display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 6px 0 9px; border-radius:6px; background:var(--ctl); border:1px solid var(--ctlb); box-shadow:0 1px 1px rgba(0,0,0,.05); font-size:13px; color:var(--text); max-width:100%; white-space:nowrap; }
+  .pop .chev { color:var(--text3); margin-left:2px; }
+  .pop .ico { display:flex; }
+  .task { display:flex; align-items:flex-start; gap:10px; padding:5px 0; font-size:15px; line-height:20px; }
+  .task .cb { width:16px; height:16px; border-radius:50%; border:1.5px solid var(--pc); margin-top:2px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .task .cb.done { background:var(--pc); border-color:var(--pc); }
+  .task.done { color:var(--text3); text-decoration:line-through; }
+  .task .tr { margin-left:auto; font-size:12px; color:var(--text3); white-space:nowrap; display:flex; gap:6px; align-items:center; padding-top:3px; }
+  .task .np { font-size:11px; font-weight:500; padding:1px 6px; border-radius:6px; background:color-mix(in srgb, var(--pc) 14%, transparent); color:var(--pc); }
+  .task .tm { font-variant-numeric:tabular-nums; color:var(--pc); }
+  .task .dash { border:1px dashed var(--text3); border-radius:6px; padding:0 6px; font-size:11px; }
+  .ln { display:flex; align-items:center; gap:8px; font-size:15px; padding:5px 0; }
+  .ln .k { font-size:12px; color:var(--text3); margin-left:auto; }
+  .fold { font-size:12px; color:var(--text3); display:flex; align-items:center; gap:6px; margin:2px 0 10px; }
+  .md { font-size:15px; line-height:22px; color:var(--text); }
+  .md h2 { font-size:22px; font-weight:600; line-height:28px; margin:6px 0 6px; }
+  .md h3 { font-size:18px; font-weight:600; line-height:24px; margin:14px 0 4px; }
+  .md p { margin-bottom:8px; }
+  .md ul { padding-left:20px; margin-bottom:8px; }
+  .md li { margin-bottom:2px; }
+  .md a { color:var(--pc); text-decoration:none; }
+  .md .tag { color:var(--pc); }
+  .md blockquote { border-left:2px solid var(--pc); padding-left:10px; color:var(--text2); font-style:italic; }
+  .md .m { color:var(--text3); opacity:.55; font-weight:400; }
+  .addbar { height:44px; border-top:1px solid var(--line); display:flex; align-items:center; gap:8px; padding:0 14px; background:var(--bar); flex:none; }
+  .addbar .fld { flex:1; height:28px; border-radius:7px; background:var(--ctl); border:1px solid var(--ctlb); display:flex; align-items:center; padding:0 10px; color:var(--text3); font-size:13px; }
+  .addbar .ib { color:var(--text2); display:flex; }
+  .addbar .go { width:28px; height:28px; border-radius:50%; background:var(--green); color:var(--onfill); display:flex; align-items:center; justify-content:center; }
+  svg { display:block; }
+
+  /* ---------- iPhone ---------- */
+  .phone { width:393px; height:852px; border-radius:54px; background:var(--phonebg); color:var(--text); overflow:hidden; position:relative; box-shadow:0 0 0 10px #111, 0 0 0 12px #3a3a3a, 0 16px 40px rgba(0,0,0,.35); font-size:17px; }
+  .island { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:124px; height:36px; border-radius:20px; background:#000; z-index:3; }
+  .pbody { position:absolute; top:0; bottom:0; left:0; right:0; overflow:hidden; display:flex; flex-direction:column; }
+  .ptop { flex:none; }
+  .status { height:54px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 32px 8px 36px; font-size:16px; font-weight:600; }
+  .status .r { display:flex; gap:6px; align-items:center; }
+  .nav { height:44px; display:flex; align-items:center; padding:0 14px; gap:8px; position:relative; }
+  .nav .rb { width:40px; height:40px; border-radius:50%; background:var(--card); box-shadow:0 1px 4px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.06); display:flex; align-items:center; justify-content:center; }
+  .nav .sp { flex:1; }
+  .pscroll { flex:1; overflow:hidden; padding:6px 16px 92px; }
+  .ptitle { display:flex; align-items:flex-start; gap:10px; padding:4px 4px 12px; }
+  .ptitle .tile { width:32px; height:32px; margin-top:2px; }
+  .ptitle .ptt { font-size:28px; font-weight:700; line-height:34px; letter-spacing:.1px; }
+  .pband { --pc:var(--gold); background:linear-gradient(150deg, var(--pc) 0%, color-mix(in srgb, var(--pc) 76%, #fff) 100%); color:#fff; }
+  .pband .status, .pband .nav { color:#fff; }
+  .pband .nav .rb { background:rgba(255,255,255,.24); box-shadow:none; }
+  .pband .bx { padding:6px 20px 18px; }
+  .pband .ptt { font-size:28px; font-weight:700; line-height:34px; letter-spacing:.1px; }
+  .pband .bdate { font-size:13px; opacity:.9; margin-top:4px; line-height:18px; }
+  .pband .bnum { display:flex; align-items:baseline; gap:8px; margin-top:12px; }
+  .pband .big { font-size:34px; font-weight:700; line-height:38px; letter-spacing:-.5px; }
+  .pband .unit { font-size:13px; opacity:.92; }
+  .pbigcard { --pc:var(--gold); background:var(--pc); color:#fff; border-radius:16px; padding:16px 18px; display:flex; gap:16px; align-items:center; margin-bottom:12px; box-shadow:0 10px 24px color-mix(in srgb, var(--pc) 32%, transparent); }
+  .pbigcard .num { font-size:34px; font-weight:700; line-height:38px; letter-spacing:-.5px; }
+  .pbigcard .lab { font-size:13px; opacity:.92; margin-top:2px; }
+  .pbigcard .stats { display:flex; gap:8px; margin-top:8px; font-size:12px; opacity:.88; flex-wrap:wrap; }
+  .pbigcard .stats span + span::before { content:"·"; margin-right:8px; opacity:.7; }
+  .psec { font-size:17px; font-weight:600; display:flex; align-items:center; gap:7px; padding:14px 4px 6px; }
+  .pcard { background:var(--card); border-radius:12px; overflow:hidden; }
+  .prow { display:flex; gap:10px; align-items:flex-start; padding:8px 4px; position:relative; }
+  .prow + .prow::before { content:""; position:absolute; left:22px; right:0; top:0; height:1px; background:var(--line); }
+  .prow .mk { width:8px; height:8px; border-radius:50%; margin-top:7px; flex:none; }
+  .prow .ctile { margin-top:1px; }
+  .prow .tx { flex:1; min-width:0; }
+  .prow .t { font-size:17px; line-height:22px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .prow .s { font-size:13px; line-height:18px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .prow .tr { font-size:13px; color:var(--text3); display:flex; align-items:center; gap:4px; padding-top:3px; white-space:nowrap; }
+  .padd { display:flex; align-items:center; gap:8px; font-size:17px; padding:8px 4px 2px; font-weight:500; }
+  .ppanel { --pc:var(--gold); border-radius:12px; padding:12px 14px; margin-bottom:12px; background:color-mix(in srgb, var(--pc) var(--tint), var(--card)); }
+  [data-dir="b"] .ppanel { background:var(--card); box-shadow:0 0 0 1px color-mix(in srgb, var(--line) 80%, transparent); }
+  .pph { display:flex; align-items:center; gap:8px; font-size:17px; font-weight:600; color:var(--pc); margin-bottom:4px; }
+  .pph .n { font-size:13px; font-weight:400; color:var(--text3); }
+  .pph .hb { margin-left:auto; font-size:13px; font-weight:500; color:var(--text); border:1px solid var(--ctlb); background:var(--ctl); border-radius:7px; padding:2px 8px; display:inline-flex; gap:5px; align-items:center; }
+  .pf { display:grid; grid-template-columns:78px 1fr; align-items:center; gap:8px; font-size:17px; min-height:30px; }
+  .pf .l { font-size:13px; color:var(--text3); }
+  .pf > span:last-child { min-width:0; }
+  .ppop { display:flex; align-items:center; gap:6px; font-size:17px; color:var(--text); max-width:100%; white-space:nowrap; overflow:hidden; }
+  .ppop > span:not(.chev), .ppop > svg { flex:none; }
+  .ppop > span.tx { display:block; flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ppop .chev { color:var(--text3); }
+  .pchanged { font-size:13px; color:var(--text2); display:flex; align-items:center; gap:6px; padding:0 4px 12px; }
+  .pnotice { display:inline-block; font-size:12px; font-weight:500; padding:2px 8px; border-radius:7px; background:color-mix(in srgb, var(--morning) 14%, transparent); color:var(--morning); }
+  .phone .cpanel { border-radius:12px; margin-bottom:12px; }
+  .phone .cbar { padding:5px 14px 5px 16px; line-height:24px; }
+  .phone .cbody { padding:6px 12px 8px 14px; }
+  .phone .cbar .n { font-size:13px; }
+  .pmd { font-size:17px; line-height:24px; padding:0 4px; }
+  .pmd h2 { font-size:22px; font-weight:600; line-height:28px; margin:4px 0 6px; }
+  .pmd p { margin-bottom:8px; }
+  .pmd .m { color:var(--text3); opacity:.55; font-weight:400; }
+  .pfade { position:absolute; left:0; right:0; bottom:0; height:120px; background:linear-gradient(to bottom, transparent 0%, var(--phonebg) 40%); z-index:1; }
+  .tabbar { position:absolute; left:20px; right:20px; bottom:26px; height:64px; border-radius:32px; background:var(--card); box-shadow:0 2px 14px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.08); display:flex; align-items:center; justify-content:space-around; padding:0 8px; z-index:2; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; font-weight:500; color:var(--text2); width:62px; position:relative; }
+  .tab.on { color:var(--text); }
+  .tab .bd { position:absolute; top:-5px; right:8px; min-width:18px; height:18px; border-radius:9px; background:#FF3B30; color:#fff; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; padding:0 5px; }
+  .home { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:134px; height:5px; border-radius:3px; background:var(--text); opacity:.85; z-index:2; }
+</style>
+</head>
+<body>
+<h1>PARAGON — more colour: three directions (for build 282)</h1>
+<div class="sub">Day mode, real point sizes: Mac window 1180 × 760 pt, iPhone 393 × 852 pt. The same two screens in every column: the Mac's <b>Today</b> (with a project note open) and the iPhone's page for the goal <b>Walk the Kungsleden in one go</b> (40 % of the way, 2 projects). Every function stays as it is; only the look differs. Sample notes are made up.</div>
+
+<div class="dirs" id="dirs"></div>
+
+<script>
+// ---------- hand-drawn icons: 24 grid, one 1.9 stroke, round ends, no fill ----------
+const P = {
+  tray:"M3 13l2.5-7h13L21 13v6H3z M3 13h5l1.5 2.5h5L16 13h5",
+  sun:"M12 7.5a4.5 4.5 0 1 0 0 9a4.5 4.5 0 1 0 0-9 M12 2.5v2 M12 19.5v2 M2.5 12h2 M19.5 12h2 M5.3 5.3l1.4 1.4 M17.3 17.3l1.4 1.4 M5.3 18.7l1.4-1.4 M17.3 6.7l1.4-1.4",
+  cal:"M3.5 5.5h17v15h-17z M3.5 10.5h17 M8 3v4.5 M16 3v4.5",
+  blocks:"M3.5 5h17v14h-17z M3.5 10h17 M8 3v4 M16 3v4 M9 14.5h6",
+  review:"M4 7a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M11 7h9 M4 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M11 17h9",
+  map:"M4 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M16 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M10 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M7 16.3l4-8.3 M17 16.3l-4-8.3",
+  ring:"M4.5 12a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0",
+  ringtick:"M4.5 12a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0 M8.5 12.3l2.4 2.4 4.6-5",
+  clockback:"M5 12a7.5 7.5 0 1 0 2.3-5.4 M4.5 4.5v3.6h3.6 M12 8v4.5l3 2",
+  clock:"M4.5 12a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0 M12 7.5V12l3 2",
+  bin:"M5 7h14 M9.5 7V4.5h5V7 M7 7l1 13h8l1-13 M10.3 11v6 M13.7 11v6",
+  pagegear:"M6 3h8l4 4v14H6z M14 3v4h4 M12 12.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5",
+  snippet:"M4 6h12 M4 11h16 M4 16h10 M18 14v6 M15 17h6",
+  hash:"M9 4l-2 16 M17 4l-2 16 M4 9h16 M3 15h16",
+  search:"M4.5 10.5a6 6 0 1 0 12 0a6 6 0 1 0-12 0 M15 15l5 5",
+  star:"M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.9l-5.3 2.8 1.1-5.9-4.3-4.1 5.9-.8z",
+  target:"M4 12a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M7.5 12a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0 M11.5 12a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0",
+  flag:"M6 21V4.5 M6 5c2-1.2 4-1.2 6 0s4 1.2 6 0v9c-2 1.2-4 1.2-6 0s-4-1.2-6 0",
+  squares:"M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z",
+  books:"M4 4.5h4v15H4z M10 4.5h4v15h-4z M15.3 5.5l3.9-.8 3 14.5-3.9.8z",
+  box:"M3.5 5h17v4h-17z M5 9v10.5h14V9 M10 13h4",
+  plus:"M12 5v14 M5 12h14",
+  capture:"M12 3v8.5 M8.5 8l3.5 3.5L15.5 8 M3 14l2 5h14l2-5 M3 14h5l1.5 2.5h5L16 14h5",
+  sync:"M19.5 12a7.5 7.5 0 0 1-13 5.1 M4.5 12A7.5 7.5 0 0 1 17.5 6.9 M17.5 3v4h-4 M6.5 21v-4h4",
+  pencil:"M4 20l4-1 11-11-3-3L5 16z M13.5 7.5l3 3",
+  left:"M14.5 6l-6 6 6 6", right:"M9.5 6l6 6-6 6", down:"M6 9l6 6 6-6", up:"M12 19V5 M6 11l6-6 6 6",
+  archdown:"M3.5 6h17v3.5h-17z M5 9.5V19.5h14V9.5 M12 11.5v5 M10 14.5l2 2 2-2",
+  moon:"M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z",
+  sunrise:"M7 17a5 5 0 0 1 10 0 M12 6v3 M4.8 10.8l2 2 M19.2 10.8l-2 2 M3 17h18",
+  sidebar:"M3.5 5.5h17v13h-17z M9 5.5v13",
+  more:"M5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0 M17 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0",
+  info:"M4.5 12a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0 M12 11v5 M12 8v.5",
+  tick:"M6 12.5l4 4 8-9",
+  grid4:"M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z",
+};
+const ic = (n, s=16, c='currentColor', w=1.9) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"><path d="${P[n]}"/></svg>`;
+const chev = (c='var(--text3)') => `<span class="chev">${ic('down',10,c,2.2)}</span>`;
+const tile = (icon, col, sel=false, size=18, isz=12) => `<span class="ctile${size>18?' lg':''}" style="background:${sel?'#fff':col}">${ic(icon,isz,sel?col:'#fff',2.2)}</span>`;
+function ring(pct,size,sw,track,col,label,fs){
+  const r=(size-sw)/2, c=2*Math.PI*r, cx=size/2;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex:none"><circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${track}" stroke-width="${sw}"/><circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*pct/100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${cx} ${cx})"/>${label?`<text x="${cx}" y="${cx+1}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="600" fill="${col}" font-family="-apple-system, 'Helvetica Neue', sans-serif">${label}</text>`:''}</svg>`;
+}
+
+// ---------- the sidebar ----------
+const sideSections = [
+  ['Actions', [['tray','Inbox','amber','2'],['sun','Today','purple',''],['cal','Calendar','purple',''],['blocks','Time Blocks','purple',''],['review','Weekly review','teal','1'],['map','Map','gold',''],['ring','All actions','green',''],['clockback','Recent','blue',''],['ringtick','Done','teal',''],['bin','Deleted','grey',''],['search','Search','blue','']]],
+  ['Tools', [['pagegear','Templates','blue',''],['snippet','Snippets','amber',''],['hash','Tags','pink','']]],
+  ['Goals', [['star','Aspirations','asp','2'],['target','Goals','gold','3']]],
+  ['PARA', [['flag','Projects','green','4'],['squares','Areas','pink','5'],['books','Resources','blue','12'],['box','Archive','grey','']]],
+];
+function sidebar(dir){
+  let h = '';
+  for (const [name, rows] of sideSections){
+    h += `<div class="sb-h">${name}</div>`;
+    for (const [i,t,c,n] of rows){
+      const sel = t==='Today';
+      const col = `var(--${c})`;
+      const icon = dir==='c' ? tile(i,col,sel) : `<span class="ico">${ic(i,16,(sel&&dir==='a')?'#fff':col)}</span>`;
+      h += `<div class="sb-r${sel?' sel':''}" style="--rc:${col}">${icon}${t}${n?`<span class="n">${n}</span>`:''}</div>`;
+    }
+  }
+  return `<aside class="sidebar">${h}<div class="sb-foot">PARAGON 1.0 (282)</div></aside>`;
+}
+
+// ---------- Today's column ----------
+function dayBtns(onBand){
+  if (onBand) return `<span class="dbtn wb">${ic('sunrise',16,'var(--morning)',2.1)}</span><span class="dbtn wb">${ic('moon',15,'var(--evening)',2.1)}</span>`;
+  return `<span class="dbtn" style="background:var(--morning)">${ic('sunrise',15,'#fff',2.1)}</span><span class="dbtn" style="background:color-mix(in srgb, var(--evening) 14%, transparent)">${ic('moon',14,'var(--evening)',2.1)}</span>`;
+}
+function lines(){
+  return `<div class="line"><b style="color:var(--orange)">Now</b><span class="mono">09:30 – 11:00</span><span>Write the offer</span><span class="clk">${ic('clock',14,'var(--orange)',2)}</span></div>
+  <div class="line then"><b>Then</b><span class="mono">11:00</span><span>Call Anna</span></div>
+  <div class="line week" style="color:var(--teal)">${ic('ringtick',13,'var(--teal)',2)}<b>This week</b><span style="color:var(--text)">Book the Saturday hill walks</span></div>`;
+}
+const T = {
+  cal: [['10:00','Dentist'],['14:00','Call with Anna']],
+  next: [['Define the outcome and the first step','Plan the Kungsleden trip','~45 min','green','flag',true],['Get the second quote','Renovate the kitchen','','green','flag']],
+  overdue: [['Call the roofer back','Fix the leaking roof · Due 6 Nov','','green','flag',false,true]],
+  due: [['Book the night train to Gällivare','Plan the Kungsleden trip','20:00','green','flag'],['Pay the electricity bill','Home','','pink','squares'],['Saturday hill walk, 12 km','Train for the long days','','green','flag']],
+};
+function trow(dir,[t,s,tr,c,i,sel,red]){
+  const col = `var(--${c})`;
+  const mark = dir==='c' ? tile(i,col,sel) : `<span class="mk" style="background:${sel?'#fff':col}"></span>`;
+  return `<div class="row${sel?(dir==='c'?' csel':' sel'):''}">${mark}<div class="tx"><div class="t">${t}</div><div class="s"${red&&!sel?' style="color:var(--red)"':''}>${s}</div></div>${tr?`<div class="tr">${tr}</div>`:''}</div>`;
+}
+function crows(){ return T.cal.map(([t,n])=>`<div class="crow"><span class="ct">${t}</span><span class="cbar2"></span><span>${n}</span></div>`).join(''); }
+function sections(dir){
+  const purple='var(--purple)';
+  const openBtn = `<span class="hbtn">${ic('cal',11,'var(--purple)',2)}Open</span>`;
+  const odBtns = `<span class="ibtn">${ic('sun',13,purple,2)}</span><span class="ibtn">${ic('sunrise',13,purple,2)}</span>`;
+  if (dir==='c'){
+    const pnl = (pc, title, n, extra, body) => `<div class="cpanel" style="--pc:${pc}"><div class="cbar">${title}${n?`<span class="n">${n}</span>`:''}${extra||''}</div><div class="cbody">${body}</div></div>`;
+    return pnl(purple,'Calendar','2',`<span class="chev">${ic('down',12,'#fff',2.2)}</span>`, crows())
+      + `<div class="cpanel" style="--pc:${purple}"><div class="cbar">Today’s note${openBtn}</div></div>`
+      + pnl(purple,'Next actions','2','', T.next.map(r=>trow(dir,r)).join(''))
+      + pnl('var(--morning)','Overdue','1',odBtns, T.overdue.map(r=>trow(dir,r)).join(''))
+      + pnl(purple,'Due today','3','', T.due.map(r=>trow(dir,r)).join(''));
+  }
+  const grp = (pc, title, n, extra) => `<div class="grp" style="color:${pc}">${title}${n?`<span class="n">${n}</span>`:''}${extra||''}</div>`;
+  return grp(purple,'Calendar','2',`<span class="chev" style="margin-left:auto">${ic('down',12,purple,2.2)}</span>`) + crows()
+    + grp(purple,'Today’s note','',openBtn)
+    + grp(purple,'Next actions','2') + T.next.map(r=>trow(dir,r)).join('')
+    + grp('var(--morning)','Overdue','1',odBtns) + T.overdue.map(r=>trow(dir,r)).join('')
+    + grp(purple,'Due today','3') + T.due.map(r=>trow(dir,r)).join('');
+}
+function todayColumn(dir){
+  let h = `<div class="tcol">`;
+  if (dir==='a'){
+    h += `<div class="band" style="--pc:var(--purple)"><div class="brow"><div class="btitle">Today</div><div class="dbtns">${dayBtns(true)}</div></div><div class="bdate">Monday 9 November</div><div class="bnum"><span class="big">3</span><span class="unit">due today · 2 of 5 done</span></div></div>`;
+  } else {
+    h += `<div class="ctitle">Today</div><div class="daterow"><span>Monday 9 November</span><span class="dbtns">${dayBtns(false)}</span></div>`;
+    if (dir==='b') h += `<div class="bigcard" style="--pc:var(--purple)">${ring(40,64,7,'rgba(255,255,255,.28)','#fff','40 %',12)}<div><div class="bc-top"><span class="num">3</span><span class="lab">due today</span></div><div class="stats"><span>2 done</span><span>2 next</span><span>1 overdue</span></div></div></div>`;
+  }
+  h += lines() + sections(dir);
+  return h + `</div>`;
+}
+
+// ---------- the open note (a project) ----------
+function pop(txt, icon, col){ return `<span class="pop">${icon?`<span class="ico">${ic(icon,13,col||'var(--text2)')}</span>`:''}${txt}${chev()}</span>`; }
+function facts(){
+  const f = (l,v) => `<div class="f"><span class="l">${l}</span><span>${v}</span></div>`;
+  return '<div class="facts">' +
+    f('Status', pop('Active','ring','var(--green)')) +
+    f('Serves', pop('Walk the Kungsleden in one go','target','var(--gold)')) +
+    f('In area', pop('Outdoors','squares','var(--pink)')) +
+    f('Deadline', pop('1 Jun 2027','cal','var(--text2)')) +
+    f('Tags', pop('#travel  #2027','hash','var(--text2)')) +
+    f('List', `<span style="display:inline-flex;align-items:center;gap:6px;color:var(--text2);font-size:13px">${ic('sync',13,'var(--text2)')}Plan the Kungsleden trip</span>`) +
+    '</div>';
+}
+function tasks(){
+  return `<div class="task"><span class="cb"></span><span>Define the outcome and the first step</span><span class="tr"><span class="np">Next</span><span class="tm">~45 min</span></span></div>
+  <div class="task"><span class="cb"></span><span>Book the night train to Gällivare</span><span class="tr"><span class="dash">time?</span><span class="tm">20 Nov</span></span></div>
+  <div class="task done"><span class="cb done">${ic('tick',11,'#fff',2.6)}</span><span>Buy the maps for the northern half</span></div>`;
+}
+function links(dir){
+  const mark = dir==='c' ? tile('books','var(--blue)') : ic('books',15,'var(--blue)');
+  return `<div class="ln">${mark}<span>Packing list for Kungsleden</span><span class="k">Resource</span></div>
+  <div class="ln">${mark}<span>Night train timetable</span><span class="k">Resource</span></div>`;
+}
+function md(){
+  return `<div class="md" style="--pc:var(--green)">
+    <h2><span class="m"># </span>Outcome</h2>
+    <p>We are standing at Abisko station with sore legs and the whole trail behind us: 440 km in one go, by the end of August 2027.</p>
+    <h3><span class="m">## </span>Notes</h3>
+    <ul><li>Start at Hemavan and walk north, the huts are busier in the south early on.</li>
+    <li>Night train from Stockholm to Gällivare, see <a><span class="m">[[</span>Night train timetable<span class="m">]]</span></a>.</li></ul></div>`;
+}
+function detail(dir){
+  let head, panels;
+  if (dir==='a'){
+    head = `<div class="band detail-band" style="--pc:var(--green)"><div class="read"><div class="brow"><span class="btile">${ic('flag',19,'#fff')}</span><div class="btitle">Plan the Kungsleden trip</div></div><div class="bdate">Project · Outdoors · Due 1 Jun 2027</div><div class="bnum"><span class="big">2</span><span class="unit">open tasks · 0 of 2 done</span></div></div></div><div style="height:14px"></div>`;
+  } else {
+    const tl = dir==='c' ? `<span class="tile" style="background:var(--green)">${ic('flag',19,'#fff')}</span>` : `<span class="tile" style="background:color-mix(in srgb, var(--green) 14%, transparent)">${ic('flag',19,'var(--green)')}</span>`;
+    head = `<div class="read"><div class="title">${tl}<h1>Plan the Kungsleden trip</h1></div></div>`;
+  }
+  if (dir==='c'){
+    const pnl = (pc,title,n,chevIc,body) => `<div class="cpanel" style="--pc:${pc}"><div class="cbar">${title}${n?`<span class="n">${n}</span>`:''}${chevIc?`<span class="chev">${ic(chevIc,12,'#fff',2.2)}</span>`:''}</div><div class="cbody">${body}</div></div>`;
+    panels = pnl('var(--green)','Project','facts','',facts()) + pnl('var(--green)','Tasks','2 open','down',tasks()) + pnl('var(--blue)','Linked notes','2','right',links(dir));
+  } else {
+    panels = `<div class="panel" style="--pc:var(--green)"><div class="ph">Project <span class="n">facts</span></div>${facts()}</div>
+      <div class="panel" style="--pc:var(--green)"><div class="ph">Tasks <span class="n">2 open</span><span class="chev">${ic('down',12,'var(--pc)',2.2)}</span></div>${tasks()}</div>
+      <div class="panel" style="--pc:var(--blue)"><div class="ph">Linked notes <span class="n">2</span><span class="chev">${ic('right',12,'var(--pc)',2.2)}</span></div>${links(dir)}</div>`;
+  }
+  return `<section class="detail"><div class="scrollarea">${head}<div class="read">${panels}<div class="fold">${ic('right',10,'var(--text3)',2.2)}Settings block hidden</div>${md()}</div></div>
+    <div class="addbar"><div class="fld">Add a task…</div><span class="ib">${ic('snippet',17)}</span><span class="ib">${ic('info',16)}</span><span class="go">${ic('up',15,'#fff',2.4)}</span></div></section>`;
+}
+function mac(dir){
+  return `<div class="mac" data-dir="${dir}">
+    <div class="toolbar">
+      <div class="tb-side"><div class="tl"><i></i><i></i><i></i></div><span class="tbtn">${ic('sidebar',17)}</span></div>
+      <div class="tb-list"><span class="ttl">Today</span><span class="tbtn" style="margin-left:auto;color:var(--purple)">${ic('plus',18,'var(--purple)',2.2)}</span></div>
+      <div class="tb-detail">
+        <span class="tbtn">${ic('left',16)}</span><span class="tbtn dim">${ic('right',16)}</span><span class="tsep"></span>
+        <span class="tbtn on">${ic('pencil',16,'var(--green)')}</span><span class="tbtn">${ic('archdown',17)}</span><span class="tbtn">${ic('bin',16)}</span><span class="tsep"></span>
+        <span class="tbtn">${ic('capture',17)}</span><span class="tbtn">${ic('sync',16)}</span>
+        <div class="search">${ic('search',13,'var(--text3)')}Search</div>
+      </div>
+    </div>
+    <div class="cols">${sidebar(dir)}${todayColumn(dir)}${detail(dir)}</div>
+  </div>`;
+}
+
+// ---------- iPhone: the goal's page ----------
+function status(){ return `<div class="status"><span>9:41</span><span class="r"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 4.2a9.5 9.5 0 0 1 13 0 M4 6.8a6 6 0 0 1 8 0 M6.6 9.3a2.3 2.3 0 0 1 2.8 0"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2" fill="currentColor"/><rect x="25" y="4.5" width="1.5" height="4" rx=".7" fill="currentColor" fill-opacity=".4"/></svg></span></div>`; }
+function nav(white){ const c = white?'#fff':'var(--text)'; return `<div class="nav"><span class="rb">${ic('left',18,c,2.2)}</span><span class="sp"></span><span class="rb">${ic('more',20,c,2.2)}</span></div>`; }
+function tabbar(){
+  const t = [['sun','Today',false],['blocks','Plan',false],['ring','Actions',false],['tray','Inbox',false,'2'],['grid4','Browse',true]];
+  return `<div class="pfade"></div><div class="tabbar">${t.map(([i,n,on,b])=>`<div class="tab${on?' on':''}">${ic(i,24,on?'var(--text)':'var(--text2)',1.9)}<span>${n}</span>${b?`<span class="bd">${b}</span>`:''}</div>`).join('')}</div><div class="home"></div>`;
+}
+function goalFacts(dir){
+  const pp=(t,i,c)=>`<span class="ppop">${i?ic(i,15,c||'var(--text2)'):''}<span class="tx">${t}</span>${chev()}</span>`;
+  const f=(l,v)=>`<div class="pf"><span class="l">${l}</span><span>${v}</span></div>`;
+  const plain=(t)=>`<span style="color:var(--text)">${t}</span>`;
+  let h = f('Status', pp('Active','ring','var(--gold)')) + f('Serves', pp('Be strong and steady at seventy','star','var(--asp)')) + f('Horizon', pp('Long term')) + f('Target', pp('15 Aug 2027','cal'));
+  if (dir==='c') h += f('Progress', plain('40 %'));
+  h += f('Measure', plain('440 km, in one go')) + f('Looked at', plain('3 days ago'));
+  return h;
+}
+function goalProjects(dir){
+  const rows = [['Plan the Kungsleden trip','0 of 2 · Due 1 Jun 2027'],['Train for the long days','3 of 8 · Next: Book the hill walks']];
+  const mark = dir==='c' ? tile('flag','var(--green)',false,20,13) : `<span class="mk" style="background:var(--green)"></span>`;
+  return rows.map(([t,s])=>`<div class="prow">${mark}<div class="tx"><div class="t">${t}</div><div class="s">${s}</div></div><div class="tr">${ic('right',14,'var(--text3)',2.2)}</div></div>`).join('')
+    + `<div class="padd" style="color:var(--green)">${dir==='c'?tile('plus','var(--green)',false,20,13):ic('plus',16,'var(--green)',2.2)}Add a project…</div>`;
+}
+function phoneGoal(dir){
+  let top, body;
+  if (dir==='a'){
+    top = `<div class="ptop pband" style="--pc:var(--gold)">${status()}${nav(true)}<div class="bx"><div class="ptt">Walk the Kungsleden in one go</div><div class="bdate">Goal with a date · Be strong and steady at seventy</div><div class="bnum"><span class="big">40 %</span><span class="unit">of the way · Target 15 Aug 2027</span></div></div></div>`;
+    body = `<div style="height:8px"></div>`;
+  } else {
+    top = `<div class="ptop">${status()}${nav(false)}</div>`;
+    const tl = dir==='c' ? `<span class="tile" style="background:var(--gold)">${ic('target',20,'#fff')}</span>` : `<span class="tile" style="background:color-mix(in srgb, var(--gold) 14%, transparent)">${ic('target',20,'var(--gold)')}</span>`;
+    body = `<div class="ptitle">${tl}<span class="ptt">Walk the Kungsleden in one go</span></div>`;
+    if (dir==='b') body += `<div class="pbigcard" style="--pc:var(--gold)">${ring(40,84,9,'rgba(255,255,255,.28)','#fff','',0).replace('</svg>', `<g transform="translate(30 30)" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${P.target}"/></g></svg>`)}<div><div class="num">40 %</div><div class="lab">of the way · Target 15 Aug 2027</div><div class="stats"><span>2 projects</span><span>in 9 months</span></div></div></div>`;
+  }
+  if (dir==='c'){
+    body += `<div class="cpanel" style="--pc:var(--gold)"><div class="cbar">Goal with a date<span class="hbtn">${ic('target',12,'#fff',2)}Icon…</span></div><div class="cbody">${goalFacts(dir)}</div></div>`;
+    body += `<div class="cpanel" style="--pc:var(--green)"><div class="cbar">Projects<span class="n">2</span></div><div class="cbody">${goalProjects(dir)}</div></div>`;
+  } else {
+    body += `<div class="ppanel" style="--pc:var(--gold)"><div class="pph">${ic('target',17,'var(--gold)')}Goal with a date<span class="hb">${ic('target',12,'var(--gold)',2)}Icon…</span></div>${goalFacts(dir)}</div>`;
+    body += `<div class="pchanged">${ic('clockback',14,'var(--text2)')}Changed 2 days ago · a project finished a task</div>`;
+    body += `<div class="ppanel" style="--pc:var(--green)"><div class="pph">Projects<span class="n">2</span></div>${goalProjects(dir)}</div>`;
+  }
+  body += `<div class="pmd" style="--pc:var(--gold)"><h2><span class="m"># </span>Why</h2><p>Because at seventy I want to carry my own pack and still enjoy the long days.</p></div>`;
+  return `<div class="phone" data-dir="${dir}"><div class="island"></div><div class="pbody">${top}<div class="pscroll">${body}</div>${tabbar()}</div></div>`;
+}
+
+// ---------- the three directions ----------
+const dirs = [
+  ['a','Colour at the top',
+   'Every screen opens with a band in its part’s colour: a soft gradient, the title in white on it, and one big number (3 due today, 40 %). The chosen row in the sidebar is filled in the part’s colour. Under the band, everything is as it is now.',
+   'A colour band at the top of every screen: Today purple, a project green, a goal gold. The title stands in white on it with one big number and the date or the facts in small white words. Start the day and Close the day keep their place in the band’s top row. The sidebar’s chosen row is filled in its colour.',
+   'Everything under the band is build 280: the tinted panels, the 17-point coloured headings, the 8-point dots, the pop-ups, the text sizes, the icons. Nothing moves and nothing is taken away.'],
+  ['b','Big premium cards',
+   'Today and the goal and aspiration pages lead with one large card in full colour: white words, a progress ring and a 34-point number, like the summary cards in Apple Fitness and Health. The lists under it stay calm and white.',
+   'One large card at the top of Today (purple: the ring of the day, 3 due today, done · next · overdue) and at the top of every goal and aspiration page (gold: the ring, 40 %, target, projects). A soft shadow in the card’s colour gives it depth. The panels under a card turn plain white, so the card carries the colour.',
+   'Project, area and resource notes do not change at all (see the open note on the Mac). The sidebar keeps Apple’s grey selection. Lists keep their dots and their one second line. Start the day and Close the day stay in the date row.'],
+  ['c','Colour everywhere, quietly',
+   'No new large elements. Colour in many small places instead: an icon tile before every row, each panel heading as a coloured bar with white words, a thin coloured edge on each panel, the chosen row filled in colour. Dense and colourful, still one type scale.',
+   'A small rounded icon tile in the part’s colour before every sidebar row and every list row (the dot becomes a tile with the note’s icon). Every panel gets its heading as a coloured bar with white words and a 3-point coloured edge on its left. Today’s sections become such panels too. The chosen row — in the sidebar and in a list — is filled in the part’s colour.',
+   'No band, no card, no new number. The same 26 / 17 / 15 / 12 text sizes, the same spacing, the same icons and places. Pop-ups, tasks and the note text are untouched.'],
+];
+const swatches = [['Today, Calendar','#6B4EA8'],['Projects','#2E7D5B'],['Goals','#8F6E10'],['Aspirations','#8A5A12'],['Areas','#C2417C'],['Resources','#2C6FB5'],['Inbox','#B0631A'],['Start the day','#D4640A'],['Close the day','#6E3A86'],['Overdue','#D4640A']];
+let out = '';
+for (const [k, name, desc, changes, stays] of dirs){
+  out += `<div class="dir" data-dir="${k}">
+    <div class="head"><span class="letter">${k.toUpperCase()}</span><div><h2>${k.toUpperCase()} — ${name}</h2><p class="desc">${desc}</p></div></div>
+    <div class="cap">Mac · Today, with a project note open · day</div>${mac(k)}
+    <div class="shelf2"><div><div class="cap">iPhone · the goal’s page · day</div>${phoneGoal(k)}</div>
+      <div class="foot"><h4>What changes</h4><p>${changes}</p><h4>What stays</h4><p>${stays}</p>
+        <h4 style="margin-top:22px">The colours, unchanged</h4><div class="mini">${swatches.map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('')}</div></div>
+    </div>
+  </div>`;
+}
+document.getElementById('dirs').innerHTML = out;
+</script>
+</body>
+</html>

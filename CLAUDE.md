@@ -4926,3 +4926,42 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
   min(content, column − 60 − the bars), so the editor keeps 60 points.
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
+
+## Build 281 (9 November 2026)
+
+Eight changes in one release; docs in `Docs/VersionHistory.md`, `HowItWorks.md`, `Look.md`.
+
+- **Backup off the main thread.** `AppModel.backUpDaily` and `purgeOldDeleted` now make a
+  `Vault` of their own from the plain root URL inside `AppModel.offMain` (GCD utility queue),
+  the same shape as `fetchCloudFiles`. Run a few seconds after launch. The day is marked done
+  when the copy returns; `dailyBackupRunning` stops a second copy; a vault changed meanwhile
+  is ignored by comparing `rootURL`. What is copied, when, and the 10 kept are unchanged.
+  Cause: ~1,400 files in iCloud Drive froze the first screen 5–10 s. Not testable by a UI test.
+- **Goal mark on a colour.** `NoteIconTile` has `defaultMark: String?`: when
+  `note.iconStored == nil` it draws the mark with `MarkImage` on the tile fill/ink
+  (`IconColour.fill(for:automatic:)` / `markInk(for:)`). `GoalMark`, the two small goal marks
+  in GoalsView and `leadingMark` in ContentView pass `ChainSymbol.forGoal(note)`.
+  `ChainSymbol.word(for:)` gives "Star"/"Target" for the Icon… button's accessibility value.
+  Projects, areas, resources have no default mark: a colour alone still shows the first letter.
+- **Icon… button, set state.** The tile itself at 24 pt plus a 1-pt ring in the note's colour,
+  2 pt out. Unset: dashed grey capsule as before.
+- **Two-state buttons.** `StateToggle.border` in Theme.swift: off is a thin solid grey line, no
+  `dash:`. On is unchanged. Core test `LookRulesTests.testTheTwoStateButtonIsNotDashed` reads
+  Theme.swift and fails if `dash:` returns inside `StateToggle`. The Icon… placeholder is the
+  only dashed shape left.
+- **Date title.** `NoteEditorView.titleRow`: `titleLines` / `titleShrink` on
+  `note.kind == .daily` (one line, min scale 0.7); other kinds keep two lines.
+- **Group heading.** `.fixedSize(horizontal: false, vertical: true)` on the title in
+  `ProjectGroupHeader`, so a narrow column wraps instead of cutting with "…".
+- **Phone Search.** `SearchView.group` branches on `isPhone`:
+  `HStack { SectionLabel.fixedSize(); ScrollView(.horizontal) { HStack { boxes } } }`; one row
+  per group; `filtersCap` is 240 on the phone. Mac unchanged. The Show/Hide the boxes button
+  has the identifier `search.boxes`.
+- **Tests added.** `testNoIconOnAGoalBringsTheTargetBack` (Mac UI: colour red, then Bike, then
+  No icon; the Icon… button says "Target" with only a colour and again after No icon; the file
+  keeps `icon-colour: red`, loses `icon:`), `testThePhonesSearchShowsEveryGroupOfBoxes`
+  (iPhone UI: Browse › Search › Show the boxes; the Active box of How the note stands is on
+  screen and hittable), `testTheTwoStateButtonIsNotDashed` (Core). Not covered: backup thread,
+  date title, heading wrap (code only), the tile's ring (seen on the iPad, day and night).
+- **Not built (by choice).** His wish for "more colour, big premium elements" is not in this
+  build; a picture with three directions is being made for him to choose from.
