@@ -358,6 +358,25 @@ extension View {
     }
 }
 
+/// A view's height, reported upwards so a parent can size a scroll view to its content
+/// (the Search boxes, the note column on a short window).
+struct MeasuredHeight: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}
+
+extension View {
+    /// Writes this view's laid-out height into `height` whenever it changes.
+    func measureHeight(_ height: Binding<CGFloat>) -> some View {
+        background(GeometryReader { geo in
+            Color.clear.preference(key: MeasuredHeight.self, value: geo.size.height)
+        })
+        .onPreferenceChange(MeasuredHeight.self) { value in
+            if height.wrappedValue != value { height.wrappedValue = value }
+        }
+    }
+}
+
 /// The version as he reads it: "1.0 (280)".
 enum AppVersion {
     static var text: String {

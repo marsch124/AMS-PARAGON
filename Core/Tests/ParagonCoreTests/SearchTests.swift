@@ -187,4 +187,19 @@ final class SearchTests: XCTestCase {
         // And on leaving the field it moves out of the words and into the boxes.
         XCTAssertEqual(SearchQuery.words(in: text), "plan")
     }
+
+    // MARK: A result shows the line as he reads it (look 1.0)
+
+    /// A task line found by a word is shown without its box: "- [ ] Call the bank about the
+    /// ferry" reads as "Call the bank about the ferry". The box is how the file spells a task,
+    /// not part of what matched, and a result that showed it read like a file dump.
+    func testATaskLineIsShownWithoutItsBox() {
+        let index = NoteIndex(notes: [
+            Note(relativePath: "Inbox.md", kind: .inbox, text: "# Inbox\n\n- [ ] Call the bank about the ferry\n"),
+        ])
+        let hits = index.search(text: "ferry", today: today)
+        XCTAssertEqual(hits.count, 1, "The word is in one note, so there is one hit.")
+        XCTAssertEqual(hits.first?.snippets, ["Call the bank about the ferry"],
+                       "The snippet should be the task's words alone, without the leading \u{201C}- [ ] \u{201D}.")
+    }
 }

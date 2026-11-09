@@ -119,6 +119,23 @@ struct PlannerDayView: View {
             }
         }
         .navigationTitle("Plan the day")
+        #if os(macOS)
+        // 1.0 (the reviewer's point): on the Mac a page's actions live in the window's toolbar,
+        // not inside the page. The same six buttons with the same names; the header keeps the
+        // day's name and its summary.
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                previousDayButton
+                todayButton
+                nextDayButton
+                blockButton
+                    .labelStyle(.titleAndIcon)
+                weekButton
+                    .labelStyle(.titleAndIcon)
+                calendarBlocksButton
+            }
+        }
+        #endif
         .task(id: day) {
             await model.loadEvents(for: day)
             // Which of this day's blocks he has copied into Apple Calendar. Asked per day: the
@@ -143,6 +160,13 @@ struct PlannerDayView: View {
     /// back to the name above the buttons, on any width and with no `isPhone` in it — the ⇧⌘P
     /// window can be narrow too.
     private var header: some View {
+        #if os(macOS)
+        // The buttons are in the window's toolbar (1.0); the page keeps the day.
+        titleBlock
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        #else
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 10) {
                 titleBlock
@@ -156,6 +180,7 @@ struct PlannerDayView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+        #endif
     }
 
     /// One line each, never two: `ViewThatFits` measures the single-line width, so the row is
@@ -173,48 +198,82 @@ struct PlannerDayView: View {
         }
     }
 
+    /// The phone's and the iPad's row of buttons, inside the page. On the Mac the same buttons
+    /// are toolbar items (`body`).
     private var controls: some View {
         HStack(spacing: 10) {
             HStack(spacing: 2) {
-                Button { move(-1) } label: { MarkImage("chevron.left") }
-                    .help("The day before")
-                Button("Today") { model.plannerDay = .today() }
-                    .disabled(day == .today())
-                Button { move(1) } label: { MarkImage("chevron.right") }
-                    .help("The day after")
+                previousDayButton
+                todayButton
+                nextDayButton
             }
             .buttonStyle(.borderless)
             .fixedSize()
-            Button {
-                startNewBlock(at: nextFreeStart())
-            } label: {
-                MarkLabel("Block", "plus")
-            }
-            .fixedSize()
-            .help("Add a block to this day's plan")
-            // **The way in to the week, and deliberately not a sidebar row of its own.**
-            // Calendar → Week has been a full week screen since long before build 225, and a
-            // second row pointing at it would be two doors into one room (build 166). What it
-            // lacked was a short way in from where the day is already being planned.
-            Button {
-                model.calendarMode = .week
-                model.selectedWeek = WeekRef(containing: day)
-                model.openSection(.calendar)
-            } label: {
-                MarkLabel("Week", "calendar")
-            }
-            .fixedSize()
-            .accessibilityIdentifier("plan.week")
-            .help("Plan the whole week: spread work across the seven days")
-            Button {
-                sheet = .calendarBlocks
-            } label: {
-                MarkImage("calendar.badge.clock")
-            }
-            .buttonStyle(.borderless)
-            .fixedSize()
-            .help("The other kind of block: real events in Apple Calendar")
+            blockButton
+                .fixedSize()
+            weekButton
+                .fixedSize()
+            calendarBlocksButton
+                .buttonStyle(.borderless)
+                .fixedSize()
         }
+    }
+
+    private var previousDayButton: some View {
+        Button { move(-1) } label: { MarkImage("chevron.left") }
+            .help("The day before")
+            .accessibilityLabel("The day before")
+            .accessibilityIdentifier("plan.previousDay")
+    }
+
+    private var todayButton: some View {
+        Button("Today") { model.plannerDay = .today() }
+            .disabled(day == .today())
+            .accessibilityIdentifier("plan.today")
+    }
+
+    private var nextDayButton: some View {
+        Button { move(1) } label: { MarkImage("chevron.right") }
+            .help("The day after")
+            .accessibilityLabel("The day after")
+            .accessibilityIdentifier("plan.nextDay")
+    }
+
+    private var blockButton: some View {
+        Button {
+            startNewBlock(at: nextFreeStart())
+        } label: {
+            MarkLabel("Block", "plus")
+        }
+        .help("Add a block to this day's plan")
+        .accessibilityIdentifier("plan.block")
+    }
+
+    /// **The way in to the week, and deliberately not a sidebar row of its own.** Calendar →
+    /// Week has been a full week screen since long before build 225, and a second row pointing
+    /// at it would be two doors into one room (build 166). What it lacked was a short way in
+    /// from where the day is already being planned.
+    private var weekButton: some View {
+        Button {
+            model.calendarMode = .week
+            model.selectedWeek = WeekRef(containing: day)
+            model.openSection(.calendar)
+        } label: {
+            MarkLabel("Week", "calendar")
+        }
+        .accessibilityIdentifier("plan.week")
+        .help("Plan the whole week: spread work across the seven days")
+    }
+
+    private var calendarBlocksButton: some View {
+        Button {
+            sheet = .calendarBlocks
+        } label: {
+            MarkImage("calendar.badge.clock")
+        }
+        .help("The other kind of block: real events in Apple Calendar")
+        .accessibilityLabel("Calendar blocks")
+        .accessibilityIdentifier("plan.calendarBlocks")
     }
 
     private var dayTitle: String {

@@ -69,6 +69,9 @@ final class ScreenTests: XCTestCase {
         for name in Self.sections {
             let way = element(name)
             XCTAssertTrue(way.waitForExistence(timeout: 20), "\(name) is not on screen.")
+            #if os(macOS)
+            bringIntoView(way)
+            #endif
             way.press()
             XCTAssertTrue(screenIsDrawn(timeout: 20),
                           "\(name) opened without drawing a screen. On screen: \(visibleTexts())")
@@ -685,6 +688,59 @@ final class ScreenTests: XCTestCase {
         if heading.isHittable { heading.press() } else { heading.pressCentre() }
         XCTAssertTrue(row.waitForExistence(timeout: 10),
                       "The heading was pressed again and the project did not come back. On screen: \(visibleTexts())")
+    }
+
+    /// **Look 1.0: a project is one plain row.** The box with its own progress bar is gone; the
+    /// second line now starts with the count and goes on to the next action — "0 of 2 · Next:
+    /// …" — so one glance says how far the project is and what comes next. The count is looked
+    /// for by its exact words with the middle dot, which only the new row writes; the old bar
+    /// said "0 of 2 finished" in an element of its own, and that must be gone from the row.
+    /// The need line keeps its name and its label ("Next: …", build 211), the tile stays, and
+    /// the aspiration heading above the row stays where he placed it. Both platforms.
+    func testAProjectRowSaysItsCountBeforeItsNextAction() {
+        go(to: .projects)
+
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Projects list does not show the test project. On screen: \(visibleTexts())")
+
+        let next = element("project.next.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(next.waitForExistence(timeout: 10),
+                      "The project's row does not say what it needs. On screen: \(visibleTexts())")
+        XCTAssertTrue(next.label.hasPrefix("Next: "),
+                      "The need line's label should still start with Next:. It says: \(next.label)")
+
+        // The count with the middle dot: in the row's own words, or in any element inside it.
+        let count = "0 of 2 \u{00B7}"
+        let countInRow = row.descendants(matching: .any).matching(Self.saying(count)).firstMatch
+        let countInText = row.staticTexts.matching(Self.textSaying(count)).firstMatch
+        XCTAssertTrue(becomes(within: 10) { words(of: row).contains(count) || countInRow.exists || countInText.exists },
+                      "The row's second line does not start with \u{201C}\(count)\u{201D}. Row: \(words(of: row)). On screen: \(visibleTexts())")
+
+        // The old bar's words, in an element of their own, must be gone.
+        let oldBar = "0 of 2 finished"
+        XCTAssertFalse(row.descendants(matching: .any).matching(Self.saying(oldBar)).firstMatch.exists
+                           || row.staticTexts.matching(Self.textSaying(oldBar)).firstMatch.exists,
+                       "The old progress bar's words \u{201C}\(oldBar)\u{201D} are still in the row.")
+
+        XCTAssertTrue(element("project.tile.Projects/Plan the Kungsleden trip.md").exists,
+                      "The row lost its tile.")
+        let heading = app.buttons
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "projects.group.aspiration:"))
+            .firstMatch
+        XCTAssertTrue(heading.exists,
+                      "The Projects list lost its aspiration heading. On screen: \(visibleTexts())")
+    }
+
+    /// Any element whose label or title contains the phrase. `value` is left out here: an
+    /// element whose value is a number, such as a tick box, makes a CONTAINS predicate throw.
+    private static func saying(_ phrase: String) -> NSPredicate {
+        NSPredicate(format: "label CONTAINS %@ OR title CONTAINS %@", phrase, phrase)
+    }
+
+    /// A text whose words contain the phrase — the Mac keeps a text's words in `value`.
+    private static func textSaying(_ phrase: String) -> NSPredicate {
+        NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", phrase, phrase)
     }
 
     /// A finished project says when it ended (build 262). The test vault's **Fix the bike** is
@@ -2790,6 +2846,176 @@ final class ScreenTests: XCTestCase {
                       "The card is outside the window: card \(card.frame), window \(window)")
         #endif
     }
+
+    // MARK: Look 1.0 on the Mac — pages, the toolbar, tick boxes and the cursor
+
+    #if os(macOS)
+    /// **A goal is a page like any note** (look 1.0): choosing one in Goals draws the note
+    /// header in the detail column — the title at 26 and the facts panel, `note.title` and
+    /// `note.facts`, the header's own names — and keeps the goal's buttons: horizon, target,
+    /// measure and Add a project. The chain page used to draw neither title nor facts. Every
+    /// name is asked of any kind of element, so a button that becomes a menu is still found.
+    func testAGoalPageHasTheNoteHeaderAndItsButtons() {
+        go(to: .goals)
+
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+
+        XCTAssertTrue(element("note.title").waitForExistence(timeout: 20),
+                      "The goal's page has no title (note.title). On screen: \(visibleTexts())")
+        XCTAssertTrue(element("note.facts").waitForExistence(timeout: 10),
+                      "The goal's page has no facts panel (note.facts). On screen: \(visibleTexts())")
+        for name in ["goal.horizon", "goal.target", "goal.measure", "goal.addProject"] {
+            XCTAssertTrue(element(name).waitForExistence(timeout: 10),
+                          "The goal's page lost \(name). On screen: \(visibleTexts())")
+        }
+    }
+
+    /// **An aspiration is a page like any note** (look 1.0): title and facts in the detail
+    /// column, and its own buttons kept — Write the reason… and Add a goal.
+    func testAnAspirationPageHasTheNoteHeaderAndItsButtons() {
+        go(to: .aspirations)
+
+        let row = element("aspiration.Goals/Be strong and steady at seventy.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Aspirations list does not show the test aspiration. On screen: \(visibleTexts())")
+        row.press()
+
+        XCTAssertTrue(element("note.title").waitForExistence(timeout: 20),
+                      "The aspiration's page has no title (note.title). On screen: \(visibleTexts())")
+        XCTAssertTrue(element("note.facts").waitForExistence(timeout: 10),
+                      "The aspiration's page has no facts panel (note.facts). On screen: \(visibleTexts())")
+        for name in ["aspiration.reason.edit", "aspiration.addGoal"] {
+            XCTAssertTrue(element(name).waitForExistence(timeout: 10),
+                          "The aspiration's page lost \(name). On screen: \(visibleTexts())")
+        }
+    }
+
+    /// **The doing buttons sit in the window's toolbar** (look 1.0), as in any Mac app: on Time
+    /// Blocks, Week and Block. They used to be a row of buttons inside the page, so this asks
+    /// the window's toolbar and nothing else — a button of the same name in the page is not
+    /// counted.
+    func testTimeBlocksButtonsSitInTheToolbar() {
+        go(to: .plan)
+
+        let toolbar = app.windows.firstMatch.toolbars.firstMatch
+        XCTAssertTrue(toolbar.buttons.matching(identifier: "plan.week").firstMatch.waitForExistence(timeout: 20),
+                      "The window's toolbar has no Week button (plan.week). On screen: \(visibleTexts())")
+        XCTAssertTrue(toolbar.buttons.matching(identifier: "plan.block").firstMatch.waitForExistence(timeout: 10),
+                      "The window's toolbar has no Block button (plan.block). On screen: \(visibleTexts())")
+    }
+
+    /// The same on Calendar: Block time and the notes switch are in the window's toolbar. The
+    /// switch is asked of any kind of element, since a toolbar toggle may be a button or a
+    /// check box.
+    func testCalendarButtonsSitInTheToolbar() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
+        let calendar = element("sidebar.Calendar")
+        XCTAssertTrue(calendar.waitForExistence(timeout: 20),
+                      "The sidebar has no Calendar row. On screen: \(visibleTexts())")
+        bringIntoView(calendar)
+        calendar.press()
+
+        let toolbar = app.windows.firstMatch.toolbars.firstMatch
+        XCTAssertTrue(toolbar.buttons.matching(identifier: "calendar.blockTime").firstMatch.waitForExistence(timeout: 20),
+                      "The window's toolbar has no Block time button (calendar.blockTime). On screen: \(visibleTexts())")
+        XCTAssertTrue(toolbar.descendants(matching: .any).matching(identifier: "calendar.noteToggle").firstMatch.waitForExistence(timeout: 10),
+                      "The window's toolbar has no notes switch (calendar.noteToggle). On screen: \(visibleTexts())")
+    }
+
+    /// **The Search boxes are the Mac's own tick boxes** (look 1.0): `search.box.is:open` is a
+    /// check box, found as one, and ticking it turns the results into the task list, whose
+    /// heading counts tasks ("3 tasks"). The boxes used to be chips drawn as buttons with no
+    /// name of their own. The Search row is the sidebar's last, below a 450-point window's
+    /// edge, so it is brought into view first (build 279's CI).
+    func testASearchBoxIsATickBoxThatTurnsUpTheTasks() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
+        let search = element("sidebar.Search")
+        XCTAssertTrue(search.waitForExistence(timeout: 20),
+                      "The sidebar has no Search row. On screen: \(visibleTexts())")
+        bringIntoView(search)
+        search.press()
+
+        let box = app.checkBoxes.matching(identifier: "search.box.is:open").firstMatch
+        XCTAssertTrue(box.waitForExistence(timeout: 20),
+                      "Search has no Not done tick box (search.box.is:open) among its check boxes. On screen: \(visibleTexts())")
+        if box.isHittable { box.press() } else { box.pressCentre() }
+
+        // The List's section title: "1 task" or "N tasks", and nothing else ends that way.
+        let heading = app.staticTexts
+            .matching(NSPredicate(format: "label MATCHES %@ OR value MATCHES %@", "^[0-9]+ tasks?$", "^[0-9]+ tasks?$"))
+            .firstMatch
+        XCTAssertTrue(heading.waitForExistence(timeout: 20),
+                      "Ticking Not done did not turn the results into a task list with a heading counting tasks. On screen: \(visibleTexts())")
+    }
+
+    /// **The cursor starts in the first field** (look 1.0): Start the day opens with the
+    /// keyboard focus in its new-action field, so the first key pressed types. The sheet used
+    /// to open with the focus ring on Cancel. Mac only: the phone shows its keyboard, which is
+    /// a different question. The focus is asked of the element itself (`hasKeyboardFocus`),
+    /// never guessed from a colour (build 191).
+    func testStartTheDayPutsTheCursorInItsField() {
+        go(to: .today)
+
+        let open = element("today.startDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Start the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+        let screen = element("startDay.screen")
+        XCTAssertTrue(screen.waitForExistence(timeout: 20),
+                      "Start the day did not open. On screen: \(visibleTexts())")
+
+        let field = element("startDay.newAction")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 5) { hasKeyboardFocus(field) },
+                      "Start the day opened without the cursor in its field. On screen: \(visibleTexts())")
+
+        let cancel = element("sheet.cancel")
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
+                      "Start the day opened without its Cancel button.")
+        cancel.pressCentre()
+        XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
+                      "Cancel was pressed and Start the day stayed on screen.")
+    }
+
+    /// The same for Close the day: the cursor starts in its looking-back line
+    /// (`closeDay.lookingBack`).
+    func testCloseTheDayPutsTheCursorInItsField() {
+        go(to: .today)
+
+        let open = element("today.closeDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Close the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+        let screen = element("closeDay.screen")
+        XCTAssertTrue(screen.waitForExistence(timeout: 20),
+                      "Close the day did not open. On screen: \(visibleTexts())")
+
+        let field = element("closeDay.lookingBack")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "Close the day has no looking-back field (closeDay.lookingBack). On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 5) { hasKeyboardFocus(field) },
+                      "Close the day opened without the cursor in its field. On screen: \(visibleTexts())")
+
+        let cancel = element("sheet.cancel")
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
+                      "Close the day opened without its Cancel button.")
+        cancel.pressCentre()
+        XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
+                      "Cancel was pressed and Close the day stayed on screen.")
+    }
+
+    /// Whether the element holds the keyboard focus, asked through the attribute the Mac's
+    /// accessibility reports for it.
+    private func hasKeyboardFocus(_ element: XCUIElement) -> Bool {
+        (element.value(forKey: "hasKeyboardFocus") as? Bool) == true
+    }
+    #endif
 }
 
 extension XCUIElement {

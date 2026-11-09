@@ -25,9 +25,9 @@ Every part of PARAGON has one colour, and the colour means the same thing everyw
 
 Information sits in panels. A panel is white by day and dark grey at night, with a light tint of its part's colour over it. At night it also has a thin line round it. The note's facts, its **Tasks** and its **Linked notes** are panels. Where you can change something, you see a bordered pop-up or a bordered button. Where you cannot, you see plain words. The main button of a screen is always in colour. When it cannot be used yet, it is the same colour, only paler. Headings are in the colour of their part, not in grey capitals.
 
-There is one set of text sizes. On the Mac the page title is 26 points. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, its headings step from 22 to 18 to 15 points, and code is 14 points. Edit and Read show the note at the same size. The header, the panels and the text of a note stop at 680 points wide and sit in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's settings. Every icon is a hand-drawn mark in one line weight, in the app, the widgets and the share sheet. Your own icon for a note (see **Your own icon**), when you choose one of Apple's symbols in the icon picker, is not changed. On the Mac, **Search**, **Quick capture** and Sync are in the toolbar at the top of the window, and the **+** **New note** button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. The version shows at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, as PARAGON 1.0 (280).
+There is one set of text sizes. On the Mac the page title is 26 points. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, its headings step from 22 to 18 to 15 points, and code is 14 points. Edit and Read show the note at the same size. The header, the panels and the text of a note stop at 680 points wide and sit in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's settings. Every icon is a hand-drawn mark in one line weight, in the app, the widgets and the share sheet. Your own icon for a note (see **Your own icon**), when you choose one of Apple's symbols in the icon picker, is not changed. On the Mac, **Search**, **Quick capture** and Sync are in the toolbar at the top of the window, and the **+** **New note** button stays over the list column. On **Time Blocks** and on the **Calendar**'s right-hand column, the page's own buttons are in that toolbar too: the day arrows with **Today**, **+ Block**, **Week** and the calendar-blocks button; **+ Block time** and the **Note** / **Schedule** switch. On the iPhone and the iPad they stay in the page. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. The version shows at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, as PARAGON 1.0 (280).
 
-A row in a list is a coloured dot (or the note's own icon), one title, and at most one quiet second line, for example "0 of 2 · Due in 12 d". A status such as Paused or Someday is a small capsule at the right. An empty screen shows the part's icon, one calm line, the explanation in small grey, and a quiet bordered button where there is one.
+A row in a list is a coloured dot (or the note's own icon), one title, and at most one quiet second line, for example "0 of 2 · Due in 12 d". That goes for every list, the **Projects** list included, and for the rows in **Goals** and **Aspirations**. A status such as Paused or Someday is a small capsule at the right. An empty screen shows the part's icon, one calm line, the explanation in small grey, and a quiet bordered button where there is one.
 
 ## Your vault
 
@@ -61,7 +61,7 @@ Useful keys: `status` (active, on hold, done, missed, dropped — see **How a no
 
 Several of these have a button at the top of the note as well, and it writes the same line: **Serves…** for `goal`, **In area…** for `area` (projects only), **Part of…** for `parent`, **Due** for `due`, **Tags…** for `tags`, and **Icon…** for `icon` and `icon-colour` (projects, areas, goals, aspirations and resources). On a goal, **Set a target date…** writes `target` and **Set a measure…** writes `measure`. On an aspiration, a goal or an area, **I looked at it today** writes `reviewed` (see **When you last looked at it**).
 
-The top of a note has its title (26 points, bold) and, under it, a panel of facts in the note's colour. The panel's heading says what kind of note it is, for example **Project**. The note's icon sits beside it. Inside are the facts, each a small grey label with its value under it: **Status**, **In area** or **Part of**, **Serves**, **Horizon**, **Target**, **Measure**, **Looked at**, **Deadline**, **Tags**, **List** and **Icon**. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button. A fact you cannot change is plain words. Before this look, the same facts were a row of small chips.
+The top of a note has its title (26 points, bold) and, under it, a panel of facts in the note's colour. The panel's heading says what kind of note it is, for example **Project**. The note's icon sits beside it. Inside are the facts, each a small grey label with its value under it: **Status**, **In area** or **Part of**, **Serves**, **Horizon**, **Target**, **Measure**, **Looked at**, **Deadline**, **Tags**, **List** and **Icon**. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button. A fact you cannot change is plain words. Before this look, the same facts were a row of small chips. On the Mac and the iPad, a goal's page in **Goals** and an aspiration's page in **Aspirations** have the same title and the same panel (see **Changing a goal's date and measure**). When the Mac window is short, this top part of the note, the title, the facts panel, **Tasks** and **Linked notes**, scrolls on its own, so the text under it always keeps at least 90 points of room.
 
 You do not have to look at the block while you write. Above the text there is a line that says **Settings block**; press it and the block folds away, and the line says **Settings block hidden**. Press it again to bring it back. The block stays in the file either way, and the buttons at the top of the note keep writing into it. The choice holds for every note until you change it.
 
@@ -123,77 +123,75 @@ Open a project and press **In area…** at the top. Pick an area, for example He
 The **Projects** list groups your projects by what they work towards.
 
 - **Under an aspiration.** A project that serves an aspiration, or serves a goal with a date
-  that serves an aspiration, sits under that aspiration's heading. The heading has a gold band
-  and the star. The aspirations come in the same order as in **Aspirations**.
+  that serves an aspiration, sits under that aspiration's heading. The heading is in the aspiration's gold, with
+  the star and the count. The aspirations come in the same order as in **Aspirations**.
 - **Not linked to an aspiration.** The project serves a goal, but that goal has no aspiration
   yet, or the `goal:` line names a goal that cannot be found (drawn with a dashed line). To fix
   the first, go to **Goals** and press **Give it an aspiration** under the goal. To fix the
   second, right-click the project (press and hold on the iPhone) › **Serves** and choose a goal.
 - **Projects with no goal.** No `goal:` line at all. Right-click the project (press and hold
   on the iPhone) › **Serves** to give it one. This is not an error; the list only says so.
+  Its heading is grey.
 - **Done**, **Missed** and **Dropped** at the bottom, folded at first. An empty group is not
   shown. A project that says `status: archived` but is still in the Projects folder gets an
   **Archived** group at the very end.
 
-Press a heading to fold the group or to open it again. The heading always shows how many
-projects it holds.
+A group's heading is a 17-point heading in the colour of what it is: the aspiration's gold,
+grey for **Projects with no goal**. The count sits beside it, and there is no band behind it.
+Press a heading to fold the group or to open it again.
 
 Above the groups, one line speaks for the whole list: bars for all projects together, how many
 tasks were finished in the last eight weeks and this week ("14 tasks finished in 8 weeks · 2
 this week"), and "⚠ 1 needs a look" in orange when a project has a date that has passed or
 a deadline after its goal's target date.
 
-### What a box says
+### What a row says
 
-Each project is a box. On the Mac it has a thin green frame; on the iPhone each group is one
-rounded card.
+Each project is one row, like every other list in PARAGON. From left to right:
 
-- The **tile** on the left shows the project's own icon on its colour. Until you pick one
-  it shows the project flag in a dashed frame. On **Automatic** the colour is green while the
-  project is running or done, and grey when it is on hold, missed, dropped or archived. A
-  project that still has an emoji from an earlier version shows that emoji in a green frame
-  until you choose an icon for it. See **Your own icon** below.
-- The **name**, on up to two lines.
-- **What it needs**, in one line:
-  - **Next:** and the task to do next. That is the open task marked `#next`, or else the first
-    open task in the note. When every task is ticked but a subtask under one of them is still
-    open, it is that subtask. The Goals and Aspirations screens and **Plan** use the same rule.
-    The `#next` itself is not shown there. A line you are waiting on somebody else for is never
-    the next task, not even with `#next` on it (see **Waiting for** under **All actions**).
-  - **All 15 finished** (or **Its one task is finished**) and a grey **No next action**: every
-    task is ticked, but the project still says it is active. Either mark it done, or write its
-    next task. The grey is on purpose; the weekly review is where this is asked with orange.
-  - **Its one open task is waiting for someone** (or **All 3 open tasks are waiting for others**)
-    and a grey **No next action**: every task that is still open is a line you are waiting on
-    somebody else for. There is nothing there for you to do yourself, so no task is "next". It
-    does not say "finished", because the project is not.
+- The **mark**: the project's own icon, or a small green dot until you pick one. On
+  **Automatic** the colour is green while the project is running or done, and grey when it is
+  on hold, missed, dropped or archived. See **Your own icon** below.
+- The **name**, on one line.
+- One quiet **second line** in grey: how far it has come, then what it needs.
+  - **0 of 2 · Next:** and the task to do next. That is the open task marked `#next`, or else
+    the first open task in the note. When every task is ticked but a subtask under one of them
+    is still open, it is that subtask. The Goals and Aspirations screens and **Plan** use the
+    same rule. The `#next` itself is not shown there. A line you are waiting on somebody else
+    for is never the next task, not even with `#next` on it (see **Waiting for** under **All
+    actions**).
+  - **All 15 finished · No next action** (or **Its one task is finished**): every task is
+    ticked, but the project still says it is active. Either mark it done, or write its next
+    task. The grey is on purpose; the weekly review is where this is asked with orange.
+  - **Its one open task is waiting for someone · No next action** (or **All 3 open tasks are
+    waiting for others**): every task that is still open is a line you are waiting on somebody
+    else for. There is nothing there for you to do yourself, so no task is "next". It does
+    not say "finished", because the project is not.
   - **No tasks yet**.
-- The **goal** it serves, in gold, with its star or target. It is left out when the project
-  serves the heading's aspiration directly, because the heading already says it.
-- **Weekly bars**: eight small green bars, the tasks finished in each of the last eight weeks,
-  with this week on the right. A week is Monday to Sunday, as in the weekly notes. A task
-  counts on the day in its `@done(…)` mark; subtasks count too. Beside the bars, while the
-  project is moving, "6 finished in 8 weeks"; once nothing has been finished for two weeks,
-  "last task finished about a month ago". A project where no finished task carries a date
-  shows no bars.
-- **Pills**: a small bar with "2 of 6 finished", the next task's time and date, **On hold**,
-  the deadline ("Deadline in 11 days"), and the first two tags. A project that has ended shows
-  the day it ended instead of the dates (see **Finished projects, newest first**).
+  - A project that has ended says the day instead, for example **Ended 20 October · 2 tasks
+    finished** (see **Finished projects, newest first**).
+- **Weekly bars**, at the right of the row: eight small green bars, the tasks finished in
+  each of the last eight weeks, with this week on the right. A week is Monday to Sunday, as
+  in the weekly notes. A task counts on the day in its `@done(…)` mark; subtasks count too.
+  A project where no finished task carries a date shows no bars.
+- A small **capsule** at the right edge when the project is **Paused**, **Done**, **Missed**
+  or **Dropped**.
 
-**Red** is only for a date that has passed: the next task's date, the deadline, or "2 overdue"
-(open tasks in the project whose date has passed). **Due after its goal** is orange: the
-project's deadline is later than its goal's target date. A heading shows an orange ⚠ and a
-number when a project in it has one of these. "No next action" is never orange.
+Everything else, the goal it serves, the deadline, the tags and the next task's date, is in
+the project's facts panel, at the top of the note.
+
+A heading shows an orange ⚠ and a number when a project in it has a date that has passed or
+a deadline later than its goal's target date. "No next action" is never orange.
 
 ### Finished projects, newest first
 
 - In **Done**, **Missed**, **Dropped** and **Archived**, the project that ended last is at the top.
 - The order comes from the `ended:` line, the day you marked the project. Two projects that ended on the same day keep your own order.
 - A project that ended before build 262 has no `ended:` line. Those sit at the bottom of their group, in your own order.
-- Each box in these groups shows the day it ended in a small grey pill, for example **20 October**. A day in another year also shows the year. A project with no day has no pill.
+- Each row in these groups says the day it ended in its second line, for example **Ended 20 October · 2 tasks finished**. A day in another year also shows the year. A project with no day shows no date there.
 - The **Done** heading also says how many of the projects in it ended this year, for example **Done 6 · 4 this year**. "This year" means since 1 January. Only projects with an `ended:` day are counted. A project you have archived is no longer in the Projects list, so it is not counted. When none ended this year, nothing is shown.
 - **Missed** and **Dropped** do not get this count. Only the order and the day.
-- A finished box does not show its open task's date, so the day it ended is the only date on it.
+- A finished row does not show a next task, so the day it ended is the only date on it.
 - To change the day of a project in **Done**, **Missed** or **Dropped**, open the project and press the line under its header (see **How a note stands**). In **Archived** there is no such line: change the `ended:` line in the note's settings block.
 
 ### What you can do from the list
@@ -218,7 +216,7 @@ Missed, Dropped or archived. A project on hold is counted.
 
 ### Your own icon
 
-Each project, area, goal, aspiration and resource can have its own icon. Open the note and press **Icon…** at the top, right after the kind of note (**Projects**, **Areas**, **Goal with a date**, **Aspiration** or **Resources**). On the Mac, a goal or an aspiration opens on its page first, and there **Icon…** is among the buttons at the top of the page, beside the date and the measure. On the iPhone, press a goal with a date or a resource to open it. For an aspiration, press and hold its row and choose **Open the note**. A picker opens. From the top:
+Each project, area, goal, aspiration and resource can have its own icon. Open the note and press **Icon…** at the top, right after the kind of note (**Projects**, **Areas**, **Goal with a date**, **Aspiration** or **Resources**). On the Mac and the iPad, a goal or an aspiration opens on its page first, and there **Icon…** is in the heading of the facts panel, beside the words **Goal with a date** or **Aspiration**. On the iPhone, press a goal with a date or a resource to open it. For an aspiration, press and hold its row and choose **Open the note**. A picker opens. From the top:
 
 - **Colour**: **Automatic** and fifteen colours. **Automatic** is the colour of the kind of note: green for a project, pink for an area, gold for a goal with a date (a deeper gold for an aspiration), blue for a resource. Each colour is a small tile with the icon on it, so you see how it will look.
 - **Icon**: a field called **Find an icon**, then **No icon**, then the icons in groups. First about 130 hand-drawn icons (**Hand-drawn · Travel**, **Hand-drawn · Outdoors** and so on), then about 300 of Apple's symbols (**Apple symbols · Work and projects** and so on).
@@ -229,7 +227,7 @@ Each project, area, goal, aspiration and resource can have its own icon. Open th
 
 Where the icon is shown:
 
-- In the project's tile in the **Projects** list, and in front of each project on its area's page.
+- At the left of the project's row in the **Projects** list, and in front of each project on its area's page.
 - At the left of an area's row in the **Areas** list, and in front of a sub-area's row on its parent's page.
 - At the left of a resource's row in the **Resources** list. A resource with no icon keeps its thin blue line.
 - On an aspiration or a goal with a date, **instead of the star or the target**: at the left of its row in the **Aspirations** and **Goals** lists, at the top of the aspiration's page, in front of each goal in an aspiration's chain, and on the goal rows in steps 3 and 4 of the **Weekly review**. A goal with no icon keeps its star or target.
@@ -261,7 +259,7 @@ Open an area, for example Health. Above its text there is a part that shows what
 - If the standard was changed on your other device while the box was open, nothing is written. An orange line says what it is now, and your words stay in the box. Press **Save** again to use yours instead.
 - **Weekly bars**: eight small pink bars, the tasks finished in each of the last eight weeks, in the area itself and in every project in it. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". A week is Monday to Sunday. When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
 - **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list. The number beside the heading says how many.
-- Each project shows its tile with its icon, its name and what it needs, in the same words as its box in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, **All 2 open tasks are waiting for others** and a grey **No next action**, or **No tasks yet**.
+- Each project shows its tile with its icon, its name and what it needs, in the same words as its row in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, **All 2 open tasks are waiting for others** and a grey **No next action**, or **No tasks yet**.
 - "2 overdue" is red: open tasks in the project whose date has passed. The deadline is red once it has passed, and grey before that. A project on hold says **On hold**.
 - Projects that are done, missed, dropped or archived are not listed. One line under the list says how many there are.
 - **Press a project** to open it. To come back to the area, press ⌃⌘← on the Mac, or the back arrow at the top on the iPhone.
@@ -411,7 +409,7 @@ Both are goal notes in your vault, so nothing was moved or rewritten. The line t
 
 ### Changing a goal's date and measure
 
-The top of a goal says what it is: **Goal with a date** or **Aspiration**. After the name and the status come its buttons:
+The top of a goal says what it is: **Goal with a date** or **Aspiration**, as the heading of its facts panel. After the name and the status come its facts, each with a small grey label:
 
 - **Serves…** — the aspiration a goal with a date serves. Press it to choose another one.
 - **Set a target date…** — the day the goal should be reached by. When a date is set, the button shows it instead, for example **Target 2027-08-15**. Press it to change the date, or press **Clear** to take it away. Write the date as 2027-08-15 or pick it in the calendar.
@@ -424,7 +422,7 @@ If the measure was changed on your other device while the box was open, **Set** 
 
 A new date changes the weekly review at once: "Past its target date" and "Due after its goal" are worked out from it.
 
-On the Mac **Set a target date…**, **Set a measure…** and the **This year** / **Long term** button are also on the goal's page in **Goals**, under its name, and an aspiration's page in **Aspirations** has **Set a measure…**. There they are small capsules: grey with a dashed line while nothing is set, and solid when something is. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
+On the Mac and the iPad, the goal's page in **Goals** has the same title and the same facts panel as the note itself: the heading **Goal with a date** with **Icon…** beside it, then **Status**, **Serves**, **Horizon**, **Target**, **Progress** (the per cent), **Measure**, **Looked at**, **Tags** and **List**, each a small grey label with its value under it, and a bordered pop-up or button where you can change it. **Horizon** is a labelled pop-up with **This year** and **Long term**. A notice such as **Target date passed** is a small orange capsule in the panel. An aspiration's page in **Aspirations** has the same panel, headed **Aspiration**; only the facts that fit are shown, so it has no **Target**, no **Horizon** and no **Progress**. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
 
 ### Adding a project from its goal
 
@@ -434,13 +432,13 @@ A goal can make the projects that serve it, and an aspiration can make the goals
 - The new project appears in the list at once, and it already serves the goal: its `goal:` line names the goal. Press it to open it. Press **Add a project…** again for the next one.
 - On an aspiration the button is **Add a goal…**, and the box has **Add goal**. The new goal serves the aspiration. It has no target date yet: open it and press **Set a target date…**.
 - An aspiration makes a goal, never a project. The work then goes under that goal, which is the step that gives it a date.
-- When nothing serves a goal yet, its note says "Nothing serves this goal yet." and shows the same button under it. On the Mac, the goal's page in **Goals** says "No project delivers this goal yet." in orange when no project serves it, and the button is at the foot of that list. An aspiration with nothing under it says "Nothing works towards this yet."
+- When nothing serves a goal yet, its note says "Nothing serves this goal yet." and shows the same button under it. On the Mac and the iPad, the goal's page in **Goals** lists its projects in a tinted panel headed **Projects**, with **Add a project…** at its foot; when no project serves it, the panel says "No project delivers this goal yet." in orange. An aspiration with nothing under it says "Nothing works towards this yet."
 - If a project or goal with that name is already there, the box says so in orange and keeps your words. Change the name and press **Add project** or **Add goal** again.
 - **Cancel** closes the box and makes nothing.
 
 An area has **Add a project…** too, beside **Projects in this area** at the top of the area; see **An area's page**.
 
-Where the button is: at the foot of a goal's own note, on the Mac and on the iPhone. On the Mac it is also on the goal's page in **Goals**, under its projects, and on an aspiration's page in **Aspirations**, under its goals. Inside an aspiration's chain, a goal with no project yet has **Add a project…** under the orange line that says no project delivers it. On the iPhone, **Add a goal…** is also under an aspiration when you open it in **Aspirations**.
+Where the button is: at the foot of a goal's own note, on the Mac and on the iPhone. On the Mac and the iPad it is also at the foot of the **Projects** panel on the goal's page in **Goals**, and under the goals on an aspiration's page in **Aspirations**. Inside an aspiration's chain, a goal with no project yet has **Add a project…** under the orange line that says no project delivers it. On the iPhone, **Add a goal…** is also under an aspiration when you open it in **Aspirations**.
 
 ### When you last looked at it
 
@@ -450,7 +448,7 @@ At the top of an aspiration, a goal with a date or an area, a grey button with a
 - Press **I looked at it today** in the box. PARAGON writes `reviewed:` with today's date into the note's settings block, and the button says **Looked at today**.
 - When the note already says today, **I looked at it today** is grey, because pressing it would change nothing.
 - The same **I looked at it today** is on the right-click menu of a row in **Aspirations**, **Goals** and **Areas**. On the iPhone, press and hold the row.
-- On the Mac the button is also on an aspiration's page in **Aspirations** and on a goal's page in **Goals**, under the name. There it is a small capsule, with a dashed line while the note has never been looked at.
+- On the Mac and the iPad it is also in the facts panel of an aspiration's page in **Aspirations** and of a goal's page in **Goals**, as **Looked at**.
 - It is the same date the **Weekly review** reads, so the note leaves **Due for a look** until it is due again. How often each kind gets a look is set in **Settings › Review rhythm**.
 - A goal or an area that has ended, or is archived, has no button: it no longer comes up for a look.
 - Projects do not have the button. They get a look every week, in step 5 of the **Weekly review**.
@@ -514,7 +512,9 @@ When the question comes, and when it does not:
 ### The Aspirations screen
 
 The **Aspirations** row lists your aspirations, one after another. Choose one and everything
-working towards it appears beside it, in order:
+working towards it appears beside it. On the Mac and the iPad that page begins with the
+aspiration's title at 26 points and its facts panel (see **Changing a goal's date and
+measure**), then **The reason** (see below), then, in order:
 
 - the **goals with a target date** that serve it, soonest first;
 - the **projects** under each goal — finished ones struck through;
@@ -525,9 +525,11 @@ working towards it appears beside it, in order:
 
 **Add a goal…** under the goals makes a new goal that serves the aspiration, and **Add a project…** under a goal with no project yet makes a project for it. You stay on the aspiration.
 
-Each row says how many goals serve it, **when you last looked at it** ("Looked at 12 days ago",
-or "Never looked at"), and a mark in orange when one of its goals needs attention. An
-aspiration with nothing under it yet says **Nothing serves this yet** on its own row.
+Each row is one title and one quiet second line, for example "1 goal · Never looked at ·
+Health": how many goals serve it, **when you last looked at it** ("Looked at 12 days ago", or
+"Never looked at"), and an area that serves it. When one of its goals needs attention, a small
+orange capsule sits at the right of the row. An aspiration with nothing under it yet says
+**Nothing serves this yet** in its second line.
 
 Right-click a row (press and hold on the iPhone) for **Open the note** and **I looked at it today**.
 
@@ -559,7 +561,8 @@ holds it. You do not have to choose anything first. Three groups, in this order:
 - **Done**, **Missed** and **Dropped** — closed, with the count on the heading. Press a heading
   to look back.
 
-A goal with no aspiration above it carries a **Give it an aspiration** button. Right-click any
+A goal with no aspiration above it carries a **Give it an aspiration** button at the right of
+its row. Right-click any
 row (press and hold on the iPhone) for the same list, with **Open the note** and
 **I looked at it today** above it.
 
@@ -575,13 +578,19 @@ If you give an aspiration or a goal an icon of your own (see **Your own icon**),
 They also have their own colours: an **aspiration is a deeper gold** and a **goal with a date**
 is the lighter gold the Goals list has always used.
 
-A goal with no aspiration above it is marked in orange and carries a **Give it an aspiration**
-button, which opens the list of your aspirations. Nothing is wrong with such a goal — it is a
+A goal with no aspiration above it carries a **Give it an aspiration** button at the right of
+its row, which opens the list of your aspirations. Nothing is wrong with such a goal — it is a
 loose end, not an error — but the chain only works when each link points at the next.
 
-Each row shows its **measure**, its **target date with how long is left** ("in about 3 months",
-or "11 days over" in orange), and a **mark when it needs attention** — the same checks the
-weekly **Review** makes, so the two screens agree.
+Each row is one title and one quiet second line: its **per cent**, then its **target date and
+how long is left**, for example "0 % · 2027-08-15 · in about 9 months" ("11 days over" once it
+has passed). When it **needs attention**, a small orange capsule sits at the right of the row;
+the checks are the same ones the weekly **Review** makes, so the two screens agree. The measure
+is in the facts panel on the goal's page.
+
+Press a row and, on the Mac and the iPad, the goal's page opens beside the list: its title at
+26 points, its facts panel (see **Changing a goal's date and measure**), and the projects that
+deliver it in a tinted panel headed **Projects**, with **Add a project…** at its foot.
 
 A goal that has ended leaves the live lists and gathers at the foot under the name of its
 ending — **Done**, **Missed** or **Dropped** — closed, with the count beside it. Press the
@@ -629,7 +638,7 @@ The per cent never says 100 until everything really is finished, and never says 
   - **Last evening you wrote**: the line you wrote yesterday in **Close the day**, under **How was today?**. If you wrote nothing, this part is not shown. If yesterday's note is still coming from iCloud, an orange line says so. The line belongs to the day on which you pressed **Done**: if you close the day after midnight, it goes into the new day's note, and the next morning nothing is shown here.
   - **This week:** and the goal for the week, the same line as on **Today**. It is not shown when no goal is written. If this week's note is still coming from iCloud, an orange line says so. You write the goal on **Calendar › Week**.
   - **Today's calendar events**, one short line each, with the number in the heading. Press the heading to fold them away, and again to open them. The iPhone and the Mac each remember this on their own. If Calendar access is off, the message that says so is never folded away. When **Show the day's events in Today and in daily notes** is off in **Settings › Apple Calendar**, this part is not shown.
-- Under those three things there is a field, **Add an action for today**, with a **+** beside it. Type something that came to mind and press **+** (or Return). It goes to the Inbox, dated today, and appears in the list already picked. The field stays ready for the next one. If you type your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the Inbox but not shown in today's list. On the iPhone, drag the list down to put the keyboard away.
+- Under those three things there is a field, **Add an action for today**, with a **+** beside it. On the Mac the cursor is already in it when the screen opens, so you can type at once. Type something that came to mind and press **+** (or Return). It goes to the Inbox, dated today, and appears in the list already picked. The field stays ready for the next one. If you type your own date, for example `>2026-10-02`, that date is kept, and the action is saved to the Inbox but not shown in today's list. On the iPhone, drag the list down to put the keyboard away.
 - In **Start the day**, press **Pick** at the left of the two or three that matter most (the round circle after it marks the task as done, as everywhere else), then press the button at the bottom (it says **Plan 2 actions**, for example). Each one goes into today's plan as a block as long as the task's own time, or one hour when it has none, in the free time left today: after the time it is now, and never on top of a block you already have, a calendar event or another task that has a time of day (a call at 14:00 keeps its hour). A task in a note that is still coming from iCloud is not known yet, so its hour is not kept free; the message after the button then says so, and **Plan** shows the task once its note has arrived. **A picked task that has a time of day goes in at that time, if the hour is free**; if it is taken, or the time has already passed, the block goes into the first free time instead. Nothing is placed after midnight; if not all of them fit, a message says how many did. An action already in today's plan says **In the plan at** and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
 - **Morning reminder.** In **Settings › Morning reminder**, turn on **Remind me to start the day** and choose a time (07:30 unless you change it). PARAGON then sends one notification every morning at that time: "Start the day. What matters most today? Pick it and put it in your plan." Press it and **Start the day** opens. On the iPhone the keyboard does not come up by itself, so you see the whole list first. It comes every day, at the weekend too, because your leisure tasks are in PARAGON as well. Turn the switch off and it stops.
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a day at that time. Press it and **Close the day** opens. Turn the switch off and it stops.
@@ -647,8 +656,9 @@ The per cent never says 100 until everything really is finished, and never says 
     them first in its list, above **Overdue**, under **Marked first last evening**. No block is made. Press **First** again
     to take the mark off. The marks are kept in the vault, so a mark made on the iPhone is also
     there on the Mac.
-  - **How was today?**: one line, kept in that day's daily note under a heading called
-    **Looking back**. It is ordinary text: nothing counts it and it never becomes a task. The
+  - **How was today?**: one line ("One line, if you feel like it"), kept in that day's daily
+    note under a heading called **Looking back**. On the Mac the cursor starts in this field when
+    the screen opens. It is ordinary text: nothing counts it and it never becomes a task. The
     next morning, **Start the day** shows it under **Last evening you wrote**, and step 7 of the
     **Weekly review**, which looks back at a whole week, shows it again, and so does that day's
     card in **Done**. Clear it and the heading goes too.
@@ -670,7 +680,7 @@ The per cent never says 100 until everything really is finished, and never says 
     table says so.
   **Done** saves the line; **Cancel** does not — but the tick boxes, **Tomorrow**, **Day…** and
   **First** save as soon as you press them.
-- **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
+- **All actions** lists every open task in the vault, grouped by its note. Tick boxes at the top (the Mac's own tick boxes on the Mac, chips on the iPhone) narrow the list: **When** (Overdue, Today, Next 7 days, Later, No date), **Mark** (Next action, Important) and **Tags**. Boxes in the same row mean "any of these"; boxes in different rows are all required together. The heading counts what is shown, **Clear** unticks everything, and the button beside it folds the boxes away. While they are folded the line under the heading says what is ticked, so the list is never quietly narrowed.
   - **Waiting for.** The hourglass button beside the heading is a switch. While it is on, the heading reads **Waiting for** and the column shows the lines you are waiting on other people for, one heading for each person, instead of the boxes: the boxes sort actions, and this list sorts people. The switch stays as you left it. While it is off and some line is waiting, a small line under the boxes says how many, for example **3 waiting for other people**. Press it to open the list.
   - **What a waiting line is.** An open task with the tag `#waiting`, or one that starts with the words **Waiting for** (capitals do not matter). It looks like this in the file: `- [ ] Waiting for Anna: the quote >2026-11-06 #waiting @since(2026-11-01)`. Lines you wrote by hand are found too, even with no tag. The name is the words between **Waiting for** and the first colon; the thing is what follows. A line with no colon has no name. It is listed under **Someone**, with **No name given**. Anna and anna are one person. A ticked or cancelled line is not waiting any more, and neither is a line in a project that is done, missed, dropped or archived.
   - **The list.** First a count line, for example **4 things · 2 people**. Then one heading for each person, A to Z, with **Someone** last. Under a heading every line is an ordinary task row, with the note it lives in: tick it when the answer came, and the line is done. Under it a grey line says when to follow up and how long you have waited, for example **Follow up Fri 6 Nov · waited 5 days**. The follow-up date is the line's ordinary date. A line with no date says **No follow-up date**. When the date has passed it says **Follow up was 3 days ago**, in red. Inside a heading the lines go by follow-up date, then the longest wait.
@@ -711,7 +721,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 The app reads events from the calendars you choose in Settings › Apple Calendar. Events appear in Today and in daily notes. Double-click an event, or use its arrow button, to open it in the Calendar app.
 
-The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. A task that has a time of day is drawn at its hour, as long as the task's own time (`~45m`), or half an hour when it has none. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00, so nothing runs out of the day; the time written under its name is still the event's own. Press "Block time" or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The switch at the top of the column swaps between the schedule and the daily note.
+The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. A task that has a time of day is drawn at its hour, as long as the task's own time (`~45m`), or half an hour when it has none. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00, so nothing runs out of the day; the time written under its name is still the event's own. Press **+ Block time** or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The **Note** / **Schedule** switch swaps between the schedule and the daily note. On the Mac, **+ Block time** and the switch are in the toolbar at the top of the window; on the iPhone and the iPad they are at the top of the column.
 
 ### Plan the day
 
@@ -757,9 +767,11 @@ ticking a task off, the task menu and the **+** button (which makes a one-hour b
 free hour). Tap a block to change its time. A short event or block — under about three quarters of an hour — is drawn on one line,
 with its start time and its name.
 
-The **Week** button at the top of the day opens **Calendar › Week**, where you spread work
-across the seven days. The **calendar** button beside it leads to the other kind of block, the
-ones that are real events in Apple Calendar.
+The **Week** button opens **Calendar › Week**, where you spread work across the seven days. The
+**calendar** button beside it leads to the other kind of block, the ones that are real events in
+Apple Calendar. **+ Block** makes a new block. On the Mac these buttons, with the day arrows and
+**Today**, are in the toolbar at the top of the window; the page keeps the day's name and its
+summary. On the iPhone and the iPad they are at the top of the day.
 
 **On the Mac you can drag a block.** Pick it up and slide it up or down to move it in time; it
 snaps to five minutes and shows its new time as you go. Drag the small **grip** at the foot of a
@@ -769,7 +781,7 @@ iPhone a block is tapped, not dragged — the lane sits inside the page's scroll
 Opening a block gives you its name, a time field with **−** and **+** for quarter hours, and a
 row of lengths to press. The line underneath says what it comes to, for example
 **09:30 – 11:00 · 1 h 30 min**. Right-click a block (long-press on the iPhone) for **Remove**.
-The arrows at the top of the day move a day at a time.
+The arrows move a day at a time; on the Mac they are in the window's toolbar.
 
 **A block is only for you.** It says where you mean to be, or what you mean to work on. It
 never becomes a task, and nothing outside the app sees it — unless you ask for one to, which is
@@ -1162,7 +1174,9 @@ Type two square brackets in any note and a list of your notes appears under the 
 **The field is for words. Everything else is a tick box.**
 
 Write a word in the field at the top. Under it are rows of boxes, and ticking them is the
-search — one look at the boxes tells you what you are asking for.
+search — one look at the boxes tells you what you are asking for. On the Mac they are the Mac's
+own tick boxes, and the rows of boxes end above the results. On the iPhone they are chips you
+press.
 
 - **Tasks**: Not done, Done, Overdue, Today, This week, This month, No date. **Tick any one of
   these and the results are tasks rather than notes.**
@@ -1172,6 +1186,9 @@ search — one look at the boxes tells you what you are asking for.
 
 Two boxes in the **same row** mean either of them — tick **Not done** and **Done** and you get
 both. Boxes in **different rows** are added together: Projects *and* overdue.
+
+A result that is a task shows the task's words only, without the marker that stands before them
+in the file.
 
 The word and the boxes are two different questions, and this is the one that used to catch
 people out. Writing **done** looks for the letters d-o-n-e in your notes. Ticking the **Done**

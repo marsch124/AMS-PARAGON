@@ -4905,5 +4905,24 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
   "1.0 (280)" (`sidebar.version`); `MARKETING_VERSION` is 1.0.
 - **Kept where he placed them:** Start the day / Close the day on Today's date row, Show all
   in the Goals header, "+" over the list column.
+- **Projects list (second pass, same build):** `ProjectBox` became `ProjectRow`: one title, one
+  second line (`project.next.<path>`, or `project.endedDay.<path>` for an ended project),
+  `project.tile.<path>` on the leading mark (icon or 8-pt dot), `project.weekly.<path>` on the
+  bars, status as a capsule. `ProjectGroupHeader` draws a 17-pt `Heading` in the group's colour
+  with the count; no band.
+- **Goal / Aspiration pages:** `ChainGoalBlock(lead: true)` and `AspirationChainBody.head` draw
+  `NoteHeader` (title 26 + facts panel) with the new `progress:` and `notices:` parameters (the
+  per cent; "Target date passed" as an orange capsule); the projects (or goals) are a
+  `.panel(ParaKind.project.tint)` headed "Projects" with Add a project… at the foot, no rail.
+  `DatedGoalRow` / `AspirationRow` are one second line; Give it an aspiration stays at the right.
+- **Mac toolbar:** `.toolbar` on `PlannerDayView` (`plan.block`, `plan.week`,
+  `plan.calendarBlocks`, with the day arrows and Today) and on `CalendarDetailView` /
+  `DayScheduleView` (`calendar.noteToggle`, `calendar.blockTime`). iOS keeps them in the page.
+- **Search:** `FilterBox` is `Toggle(.checkbox)` on macOS, identifier `search.box.<token>`;
+  chips on iOS. `SearchHit.snippets` (`Search.swift`) strip the task markers.
+- **Sheet focus:** `StartDayView` / `CloseDayView` use `defaultFocus` on the Mac so the first
+  field has the focus (`closeDay.lookingBack`), not Cancel.
+- **Short column:** `deskBody` puts the header, Tasks and Linked notes in a ScrollView sized to
+  min(content, column − 90 − the bars), so the editor keeps 90 points.
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).

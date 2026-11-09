@@ -257,16 +257,42 @@ struct NoteEditorView: View {
     /// with a small window. Build 280 tried two other ways first — a capped, scrolling header
     /// hid the Tasks panel from a press, and one scrolling page put the text below the window.
     private static let shortColumn: CGFloat = 620
+    /// The text never gets less than this. On a column too short for the header, the panels
+    /// and this much text, the part above the text scrolls instead (1.0's third Mac run: the
+    /// editor had been given nothing at all and the test could not press it).
+    private static let minEditorHeight: CGFloat = 90
+
+    /// The laid-out heights of the part above the editor and of the rows under it, measured,
+    /// so the column can give the sections exactly their height while there is room.
+    @State private var sectionsHeight: CGFloat = 0
+    @State private var frontmatterHeight: CGFloat = 0
+    @State private var addBarHeight: CGFloat = 0
+
+    /// What the sections may take: their own height, or what is left once the text has its
+    /// minimum and the rows under it have theirs.
+    private func sectionsRoom(in column: CGFloat) -> CGFloat? {
+        guard sectionsHeight > 0 else { return nil }
+        let room = column - frontmatterHeight - 1 - addBarHeight - Self.minEditorHeight
+        return max(0, min(sectionsHeight, room))
+    }
 
     private var deskBody: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 // 1.0: the header, the panels and the text stop at the reading width and sit
-                // centred; on a wide window the rest is calm margin.
-                sections
-                    .readingWidth()
+                // centred; on a wide window the rest is calm margin. The sections are as tall
+                // as their content while the column has room, and scroll when it has not.
+                ScrollView {
+                    VStack(spacing: 0) {
+                        sections
+                            .readingWidth()
+                    }
+                    .measureHeight($sectionsHeight)
+                }
+                .frame(height: sectionsRoom(in: geo.size.height))
                 frontmatterRow
                     .readingWidth()
+                    .measureHeight($frontmatterHeight)
                 // The editor takes whatever height is left and never asks for more (builds 30
                 // and 34): the GeometryReader's frame is the column, and this is what is left.
                 editorPane(scrolls: true)
@@ -276,6 +302,7 @@ struct NoteEditorView: View {
                 Divider()
                 addTaskBar
                     .readingWidth()
+                    .measureHeight($addBarHeight)
             }
             .frame(width: geo.size.width, height: geo.size.height)
             .onAppear { compactHeader = geo.size.height < Self.shortColumn }
@@ -1121,6 +1148,14 @@ struct NoteHeader: View {
     /// True on a short Mac column: the same title and the same facts, drawn small and without
     /// the panel, so the text under them keeps room. Nothing is left out.
     var compact = false
+    /// False on the goal and aspiration pages, which lay their own gutter round the whole page.
+    var inset = true
+    /// A goal's roll-up, handed in by its page (1.0): the header holds one note and cannot work
+    /// the per cent out itself (`NoteRow` takes it the same way).
+    var progress: GoalProgress? = nil
+    /// Short orange notices for the panel — "Target date passed", "No project delivers this" —
+    /// the flags the goal pages used to draw as chips.
+    var notices: [String] = []
 
     var body: some View {
         if compact {
@@ -1135,10 +1170,23 @@ struct NoteHeader: View {
                     Spacer(minLength: 0)
                 }
                 titleRow
-                facts
-                    .controlSize(.small)
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("note.facts")
+                // One row that scrolls sideways, never three or four rows of wrapped chips: on
+                // the test runners' 900×450 window the wrapped rows left the tasks and the text
+                // no room (build 280's fourth Mac run).
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        factItems
+                    }
+                    .padding(.vertical, 2)
+                }
+                .font(Txt.value)
+                .lineLimit(1)
+                .menuStyle(.button)
+                .buttonStyle(.bordered)
+                .tint(note.tint)
+                .controlSize(.small)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("note.facts")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Theme.gutter)
@@ -1162,8 +1210,8 @@ struct NoteHeader: View {
                 .accessibilityIdentifier("note.facts")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Theme.gutter)
-            .padding(.top, 12)
+            .padding(.horizontal, inset ? Theme.gutter : 0)
+            .padding(.top, inset ? 12 : 0)
             .padding(.bottom, 4)
         }
     }
@@ -1203,6 +1251,19 @@ struct NoteHeader: View {
     /// will not shrink makes its width the column's smallest width).
     private var facts: some View {
         WrappingHStack(spacing: 10, lineSpacing: 8) {
+            factItems
+        }
+        .font(Txt.value)
+        .lineLimit(1)
+        .menuStyle(.button)
+        .buttonStyle(.bordered)
+        .tint(note.tint)
+    }
+
+    /// The facts themselves, in their one order; `facts` wraps them and the compact header
+    /// puts them in a row.
+    @ViewBuilder
+    private var factItems: some View {
             if note.kind != .inbox, note.kind != .daily {
                 NoteStatusChip(model: model, note: note)
             }
@@ -1228,6 +1289,9 @@ struct NoteHeader: View {
             } else if let target = note.targetDate {
                 fact("Target", target.description)
             }
+            if let progress, let percent = progress.percent {
+                fact("Progress", "\(percent) %", tint: ChainTint.forGoal(note))
+            }
             if note.kind == .goal {
                 GoalMeasureChip(model: model, note: note)
             }
@@ -1245,12 +1309,9 @@ struct NoteHeader: View {
             if note.kind.isTaskKind {
                 fact("List", note.isSyncEnabled && !note.isArchived ? listName(for: note) : "Not synced")
             }
-        }
-        .font(Txt.value)
-        .lineLimit(1)
-        .menuStyle(.button)
-        .buttonStyle(.bordered)
-        .tint(note.tint)
+            ForEach(notices, id: \.self) { notice in
+                Pill(text: notice, color: Theme.attention)
+            }
     }
 }
 

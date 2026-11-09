@@ -146,6 +146,12 @@ struct StartDayView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("startDay.screen")
         .onAppear { model.loadFirstPicks() }
+        #if os(macOS)
+        // 1.0: the cursor starts in the first field, so the first key pressed types (the sheet
+        // used to open with the focus ring on Cancel). Escape still cancels, Return still adds.
+        .defaultFocus($newActionFocused, true)
+        .onAppear { DispatchQueue.main.async { newActionFocused = true } }
+        #endif
         // Today's events are what the blocks are fitted around, so read them fresh here rather
         // than trust whatever Today loaded earlier (build 238).
         .task { await model.loadEvents(for: day) }

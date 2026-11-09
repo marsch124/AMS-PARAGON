@@ -206,6 +206,20 @@ public struct SearchHit: Identifiable, Equatable, Sendable {
     public var score: Int
 
     public var id: String { note.relativePath }
+
+    /// A line as a result shows it (1.0): without the task box or the list dash at its start,
+    /// so "- [ ] Call the bank about the ferry" reads as "Call the bank about the ferry". The
+    /// words are what matched; the marker is how the file spells a task.
+    public static func snippetText(_ line: String) -> String {
+        var text = line.trimmingCharacters(in: .whitespaces)
+        if let box = text.range(of: #"^[-*+]\s+\[[ xX\-]\]\s*"#, options: .regularExpression) {
+            text.removeSubrange(box)
+        } else if let dash = text.range(of: #"^[-*+]\s+"#, options: .regularExpression) {
+            text.removeSubrange(dash)
+        }
+        return text.trimmingCharacters(in: .whitespaces)
+    }
+
 }
 
 public extension NoteIndex {
@@ -243,7 +257,7 @@ public extension NoteIndex {
                 for line in note.lines {
                     let lower = line.lowercased()
                     if terms.contains(where: { lower.contains($0) }) {
-                        let clean = line.trimmingCharacters(in: .whitespaces)
+                        let clean = SearchHit.snippetText(line)
                         if !clean.isEmpty && !clean.hasPrefix("#") { snippets.append(clean) }
                     }
                     if snippets.count >= 3 { break }

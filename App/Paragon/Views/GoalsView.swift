@@ -551,52 +551,47 @@ struct AspirationRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             GoalMark(note: chain.note, size: 24)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(chain.note.title)
-                    .font(Txt.listTitle)
-                    .lineLimit(2)
-                WrappingHStack(spacing: 8, lineSpacing: 4) {
-                    if !chain.goals.isEmpty {
-                        Text(chain.goals.count == 1 ? "1 goal" : "\(chain.goals.count) goals")
-                            .rowTint(ChainTint.datedGoal)
-                    }
-                    // Said on the row rather than in a group of its own: build 199 threw away
-                    // the "Nothing serves these yet" section, which put the aspirations you
-                    // had not started on into a box and read as a telling-off.
-                    if chain.isBare {
-                        Text("Nothing serves this yet")
-                            .foregroundStyle(.secondary)
-                    }
-                    MarkLabel(ReviewWording.lookedAt(daysAgo: daysSinceLook), "eye")
-                        .foregroundStyle(.secondary)
-                    if let area = chain.area {
-                        MarkLabel(area.title, ChainSymbol.area)
-                            .rowTint(ParaKind.area.tint)
-                    }
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(chain.note.title)
+                        .font(Txt.listTitle)
+                        .lineLimit(1)
+                    Spacer(minLength: 6)
+                    // Orange, as everywhere: look at this. On the row's right, where every
+                    // list keeps its one capsule (1.0).
                     let wanting = chain.goalsNeedingAttention.count
                     if wanting > 0 {
-                        MarkLabel(wanting == 1 ? "1 goal needs attention" : "\(wanting) goals need attention", "exclamationmark.triangle")
-                            .rowTint(.orange)
-                    }
-                    if chain.needsAttention {
-                        MarkLabel(chain.flags.first?.label ?? "Needs attention", "exclamationmark.triangle")
-                            .rowTint(.orange)
+                        Pill(text: wanting == 1 ? "1 goal needs attention" : "\(wanting) goals need attention",
+                             color: Theme.attention)
+                    } else if chain.needsAttention {
+                        Pill(text: chain.flags.first?.label ?? "Needs attention", color: Theme.attention)
                     }
                 }
-                .font(Txt.label)
-                .lineLimit(1)
-                // The measure, on the row rather than only inside the goal (build 163).
-                if let measure = chain.note.measure, !measure.isEmpty {
-                    Text(measure)
-                        .font(Txt.label)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                // 1.0: one quiet second line. How many goals serve it (or that nothing does yet
+                // — said on the row rather than in a group of its own, build 199), when you last
+                // looked at it, the area that holds it, and the measure (build 163).
+                Text(secondLine)
+                    .font(Txt.listSecond)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
         .padding(.vertical, 2)
+    }
+
+    private var secondLine: String {
+        var parts: [String] = []
+        if !chain.goals.isEmpty {
+            parts.append(chain.goals.count == 1 ? "1 goal" : "\(chain.goals.count) goals")
+        } else if chain.isBare {
+            parts.append("Nothing serves this yet")
+        }
+        parts.append(ReviewWording.lookedAt(daysAgo: daysSinceLook))
+        if let area = chain.area { parts.append(area.title) }
+        if let measure = chain.note.measure, !measure.isEmpty { parts.append(measure) }
+        return parts.joined(separator: " \u{00B7} ")
     }
 }
 
@@ -609,45 +604,49 @@ struct DatedGoalRow: View {
 
     var body: some View {
         let health = model.index.chainGoal(of: note)
-        HStack(spacing: 10) {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             GoalMark(note: note, size: 24)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(note.title)
-                    // Struck through however it ended: done, missed or dropped, it is over.
-                    .strikethrough(note.isEnded)
-                    .font(Txt.listTitle)
-                    .lineLimit(2)
-                WrappingHStack(spacing: 8, lineSpacing: 4) {
-                    if health.progress.fraction != nil {
-                        GoalProgressBar(progress: health.progress, width: 56, showsCounts: false,
-                                        tint: ChainTint.forGoal(note))
-                    }
-                    if let target = note.targetDate {
-                        let left = target.timeLeftText(from: .today())
-                        MarkLabel("\(target.description) · \(left)", "flag")
-                            .rowTint(overdue(target) ? Color.orange : ParaKind.goal.tint)
-                    }
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(note.title)
+                        // Struck through however it ended: done, missed or dropped, it is over.
+                        .strikethrough(note.isEnded)
+                        .font(Txt.listTitle)
+                        .lineLimit(1)
+                    Spacer(minLength: 6)
                     if note.isEnded {
-                        MarkLabel(note.noteStatus.label, note.isAchieved ? "checkmark.seal" : "xmark.circle")
-                            .rowTint(note.isAchieved ? ParaKind.goal.tint : Color.secondary)
+                        Pill(text: note.noteStatus.label, color: note.isAchieved ? ParaKind.goal.tint : Color.secondary)
                     } else if needsAnAspiration {
+                        // Build 167: the one button that fixes it, kept on the row.
                         NoAspirationPrompt(model: model, note: note)
                     } else if health.needsAttention, let first = health.flags.first {
-                        MarkLabel(first.label, "exclamationmark.triangle")
-                            .rowTint(.orange)
+                        Pill(text: first.label, color: Theme.attention)
                     }
                 }
-                .font(Txt.label)
-                .lineLimit(1)
-                if let measure = note.measure, !measure.isEmpty {
-                    Text(measure)
-                        .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                // 1.0: one quiet second line — how far it has come, the target and how long is
+                // left, and the measure (build 163). Red only when the target has passed.
+                if let second = secondLine(health) {
+                    Text(second.text)
+                        .font(Txt.listSecond)
+                        .foregroundStyle(second.late ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
                         .lineLimit(1)
                 }
             }
         }
         .padding(.vertical, 2)
+    }
+
+    private func secondLine(_ health: ChainGoal) -> (text: String, late: Bool)? {
+        var parts: [String] = []
+        var late = false
+        if let percent = health.progress.percent { parts.append("\(percent) %") }
+        if let target = note.targetDate {
+            parts.append("\(target.description) \u{00B7} \(target.timeLeftText(from: .today()))")
+            if overdue(target) { late = true }
+        }
+        if let measure = note.measure, !measure.isEmpty { parts.append(measure) }
+        guard !parts.isEmpty else { return nil }
+        return (parts.joined(separator: " \u{00B7} "), late)
     }
 
     private func overdue(_ target: DateOnly) -> Bool {
@@ -679,12 +678,15 @@ struct GoalDetailView: View {
                 NoteEditorView(path: note.relativePath)
             } else {
                 ScrollView {
+                    // 1.0: the same reading width as a note, centred; the rest is calm margin.
                     if isAspiration {
                         AspirationChainBody(chain: model.index.chain(of: note), compact: false)
                             .padding(Theme.gutter)
+                            .readingWidth()
                     } else {
                         ChainGoalBlock(goal: model.index.chainGoal(of: note), lead: true)
                             .padding(Theme.gutter)
+                            .readingWidth()
                     }
                 }
             }
@@ -696,7 +698,8 @@ struct GoalDetailView: View {
     private var header: some View {
         GoalsHeader(title: showsNote ? "Note" : (isAspiration ? GoalWording.aspiration : GoalWording.datedGoal),
                     markName: showsNote ? "doc.text" : ChainSymbol.forGoal(note),
-                    showsAll: model.section == .aspirations) {
+                    showsAll: model.section == .aspirations,
+                    quiet: !showsNote) {
             // Build 159's two-state control: it shows the state you are in, not the one you
             // would get.
             StateToggle(markName: "doc.text", title: "Note",
@@ -713,6 +716,9 @@ struct AspirationChainBody: View {
     let chain: AspirationChain
     /// The phone folds this open inside a list row, so it drops the big header.
     let compact: Bool
+    /// True on the aspiration's own page (1.0): the note's header, title at 26 and the facts
+    /// panel. **All of them** draws every aspiration in one scroll and keeps a 17-point heading.
+    var fullHead = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -725,31 +731,38 @@ struct AspirationChainBody: View {
                 AspirationReasonBox(note: chain.note)
                 GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
             }
-            if chain.isBare {
-                // Build 269: the old line asked him to type `goal:` into another note. The
-                // button under it makes the goal instead, already serving this aspiration.
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Nothing works towards this yet.")
-                        .font(Txt.value)
-                        .foregroundStyle(.secondary)
-                    AddServingNoteButton(model: model, parent: chain.note)
-                }
-            }
             if let changed = chain.activity.summary {
                 MarkLabel(changed, "clock.arrow.circlepath")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.soft)
                     .lineLimit(2)
             }
-            ForEach(chain.goals) { goal in
-                ChainGoalBlock(goal: goal, lead: false, under: chain.note.title)
-            }
-            // **Add a goal…** at the foot of the goals (build 269), on the phone too: the phone
-            // has no aspiration page, so the folded-open chain is the only place to add a
-            // second goal from (the review of 271 put the measure there for the same reason).
-            // A bare chain has the button above, beside the line it answers.
-            if !chain.isBare {
-                AddServingNoteButton(model: model, parent: chain.note)
+            if fullHead && !compact {
+                // 1.0: on the aspiration's own page the goals sit in a panel of the goal gold,
+                // headed Goals, with **Add a goal…** at its foot — the shape of the Projects
+                // panel on a goal's page.
+                goalsPanel
+            } else {
+                if chain.isBare {
+                    // Build 269: the old line asked him to type `goal:` into another note. The
+                    // button under it makes the goal instead, already serving this aspiration.
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Nothing works towards this yet.")
+                            .font(Txt.value)
+                            .foregroundStyle(.secondary)
+                        AddServingNoteButton(model: model, parent: chain.note)
+                    }
+                }
+                ForEach(chain.goals) { goal in
+                    ChainGoalBlock(goal: goal, lead: false, under: chain.note.title)
+                }
+                // **Add a goal…** at the foot of the goals (build 269), on the phone too: the
+                // phone has no aspiration page, so the folded-open chain is the only place to add
+                // a second goal from (the review of 271 put the measure there for the same
+                // reason). A bare chain has the button above, beside the line it answers.
+                if !chain.isBare {
+                    AddServingNoteButton(model: model, parent: chain.note)
+                }
             }
             // One heading per ending, never one heading for all three: a group called Done
             // may not hold a goal that was missed (build 165).
@@ -781,6 +794,24 @@ struct AspirationChainBody: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// The goals under the aspiration, as the page draws them (1.0).
+    private var goalsPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Heading(text: "Goals", color: ChainTint.datedGoal, count: chain.goals.count)
+            if chain.isBare {
+                Text("Nothing works towards this yet.")
+                    .font(Txt.value)
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(chain.goals) { goal in
+                ChainGoalBlock(goal: goal, lead: false, under: chain.note.title)
+            }
+            AddServingNoteButton(model: model, parent: chain.note)
+                .padding(.top, 2)
+        }
+        .panel(ChainTint.datedGoal)
     }
 
     /// **Every row inside a chain keeps the room you are in** — `model.section`, not a fixed
@@ -831,43 +862,43 @@ struct AspirationChainBody: View {
         }
     }
 
+    /// 1.0: on its own page the aspiration has the note's header — the title at 26 points and
+    /// the facts panel (Aspiration, Icon…, Status, Horizon, Measure, Looked at, Tags) with the
+    /// same bordered buttons a project's page has — and under it his reason (build 277). The
+    /// chips it replaces were the same facts (builds 268 to 276); nothing was taken away, and
+    /// **Areas that hold this** further down still names the area. In **All of them** the name
+    /// is a heading, so the page stays a list.
+    @ViewBuilder
     private var head: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                GoalMark(note: chain.note, size: 26)
-                Text(chain.note.title)
-                    .font(Txt.sectionTitle.weight(.semibold))
-                    .lineLimit(3)
+        if fullHead {
+            VStack(alignment: .leading, spacing: 10) {
+                NoteHeader(note: chain.note, inset: false,
+                           notices: chain.flags.filter { $0 != .achieved }.map(\.label))
+                AspirationReasonBox(note: chain.note)
             }
-            // Build 277: his own reason, straight under the name — why this matters, from the
-            // note's `## Why`. Only an aspiration's page draws it (his answer A2).
-            AspirationReasonBox(note: chain.note)
-            WrappingHStack(spacing: 6, lineSpacing: 6) {
-                ChainChip(text: GoalHorizon.life.label, tint: ChainTint.aspiration, filled: true)
-                // Build 276: the page that shows the icon is where the icon is changed. The
-                // note's own header (with the same button) is only one press away, behind the
-                // Note switch, so without this a Mac user would see the icon and find no button.
-                NoteIconChip(model: model, note: chain.note)
-                if let area = chain.area {
-                    ChainChip(text: "In area: \(area.title)", tint: ParaKind.area.tint, filled: false)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    GoalMark(note: chain.note, size: 24)
+                    Heading(text: chain.note.title, color: ChainTint.aspiration)
+                    ForEach(chain.flags.filter { $0 != .achieved }, id: \.self) { flag in
+                        Pill(text: flag.label, color: Theme.attention)
+                    }
                 }
-                // A button since build 268: **Set a measure…** when there is none, and the
-                // measure itself when there is. An aspiration has no date, so no date button.
-                GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
-                ForEach(chain.flags, id: \.self) { flag in
-                    ChainChip(text: flag.label,
-                              tint: flag == .achieved ? ChainTint.aspiration : .orange, filled: false)
+                // The three presses the page has always offered here (builds 268, 270, 276):
+                // the icon, the measure and "looked at today" — bordered, in the part's colour.
+                WrappingHStack(spacing: 8, lineSpacing: 6) {
+                    NoteIconChip(model: model, note: chain.note)
+                    GoalMeasureChip(model: model, note: chain.note)
+                    LookedAtChip(model: model, note: chain.note)
                 }
+                .font(Txt.value)
+                .lineLimit(1)
+                .menuStyle(.button)
+                .buttonStyle(.bordered)
+                .tint(ChainTint.aspiration)
+                AspirationReasonBox(note: chain.note)
             }
-            .font(Txt.label)
-            .lineLimit(2)
-            // **No bar here either (build 199).** An aspiration is never finished, so a per
-            // cent on one is a promise the idea does not make — and the average it was made
-            // of read 100% while two of the three goals under it wanted attention. Each goal
-            // still carries its own bar inside its own block, where the figure is true.
-            // What stands here is when you last looked at it, and since build 270 pressing
-            // it is how you say you have looked at it today.
-            LookedAtChip(model: model, note: chain.note, onChainPage: true)
         }
     }
 }
@@ -898,126 +929,44 @@ struct ChainGoalBlock: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: lead ? Theme.panelGap : 6) {
             if lead {
-                // **No button around the head when the goal is the whole page** (build 268).
-                // It holds **Set a target date…** and **Set a measure…** now, and a button
-                // inside a button is the builds 71–74 fault: one press, two meanings. Pressing
-                // the head would only have opened the page you are already on.
-                head
+                // 1.0: the goal's own page has the note's header — the title at 26 points and
+                // the facts panel with Serves, Horizon, Target, Progress, Measure, Looked at
+                // as bordered pop-ups and buttons — like a project's or an area's page. The
+                // chips it replaces were the same facts (build 268); nothing was taken away.
+                // **No button around the head** (build 268): pressing it would only have
+                // opened the page you are already on.
+                NoteHeader(note: goal.note, inset: false, progress: goal.progress,
+                           notices: goal.flags.filter { $0 != .achieved }.map(\.label))
+                if let changed = goal.activity.summary {
+                    MarkLabel(changed, "clock.arrow.circlepath")
+                        .font(Txt.label)
+                        .foregroundStyle(Theme.soft)
+                        .lineLimit(2)
+                }
+                projectsPanel
             } else {
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: goal.note.relativePath) } label: {
                     head
                 }
                 .buttonStyle(.plain)
+                rail
             }
-            if lead, let changed = goal.activity.summary {
-                MarkLabel(changed, "clock.arrow.circlepath")
-                    .font(Txt.label)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            rail
         }
     }
 
-    /// The small mark before the goal's name: the target it has always had, or his own icon at
-    /// a size that can still be read (build 276). Larger on the goal's own page (`lead`).
-    @ViewBuilder
-    private var mark: some View {
-        if goal.note.ownIcon.isIconOrColour {
-            NoteIconTile(note: goal.note, fallbackTint: ChainTint.forGoal(goal.note), size: lead ? 24 : 20)
-                .accessibilityHidden(true)
-        } else {
-            MarkImage(ChainSymbol.datedGoal)
-                .font(Txt.label)
-                .foregroundStyle(ParaKind.goal.tint)
-        }
-    }
-
-    /// The goal's name and its facts. On its own page (`lead`) the date and the measure are the
-    /// buttons that change them, the same views the note's header uses (build 268); inside an
-    /// aspiration's chain the whole head is one button that opens the goal, so its facts are
-    /// plain capsules there.
-    private var head: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 6) {
-                mark
-                Text(goal.note.title)
-                    .font(lead ? .title3.weight(.semibold) : .headline)
-                    .foregroundStyle(ParaKind.goal.tint)
-                    .lineLimit(2)
-            }
-            WrappingHStack(spacing: 6, lineSpacing: 5) {
-                if lead {
-                    // Build 276: the goal's own page carries the button that changes the icon
-                    // it shows (the rule of builds 132 to 144 and 268). Not inside a chain,
-                    // where the whole head is one button (builds 71-74).
-                    NoteIconChip(model: model, note: goal.note)
-                }
-                if lead {
-                    GoalTargetChip(model: model, note: goal.note, onChainPage: true)
-                } else if let target = goal.note.targetDate {
-                    // Build 163: the date alone never says whether it is close. Spelled by
-                    // `GoalTargetChip`, so a goal with a button and one without say it alike.
-                    ChainChip(text: GoalTargetChip.words(for: target, withTimeLeft: true),
-                              tint: GoalTargetChip.color(for: target, ended: goal.isEnded),
-                              filled: false)
-                }
-                if lead {
-                    // Build 276: **This year** or **Long term**, and the press that changes it.
-                    // On the Mac this page is what a goal opens as, so the button has to be
-                    // here and not only in the note's header. Only on its own page, for the same
-                    // reason as the date and the measure: inside a chain the head is a button.
-                    GoalHorizonChip(model: model, note: goal.note, onChainPage: true)
-                }
-                if let serves = servesToShow {
-                    // The extra he ticked: a dated goal says what it is in service of.
-                    // The chip takes the colour of the thing it NAMES, not of the goal
-                    // it sits on — the deeper gold since build 189, and gold rather
-                    // than the area's pink since build 169.
-                    ChainChip(text: "Serves \(serves)",
-                              tint: ChainTint.forGoal(named: serves, in: model.index),
-                              filled: false)
-                }
-                if let percent = goal.progress.percent {
-                    ChainChip(text: "\(percent)%", tint: ParaKind.goal.tint, filled: true)
-                }
-                if lead {
-                    GoalMeasureChip(model: model, note: goal.note, onChainPage: true)
-                }
-                if lead {
-                    // Build 270: when you last looked at this goal, and the press that says
-                    // you looked at it today. Only on its own page: inside an aspiration's chain
-                    // the head is one button that opens the goal, and a button inside a button is
-                    // the builds 71–74 fault.
-                    LookedAtChip(model: model, note: goal.note, onChainPage: true)
-                }
-                ForEach(goal.flags, id: \.self) { flag in
-                    ChainChip(text: flag.label,
-                              tint: flag == .achieved ? ParaKind.goal.tint : .orange,
-                              filled: false)
-                }
-            }
-            .font(Txt.label)
-            .lineLimit(2)
-        }
-    }
-
-    /// The projects, drawn against a rail so the level is visible without indenting text.
-    ///
-    /// **Add a project…** (build 269) is at the foot of the rail on the goal's own page, always,
-    /// and inside an aspiration's chain only under "No project delivers this goal yet.", where
-    /// it answers the line above it. It sits in the rail, never in the head's button.
-    private var rail: some View {
-        VStack(alignment: .leading, spacing: 4) {
+    /// The goal's own page (1.0): its projects in a panel of the project green, headed
+    /// **Projects**, with **Add a project…** at the foot (build 269). The same rows as inside a
+    /// chain, without the rail.
+    private var projectsPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Heading(text: "Projects", color: ParaKind.project.tint,
+                    count: goal.projects.count + goal.finishedProjects.count)
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
                 Text("No project delivers this goal yet.")
-                    .font(Txt.label)
-                    .foregroundStyle(.orange)
-                if !lead {
-                    AddServingNoteButton(model: model, parent: goal.note)
-                }
+                    .font(Txt.value)
+                    .foregroundStyle(Theme.attention)
             }
             ForEach(goal.projects) { project in
                 ChainProjectRow(project: project)
@@ -1033,18 +982,99 @@ struct ChainGoalBlock: View {
                 }
                 .buttonStyle(.plain)
             }
-            if lead {
+            AddServingNoteButton(model: model, parent: goal.note)
+                .padding(.top, 2)
+        }
+        .panel(ParaKind.project.tint)
+    }
+
+    /// The small mark before the goal's name: the target it has always had, or his own icon at
+    /// a size that can still be read (build 276).
+    @ViewBuilder
+    private var mark: some View {
+        if goal.note.ownIcon.isIconOrColour {
+            NoteIconTile(note: goal.note, fallbackTint: ChainTint.forGoal(goal.note), size: 20)
+                .accessibilityHidden(true)
+        } else {
+            MarkImage(ChainSymbol.datedGoal)
+                .font(Txt.label)
+                .foregroundStyle(ParaKind.goal.tint)
+        }
+    }
+
+    /// The goal's name and its facts inside an aspiration's chain, where the whole head is one
+    /// button that opens the goal, so its facts are plain capsules. (On the goal's own page the
+    /// head is the note's header, 1.0.)
+    private var head: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 6) {
+                mark
+                Text(goal.note.title)
+                    .font(Txt.sectionTitle)
+                    .foregroundStyle(ParaKind.goal.tint)
+                    .lineLimit(2)
+            }
+            WrappingHStack(spacing: 6, lineSpacing: 5) {
+                if let target = goal.note.targetDate {
+                    // Build 163: the date alone never says whether it is close. Spelled by
+                    // `GoalTargetChip`, so a goal with a button and one without say it alike.
+                    ChainChip(text: GoalTargetChip.words(for: target, withTimeLeft: true),
+                              tint: GoalTargetChip.color(for: target, ended: goal.isEnded),
+                              filled: false)
+                }
+                if let serves = servesToShow {
+                    // The extra he ticked: a dated goal says what it is in service of.
+                    // The chip takes the colour of the thing it NAMES, not of the goal
+                    // it sits on — the deeper gold since build 189, and gold rather
+                    // than the area's pink since build 169.
+                    ChainChip(text: "Serves \(serves)",
+                              tint: ChainTint.forGoal(named: serves, in: model.index),
+                              filled: false)
+                }
+                if let percent = goal.progress.percent {
+                    ChainChip(text: "\(percent)%", tint: ParaKind.goal.tint, filled: true)
+                }
+                ForEach(goal.flags, id: \.self) { flag in
+                    ChainChip(text: flag.label,
+                              tint: flag == .achieved ? ParaKind.goal.tint : Theme.attention,
+                              filled: false)
+                }
+            }
+            .font(Txt.label)
+            .lineLimit(2)
+        }
+    }
+
+    /// The projects under a goal inside an aspiration's chain, stepped in so the level shows.
+    /// 1.0: no rail line beside them — the step is enough, and a stripe is not in the look.
+    ///
+    /// **Add a project…** (build 269) is offered here only under "No project delivers this
+    /// goal yet.", where it answers the line above it; on the goal's own page it is at the foot
+    /// of the Projects panel. It sits under the head, never in the head's button.
+    private var rail: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
+                Text("No project delivers this goal yet.")
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.attention)
                 AddServingNoteButton(model: model, parent: goal.note)
-                    .padding(.top, 2)
+            }
+            ForEach(goal.projects) { project in
+                ChainProjectRow(project: project)
+            }
+            ForEach(goal.finishedProjects) { project in
+                ChainProjectRow(project: project)
+            }
+            ForEach(goal.areas) { area in
+                Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
+                    MarkLabel(area.title, ChainSymbol.area)
+                        .font(Txt.value)
+                        .foregroundStyle(ParaKind.area.tint)
+                }
+                .buttonStyle(.plain)
             }
         }
-        .padding(.leading, 12)
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(ParaKind.goal.tint.opacity(0.35))
-                .frame(width: 1.5)
-        }
-        .padding(.leading, 4)
+        .padding(.leading, 16)
     }
 }
 
@@ -1222,7 +1252,7 @@ struct AllAspirationsView: View {
                                    tint: ChainTint.aspiration)
                 }
                 ForEach(chains) { chain in
-                    AspirationChainBody(chain: chain, compact: false)
+                    AspirationChainBody(chain: chain, compact: false, fullHead: false)
                 }
                 // Build 100's rule: a screen called "your whole life" may not quietly leave
                 // out the goals that hang under no aspiration.
@@ -1264,17 +1294,22 @@ struct GoalsHeader<Trailing: View>: View {
     /// list of every dated goal, so there is nothing for the button to open there — and a
     /// control that does nothing where it is drawn is worse than no control (build 175).
     private let showsAll: Bool
+    /// True on the goal and aspiration pages (1.0): the facts panel under it already carries
+    /// the kind as its heading, so this row says it quietly, in small grey, and holds the
+    /// buttons. Build 280's first pictures had "Goal with a date" twice, one above the other.
+    private let quiet: Bool
     private let trailing: Trailing
     @AppStorage(GoalsShowAll.key) private var showAll = false
 
     /// Written out rather than left to the memberwise initializer: a struct that mixes a
     /// property wrapper with a `@ViewBuilder` stored property is exactly where the generated
     /// one is hard to predict, and there is no Swift compiler in this container to ask.
-    init(title: String, markName: String, showsAll: Bool = true,
+    init(title: String, markName: String, showsAll: Bool = true, quiet: Bool = false,
          @ViewBuilder trailing: () -> Trailing) {
         self.title = title
         self.markName = markName
         self.showsAll = showsAll
+        self.quiet = quiet
         self.trailing = trailing()
     }
 
@@ -1284,9 +1319,17 @@ struct GoalsHeader<Trailing: View>: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            SectionLabel(title: showingAll ? "All of them" : title, count: nil,
-                         markName: showingAll ? "list.bullet.indent" : markName,
-                         tint: ParaKind.goal.tint)
+            if quiet && !showingAll {
+                MarkLabel(title, markName)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.soft)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            } else {
+                SectionLabel(title: showingAll ? "All of them" : title, count: nil,
+                             markName: showingAll ? "list.bullet.indent" : markName,
+                             tint: ParaKind.goal.tint)
+            }
             trailing
             if showsAll {
                 StateToggle(markName: "list.bullet.indent", title: "All of them",

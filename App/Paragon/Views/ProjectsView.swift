@@ -105,7 +105,7 @@ struct ProjectsListView: View {
     }
 
     private func row(_ line: ProjectLine, in group: ProjectGroup) -> some View {
-        ProjectBox(line: line, under: aspiration(of: group), framed: !isPhone)
+        ProjectRow(line: line, under: aspiration(of: group))
             .tag(line.note.relativePath)
             // Named by its path for the screen tests (build 191), the same name the flat list
             // gave the row, so every test that opens the test project still finds it.
@@ -168,8 +168,8 @@ struct ProjectsListView: View {
             }
             if group.lines.contains(where: \.goalIsMissing) {
                 parts.append(isPhone
-                    ? "A goal name with a dashed line was not found: press and hold the project and choose Serves."
-                    : "A goal name with a dashed line was not found: right-click the project and choose Serves.")
+                    ? "A line saying No goal called … names a goal that was not found: press and hold the project and choose Serves."
+                    : "A line saying No goal called … names a goal that was not found: right-click the project and choose Serves.")
             }
             return parts.isEmpty ? nil : parts.joined(separator: " ")
         case .noGoal:
@@ -209,8 +209,9 @@ struct ProjectsListView: View {
     }
 }
 
-/// The heading of one group: a band in the colour of what the group is, its badge, its name,
-/// how many projects it holds, and how many want a look. **The whole line folds**, never a
+/// The heading of one group (1.0): its badge, its name as a 17-point heading in the colour
+/// of what the group is, how many projects it holds, and how many want a look. No band: the
+/// colour is in the words, as on every other heading. **The whole line folds**, never a
 /// small triangle (build 205), and it is a header, so it never takes the selection (build 201).
 struct ProjectGroupHeader: View {
     let group: ProjectGroup
@@ -219,29 +220,26 @@ struct ProjectGroupHeader: View {
 
     var body: some View {
         Button(action: toggle) {
-            HStack(spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 MarkImage("chevron.right")
                     .font(Txt.listSecond.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(open ? 90 : 0))
                 badge
                 Text(group.title)
-                    .font(Txt.label.weight(.semibold))
-                    .foregroundStyle(group.isEnded ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
+                    .font(Txt.sectionTitle)
+                    .foregroundStyle(headingTint)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 Text("\(group.lines.count)")
                     .font(Txt.label.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 1)
-                    .background(.quaternary, in: Capsule())
+                    .foregroundStyle(Theme.soft)
                 if let caption = yearCaption {
                     // Build 269: on Done alone, how many ended this year. Grey, and it gives
                     // way before the name does in a narrow column (builds 138, 212).
                     Text("\u{00B7} " + caption)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.soft)
                         .lineLimit(2)
                         .layoutPriority(-1)
                 }
@@ -250,15 +248,13 @@ struct ProjectGroupHeader: View {
                     // folded group still says it (build 100).
                     MarkLabel("\(group.needsALookCount)", "exclamationmark.triangle.fill")
                         .font(Txt.label.weight(.semibold))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention)
                 }
             }
             // The whole line, never a `Spacer` beside a short button: the Mac reported a wrong
             // frame for that shape and a test's click landed in the list (build 247).
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background { band }
+            .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -280,6 +276,17 @@ struct ProjectGroupHeader: View {
     /// "4 this year" on the Done heading, nil on every other one (Core decides, and says why).
     private var yearCaption: String? {
         group.thisYearCaption(today: DateOnly.today())
+    }
+
+    /// The colour of what the group is: the aspiration's gold, a dated goal's gold, soft grey
+    /// for projects with no goal, and the ending's own colour for Done, Missed and Dropped.
+    private var headingTint: Color {
+        switch group.heading {
+        case .aspiration: return ChainTint.aspiration
+        case .notLinked: return ChainTint.datedGoal
+        case .noGoal: return Theme.soft
+        case .ended(let status): return endedTint(status)
+        }
     }
 
     /// The same badge the Goals rooms draw for the same thing, so a heading here and a row
@@ -312,36 +319,21 @@ struct ProjectGroupHeader: View {
     private func endedTint(_ status: NoteStatus) -> Color {
         status.tint(onNote: ParaKind.project.tint)
     }
-
-    @ViewBuilder
-    private var band: some View {
-        switch group.heading {
-        case .aspiration:
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(ChainTint.aspiration.opacity(0.14))
-        case .notLinked:
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(ChainTint.datedGoal.opacity(0.11))
-        case .noGoal:
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .strokeBorder(Color.secondary.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-        case .ended:
-            Color.clear
-        }
-    }
 }
 
-/// One project as a box: a tile, its name on up to two lines, what it needs, the goal it
-/// serves, and a row of short pills. **Every text colour goes through `rowTint`**, because the
-/// selection fill is his own accent colour and an explicit colour on it can vanish (build 200).
-struct ProjectBox: View {
+/// One project as a row (1.0): the note's own icon or the 8-point dot, one title, one quiet
+/// second line that says how far it is and what it needs ("0 of 2 · Next: Book the train"),
+/// a capsule at the right when it is not simply active, and the small weekly bars when a task
+/// was finished. Every other fact is in the project's own facts panel. Build 253's card — a
+/// tile, a Next line, a goal chip, a progress bar and a frame — said the same things in four
+/// lines; what the line says is still decided in Core (`ProjectLine`). **Every text colour goes
+/// through `rowTint`**, because the selection fill is his own accent colour and an explicit
+/// colour on it can vanish (build 200).
+struct ProjectRow: View {
     let line: ProjectLine
-    /// The aspiration whose heading this box sits under. A goal pill that would only name it
-    /// again is left out (build 169).
+    /// The aspiration whose heading this row sits under. A goal that would only name it again
+    /// is left out (build 169).
     var under: Note? = nil
-    /// Its own frame on the Mac. On the phone the section's rounded card is already the box,
-    /// and a frame inside it would be a box in a box.
-    var framed: Bool = true
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     private var isOver: Bool { line.status.isEnded || line.status == .archived }
@@ -351,222 +343,144 @@ struct ProjectBox: View {
     private var isRunning: Bool { line.status == .active }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             ProjectTile(status: line.status, note: line.note)
                 .accessibilityIdentifier("project.tile.\(line.id)")
-            VStack(alignment: .leading, spacing: 5) {
-                // `strikethrough` while it is still a `Text`, before `lineLimit` makes it a view.
-                Text(line.note.title)
-                    .strikethrough(isCalledOff)
-                    .font(Txt.listTitle)
-                    .lineLimit(2)
-                    .foregroundStyle(isOver ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
-                need
-                goalLine
-                if !line.weekly.isEmpty {
-                    // Build 255: the tasks finished each week, newest on the right, and one
-                    // line saying how much or since when. Nothing at all when no finished task
-                    // carries a date: empty bars would say "you did nothing" (build 141).
-                    HStack(spacing: 6) {
-                        WeekBars(weekly: line.weekly)
-                        if let caption = line.weekly.caption(today: DateOnly.today()) {
-                            // Two lines, never cut: at the Mac's usual column width "last task
-                            // finished about a month ago" is wider than the room beside the bars,
-                            // and the cut part is the fact (review of build 255, build 138).
-                            Text(caption)
-                                .font(Txt.label)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline) {
+                    // `strikethrough` while it is still a `Text`, before `lineLimit` makes it a view.
+                    Text(line.note.title)
+                        .strikethrough(isCalledOff)
+                        .font(Txt.listTitle)
+                        .lineLimit(1)
+                        .foregroundStyle(isOver ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
+                    Spacer(minLength: 6)
+                    if line.status != .active {
+                        Pill(text: line.status.label, color: line.status.tint(onNote: ParaKind.project.tint))
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("project.weekly.\(line.id)")
                 }
-                if !facts.isEmpty || showsProgress {
-                    WrappingHStack(spacing: 6, lineSpacing: 4) {
-                        if showsProgress {
-                            ProjectProgress(done: line.done, total: line.total)
-                        }
-                        ForEach(facts) { fact in
-                            if let identifier = fact.identifier {
-                                // One element with one sentence, so a screen test and a screen
-                                // reader find the same words on both platforms (build 196).
-                                ProjectPill(fact: fact)
-                                    .accessibilityElement(children: .ignore)
-                                    .accessibilityLabel(fact.spoken ?? fact.text)
-                                    .accessibilityIdentifier(identifier)
-                            } else {
-                                ProjectPill(fact: fact)
-                            }
-                        }
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    secondLine
+                    Spacer(minLength: 0)
+                    if !line.weekly.isEmpty {
+                        // Build 255: the tasks finished each week, newest on the right. Nothing
+                        // at all when no finished task carries a date: empty bars would say
+                        // "you did nothing" (build 141).
+                        WeekBars(weekly: line.weekly, height: 12)
+                            .accessibilityIdentifier("project.weekly.\(line.id)")
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(framed ? 10 : 2)
-        .background {
-            if framed {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(isOver ? Color.clear : ParaKind.project.tint.opacity(0.07))
-            }
-        }
-        .overlay {
-            if framed {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .strokeBorder((isOver ? Color.secondary : ParaKind.project.tint).opacity(isOver ? 0.3 : 0.45),
-                                  lineWidth: 1)
-            }
-        }
-        .padding(.vertical, framed ? 3 : 2)
+        .padding(.vertical, 2)
     }
 
-    /// The line that says what the project needs. Calm grey for "no next action": it is true of
-    /// most of his projects today, and orange for it would read as a telling-off (build 132).
+    /// The one second line. Named `project.next.<path>` with the need as its spoken words
+    /// ("Next: …") on a live project, and `project.endedDay.<path>` saying "Ended on …" on one
+    /// that is over — the names the screen tests have read since builds 211 and 269.
     @ViewBuilder
-    private var need: some View {
-        switch line.need {
-        case .next:
-            Label {
-                Text("Next: " + (line.nextTitle ?? ""))
-                    .lineLimit(2)
-            } icon: {
-                MarkImage(ChainSymbol.task)
-                    .rowTint(ParaKind.project.tint)
-            }
-            .font(Txt.label)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(needWords)
-            .accessibilityIdentifier("project.next.\(line.id)")
-        case .allFinished(let count):
-            WrappingHStack(spacing: 6, lineSpacing: 4) {
-                MarkLabel(ProjectLine.finishedText(count: count), "checkmark.circle.fill")
-                    .font(Txt.label)
-                    .rowTint(ParaKind.project.tint)
-                if line.status == .active {
-                    ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
-                                                  markName: "circle.dashed", dashed: true))
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(needWords)
-            .accessibilityIdentifier("project.next.\(line.id)")
-        case .waitingOnly(let count):
-            // Build 279: every open line is waiting for somebody else. The same calm grey as
-            // "All finished", and the same pill, because it is just as true that there is no
-            // next action — but not "finished", which would be false.
-            WrappingHStack(spacing: 6, lineSpacing: 4) {
-                MarkLabel(ProjectLine.waitingText(count: count), WaitingShowing.symbol)
-                    .font(Txt.label)
-                    .rowTint(ParaKind.project.tint)
-                if line.status == .active {
-                    ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
-                                                  markName: "circle.dashed", dashed: true))
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(needWords)
-            .accessibilityIdentifier("project.next.\(line.id)")
-        case .noTasks:
-            ProjectPill(fact: ProjectFact(id: "noTasks", text: "No tasks yet",
-                                          markName: "circle.dashed", dashed: true))
+    private var secondLine: some View {
+        let second = secondText
+        if isOver {
+            Text(second.text)
+                .font(Txt.listSecond)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(needWords)
-                .accessibilityIdentifier("project.next.\(line.id)")
+                .accessibilityLabel(endedSpoken)
+                .accessibilityIdentifier("project.endedDay.\(line.id)")
+        } else {
+            // The count is its own words, so a screen reader and the tests hear "0 of 2" and
+            // then the need; the need element keeps its old name and its "Next: …" label.
+            HStack(spacing: 4) {
+                if let count = second.count {
+                    Text(count + " \u{00B7}")
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+                Text(second.text)
+                    .lineLimit(1)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(needWords)
+                    .accessibilityIdentifier("project.next.\(line.id)")
+            }
+            .font(Txt.listSecond)
+            // Red when a date has passed; orange ("look at this") when the project is due
+            // after its goal, as the card said it (build 253); grey otherwise.
+            .foregroundStyle(second.late ? AnyShapeStyle(Color.red)
+                             : second.attention ? AnyShapeStyle(Theme.attention) : AnyShapeStyle(.secondary))
         }
+    }
+
+    /// The facts of the second line, most telling first, joined with a middle dot; `late` when
+    /// one of them is a date that has passed on a running project. Assembled here rather than
+    /// in the body, where a loop and `var` are not allowed (build 58).
+    private var secondText: (count: String?, text: String, late: Bool, attention: Bool) {
+        let today = DateOnly.today()
+        var parts: [String] = []
+        var count: String?
+        var late = false
+        var attention = false
+        if isOver {
+            if let ended = line.ended {
+                // Build 269: the day it ended, "20 October". An old project with no `ended:`
+                // day gets nothing, never a guessed day (build 262).
+                parts.append("Ended " + ProjectEnding.dayText(ended, today: today))
+            }
+            if case .allFinished(let count) = line.need {
+                parts.append(ProjectLine.finishedText(count: count))
+            }
+        } else {
+            if line.total > 0, line.openCount > 0 { count = "\(line.done) of \(line.total)" }
+            parts.append(needWords)
+            if let next = line.nextTask {
+                if useTaskTimes, let minutes = next.minutes { parts.append(TaskTime.label(minutes)) }
+                if let due = next.dueDate {
+                    parts.append(due.timeLeftText(from: today))
+                    if isRunning, due < today { late = true }
+                }
+            }
+            if let deadline = line.deadline {
+                parts.append(ProjectLine.deadlineText(deadline, today: today))
+                if isRunning, line.deadlinePassed { late = true }
+            }
+            if isRunning, line.overdueCount > 0 {
+                parts.append(ProjectLine.overdueText(line.overdueCount))
+                late = true
+            }
+            if isRunning, line.dueAfterGoal { parts.append("Due after its goal"); attention = true }
+        }
+        if let goal = line.goal {
+            if goal.relativePath != under?.relativePath { parts.append(goal.title) }
+        } else if line.goalIsMissing, let name = line.note.goal {
+            parts.append("No goal called \(name)")
+        }
+        return (count, parts.joined(separator: " \u{00B7} "), late, attention)
     }
 
     /// The need line in words, set as its label: one element with one sentence reads the same
     /// on both platforms, where a combined one keeps its words in different places (build 196).
+    /// Calm grey for "no next action": it is true of most of his projects today, and orange for
+    /// it would read as a telling-off (build 132).
     private var needWords: String {
         switch line.need {
         case .next: return "Next: " + (line.nextTitle ?? "")
         case .allFinished(let count):
-            return ProjectLine.finishedText(count: count) + (line.status == .active ? ". No next action" : "")
+            return ProjectLine.finishedText(count: count) + (line.status == .active ? " \u{00B7} No next action" : "")
         case .waitingOnly(let count):
-            return ProjectLine.waitingText(count: count) + (line.status == .active ? ". No next action" : "")
+            // Build 279: every open line is waiting for somebody else. The same calm grey as
+            // "All finished": there is no next action, but not "finished", which would be false.
+            return ProjectLine.waitingText(count: count) + (line.status == .active ? " \u{00B7} No next action" : "")
         case .noTasks: return "No tasks yet"
         }
     }
 
-    /// The goal it serves, on a line of its own so a long name wraps instead of squeezing the
-    /// pills (build 138). Dashed and grey when the `goal:` line names nothing that exists.
-    @ViewBuilder
-    private var goalLine: some View {
-        if let goal = line.goal {
-            if goal.relativePath != under?.relativePath {
-                ProjectPill(fact: ProjectFact(id: "goal", text: goal.title,
-                                              markName: ChainSymbol.forGoal(goal),
-                                              tint: ChainTint.forGoal(goal)),
-                            lines: 2)
-            }
-        } else if line.goalIsMissing, let name = line.note.goal {
-            ProjectPill(fact: ProjectFact(id: "goal", text: name, markName: ChainSymbol.datedGoal, dashed: true),
-                        lines: 2)
-                .help("No goal has this name. Right-click the project and choose Serves.")
+    /// "Ended on 20 October", the day first, as the screen test reads it (build 269).
+    private var endedSpoken: String {
+        if let ended = line.ended {
+            return "Ended on " + ProjectEnding.dayText(ended, today: DateOnly.today())
         }
-    }
-
-    /// Only while a top-level task is still open. When the next thing is a subtask under a
-    /// ticked task, a full "1 of 1 finished" bar beside it would make the box look finished —
-    /// the very signal build 253 was made to remove.
-    private var showsProgress: Bool {
-        guard case .next = line.need else { return false }
-        return line.total > 0 && line.openCount > 0
-    }
-
-    /// The short facts, assembled here rather than in the body, where a loop and `var` are not
-    /// allowed (build 58). Red only for a date that has passed; orange for "look at this".
-    private var facts: [ProjectFact] {
-        let today = DateOnly.today()
-        var facts: [ProjectFact] = []
-        if isOver, let ended = line.ended {
-            // Build 269: the day it ended, "20 October". Not "Done on …": the heading above
-            // already says Done (build 169). An old project with no `ended:` day gets no pill,
-            // never a guessed one (build 262).
-            let day = ProjectEnding.dayText(ended, today: today)
-            facts.append(ProjectFact(id: "ended", text: day, markName: "calendar",
-                                     identifier: "project.endedDay.\(line.id)",
-                                     spoken: "Ended on " + day))
-        }
-        if let next = line.nextTask {
-            if useTaskTimes, let minutes = next.minutes {
-                facts.append(ProjectFact(id: "time", text: TaskTime.label(minutes), markName: "clock"))
-            }
-            // On a box that is over, the day it ended is the one date (build 269): a second
-            // calendar pill for an open task's date would read as the same kind of fact.
-            if !isOver, let due = next.dueDate {
-                facts.append(ProjectFact(id: "date", text: due.timeLeftText(from: today),
-                                         markName: "calendar",
-                                         tint: isRunning && due < today ? Color.red : Color.secondary))
-            }
-        }
-        if line.status == .onHold {
-            facts.append(ProjectFact(id: "onHold", text: NoteStatus.onHold.label,
-                                     markName: NoteStatus.onHold.markName))
-        }
-        if let deadline = line.deadline, !isOver {
-            facts.append(ProjectFact(id: "deadline", text: ProjectLine.deadlineText(deadline, today: today),
-                                     markName: "flag.checkered",
-                                     tint: isRunning && line.deadlinePassed ? Color.red : Color.secondary))
-        }
-        if isRunning, line.overdueCount > 0 {
-            facts.append(ProjectFact(id: "overdue", text: ProjectLine.overdueText(line.overdueCount),
-                                     markName: "exclamationmark.circle", tint: Color.red))
-        }
-        if isRunning, line.dueAfterGoal {
-            facts.append(ProjectFact(id: "afterGoal", text: "Due after its goal",
-                                     markName: "exclamationmark.triangle.fill", tint: Color.orange))
-        }
-        let tags = line.note.tags
-        for tag in tags.prefix(2) {
-            facts.append(ProjectFact(id: "tag." + tag, text: "#" + tag, tint: SidebarSection.tags.tint))
-        }
-        if tags.count > 2 {
-            facts.append(ProjectFact(id: "moreTags", text: "+\(tags.count - 2)", tint: SidebarSection.tags.tint))
-        }
-        return facts
+        return secondText.text
     }
 }
 
@@ -695,25 +609,29 @@ struct ProjectTile: View {
 
     var body: some View {
         face
-            .frame(width: 34, height: 34)
             // One element saying what is in the tile, so a screen test can read it.
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(spoken)
     }
 
+    /// 1.0: the row's mark is the note's own icon on its colour, or the 8-point dot every list
+    /// row has (`NoteRow`'s rule). Only an old emoji keeps the small frame it always had.
     @ViewBuilder
     private var face: some View {
         if note.ownIcon.isIconOrColour {
-            NoteIconTile(note: note, fallbackTint: tint, size: 34)
-        } else {
+            NoteIconTile(note: note, fallbackTint: tint, size: 30)
+        } else if emoji != nil {
             framedMark
+                .frame(width: 30, height: 30)
+        } else {
+            TintStripe(color: tint)
         }
     }
 
     /// The old emoji or the project flag, in the frame this tile has always had.
     private var framedMark: some View {
         mark
-            .frame(width: 34, height: 34)
+            .frame(width: 30, height: 30)
             .background(tint.opacity(emoji == nil ? 0.10 : 0.16),
                         in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(

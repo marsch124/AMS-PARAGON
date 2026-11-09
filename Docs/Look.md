@@ -103,14 +103,20 @@ How a colour is worn:
 ```
 
 - The height is the height of its words.
-- There is at most one second line, for example "0 of 2 · Due in 12 d". It depends on the kind of note: a project shows progress and the due date; a goal shows its progress and its target date or horizon; an area shows its open tasks ("3 open"); a resource shows its links ("4 linked"); a daily note shows its date; any other note shows open tasks and a due date. When there is nothing to show, a project shows its area and another note its goal. Everything else is in the facts panel at the top of the note.
-- An overdue date is red. All else is grey.
+- There is at most one second line, for example "0 of 2 · Due in 12 d". It depends on the kind of note: a project shows its progress and what it needs; a goal shows its progress and its target date or horizon; an area shows its open tasks ("3 open"); a resource shows its links ("4 linked"); a daily note shows its date; any other note shows open tasks and a due date. When there is nothing to show, a project shows its area and another note its goal. Everything else is in the facts panel at the top of the note.
+- A date that has passed turns the row's second line red; "Due after its goal" turns a project's line orange. All else is grey.
 - A status such as Paused, Someday or Ended is a small capsule at the right edge (11 points, the part's colour on a 14 % tint).
-- A group heading in a list is the 17-point heading in the part's colour.
+- A group heading in a list is the 17-point heading in the colour of what the group is (an aspiration's gold, grey for "No goal"), with the count beside it. No band behind it.
+- Every list uses this row, the **Projects** list included. A project's second line is its progress and what it needs: "0 of 2 · Next: Define the outcome and the first step", "All 3 finished · No next action", "No tasks yet", or for an ended project "Ended 20 October · 2 tasks finished". Its weekly bars sit at the right of the row when something has been finished; On hold, Done, Missed and Dropped are the status capsule. No card, no frame, no tile, no progress bar and no chips in a row. The goal, the deadline and the tags are in the facts panel. After that, when there is room: its deadline, an overdue count, "Due after its goal" and the goal it serves when the heading does not already name it.
+- The goal rows and the aspiration rows are the same: "0 % · 2027-08-15 · in about 9 months", "1 goal · Never looked at · Health". A goal with no aspiration keeps its **Give it an aspiration** button at the right; a warning is an orange capsule there.
 
 ## 4. The top of a note
 
 The title is 26 points, bold; pressing it renames the note where that is allowed. Under it is the facts panel, in the note's colour. Its heading is the kind of note, for example "Project", with the note's icon beside it. Inside, the facts sit in a row that wraps. Each is a small grey label (12 points) with its value (15 points) under it: Status, In area (or Part of), Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, List and Icon. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button, not coloured words. A fact you cannot change is plain words. Tasks and Linked notes are tinted panels too.
+
+The goal's page in **Goals** and the aspiration's page in **Aspirations** (Mac and iPad) use this same header: the title at 26 points and the facts panel, headed **Goal with a date** or **Aspiration** with the **Icon…** button beside it. Its facts are Status, Serves, Horizon (a labelled pop-up: This year / Long term), Target, Progress (the per cent), Measure, Looked at, Tags and List; only the ones that fit are shown. A notice such as "Target date passed" is a small orange capsule in the panel. Under the panel comes the aspiration's Reason box, then the projects (or the goals) in a panel in the project tint, headed **Projects**, with **Add a project…** at its foot. No rail or stripe beside them.
+
+When the note column is short (Mac), the editor keeps at least 90 points of height and the sections above it, the header, Tasks and Linked notes, scroll instead. The editor never shrinks to nothing.
 
 ## 5. Edit windows
 
@@ -122,6 +128,7 @@ Mac: a bar at the top with the title (17 points, semibold, in the part's colour)
 - **Escape** is Cancel. **Return** and **⌘S** do the doing button (the second shortcut sits on a hidden button, because one button carries one shortcut).
 - **Tab** moves between text fields as macOS does. The choice chips are buttons, not fields; do not promise that Tab reaches every chip.
 - Quick capture inside the New note sheet has no bar of its own; it keeps its one **Save**.
+- The first field has the keyboard focus when the sheet opens on the Mac: Start the day's **Add an action for today**, Close the day's **One line, if you feel like it**. The focus ring never starts on Cancel.
 
 iPhone: a navigation bar with the title small in the middle, **Cancel** on the left and the doing button on the right, in the part's colour and bold. The iPhone's own Quick capture screen keeps its full-width **Save** button; that button is the part's colour, paler when it cannot act.
 
@@ -142,7 +149,7 @@ The part's icon, in the part's colour at 60 %, one calm line (15 points, grey), 
 
 - On the Mac the note's header, the panels and the text stop at 680 points (`Theme.readingWidth`) and sit centred in the column. On a wide window the rest is calm margin.
 - The sidebar column is at least 180 points wide, normally 200. The list column is 220 to 280 points; the Map list is 420 to 720.
-- Window toolbar: Search, Quick capture and Sync. The **+** New note button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. They are placed where the owner put them.
+- Window toolbar: Search, Quick capture and Sync. On the Mac a page's own actions live in the window toolbar too, on two pages: **Time Blocks** (the day arrows with Today, + Block, Week, the calendar-blocks button) and the **Calendar**'s right-hand column (+ Block time, the Note / Schedule switch). The page keeps the day's name and summary. The iPhone and the iPad keep these buttons in the page. The **+** New note button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. They are placed where the owner put them.
 
 ## 9. iPhone
 
@@ -156,11 +163,16 @@ The version shows as "PARAGON 1.0 (280)" at the foot of the Mac sidebar and at t
 
 Each colour in section 2 has a day shade and a night shade. By day a panel is white with a light tint and no border. At night a panel is #1E2228 with a stronger tint (13 %) and a 1-point line. Both were drawn and checked.
 
-## 12. Checks for every new screen
+## 12. Filters in Search
+
+The filter boxes in Search are the Mac's own checkbox control on the Mac (`Toggle` with the `.checkbox` style), in rows under the field, and the rows end above the results bar. On the iPhone they are chips, as before. A result's line shows the words of a task, never the "- [ ] " marker.
+
+## 13. Checks for every new screen
 
 - The text sizes come from the scale in section 1. No new size.
 - The part's colour comes from section 2. No new colour.
-- A panel, a row, an edit window and an empty screen follow sections 3 to 6.
+- A panel, a row, an edit window and an empty screen follow sections 3 to 6. A row is one title and one second line, never a card.
+- An edit sheet's first field has the focus when it opens on the Mac (section 5).
 - The main button is in colour.
 - Icons are marks, never stock symbols or emoji.
 - The screen looks right on the iPhone and the Mac, by day and by night, at a normal iPhone size.

@@ -40,6 +40,9 @@ struct SearchView: View {
     @AppStorage("searchFiltersFolded") private var deskFiltersFolded = false
     @AppStorage("searchFiltersFoldedPhone") private var phoneFiltersFolded = true
     private var filtersFolded: Bool { isPhone ? phoneFiltersFolded : deskFiltersFolded }
+    /// The height of the boxes, measured, so the pane can be exactly that tall (1.0).
+    @State private var filtersHeight: CGFloat = 0
+    private var filtersCap: CGFloat { isPhone ? 200 : 360 }
 
     private static let kinds: [ParaKind] = [.goal, .project, .area, .resource, .archive, .daily, .inbox]
     /// Build 165: the boxes are the `NoteStatus` cases, so the list can never miss one the
@@ -56,11 +59,14 @@ struct SearchView: View {
             if filtersFolded {
                 foldedLine(query)
             } else {
-                ScrollView { filters(query) }
+                // 1.0: the pane is as tall as its boxes and no taller, so it ends at the last
+                // row and not through the middle of a group; only a longer list scrolls.
+                ScrollView { filters(query).measureHeight($filtersHeight) }
                     // The phone has the keyboard under all of this. 320pt of boxes plus the
                     // field plus the keyboard left the results about two rows tall, which is
                     // what he reported (build 160).
-                    .frame(maxHeight: isPhone ? 200 : 320)
+                    .frame(height: filtersHeight > 0 ? min(filtersHeight, filtersCap) : nil)
+                    .frame(maxHeight: filtersCap)
             }
             Divider()
             results(query)
@@ -244,19 +250,22 @@ struct SearchView: View {
                 ForEach(Self.taskStates, id: \.self) { state in
                     FilterBox(title: SearchQuery.label(for: state).capitalizedFirst,
                               isOn: query.taskStates.contains(state),
-                              tint: SidebarSection.allActions.tint) { toggle("is:\(state.rawValue)") }
+                              tint: SidebarSection.allActions.tint,
+                              token: "is:\(state.rawValue)") { toggle("is:\(state.rawValue)") }
                 }
                 ForEach(Self.dues, id: \.self) { due in
                     FilterBox(title: SearchQuery.label(for: due).capitalizedFirst,
                               isOn: query.dues.contains(due),
-                              tint: SidebarSection.calendar.tint) { toggle("due:\(due.rawValue)") }
+                              tint: SidebarSection.calendar.tint,
+                              token: "due:\(due.rawValue)") { toggle("due:\(due.rawValue)") }
                 }
             }
             group("Kind of note", tint: ParaKind.project.tint, note: nil) {
                 ForEach(Self.kinds, id: \.self) { kind in
                     FilterBox(title: kind.displayName,
                               isOn: query.kinds.contains(kind),
-                              tint: kind.tint) { toggle("type:\(kind.rawValue)") }
+                              tint: kind.tint,
+                              token: "type:\(kind.rawValue)") { toggle("type:\(kind.rawValue)") }
                 }
             }
             group("How the note stands", tint: SidebarSection.review.tint, note: nil) {
@@ -264,7 +273,8 @@ struct SearchView: View {
                 ForEach(Self.statuses, id: \.self) { status in
                     FilterBox(title: status.label,
                               isOn: asked.contains(status),
-                              tint: SidebarSection.review.tint) { toggle("status:\(status.rawValue)") }
+                              tint: SidebarSection.review.tint,
+                              token: "status:\(status.rawValue)") { toggle("status:\(status.rawValue)") }
                 }
             }
             tagGroup(query)
@@ -281,10 +291,18 @@ struct SearchView: View {
             ForEach(tags, id: \.self) { tag in
                 FilterBox(title: "#\(tag)",
                           isOn: query.tags.contains(tag.lowercased()),
-                          tint: SidebarSection.tags.tint) { toggle("#\(tag)") }
+                          tint: SidebarSection.tags.tint,
+                          token: "#\(tag)") { toggle("#\(tag)") }
             }
         }
     }
+
+    /// Tick boxes on the Mac breathe a little more than the phone's chips.
+    #if os(macOS)
+    private let boxSpacing: CGFloat = 14
+    #else
+    private let boxSpacing: CGFloat = 6
+    #endif
 
     /// One titled row of boxes. `WrappingHStack` so a narrow column moves whole boxes to the
     /// next line rather than squeezing every one of them thinner (build 138).
@@ -298,7 +316,7 @@ struct SearchView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            WrappingHStack(spacing: 6, lineSpacing: 6) {
+            WrappingHStack(spacing: boxSpacing, lineSpacing: 6) {
                 boxes()
             }
             .lineLimit(1)
@@ -376,15 +394,30 @@ struct SearchView: View {
     }
 }
 
-/// One tick box. The same two states as `StateToggle` (build 142) in words rather than a
-/// symbol: on is the tint filled with a solid border, off is grey with a dashed one.
+/// One tick box. **On the Mac it is the Mac's own tick box** (1.0, the reviewer's point): a
+/// `Toggle` in the checkbox style, in the row's colour. On the iPhone it stays a chip, in the
+/// same two states as `StateToggle` (build 142) in words rather than a symbol: on is the tint
+/// filled with a solid border, off is grey with a dashed one. Both carry the name
+/// `search.box.<token>`, the token the box writes into the query.
 struct FilterBox: View {
     let title: String
     let isOn: Bool
     var tint: Color = .accentColor
+    /// What the box writes into the query ("is:open", "type:project", "#travel"); the box is
+    /// named `search.box.<token>` by it. All actions' boxes name themselves and pass none.
+    var token: String? = nil
     let action: () -> Void
 
     var body: some View {
+        #if os(macOS)
+        Toggle(isOn: Binding(get: { isOn }, set: { _ in action() })) {
+            Text(title)
+                .font(Txt.list)
+        }
+        .toggleStyle(.checkbox)
+        .tint(tint)
+        .accessibilityIdentifier(token.map { "search.box.\($0)" } ?? "")
+        #else
         Button(action: action) {
             HStack(spacing: 5) {
                 MarkImage(isOn ? "checkmark.square.fill" : "square")
@@ -406,6 +439,8 @@ struct FilterBox: View {
         .buttonStyle(.plain)
         .accessibilityLabel(isOn ? "\(title), ticked" : "\(title), not ticked")
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
+        .accessibilityIdentifier(token.map { "search.box.\($0)" } ?? "")
+        #endif
     }
 }
 

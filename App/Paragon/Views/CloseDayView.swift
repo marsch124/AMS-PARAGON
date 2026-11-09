@@ -29,6 +29,8 @@ struct CloseDayView: View {
     /// What the field was filled with, so a line on file the field never showed is never
     /// written over (build 261's review).
     @State private var shownLookingBack = ""
+    /// The one field on the sheet; on the Mac the cursor starts in it (1.0).
+    @FocusState private var lookingBackFocused: Bool
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -96,6 +98,12 @@ struct CloseDayView: View {
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         .sheetChrome(title: "Close the day", tint: tint, actionTitle: "Done",
                      cancel: { close() }, act: { finish() })
+        #if os(macOS)
+        // 1.0: the cursor starts in the first field, so the first key pressed types (the sheet
+        // used to open with the focus ring on Cancel). Escape still cancels.
+        .defaultFocus($lookingBackFocused, true)
+        .onAppear { DispatchQueue.main.async { lookingBackFocused = true } }
+        #endif
         .onAppear {
             model.loadFirstPicks()
             guard !loaded else { return }
@@ -269,6 +277,8 @@ struct CloseDayView: View {
             TextField("One line, if you feel like it", text: $lookingBack, axis: .vertical)
                 .lineLimit(1...5)
                 .textFieldStyle(.plain)
+                .focused($lookingBackFocused)
+                .accessibilityIdentifier("closeDay.lookingBack")
                 .padding(8)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
                 .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))

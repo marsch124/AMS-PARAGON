@@ -17,19 +17,32 @@ struct CalendarDetailView: View {
                              count: nil,
                              markName: showsNote ? "doc.text" : "clock",
                              tint: ParaKind.daily.tint)
-                StateToggle(markName: "doc.text", title: "Note",
-                            isOn: showsNote, tint: ParaKind.daily.tint) {
-                    showsNote.toggle()
-                }
+                #if !os(macOS)
+                noteToggle
+                #endif
             }
             .padding(8)
             Divider()
             content
         }
+        #if os(macOS)
+        // 1.0: the Note/Schedule switch is a toolbar item on the Mac (the reviewer's point).
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) { noteToggle }
+        }
+        #endif
         .onChange(of: model.selectedNotePath) { _, path in
             // Picking a note in the middle column means you want to read it.
             if path != nil { showsNote = true }
         }
+    }
+
+    private var noteToggle: some View {
+        StateToggle(markName: "doc.text", title: "Note",
+                    isOn: showsNote, tint: ParaKind.daily.tint) {
+            showsNote.toggle()
+        }
+        .accessibilityIdentifier("calendar.noteToggle")
     }
 
     @ViewBuilder
@@ -111,8 +124,10 @@ struct DayScheduleView: View {
         let items = timedItems()
         let range = hourRange(items)
         VStack(spacing: 0) {
+            #if !os(macOS)
             header
             Divider()
+            #endif
             untimedStrip
             ScrollView {
                 timeline(items: items, range: range)
@@ -120,6 +135,16 @@ struct DayScheduleView: View {
                     .padding(.vertical, 8)
             }
         }
+        #if os(macOS)
+        // 1.0: **Block time** is a toolbar item on the Mac, beside the Note/Schedule switch; the
+        // heading above already says Schedule, so the page's own header row is not drawn.
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                blockTimeButton
+                    .labelStyle(.titleAndIcon)
+            }
+        }
+        #endif
         .task(id: day) {
             await model.loadEvents(for: day)
             await model.loadTimeBlocks()
@@ -142,17 +167,22 @@ struct DayScheduleView: View {
             Text("Schedule")
                 .font(Txt.label.weight(.medium))
             Spacer()
-            Button {
-                sheet = .new(defaultStart())
-            } label: {
-                MarkLabel("Block time", "plus")
-            }
-            .buttonStyle(.bordered)
-            .tint(Theme.planBlockTint)
-            .help("Reserve a block of time on this day")
+            blockTimeButton
+                .buttonStyle(.bordered)
+                .tint(Theme.planBlockTint)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+    }
+
+    private var blockTimeButton: some View {
+        Button {
+            sheet = .new(defaultStart())
+        } label: {
+            MarkLabel("Block time", "plus")
+        }
+        .help("Reserve a block of time on this day")
+        .accessibilityIdentifier("calendar.blockTime")
     }
 
     /// All-day events and tasks due today without a time, so they are not lost off the clock.
