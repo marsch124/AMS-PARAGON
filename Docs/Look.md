@@ -1,6 +1,6 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (282), look A, section 15). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
 The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
@@ -12,6 +12,7 @@ There is one scale, kept in one place in the code (`Txt` in Look.swift). No scre
 
 | Name | Points | Weight | Colour | Used for |
 |------|--------|--------|--------|----------|
+| Band number | 34 | bold | white | The one big number in a band (section 15). `Txt.bandNumber`. |
 | Page title | 26 | bold | black by day, white at night | The open note's title and the title of a screen that fills a column. |
 | Section heading | 17 | semibold | the colour of the part | Every heading (`SectionLabel`, `Heading`) and the title in an edit window's bar. |
 | Value | 15 | regular | black or white | Note text, facts, fields, and the words in panels. |
@@ -43,6 +44,7 @@ The iPhone uses only Apple's own text styles, so the text grows and shrinks with
 
 | Mac name | iPhone style | Normal size in points |
 |----------|--------------|-----------------------|
+| Band number | Large title, bold | 34 |
 | Page title | Large title, bold. It shrinks to a small title when you scroll. | 34, then 17 |
 | Section heading | Headline | 17 |
 | Value, List | Body | 17 |
@@ -112,6 +114,8 @@ How a colour is worn:
 
 ## 4. The top of a note
 
+Since build 282 the top of a note is the band (section 15); what follows is what sits under it. The title is white on the band.
+
 The title is 26 points, bold; pressing it renames the note where that is allowed. A daily or weekly note's title is a date. It keeps one line and shrinks down to 70 % when the column is narrow; every other title wraps to two lines (build 281). Under it is the facts panel, in the note's colour. Its heading is the kind of note, for example "Project", with the note's icon beside it. Inside, the facts sit in a row that wraps. Each is a small grey label (12 points) with its value (15 points) under it: Status, In area (or Part of), Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, List and Icon. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button, not coloured words. A fact you cannot change is plain words. Tasks and Linked notes are tinted panels too.
 
 The goal's page in **Goals** and the aspiration's page in **Aspirations** (Mac and iPad) use this same header: the title at 26 points and the facts panel, headed **Goal with a date** or **Aspiration** with the **Icon…** button beside it. Its facts are Status, Serves, Horizon (a labelled pop-up: This year / Long term), Target, Progress (the per cent), Measure, Looked at, Tags and List; only the ones that fit are shown. A notice such as "Target date passed" is a small orange capsule in the panel. Under the panel comes the aspiration's Reason box, then the projects (or the goals) in a panel in the project tint, headed **Projects**, with **Add a project…** at its foot. No rail or stripe beside them.
@@ -157,7 +161,7 @@ Browse has a large title that shrinks when you scroll. The long press that revea
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (281)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (282)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 
@@ -183,3 +187,16 @@ The filter boxes in Search are the Mac's own checkbox control on the Mac (`Toggl
 - The main button is in colour.
 - Icons are marks, never stock symbols or emoji.
 - The screen looks right on the iPhone and the Mac, by day and by night, at a normal iPhone size.
+
+## 15. The band
+
+Since build 282 (look A, chosen on 9 November 2026 from `Work/look-1.1/design/premium.png`, column A of `premium.html`). Every screen opens with a band in its part's colour. It is the shared view `Band` in `App/Paragon/Views/Look.swift`, the same on the Mac and the iPhone, by day and by night.
+
+- **Fill.** A gradient from the part's colour (section 2, day or night shade) to the same colour 80 % of the way towards the bottom right. No new colour.
+- **Title.** The page title in white, at the page-title size (section 1).
+- **Small words.** The date or the facts, at the label size (12 points on the Mac), white at 85 % opacity.
+- **Big number.** One per band: 34 points, bold, white (`Txt.bandNumber`; on the iPhone Apple's large title, bold). Today: "3 due today · 2 of 5 done". A project, area or resource note: "2 open tasks · 0 of 2 done". A goal's page: "40 %" with "of the way · Target 15 Aug 2027" under it.
+- **Buttons.** **Start the day** and **Close the day** keep their place, in the band's top row, drawn as white circles.
+- **Sidebar (Mac).** The chosen row is filled in the part's colour, with white words.
+- **Under the band.** Everything is as in builds 280 and 281: tinted panels, 17-point coloured headings, 8-point dots, pop-ups, text sizes, icons. Nothing moves, no function changes, and the part colours are unchanged.
+- **For a new screen.** Open with a `Band`; never draw a title bar of your own and never pick a size or colour for it.

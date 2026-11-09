@@ -2842,6 +2842,16 @@ final class ScreenTests: XCTestCase {
     /// screen), then the first box of the third group, `search.box.status:active`, must be on
     /// screen and pressable, and pressing it ticks it. The Mac keeps its tick boxes in a wider
     /// pane; `testASearchBoxIsATickBoxThatTurnsUpTheTasks` covers it.
+    /// Build 282: Today opens with its band, and the band carries the day's one number.
+    func testTodayOpensWithItsBand() {
+        go(to: .today)
+        let band = element("today.band")
+        XCTAssertTrue(band.waitForExistence(timeout: 20),
+                      "Today has no band with its number (today.band). On screen: \(visibleTexts())")
+        XCTAssertTrue(band.label.contains("due today"),
+                      "Today's band does not say how much is due today. It says: \(band.label)")
+    }
+
     func testThePhonesSearchShowsEveryGroupOfBoxes() {
         #if os(iOS)
         go(to: .search)

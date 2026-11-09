@@ -458,14 +458,18 @@ struct SidebarView: View {
     }
 
     private func row(_ section: SidebarSection) -> some View {
-        Label {
+        // Build 282: the chosen row is filled in its part's colour, with white words.
+        let chosen = model.section == section
+        return Label {
             Text(section.title)
+                .foregroundStyle(chosen ? Color.white : Color.primary)
         } icon: {
             MarkImage(section.markName)
-                .rowTint(section.tint)
+                .rowTint(chosen ? Color.white : section.tint)
         }
         .badge(model.count(for: section))
         .tag(section)
+        .listRowBackground(chosen ? RoundedRectangle(cornerRadius: 6).fill(section.tint).padding(.horizontal, 8) : nil)
         // "sidebar.Inbox", "sidebar.Projects" and so on: what the Mac screen tests click
         // (build 195). Accessibility only; nothing here takes the row's click (builds 71-74).
         .accessibilityIdentifier("sidebar.\(section.title)")

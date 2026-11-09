@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (281) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (282) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 282 · 9 November 2026
+
+**Colour at the top.** Every screen now opens with a band in its part's colour. You picked this look, A, on 9 November from the picture with three directions. It is on the Mac and the iPhone, by day and by night. What PARAGON does has not changed. Nothing under the band has moved.
+
+**1. The band.** Before, every screen began with its title in black (white at night) on a plain background, and the part's colour showed only in small places: the headings, the dots, the panels. Now the top of every screen is a band in the part's colour: a soft gradient, from the part's colour to the same colour 80 % of the way towards the bottom right. On it are the title in white, the date or the facts in small white words (the label size, white at 85 %), and one big number, 34 points, bold, white. The 34-point number is a new text size, `Txt.bandNumber`, in the one scale. On the iPhone it is Apple's large title, bold.
+
+**2. What the band says.**
+- **Today:** "3 due today · 2 of 5 done".
+- **A project, an area or a resource note:** "2 open tasks · 0 of 2 done".
+- **A goal's page:** "40 %", and under it "of the way · Target 15 Aug 2027".
+
+**3. Start the day and Close the day.** Before, they sat in Today's date row as buttons. Now they keep the same place, in the band's top row, and are drawn as white circles. They do the same as before.
+
+**4. The sidebar's chosen row (Mac).** Before, the chosen row had Apple's blue highlight. Now it is filled in the part's colour, with white words.
+
+**5. What did not change.** Everything under the band is as in builds 280 and 281: the tinted panels, the 17-point coloured headings, the 8-point dots, the pop-ups, the text sizes and the icons. The part colours are the same. No function has changed, and nothing moved.
+
+**6. Documents.** How it works has a new part about the band and the parts that described a screen's top are rewritten. The look document has a new section 15, "The band", and the new size in both text-size tables.
+
+**The version.** It shows as "PARAGON 1.0 (282)".
 
 ## Build 281 · 9 November 2026
 

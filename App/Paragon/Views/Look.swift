@@ -44,6 +44,8 @@ enum Txt {
     #if os(macOS)
     /// The open note's title, or the title of a whole-column screen.
     static let pageTitle = Font.system(size: 26, weight: .bold)
+    /// The one big number on a screen's band (build 282).
+    static let bandNumber = Font.system(size: 34, weight: .bold)
     /// A panel's or section's heading, always in the part's colour.
     static let sectionTitle = Font.system(size: 17, weight: .semibold)
     /// Note text, task titles in a note, facts, fields, the words inside a panel.
@@ -74,6 +76,7 @@ enum Txt {
     }
     #else
     static let pageTitle = Font.largeTitle.weight(.bold)
+    static let bandNumber = Font.largeTitle.weight(.bold)
     static let sectionTitle = Font.headline
     static let value = Font.body
     static let label = Font.footnote
@@ -382,5 +385,65 @@ enum AppVersion {
     static var text: String {
         let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
         return "\(short) (\(BuildStamp.number))"
+    }
+}
+
+// MARK: - The band (build 282)
+
+/// **Colour at the top** — look A, his pick on 9 November 2026. A screen opens with a band in
+/// its part's colour: a soft gradient, the title in white, small white words and one big
+/// number. Everything under the band is build 280. Docs/Look.md §15.
+struct BandStyle: ViewModifier {
+    let color: Color
+    /// The space left and right of the words.
+    var inset: CGFloat = Theme.gutter + 6
+    /// 0 where the band runs edge to edge; a panel's corner where it sits inside a page's gutter.
+    var radius: CGFloat = 0
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, inset)
+            .padding(.vertical, 10)
+            .background {
+                ZStack {
+                    // The night shades are bright, and white words need a darker ground.
+                    scheme == .dark ? Color.black : Color.white
+                    LinearGradient(colors: [color, color.opacity(0.8)],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                    if scheme == .dark { Color.black.opacity(0.3) }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: radius))
+            }
+    }
+}
+
+extension View {
+    func band(_ color: Color, inset: CGFloat = Theme.gutter + 6, radius: CGFloat = 0) -> some View {
+        modifier(BandStyle(color: color, inset: inset, radius: radius))
+    }
+}
+
+/// The band's big number with its few small words: "3 due today", "40 % of the way".
+struct BandNumber: View {
+    let number: String
+    let words: String
+    var identifier = "band.number"
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(number)
+                .font(Txt.bandNumber)
+                .monospacedDigit()
+                .foregroundStyle(.white)
+            Text(words)
+                .font(Txt.label)
+                .foregroundStyle(.white.opacity(0.85))
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(identifier)
     }
 }

@@ -1194,7 +1194,15 @@ struct NoteHeader: View {
             .padding(.bottom, 4)
         } else {
             VStack(alignment: .leading, spacing: 10) {
-                titleRow
+                // Build 282, the band: the title in white on the note's colour, with the
+                // note's one number under it. Edge to edge where the header lays its own
+                // gutter; a rounded band on the goal pages, which lay theirs round the page.
+                VStack(alignment: .leading, spacing: 2) {
+                    titleRow
+                    bandLine
+                }
+                .band(note.tint, inset: inset ? Theme.gutter : Theme.panelPad,
+                      radius: inset ? 0 : Theme.panelRadius)
                 VStack(alignment: .leading, spacing: Theme.headGap) {
                     HStack(spacing: 8) {
                         Heading(text: kindWord(for: note), color: note.tint)
@@ -1208,10 +1216,9 @@ struct NoteHeader: View {
                 .panel(note.tint)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("note.facts")
+                .padding(.horizontal, inset ? Theme.gutter : 0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, inset ? Theme.gutter : 0)
-            .padding(.top, inset ? 12 : 0)
             .padding(.bottom, 4)
         }
     }
@@ -1220,6 +1227,28 @@ struct NoteHeader: View {
     /// two reads wrong; the reviewer of 280 saw the 26-point date wrap in the Calendar's column.
     /// So a date keeps one line and shrinks a little in a narrow column (build 281); any other
     /// title wraps to two lines as before, since a name has no such seam.
+    /// The band's number (build 282): a goal's per cent of the way, any other note's open
+    /// tasks. A note with no tasks says only what kind it is.
+    @ViewBuilder
+    private var bandLine: some View {
+        let tasks = note.tasks
+        let open = tasks.filter { !$0.isDone }.count
+        if let fraction = progress?.fraction {
+            BandNumber(number: "\(Int((fraction * 100).rounded())) %",
+                       words: note.targetDate.map { "of the way · Target \($0.description)" } ?? "of the way",
+                       identifier: "note.band")
+        } else if !tasks.isEmpty {
+            BandNumber(number: "\(open)",
+                       words: "open \(open == 1 ? "task" : "tasks") · \(tasks.count - open) of \(tasks.count) done",
+                       identifier: "note.band")
+        } else {
+            Text(kindWord(for: note))
+                .font(Txt.label)
+                .foregroundStyle(.white.opacity(0.85))
+                .accessibilityIdentifier("note.band")
+        }
+    }
+
     private var titleLines: Int { note.kind == .daily ? 1 : 2 }
     private var titleShrink: CGFloat { note.kind == .daily ? 0.7 : 1 }
 
@@ -1230,7 +1259,7 @@ struct NoteHeader: View {
             Button(action: rename) {
                 Text(note.displayTitle)
                     .font(compact ? Txt.sectionTitle : Txt.pageTitle)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(compact ? Color.primary : Color.white)
                     .lineLimit(titleLines)
                     .minimumScaleFactor(titleShrink)
                     .multilineTextAlignment(.leading)
@@ -1242,6 +1271,7 @@ struct NoteHeader: View {
         } else {
             Text(note.displayTitle)
                 .font(compact ? Txt.sectionTitle : Txt.pageTitle)
+                .foregroundStyle(compact ? Color.primary : Color.white)
                 .lineLimit(titleLines)
                 .minimumScaleFactor(titleShrink)
                 .accessibilityIdentifier("note.title")

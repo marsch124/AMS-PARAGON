@@ -58,21 +58,34 @@ struct TodayView: View {
             // that governs a column belongs in that column next to its own name (build 167),
             // and the date row build 220 put here is that name. It costs no new furniture: the
             // right half of that row was empty.
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
+            // **Build 282, the band**: the same row, now on Today's purple with the title in
+            // white above the date and the day's one number under it. The two buttons keep
+            // their place at the row's right end. The phone's title stays in its bar.
+            VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .top, spacing: 8) {
                 // The date keeps its width first, so what gives way is the buttons' words and
                 // never the date breaking over two lines (build 138).
-                Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
-                    .font(Txt.label)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .layoutPriority(1)
+                VStack(alignment: .leading, spacing: 1) {
+                    if !isPhone {
+                        Text("Today").font(Txt.pageTitle).foregroundStyle(.white)
+                    }
+                    Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
+                        .font(Txt.label)
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+                .lineLimit(1)
+                .layoutPriority(1)
                 Spacer(minLength: 8)
                 // **Start the day and Close the day are a pair** (build 233), so they sit side by
                 // side. Symbols only, on every screen (build 247): he asked for the words to go.
                 // Their names stay as the spoken title and the Mac's tooltip (build 159).
                 dayButtons
             }
-            .padding(.horizontal, Theme.gutter + 6)
+            BandNumber(number: "\(dueToday.count)",
+                       words: overdue.isEmpty ? "due today" : "due today · \(overdue.count) overdue",
+                       identifier: "today.band")
+            }
+            .band(SidebarSection.today.tint)
             .padding(.bottom, Theme.tight)
             // **Now and Then, the day's plan in two short lines** (build 266), outside the
             // `List` for the same reason the date is (build 220). Nothing at all on a day with
@@ -211,14 +224,14 @@ struct TodayView: View {
                                spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
                                markName: StartDayView.symbol,
                                tint: Theme.morningTint,
-                               strong: true) {
+                               strong: true, onBand: true) {
                 model.activeSheet = .startDay
             }
             .accessibilityIdentifier("today.startDay")
             HeaderActionButton(title: nil,
                                spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
                                markName: CloseDayView.symbol,
-                               tint: Theme.eveningTint) {
+                               tint: Theme.eveningTint, onBand: true) {
                 model.activeSheet = .closeDay
             }
             .accessibilityIdentifier("today.closeDay")
@@ -392,6 +405,8 @@ private struct HeaderActionButton: View {
     /// out (**Start the day**, build 241). Still no fill: a tinted fill means "this is on"
     /// in build 142's two-state language, and this is an action, not a state.
     var strong = false
+    /// On a screen's band (build 282): a white circle with the mark in its colour.
+    var onBand = false
     /// For the screen tests (build 277); empty when the button has no name of its own.
     var identifier = ""
     let action: () -> Void
@@ -404,7 +419,8 @@ private struct HeaderActionButton: View {
                 .foregroundStyle(tint)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
-                .overlay(Capsule().strokeBorder(tint.opacity(strong ? 1 : 0.55),
+                .background(onBand ? Color.white : Color.clear, in: Capsule())
+                .overlay(Capsule().strokeBorder(tint.opacity(onBand ? 0 : strong ? 1 : 0.55),
                                                 lineWidth: strong ? 1.5 : 1))
                 // The tap area is the label, so the padding goes inside it (build 186).
                 .contentShape(Capsule())

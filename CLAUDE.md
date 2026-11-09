@@ -4927,6 +4927,20 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 282 (9 November 2026)
+
+"Colour at the top", look A (picked 9 Nov from `Work/look-1.1/design/premium.png`). Docs in `Docs/VersionHistory.md`, `HowItWorks.md`, `Look.md` (new §15 The band).
+
+- **`Band`** in `App/Paragon/Views/Look.swift`: every screen opens with it, Mac and iPhone. Gradient
+  = the part's colour to the same colour at 80 % toward the bottom right. Title = page title in
+  white; small words = label size, white at 85 %; one big number in the new `Txt.bandNumber`
+  (34 pt, bold; iPhone large title bold). Today: "3 due today · 2 of 5 done"; project, area,
+  resource note: "2 open tasks · 0 of 2 done"; goal page: "40 %" + "of the way · Target 15 Aug 2027".
+- **Start/Close the day** keep their place, in the band's top row, as white circles.
+- **Mac sidebar:** the chosen row is filled in the part's colour with white words.
+- **Unchanged:** everything under the band (panels, 17-pt headings, 8-pt dots, pop-ups, sizes,
+  icons), all functions, all part colours. Look.md's two size tables have the Band number row.
+
 ## Build 281 (9 November 2026)
 
 Eight changes in one release; docs in `Docs/VersionHistory.md`, `HowItWorks.md`, `Look.md`.
