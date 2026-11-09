@@ -2776,9 +2776,11 @@ final class ScreenTests: XCTestCase {
     /// No icon on a goal he had given a colour showed the first letter of its name on the
     /// colour, not the star. The proof is the Icon… button's own words (`note.icon`): "Icon:
     /// Target" while only a colour is set, "Icon: Bike" with the icon, "Icon: Target" again
-    /// after No icon — and the file, read back from the editor: `icon-colour: red` stays and
-    /// `icon:` goes. The swatches and No icon are the picker's own buttons (`icon.colour.red`,
-    /// `icon.none`). The Mac only: the phone's goal page has no facts panel, so no Icon… button.
+    /// after No icon. **The goal's page has no editor** (its first run on GitHub: the Goals room
+    /// draws the chain page, not the note), so the file is not read back here; `NoteIconTests`
+    /// in Core pin what No icon writes and keeps. The swatches and No icon are the picker's own
+    /// buttons (`icon.colour.red`, `icon.none`). The Mac only: the phone's goal page has no
+    /// facts panel, so no Icon… button.
     func testNoIconOnAGoalBringsTheTargetBack() {
         #if os(macOS)
         go(to: .goals)
@@ -2786,9 +2788,8 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 20),
                       "The Goals list does not show the test goal. On screen: \(visibleTexts())")
         row.press()
-        let editor = element("note.editor")
-        XCTAssertTrue(editor.waitForExistence(timeout: 20),
-                      "The goal opened without its editor. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("note.facts").waitForExistence(timeout: 20),
+                      "The goal's page has no facts panel (note.facts). On screen: \(visibleTexts())")
 
         // A colour first: the fault only showed on a goal that had one.
         XCTAssertTrue(openTheIconPicker(),
@@ -2798,8 +2799,6 @@ final class ScreenTests: XCTestCase {
                       "The picker has no red swatch (icon.colour.red). On screen: \(visibleTexts())")
         if red.isHittable { red.press() } else { red.pressCentre() }
         XCTAssertTrue(iconPickerCloses(), "A colour was pressed and the picker stayed open.")
-        XCTAssertTrue(editorHolds(editor, "icon-colour: red", within: 10),
-                      "The note does not carry the colour: \(String(((editor.value as? String) ?? "").prefix(200)))")
         XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Target") },
                       "With only a colour, the Icon… button should show the goal's target. It says: \(wordsOfEvery("note.icon"))")
 
@@ -2817,8 +2816,8 @@ final class ScreenTests: XCTestCase {
         }
         if bike.isHittable { bike.press() } else { bike.pressCentre() }
         XCTAssertTrue(iconPickerCloses(), "An icon was pressed and the picker stayed open.")
-        XCTAssertTrue(editorHolds(editor, "icon: hand:bike", within: 10),
-                      "The note does not carry the icon: \(String(((editor.value as? String) ?? "").prefix(200)))")
+        XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Bike") },
+                      "The Icon… button does not show the Bike icon. It says: \(wordsOfEvery("note.icon"))")
 
         // No icon: one press, and the target is back on the colour.
         XCTAssertTrue(openTheIconPicker(),
@@ -2828,10 +2827,6 @@ final class ScreenTests: XCTestCase {
                       "The picker has no No icon button (icon.none). On screen: \(visibleTexts())")
         if none.isHittable { none.press() } else { none.pressCentre() }
         XCTAssertTrue(iconPickerCloses(), "No icon was pressed and the picker stayed open.")
-        XCTAssertTrue(editorLacks(editor, "icon: hand:bike", within: 10),
-                      "No icon left the icon line in the note: \(String(((editor.value as? String) ?? "").prefix(200)))")
-        XCTAssertTrue(editorHolds(editor, "icon-colour: red", within: 10),
-                      "No icon took the colour away too; it should stay: \(String(((editor.value as? String) ?? "").prefix(200)))")
         XCTAssertTrue(becomes(within: 10) { self.wordsOfEvery("note.icon").contains("Target") },
                       "After No icon the Icon… button should show the goal's target again. It says: \(wordsOfEvery("note.icon"))")
         #endif
