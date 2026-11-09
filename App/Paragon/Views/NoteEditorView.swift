@@ -252,67 +252,34 @@ struct NoteEditorView: View {
     /// Mac and iPad, unchanged: a fixed column whose editor absorbs the leftover height.
     /// Builds 30 and 34 are both about this — anything here that reports its full
     /// intrinsic height makes the window grow past itself — so it is left alone.
-    /// Below this height the Mac draws the note the way the phone does: one page that scrolls,
-    /// header and panels first, the text under them at a fixed height. Above it the text takes
-    /// what is left under the header and the header may take at most half the column.
+    /// Below this height the header is drawn compact (a small title, small chips, no panel), so
+    /// the text keeps room on a short column: the test runners' 450-point window, a laptop
+    /// with a small window. Build 280 tried two other ways first — a capped, scrolling header
+    /// hid the Tasks panel from a press, and one scrolling page put the text below the window.
     private static let shortColumn: CGFloat = 620
 
     private var deskBody: some View {
         GeometryReader { geo in
-            if geo.size.height < Self.shortColumn {
-                shortDeskBody(height: geo.size.height)
-                    .frame(width: geo.size.width, height: geo.size.height)
-            } else {
-                tallDeskBody(height: geo.size.height)
-                    .frame(width: geo.size.width, height: geo.size.height)
-            }
-        }
-    }
-
-    /// A short window (the test runners' 450 points, a laptop with the window not maximised):
-    /// everything scrolls as one page, the panels on top where they can be reached, the text
-    /// under them at a fixed height. The old fixed layout left the text no room at all here,
-    /// and a capped header hid the Tasks and Linked notes panels from a press (the first Mac
-    /// runs of build 280).
-    private func shortDeskBody(height: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            ScrollView(.vertical) {
-                VStack(spacing: 0) {
-                    sections
-                    frontmatterRow
-                    editorPane(scrolls: true)
-                        .frame(height: max(260, height - 160))
-                }
-                .readingWidth()
-            }
-            Divider()
-            addTaskBar
-                .readingWidth()
-        }
-    }
-
-    /// A tall window: the header and the panels at the top (at most half the column; above
-    /// that they scroll), the text taking what is left (builds 30 and 34: it never asks for
-    /// its full height), at the reading width.
-    private func tallDeskBody(height: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            CappedHeight(limit: max(160, height * 0.5)) {
-                ScrollView(.vertical) {
-                    VStack(spacing: 0) {
-                        sections
-                    }
+            VStack(spacing: 0) {
+                // 1.0: the header, the panels and the text stop at the reading width and sit
+                // centred; on a wide window the rest is calm margin.
+                sections
                     .readingWidth()
-                }
+                frontmatterRow
+                    .readingWidth()
+                // The editor takes whatever height is left and never asks for more (builds 30
+                // and 34): the GeometryReader's frame is the column, and this is what is left.
+                editorPane(scrolls: true)
+                    .frame(maxWidth: Theme.readingWidth + 2 * Theme.gutter)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+                Divider()
+                addTaskBar
+                    .readingWidth()
             }
-            frontmatterRow
-                .readingWidth()
-            editorPane(scrolls: true)
-                .frame(maxWidth: Theme.readingWidth + 2 * Theme.gutter)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-            Divider()
-            addTaskBar
-                .readingWidth()
+            .frame(width: geo.size.width, height: geo.size.height)
+            .onAppear { compactHeader = geo.size.height < Self.shortColumn }
+            .onChange(of: geo.size.height) { _, height in compactHeader = height < Self.shortColumn }
         }
     }
 
@@ -374,10 +341,15 @@ struct NoteEditorView: View {
 
     /// Everything above the editor: the note's own header, whatever agenda it carries, its
     /// tasks and its links.
+    /// Set by the Mac's `deskBody` from the column's height: on a short column (under 620
+    /// points — the test runners' 450-point window, a laptop with a small window) the header is
+    /// drawn compact, so the text under it keeps room.
+    @State private var compactHeader = false
+
     @ViewBuilder
     private var sections: some View {
         if let note {
-            NoteHeader(note: note, rename: renameAction(for: note))
+            NoteHeader(note: note, rename: renameAction(for: note), compact: compactHeader)
             if note.declaredKind == .project && note.isEnded {
                 ProjectEndedLine(model: model, note: note)
             }
@@ -1146,27 +1118,54 @@ struct NoteHeader: View {
     /// (a pop-up or a button that opens a small window) or a plain value. The twelve chips of
     /// build 250 are the same twelve facts; only how they are drawn changed. Nothing was taken
     /// away.
+    /// True on a short Mac column: the same title and the same facts, drawn small and without
+    /// the panel, so the text under them keeps room. Nothing is left out.
+    var compact = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            titleRow
-            VStack(alignment: .leading, spacing: Theme.headGap) {
-                HStack(spacing: 8) {
-                    Heading(text: kindWord(for: note), color: note.tint)
+        if compact {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(kindWord(for: note))
+                        .font(Txt.label)
+                        .foregroundStyle(note.tint)
                     if showsIconChip(for: note) {
                         NoteIconChip(model: model, note: note)
                     }
                     Spacer(minLength: 0)
                 }
+                titleRow
                 facts
+                    .controlSize(.small)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("note.facts")
             }
-            .panel(note.tint)
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("note.facts")
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.gutter)
+            .padding(.top, 6)
+            .padding(.bottom, 4)
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                titleRow
+                VStack(alignment: .leading, spacing: Theme.headGap) {
+                    HStack(spacing: 8) {
+                        Heading(text: kindWord(for: note), color: note.tint)
+                        if showsIconChip(for: note) {
+                            NoteIconChip(model: model, note: note)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    facts
+                }
+                .panel(note.tint)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("note.facts")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Theme.gutter)
+            .padding(.top, 12)
+            .padding(.bottom, 4)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, Theme.gutter)
-        .padding(.top, 12)
-        .padding(.bottom, 4)
     }
 
     /// The name, big. Pressing it renames the note where that is allowed (build 154).
@@ -1175,7 +1174,7 @@ struct NoteHeader: View {
         if let rename {
             Button(action: rename) {
                 Text(note.displayTitle)
-                    .font(Txt.pageTitle)
+                    .font(compact ? Txt.sectionTitle : Txt.pageTitle)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
@@ -1186,7 +1185,7 @@ struct NoteHeader: View {
             .accessibilityIdentifier("note.title")
         } else {
             Text(note.displayTitle)
-                .font(Txt.pageTitle)
+                .font(compact ? Txt.sectionTitle : Txt.pageTitle)
                 .lineLimit(2)
                 .accessibilityIdentifier("note.title")
         }
