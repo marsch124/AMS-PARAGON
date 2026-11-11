@@ -1,6 +1,6 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
 The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
@@ -155,7 +155,7 @@ Counts beside headings (for example "Calendar 1", "Projects 7") are small capsul
 
 - On the Mac the note's header, the panels and the text stop at 680 points (`Theme.readingWidth`) and sit centred in the column. On a wide window the rest is calm margin.
 - The sidebar column is at least 180 points wide, normally 200. The list column is 220 to 280 points; the Map list is 420 to 720.
-- Window toolbar: Search, Quick capture and Sync. On the Mac a page's own actions live in the window toolbar too, on two pages: **Time Blocks** (the day arrows with Today, + Block, Week, the calendar-blocks button) and the **Calendar**'s right-hand column (+ Block time, the Note / Schedule switch). The page keeps the day's name and summary. The iPhone and the iPad keep these buttons in the page. The **+** New note button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. They are placed where the owner put them.
+- Window toolbar: Search and Quick capture. Sync is not there since build 292: it is a small pill at the foot of the sidebar (a coloured dot, green fine / orange look at / purple syncing with a small turning wheel, then the words, for example "Synced at 15:05"; one press syncs, right-click or press and hold has the menu). On the iPhone the pill sits at the top of Today. On the Mac a page's own actions live in the window toolbar too, on two pages: **Time Blocks** (the day arrows with Today, + Block, Week, the calendar-blocks button) and the **Calendar**'s right-hand column (+ Block time, the Note / Schedule switch). The page keeps the day's name and summary. The iPhone and the iPad keep these buttons in the page. The **+** New note button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. They are placed where the owner put them.
 
 ## 9. iPhone
 
@@ -163,7 +163,7 @@ Browse has a large title that shrinks when you scroll. The long press that revea
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (282)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (292)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 

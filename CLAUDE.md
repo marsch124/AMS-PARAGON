@@ -4927,6 +4927,14 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 292 (11 November 2026)
+
+"A quiet sync pill". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Reminders sync, iCloud sync line, How PARAGON looks, shortcuts), `Look.md` (section 8).
+
+- **Before:** Mac/iPad toolbar had a circling-arrows sync button with a menu (Sync now, Show me what would change..., Last sync report...); the sidebar foot had a grey line "Synced at 15:05" that opened Settings.
+- **Now:** toolbar sync button removed (his request); sync runs by itself every few minutes. Sidebar foot: a small pill, coloured dot (green fine, orange something to look at, purple syncing/waiting, small turning wheel while syncing) + the words. One press = sync now; right-click (long press on iPad) = Sync now, Show me what would change..., Last sync report..., Sync settings.... Hover tip: "... all fine" or "N things worth knowing, nothing to do". File > Sync with Reminders (⇧⌘R) still works. iPhone: the pill sits at the top of Today and still opens Settings; the iPhone's own sync button stays.
+- **BuildStamp:** `BuildStamp.number` = 292.
+
 ## Build 291 (11 November 2026)
 
 "Calmer screens". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Today, The Inbox "Where it goes", Reminders sync, How PARAGON looks), `Look.md` (section 6, counts, section 10).

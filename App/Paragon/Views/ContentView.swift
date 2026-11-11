@@ -88,7 +88,9 @@ struct ContentView: View {
                         // The same name the phone's Today button carries, so one screen test
                         // opens the capture on both platforms (build 196).
                         .accessibilityIdentifier("capture.open")
-                        SyncButton()
+                        // Build 292: no sync button here. He asked for it to go; the sync
+                        // runs by itself, the pill at the foot of the sidebar shows how it
+                        // stands and syncs on a press, and File › Sync with Reminders keeps ⇧⌘R.
                         #if !os(macOS)
                         Button {
                             model.activeSheet = .settings
@@ -1230,32 +1232,7 @@ struct DetailView: View {
     }
 }
 
-struct SyncButton: View {
-    @EnvironmentObject private var model: AppModel
-
-    var body: some View {
-        Menu {
-            Button("Sync now") { Task { await model.syncNow() } }
-                .keyboardShortcut("r", modifiers: [.command, .shift])
-            Button("Show me what would change…") { Task { await model.previewSync() } }
-            if model.lastReport != nil {
-                Divider()
-                Button("Last sync report…") { model.showLastReport() }
-            }
-        } label: {
-            if model.isSyncing {
-                ProgressView()
-                    .controlSize(.small)
-            } else {
-                MarkLabel("Sync with Reminders", "arrow.triangle.2.circlepath")
-            }
-        } primaryAction: {
-            Task { await model.syncNow() }
-        }
-        .disabled(model.isSyncing)
-        .help(SyncButton.tip(model.lastReport, every: model.autoSyncMinutes))
-    }
-
+extension SyncStatusBar {
     /// Build 291: the tip says what the button does and that nothing is needed from him.
     static func tip(_ report: SyncReport?, every minutes: Int) -> String {
         let auto = minutes > 0 ? " It also runs by itself every \(minutes) minutes." : ""

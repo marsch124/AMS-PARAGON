@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (291) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (292) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 292 · 11 November 2026
+
+**A quiet sync pill.** The sync button is gone from the toolbar; the sidebar foot shows a small pill instead.
+
+**Before (build 291).** The toolbar on the Mac and iPad had a circling-arrows sync button, with a menu: **Sync now**, **Show me what would change…**, **Last sync report…**. The foot of the sidebar had a grey line, "Synced at 15:05"; pressing it opened Settings.
+
+**Now, the toolbar.** The sync button is gone, at your request. The sync runs by itself every few minutes, as before.
+
+**Now, the pill at the foot of the sidebar.**
+- It is a small pill: a coloured dot and the words, for example "Synced at 15:05". Green is all fine, orange is something to look at, purple is syncing or waiting, with a small turning wheel while a sync runs.
+- One press syncs now.
+- Right-click (press and hold on the iPad) opens **Sync now**, **Show me what would change…**, **Last sync report…** and **Sync settings…**.
+- Hold the pointer over it for a tip: "... all fine", or "N things worth knowing, nothing to do".
+- **File › Sync with Reminders** (⇧⌘R) still works.
+
+**Now, the iPhone.** The pill sits at the top of Today and still opens Settings. The iPhone's own sync button stays.
+
+**What did not change.** Tasks, notes, the files, the sync itself and all the colours are as in build 291.
+
+**The version.** It shows as "PARAGON 1.0 (292)".
 
 ## Build 291 · 11 November 2026
 

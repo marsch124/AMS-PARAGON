@@ -152,24 +152,61 @@ struct SyncStatusBar: View {
 
     var body: some View {
         if pressable {
-            Button(action: open) { label }
+            // Build 292: the toolbar's sync button is gone, so a press here syncs now; the
+            // rest of that button's menu lives on a right-click (long press on the iPad).
+            Button { Task { await model.syncNow() } } label: { label }
                 .buttonStyle(.plain)
+                .disabled(model.isSyncing || model.vault == nil)
+                .help(SyncStatusBar.tip(model.lastReport, every: model.autoSyncMinutes))
+                .contextMenu {
+                    Button("Sync now") { Task { await model.syncNow() } }
+                    Button("Show me what would change…") { Task { await model.previewSync() } }
+                    if model.lastReport != nil {
+                        Button("Last sync report…") { model.showLastReport() }
+                    }
+                    Divider()
+                    Button("Sync settings…", action: open)
+                }
                 .accessibilityIdentifier("sync.status")
         } else {
             label.accessibilityIdentifier("sync.status")
         }
     }
 
+    /// Green while all is well, orange when something wants a look, the part's purple while
+    /// a sync runs or waits.
+    private var stateColor: Color {
+        if problem { return .orange }
+        if model.isSyncing || model.syncWaitsForCloud || finishedAt == nil { return SidebarSection.today.tint }
+        return .green
+    }
+
+    /// Build 292: a small pill — a coloured dot (a turning mark while syncing) and the line.
     private var label: some View {
-        MarkLabel(SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
-                                  finishedAt: finishedAt, conflicts: conflicts),
-                  problem ? "exclamationmark.triangle.fill" : "arrow.triangle.2.circlepath")
-            .font(Txt.listSecond)
-            .foregroundStyle(problem ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
-            .padding(.horizontal, 8)
-            .contentShape(Rectangle())
+        HStack(spacing: 6) {
+            if model.isSyncing {
+                ProgressView().controlSize(.mini)
+                    .frame(width: 8, height: 8)
+            } else {
+                Circle()
+                    .fill(stateColor)
+                    .frame(width: 7, height: 7)
+                    .overlay(Circle().stroke(stateColor.opacity(0.25), lineWidth: 3))
+            }
+            Text(SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
+                                 finishedAt: finishedAt, conflicts: conflicts))
+                .font(Txt.listSecond.weight(.medium))
+                .foregroundStyle(problem ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
+                .lineLimit(1)
+                .monospacedDigit()
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 10)
+        .background(stateColor.opacity(0.10), in: Capsule())
+        .overlay(Capsule().strokeBorder(stateColor.opacity(0.22), lineWidth: 0.5))
+        .contentShape(Capsule())
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 2)
     }
 
     private func open() {
