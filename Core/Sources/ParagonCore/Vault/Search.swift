@@ -224,7 +224,11 @@ public struct SearchHit: Identifiable, Equatable, Sendable {
 
 public extension NoteIndex {
     /// Full-text search with filters. Notes are ranked: title matches first, then by number of matching lines.
-    func search(_ query: SearchQuery, today: DateOnly = .today(), calendar: Calendar = .current) -> [SearchHit] {
+    ///
+    /// Build 294: `pictureText` is what was read in the vault's pictures (file path from the
+    /// root → its words). A note is found by the words in the pictures it shows, too.
+    func search(_ query: SearchQuery, today: DateOnly = .today(), calendar: Calendar = .current,
+                pictureText: [String: String] = [:]) -> [SearchHit] {
         guard !query.isEmpty else { return [] }
         let terms = query.terms.map { $0.lowercased() }
         var hits: [SearchHit] = []
@@ -233,7 +237,11 @@ public extension NoteIndex {
             let title = note.displayTitle.lowercased()
             let body = note.body.lowercased()
             let titleHits = terms.filter { title.contains($0) }.count
-            guard terms.allSatisfy({ title.contains($0) || body.contains($0) }) else { continue }
+            let pictures = pictureText.isEmpty || terms.isEmpty ? "" :
+                Pictures.matches(in: note.body, notePath: note.relativePath)
+                    .compactMap { pictureText[$0.path] }.joined(separator: "\n")
+            let pictureLower = pictures.lowercased()
+            guard terms.allSatisfy({ title.contains($0) || body.contains($0) || pictureLower.contains($0) }) else { continue }
 
             var matchingTasks = note.tasks
             if query.wantsTasks {
@@ -261,6 +269,14 @@ public extension NoteIndex {
                         if !clean.isEmpty && !clean.hasPrefix("#") { snippets.append(clean) }
                     }
                     if snippets.count >= 3 { break }
+                }
+                if snippets.count < 3 && !pictures.isEmpty {
+                    for line in pictures.components(separatedBy: .newlines) where snippets.count < 3 {
+                        let lower = line.lowercased()
+                        guard terms.contains(where: { lower.contains($0) }) else { continue }
+                        let words = line.trimmingCharacters(in: .whitespaces)
+                        snippets.append("In a picture: " + (words.count > 80 ? String(words.prefix(80)) + "…" : words))
+                    }
                 }
             }
             // Filter-only queries rank alphabetically; text queries rank title hits, then matching lines and tasks.

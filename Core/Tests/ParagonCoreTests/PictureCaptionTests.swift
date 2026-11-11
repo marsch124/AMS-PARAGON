@@ -29,4 +29,27 @@ final class PictureCaptionTests: XCTestCase {
         XCTAssertEqual(Pictures.galleryPaths(in: three, notePath: "Projects/Boat.md"),
                        ["Pictures/a.png", "Sketches/b.png", "Photos/c.jpg"])
     }
+
+    func testPastedJPEGNamesAndReorderingTheGallery() {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Stockholm")!
+        let date = cal.date(from: DateComponents(year: 2026, month: 11, day: 11, hour: 20, minute: 14, second: 5))!
+        XCTAssertEqual(Pictures.pastedName(at: date, calendar: cal, ext: "jpg"), "Pasted 2026-11-11 201405.jpg")
+        let text = "A\n![One](../Pictures/1.png)\nB\n![Two](../Pictures/2.png)\nC\n![Three](../Photos/3.jpg)\n"
+        XCTAssertEqual(Pictures.reordering(text, notePath: "Projects/Boat.md", moving: "Photos/3.jpg", onto: "Pictures/1.png"),
+                       "A\n![Three](../Photos/3.jpg)\nB\n![One](../Pictures/1.png)\nC\n![Two](../Pictures/2.png)\n")
+        XCTAssertEqual(Pictures.reordering(text, notePath: "Projects/Boat.md", moving: "Pictures/1.png", onto: "Pictures/2.png"),
+                       "A\n![Two](../Pictures/2.png)\nB\n![One](../Pictures/1.png)\nC\n![Three](../Photos/3.jpg)\n")
+        XCTAssertEqual(Pictures.reordering(text, notePath: "Projects/Boat.md", moving: "Nope.png", onto: "Pictures/2.png"), text)
+    }
+
+    func testSearchFindsWordsInsidePictures() {
+        let boat = Note(relativePath: "Projects/Boat.md", kind: .project, text: "# Boat\n\n![Picture](../Pictures/receipt.png)\n")
+        let index = NoteIndex(notes: [boat])
+        XCTAssertTrue(index.search(text: "invoice").isEmpty)
+        let hits = index.search(SearchQuery.parse("invoice"),
+                                pictureText: ["Pictures/receipt.png": "Marina AB\nInvoice 4711 total 300 kr"])
+        XCTAssertEqual(hits.map(\.note.relativePath), ["Projects/Boat.md"])
+        XCTAssertEqual(hits.first?.snippets, ["In a picture: Invoice 4711 total 300 kr"])
+    }
 }

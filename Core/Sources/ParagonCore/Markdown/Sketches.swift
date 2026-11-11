@@ -160,8 +160,28 @@ public extension Pictures {
 /// Build 293: pictures pasted with ⌘V, and the gallery of a note's pictures.
 public extension Pictures {
     /// A pasted picture's name, from the moment it is pasted: `Pasted 2026-11-11 201405.png`.
-    static func pastedName(at date: Date = Date(), calendar: Calendar = .current) -> String {
-        "Pasted" + Sketches.newFileName(at: date, calendar: calendar).dropFirst("Sketch".count)
+    /// Build 294: the iPhone and iPad paste a JPEG (`ext` "jpg").
+    static func pastedName(at date: Date = Date(), calendar: Calendar = .current, ext: String = "png") -> String {
+        "Pasted" + Sketches.newFileName(at: date, calendar: calendar).dropFirst("Sketch".count).dropLast("png".count) + ext
+    }
+
+    /// Build 294: the gallery's order changed by a drag — `moving` takes `onto`'s place and the
+    /// pictures between shift along. Each picture's first line moves into another picture's
+    /// slot; the words around them stay where they were. Unknown paths change nothing.
+    static func reordering(_ text: String, notePath: String, moving: String, onto: String) -> String {
+        guard moving != onto else { return text }
+        var seen = Set<String>()
+        let firsts = matches(in: text, notePath: notePath).filter { seen.insert($0.path).inserted }
+        guard let from = firsts.firstIndex(where: { $0.path == moving }),
+              let to = firsts.firstIndex(where: { $0.path == onto }) else { return text }
+        let ns = text as NSString
+        var links = firsts.map { ns.substring(with: $0.range) }
+        links.insert(links.remove(at: from), at: to)
+        let out = NSMutableString(string: text)
+        for (slot, link) in zip(firsts, links).reversed() {
+            out.replaceCharacters(in: slot.range, with: link)
+        }
+        return out as String
     }
 
     /// The pictures for a note's gallery: each file once, in the order they appear. Empty

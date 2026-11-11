@@ -449,7 +449,10 @@ struct NoteEditorView: View {
             let gallery = Pictures.galleryPaths(in: text, notePath: path)
             if !gallery.isEmpty {
                 NoteGallery(paths: gallery, version: sketchVersion, tint: note.tint,
-                            open: { pictureHooks?.open($0) })
+                            open: { pictureHooks?.open($0) },
+                            move: { moving, onto in
+                                text = Pictures.reordering(text, notePath: path, moving: moving, onto: onto)
+                            })
                     .panel(note.tint)
                     .padding(.horizontal, Theme.gutter)
                     .padding(.vertical, 6)
@@ -542,7 +545,7 @@ struct NoteEditorView: View {
                                 captionDraft = Pictures.caption(ofLink: link) ?? ""
                             },
                             drop: { offset, urls in dropPictures(urls, at: offset) },
-                            paste: { offset, png in pastePicture(png, at: offset) })
+                            paste: { offset, data, ext in pastePicture(data, ext: ext, at: offset) })
     }
 
     /// Build 290: the picture whose caption is being written, and the words so far.
@@ -593,13 +596,13 @@ struct NoteEditorView: View {
 
     /// Build 293 (Mac): a picture pasted with ⌘V, saved as a PNG in the Pictures folder and
     /// put on its own line where the cursor was.
-    private func pastePicture(_ png: Data, at offset: Int) {
+    private func pastePicture(_ data: Data, ext: String, at offset: Int) {
         guard let vault = model.vault else { return }
         let folder = vault.rootURL.appendingPathComponent(Pictures.droppedFolder)
         let taken = Set((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? [])
-        let name = Pictures.freeName(for: Pictures.pastedName(), taken: taken)
+        let name = Pictures.freeName(for: Pictures.pastedName(ext: ext), taken: taken)
         do {
-            try vault.writeFile(png, at: Pictures.droppedFolder + "/" + name)
+            try vault.writeFile(data, at: Pictures.droppedFolder + "/" + name)
         } catch {
             model.errorMessage = "The picture could not be saved: \(error.localizedDescription)"
             return
@@ -2123,6 +2126,8 @@ struct NoteGallery: View {
     let version: Int
     let tint: Color
     let open: (String) -> Void
+    /// Build 294: one picture dragged onto another takes its place.
+    var move: (String, String) -> Void = { _, _ in }
     @AppStorage("galleryFolded") private var folded = false
 
     var body: some View {
@@ -2140,6 +2145,12 @@ struct NoteGallery: View {
                             .buttonStyle(.plain)
                             .accessibilityLabel((picture as NSString).lastPathComponent)
                             .accessibilityIdentifier("gallery.thumb")
+                            .draggable(picture)
+                            .dropDestination(for: String.self) { items, _ in
+                                guard let moving = items.first, moving != picture, paths.contains(moving) else { return false }
+                                move(moving, picture)
+                                return true
+                            }
                         }
                     }
                 }

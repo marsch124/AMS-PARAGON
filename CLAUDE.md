@@ -4927,6 +4927,16 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 294 (11 November 2026)
+
+"Paste on iPhone, search inside pictures, sorting the gallery". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos": Pasting a picture (iPhone and iPad), Sorting the gallery; Search Everywhere: Words inside pictures).
+
+- **Before:** paste of pictures Mac only; search blind to text in pictures; gallery order = text order, no sorting.
+- **Paste (iOS):** `PictureTextView: UITextView` overrides `paste(_:)` / `canPerformAction` (also Cmd-V on an iPad keyboard) -> `PictureHooks.paste(offset, data, ext)`. Image data is saved as JPEG (longest side <= 2048 px) in `Pictures/` as "Pasted yyyy-MM-dd HHmmss.jpg" via Core `Pictures.pastedName(at:ext:)` (a number added when taken); line inserted at the cursor. Text on the pasteboard still pastes as text. Mac keeps PNG.
+- **Reorder:** Core `Pictures.reordering(_:notePath:moving:onto:)` swaps the picture lines so each picture takes the place of another; the text around stays. Tests in `PictureCaptionTests`. Gallery thumbs `.draggable` + `.dropDestination(for: String.self)`; Mac mouse drag, iOS long-press drag.
+- **Search in pictures:** Core `NoteIndex.search(_:pictureText:)` takes path -> recognized text; a note whose picture text contains all the words is a hit and gets "In a picture: ..." snippets. Test in `PictureCaptionTests`. App `PictureReader` at the end of `SearchView.swift`: Vision `VNRecognizeTextRequest` on device, in the background a few pictures at a time, cache JSON in Application Support `PictureText.json` keyed by path + modification date (not in the vault); iCloud placeholders are read once downloaded. iPhone, iPad, Mac.
+- **BuildStamp:** `BuildStamp.number` = 294 (set by the code engineer).
+
 ## Build 293 (11 November 2026)
 
 "Paste pictures, and a gallery". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos": Pasting a picture, The Pictures gallery).

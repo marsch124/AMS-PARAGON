@@ -103,8 +103,9 @@ struct PictureHooks {
     var caption: (Int, String) -> Void = { _, _ in }
     /// Build 290 (Mac): picture files dragged in from Finder, and where in the markdown.
     var drop: (Int, [URL]) -> Void = { _, _ in }
-    /// Build 293 (Mac): a picture pasted with ⌘V (PNG data), and where in the markdown.
-    var paste: (Int, Data) -> Void = { _, _ in }
+    /// Build 293/294: a pasted picture — where in the markdown, its data, and its file
+    /// extension ("png" from the Mac, "jpg" from the iPhone and iPad).
+    var paste: (Int, Data, String) -> Void = { _, _, _ in }
 }
 
 /// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
@@ -660,7 +661,7 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         textView.onPicturePaste = { [weak coordinator = context.coordinator, weak textView] index, png in
             guard let coordinator, let storage = textView?.textStorage else { return }
             let at = (PictureText.markdown(from: storage, upTo: min(index, storage.length)) as NSString).length
-            coordinator.pictures?.paste(at, png)
+            coordinator.pictures?.paste(at, png, "png")
         }
         textView.registerForDraggedTypes([.fileURL])
         textView.delegate = context.coordinator
@@ -1017,7 +1018,12 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
+        let textView = PictureTextView()
+        // Build 294: Paste with a picture on the clipboard puts it into the note.
+        textView.onPicturePaste = { [weak coordinator = context.coordinator, weak textView] image in
+            guard let coordinator, let textView, let jpeg = PhotoFile.jpeg(from: image) else { return }
+            coordinator.pictures?.paste(coordinator.markdownOffset(textView.selectedRange.location), jpeg, "jpg")
+        }
         textView.delegate = context.coordinator
         // NO gesture recogniser here. Build 114 added a tap recogniser so a tap could open a
         // [[link]], with cancelsTouchesInView = false in the belief that it would give way.
@@ -1422,6 +1428,29 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             textView.typingAttributes = MarkdownAttributes.base(color: .label)
             textView.selectedRange = selected
         }
+    }
+}
+/// Build 294: the iPhone and iPad text view, which pastes a copied picture into the note.
+/// Text on the clipboard always pastes as text.
+final class PictureTextView: UITextView {
+    var onPicturePaste: ((UIImage) -> Void)?
+
+    private var pastesPicture: Bool {
+        let board = UIPasteboard.general
+        return onPicturePaste != nil && board.hasImages && !board.hasStrings
+    }
+
+    override func paste(_ sender: Any?) {
+        if pastesPicture, let image = UIPasteboard.general.image {
+            onPicturePaste?(image)
+        } else {
+            super.paste(sender)
+        }
+    }
+
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(paste(_:)), isEditable, pastesPicture { return true }
+        return super.canPerformAction(action, withSender: sender)
     }
 }
 #endif

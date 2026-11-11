@@ -1,6 +1,33 @@
 # Version history
 
-The version is shown as 1.0 (293) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (294) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 294 · 11 November 2026
+
+**Paste on the iPhone, search inside pictures, and sorting the gallery.**
+
+**Before (build 293).** A copied picture could be pasted only on the Mac. Search found the words in your notes, but not the words written inside a picture (a photographed receipt, a screenshot, a whiteboard). The thumbnails in the Pictures row stayed in the order of the text, and the only way to change that was to cut and paste the picture lines yourself.
+
+**Now, pasting a picture (iPhone and iPad).**
+- Copy a picture, press and hold in a note's text and choose **Paste**. On an iPad with a keyboard, Command-V works too.
+- The picture is saved as a JPEG in the **Pictures** folder of your notes folder, named "Pasted 2026-11-11 154207.jpg" (the date and time of the paste). If that name is taken, a number is added. Its longest side is at most 2048 points, so a big photo does not fill your vault.
+- Its picture line goes where the cursor is, and the picture shows at once.
+- When the clipboard holds text, the text is pasted as text, as before.
+- The Mac (build 293) still saves PNG.
+
+**Now, search finds words inside pictures (iPhone, iPad and Mac).**
+- PARAGON reads the text in every picture a note shows. It uses Apple's own text recognition on the device; nothing leaves your iPhone, iPad or Mac.
+- It reads in the background, a few pictures at a time, so nothing slows down. What it has read is remembered, in the app's own storage and not in your notes folder, and a picture is read again only when its file changes.
+- A note whose pictures hold all the words you search for is found. Its result shows a line "In a picture: ..." with the words around the match.
+- A picture that is still on its way from iCloud is read once it has arrived.
+
+**Now, the gallery can be sorted (iPhone, iPad and Mac).**
+- Drag a thumbnail onto another to change the order. On the Mac, drag with the mouse; on the iPhone and iPad, press, hold and drag.
+- The pictures move in the note's text too: each picture takes the place of another, and the text around them stays exactly where it was.
+
+**What did not change.** Captions, drag from Finder, sketches, photos, paste on the Mac, the files in your vault and all the colours are as in build 293.
+
+**The version.** It shows as "PARAGON 1.0 (294)".
 
 ## Build 293 · 11 November 2026
 

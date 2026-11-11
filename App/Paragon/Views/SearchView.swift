@@ -1,4 +1,6 @@
 import SwiftUI
+import Vision
+import ImageIO
 import ParagonCore
 
 /// The Search section: a field for words, tick boxes for everything else, then the results.
@@ -599,3 +601,88 @@ struct SavedSearchChip: View {
         }
     }
 }
+
+// MARK: - Build 294: words inside pictures
+
+extension AppModel {
+    /// Reads the words in every picture the notes show, a few seconds after the notes
+    /// change, in the background. What was read is kept, so a picture is read again only
+    /// when its file changes.
+    func readPicturesSoon() {
+        guard pictureReading == nil else { picturesChangedWhileReading = true; return }
+        guard let root = vault?.rootURL else { return }
+        let paths = Set(notes.flatMap { note in
+            Pictures.matches(in: note.body, notePath: note.relativePath).map(\.path)
+        })
+        guard !paths.isEmpty else { return }
+        pictureReading = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            let words = await Task.detached(priority: .utility) {
+                PictureReader.read(paths: paths, root: root)
+            }.value
+            guard let self else { return }
+            if words != self.pictureText { self.pictureText = words }
+            self.pictureReading = nil
+            if self.picturesChangedWhileReading {
+                self.picturesChangedWhileReading = false
+                self.readPicturesSoon()
+            }
+        }
+    }
+}
+
+/// Apple's on-device text recognition over the vault's pictures, with a cache in the app's
+/// own Application Support folder (never in the vault).
+enum PictureReader {
+    struct Entry: Codable { var modified: Double; var text: String }
+
+    static var cacheURL: URL? {
+        guard let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("PictureText.json")
+    }
+
+    static func read(paths: Set<String>, root: URL) -> [String: String] {
+        var cache: [String: Entry] = [:]
+        if let url = cacheURL, let data = try? Data(contentsOf: url) {
+            cache = (try? JSONDecoder().decode([String: Entry].self, from: data)) ?? [:]
+        }
+        var changed = false
+        var result: [String: String] = [:]
+        for path in paths {
+            let file = root.appendingPathComponent(path)
+            // A picture still on its way from iCloud has no file yet: read it next time.
+            guard let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?
+                    .contentModificationDate?.timeIntervalSince1970 else { continue }
+            if let entry = cache[path], entry.modified == modified {
+                if !entry.text.isEmpty { result[path] = entry.text }
+                continue
+            }
+            guard let text = recognize(file) else { continue }
+            cache[path] = Entry(modified: modified, text: text)
+            changed = true
+            if !text.isEmpty { result[path] = text }
+        }
+        if changed, let url = cacheURL, let data = try? JSONEncoder().encode(cache) {
+            try? data.write(to: url, options: .atomic)
+        }
+        return result
+    }
+
+    /// The words in one picture, line by line; nil when it cannot be read.
+    static func recognize(_ file: URL) -> String? {
+        guard let source = CGImageSourceCreateWithURL(file as CFURL, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = true
+        request.automaticallyDetectsLanguage = true
+        do {
+            try VNImageRequestHandler(cgImage: image).perform([request])
+        } catch {
+            return nil
+        }
+        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
+    }
+}
+

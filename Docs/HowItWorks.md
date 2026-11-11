@@ -345,7 +345,11 @@ On the Mac the Format menu has Bold (Command-B), Italic (Command-I), Strikethrou
 
 **Pasting a picture (Mac).** Copy a picture (a screenshot, or an image copied from Safari, Preview or Photos), put the cursor in a note's text and press Command-V (or **Edit › Paste**). The picture is saved as a PNG in the **Pictures** folder of your notes folder, named like `Pasted 2026-11-11 15.42.07.png` (a number is added if that name is taken), and its picture line goes where the cursor is. It shows at once, like any other picture. If you copied picture files in Finder, pasting copies them into **Pictures** too, like dragging them (see above). If the clipboard holds text, the text is pasted as text: text wins.
 
+**Pasting a picture (iPhone and iPad).** Copy a picture, press and hold in a note's text and choose **Paste** (on an iPad keyboard, Command-V). The picture is saved as a JPEG, its longest side at most 2048 points, in the **Pictures** folder of your notes folder, named like `Pasted 2026-11-11 154207.jpg` (a number is added if that name is taken), and its picture line goes where the cursor is. If the clipboard holds text, the text is pasted as text. The Mac keeps saving PNG.
+
 **The Pictures gallery.** A note with two or more pictures shows a **Pictures** row above its text, on the iPhone, iPad and Mac. It has a small square thumbnail (about 64 points) of every picture in the note, in the order they appear, and the number of pictures beside the heading. Press the heading to fold the row away or open it again; PARAGON remembers it. Press a thumbnail to open that picture bigger, as pressing the picture in the text does (press **Done** to close it, Escape on the Mac). A note with one picture, or none, shows no gallery.
+
+**Sorting the gallery.** Drag a thumbnail onto another to change the order. On the Mac, drag with the mouse; on the iPhone and iPad, press, hold and drag. The pictures move in the note's text too: each picture takes the place of another, and the text around them stays where it was.
 
 ### Long press on a task's box
 
@@ -1262,6 +1266,8 @@ box, and the words move out of the field when you leave it.
 The button beside the field folds the boxes away. On the iPhone they start folded, so the
 results have the screen; on the Mac they start open. While they are folded, a line says what
 the search is in words.
+
+**Words inside pictures.** Search also finds the words written inside the pictures a note shows (a photographed receipt, a screenshot, a whiteboard), on the iPhone, iPad and Mac. PARAGON reads them with Apple's text recognition on the device itself; nothing leaves it. It reads in the background, a few pictures at a time, and remembers what it has read (in the app's own storage, not in your notes folder), reading a picture again only when its file changes. A note whose pictures hold all your search words is found, and its result shows a line "In a picture: ..." with the words around the match. A picture still on its way from iCloud is read once it has arrived.
 
 **On the iPhone**, three things put the keyboard away so the results have room: **Search** on
 the keyboard, a swipe down over the result list, and the **Done** button above the keys. The

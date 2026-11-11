@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 293
+    static let number = 294
 }
 
 @MainActor
@@ -140,8 +140,13 @@ final class AppModel: ObservableObject {
             // The one place that sees every change to the notes (build 271): `save` and
             // `saveText` put the saved note into this array and never call `reload()`.
             writeWidgetSnapshotSoon()
+            readPicturesSoon()
         }
     }
+    /// Build 294: the words read in the vault's pictures (path → words), for Search.
+    @Published var pictureText: [String: String] = [:]
+    var pictureReading: Task<Void, Never>?
+    var picturesChangedWhileReading = false
     /// Rebuilt whenever `notes` changes, so views never build it during a redraw.
     @Published private(set) var index = NoteIndex(notes: [])
     /// The Projects list in its groups (build 253), worked out once per change of the notes and
@@ -3768,7 +3773,7 @@ final class AppModel: ObservableObject {
 
     var searchQuery: SearchQuery { SearchQuery.parse(queryText) }
 
-    var searchHits: [SearchHit] { index.search(searchQuery) }
+    var searchHits: [SearchHit] { index.search(searchQuery, pictureText: pictureText) }
 
     /// Jumps to the Search section with a query, e.g. from a tag or a saved search.
     func search(_ text: String) {
