@@ -4927,6 +4927,16 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 289 (11 November 2026)
+
+"Pictures in the text, and photos". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos", format bar text).
+
+- **Before:** a picture link showed as link text in the editor; sketches only as thumbnails in a "Sketches" row under the text (288); no photos.
+- **Core:** new `Pictures` rule: `Pictures.matches(in:notePath:)`, `Pictures.isPicture` (.png, .jpg, .jpeg, .heic, .gif; relative vault paths). `Sketches` kept for sketch names (`newFileName`, `link`, `inserting`). One data test `PicturesTests`.
+- **Editor:** each picture link `![..](path)` is shown as one U+FFFC with an `NSTextAttachment` (`PictureAttachment`, carries the original link line); turned back into the link whenever the text is handed back, so the file keeps plain markdown. Max width = text column, max 320 pt tall, rounded corners. Undelivered iCloud file: grey box "On its way from iCloud". Press: sketch on iOS opens PencilKit again (Done saves over); photo, or anything on Mac, opens bigger with Done (Escape on Mac). Backspace right after a picture removes picture and link; file stays. The "Sketches" row under the text is removed. Photos: JPEG, longest side 2048 px, saved in vault folder `Photos/` as "Photo yyyy-MM-dd HHmmss.jpg"; line `![Photo](../Photos/Photo%20...jpg)` inserted at the cursor. Info.plist `NSCameraUsageDescription` = "PARAGON uses the camera to put a photo into a note."
+- **Format bar:** new `format.photo` (photo mark) beside the pencil (iPhone, iPad): "Take photo" (camera) / "Choose photo" (library). Screen test `testTheKeyboardBarHasStrikeAndSketch` now also checks the sketch appears inside the text.
+- **BuildStamp:** `BuildStamp.number` = 289.
+
 ## Build 288 (11 November 2026)
 
 "Apple Pencil sketches, numbered lists and strikethrough". Step 3 of "checkboxes, rich text, Apple Pencil". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Tasks: "Bold, italic, strikethrough and headings", "Sketches", "Return continues a list").

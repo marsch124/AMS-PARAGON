@@ -2,6 +2,7 @@ import SwiftUI
 import ParagonCore
 #if os(iOS)
 import PencilKit
+import PhotosUI
 #endif
 
 struct NoteEditorView: View {
@@ -517,17 +518,40 @@ struct NoteEditorView: View {
         Binding(get: { !frontmatterFolded }, set: { frontmatterFolded = !$0 })
     }
 
-    /// Build 288: the pencil above the keyboard, on the iPhone and iPad only.
-    private var sketchButton: ((Int) -> Void)? {
-        #if os(iOS)
-        return { offset in sketch = SketchRequest(offset: offset, picturePath: nil) }
-        #else
-        return nil
-        #endif
+    /// Build 288/289: pictures in the text, the pencil and the photo button.
+    private var pictureHooks: PictureHooks? {
+        guard let root = model.vault?.rootURL else { return nil }
+        return PictureHooks(notePath: path, root: root, version: sketchVersion,
+                            sketch: { offset in sketch = SketchRequest(offset: offset, picturePath: nil) },
+                            photo: { offset, camera in
+                                photoOffset = offset
+                                if camera { takingPhoto = true } else { choosingPhoto = true }
+                            },
+                            open: { picture in sketch = SketchRequest(offset: nil, picturePath: picture) })
     }
 
-    /// The sketches the note links to, for the row under the text.
-    private var sketchPaths: [String] { Sketches.links(in: text, notePath: path) }
+    /// Build 289: where a photo goes, and which way it is coming.
+    @State private var photoOffset = 0
+    @State private var takingPhoto = false
+    @State private var choosingPhoto = false
+    #if os(iOS)
+    @State private var chosenPhoto: PhotosPickerItem?
+    #endif
+
+    /// A photo into the Photos folder (a JPEG, longest side 2048) and its line where the
+    /// cursor was.
+    private func savePhoto(_ jpeg: Data) {
+        guard let vault = model.vault else { return }
+        let fileName = Pictures.newPhotoName()
+        do {
+            try vault.writeFile(jpeg, at: Pictures.photoFolder + "/" + fileName)
+        } catch {
+            model.errorMessage = "The photo could not be saved: \(error.localizedDescription)"
+            return
+        }
+        let link = Sketches.link(toFile: fileName, fromNote: path, folder: Pictures.photoFolder, alt: "Photo")
+        text = Sketches.inserting(link: link, into: text, at: min(photoOffset, (text as NSString).length)).text
+    }
 
     /// Done on the drawing page: the picture and drawing written into the Sketches folder,
     /// and for a new sketch its line put where the cursor was.
@@ -554,14 +578,24 @@ struct NoteEditorView: View {
 
     /// The markdown itself: the raw text, or the rendered version.
     private func editorPane(scrolls: Bool) -> some View {
-        VStack(spacing: 0) {
-            editorColumns(scrolls: scrolls)
-            if !sketchPaths.isEmpty {
-                SketchStrip(paths: sketchPaths, version: sketchVersion, tint: note?.tint ?? .accentColor) { picture in
-                    sketch = SketchRequest(offset: nil, picturePath: picture)
+        editorColumns(scrolls: scrolls)
+            #if os(iOS)
+            .fullScreenCover(isPresented: $takingPhoto) {
+                CameraPicker { image in if let jpeg = PhotoFile.jpeg(from: image) { savePhoto(jpeg) } }
+                    .ignoresSafeArea()
+            }
+            .photosPicker(isPresented: $choosingPhoto, selection: $chosenPhoto, matching: .images)
+            .onChange(of: chosenPhoto) { _, item in
+                guard let item else { return }
+                chosenPhoto = nil
+                Task {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data), let jpeg = PhotoFile.jpeg(from: image) {
+                        savePhoto(jpeg)
+                    }
                 }
             }
-        }
+            #endif
     }
 
     private func editorColumns(scrolls: Bool) -> some View {
@@ -572,7 +606,7 @@ struct NoteEditorView: View {
                                      openLink: { model.openWikiLink($0, from: path) },
                                      onLinkKey: handleLinkKey,
                                      scrolls: scrolls,
-                                     onSketch: sketchButton)
+                                     pictures: pictureHooks)
                     .onChange(of: text) { _, newValue in
                         scheduleSave(newValue)
                     }
@@ -1991,38 +2025,6 @@ struct SketchRequest: Identifiable {
     let picturePath: String?
 }
 
-/// The row under the note's text: each sketch it links to, small. A press opens it.
-struct SketchStrip: View {
-    let paths: [String]
-    let version: Int
-    let tint: Color
-    let open: (String) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Sketches")
-                .font(Txt.label.weight(.semibold))
-                .foregroundStyle(tint)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(paths, id: \.self) { picture in
-                        Button { open(picture) } label: {
-                            SketchThumb(path: picture, version: version)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Sketch")
-                        .accessibilityIdentifier("sketch.thumb")
-                    }
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityIdentifier("note.sketches")
-    }
-}
-
 /// One picture from the Sketches folder, or a word while iCloud has not sent it yet.
 struct SketchThumb: View {
     @EnvironmentObject private var model: AppModel
@@ -2084,11 +2086,11 @@ struct SketchSheet: View {
                 }
             }
             .background(Color.white)
-            .navigationTitle("Sketch")
+            .navigationTitle(pictureOnly == nil ? "Sketch" : "Picture")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                ToolbarItem(placement: pictureOnly == nil ? .cancellationAction : .confirmationAction) {
+                    Button(pictureOnly == nil ? "Cancel" : "Done") { dismiss() }
                         .accessibilityIdentifier("sketch.cancel")
                 }
                 if pictureOnly == nil {
@@ -2111,7 +2113,8 @@ struct SketchSheet: View {
     private func load() {
         defer { loaded = true }
         guard let picture = request.picturePath, let vault = model.vault else { return }
-        if let data = vault.fileData(at: Sketches.drawingPath(for: picture)), let old = try? PKDrawing(data: data) {
+        if Pictures.isSketch(picture), let data = vault.fileData(at: Sketches.drawingPath(for: picture)),
+           let old = try? PKDrawing(data: data) {
             drawing = old
         } else if let data = vault.fileData(at: picture), let image = UIImage(data: data) {
             pictureOnly = Image(uiImage: image)
@@ -2133,6 +2136,48 @@ struct SketchSheet: View {
             context.fill(CGRect(origin: .zero, size: rect.size))
             strokes.draw(in: CGRect(origin: .zero, size: rect.size))
         }
+    }
+}
+
+/// Build 289: Apple's camera screen. The photo comes back as it was taken.
+struct CameraPicker: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
+    let taken: (UIImage) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+    func updateUIViewController(_ picker: UIImagePickerController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPicker
+        init(_ parent: CameraPicker) { self.parent = parent }
+        func imagePickerController(_ picker: UIImagePickerController,
+                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage { parent.taken(image) }
+            parent.dismiss()
+        }
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { parent.dismiss() }
+    }
+}
+
+/// A photo as the JPEG that goes into the vault: longest side at most 2048 pixels.
+enum PhotoFile {
+    static func jpeg(from image: UIImage) -> Data? {
+        let longest = max(image.size.width * image.scale, image.size.height * image.scale)
+        let factor = min(2048 / max(longest, 1), 1)
+        let size = CGSize(width: (image.size.width * image.scale * factor).rounded(),
+                          height: (image.size.height * image.scale * factor).rounded())
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let scaled = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        return scaled.jpegData(compressionQuality: 0.8)
     }
 }
 
@@ -2180,7 +2225,8 @@ struct SketchSheet: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Text("Sketch").font(Txt.sectionTitle).foregroundStyle(tint)
+                Text(request.picturePath.map(Pictures.isSketch) ?? false ? "Sketch" : "Picture")
+                    .font(Txt.sectionTitle).foregroundStyle(tint)
                 Spacer()
                 Button("Done") { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -2190,8 +2236,10 @@ struct SketchSheet: View {
             if let picture = request.picturePath {
                 SketchThumb(path: picture, version: 0, height: 480)
             }
-            Text("Sketches are drawn on the iPhone or iPad.")
-                .font(Txt.label).foregroundStyle(.secondary)
+            if request.picturePath.map(Pictures.isSketch) ?? false {
+                Text("Sketches are drawn on the iPhone or iPad.")
+                    .font(Txt.label).foregroundStyle(.secondary)
+            }
         }
         .padding(16)
         .frame(minWidth: 520)

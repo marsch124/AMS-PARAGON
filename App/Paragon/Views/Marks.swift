@@ -106,6 +106,7 @@ enum Marks {
         "plus.circle": .init(kind: .control(.addCircle)),
         "plus.circle.fill": .init(kind: .control(.addCircle)),
         "pencil": .init(kind: .control(.edit)),
+        "photo": .init(kind: .control(.photo)),
         "checkmark": .init(kind: .control(.check)),
         "checkmark.circle": .init(kind: .control(.ticked)),
         "checkmark.circle.fill": .init(kind: .control(.ticked)),

@@ -40,12 +40,14 @@ public enum Sketches {
         (picturePath as NSString).deletingPathExtension + ".drawing"
     }
 
-    /// The markdown line for a picture in the Sketches folder, as seen from the note.
-    public static func link(toFile fileName: String, fromNote notePath: String) -> String {
+    /// The markdown line for a picture in the Sketches folder (or `folder`), as seen from
+    /// the note.
+    public static func link(toFile fileName: String, fromNote notePath: String,
+                            folder: String = Sketches.folder, alt: String = "Sketch") -> String {
         let depth = notePath.split(separator: "/").count - 1
         let up = String(repeating: "../", count: max(depth, 0))
         let encoded = fileName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? fileName
-        return "![Sketch](\(up)\(folder)/\(encoded))"
+        return "![\(alt)](\(up)\(folder)/\(encoded))"
     }
 
     /// The link on a line of its own where the cursor is. Returns the text and where the
@@ -75,5 +77,43 @@ public enum Sketches {
             }
         }
         return parts.joined(separator: "/")
+    }
+}
+
+/// Pictures inside the text (build 289): every `![…](path)` to a picture file in the vault —
+/// sketches, photos, pictures added in Obsidian — with where it is and the file it means.
+public enum Pictures {
+    public static let extensions: Set<String> = ["png", "jpg", "jpeg", "heic", "gif"]
+
+    public struct Match: Equatable, Sendable {
+        /// The whole `![…](…)` in the text.
+        public var range: NSRange
+        /// The file, from the vault's root.
+        public var path: String
+    }
+
+    /// Every picture link in `text`, in order.
+    public static func matches(in text: String, notePath: String) -> [Match] {
+        let ns = text as NSString
+        return Sketches.imageRegex.matches(in: text, range: NSRange(location: 0, length: ns.length)).compactMap { m in
+            let raw = ns.substring(with: m.range(at: 1))
+            let decoded = raw.removingPercentEncoding ?? raw
+            guard let path = Sketches.resolve(decoded, from: notePath), isPicture(path) else { return nil }
+            return Match(range: m.range, path: path)
+        }
+    }
+
+    public static func isPicture(_ path: String) -> Bool {
+        extensions.contains((path as NSString).pathExtension.lowercased())
+    }
+
+    /// A sketch can be drawn on again: it is in the Sketches folder.
+    public static func isSketch(_ path: String) -> Bool { path.hasPrefix(Sketches.folder + "/") }
+
+    /// Photos (build 289): the folder, and a name from the moment it is taken.
+    public static let photoFolder = "Photos"
+    public static func newPhotoName(at date: Date = Date(), calendar: Calendar = .current) -> String {
+        let sketch = Sketches.newFileName(at: date, calendar: calendar)
+        return "Photo" + sketch.dropFirst("Sketch".count).dropLast(".png".count) + ".jpg"
     }
 }

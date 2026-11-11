@@ -68,6 +68,7 @@ targets:
         NSCalendarsUsageDescription: PARAGON shows calendar events for the day next to your tasks in Today and in daily notes.
         NSRemindersFullAccessUsageDescription: PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.
         NSRemindersUsageDescription: PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.
+        NSCameraUsageDescription: PARAGON uses the camera to put a photo into a note.
         NSHumanReadableCopyright: ""
         UILaunchScreen: {}
         # Apple rejects an upload without these: iPad multitasking needs all four.

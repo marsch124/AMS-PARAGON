@@ -145,8 +145,8 @@ final class ScreenTests: XCTestCase {
                       "Bold or the next task is missing. The editor shows: \(shown.suffix(300))")
     }
 
-    /// Build 288: S strikes the word, Return numbers on, and the pencil draws a sketch that
-    /// lands in the note as a picture line and in the row under the text.
+    /// Build 288/289: S strikes the word, Return numbers on, and the pencil draws a sketch
+    /// that shows inside the text as a picture.
     func testTheKeyboardBarHasStrikeAndSketch() {
         go(to: .projects)
         let row = element("note.Projects/Plan the Kungsleden trip.md")
@@ -169,12 +169,18 @@ final class ScreenTests: XCTestCase {
         canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.3))
             .press(forDuration: 0.1, thenDragTo: canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)))
         app.buttons["sketch.done"].tap()
-        XCTAssertTrue(element("sketch.thumb").waitForExistence(timeout: 10), "The sketch is not in the row under the text.")
-        if let path = ProcessInfo.processInfo.environment["TEST_RUNNER_SHOT_PATH"] ?? ProcessInfo.processInfo.environment["SHOT_PATH"] {
+        // Build 289: the sketch shows inside the text (one picture mark), not as its link.
+        var after = ""
+        for _ in 0..<20 {
+            after = editor.value as? String ?? ""
+            if after.contains("\u{FFFC}") { break }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        if let path = ProcessInfo.processInfo.environment["SHOT_PATH"] {
             try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: path))
         }
-        let after = editor.value as? String ?? ""
-        XCTAssertTrue(after.contains("![Sketch](../Sketches/Sketch%20"), "No sketch line in the note: \(after.suffix(300))")
+        XCTAssertTrue(after.contains("\u{FFFC}") && !after.contains("![Sketch]"),
+                      "The sketch is not shown inside the text: \(after.suffix(300))")
     }
     #endif
 

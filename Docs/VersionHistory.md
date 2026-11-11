@@ -1,6 +1,40 @@
 # Version history
 
-The version is shown as 1.0 (288) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (289) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 289 · 11 November 2026
+
+**Pictures in the text, and photos.** A picture in a note now shows right where you wrote it. And you can put a photo into a note.
+
+**Before (build 288).** A sketch showed in the text as a line of link text, like `![Sketch](../Sketches/...)`. The picture was only in a row called **Sketches** under the note. There was no way to add a photo.
+
+**Now, pictures in the text.**
+- Every picture link to a file in your vault shows as the picture itself, right where the line is, while you write. This is for `.png`, `.jpg`, `.jpeg`, `.heic` and `.gif` files: sketches, photos, and pictures you added in Obsidian.
+- It works on the iPhone, iPad and Mac.
+- You do not see the link text any more. The file on disk still holds the normal markdown link, so Obsidian and other apps show the picture too.
+- The picture is as wide as the text, at most, and at most 320 points tall, with rounded corners.
+- A picture that iCloud has not sent yet shows a small grey box: **On its way from iCloud**.
+
+**Now, pressing a picture.**
+- A sketch on the iPhone or iPad opens the drawing page, so you can draw on it again. **Done** saves over it.
+- A photo, or any picture on the Mac, opens bigger. Press **Done** to close it. On the Mac, Escape closes it.
+
+**Now, removing a picture.**
+- Put the cursor right after the picture and press Backspace (Delete on the Mac). The picture and its link go from the note.
+- The picture file stays in its folder.
+
+**Now, the Sketches row is gone.** The pictures are in the text now, so the row under the note is not needed.
+
+**Now, photos (iPhone and iPad).**
+- There is a new photo button in the bar above the keyboard, beside the pencil.
+- It offers **Take photo** (the camera) and **Choose photo** (your photo library).
+- The first time you take a photo, the phone asks once if PARAGON may use the camera. Choosing a photo needs no permission.
+- The photo is saved as a JPEG (longest side 2048 pixels) in the vault's **Photos** folder, for example `Photo 2026-11-11 123005.jpg`.
+- A line like `![Photo](../Photos/Photo%202026-11-11%20123005.jpg)` goes into the note where the cursor was, and the photo shows at once.
+
+**What did not change.** Sketches are saved as in build 288. The file format, tasks, lists, bold, italic, strikethrough, headings and the sync are as before.
+
+**The version.** It shows as "PARAGON 1.0 (289)".
 
 ## Build 288 · 11 November 2026
 

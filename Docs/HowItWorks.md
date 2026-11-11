@@ -323,17 +323,21 @@ On the iPhone and iPad the bar above the keyboard has these buttons for it:
 - With no word at the cursor, B, I and S put in an empty pair and leave the cursor between, ready to type.
 - **H** steps the line: plain, big heading, middle heading, small heading, plain again.
 
-At the end of the bar there is also a pencil button, for drawing a sketch (see **Sketches**).
+At the end of the bar there are also a pencil button, for drawing a sketch, and a photo button, for adding a photo (see **Sketches and photos**).
 
 On the Mac the Format menu has Bold (Command-B), Italic (Command-I), Strikethrough (Shift-Command-X) and Heading (Option-Command-H), with the same rules.
 
-### Sketches
+### Sketches and photos
 
-On the iPhone and iPad you can draw in a note. Press the pencil button at the end of the bar above the keyboard. A drawing page opens with Apple's own tools: pen, marker, pencil, eraser, lasso, colours and ruler. Draw with Apple Pencil or with your finger. **Cancel** throws the sketch away. **Done** saves it.
+**Pictures in the text.** A picture link in a note, to a file in your vault (`.png`, `.jpg`, `.jpeg`, `.heic` or `.gif`), shows as the picture itself, right where the line is, while you write. This is the same on the iPhone, iPad and Mac, and it covers sketches, photos and pictures added in Obsidian. You do not see the link text, but the file still holds the normal markdown link, so other apps show the picture too. The picture is as wide as the text at most, and at most 320 points tall, with rounded corners. A picture that iCloud has not sent yet shows a small grey box, **On its way from iCloud**.
 
-The sketch goes into the **Sketches** folder of your vault. There are two files with the same name: a picture (PNG, for example `Sketch 2026-11-11 114005.png`) and a drawing file (`.drawing`), which lets you draw on it again later. A line like `![Sketch](../Sketches/Sketch%202026-11-11%20114005.png)` is put into the note where the cursor was. The path is relative to the note, so Obsidian and other markdown apps show the picture too.
+**Pressing a picture.** A sketch on the iPhone or iPad opens the drawing page, so you can draw on it again; **Done** saves over it. A photo, or any picture on the Mac, opens bigger; press **Done** to close it (Escape on the Mac).
 
-Under the note's text, a row called **Sketches** shows each sketch the note links to as a small picture. Press one on the iPhone or iPad to open it and draw on it again; **Done** saves over it. On the Mac it opens bigger, but the Mac cannot draw, because it has no Pencil. Remove the link line from the note and the sketch is gone from the note; the picture file stays in the Sketches folder. A sketch made on another device that iCloud has not sent yet shows **On its way from iCloud**.
+**Removing a picture.** Put the cursor right after the picture and press Backspace (Delete on the Mac). The picture and its link go from the note. The picture file stays in its folder.
+
+**Sketches (iPhone and iPad).** Press the pencil button at the end of the bar above the keyboard. A drawing page opens with Apple's own tools: pen, marker, pencil, eraser, lasso, colours and ruler. Draw with Apple Pencil or with your finger. **Cancel** throws the sketch away. **Done** saves it. The sketch goes into the **Sketches** folder of your vault, as a picture (PNG, for example `Sketch 2026-11-11 114005.png`) and a drawing file (`.drawing`) with the same name, which lets you draw on it again later. A line like `![Sketch](../Sketches/Sketch%202026-11-11%20114005.png)` goes into the note where the cursor was. The Mac cannot draw, because it has no Pencil.
+
+**Photos (iPhone and iPad).** Press the photo button, beside the pencil. Choose **Take photo** (the camera; the phone asks once if PARAGON may use it) or **Choose photo** (your photo library, no permission needed). The photo is saved as a JPEG, longest side 2048 pixels, in the vault's **Photos** folder, for example `Photo 2026-11-11 123005.jpg`. A line like `![Photo](../Photos/Photo%202026-11-11%20123005.jpg)` goes into the note where the cursor was, and the photo shows at once.
 
 ### Long press on a task's box
 

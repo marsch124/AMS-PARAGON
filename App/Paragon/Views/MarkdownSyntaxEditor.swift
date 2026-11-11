@@ -5,10 +5,12 @@ import ParagonCore
 import AppKit
 typealias PlatformFont = NSFont
 typealias PlatformColor = NSColor
+typealias PlatformImage = NSImage
 #else
 import UIKit
 typealias PlatformFont = UIFont
 typealias PlatformColor = UIColor
+typealias PlatformImage = UIImage
 #endif
 
 /// The note editor: an ordinary text view that draws markdown as you type. Headings grow,
@@ -31,9 +33,9 @@ struct MarkdownSyntaxEditor: View {
     /// a tap rather than an argument between two scroll views. macOS ignores it: there the
     /// text view lives in its own NSScrollView, which builds 30/34 require.
     var scrolls: Bool = true
-    /// Build 288: the pencil button above the keyboard (iPhone, iPad), with the cursor's
-    /// place in the text. Nil leaves the button out (the template editor).
-    var onSketch: ((Int) -> Void)? = nil
+    /// Build 288/289: pictures in the text, and the pencil and photo buttons above the
+    /// keyboard. Nil leaves them out (the template editor).
+    var pictures: PictureHooks? = nil
 
     init(text: Binding<String>,
          tint: Color = .accentColor,
@@ -42,8 +44,8 @@ struct MarkdownSyntaxEditor: View {
          openLink: @escaping (String) -> Void = { _ in },
          onLinkKey: @escaping (LinkKey) -> Bool = { _ in false },
          scrolls: Bool = true,
-         onSketch: ((Int) -> Void)? = nil) {
-        self.onSketch = onSketch
+         pictures: PictureHooks? = nil) {
+        self.pictures = pictures
         _text = text
         self.tint = tint
         _linkDraft = linkDraft
@@ -56,7 +58,7 @@ struct MarkdownSyntaxEditor: View {
     var body: some View {
         MarkdownTextViewRepresentable(text: $text, tint: tint, linkDraft: $linkDraft,
                                       completion: $completion, openLink: openLink,
-                                      onLinkKey: onLinkKey, scrolls: scrolls, onSketch: onSketch)
+                                      onLinkKey: onLinkKey, scrolls: scrolls, pictures: pictures)
     }
 }
 
@@ -83,6 +85,175 @@ enum BoxAction { case cancel, tomorrow }
 
 /// Bold, italic and heading: the buttons above the keyboard and the Mac's Format menu.
 enum FormatAction { case bold, italic, strike, heading }
+
+/// Build 289: what the editor needs to show pictures in the text and to make new ones.
+struct PictureHooks {
+    /// The note, from the vault's root, so `../Sketches/…` can be found.
+    var notePath: String
+    var root: URL
+    /// Raised when a picture file changed (a sketch drawn on again), so it is loaded afresh.
+    var version: Int
+    /// The pencil: a new sketch where the cursor is (an offset in the note's markdown).
+    var sketch: (Int) -> Void
+    /// The photo button: a photo where the cursor is; true for the camera, false for the library.
+    var photo: (Int, Bool) -> Void
+    /// A press on a picture in the text: its file, from the vault's root.
+    var open: (String) -> Void
+}
+
+/// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
+/// so the text handed back is the same markdown that was read.
+final class PictureAttachment: NSTextAttachment {
+    var link = ""
+    var path = ""
+}
+
+/// Build 289: the markdown ⇄ what the editor shows. The editor holds one U+FFFC per picture
+/// with a `PictureAttachment`; everything else is the markdown, character for character.
+@MainActor
+enum PictureText {
+    nonisolated static let mark = "\u{FFFC}"
+    nonisolated static let markChar: unichar = 0xFFFC
+    static let maxHeight: CGFloat = 320
+
+    /// The text to show, and where each picture goes in it.
+    static func display(_ markdown: String, hooks: PictureHooks?, width: CGFloat,
+                        cache: inout [String: PlatformImage]) -> (text: String, pictures: [(Int, PictureAttachment)]) {
+        guard let hooks else { return (markdown, []) }
+        let matches = Pictures.matches(in: markdown, notePath: hooks.notePath)
+        guard !matches.isEmpty else { return (markdown, []) }
+        let ns = markdown as NSString
+        var out = ""
+        var placed: [(Int, PictureAttachment)] = []
+        var last = 0
+        for match in matches {
+            out += ns.substring(with: NSRange(location: last, length: match.range.location - last))
+            let attachment = PictureAttachment()
+            attachment.link = ns.substring(with: match.range)
+            attachment.path = match.path
+            var image = cache[match.path]
+            if image == nil {
+                let loaded = picture(at: match.path, root: hooks.root, width: width)
+                image = loaded.image
+                if loaded.real { cache[match.path] = loaded.image }
+            }
+            if let image {
+                attachment.image = image
+                attachment.bounds = CGRect(origin: .zero, size: image.size)
+            }
+            placed.append(((out as NSString).length, attachment))
+            out += mark
+            last = NSMaxRange(match.range)
+        }
+        out += ns.substring(from: last)
+        return (out, placed)
+    }
+
+    /// The markdown for what the editor holds: each picture back to its line. A U+FFFC
+    /// without its picture (pasted from elsewhere) is dropped.
+    nonisolated static func markdown(from storage: NSAttributedString) -> String {
+        markdown(from: storage, upTo: storage.length)
+    }
+
+    nonisolated static func markdown(from storage: NSAttributedString, upTo end: Int) -> String {
+        let ns = storage.string as NSString
+        let stop = min(max(end, 0), ns.length)
+        guard ns.range(of: mark).location != NSNotFound else { return ns.substring(to: stop) }
+        var out = ""
+        var last = 0
+        var index = ns.range(of: mark, options: [], range: NSRange(location: 0, length: stop)).location
+        while index != NSNotFound {
+            out += ns.substring(with: NSRange(location: last, length: index - last))
+            if let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment { out += a.link }
+            last = index + 1
+            let next = ns.range(of: mark, options: [], range: NSRange(location: last, length: stop - last))
+            index = next.location
+        }
+        return out + ns.substring(with: NSRange(location: last, length: stop - last))
+    }
+
+    /// The pictures in a text storage, to put back after restyling.
+    nonisolated static func pictures(in storage: NSAttributedString) -> [(Int, PictureAttachment)] {
+        var found: [(Int, PictureAttachment)] = []
+        storage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: storage.length)) { value, range, _ in
+            if let a = value as? PictureAttachment { found.append((range.location, a)) }
+        }
+        return found
+    }
+
+    /// After the whole string was set (a chosen [[title]] written in), the pictures go back on
+    /// the U+FFFC marks in the order they were in: the completion never adds or removes one.
+    nonisolated static func reattachInOrder(_ old: [(Int, PictureAttachment)], to storage: NSTextStorage) {
+        let ns = storage.string as NSString
+        var index = 0
+        for i in 0..<ns.length where ns.character(at: i) == markChar {
+            guard index < old.count else { break }
+            storage.addAttribute(.attachment, value: old[index].1, range: NSRange(location: i, length: 1))
+            index += 1
+        }
+    }
+
+    nonisolated static func attach(_ pictures: [(Int, PictureAttachment)], to storage: NSTextStorage) {
+        for (at, a) in pictures where at < storage.length && (storage.string as NSString).character(at: at) == markChar {
+            storage.addAttribute(.attachment, value: a, range: NSRange(location: at, length: 1))
+        }
+    }
+
+    /// The picture's file, made to fit the text and rounded; a grey box with words while iCloud
+    /// has not sent it.
+    static func picture(at path: String, root: URL, width: CGFloat) -> (image: PlatformImage, real: Bool) {
+        let url = root.appendingPathComponent(path)
+        if CloudFiles.isMissing(url) { CloudFiles.startDownload(url) }
+        let maxWidth = max(min(width, 600), 120)
+        guard let data = try? Data(contentsOf: url), let source = PlatformImage(data: data),
+              source.size.width > 0, source.size.height > 0 else {
+            return (placeholder(width: min(maxWidth, 260)), false)
+        }
+        let scale = min(maxWidth / source.size.width, maxHeight / source.size.height, 1)
+        let size = CGSize(width: (source.size.width * scale).rounded(), height: (source.size.height * scale).rounded())
+        return (rounded(source, size: size), true)
+    }
+
+    private static let placeholderSize = CGSize(width: 260, height: 44)
+
+    #if os(iOS)
+    static func rounded(_ source: UIImage, size: CGSize) -> UIImage {
+        UIGraphicsImageRenderer(size: size).image { _ in
+            UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 8).addClip()
+            source.draw(in: CGRect(origin: .zero, size: size))
+        }
+    }
+    static func placeholder(width: CGFloat) -> UIImage {
+        let size = CGSize(width: width, height: placeholderSize.height)
+        let image = UIGraphicsImageRenderer(size: size).image { _ in
+            UIColor.systemGray5.setFill()
+            UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 8).fill()
+            ("On its way from iCloud" as NSString).draw(at: CGPoint(x: 12, y: 13), withAttributes: [
+                .font: UIFont.systemFont(ofSize: 13), .foregroundColor: UIColor.secondaryLabel])
+        }
+        return image
+    }
+    #else
+    static func rounded(_ source: NSImage, size: CGSize) -> NSImage {
+        NSImage(size: size, flipped: false) { rect in
+            NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).addClip()
+            source.draw(in: rect)
+            return true
+        }
+    }
+    static func placeholder(width: CGFloat) -> NSImage {
+        let size = CGSize(width: width, height: placeholderSize.height)
+        let image = NSImage(size: size, flipped: true) { rect in
+            NSColor.quaternaryLabelColor.setFill()
+            NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill()
+            ("On its way from iCloud" as NSString).draw(at: CGPoint(x: 12, y: 13), withAttributes: [
+                .font: NSFont.systemFont(ofSize: 13), .foregroundColor: NSColor.secondaryLabelColor])
+            return true
+        }
+        return image
+    }
+    #endif
+}
 
 /// Turns the spans from the Core highlighter into text attributes.
 enum MarkdownAttributes {
@@ -118,8 +289,10 @@ enum MarkdownAttributes {
                       primary: PlatformColor, secondary: PlatformColor, faint: PlatformColor,
                       hideMarkers: Bool = false, cursor: Int? = nil) {
         let whole = NSRange(location: 0, length: (text as NSString).length)
+        let pictures = PictureText.pictures(in: storage)
         storage.beginEditing()
         storage.setAttributes(base(color: primary), range: whole)
+        PictureText.attach(pictures, to: storage)
         // Very long notes are left plain: highlighting every keystroke would drag.
         if whole.length <= 200_000 {
             for span in MarkdownHighlight.spans(in: text) {
@@ -194,6 +367,20 @@ final class LinkingTextView: NSTextView {
     var onBoxMenu: ((Int, BoxAction) -> Void)?
     /// Build 287: Format › Bold, Italic, Heading (sent down the responder chain).
     var onFormat: ((FormatAction) -> Void)?
+    /// Build 289: a click on a picture in the text, with its file.
+    var onPictureClick: ((String) -> Void)?
+
+    /// The picture under `point`, when the click is really on it.
+    func picture(at point: NSPoint) -> PictureAttachment? {
+        guard let layout = layoutManager, let container = textContainer, let storage = textStorage else { return nil }
+        let p = NSPoint(x: point.x - textContainerOrigin.x, y: point.y - textContainerOrigin.y)
+        let glyph = layout.glyphIndex(for: p, in: container)
+        let index = layout.characterIndexForGlyph(at: glyph)
+        guard index < storage.length,
+              let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment else { return nil }
+        let rect = layout.boundingRect(forGlyphRange: NSRange(location: glyph, length: 1), in: container)
+        return rect.contains(p) ? a : nil
+    }
 
     @objc func paragonBold(_ sender: Any?) { onFormat?(.bold) }
     @objc func paragonItalic(_ sender: Any?) { onFormat?(.italic) }
@@ -256,6 +443,10 @@ final class LinkingTextView: NSTextView {
                 onBoxClick?(box)
                 return
             }
+            if event.clickCount == 1, let picture = picture(at: point) {
+                onPictureClick?(picture.path)
+                return
+            }
             super.mouseDown(with: event)
             return
         }
@@ -294,8 +485,8 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
     var onLinkKey: (LinkKey) -> Bool
     /// Taken so both platforms have the same shape; the Mac's editor always scrolls.
     var scrolls: Bool = true
-    /// The Mac cannot draw (no Pencil): taken for the same shape and not used.
-    var onSketch: ((Int) -> Void)? = nil
+    /// Build 289: pictures shown in the text (the Mac cannot draw: no pencil or photo button).
+    var pictures: PictureHooks? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(text: $text, linkDraft: $linkDraft, openLink: openLink, onLinkKey: onLinkKey)
@@ -315,6 +506,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         }
         textView.onFormat = { [weak coordinator = context.coordinator] action in
             coordinator?.format(action)
+        }
+        textView.onPictureClick = { [weak coordinator = context.coordinator] path in
+            coordinator?.pictures?.open(path)
         }
         textView.delegate = context.coordinator
         textView.allowsUndo = true
@@ -338,8 +532,10 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         textView.drawsBackground = false
         scrollView.drawsBackground = false
         scrollView.hasVerticalScroller = true
-        textView.string = text
         context.coordinator.textView = textView
+        context.coordinator.pictures = pictures
+        context.coordinator.shownVersion = pictures?.version
+        context.coordinator.show(text)
         context.coordinator.styledTint = tint
         context.coordinator.styledScheme = context.environment.colorScheme
         context.coordinator.highlight(tint: NSColor(tint))
@@ -354,6 +550,7 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         context.coordinator.linkDraft = $linkDraft
         context.coordinator.openLink = openLink
         context.coordinator.onLinkKey = onLinkKey
+        context.coordinator.pictures = pictures
         // A title picked from the list: written in here, where the text view is, so the cursor
         // lands after it. Undo starts again from here (build 252), as after any outside change.
         if let completion, !context.coordinator.applying {
@@ -363,13 +560,15 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // the coordinator quiet until this pass is over.
             context.coordinator.applying = true
             let done = WikiLinks.completing(textView.string, draft: completion.draft, with: completion.title)
+            let pictures = textView.textStorage.map { PictureText.pictures(in: $0) } ?? []
             textView.string = done.text
+            if let storage = textView.textStorage { PictureText.reattachInOrder(pictures, to: storage) }
             // Setting the string records nothing, so earlier typing would be undone at places
             // that have moved. An undo may only ever touch the text it was recorded on.
             context.coordinator.history.removeAllActions()
             textView.setSelectedRange(NSRange(location: min(done.cursor, (done.text as NSString).length), length: 0))
             context.coordinator.highlight(tint: NSColor(tint))
-            let finished = done.text
+            let finished = context.coordinator.markdown()
             DispatchQueue.main.async {
                 self.text = finished
                 self.completion = nil
@@ -384,9 +583,11 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         // tick, the fold, a sync), and skipping it let the next key write the old screen back
         // over it — the settings block could be lost (build 252's review).
         var replaced = false
-        if textView.string != text {
+        let versionChanged = context.coordinator.shownVersion != pictures?.version
+        if versionChanged { context.coordinator.cache = [:]; context.coordinator.shownVersion = pictures?.version }
+        if versionChanged || context.coordinator.markdown() != text {
             let selected = textView.selectedRange()
-            textView.string = text
+            context.coordinator.show(text)
             context.coordinator.history.removeAllActions()
             let length = (text as NSString).length
             textView.setSelectedRange(NSRange(location: min(selected.location, length), length: 0))
@@ -416,6 +617,7 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             textView.onBoxClick = nil
             textView.onBoxMenu = nil
             textView.onFormat = nil
+            textView.onPictureClick = nil
             textView.delegate = nil
         }
         coordinator.history.removeAllActions()
@@ -442,6 +644,25 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         /// that changes nothing restyles nothing — and a switch to dark mode still does.
         var styledTint: Color?
         var styledScheme: ColorScheme?
+        /// Build 289: pictures in the text.
+        var pictures: PictureHooks?
+        var shownVersion: Int?
+        var cache: [String: NSImage] = [:]
+
+        /// Puts the markdown on screen, each picture line as its picture.
+        func show(_ markdown: String) {
+            guard let textView, let storage = textView.textStorage else { return }
+            let width = textView.textContainer?.size.width ?? 0
+            let shown = PictureText.display(markdown, hooks: pictures, width: width > 200 ? width - 12 : 480, cache: &cache)
+            textView.string = shown.text
+            PictureText.attach(shown.pictures, to: storage)
+        }
+
+        /// What the editor holds, as markdown.
+        func markdown() -> String {
+            guard let storage = textView?.textStorage else { return text.wrappedValue }
+            return PictureText.markdown(from: storage)
+        }
 
         init(text: Binding<String>, linkDraft: Binding<LinkDraftOnScreen?>,
              openLink: @escaping (String) -> Void, onLinkKey: @escaping (LinkKey) -> Bool) {
@@ -478,7 +699,8 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             guard let textView else { return }
             // Copied first, always: if AppKit finishes a half-typed accent without telling us,
             // the note already holds what the screen shows, and nothing is lost.
-            if text.wrappedValue != textView.string { text.wrappedValue = textView.string }
+            let now = markdown()
+            if text.wrappedValue != now { text.wrappedValue = now }
             // A half-typed accent (´ then e) is marked text, and AppKit keeps its own marking
             // on it. It is not restyled or measured until the letter is finished, which calls
             // this again.
@@ -542,7 +764,7 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
 
         /// Writes only the part that changed, as an ordinary edit, so ⌘Z undoes it. Nil keeps
         /// the cursor where it was.
-        private func replace(with new: String, selection: NSRange?) {
+        func replace(with new: String, selection: NSRange?) {
             guard let textView else { return }
             let edit = TaskBox.edit(from: textView.string, to: new)
             let selected = textView.selectedRange()
@@ -617,7 +839,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
     var openLink: (String) -> Void
     var onLinkKey: (LinkKey) -> Bool
     var scrolls: Bool = true
-    var onSketch: ((Int) -> Void)? = nil
+    var pictures: PictureHooks? = nil
 
     /// The floor under everything below. Build 123 let the text view ask for its own height
     /// and it asked for none, so a note could not be edited at all: SwiftUI does not lay a
@@ -658,9 +880,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         textView.smartDashesType = .no
         textView.isScrollEnabled = scrolls
         textView.alwaysBounceVertical = scrolls
-        textView.text = text
         context.coordinator.textView = textView
-        context.coordinator.onSketch = onSketch
+        context.coordinator.pictures = pictures
+        context.coordinator.shownVersion = pictures?.version
+        context.coordinator.show(text)
         context.coordinator.highlight(tint: UIColor(tint))
         // What the screen tests type into (build 191). A name of its own, so a change to the
         // screen around it cannot quietly stop the test from finding it.
@@ -691,14 +914,16 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         context.coordinator.text = $text
         context.coordinator.linkDraft = $linkDraft
         context.coordinator.openLink = openLink
-        context.coordinator.onSketch = onSketch
+        context.coordinator.pictures = pictures
         if let completion, !context.coordinator.applying {
             context.coordinator.applying = true
             let done = WikiLinks.completing(textView.text, draft: completion.draft, with: completion.title)
+            let pictures = PictureText.pictures(in: textView.textStorage)
             textView.text = done.text
+            PictureText.reattachInOrder(pictures, to: textView.textStorage)
             textView.selectedRange = NSRange(location: min(done.cursor, (done.text as NSString).length), length: 0)
             context.coordinator.highlight(tint: UIColor(tint))
-            let finished = done.text
+            let finished = context.coordinator.markdown()
             DispatchQueue.main.async {
                 self.text = finished
                 self.completion = nil
@@ -707,10 +932,12 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             }
             return
         }
-        if textView.text != text {
+        let versionChanged = context.coordinator.shownVersion != pictures?.version
+        if versionChanged { context.coordinator.cache = [:]; context.coordinator.shownVersion = pictures?.version }
+        if versionChanged || context.coordinator.markdown() != text {
             let selected = textView.selectedRange
-            textView.text = text
-            let length = (text as NSString).length
+            context.coordinator.show(text)
+            let length = (textView.text as NSString).length
             textView.selectedRange = NSRange(location: min(selected.location, length), length: 0)
         }
         context.coordinator.highlight(tint: UIColor(tint))
@@ -729,7 +956,46 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         var text: Binding<String>
         var linkDraft: Binding<LinkDraftOnScreen?>
         var openLink: (String) -> Void
-        var onSketch: ((Int) -> Void)?
+        var pictures: PictureHooks?
+        var shownVersion: Int?
+        var cache: [String: UIImage] = [:]
+
+        /// Puts the markdown on screen, each picture line as its picture (build 289).
+        func show(_ markdown: String) {
+            guard let textView else { return }
+            let width = textView.bounds.width - textView.textContainerInset.left - textView.textContainerInset.right - 12
+            let fallback = (textView.window?.windowScene?.screen.bounds.width ?? 390) - 40
+            let shown = PictureText.display(markdown, hooks: pictures, width: width > 200 ? width : fallback, cache: &cache)
+            textView.text = shown.text
+            PictureText.attach(shown.pictures, to: textView.textStorage)
+        }
+
+        /// What the editor holds, as markdown.
+        func markdown() -> String {
+            guard let textView else { return text.wrappedValue }
+            return PictureText.markdown(from: textView.textStorage)
+        }
+
+        /// The place in the markdown for a place on screen.
+        func markdownOffset(_ offset: Int) -> Int {
+            guard let textView else { return offset }
+            return (PictureText.markdown(from: textView.textStorage, upTo: offset) as NSString).length
+        }
+
+        /// The picture under `point`, when the tap is really on it.
+        func picture(at point: CGPoint) -> PictureAttachment? {
+            guard let textView, let position = textView.closestPosition(to: point) else { return nil }
+            let storage = textView.textStorage
+            let index = textView.offset(from: textView.beginningOfDocument, to: position)
+            for at in [index, index - 1] where at >= 0 && at < storage.length {
+                guard let a = storage.attribute(.attachment, at: at, effectiveRange: nil) as? PictureAttachment,
+                      let start = textView.position(from: textView.beginningOfDocument, offset: at),
+                      let end = textView.position(from: start, offset: 1),
+                      let range = textView.textRange(from: start, to: end) else { continue }
+                if textView.firstRect(for: range).contains(point) { return a }
+            }
+            return nil
+        }
         /// True while a chosen title is being written in: nothing is reported meanwhile.
         var applying = false
         weak var textView: UITextView?
@@ -742,7 +1008,8 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            if text.wrappedValue != textView.text { text.wrappedValue = textView.text }
+            let now = markdown()
+            if text.wrappedValue != now { text.wrappedValue = now }
             highlight(tint: nil)
             reportDraft()
         }
@@ -790,7 +1057,9 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
 
         func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
             guard recognizer === boxTap || recognizer === boxPress, let textView else { return true }
-            return boxOffset(at: recognizer.location(in: textView)) != nil
+            let point = recognizer.location(in: textView)
+            if recognizer === boxTap, picture(at: point) != nil { return true }
+            return boxOffset(at: point) != nil
         }
 
         func gestureRecognizer(_ recognizer: UIGestureRecognizer,
@@ -799,6 +1068,11 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         }
 
         @objc func boxTapped(_ recognizer: UITapGestureRecognizer) {
+            if let textView, let picture = picture(at: recognizer.location(in: textView)) {
+                textView.resignFirstResponder()
+                pictures?.open(picture.path)
+                return
+            }
             guard let textView, let offset = boxOffset(at: recognizer.location(in: textView)),
                   let ticked = TaskBox.toggled(textView.text, at: offset) else { return }
             write(ticked, cursor: nil)
@@ -880,12 +1154,23 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
                     .strikethroughStyle: NSUnderlineStyle.single.rawValue, .strikethroughColor: tint]), for: .normal)
             }
             var items: [UIBarButtonItem] = [task, bold, italic, strike, heading, .flexibleSpace()]
-            if onSketch != nil {
+            if pictures != nil {
+                // Build 289: the photo button beside the pencil, a choice of camera or library.
+                var choices: [UIAction] = []
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    choices.append(UIAction(title: "Take photo") { [weak self] _ in self?.makePhoto(camera: true) })
+                }
+                choices.append(UIAction(title: "Choose photo") { [weak self] _ in self?.makePhoto(camera: false) })
+                let photo = UIBarButtonItem(image: Marks.uiImage("photo", size: 22), menu: UIMenu(children: choices))
+                photo.accessibilityLabel = "Photo"
+                photo.accessibilityIdentifier = "format.photo"
+                photo.tintColor = tint
                 let sketch = UIBarButtonItem(image: Marks.uiImage("pencil", size: 22),
                                              style: .plain, target: self, action: #selector(makeSketch))
                 sketch.accessibilityLabel = "Sketch"
                 sketch.accessibilityIdentifier = "format.sketch"
                 sketch.tintColor = tint
+                items.append(photo)
                 items.append(sketch)
             }
             bar.items = items
@@ -904,9 +1189,15 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         @objc func makeStrike() { toggle("~~") }
         @objc func makeSketch() {
             guard let textView else { return }
-            let at = textView.selectedRange.location
+            let at = markdownOffset(textView.selectedRange.location)
             textView.resignFirstResponder()
-            onSketch?(at)
+            pictures?.sketch(at)
+        }
+        func makePhoto(camera: Bool) {
+            guard let textView else { return }
+            let at = markdownOffset(textView.selectedRange.location)
+            textView.resignFirstResponder()
+            pictures?.photo(at, camera)
         }
         @objc func makeHeading() {
             guard let textView else { return }
