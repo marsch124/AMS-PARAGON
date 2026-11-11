@@ -21,6 +21,10 @@ public enum SyncWait {
         waiting == 0 && updating == 0 ? .start : .keepWaiting
     }
 
+    /// The calm line at the foot of the Mac's sidebar and at the top of the phone's Today while
+    /// a sync waits (build 284), so it is plain the sync has not been forgotten.
+    public static let waitingLine = "Sync waiting for iCloud…"
+
     /// The short note shown when a sync someone pressed has to wait. Not an error.
     public static let message =
         "Notes are still arriving from iCloud. The sync starts by itself as soon as they are here."

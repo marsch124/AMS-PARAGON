@@ -4927,6 +4927,13 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 284 (11 November 2026)
+
+"You can see the sync waiting". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (How iCloud moves the files).
+
+- **Before:** a sync waiting for iCloud (build 283) was invisible: only a passing note on a pressed Sync, nothing for the timer's.
+- **Now:** a grey line "Sync waiting for iCloud…" with the sync mark while `model.syncWaitsForCloud`. Core `SyncWait.waitingLine` (test `SyncWaitTests.testTheWaitingLineNamesTheSyncAndICloud`); `SyncWaitingBar` in `Views/Theme.swift` (id `sync.waiting`). Shown from ContentView's sidebar `safeAreaInset(edge: .bottom)` (Mac and iPad, under the orange iCloud warning) and at the top of TodayView, phone only (no sidebar). Grey, not orange: nothing is wrong. `BuildStamp.number` = 284.
+
 ## Build 283 (11 November 2026)
 
 "The sync waits for iCloud". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (How iCloud moves the files).

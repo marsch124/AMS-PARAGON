@@ -124,6 +124,20 @@ struct EmptyStateView: View {
 /// The line at the foot of the sidebar when the vault is not all readable: notes iCloud has
 /// not sent, or files that could not be read at all. It is deliberately hard to miss — an
 /// app that quietly draws an empty vault looks exactly like an app that has lost everything.
+/// Build 284: a sync is waiting for iCloud and will start by itself. Calm, not orange: nothing
+/// is wrong, it only says the sync has not been forgotten.
+struct SyncWaitingBar: View {
+    var body: some View {
+        MarkLabel(SyncWait.waitingLine, "arrow.triangle.2.circlepath")
+            .font(Txt.listSecond)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .accessibilityIdentifier("sync.waiting")
+    }
+}
+
 struct VaultWarningBar: View {
     let text: String
     let retry: () -> Void

@@ -10,4 +10,9 @@ final class SyncWaitTests: XCTestCase {
         XCTAssertFalse(SyncWait.message.contains("Try again"))
         XCTAssertFalse(SyncWait.message.contains("wrong"))
     }
+
+    /// Build 284: the waiting line says what waits and for what, and is not an alarm.
+    func testTheWaitingLineNamesTheSyncAndICloud() {
+        XCTAssertEqual(SyncWait.waitingLine, "Sync waiting for iCloud…")
+    }
 }

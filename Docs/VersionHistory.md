@@ -1,6 +1,20 @@
 # Version history
 
-The version is shown as 1.0 (283) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (284) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 284 · 11 November 2026
+
+**You can see the sync waiting.** What PARAGON does has not changed. What changed is that a sync waiting for iCloud now shows itself.
+
+**Before (build 283).** A sync that had to wait for iCloud waited invisibly. If you pressed **Sync with Reminders**, a short note passed by and was gone. A sync started by the timer waited with no sign at all.
+
+**Now.** While a sync waits, a calm grey line "Sync waiting for iCloud…" with the sync mark shows at the foot of the sidebar on the Mac and the iPad, under the orange iCloud warning when that is there too. On the iPhone, which has no sidebar, it shows at the top of Today. It disappears the moment the sync starts by itself.
+
+**Why grey.** Nothing is wrong: the notes are only on their way. Orange is kept for things that need you.
+
+**What did not change.** The waiting itself, the safety rule and the other whole-vault actions are as in build 283.
+
+**The version.** It shows as "PARAGON 1.0 (284)".
 
 ## Build 283 · 11 November 2026
 
