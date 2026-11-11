@@ -1,6 +1,33 @@
 # Version history
 
-The version is shown as 1.0 (289) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (290) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 290 · 11 November 2026
+
+**Captions, pictures from Finder, and a tidier note header.**
+
+**Before (build 289).** A picture had no words under it. On the Mac you could not drag a picture file into a note. A note without tasks said its kind twice: "Daily note" in the coloured band and again as the heading of the panel under it. In the panel, each fact (for example **List**, **In area**, **Serves**) had its small grey label over its value, so it did not line up with the buttons beside it.
+
+**Now, captions under pictures.**
+- The alt text of a picture, the words in `![My caption](...)`, shows as a small grey line under the picture. iPhone, iPad and Mac.
+- The words "Sketch", "Photo" and "Picture", and empty alt text, show no caption.
+- Mac: right-click (or Control-click) a picture and choose **Caption...**. iPhone and iPad: press and hold a picture and choose **Caption...**.
+- A small window opens with a text field, **Cancel** and **Save**.
+- **Save** writes the words as the alt text, so Obsidian and other markdown apps show the same caption. Clearing the field removes the caption.
+
+**Now, pictures from Finder (Mac).**
+- Drag picture files (png, jpg, jpeg, heic, gif) from Finder into a note.
+- Each is copied into a new **Pictures** folder in your notes folder, with the same file name, or "name 2.jpg" if that name is taken.
+- Its line goes where you dropped it, and the picture shows at once.
+- The original file stays where it was.
+
+**Now, the note header.**
+- The coloured band no longer repeats the kind of note. A daily note says how far the day is from today: "Today", "Yesterday", "Tomorrow", "3 days ago" or "In 3 days". Any other note without tasks says "No tasks yet".
+- Facts in the panel (for example **List**, **In area**, **Serves**) now sit on one line: the small grey label, then the value. They line up with the buttons beside them (**Tags...**, **Status**), and the panel is lower.
+
+**What did not change.** Pictures in the text, photos, sketches, tasks, the file format and the sync are as in build 289.
+
+**The version.** It shows as "PARAGON 1.0 (290)".
 
 ## Build 289 · 11 November 2026
 

@@ -527,7 +527,58 @@ struct NoteEditorView: View {
                                 photoOffset = offset
                                 if camera { takingPhoto = true } else { choosingPhoto = true }
                             },
-                            open: { picture in sketch = SketchRequest(offset: nil, picturePath: picture) })
+                            open: { picture in sketch = SketchRequest(offset: nil, picturePath: picture) },
+                            caption: { offset, link in
+                                captionEdit = CaptionEdit(offset: offset, link: link)
+                                captionDraft = Pictures.caption(ofLink: link) ?? ""
+                            },
+                            drop: { offset, urls in dropPictures(urls, at: offset) })
+    }
+
+    /// Build 290: the picture whose caption is being written, and the words so far.
+    struct CaptionEdit { var offset: Int; var link: String }
+    @State private var captionEdit: CaptionEdit?
+    @State private var captionDraft = ""
+
+    /// Save on the caption window: the picture's link with the new words, if it is still there.
+    private func saveCaption() {
+        guard let edit = captionEdit else { return }
+        captionEdit = nil
+        let ns = text as NSString
+        let range = NSRange(location: edit.offset, length: (edit.link as NSString).length)
+        guard NSMaxRange(range) <= ns.length, ns.substring(with: range) == edit.link else { return }
+        text = ns.replacingCharacters(in: range, with: Pictures.settingCaption(captionDraft, inLink: edit.link))
+    }
+
+    /// Build 290 (Mac): pictures dragged in from Finder, copied into the Pictures folder, each
+    /// on its own line where they were dropped. The originals stay where they were.
+    private func dropPictures(_ urls: [URL], at offset: Int) {
+        guard let vault = model.vault else { return }
+        let folder = vault.rootURL.appendingPathComponent(Pictures.droppedFolder)
+        var taken = Set((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? [])
+        var at = min(offset, (text as NSString).length)
+        var result = text
+        for url in urls {
+            let reading = url.startAccessingSecurityScopedResource()
+            defer { if reading { url.stopAccessingSecurityScopedResource() } }
+            guard let data = try? Data(contentsOf: url) else {
+                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be read."
+                continue
+            }
+            let name = Pictures.freeName(for: url.lastPathComponent, taken: taken)
+            do {
+                try vault.writeFile(data, at: Pictures.droppedFolder + "/" + name)
+            } catch {
+                model.errorMessage = "The picture could not be saved: \(error.localizedDescription)"
+                continue
+            }
+            taken.insert(name)
+            let link = Sketches.link(toFile: name, fromNote: path, folder: Pictures.droppedFolder, alt: "Picture")
+            let put = Sketches.inserting(link: link, into: result, at: at)
+            result = put.text
+            at = put.cursor
+        }
+        text = result
     }
 
     /// Build 289: where a photo goes, and which way it is coming.
@@ -579,6 +630,16 @@ struct NoteEditorView: View {
     /// The markdown itself: the raw text, or the rendered version.
     private func editorPane(scrolls: Bool) -> some View {
         editorColumns(scrolls: scrolls)
+            .alert("Caption", isPresented: Binding(get: { captionEdit != nil },
+                                                   set: { if !$0 { captionEdit = nil } })) {
+                TextField("Words under the picture", text: $captionDraft)
+                    .accessibilityIdentifier("caption.field")
+                Button("Cancel", role: .cancel) { captionEdit = nil }
+                Button("Save") { saveCaption() }
+                    .keyboardShortcut(.defaultAction)
+            } message: {
+                Text("Shown in small words under the picture. Leave it empty for none.")
+            }
             #if os(iOS)
             .fullScreenCover(isPresented: $takingPhoto) {
                 CameraPicker { image in if let jpeg = PhotoFile.jpeg(from: image) { savePhoto(jpeg) } }
@@ -1334,7 +1395,9 @@ struct NoteHeader: View {
                        words: "open \(open == 1 ? "task" : "tasks") · \(tasks.count - open) of \(tasks.count) done",
                        identifier: "note.band")
         } else {
-            Text(kindWord(for: note))
+            // Build 290: the panel under the band already says the kind; the band says
+            // something new — how far a daily note's day is from today.
+            Text(note.dailyDate.map { DayDistance.words(from: $0, to: .today()) } ?? "No tasks yet")
                 .font(Txt.label)
                 .foregroundStyle(.white.opacity(0.85))
                 .accessibilityIdentifier("note.band")
@@ -1370,9 +1433,10 @@ struct NoteHeader: View {
         }
     }
 
-    /// A plain fact: a small label in soft grey, the value under it at text size.
+    /// A plain fact: a small label in soft grey, the value beside it at text size — one
+    /// line, level with the buttons next to it (build 290; it used to sit under the label).
     private func fact(_ label: String, _ value: String, tint: Color? = nil) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
             Text(label).font(Txt.label).foregroundStyle(Theme.soft)
             Text(value).font(Txt.value).foregroundStyle(tint ?? Color.primary)
         }

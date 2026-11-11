@@ -117,3 +117,57 @@ public enum Pictures {
         return "Photo" + sketch.dropFirst("Sketch".count).dropLast(".png".count) + ".jpg"
     }
 }
+
+/// Build 290: captions and pictures dropped in from Finder.
+public extension Pictures {
+    /// The words a picture gets by itself; they are not shown as a caption.
+    static let plainWords: Set<String> = ["", "sketch", "photo", "picture", "image"]
+
+    /// The caption of a `![…](…)` link: its alt text, unless that is one of the plain words.
+    static func caption(ofLink link: String) -> String? {
+        guard link.hasPrefix("!["), let close = link.range(of: "](") else { return nil }
+        let alt = link[link.index(link.startIndex, offsetBy: 2)..<close.lowerBound]
+            .trimmingCharacters(in: .whitespaces)
+        return plainWords.contains(alt.lowercased()) ? nil : alt
+    }
+
+    /// The link with a new caption. An empty caption gives the plain word "Picture" back;
+    /// `]`, `[` and line breaks are left out, since they would break the link.
+    static func settingCaption(_ caption: String, inLink link: String) -> String {
+        guard link.hasPrefix("!["), let close = link.range(of: "](") else { return link }
+        let cleaned = caption.components(separatedBy: CharacterSet(charactersIn: "[]\n\r")).joined()
+            .trimmingCharacters(in: .whitespaces)
+        return "![" + (cleaned.isEmpty ? "Picture" : cleaned) + link[close.lowerBound...]
+    }
+
+    /// Pictures dragged in from Finder are copied here.
+    static let droppedFolder = "Pictures"
+
+    /// `name` if it is free, else `name 2.ext`, `name 3.ext` …
+    static func freeName(for name: String, taken: Set<String>) -> String {
+        guard taken.contains(name) else { return name }
+        let base = (name as NSString).deletingPathExtension
+        let ext = (name as NSString).pathExtension
+        var n = 2
+        while true {
+            let candidate = ext.isEmpty ? "\(base) \(n)" : "\(base) \(n).\(ext)"
+            if !taken.contains(candidate) { return candidate }
+            n += 1
+        }
+    }
+}
+
+/// Build 290: how far a day is from today, in words, for a daily note's band.
+public enum DayDistance {
+    public static func words(from day: DateOnly, to today: DateOnly, calendar: Calendar = .current) -> String {
+        guard let a = day.date(calendar: calendar), let b = today.date(calendar: calendar) else { return "" }
+        let n = calendar.dateComponents([.day], from: b, to: a).day ?? 0
+        switch n {
+        case 0: return "Today"
+        case 1: return "Tomorrow"
+        case -1: return "Yesterday"
+        case let n where n > 1: return "In \(n) days"
+        default: return "\(-n) days ago"
+        }
+    }
+}

@@ -99,6 +99,10 @@ struct PictureHooks {
     var photo: (Int, Bool) -> Void
     /// A press on a picture in the text: its file, from the vault's root.
     var open: (String) -> Void
+    /// Build 290: Caption… on a picture — where its link starts in the markdown, and the link.
+    var caption: (Int, String) -> Void = { _, _ in }
+    /// Build 290 (Mac): picture files dragged in from Finder, and where in the markdown.
+    var drop: (Int, [URL]) -> Void = { _, _ in }
 }
 
 /// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
@@ -137,7 +141,11 @@ enum PictureText {
                 image = loaded.image
                 if loaded.real { cache[match.path] = loaded.image }
             }
-            if let image {
+            if var image {
+                // Build 290: the caption, small and grey under the picture.
+                if let caption = Pictures.caption(ofLink: attachment.link) {
+                    image = captioned(image, caption)
+                }
                 attachment.image = image
                 attachment.bounds = CGRect(origin: .zero, size: image.size)
             }
@@ -215,6 +223,41 @@ enum PictureText {
     }
 
     private static let placeholderSize = CGSize(width: 260, height: 44)
+    private static let captionFont: CGFloat = 12
+
+    /// The picture with its caption on one or two lines under it.
+    static func captioned(_ image: PlatformImage, _ caption: String) -> PlatformImage {
+        let width = max(image.size.width, 160)
+        #if os(iOS)
+        let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: captionFont),
+                                                    .foregroundColor: UIColor.secondaryLabel]
+        #else
+        let attrs: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: captionFont),
+                                                    .foregroundColor: NSColor.secondaryLabelColor]
+        #endif
+        let text = NSAttributedString(string: caption, attributes: attrs)
+        let box = text.boundingRect(with: CGSize(width: width, height: 40),
+                                    options: [.usesLineFragmentOrigin], context: nil)
+        let textHeight = min(ceil(box.height), 32)
+        let size = CGSize(width: width, height: image.size.height + 4 + textHeight)
+        #if os(iOS)
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = false
+        return UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+            text.draw(with: CGRect(x: 0, y: image.size.height + 4, width: width, height: textHeight),
+                      options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine], context: nil)
+        }
+        #else
+        return NSImage(size: size, flipped: true) { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size), from: .zero, operation: .sourceOver,
+                       fraction: 1, respectFlipped: true, hints: nil)
+            text.draw(with: CGRect(x: 0, y: image.size.height + 4, width: width, height: textHeight),
+                      options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine], context: nil)
+            return true
+        }
+        #endif
+    }
 
     #if os(iOS)
     static func rounded(_ source: UIImage, size: CGSize) -> UIImage {
@@ -369,6 +412,50 @@ final class LinkingTextView: NSTextView {
     var onFormat: ((FormatAction) -> Void)?
     /// Build 289: a click on a picture in the text, with its file.
     var onPictureClick: ((String) -> Void)?
+    /// Build 290: right-click › Caption… on a picture (its place in the text, the picture).
+    var onPictureCaption: ((Int, PictureAttachment) -> Void)?
+    /// Build 290: picture files dropped from Finder, and the place in the text.
+    var onPictureDrop: ((Int, [URL]) -> Void)?
+
+    /// The picture's place in the text under `point`, when the click is really on it.
+    func pictureIndex(at point: NSPoint) -> Int? {
+        guard let layout = layoutManager, let container = textContainer, let storage = textStorage else { return nil }
+        let p = NSPoint(x: point.x - textContainerOrigin.x, y: point.y - textContainerOrigin.y)
+        let glyph = layout.glyphIndex(for: p, in: container)
+        let index = layout.characterIndexForGlyph(at: glyph)
+        guard index < storage.length, storage.attribute(.attachment, at: index, effectiveRange: nil) is PictureAttachment else { return nil }
+        let rect = layout.boundingRect(forGlyphRange: NSRange(location: glyph, length: 1), in: container)
+        return rect.contains(p) ? index : nil
+    }
+
+    private func droppedPictures(_ sender: NSDraggingInfo) -> [URL] {
+        let urls = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self],
+                                                         options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        return urls.filter { Pictures.isPicture($0.path) }
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        droppedPictures(sender).isEmpty || onPictureDrop == nil ? super.draggingEntered(sender) : .copy
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        let op = super.draggingUpdated(sender)
+        return droppedPictures(sender).isEmpty || onPictureDrop == nil ? op : .copy
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let urls = droppedPictures(sender)
+        guard !urls.isEmpty, let onPictureDrop else { return super.performDragOperation(sender) }
+        let at = characterIndexForInsertion(at: convert(sender.draggingLocation, from: nil))
+        onPictureDrop(at, urls)
+        return true
+    }
+
+    @objc private func captionChosen(_ item: NSMenuItem) {
+        guard let index = item.representedObject as? Int, let storage = textStorage, index < storage.length,
+              let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment else { return }
+        onPictureCaption?(index, a)
+    }
 
     /// The picture under `point`, when the click is really on it.
     func picture(at point: NSPoint) -> PictureAttachment? {
@@ -390,6 +477,14 @@ final class LinkingTextView: NSTextView {
     override func menu(for event: NSEvent) -> NSMenu? {
         let menu = super.menu(for: event) ?? NSMenu()
         let point = convert(event.locationInWindow, from: nil)
+        if let index = pictureIndex(at: point), onPictureCaption != nil {
+            let caption = NSMenuItem(title: "Caption\u{2026}", action: #selector(captionChosen(_:)), keyEquivalent: "")
+            caption.representedObject = index
+            caption.target = self
+            menu.insertItem(.separator(), at: 0)
+            menu.insertItem(caption, at: 0)
+            return menu
+        }
         guard let box = boxOffset(at: point) else { return menu }
         let cancel = NSMenuItem(title: "Cancel task", action: #selector(boxMenuChosen(_:)), keyEquivalent: "")
         cancel.representedObject = [box, 0]
@@ -510,6 +605,17 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         textView.onPictureClick = { [weak coordinator = context.coordinator] path in
             coordinator?.pictures?.open(path)
         }
+        textView.onPictureCaption = { [weak coordinator = context.coordinator, weak textView] index, picture in
+            guard let coordinator, let storage = textView?.textStorage else { return }
+            let at = (PictureText.markdown(from: storage, upTo: index) as NSString).length
+            coordinator.pictures?.caption(at, picture.link)
+        }
+        textView.onPictureDrop = { [weak coordinator = context.coordinator, weak textView] index, urls in
+            guard let coordinator, let storage = textView?.textStorage else { return }
+            let at = (PictureText.markdown(from: storage, upTo: index) as NSString).length
+            coordinator.pictures?.drop(at, urls)
+        }
+        textView.registerForDraggedTypes([.fileURL])
         textView.delegate = context.coordinator
         textView.allowsUndo = true
         textView.isRichText = false
@@ -983,7 +1089,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         }
 
         /// The picture under `point`, when the tap is really on it.
-        func picture(at point: CGPoint) -> PictureAttachment? {
+        func picture(at point: CGPoint) -> PictureAttachment? { pictureHit(at: point)?.1 }
+
+        /// Build 290: the picture under `point` and its place in the text.
+        func pictureHit(at point: CGPoint) -> (Int, PictureAttachment)? {
             guard let textView, let position = textView.closestPosition(to: point) else { return nil }
             let storage = textView.textStorage
             let index = textView.offset(from: textView.beginningOfDocument, to: position)
@@ -992,10 +1101,12 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
                       let start = textView.position(from: textView.beginningOfDocument, offset: at),
                       let end = textView.position(from: start, offset: 1),
                       let range = textView.textRange(from: start, to: end) else { continue }
-                if textView.firstRect(for: range).contains(point) { return a }
+                if textView.firstRect(for: range).contains(point) { return (at, a) }
             }
             return nil
         }
+        /// The picture a long press opened the menu on (build 290).
+        var menuPicture: (Int, PictureAttachment)?
         /// True while a chosen title is being written in: nothing is reported meanwhile.
         var applying = false
         weak var textView: UITextView?
@@ -1058,7 +1169,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
             guard recognizer === boxTap || recognizer === boxPress, let textView else { return true }
             let point = recognizer.location(in: textView)
-            if recognizer === boxTap, picture(at: point) != nil { return true }
+            if picture(at: point) != nil { return true }
             return boxOffset(at: point) != nil
         }
 
@@ -1081,6 +1192,11 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         @objc func boxPressed(_ recognizer: UILongPressGestureRecognizer) {
             guard recognizer.state == .began, let textView, let boxMenu else { return }
             let point = recognizer.location(in: textView)
+            if let hit = pictureHit(at: point) {
+                menuPicture = hit
+                boxMenu.presentEditMenu(with: UIEditMenuConfiguration(identifier: "picture", sourcePoint: point))
+                return
+            }
             guard let offset = boxOffset(at: point) else { return }
             menuBox = offset
             boxMenu.presentEditMenu(with: UIEditMenuConfiguration(identifier: "box", sourcePoint: point))
@@ -1088,6 +1204,13 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
 
         func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration,
                                  suggestedActions: [UIMenuElement]) -> UIMenu? {
+            if configuration.identifier as? String == "picture", let (index, picture) = menuPicture {
+                let caption = UIAction(title: "Caption\u{2026}") { [weak self] _ in
+                    guard let self else { return }
+                    self.pictures?.caption(self.markdownOffset(index), picture.link)
+                }
+                return UIMenu(children: [caption])
+            }
             guard configuration.identifier as? String == "box", let box = menuBox else { return nil }
             let cancel = UIAction(title: "Cancel task") { [weak self] _ in
                 guard let self, let textView = self.textView,

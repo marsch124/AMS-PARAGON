@@ -4927,6 +4927,17 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 290 (11 November 2026)
+
+"Captions, pictures from Finder, and a tidier note header". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos": Captions, Pictures from Finder; note header paragraph).
+
+- **Before:** no captions; no drag of picture files on the Mac; a note without tasks said its kind in the band and again as the panel heading; panel facts were label over value.
+- **Core:** `Pictures.caption(ofLink:)` (alt text, nil for "Sketch", "Photo", "Picture" or empty), `Pictures.settingCaption(_:inLink:)` (writes the alt text; empty clears it); test `PictureCaptionTests`. `Pictures.droppedFolder = "Pictures"`, `Pictures.freeName(for:taken:)` ("name 2.jpg" when taken). `DayDistance.words(from:to:)`: "Today", "Yesterday", "Tomorrow", "3 days ago", "In 3 days".
+- **Captions:** small grey line under the picture on iPhone, iPad and Mac. Mac: right-click/Control-click a picture › "Caption..."; iPhone/iPad: press and hold › "Caption...". Small window: text field, Cancel, Save; Save writes the alt text, so the file keeps plain markdown.
+- **Finder drop (Mac):** png, jpg, jpeg, heic, gif copied into `Pictures/` in the notes folder (same name, free name when taken); line inserted at the drop point; original stays.
+- **Note header:** the band says `DayDistance.words` for a daily note and "No tasks yet" for any other note without tasks (no longer the kind twice). Panel facts ("List", "In area", "Serves"...) are one line: small grey label, then value, level with the buttons (Tags..., Status).
+- **BuildStamp:** `BuildStamp.number` = 290.
+
 ## Build 289 (11 November 2026)
 
 "Pictures in the text, and photos". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos", format bar text).
