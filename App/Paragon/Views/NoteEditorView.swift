@@ -1,5 +1,8 @@
 import SwiftUI
 import ParagonCore
+#if os(iOS)
+import PencilKit
+#endif
 
 struct NoteEditorView: View {
     @EnvironmentObject private var model: AppModel
@@ -28,6 +31,8 @@ struct NoteEditorView: View {
     /// The shown text of the last save this editor made itself. When the model hands that same
     /// text back, it is our own save coming home, not a change from outside (build 240).
     @State private var lastWritten: String?
+    /// Build 288: the sketch being drawn or looked at.
+    @State private var sketch: SketchRequest?
     @AppStorage("editorMode") private var mode: EditorMode = .edit
     /// The settings block at the top folded out of the editor (build 246). One setting for
     /// every note: he asked to compress "this area of each note", not one at a time.
@@ -155,6 +160,12 @@ struct NoteEditorView: View {
             }
         } message: {
             Text("The file is renamed too, and every note that links to it is pointed at the new name.")
+        }
+        .sheet(item: $sketch) { request in
+            SketchSheet(request: request, tint: note?.tint ?? .accentColor) { png, drawing in
+                saveSketch(request, png: png, drawing: drawing)
+            }
+            .environmentObject(model)
         }
         .sheet(item: $snippetToFill) { snippet in
             SnippetSheet(snippet: snippet) { answers in
@@ -506,15 +517,62 @@ struct NoteEditorView: View {
         Binding(get: { !frontmatterFolded }, set: { frontmatterFolded = !$0 })
     }
 
+    /// Build 288: the pencil above the keyboard, on the iPhone and iPad only.
+    private var sketchButton: ((Int) -> Void)? {
+        #if os(iOS)
+        return { offset in sketch = SketchRequest(offset: offset, picturePath: nil) }
+        #else
+        return nil
+        #endif
+    }
+
+    /// The sketches the note links to, for the row under the text.
+    private var sketchPaths: [String] { Sketches.links(in: text, notePath: path) }
+
+    /// Done on the drawing page: the picture and drawing written into the Sketches folder,
+    /// and for a new sketch its line put where the cursor was.
+    private func saveSketch(_ request: SketchRequest, png: Data, drawing: Data) {
+        guard let vault = model.vault else { return }
+        let fileName = request.picturePath.map { ($0 as NSString).lastPathComponent } ?? Sketches.newFileName()
+        let picture = request.picturePath ?? Sketches.folder + "/" + fileName
+        do {
+            try vault.writeFile(png, at: picture)
+            try vault.writeFile(drawing, at: Sketches.drawingPath(for: picture))
+        } catch {
+            model.errorMessage = "The sketch could not be saved: \(error.localizedDescription)"
+            return
+        }
+        sketchVersion += 1
+        guard request.picturePath == nil else { return }
+        let put = Sketches.inserting(link: Sketches.link(toFile: fileName, fromNote: path),
+                                     into: text, at: request.offset ?? (text as NSString).length)
+        text = put.text
+    }
+
+    /// Raised after a save so the row under the text loads the new picture.
+    @State private var sketchVersion = 0
+
     /// The markdown itself: the raw text, or the rendered version.
     private func editorPane(scrolls: Bool) -> some View {
+        VStack(spacing: 0) {
+            editorColumns(scrolls: scrolls)
+            if !sketchPaths.isEmpty {
+                SketchStrip(paths: sketchPaths, version: sketchVersion, tint: note?.tint ?? .accentColor) { picture in
+                    sketch = SketchRequest(offset: nil, picturePath: picture)
+                }
+            }
+        }
+    }
+
+    private func editorColumns(scrolls: Bool) -> some View {
         HStack(spacing: 0) {
             if mode != .preview {
                 MarkdownSyntaxEditor(text: $text, tint: note?.tint ?? .accentColor,
                                      linkDraft: $linkDraft, completion: $linkCompletion,
                                      openLink: { model.openWikiLink($0, from: path) },
                                      onLinkKey: handleLinkKey,
-                                     scrolls: scrolls)
+                                     scrolls: scrolls,
+                                     onSketch: sketchButton)
                     .onChange(of: text) { _, newValue in
                         scheduleSave(newValue)
                     }
@@ -1923,3 +1981,220 @@ private struct TaskSyntaxHelp: View {
         .presentationCompactAdaptation(.popover)
     }
 }
+
+// MARK: - Sketches (build 288)
+
+/// A sketch to draw (a new one at `offset`) or to open again (`picturePath`, from the root).
+struct SketchRequest: Identifiable {
+    let id = UUID()
+    let offset: Int?
+    let picturePath: String?
+}
+
+/// The row under the note's text: each sketch it links to, small. A press opens it.
+struct SketchStrip: View {
+    let paths: [String]
+    let version: Int
+    let tint: Color
+    let open: (String) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Sketches")
+                .font(Txt.label.weight(.semibold))
+                .foregroundStyle(tint)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(paths, id: \.self) { picture in
+                        Button { open(picture) } label: {
+                            SketchThumb(path: picture, version: version)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Sketch")
+                        .accessibilityIdentifier("sketch.thumb")
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("note.sketches")
+    }
+}
+
+/// One picture from the Sketches folder, or a word while iCloud has not sent it yet.
+struct SketchThumb: View {
+    @EnvironmentObject private var model: AppModel
+    let path: String
+    let version: Int
+    var height: CGFloat = 96
+    @State private var image: Image?
+
+    var body: some View {
+        Group {
+            if let image {
+                image.resizable().scaledToFit()
+            } else {
+                Text("On its way from iCloud")
+                    .font(Txt.label)
+                    .foregroundStyle(.secondary)
+                    .padding(8)
+            }
+        }
+        .frame(height: height)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3), lineWidth: 1))
+        .task(id: "\(path)#\(version)") { image = load() }
+    }
+
+    private func load() -> Image? {
+        guard let data = model.vault?.fileData(at: path) else { return nil }
+        #if os(iOS)
+        return UIImage(data: data).map { Image(uiImage: $0) }
+        #else
+        return NSImage(data: data).map { Image(nsImage: $0) }
+        #endif
+    }
+}
+
+#if os(iOS)
+/// The drawing page: Apple's own pen tools, Apple Pencil or a finger. Cancel throws it away,
+/// Done saves the picture (on white, as it was seen) and the drawing to open again.
+struct SketchSheet: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    let request: SketchRequest
+    let tint: Color
+    let save: (Data, Data) -> Void
+    @State private var drawing = PKDrawing()
+    @State private var loaded = false
+    /// A picture made elsewhere, without its drawing: shown, not drawn on.
+    @State private var pictureOnly: Image?
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let pictureOnly {
+                    pictureOnly.resizable().scaledToFit().background(Color.white)
+                } else if loaded {
+                    SketchCanvas(drawing: $drawing)
+                        .accessibilityIdentifier("sketch.canvas")
+                }
+            }
+            .background(Color.white)
+            .navigationTitle("Sketch")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .accessibilityIdentifier("sketch.cancel")
+                }
+                if pictureOnly == nil {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            if let png = picture() { save(png, drawing.dataRepresentation()) }
+                            dismiss()
+                        }
+                        .fontWeight(.semibold)
+                        .tint(tint)
+                        .accessibilityIdentifier("sketch.done")
+                    }
+                }
+            }
+        }
+        .interactiveDismissDisabled()
+        .onAppear(perform: load)
+    }
+
+    private func load() {
+        defer { loaded = true }
+        guard let picture = request.picturePath, let vault = model.vault else { return }
+        if let data = vault.fileData(at: Sketches.drawingPath(for: picture)), let old = try? PKDrawing(data: data) {
+            drawing = old
+        } else if let data = vault.fileData(at: picture), let image = UIImage(data: data) {
+            pictureOnly = Image(uiImage: image)
+        }
+    }
+
+    /// The strokes on white with a margin; nil for an empty page (nothing to save).
+    private func picture() -> Data? {
+        guard !drawing.strokes.isEmpty else { return nil }
+        let rect = drawing.bounds.insetBy(dx: -24, dy: -24)
+        let ink = UITraitCollection(userInterfaceStyle: .light)
+        var strokes: UIImage!
+        ink.performAsCurrent { strokes = drawing.image(from: rect, scale: 2) }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 2
+        format.opaque = true
+        return UIGraphicsImageRenderer(size: rect.size, format: format).pngData { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: rect.size))
+            strokes.draw(in: CGRect(origin: .zero, size: rect.size))
+        }
+    }
+}
+
+/// PKCanvasView with the tool picker, light like paper so the ink looks as it is saved.
+struct SketchCanvas: UIViewRepresentable {
+    @Binding var drawing: PKDrawing
+
+    func makeCoordinator() -> Coordinator { Coordinator(drawing: $drawing) }
+
+    func makeUIView(context: Context) -> PKCanvasView {
+        let canvas = PKCanvasView()
+        canvas.drawing = drawing
+        canvas.delegate = context.coordinator
+        canvas.drawingPolicy = .anyInput
+        canvas.backgroundColor = .white
+        canvas.isOpaque = true
+        canvas.overrideUserInterfaceStyle = .light
+        canvas.alwaysBounceVertical = true
+        context.coordinator.picker.overrideUserInterfaceStyle = .light
+        context.coordinator.picker.addObserver(canvas)
+        DispatchQueue.main.async {
+            context.coordinator.picker.setVisible(true, forFirstResponder: canvas)
+            canvas.becomeFirstResponder()
+        }
+        return canvas
+    }
+
+    func updateUIView(_ canvas: PKCanvasView, context: Context) {}
+
+    final class Coordinator: NSObject, PKCanvasViewDelegate {
+        let picker = PKToolPicker()
+        var drawing: Binding<PKDrawing>
+        init(drawing: Binding<PKDrawing>) { self.drawing = drawing }
+        func canvasViewDrawingDidChange(_ canvas: PKCanvasView) { drawing.wrappedValue = canvas.drawing }
+    }
+}
+#else
+/// The Mac cannot draw (no Pencil): the sketch, bigger, and Done (Escape closes it too).
+struct SketchSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let request: SketchRequest
+    let tint: Color
+    let save: (Data, Data) -> Void
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Text("Sketch").font(Txt.sectionTitle).foregroundStyle(tint)
+                Spacer()
+                Button("Done") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                    .buttonStyle(.borderedProminent)
+                    .tint(tint)
+            }
+            if let picture = request.picturePath {
+                SketchThumb(path: picture, version: 0, height: 480)
+            }
+            Text("Sketches are drawn on the iPhone or iPad.")
+                .font(Txt.label).foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .frame(minWidth: 520)
+    }
+}
+#endif

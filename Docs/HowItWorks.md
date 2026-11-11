@@ -311,18 +311,29 @@ In Edit, the box of every task line can be pressed: tap it on the iPhone and iPa
 
 On the iPhone and the iPad, a slim bar sits above the keyboard while you type in a note. Its checkbox button turns the line the cursor is on into a task, or a task back into an ordinary line; the other buttons are described next. On the Mac there is no bar: type `- [ ] ` as before, or click the box.
 
-### Bold, italic and headings
+### Bold, italic, strikethrough and headings
 
-The note file stays plain markdown, but while you write it looks finished: **bold** is bold, *italic* is italic and headings are big. The marker characters (`**`, `*` and the `# ` of a heading) are hidden on every line except the one the cursor is on; on that line they show faintly so you can still edit them. On the iPhone and iPad, when you are not typing in the note, all markers are hidden.
+The note file stays plain markdown, but while you write it looks finished: **bold** is bold, *italic* is italic, ~~struck through~~ text has a line through it and headings are big. The marker characters (`**`, `*`, `~~` and the `# ` of a heading) are hidden on every line except the one the cursor is on; on that line they show faintly so you can still edit them. On the iPhone and iPad, when you are not typing in the note, all markers are hidden.
 
-On the iPhone and iPad the bar above the keyboard has three buttons for it:
+On the iPhone and iPad the bar above the keyboard has these buttons for it:
 
 - **B** makes the selected text, or the word the cursor is in, bold. Pressed again on bold text it takes the bold off.
 - **I** does the same for italic.
-- With no word at the cursor, B and I put in an empty pair and leave the cursor between, ready to type.
+- **S**, the letter S with a line through it, does the same for strikethrough. In the file it is `~~` around the text.
+- With no word at the cursor, B, I and S put in an empty pair and leave the cursor between, ready to type.
 - **H** steps the line: plain, big heading, middle heading, small heading, plain again.
 
-On the Mac the Format menu has Bold (Command-B), Italic (Command-I) and Heading (Option-Command-H), with the same rules.
+At the end of the bar there is also a pencil button, for drawing a sketch (see **Sketches**).
+
+On the Mac the Format menu has Bold (Command-B), Italic (Command-I), Strikethrough (Shift-Command-X) and Heading (Option-Command-H), with the same rules.
+
+### Sketches
+
+On the iPhone and iPad you can draw in a note. Press the pencil button at the end of the bar above the keyboard. A drawing page opens with Apple's own tools: pen, marker, pencil, eraser, lasso, colours and ruler. Draw with Apple Pencil or with your finger. **Cancel** throws the sketch away. **Done** saves it.
+
+The sketch goes into the **Sketches** folder of your vault. There are two files with the same name: a picture (PNG, for example `Sketch 2026-11-11 114005.png`) and a drawing file (`.drawing`), which lets you draw on it again later. A line like `![Sketch](../Sketches/Sketch%202026-11-11%20114005.png)` is put into the note where the cursor was. The path is relative to the note, so Obsidian and other markdown apps show the picture too.
+
+Under the note's text, a row called **Sketches** shows each sketch the note links to as a small picture. Press one on the iPhone or iPad to open it and draw on it again; **Done** saves over it. On the Mac it opens bigger, but the Mac cannot draw, because it has no Pencil. Remove the link line from the note and the sketch is gone from the note; the picture file stays in the Sketches folder. A sketch made on another device that iCloud has not sent yet shows **On its way from iCloud**.
 
 ### Long press on a task's box
 
@@ -335,7 +346,7 @@ Undo takes either back.
 
 ### Return continues a list
 
-Press Return on a task line and a new empty task starts below it with the same indent, like Apple Notes. Text after the cursor moves onto the new task. Press Return on an empty task line and the box goes away and the list ends. Plain bullets (`- `, `* ` and `+ `) work the same way, and the new line gets the same bullet. With the cursor before the box, Return works as before.
+Press Return on a task line and a new empty task starts below it with the same indent, like Apple Notes. Text after the cursor moves onto the new task. Press Return on an empty task line and the box goes away and the list ends. Plain bullets (`- `, `* ` and `+ `) work the same way, and the new line gets the same bullet. Numbered lists work too: Return on `1. milk` starts `2. ` on the next line with the same indent, and `1)` becomes `2)`. Return on an empty numbered line removes the number and ends the list. With the cursor before the box, Return works as before.
 
 The task box under the note header shows the same tasks as a checklist. Ticking there edits the line in the file. Its header row has a **Hide finished** switch (also in Settings › Tasks) that leaves out what is done or cancelled; a finished task with open subtasks always stays visible, and nothing is removed from the file.
 

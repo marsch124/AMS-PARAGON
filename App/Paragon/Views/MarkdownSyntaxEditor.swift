@@ -31,6 +31,9 @@ struct MarkdownSyntaxEditor: View {
     /// a tap rather than an argument between two scroll views. macOS ignores it: there the
     /// text view lives in its own NSScrollView, which builds 30/34 require.
     var scrolls: Bool = true
+    /// Build 288: the pencil button above the keyboard (iPhone, iPad), with the cursor's
+    /// place in the text. Nil leaves the button out (the template editor).
+    var onSketch: ((Int) -> Void)? = nil
 
     init(text: Binding<String>,
          tint: Color = .accentColor,
@@ -38,7 +41,9 @@ struct MarkdownSyntaxEditor: View {
          completion: Binding<LinkCompletion?> = .constant(nil),
          openLink: @escaping (String) -> Void = { _ in },
          onLinkKey: @escaping (LinkKey) -> Bool = { _ in false },
-         scrolls: Bool = true) {
+         scrolls: Bool = true,
+         onSketch: ((Int) -> Void)? = nil) {
+        self.onSketch = onSketch
         _text = text
         self.tint = tint
         _linkDraft = linkDraft
@@ -51,7 +56,7 @@ struct MarkdownSyntaxEditor: View {
     var body: some View {
         MarkdownTextViewRepresentable(text: $text, tint: tint, linkDraft: $linkDraft,
                                       completion: $completion, openLink: openLink,
-                                      onLinkKey: onLinkKey, scrolls: scrolls)
+                                      onLinkKey: onLinkKey, scrolls: scrolls, onSketch: onSketch)
     }
 }
 
@@ -77,7 +82,7 @@ struct LinkCompletion: Equatable {
 enum BoxAction { case cancel, tomorrow }
 
 /// Bold, italic and heading: the buttons above the keyboard and the Mac's Format menu.
-enum FormatAction { case bold, italic, heading }
+enum FormatAction { case bold, italic, strike, heading }
 
 /// Turns the spans from the Core highlighter into text attributes.
 enum MarkdownAttributes {
@@ -151,6 +156,8 @@ enum MarkdownAttributes {
             return [.font: PlatformFont.systemFont(ofSize: baseSize, weight: .semibold)]
         case .italic:
             return [.obliqueness: 0.18]
+        case .strike:
+            return [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
         case .code, .frontmatter:
             return [.font: monospaceFont, .foregroundColor: secondary]
         case .link:
@@ -191,6 +198,7 @@ final class LinkingTextView: NSTextView {
     @objc func paragonBold(_ sender: Any?) { onFormat?(.bold) }
     @objc func paragonItalic(_ sender: Any?) { onFormat?(.italic) }
     @objc func paragonHeading(_ sender: Any?) { onFormat?(.heading) }
+    @objc func paragonStrike(_ sender: Any?) { onFormat?(.strike) }
 
     override func menu(for event: NSEvent) -> NSMenu? {
         let menu = super.menu(for: event) ?? NSMenu()
@@ -286,6 +294,8 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
     var onLinkKey: (LinkKey) -> Bool
     /// Taken so both platforms have the same shape; the Mac's editor always scrolls.
     var scrolls: Bool = true
+    /// The Mac cannot draw (no Pencil): taken for the same shape and not used.
+    var onSketch: ((Int) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(text: $text, linkDraft: $linkDraft, openLink: openLink, onLinkKey: onLinkKey)
@@ -520,8 +530,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             guard let textView, !textView.hasMarkedText() else { return }
             let selected = textView.selectedRange()
             switch action {
-            case .bold, .italic:
-                let done = RichText.toggling(textView.string, selection: selected, marker: action == .bold ? "**" : "*")
+            case .bold, .italic, .strike:
+                let marker = action == .bold ? "**" : action == .strike ? "~~" : "*"
+                let done = RichText.toggling(textView.string, selection: selected, marker: marker)
                 replace(with: done.text, selection: done.selection)
             case .heading:
                 let done = RichText.cyclingHeading(textView.string, at: selected.location)
@@ -606,6 +617,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
     var openLink: (String) -> Void
     var onLinkKey: (LinkKey) -> Bool
     var scrolls: Bool = true
+    var onSketch: ((Int) -> Void)? = nil
 
     /// The floor under everything below. Build 123 let the text view ask for its own height
     /// and it asked for none, so a note could not be edited at all: SwiftUI does not lay a
@@ -648,6 +660,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         textView.alwaysBounceVertical = scrolls
         textView.text = text
         context.coordinator.textView = textView
+        context.coordinator.onSketch = onSketch
         context.coordinator.highlight(tint: UIColor(tint))
         // What the screen tests type into (build 191). A name of its own, so a change to the
         // screen around it cannot quietly stop the test from finding it.
@@ -678,6 +691,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         context.coordinator.text = $text
         context.coordinator.linkDraft = $linkDraft
         context.coordinator.openLink = openLink
+        context.coordinator.onSketch = onSketch
         if let completion, !context.coordinator.applying {
             context.coordinator.applying = true
             let done = WikiLinks.completing(textView.text, draft: completion.draft, with: completion.title)
@@ -715,6 +729,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         var text: Binding<String>
         var linkDraft: Binding<LinkDraftOnScreen?>
         var openLink: (String) -> Void
+        var onSketch: ((Int) -> Void)?
         /// True while a chosen title is being written in: nothing is reported meanwhile.
         var applying = false
         weak var textView: UITextView?
@@ -857,7 +872,23 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
                 .map { UIFont(descriptor: $0, size: size) } ?? .italicSystemFont(ofSize: size)
             let italic = letter("I", italicFont, "format.italic", "Italic", #selector(makeItalic))
             let heading = letter("H", .systemFont(ofSize: size, weight: .semibold), "format.heading", "Heading", #selector(makeHeading))
-            bar.items = [task, bold, italic, heading, .flexibleSpace()]
+            // Build 288: S struck through, and the pencil for a sketch at the end.
+            let strike = letter("S", .systemFont(ofSize: size, weight: .regular), "format.strike", "Strikethrough", #selector(makeStrike))
+            if let button = strike.customView as? UIButton {
+                button.setAttributedTitle(NSAttributedString(string: "S", attributes: [
+                    .font: UIFont.systemFont(ofSize: size, weight: .regular), .foregroundColor: tint,
+                    .strikethroughStyle: NSUnderlineStyle.single.rawValue, .strikethroughColor: tint]), for: .normal)
+            }
+            var items: [UIBarButtonItem] = [task, bold, italic, strike, heading, .flexibleSpace()]
+            if onSketch != nil {
+                let sketch = UIBarButtonItem(image: Marks.uiImage("pencil", size: 22),
+                                             style: .plain, target: self, action: #selector(makeSketch))
+                sketch.accessibilityLabel = "Sketch"
+                sketch.accessibilityIdentifier = "format.sketch"
+                sketch.tintColor = tint
+                items.append(sketch)
+            }
+            bar.items = items
             bar.sizeToFit()
             return bar
         }
@@ -870,6 +901,13 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
 
         @objc func makeBold() { toggle("**") }
         @objc func makeItalic() { toggle("*") }
+        @objc func makeStrike() { toggle("~~") }
+        @objc func makeSketch() {
+            guard let textView else { return }
+            let at = textView.selectedRange.location
+            textView.resignFirstResponder()
+            onSketch?(at)
+        }
         @objc func makeHeading() {
             guard let textView else { return }
             let done = RichText.cyclingHeading(textView.text, at: textView.selectedRange.location)

@@ -122,6 +122,21 @@ public final class Vault {
         rootURL.appendingPathComponent(relativePath)
     }
 
+    /// Build 288: a file that is not a note (a sketch's picture or drawing), written whole.
+    public func writeFile(_ data: Data, at relativePath: String) throws {
+        let fileURL = url(for: relativePath)
+        try fm.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: fileURL, options: .atomic)
+    }
+
+    /// Build 288: such a file's bytes, or nil when it is not here (yet). A file iCloud has
+    /// not sent is asked for, so a later look finds it.
+    public func fileData(at relativePath: String) -> Data? {
+        let fileURL = url(for: relativePath)
+        if CloudFiles.isMissing(fileURL) { CloudFiles.startDownload(fileURL) }
+        return try? Data(contentsOf: fileURL)
+    }
+
     /// True when the path stays inside the vault: no `..`, no absolute path, and a `.md` file
     /// in one of the note folders (or the Inbox). Used for paths that come from outside the app.
     public func isNotePath(_ relativePath: String) -> Bool {

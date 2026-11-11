@@ -1,6 +1,42 @@
 # Version history
 
-The version is shown as 1.0 (287) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (288) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 288 · 11 November 2026
+
+**Apple Pencil sketches, numbered lists and strikethrough.** The third step of "checkboxes, rich text, Apple Pencil": you can now draw in a note, numbered lists keep counting, and text can be struck through.
+
+**Before (build 287).** The bar above the keyboard had four buttons: checkbox, B, I and H. Return carried on tasks and bullets, but not numbered lists. Text could not be struck through while you wrote. There was no way to draw in a note.
+
+**Now, numbered lists.**
+- Return on a line like `1. milk` starts `2. ` on the next line, with the same indent.
+- The `1)` style works too: `1)` becomes `2)`.
+- Return on an empty numbered line ends the list. The number goes and the line is empty, the same as for tasks and bullets.
+
+**Now, strikethrough.**
+- On the iPhone and iPad there is a new **S** button in the bar above the keyboard, the letter S with a line through it. It sits beside B, I and H.
+- It puts `~~` around the selected text, or the word the cursor is in. Pressed again, it takes the strikethrough off.
+- On the Mac, use Format, Strikethrough, or Shift-Command-X.
+- While you write, the text shows struck through. The `~~` marks are hidden except on the line the cursor is on, like bold.
+- The file stays plain markdown.
+
+**Now, Apple Pencil sketches (iPhone and iPad).**
+- There is a new pencil button at the end of the bar above the keyboard.
+- It opens a drawing page with Apple's own tools: pen, marker, pencil, eraser, lasso, colours and ruler. Draw with Apple Pencil or with your finger.
+- **Cancel** throws the sketch away. **Done** saves it.
+- The sketch is saved in the vault's **Sketches** folder as a picture (PNG), for example `Sketch 2026-11-11 114005.png`. A drawing file with the same name (`.drawing`) is saved next to it, so you can draw on it again later.
+- A line like `![Sketch](../Sketches/Sketch%202026-11-11%20114005.png)` is put into the note where the cursor was. So Obsidian and other markdown apps show the picture too.
+
+**Now, the Sketches row.**
+- Under the note's text, a row called **Sketches** shows each sketch the note links to as a small picture.
+- Press one on the iPhone or iPad to open it and draw on it again. **Done** saves over it.
+- On the Mac it opens bigger. The Mac cannot draw, because it has no Pencil.
+- If you remove the link line from the note, the sketch goes from the note. The picture file stays in the Sketches folder.
+- A sketch made on another device that iCloud has not sent yet shows **On its way from iCloud**.
+
+**What did not change.** The file format, tasks, bold, italic, headings, the task menu and the sync are as in build 287.
+
+**The version.** It shows as "PARAGON 1.0 (288)".
 
 ## Build 287 · 11 November 2026
 

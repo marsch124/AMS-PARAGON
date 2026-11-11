@@ -4927,6 +4927,16 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 288 (11 November 2026)
+
+"Apple Pencil sketches, numbered lists and strikethrough". Step 3 of "checkboxes, rich text, Apple Pencil". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Tasks: "Bold, italic, strikethrough and headings", "Sketches", "Return continues a list").
+
+- **Before:** bar had `format.task`, `format.bold`, `format.italic`, `format.heading`; `RichText.continuingList` handled tasks and `- `/`* `/`+ ` bullets only; no strikethrough toggle; no sketches.
+- **Core:** `RichText.continuingList` also handles numbered lines (`1. ` and `1) `, same indent; empty numbered item ends the list). `RichText.toggling(... marker: "~~")` for strikethrough; new `MarkdownStyle.strike`; `~~` markers hidden off the cursor line like bold. New `Markdown/Sketches.swift`: `Sketches.links(in:)`, `Sketches.newFileName(at:)` ("Sketch yyyy-MM-dd HHmmss"), `Sketches.link(toFile:fromNote:)` (relative, percent-encoded path to the vault's `Sketches/` folder), `Sketches.inserting(link:into:at:)`. One data test `SketchesTests` covers numbering, strikethrough and sketch links.
+- **Editor:** sketches saved as PNG plus `.drawing` (PencilKit data) of the same name in `Sketches/`; link line `![Sketch](../Sketches/...png)` inserted at the cursor. A "Sketches" row under the text shows thumbnails for each linked sketch. iOS: press opens the PencilKit canvas again (Done saves over it); Mac: press shows it bigger, no drawing. Removing the link line removes it from the note; the files stay. A file iCloud has not delivered shows "On its way from iCloud". Mac Format menu: Strikethrough, Shift-Cmd-X.
+- **Format bar:** new `format.strike` (S drawn struck through) beside B, I, H; new `format.sketch` (pencil) at the end of the bar opens the drawing page (PencilKit: pen, marker, pencil, eraser, lasso, colours, ruler; Cancel discards, Done saves). Screen test `testTheKeyboardBarHasStrikeAndSketch`.
+- **BuildStamp:** `BuildStamp.number` = 288.
+
 ## Build 287 (11 November 2026)
 
 "Rich text, and tasks that keep going". Step 2 of "checkboxes, rich text, Apple Pencil" (Pencil next). He picked A: live preview, file stays plain markdown. Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Tasks: "Bold, italic and headings", "Long press on a task's box", "Return continues a list").

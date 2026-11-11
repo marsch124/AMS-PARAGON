@@ -144,6 +144,38 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(shown.contains("- [ ] **Strong**\n- [ ] Next one"),
                       "Bold or the next task is missing. The editor shows: \(shown.suffix(300))")
     }
+
+    /// Build 288: S strikes the word, Return numbers on, and the pencil draws a sketch that
+    /// lands in the note as a picture line and in the row under the text.
+    func testTheKeyboardBarHasStrikeAndSketch() {
+        go(to: .projects)
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
+        editor.press()
+        for piece in ["\n", "1", ".", " ", "Gone"] { editor.typeText(piece) }
+        let strike = app.buttons["format.strike"]
+        XCTAssertTrue(strike.waitForExistence(timeout: 10), "No S button above the keyboard.")
+        strike.tap()
+        for piece in ["\n", "Next"] { editor.typeText(piece) }
+        let shown = editor.value as? String ?? ""
+        XCTAssertTrue(shown.contains("1. ~~Gone~~\n2. Next"),
+                      "Strikethrough or the next number is missing. The editor shows: \(shown.suffix(300))")
+        app.buttons["format.sketch"].tap()
+        let canvas = element("sketch.canvas")
+        XCTAssertTrue(canvas.waitForExistence(timeout: 10), "The pencil did not open the drawing page.")
+        canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.3))
+            .press(forDuration: 0.1, thenDragTo: canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)))
+        app.buttons["sketch.done"].tap()
+        XCTAssertTrue(element("sketch.thumb").waitForExistence(timeout: 10), "The sketch is not in the row under the text.")
+        if let path = ProcessInfo.processInfo.environment["TEST_RUNNER_SHOT_PATH"] ?? ProcessInfo.processInfo.environment["SHOT_PATH"] {
+            try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: path))
+        }
+        let after = editor.value as? String ?? ""
+        XCTAssertTrue(after.contains("![Sketch](../Sketches/Sketch%20"), "No sketch line in the note: \(after.suffix(300))")
+    }
     #endif
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).

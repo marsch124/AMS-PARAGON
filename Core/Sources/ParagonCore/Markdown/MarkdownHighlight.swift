@@ -8,6 +8,8 @@ public enum MarkdownStyle: Equatable, Sendable {
     case marker
     case bold
     case italic
+    /// `~~struck~~` (build 288).
+    case strike
     case code
     /// `[[Another note]]`
     case link
@@ -45,6 +47,7 @@ public enum MarkdownHighlight {
     static let ruleRegex = try! NSRegularExpression(pattern: #"^(-{3,}|\*{3,}|_{3,})\s*$"#)
     static let boldRegex = try! NSRegularExpression(pattern: #"(\*\*|__)(?=\S)(.+?)(?<=\S)\1"#)
     static let italicRegex = try! NSRegularExpression(pattern: #"(?<![\*_\w])([\*_])(?=\S)([^\*_]+?)(?<=\S)\1(?![\*_\w])"#)
+    static let strikeRegex = try! NSRegularExpression(pattern: #"(~~)(?=\S)(.+?)(?<=\S)~~"#)
     static let inlineCodeRegex = try! NSRegularExpression(pattern: #"(`+)([^`]+?)\1"#)
     static let wikilinkRegex = try! NSRegularExpression(pattern: #"\[\[[^\]]+\]\]"#)
     static let listBulletRegex = try! NSRegularExpression(pattern: #"^(\s*[-*+]\s)(?!\[)"#)
@@ -181,6 +184,12 @@ public enum MarkdownHighlight {
             result.append(MarkdownSpan(range: shift(m.range, by: offset), style: .italic))
             result.append(MarkdownSpan(range: shift(m.range(at: 1), by: offset), style: .marker))
             let closing = NSRange(location: NSMaxRange(m.range) - 1, length: 1)
+            result.append(MarkdownSpan(range: shift(closing, by: offset), style: .marker))
+        }
+        for m in strikeRegex.matches(in: text, range: full) {
+            result.append(MarkdownSpan(range: shift(m.range, by: offset), style: .strike))
+            result.append(MarkdownSpan(range: shift(m.range(at: 1), by: offset), style: .marker))
+            let closing = NSRange(location: NSMaxRange(m.range) - 2, length: 2)
             result.append(MarkdownSpan(range: shift(closing, by: offset), style: .marker))
         }
         for m in wikilinkRegex.matches(in: text, range: full) {

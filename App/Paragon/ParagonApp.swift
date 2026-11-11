@@ -79,12 +79,14 @@ struct ParagonApp: App {
                     .disabled(!model.canGoForward)
             }
             #if os(macOS)
-            // Build 287: Format › Bold, Italic, Heading, sent to the note's text view.
+            // Build 287/288: Format › Bold, Italic, Strikethrough, Heading, sent to the note's text view.
             CommandGroup(replacing: .textFormatting) {
                 Button("Bold") { NSApp.sendAction(#selector(LinkingTextView.paragonBold(_:)), to: nil, from: nil) }
                     .keyboardShortcut("b", modifiers: [.command])
                 Button("Italic") { NSApp.sendAction(#selector(LinkingTextView.paragonItalic(_:)), to: nil, from: nil) }
                     .keyboardShortcut("i", modifiers: [.command])
+                Button("Strikethrough") { NSApp.sendAction(#selector(LinkingTextView.paragonStrike(_:)), to: nil, from: nil) }
+                    .keyboardShortcut("x", modifiers: [.command, .shift])
                 Button("Heading") { NSApp.sendAction(#selector(LinkingTextView.paragonHeading(_:)), to: nil, from: nil) }
                     .keyboardShortcut("h", modifiers: [.command, .option])
             }

@@ -12,14 +12,18 @@ public enum RichText {
         let ns = text as NSString
         var sel = NSRange(location: min(max(selection.location, 0), ns.length), length: 0)
         sel.length = min(max(selection.length, 0), ns.length - sel.location)
+        // `~~` (strikethrough, build 288) is a pair like bold, counted in tildes.
+        let isStrike = marker.hasPrefix("~")
+        let star: unichar = isStrike ? 126 : 42
+        let starChar: Character = isStrike ? "~" : "*"
         let isBold = marker.count >= 2
         let width = isBold ? 2 : 1
 
         // A selection that includes its own stars: look inside them.
         if sel.length > 0 {
             let inner = ns.substring(with: sel)
-            let lead = inner.prefix { $0 == "*" }.count
-            let trail = String(inner.reversed()).prefix { $0 == "*" }.count
+            let lead = inner.prefix { $0 == starChar }.count
+            let trail = String(inner.reversed()).prefix { $0 == starChar }.count
             if lead == trail, lead > 0, lead * 2 < inner.count {
                 sel = NSRange(location: sel.location + lead, length: sel.length - 2 * lead)
             }
@@ -32,19 +36,19 @@ public enum RichText {
             while start > 0, isWordChar(ns.character(at: start - 1)) { start -= 1 }
             while end < ns.length, isWordChar(ns.character(at: end)) { end += 1 }
             if start == end {
-                let pair = String(repeating: "*", count: width * 2)
+                let pair = String(repeating: String(starChar), count: width * 2)
                 let result = ns.replacingCharacters(in: sel, with: pair)
                 return (result, NSRange(location: sel.location + width, length: 0))
             }
             sel = NSRange(location: start, length: end - start)
         }
         var before = 0
-        while before < sel.location, ns.character(at: sel.location - 1 - before) == 42 { before += 1 }
+        while before < sel.location, ns.character(at: sel.location - 1 - before) == star { before += 1 }
         var after = 0
-        while NSMaxRange(sel) + after < ns.length, ns.character(at: NSMaxRange(sel) + after) == 42 { after += 1 }
+        while NSMaxRange(sel) + after < ns.length, ns.character(at: NSMaxRange(sel) + after) == star { after += 1 }
         let stars = min(before, after)
         let on = isBold ? stars >= 2 : stars % 2 == 1
-        let stripes = String(repeating: "*", count: width)
+        let stripes = String(repeating: String(starChar), count: width)
         let middle = ns.substring(with: sel)
         if on {
             let whole = NSRange(location: sel.location - width, length: sel.length + 2 * width)
@@ -85,8 +89,10 @@ public enum RichText {
 
     static let taskStart = try! NSRegularExpression(pattern: #"^(\s*)([-*+])\s+\[[ xX>\-]\]\s?"#)
     static let bulletStart = try! NSRegularExpression(pattern: #"^(\s*)([-*+])\s(?!\[)"#)
+    /// `1. ` or `1) ` (build 288).
+    static let numberStart = try! NSRegularExpression(pattern: #"^(\s*)(\d{1,9})([.)])\s"#)
 
-    /// Return on a task or bullet line, like Apple Notes: a new empty task (`- [ ] `) or
+    /// Return on a task, bullet or numbered line (`1. ` → `2. `, build 288), like Apple Notes: a new empty task (`- [ ] `) or
     /// bullet below with the same indent, the words after the cursor going with it. Return on
     /// an empty one ends the list: its box goes and the line is empty. Nil when Return should
     /// do its ordinary job (not a list line, or the cursor before the box).
@@ -99,10 +105,13 @@ public enum RichText {
         let full = NSRange(location: 0, length: cs.length)
         let match: NSTextCheckingResult
         let isTask: Bool
+        var numbered = false
         if let m = taskStart.firstMatch(in: content, range: full) {
             match = m; isTask = true
         } else if let m = bulletStart.firstMatch(in: content, range: full) {
             match = m; isTask = false
+        } else if let m = numberStart.firstMatch(in: content, range: full) {
+            match = m; isTask = false; numbered = true
         } else { return nil }
         let prefixEnd = line.location + match.range.length
         guard offset >= prefixEnd else { return nil }
@@ -113,7 +122,13 @@ public enum RichText {
             let contentRange = NSRange(location: line.location, length: cs.length)
             return (ns.replacingCharacters(in: contentRange, with: ""), line.location)
         }
-        let start = indent + bullet + (isTask ? " [ ] " : " ")
+        let start: String
+        if numbered {
+            let next = (Int(bullet) ?? 0) + 1
+            start = indent + String(next) + cs.substring(with: match.range(at: 3)) + " "
+        } else {
+            start = indent + bullet + (isTask ? " [ ] " : " ")
+        }
         let insert = "\n" + start
         let result = ns.replacingCharacters(in: NSRange(location: offset, length: 0), with: insert)
         return (result, offset + (insert as NSString).length)
@@ -126,7 +141,7 @@ public enum RichText {
 }
 
 extension MarkdownHighlight {
-    /// The `**`, `*` and heading `# ` to hide while writing (build 287): every one, except on
+    /// The `**`, `*`, `~~` and heading `# ` to hide while writing (build 287): every one, except on
     /// the line holding `cursor`, where they stay so they can be edited. Nil cursor hides all.
     public static func hiddenMarkers(in text: String, cursor: Int?) -> [NSRange] {
         let ns = text as NSString
@@ -148,8 +163,8 @@ extension MarkdownHighlight {
                       ns.character(at: span.range.location + length) == 32 { length += 1 }
                 let r = NSRange(location: span.range.location, length: length)
                 if !onCursorLine(r) { hidden.append(r) }
-            case .bold, .italic:
-                let width = span.style == .bold ? 2 : 1
+            case .bold, .italic, .strike:
+                let width = span.style == .italic ? 1 : 2
                 guard span.range.length > 2 * width else { continue }
                 let open = NSRange(location: span.range.location, length: width)
                 guard !onCursorLine(open) else { continue }
