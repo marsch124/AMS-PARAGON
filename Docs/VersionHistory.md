@@ -1,6 +1,30 @@
 # Version history
 
-The version is shown as 1.0 (292) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (293) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 293 · 11 November 2026
+
+**Paste pictures, and a gallery.** On the Mac a copied picture pastes straight into a note, and a note with several pictures shows them all in a small row on top.
+
+**Before (build 292).** You could add a picture to a note by dragging a file from Finder (build 290), by drawing a sketch or by taking a photo. A screenshot, or a picture copied from Safari, Preview or Photos, could not be pasted: you had to save it as a file first. A note with many pictures showed them only one after the other in the text, so you scrolled to find one.
+
+**Now, pasting a picture (Mac).**
+- Copy a picture (a screenshot, or an image copied from Safari, Preview or Photos), put the cursor in a note's text and press Command-V (or choose **Edit › Paste**).
+- The picture is saved as a PNG in the **Pictures** folder of your notes folder, named "Pasted 2026-11-11 15.42.07.png" (the date and time of the paste). If that name is taken, a number is added.
+- Its picture line goes where the cursor is, and the picture shows at once in the text, like the other pictures.
+- Picture files copied in Finder and pasted are copied into **Pictures** too, like dragging them from Finder in build 290. The original stays where it was.
+- When the clipboard holds text, the text is pasted as text. Text wins.
+
+**Now, the Pictures gallery (iPhone, iPad and Mac).**
+- A note with two or more pictures shows a **Pictures** row above its text.
+- It holds a small square thumbnail (about 64 points) of every picture in the note, in the order they appear in the text. The number of pictures shows beside the heading.
+- The row can be folded away by pressing its heading. The app remembers it.
+- A press on a thumbnail opens that picture big, as a press on the picture in the text does.
+- A note with one picture, or none, shows no gallery.
+
+**What did not change.** Captions, drag from Finder, sketches, photos, the files in your vault and all the colours are as in build 292.
+
+**The version.** It shows as "PARAGON 1.0 (293)".
 
 ## Build 292 · 11 November 2026
 

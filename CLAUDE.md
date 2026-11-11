@@ -4927,6 +4927,15 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 293 (11 November 2026)
+
+"Paste pictures, and a gallery". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos": Pasting a picture, The Pictures gallery).
+
+- **Before:** no paste of pictures (only Finder drag, sketches, photos); no overview of a note's pictures.
+- **Paste (Mac):** `LinkingTextView.paste(_:)` override -> `onPicturePaste` -> `PictureHooks.paste(Int, Data)`. Image data on the pasteboard is saved as PNG in `Pictures/` as "Pasted yyyy-MM-dd HH.mm.ss.png" via Core `Pictures.pastedName(at:)` (a number added when taken; test in `PictureCaptionTests`); the picture line is inserted at the cursor. Picture files copied in Finder are copied into `Pictures/` like the build 290 drop. Text on the pasteboard wins: normal text paste.
+- **Gallery:** `NoteGallery` view at the end of `NoteEditorView.swift`, shown from `sections` when `Pictures.matches` count >= 2. Square thumbnails (~64 pt) in text order, count capsule in the heading, folded state `@AppStorage("galleryFolded")`; a press on a thumbnail opens the same big viewer as a press on the picture in the text. Identifiers `note.gallery` and `gallery.thumb`. iPhone, iPad, Mac.
+- **BuildStamp:** `BuildStamp.number` = 293 (set by the code engineer).
+
 ## Build 292 (11 November 2026)
 
 "A quiet sync pill". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Reminders sync, iCloud sync line, How PARAGON looks, shortcuts), `Look.md` (section 8).

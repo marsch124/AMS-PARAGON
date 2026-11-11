@@ -445,6 +445,15 @@ struct NoteEditorView: View {
                 .padding(.horizontal, Theme.gutter)
                 .padding(.vertical, 6)
             }
+            // Build 293: every picture in the note together, once there are two or more.
+            let gallery = Pictures.galleryPaths(in: text, notePath: path)
+            if !gallery.isEmpty {
+                NoteGallery(paths: gallery, version: sketchVersion, tint: note.tint,
+                            open: { pictureHooks?.open($0) })
+                    .panel(note.tint)
+                    .padding(.horizontal, Theme.gutter)
+                    .padding(.vertical, 6)
+            }
             let linksTo = notesLinkedTo(from: note)
             let linkedFrom = notesLinking(to: note)
             let notYetMade = missingLinks(from: note)
@@ -532,7 +541,8 @@ struct NoteEditorView: View {
                                 captionEdit = CaptionEdit(offset: offset, link: link)
                                 captionDraft = Pictures.caption(ofLink: link) ?? ""
                             },
-                            drop: { offset, urls in dropPictures(urls, at: offset) })
+                            drop: { offset, urls in dropPictures(urls, at: offset) },
+                            paste: { offset, png in pastePicture(png, at: offset) })
     }
 
     /// Build 290: the picture whose caption is being written, and the words so far.
@@ -579,6 +589,23 @@ struct NoteEditorView: View {
             at = put.cursor
         }
         text = result
+    }
+
+    /// Build 293 (Mac): a picture pasted with ⌘V, saved as a PNG in the Pictures folder and
+    /// put on its own line where the cursor was.
+    private func pastePicture(_ png: Data, at offset: Int) {
+        guard let vault = model.vault else { return }
+        let folder = vault.rootURL.appendingPathComponent(Pictures.droppedFolder)
+        let taken = Set((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? [])
+        let name = Pictures.freeName(for: Pictures.pastedName(), taken: taken)
+        do {
+            try vault.writeFile(png, at: Pictures.droppedFolder + "/" + name)
+        } catch {
+            model.errorMessage = "The picture could not be saved: \(error.localizedDescription)"
+            return
+        }
+        let link = Sketches.link(toFile: name, fromNote: path, folder: Pictures.droppedFolder, alt: "Picture")
+        text = Sketches.inserting(link: link, into: text, at: min(offset, (text as NSString).length)).text
     }
 
     /// Build 289: where a photo goes, and which way it is coming.
@@ -2090,6 +2117,66 @@ struct SketchRequest: Identifiable {
 }
 
 /// One picture from the Sketches folder, or a word while iCloud has not sent it yet.
+/// Build 293: a note's pictures together, small and square; a press opens one big.
+struct NoteGallery: View {
+    let paths: [String]
+    let version: Int
+    let tint: Color
+    let open: (String) -> Void
+    @AppStorage("galleryFolded") private var folded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            FoldButton(isOpen: Binding(get: { !folded }, set: { folded = !$0 }), accessibilityName: "Pictures") {
+                SectionLabel(title: "Pictures", count: paths.count, markName: "photo", tint: tint)
+            }
+            if !folded {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(paths, id: \.self) { picture in
+                            Button { open(picture) } label: {
+                                GalleryThumb(path: picture, version: version)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel((picture as NSString).lastPathComponent)
+                            .accessibilityIdentifier("gallery.thumb")
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier("note.gallery")
+    }
+}
+
+/// One square picture in the gallery, cut to fill; grey while iCloud has not sent it.
+struct GalleryThumb: View {
+    @EnvironmentObject private var model: AppModel
+    let path: String
+    let version: Int
+    var side: CGFloat = 64
+    @State private var image: Image?
+
+    var body: some View {
+        Rectangle()
+            .fill(Color.secondary.opacity(0.12))
+            .frame(width: side, height: side)
+            .overlay { if let image { image.resizable().scaledToFill() } }
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.25), lineWidth: 1))
+            .task(id: "\(path)#\(version)") { image = load() }
+    }
+
+    private func load() -> Image? {
+        guard let data = model.vault?.fileData(at: path) else { return nil }
+        #if os(iOS)
+        return UIImage(data: data).map { Image(uiImage: $0) }
+        #else
+        return NSImage(data: data).map { Image(nsImage: $0) }
+        #endif
+    }
+}
+
 struct SketchThumb: View {
     @EnvironmentObject private var model: AppModel
     let path: String

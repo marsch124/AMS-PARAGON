@@ -103,6 +103,8 @@ struct PictureHooks {
     var caption: (Int, String) -> Void = { _, _ in }
     /// Build 290 (Mac): picture files dragged in from Finder, and where in the markdown.
     var drop: (Int, [URL]) -> Void = { _, _ in }
+    /// Build 293 (Mac): a picture pasted with ⌘V (PNG data), and where in the markdown.
+    var paste: (Int, Data) -> Void = { _, _ in }
 }
 
 /// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
@@ -416,6 +418,46 @@ final class LinkingTextView: NSTextView {
     var onPictureCaption: ((Int, PictureAttachment) -> Void)?
     /// Build 290: picture files dropped from Finder, and the place in the text.
     var onPictureDrop: ((Int, [URL]) -> Void)?
+    /// Build 293: a picture pasted with ⌘V (PNG data), and the place in the text.
+    var onPicturePaste: ((Int, Data) -> Void)?
+
+    /// Picture files copied in Finder.
+    private func pastedPictureFiles(_ pb: NSPasteboard) -> [URL] {
+        let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        return urls.filter { Pictures.isPicture($0.path) }
+    }
+
+    /// A copied picture (a screenshot, an image from Safari or Preview) as PNG — only when
+    /// there is no text on the clipboard: text always pastes as text.
+    private func pastedPictureData(_ pb: NSPasteboard) -> Data? {
+        guard pb.string(forType: .string) == nil else { return nil }
+        if let png = pb.data(forType: .png) { return png }
+        guard NSImage.canInit(with: pb), let image = NSImage(pasteboard: pb),
+              let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff) else { return nil }
+        return rep.representation(using: .png, properties: [:])
+    }
+
+    override func paste(_ sender: Any?) {
+        let pb = NSPasteboard.general
+        let at = selectedRange().location
+        if let onPictureDrop {
+            let files = pastedPictureFiles(pb)
+            if !files.isEmpty { onPictureDrop(at, files); return }
+        }
+        if let onPicturePaste, let png = pastedPictureData(pb) {
+            onPicturePaste(at, png)
+            return
+        }
+        super.paste(sender)
+    }
+
+    override func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(paste(_:)), isEditable, onPicturePaste != nil,
+           !pastedPictureFiles(.general).isEmpty || NSImage.canInit(with: .general) {
+            return true
+        }
+        return super.validateMenuItem(menuItem)
+    }
 
     /// The picture's place in the text under `point`, when the click is really on it.
     func pictureIndex(at point: NSPoint) -> Int? {
@@ -615,6 +657,11 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             let at = (PictureText.markdown(from: storage, upTo: index) as NSString).length
             coordinator.pictures?.drop(at, urls)
         }
+        textView.onPicturePaste = { [weak coordinator = context.coordinator, weak textView] index, png in
+            guard let coordinator, let storage = textView?.textStorage else { return }
+            let at = (PictureText.markdown(from: storage, upTo: min(index, storage.length)) as NSString).length
+            coordinator.pictures?.paste(at, png)
+        }
         textView.registerForDraggedTypes([.fileURL])
         textView.delegate = context.coordinator
         textView.allowsUndo = true
@@ -724,6 +771,7 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             textView.onBoxMenu = nil
             textView.onFormat = nil
             textView.onPictureClick = nil
+            textView.onPicturePaste = nil
             textView.delegate = nil
         }
         coordinator.history.removeAllActions()

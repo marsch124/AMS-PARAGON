@@ -157,6 +157,22 @@ public extension Pictures {
     }
 }
 
+/// Build 293: pictures pasted with ⌘V, and the gallery of a note's pictures.
+public extension Pictures {
+    /// A pasted picture's name, from the moment it is pasted: `Pasted 2026-11-11 201405.png`.
+    static func pastedName(at date: Date = Date(), calendar: Calendar = .current) -> String {
+        "Pasted" + Sketches.newFileName(at: date, calendar: calendar).dropFirst("Sketch".count)
+    }
+
+    /// The pictures for a note's gallery: each file once, in the order they appear. Empty
+    /// below two — one picture is already in plain sight in the text.
+    static func galleryPaths(in text: String, notePath: String) -> [String] {
+        var seen = Set<String>()
+        let paths = matches(in: text, notePath: notePath).map(\.path).filter { seen.insert($0).inserted }
+        return paths.count >= 2 ? paths : []
+    }
+}
+
 /// Build 290: how far a day is from today, in words, for a daily note's band.
 public enum DayDistance {
     public static func words(from day: DateOnly, to today: DateOnly, calendar: Calendar = .current) -> String {
