@@ -96,11 +96,14 @@ struct CalendarEventRow: View {
             Button {
                 model.openInCalendar(event)
             } label: {
-                MarkImage("arrow.up.forward.app")
-                    .font(compact ? .caption : .body)
+                // Build 291: a small round button in the event's calendar colour.
+                MarkImage("arrow.up.right", size: compact ? 10 : 12)
+                    .foregroundStyle(event.color)
+                    .frame(width: compact ? 20 : 24, height: compact ? 20 : 24)
+                    .background(event.color.opacity(0.14), in: Circle())
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
             .help("Open in Calendar")
         }
         .contentShape(Rectangle())

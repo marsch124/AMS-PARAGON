@@ -122,7 +122,8 @@ struct InboxTriageView: View {
                                message: "The Inbox note has not reached this device yet. Its lines appear here as soon as it arrives.",
                                tint: .orange,
                                actionTitle: "Ask iCloud again",
-                               action: { model.fetchMissingNotes() })
+                               action: { model.fetchMissingNotes() },
+                               warns: true)
             } else if items.isEmpty {
                 EmptyStateView(title: "Inbox zero",
                                markName: "tray",
@@ -454,6 +455,9 @@ struct InboxFileItView: View {
     @EnvironmentObject private var model: AppModel
 
     @State private var foldedAreas: Set<String> = []
+    /// Build 291: the Projects and Areas groups fold away, remembered.
+    @AppStorage("inboxProjectsFolded") private var projectsFolded = false
+    @AppStorage("inboxAreasFolded") private var areasFolded = false
     /// The quadrant's **Pick a date**. This column's one and only sheet (build 44).
     @State private var pickingDate: TaskRef?
 
@@ -464,13 +468,17 @@ struct InboxFileItView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionLabel(title: "File it", count: nil, markName: "tray.and.arrow.down",
-                         tint: SidebarSection.inbox.tint)
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-            selectedCard
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
+            // Build 291: "File it" and its card only once a line is picked; before that the
+            // grey "Pick a line on the left…" box said what the heading below already says.
+            if selected != nil {
+                SectionLabel(title: "File it", count: nil, markName: "tray.and.arrow.down",
+                             tint: SidebarSection.inbox.tint)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 14)
+                selectedCard
+                    .padding(.horizontal, 16)
+                    .padding(.top, 10)
+            }
             // **Shape C, the Mac's half.** The lines on the left lost their four small grey
             // symbols; the quadrant lives here instead, right under the line it acts on and
             // above the places that line can go, so everything you can do to one line is in
@@ -482,7 +490,7 @@ struct InboxFileItView: View {
             }
             SectionLabel(title: destinationsTitle, count: nil, markName: nil, tint: SidebarSection.inbox.tint)
                 .padding(.horizontal, 16)
-                .padding(.top, 16)
+                .padding(.top, selected == nil ? 14 : 16)
             if destinations.isEmpty {
                 Text("You have no active projects or areas yet. Make one from a line with the button below.")
                     .font(Txt.label)
@@ -493,16 +501,22 @@ struct InboxFileItView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {
                     if !projects.isEmpty {
-                        groupLabel("Projects", tint: ParaKind.project.tint)
-                        ForEach(projects) { note in
-                            DestinationRow(note: note, selected: selected)
+                        foldLabel("Projects", count: projects.count, tint: ParaKind.project.tint,
+                                  open: Binding(get: { !projectsFolded }, set: { projectsFolded = !$0 }))
+                        if !projectsFolded {
+                            ForEach(projects) { note in
+                                DestinationRow(note: note, selected: selected)
+                            }
                         }
                     }
                     if !branches.isEmpty {
-                        groupLabel("Areas", tint: ParaKind.area.tint)
+                        foldLabel("Areas", count: branches.count, tint: ParaKind.area.tint,
+                                  open: Binding(get: { !areasFolded }, set: { areasFolded = !$0 }))
                             .padding(.top, projects.isEmpty ? 0 : 8)
-                        ForEach(branches) { branch in
-                            AreaDestinationGroup(branch: branch, selected: selected, folded: $foldedAreas)
+                        if !areasFolded {
+                            ForEach(branches) { branch in
+                                AreaDestinationGroup(branch: branch, selected: selected, folded: $foldedAreas)
+                            }
                         }
                     }
                 }
@@ -524,6 +538,14 @@ struct InboxFileItView: View {
 
     /// A coloured heading over each group. `SectionLabel` paints itself secondary, and the
     /// point here is that green means project and pink means area.
+    private func foldLabel(_ title: String, count: Int, tint: Color, open: Binding<Bool>) -> some View {
+        FoldButton(isOpen: open, accessibilityName: title) {
+            Heading(text: title, color: tint, count: count)
+        }
+        .padding(.top, 4)
+        .accessibilityIdentifier("inbox.fold.\(title)")
+    }
+
     private func groupLabel(_ title: String, tint: Color) -> some View {
         Heading(text: title, color: tint)
             .padding(.top, 4)

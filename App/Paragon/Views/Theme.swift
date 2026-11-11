@@ -91,24 +91,31 @@ struct EmptyStateView: View {
     var tint: Color = .secondary
     var actionTitle: String?
     var action: (() -> Void)?
+    /// Build 291: only a page that warns keeps its sentence ("Still coming from iCloud").
+    /// Every other empty page is its icon and title — he could read what belongs there.
+    var warns = false
 
     var body: some View {
-        // 1.0: one calm line and the part's icon. The explanation stays, small and quiet;
-        // the way in (the New note button) is a bordered button, never a loud one.
+        // Build 291: the icon sits in a soft circle of the part's colour; no explanation.
+        // An empty title draws nothing, so "No note open" is the icon and its button only.
         VStack(spacing: 8) {
-            MarkImage(markName)
-                .font(Txt.sectionTitle)
-                .imageScale(.large)
-                .foregroundStyle(tint.opacity(0.6))
+            MarkImage(markName, size: 24)
+                .foregroundStyle(tint == .secondary ? Color.secondary : tint)
+                .frame(width: 52, height: 52)
+                .background((tint == .secondary ? Color.secondary : tint).opacity(0.12), in: Circle())
                 .padding(.bottom, 2)
-            Text(title)
-                .font(Txt.value)
-                .foregroundStyle(.secondary)
-            Text(message)
-                .font(Txt.label)
-                .foregroundStyle(Theme.soft)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 320)
+            if !title.isEmpty {
+                Text(title)
+                    .font(Txt.value)
+                    .foregroundStyle(.secondary)
+            }
+            if warns || tint == .orange {
+                Text(message)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.soft)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 320)
+            }
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .buttonStyle(.bordered)

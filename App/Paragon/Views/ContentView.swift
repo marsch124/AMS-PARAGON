@@ -1220,7 +1220,8 @@ struct DetailView: View {
                            message: "Press a task on the left to open the note it came from.",
                            tint: SidebarSection.done.tint)
         } else {
-            EmptyStateView(title: "No note open",
+            // Build 291: no words — he asked for the text to go. The icon and the button stay.
+            EmptyStateView(title: "",
                            markName: "doc.text",
                            message: "Choose a note in the middle column, or make a new one.",
                            actionTitle: "New note…",
@@ -1252,7 +1253,22 @@ struct SyncButton: View {
             Task { await model.syncNow() }
         }
         .disabled(model.isSyncing)
-        .help(model.lastReport.map { "Last sync: \($0.summary)" } ?? "Sync tasks with Apple Reminders (⇧⌘R)")
+        .help(SyncButton.tip(model.lastReport, every: model.autoSyncMinutes))
+    }
+
+    /// Build 291: the tip says what the button does and that nothing is needed from him.
+    static func tip(_ report: SyncReport?, every minutes: Int) -> String {
+        let auto = minutes > 0 ? " It also runs by itself every \(minutes) minutes." : ""
+        let head = "Sync tasks with Apple Reminders now (⇧⌘R).\(auto)"
+        guard let report else { return head }
+        let time = (report.finishedAt ?? report.startedAt).formatted(date: .omitted, time: .shortened)
+        if !report.conflicts.isEmpty {
+            return "\(head)\nLast sync at \(time): \(report.conflicts.count) to look at — open Last sync report…"
+        }
+        if !report.warnings.isEmpty {
+            return "\(head)\nSynced at \(time) — all fine. \(report.warnings.count) things worth knowing, nothing to do (Last sync report…)."
+        }
+        return "\(head)\nSynced at \(time) — all fine."
     }
 }
 

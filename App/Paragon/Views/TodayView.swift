@@ -10,6 +10,8 @@ struct TodayView: View {
     // without saying so.
     @AppStorage("todayCalendarFolded") private var deskCalendarFolded = false
     @AppStorage("todayCalendarFoldedPhone") private var phoneCalendarFolded = false
+    /// Build 291: Next actions, Overdue and Due today fold like Calendar, remembered by name.
+    @AppStorage("todayFoldedSections") private var foldedSections = ""
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -19,6 +21,23 @@ struct TodayView: View {
     /// (build 148's lesson, and build 160's about this pair).
     private var isPhone: Bool { false }
     #endif
+
+    /// Open unless its name is in `foldedSections` (names joined by "|").
+    private func sectionOpen(_ name: String) -> Binding<Bool> {
+        Binding(get: { !foldedSections.split(separator: "|").contains(Substring(name)) },
+                set: { open in
+                    var names = Set(foldedSections.split(separator: "|").map(String.init))
+                    if open { names.remove(name) } else { names.insert(name) }
+                    foldedSections = names.sorted().joined(separator: "|")
+                })
+    }
+
+    private func foldHeader(_ title: String, count: Int? = nil, tint: Color) -> some View {
+        FoldButton(isOpen: sectionOpen(title), accessibilityName: title) {
+            SectionLabel(title: title, count: count, tint: tint)
+        }
+        .textCase(nil)
+    }
 
     private var calendarFolded: Binding<Bool> {
         isPhone ? $phoneCalendarFolded : $deskCalendarFolded
@@ -91,10 +110,21 @@ struct TodayView: View {
                 // Their names stay as the spoken title and the Mac's tooltip (build 159).
                 dayButtons
             }
-            BandNumber(number: "\(dueToday.count)",
-                       words: overdue.isEmpty ? "due today" : "due today · \(overdue.count) overdue",
-                       identifier: "today.band")
+            // **Build 291: no big number.** He could read "0 due today" in the Due today list
+            // a few lines down, so the band says it no more. Its room now holds the way into
+            // today's note, a white button, so the old "Today's note" heading row is gone.
+            HeaderActionButton(title: model.todayNote == nil ? "Create today's note" : "Today's note",
+                               spokenTitle: model.todayNote == nil ? "Create today's note" : "Open today's note",
+                               markName: "calendar",
+                               tint: SidebarSection.today.tint,
+                               onBand: true,
+                               identifier: "today.note") {
+                model.openDailyNote(for: today)
             }
+            .padding(.top, 6)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("today.band")
             .band(SidebarSection.today.tint)
             .padding(.bottom, Theme.tight)
             // **Now and Then, the day's plan in two short lines** (build 266), outside the
@@ -129,36 +159,25 @@ struct TodayView: View {
                         }
                     }
                 }
-                Section {
-                    if !fromTodayNote.isEmpty {
-                        rows(fromTodayNote)
+                // Build 291: the heading with its Open button moved into the band; the tasks
+                // written in today's note keep a section, only when there are some.
+                if !fromTodayNote.isEmpty {
+                    Section {
+                        if sectionOpen("From today's note").wrappedValue { rows(fromTodayNote) }
+                    } header: {
+                        foldHeader("From today's note", tint: SidebarSection.today.tint)
                     }
-                } header: {
-                    HStack(spacing: 8) {
-                        // No symbol on the heading: the button beside it already carries the
-                        // calendar, and two of one symbol in a row says nothing twice.
-                        SectionLabel(title: "Today's note", tint: SidebarSection.today.tint)
-                        HeaderActionButton(title: model.todayNote == nil ? "Create" : "Open",
-                                           spokenTitle: model.todayNote == nil
-                                                ? "Create today's note" : "Open today's note",
-                                           markName: "calendar",
-                                           tint: ParaKind.daily.tint) {
-                            model.openDailyNote(for: today)
-                        }
-                    }
-                    // A `List` uppercases a section header's text for us, which would leave the
-                    // button saying CREATE. `SectionLabel` uppercases its own words, so the
-                    // heading is unchanged and only the button reads as an ordinary word.
-                    .textCase(nil)
                 }
                 if !nextActions.isEmpty {
-                    Section { rows(nextActions) } header: {
-                        Heading(text: "Next actions", color: SidebarSection.today.tint).textCase(nil)
+                    Section {
+                        if sectionOpen("Next actions").wrappedValue { rows(nextActions) }
+                    } header: {
+                        foldHeader("Next actions", tint: SidebarSection.today.tint)
                     }
                 }
                 if !overdue.isEmpty {
                     Section {
-                        rows(overdue)
+                        if sectionOpen("Overdue").wrappedValue { rows(overdue) }
                     } header: {
                         // A `WrappingHStack`, never a plain one: a heading and two buttons in a
                         // narrow middle column would squeeze until the words broke mid-word
@@ -166,7 +185,9 @@ struct TodayView: View {
                         // own header rather than the window's toolbar (build 167), and
                         // `.textCase(nil)` keeps a `List` from shouting them (build 214).
                         WrappingHStack(spacing: 8, lineSpacing: 6) {
-                            SectionLabel(title: "Overdue", count: overdue.count, tint: Theme.attention)
+                            FoldButton(isOpen: sectionOpen("Overdue"), accessibilityName: "Overdue") {
+                                SectionLabel(title: "Overdue", count: overdue.count, tint: Theme.attention)
+                            }
                             // **The Inbox's own two symbols, not new ones.** `InboxQuadrant`
                             // has drawn `sun.max` for today and `sunrise` for tomorrow since
                             // build 215, with the words beside them, so these are already
@@ -193,20 +214,25 @@ struct TodayView: View {
                     }
                 }
                 Section {
-                    if dueToday.isEmpty {
-                        Text(overdue.isEmpty && nextActions.isEmpty
-                             ? "Nothing is due today. Give a task a date, or pick a next action in a project."
-                             : "Nothing else is due today.")
+                    if !sectionOpen("Due today").wrappedValue {
+                        EmptyView()
+                    } else if dueToday.isEmpty {
+                        // Build 291: a few calm words, no instructions.
+                        Text("Nothing due today.")
                             .font(Txt.value)
                             .foregroundStyle(.secondary)
                     } else {
                         rows(dueToday)
                     }
                 } header: {
-                    Heading(text: "Due today", color: SidebarSection.today.tint).textCase(nil)
+                    foldHeader("Due today", count: dueToday.count, tint: SidebarSection.today.tint)
                 }
                 if !important.isEmpty {
-                    Section("Important, no date") { rows(important) }
+                    Section {
+                        if sectionOpen("Important, no date").wrappedValue { rows(important) }
+                    } header: {
+                        foldHeader("Important, no date", count: important.count, tint: SidebarSection.today.tint)
+                    }
                 }
             }
         }

@@ -2930,8 +2930,9 @@ final class ScreenTests: XCTestCase {
         let band = element("today.band")
         XCTAssertTrue(band.waitForExistence(timeout: 20),
                       "Today has no band with its number (today.band). On screen: \(visibleTexts())")
-        XCTAssertTrue(band.label.contains("due today"),
-                      "Today's band does not say how much is due today. It says: \(band.label)")
+        // Build 291: the band carries the way into today's note, not the number.
+        XCTAssertTrue(element("today.note").waitForExistence(timeout: 5),
+                      "Today's band has no Today's note button (today.note). On screen: \(visibleTexts())")
     }
 
     func testThePhonesSearchShowsEveryGroupOfBoxes() {

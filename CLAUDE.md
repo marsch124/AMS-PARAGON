@@ -4927,6 +4927,19 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 291 (11 November 2026)
+
+"Calmer screens". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Today, The Inbox "Where it goes", Reminders sync, How PARAGON looks), `Look.md` (section 6, counts, section 10).
+
+- **Before:** Inbox destinations always open; Today band had the big "0 due today" number and a "Today's note" heading with Create/Open; only Calendar folded on Today; counts beside headings were loose grey numbers; empty pages had icon, title and an explaining sentence; the calendar row's "open in Calendar" mark was bare; the sync tip said "Last sync: N warnings".
+- **Inbox:** the Projects and Areas groups under "Where things go" fold with a chevron; folded state remembered. The grey "Pick a line on the left..." box shows only once a line is picked.
+- **Today:** big number removed from the band; the band carries a white "Today's note" button (calendar mark + words; "Create today's note" when none exists); the old heading with Open is gone; "From today's note" shows only when there are tasks in it. Next actions, Overdue and Due today fold like Calendar, remembered.
+- **Counts:** small capsules in the heading's colour (capsule size, 11 pt, 14 % tint), not loose grey numbers.
+- **Empty pages:** explaining sentence removed; icon in a soft circle of the part's colour above the title. "No note open": only the icon and New note... Warnings (e.g. "Still coming from iCloud") keep their sentence.
+- **Calendar rows:** "open in Calendar" is a small round button tinted in the event's calendar colour.
+- **Toolbar tips:** + = New note in this section (⌘N); tray = Quick capture (⇧⌘N); circling arrows = sync with Reminders now (⇧⌘R, also automatic every few minutes per Settings). Sync tip: "Synced with Reminders at 15:05 - all fine" or "... N things worth knowing, nothing to do (see Last sync report...)"; the word "warnings" became "worth knowing".
+- **BuildStamp:** `BuildStamp.number` = 291.
+
 ## Build 290 (11 November 2026)
 
 "Captions, pictures from Finder, and a tidier note header". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos": Captions, Pictures from Finder; note header paragraph).

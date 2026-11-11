@@ -142,11 +142,16 @@ struct Heading: View {
             Text(text)
                 .font(Txt.sectionTitle)
                 .foregroundStyle(color)
+            // Build 291: the count is a small capsule in the heading's own colour, not a
+            // loose grey number beside it.
             if let count, count > 0 {
                 Text("\(count)")
-                    .font(Txt.label)
-                    .foregroundStyle(Theme.soft)
-                    .monospacedDigit()
+                    .font(Txt.pill.monospacedDigit())
+                    .foregroundStyle(color)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 1)
+                    .background(color.opacity(0.14), in: Capsule())
+                    .alignmentGuide(.firstTextBaseline) { $0[.firstTextBaseline] + 1 }
             }
         }
         .lineLimit(1)

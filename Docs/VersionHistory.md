@@ -1,6 +1,41 @@
 # Version history
 
-The version is shown as 1.0 (290) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (291) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 291 · 11 November 2026
+
+**Calmer screens.** Fewer words, fewer loose numbers, and long lists you can fold away.
+
+**Before (build 290).** In the Inbox, the long list of places a line can go was always open, so you scrolled a lot. **Today** had a big "0 due today" number in the purple band, and a "Today's note" heading with an **Open** button under the events. Its lists could not be folded, except **Calendar**. Counts beside headings (for example "Calendar 1", "Projects 7") were loose grey numbers. An empty page had an icon, a title and a sentence explaining it. A calendar event had a bare "open in Calendar" mark. The sync button's hover tip said, for example, "Last sync: 8 warnings".
+
+**Now, Inbox.**
+- Under **Where things go**, the **Projects** and **Areas** groups each fold away with a chevron by their heading. The app remembers which ones you folded.
+- The grey box "Pick a line on the left..." is gone. It only shows once a line is picked.
+
+**Now, Today.**
+- The big "0 due today" number is gone from the purple band. The **Due today** list below already says it.
+- The band now carries a white **Today's note** button, with a calendar mark and the words. When there is no note for today, it says **Create today's note**. The old "Today's note" heading with its **Open** button is gone.
+- Tasks written in today's note still show, under **From today's note**, but only when there are some.
+- **Next actions**, **Overdue** and **Due today** fold away like **Calendar** does, and the app remembers which are folded.
+
+**Now, counts.** The numbers beside headings everywhere (for example "Calendar 1", "Projects 7") are small capsules in the heading's colour, not loose grey numbers.
+
+**Now, empty pages.**
+- The sentence that explained the page is gone. The icon now sits in a soft circle of the part's colour, above the title.
+- **No note open** shows only that icon and the **New note...** button.
+- Warnings keep their sentence, for example "Still coming from iCloud".
+
+**Now, Calendar rows.** The "open in Calendar" mark is a small round button, tinted in the colour of the event's calendar.
+
+**Now, the toolbar's hover tips.**
+- The coloured **+** is **New note** in this section (⌘N).
+- The tray is **Quick capture**, a thought into the Inbox (⇧⌘N).
+- The circling arrows sync your tasks with Apple Reminders now (⇧⌘R). It also runs by itself every few minutes (set in Settings).
+- The sync tip now says "Synced with Reminders at 15:05 - all fine". When there were notes, it says "... N things worth knowing, nothing to do (see Last sync report...)" instead of "Last sync: 8 warnings". The word "warnings" became "worth knowing".
+
+**What did not change.** Tasks, notes, the files, the sync itself and all the colours are as in build 290.
+
+**The version.** It shows as "PARAGON 1.0 (291)".
 
 ## Build 290 · 11 November 2026
 

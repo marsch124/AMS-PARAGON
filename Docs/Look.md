@@ -1,6 +1,6 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (282), look A, section 15). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
 The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
@@ -16,13 +16,13 @@ There is one scale, kept in one place in the code (`Txt` in Look.swift). No scre
 | Page title | 26 | bold | black by day, white at night | The open note's title and the title of a screen that fills a column. |
 | Section heading | 17 | semibold | the colour of the part | Every heading (`SectionLabel`, `Heading`) and the title in an edit window's bar. |
 | Value | 15 | regular | black or white | Note text, facts, fields, and the words in panels. |
-| Label | 12 | regular | soft grey | The small word above a value, counts in headings, footers. |
+| Label | 12 | regular | soft grey | The small word above a value, footers. (Counts in headings are capsules since build 291.) |
 | List | 13 | regular | black or white | Sidebar rows, menus, pop-ups. |
 | List title | 13 | semibold | black or white | The title of a row. |
 | List second line | 11 | regular | grey | The one second line of a row, numbers, badges. |
 | Button | 13 | semibold | white on the part's colour | The main button. |
 | Code | 14 | regular, monospaced | grey | Code, and the settings block. |
-| Capsule | 11 | medium | the part's colour on a 14 % tint | A status or a count that cannot be changed. |
+| Capsule | 11 | medium | the part's colour on a 14 % tint | A status, or a count beside a heading (since build 291), that cannot be changed. |
 
 The Map draws its box titles at 12.5 points and its labels at 11 points at normal zoom, and scales them with its zoom. The widgets keep Apple's small widget styles. The share sheet uses Apple's text styles.
 
@@ -140,7 +140,9 @@ The Date window keeps its field and calendar. **Set** is a filled button.
 
 ## 6. Empty screens
 
-The part's icon, in the part's colour at 60 %, one calm line (15 points, grey), the explanation in small grey (12 points), and, where there was a button, a quiet bordered one in the part's colour. Some empty screens show only the icon and the line (`CalmEmptyView`).
+Since build 291: the part's icon sits in a soft circle of the part's colour, above one calm title (15 points, grey), and, where there was a button, a quiet bordered one in the part's colour. The explaining sentence is gone. "No note open" shows only the icon and the **New note...** button. A warning (for example "Still coming from iCloud") keeps its sentence. Before build 291 the icon stood alone at 60 % with a line of small grey explanation under the title (`CalmEmptyView`).
+
+Counts beside headings (for example "Calendar 1", "Projects 7") are small capsules in the heading's colour (the capsule size, section 1), not loose grey numbers. A group in a list or on **Today** that can fold shows a chevron by its heading, and the app remembers which are folded. A round button on a row (for example "open in Calendar") is tinted in the row's own colour.
 
 ## 7. Icons
 
@@ -195,7 +197,7 @@ Since build 282 (look A, chosen on 9 November 2026 from `Work/look-1.1/design/pr
 - **Fill.** A gradient from the part's colour (section 2, day or night shade) to the same colour 80 % of the way towards the bottom right. No new colour.
 - **Title.** The page title in white, at the page-title size (section 1).
 - **Small words.** The date or the facts, at the label size (12 points on the Mac), white at 85 % opacity.
-- **Big number.** One per band: 34 points, bold, white (`Txt.bandNumber`; on the iPhone Apple's large title, bold). Today: "3 due today · 2 of 5 done". A project, area or resource note: "2 open tasks · 0 of 2 done". A goal's page: "40 %" with "of the way · Target 15 Aug 2027" under it.
+- **Big number.** One per band: 34 points, bold, white (`Txt.bandNumber`; on the iPhone Apple's large title, bold). Today (since build 291) has no big number, only the white **Today's note** button. A project, area or resource note: "2 open tasks · 0 of 2 done". A goal's page: "40 %" with "of the way · Target 15 Aug 2027" under it.
 - **Buttons.** **Start the day** and **Close the day** keep their place, in the band's top row, drawn as white circles.
 - **Sidebar (Mac).** The chosen row is filled in the part's colour, with white words.
 - **Under the band.** Everything is as in builds 280 and 281: tinted panels, 17-point coloured headings, 8-point dots, pop-ups, text sizes, icons. Nothing moves, no function changes, and the part colours are unchanged.
