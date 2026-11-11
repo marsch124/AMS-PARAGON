@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 282
+    static let number = 283
 }
 
 @MainActor
@@ -892,6 +892,7 @@ final class AppModel: ObservableObject {
         guard settleFocusBeforeLeavingVault() else { return }
         autoSyncTask?.cancel()
         autoSyncTask = nil
+        syncWaitsForCloud = false
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = nil
         defaults.removeObject(forKey: bookmarkKey)
@@ -1275,6 +1276,13 @@ final class AppModel: ObservableObject {
             }
             if !unreadableNotes.isEmpty { log("skipped unreadable files: \(unreadableNotes)") }
             if !notesWaitingForCloud.isEmpty { log("waiting for iCloud: \(notesWaitingForCloud.count) notes") }
+            if syncWaitsForCloud, SyncWait.step(waiting: notesWaitingForCloud.count,
+                                                updating: notesBeingUpdated.count) == .start {
+                // `afterUpdate`: a reload can run inside a view update (build 283).
+                syncWaitsForCloud = false
+                log("sync starts: the vault is all here")
+                afterUpdate { [weak self] in Task { await self?.syncNow(quietly: true) } }
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -4122,7 +4130,11 @@ final class AppModel: ObservableObject {
         activeSheet = .syncReport
     }
 
-    func syncNow(force: Bool = false) async {
+    /// A sync was asked for while notes were still coming from iCloud (build 283). The first
+    /// `reload()` that finds the whole vault here starts it; nothing has to be pressed again.
+    @Published private(set) var syncWaitsForCloud = false
+
+    func syncNow(force: Bool = false, quietly: Bool = false) async {
         guard let vault, !isSyncing else { return }
         // Never sync half a vault. A note that has not arrived from iCloud has no tasks as far
         // as this device can see, and while the engine is careful never to delete a reminder
@@ -4130,11 +4142,17 @@ final class AppModel: ObservableObject {
         // report full of warnings. Wait until the vault is all here (build 106).
         // Since build 261 also while a note is being updated: the engine would write task ids
         // into the older copy, over the newer version iCloud has not brought yet.
-        if !force, let reason = partVaultReason(for: "the sync was not started") {
-            errorMessage = reason
-            log("sync refused: \(notesWaitingForCloud.count) waiting, \(notesBeingUpdated.count) being updated")
+        // Since build 283 it waits rather than refusing with an alert: nothing has gone wrong,
+        // and `reload()` starts it once `SyncWait.step` says the vault is all here.
+        if !force, SyncWait.step(waiting: notesWaitingForCloud.count,
+                                 updating: notesBeingUpdated.count) == .keepWaiting {
+            let alreadyWaiting = syncWaitsForCloud
+            syncWaitsForCloud = true
+            log("sync waits: \(notesWaitingForCloud.count) waiting, \(notesBeingUpdated.count) being updated")
+            if !quietly, !alreadyWaiting { flash(SyncWait.message) }
             return
         }
+        syncWaitsForCloud = false
         flushPendingEdits()
         if backsUpBeforeSync { backUp(reason: "sync") }
         isSyncing = true
@@ -4165,7 +4183,7 @@ final class AppModel: ObservableObject {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(minutes * 60))
                 guard !Task.isCancelled else { break }
-                await self?.syncNow()
+                await self?.syncNow(quietly: true)
             }
         }
     }

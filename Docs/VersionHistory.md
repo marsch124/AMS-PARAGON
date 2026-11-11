@@ -1,6 +1,18 @@
 # Version history
 
-The version is shown as 1.0 (282) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (283) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 283 · 11 November 2026
+
+**The sync waits for iCloud.** What PARAGON does with Reminders has not changed. What changed is what happens when you ask for a sync while notes are still arriving from another device.
+
+**Before.** If you pressed **Sync with Reminders** (or the timer started a sync) while notes were still coming from iCloud from your iPad or iPhone, an alert said "Something went wrong": "3 notes are being updated from iCloud, so the sync was not started … Try again in a moment." Nothing tried again. You had to press Sync again, and the timer could put the alert up by itself.
+
+**Now.** There is no alert. PARAGON remembers that a sync was asked for and starts it by itself the moment every note has arrived: the first re-read of the vault that finds nothing still coming and nothing being updated. Both the iCloud watcher and the 10-second check re-read the vault, so this takes seconds. If you pressed the button, a short passing note says: "Notes are still arriving from iCloud. The sync starts by itself as soon as they are here." A sync started by the timer waits quietly and says nothing.
+
+**What did not change.** The safety rule is the same as in builds 106 and 261: a sync never runs over half a vault or over an older copy of a note. Closing the vault forgets a waiting sync. The other whole-vault actions (rename a tag everywhere, rename a note with its links, restore a backup, the sync rehearsal) still refuse with their message, as before.
+
+**The version.** It shows as "PARAGON 1.0 (283)".
 
 ## Build 282 · 9 November 2026
 

@@ -4927,6 +4927,14 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 283 (11 November 2026)
+
+"The sync waits for iCloud". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (How iCloud moves the files).
+
+- **Before:** `syncNow` with notes still arriving/updating set `errorMessage` ("… the sync was not started … Try again in a moment") and nothing retried; the timer could raise it.
+- **Now:** Core `Sync/SyncWait.swift`: `SyncWait.step(waiting:updating:)` -> `.start` / `.keepWaiting`, `SyncWait.message`; tests `SyncWaitTests`. `AppModel.syncWaitsForCloud` (published) is set in `syncNow(force:quietly:)` instead of `errorMessage`; `reload()` starts the waiting sync through `afterUpdate` when `SyncWait.step` says `.start` (iCloud watcher and the 10 s check both re-read). A pressed sync shows the passing note; the auto-sync timer calls `syncNow(quietly: true)` and waits silently. `closeVault` clears it.
+- **Unchanged:** the safety rule (builds 106, 261): never sync over a partial vault or older copy. Tag rename, note rename with links, restore and sync rehearsal still refuse with their message. `BuildStamp.number` = 283.
+
 ## Build 282 (9 November 2026)
 
 "Colour at the top", look A (picked 9 Nov from `Work/look-1.1/design/premium.png`). Docs in `Docs/VersionHistory.md`, `HowItWorks.md`, `Look.md` (new §15 The band).
