@@ -1,6 +1,37 @@
 # Version history
 
-The version is shown as 1.0 (286) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (287) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 287 · 11 November 2026
+
+**Rich text, and tasks that keep going.** The second step of "checkboxes, rich text, Apple Pencil" (Apple Pencil comes next): bold, italic and headings now look finished while you write, the keyboard bar gets three more buttons, a task's box has a menu, and Return carries a list on.
+
+**Before (build 286).** Bold, italic and headings showed their effect, but the marker characters (`**`, `*`, `#`) stayed visible, only faded. The bar above the keyboard had one button, the checkbox. A task box could only be pressed to tick it. Return on a task line just started an ordinary new line.
+
+**Now, rich text while you write.** The note file stays plain markdown. In Edit, **bold** shows bold, *italic* shows italic, and headings show big. The marker characters `**`, `*` and the `# ` of a heading are hidden on every line except the one the cursor is on. On that line they show faintly, so you can still edit them. On the iPhone and iPad, when you are not typing in the note, all markers are hidden.
+
+**Now, the bar above the keyboard (iPhone and iPad).** Besides the checkbox button there are three new ones:
+- **B** makes the selected text, or the word the cursor is in, bold. Pressed again on bold text it takes the bold off.
+- **I** does the same for italic.
+- With no word at the cursor, B and I put in an empty pair with the cursor between, ready to type.
+- **H** steps the line: plain, big heading, middle heading, small heading, plain again.
+
+**Now, on the Mac.** A Format menu has Bold (Command-B), Italic (Command-I) and Heading (Option-Command-H), with the same rules. There is no bar on the Mac.
+
+**Now, a menu on a task's box.** Long-press a task's box in the note text (iPhone and iPad), or right-click it (Mac), for a small menu:
+- **Cancel task**: the box becomes `[-]` and the line is struck through, like Cancel elsewhere in the app.
+- **Move to tomorrow**: the due date becomes tomorrow and keeps its time of day, the same rule as Reschedule.
+- Undo takes either back.
+
+**Now, Return continues a list.**
+- Return on a task line starts a new empty task below, with the same indent, like Apple Notes. Text after the cursor moves onto the new task.
+- Return on an empty task line removes the box and ends the list.
+- The same holds for plain bullets `- `, `* ` and `+ `: the new line gets the same bullet.
+- Return with the cursor before the box works as before.
+
+**What did not change.** The file format, the task menu elsewhere, ticking a box, the Tasks box under the note header and the sync are as in build 286.
+
+**The version.** It shows as "PARAGON 1.0 (287)".
 
 ## Build 286 · 11 November 2026
 

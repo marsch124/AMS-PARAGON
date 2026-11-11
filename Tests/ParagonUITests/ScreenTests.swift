@@ -121,6 +121,29 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(shown.contains("- [ ] Tick me from the bar"),
                       "The button did not make a task. The editor shows: \(shown.suffix(300))")
     }
+
+    /// Build 287: B in the bar makes the word bold, and Return on a task starts the next one.
+    func testTheKeyboardBarMakesBoldAndTasksContinue() {
+        go(to: .projects)
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
+        editor.press()
+        editor.typeText("Strong")
+        let bold = app.buttons["format.bold"]
+        XCTAssertTrue(bold.waitForExistence(timeout: 10), "No B button above the keyboard.")
+        bold.tap()
+        app.buttons["format.task"].tap()
+        editor.typeText("\nNext one")
+        if let path = ProcessInfo.processInfo.environment["TEST_RUNNER_SHOT_PATH"] ?? ProcessInfo.processInfo.environment["SHOT_PATH"] {
+            try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: path))
+        }
+        let shown = editor.value as? String ?? ""
+        XCTAssertTrue(shown.contains("- [ ] **Strong**\n- [ ] Next one"),
+                      "Bold or the next task is missing. The editor shows: \(shown.suffix(300))")
+    }
     #endif
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).

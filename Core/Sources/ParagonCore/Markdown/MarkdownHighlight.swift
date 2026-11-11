@@ -154,7 +154,12 @@ public enum MarkdownHighlight {
         for m in TaskParser.idRegex.matches(in: text, range: full) {
             spans.append(MarkdownSpan(range: shift(m.range, by: lineRange.location), style: .marker))
         }
-        inline += inlineSpans(in: text, offset: lineRange.location).filter { $0.style == .link }
+        // Links, and since build 287 bold and italic too: `- [ ] **Call** Anna` reads bold.
+        inline += inlineSpans(in: text, offset: lineRange.location).filter { $0.style != .code }
+            .filter { span in
+                // Not the box's own `[`/`-` or the `*` bullet, which belong to the marker above.
+                span.style != .marker || span.range.location >= lineRange.location + (TaskParser.lineRegex.firstMatch(in: text, range: full).map { NSMaxRange($0.range(at: 3)) + 1 } ?? 0)
+            }
     }
 
     /// Bold, italics, code and wikilinks inside a stretch of text.

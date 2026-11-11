@@ -309,7 +309,33 @@ While you type, the editor shows what the markdown means: headings grow, task bo
 
 In Edit, the box of every task line can be pressed: tap it on the iPhone and iPad, click it on the Mac. It works exactly like ticking the task in a task list. The box becomes `[x]` and the line gets the done date, so Reminders sync and the Done list see it. A repeating task gets its next copy on the line below. Pressing a ticked or cancelled box opens the task again. Pressing anywhere else in the line only puts the cursor there. The box is drawn a little bolder, in the note's colour, so you can see it is a button.
 
-On the iPhone and the iPad, a slim bar sits above the keyboard while you type in a note. It has one button for now, the checkbox: it turns the line the cursor is on into a task, or a task back into an ordinary line. (Bold, italic and headings will join this bar later.) On the Mac there is no bar: type `- [ ] ` as before, or click the box.
+On the iPhone and the iPad, a slim bar sits above the keyboard while you type in a note. Its checkbox button turns the line the cursor is on into a task, or a task back into an ordinary line; the other buttons are described next. On the Mac there is no bar: type `- [ ] ` as before, or click the box.
+
+### Bold, italic and headings
+
+The note file stays plain markdown, but while you write it looks finished: **bold** is bold, *italic* is italic and headings are big. The marker characters (`**`, `*` and the `# ` of a heading) are hidden on every line except the one the cursor is on; on that line they show faintly so you can still edit them. On the iPhone and iPad, when you are not typing in the note, all markers are hidden.
+
+On the iPhone and iPad the bar above the keyboard has three buttons for it:
+
+- **B** makes the selected text, or the word the cursor is in, bold. Pressed again on bold text it takes the bold off.
+- **I** does the same for italic.
+- With no word at the cursor, B and I put in an empty pair and leave the cursor between, ready to type.
+- **H** steps the line: plain, big heading, middle heading, small heading, plain again.
+
+On the Mac the Format menu has Bold (Command-B), Italic (Command-I) and Heading (Option-Command-H), with the same rules.
+
+### Long press on a task's box
+
+Long-press a task's box in the note text (right-click it on the Mac) for a small menu:
+
+- **Cancel task**: the box becomes `[-]` and the line is struck through, like Cancel elsewhere in the app.
+- **Move to tomorrow**: the due date becomes tomorrow and keeps its time of day, the same rule as Reschedule.
+
+Undo takes either back.
+
+### Return continues a list
+
+Press Return on a task line and a new empty task starts below it with the same indent, like Apple Notes. Text after the cursor moves onto the new task. Press Return on an empty task line and the box goes away and the list ends. Plain bullets (`- `, `* ` and `+ `) work the same way, and the new line gets the same bullet. With the cursor before the box, Return works as before.
 
 The task box under the note header shows the same tasks as a checklist. Ticking there edits the line in the file. Its header row has a **Hide finished** switch (also in Settings › Tasks) that leaves out what is done or cancelled; a finished task with open subtasks always stays visible, and nothing is removed from the file.
 

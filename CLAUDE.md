@@ -4927,6 +4927,16 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 287 (11 November 2026)
+
+"Rich text, and tasks that keep going". Step 2 of "checkboxes, rich text, Apple Pencil" (Pencil next). He picked A: live preview, file stays plain markdown. Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Tasks: "Bold, italic and headings", "Long press on a task's box", "Return continues a list").
+
+- **Before:** bold/italic/headings were styled but markers only faded; the bar had one button (`format.task`); box press only ticked; Return on a task line made a plain line.
+- **Core:** `Markdown/RichText.swift`: `RichText.toggling(_:selection:marker:)` (counts the stars around the word: odd = italic, >=2 = bold; empty pair with caret between when no word), `RichText.cyclingHeading(_:at:)` (plain, `# `, `## `, `### `, plain), `RichText.continuingList(_:at:)` (task or `- `/`* `/`+ ` bullet; empty item ends the list; caret before the box = old behaviour), `MarkdownHighlight.hiddenMarkers(in:cursor:)`. `TaskBox.cancelled(_:at:)` and `TaskBox.movedToTomorrow(_:at:today:calendar:)` (uses `TaskItem.settingDueDate`, keeps the time of day, same as Reschedule). One data test `RichTextTests`.
+- **Editor:** `MarkdownAttributes.apply(... cursor:)` hides markers off the cursor line (clear colour, 0.1 pt font) and restyles when the cursor changes line; iOS hides all markers when not editing. iOS long press is a `UILongPressGestureRecognizer` that only begins on a box (build 114 trap) and shows a `UIEditMenuInteraction` menu (Cancel task, Move to tomorrow); Return via `shouldChangeTextIn`. Mac `LinkingTextView.menu(for:)` adds the two items; `insertNewline` handled in `doCommandBy`.
+- **Format bar:** iOS bar gets ids `format.bold`, `format.italic`, `format.heading` beside `format.task`. Mac: Format menu = `CommandGroup(replacing: .textFormatting)` (Bold Cmd-B, Italic Cmd-I, Heading Opt-Cmd-H) sending actions through the responder chain; no Mac bar. Screen test `testTheKeyboardBarMakesBoldAndTasksContinue`.
+- **BuildStamp:** `BuildStamp.number` = 287.
+
 ## Build 286 (11 November 2026)
 
 "Tick tasks right in the note". Step 1 of "checkboxes, rich text, Apple Pencil" (he chose checkboxes first; format bar above the keyboard, option A, like Apple Notes). Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Tasks, "Ticking a task in the note's text").

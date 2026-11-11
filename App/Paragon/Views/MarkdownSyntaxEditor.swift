@@ -73,6 +73,12 @@ struct LinkCompletion: Equatable {
     let title: String
 }
 
+/// The long-press (right-click) menu on a task's box (build 287).
+enum BoxAction { case cancel, tomorrow }
+
+/// Bold, italic and heading: the buttons above the keyboard and the Mac's Format menu.
+enum FormatAction { case bold, italic, heading }
+
 /// Turns the spans from the Core highlighter into text attributes.
 enum MarkdownAttributes {
     // 1.0: the editor reads like a good book — the one scale in `Txt.Editor`: text 15, the
@@ -104,7 +110,8 @@ enum MarkdownAttributes {
 
     /// Applies the highlighting for `text` to a text storage that already holds it.
     static func apply(to storage: NSTextStorage, text: String, tint: PlatformColor,
-                      primary: PlatformColor, secondary: PlatformColor, faint: PlatformColor) {
+                      primary: PlatformColor, secondary: PlatformColor, faint: PlatformColor,
+                      hideMarkers: Bool = false, cursor: Int? = nil) {
         let whole = NSRange(location: 0, length: (text as NSString).length)
         storage.beginEditing()
         storage.setAttributes(base(color: primary), range: whole)
@@ -119,6 +126,15 @@ enum MarkdownAttributes {
                 storage.addAttributes([.foregroundColor: tint,
                                        .font: PlatformFont.systemFont(ofSize: baseSize, weight: .bold)],
                                       range: box)
+            }
+            // Build 287, rich text: the `**`, `*` and `# ` step out of sight on every line but
+            // the cursor's, so the note reads as formatted text. The file is never changed.
+            if hideMarkers {
+                let hidden: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.clear,
+                                                             .font: PlatformFont.systemFont(ofSize: 0.1)]
+                for range in MarkdownHighlight.hiddenMarkers(in: text, cursor: cursor) where NSMaxRange(range) <= whole.length {
+                    storage.addAttributes(hidden, range: range)
+                }
             }
         }
         storage.endEditing()
@@ -167,6 +183,35 @@ final class LinkingTextView: NSTextView {
     var onCommandClick: ((Int) -> Void)?
     /// A plain click on a task's box (build 286): ticks it instead of placing the cursor.
     var onBoxClick: ((Int) -> Void)?
+    /// Build 287: a right-click on a box adds Cancel task / Move to tomorrow.
+    var onBoxMenu: ((Int, BoxAction) -> Void)?
+    /// Build 287: Format › Bold, Italic, Heading (sent down the responder chain).
+    var onFormat: ((FormatAction) -> Void)?
+
+    @objc func paragonBold(_ sender: Any?) { onFormat?(.bold) }
+    @objc func paragonItalic(_ sender: Any?) { onFormat?(.italic) }
+    @objc func paragonHeading(_ sender: Any?) { onFormat?(.heading) }
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let menu = super.menu(for: event) ?? NSMenu()
+        let point = convert(event.locationInWindow, from: nil)
+        guard let box = boxOffset(at: point) else { return menu }
+        let cancel = NSMenuItem(title: "Cancel task", action: #selector(boxMenuChosen(_:)), keyEquivalent: "")
+        cancel.representedObject = [box, 0]
+        cancel.target = self
+        let tomorrow = NSMenuItem(title: "Move to tomorrow", action: #selector(boxMenuChosen(_:)), keyEquivalent: "")
+        tomorrow.representedObject = [box, 1]
+        tomorrow.target = self
+        menu.insertItem(.separator(), at: 0)
+        menu.insertItem(tomorrow, at: 0)
+        menu.insertItem(cancel, at: 0)
+        return menu
+    }
+
+    @objc private func boxMenuChosen(_ item: NSMenuItem) {
+        guard let pair = item.representedObject as? [Int], pair.count == 2 else { return }
+        onBoxMenu?(pair[0], pair[1] == 0 ? .cancel : .tomorrow)
+    }
 
     /// The box under `point` (in this view's coordinates), by the start of its `[`.
     func boxOffset(at point: NSPoint) -> Int? {
@@ -254,6 +299,12 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         }
         textView.onBoxClick = { [weak coordinator = context.coordinator] offset in
             coordinator?.boxClicked(at: offset)
+        }
+        textView.onBoxMenu = { [weak coordinator = context.coordinator] offset, action in
+            coordinator?.boxMenu(action, at: offset)
+        }
+        textView.onFormat = { [weak coordinator = context.coordinator] action in
+            coordinator?.format(action)
         }
         textView.delegate = context.coordinator
         textView.allowsUndo = true
@@ -352,6 +403,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // must never point into once it is freed. Nothing it does on its way out is recorded.
             textView.allowsUndo = false
             textView.onCommandClick = nil
+            textView.onBoxClick = nil
+            textView.onBoxMenu = nil
+            textView.onFormat = nil
             textView.delegate = nil
         }
         coordinator.history.removeAllActions()
@@ -390,7 +444,17 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         /// While the list of titles is up it gets the arrow keys, Return and Escape. Anything
         /// else, and anything it does not use, goes on to do its ordinary job.
         func textView(_ textView: NSTextView, doCommandBy selector: Selector) -> Bool {
-            guard linkDraft.wrappedValue != nil else { return false }
+            guard linkDraft.wrappedValue != nil else {
+                // Build 287: Return on a task or bullet line carries the list on.
+                if selector == #selector(NSResponder.insertNewline(_:)), !textView.hasMarkedText() {
+                    let selected = textView.selectedRange()
+                    if selected.length == 0, let next = RichText.continuingList(textView.string, at: selected.location) {
+                        replace(with: next.text, selection: NSRange(location: next.cursor, length: 0))
+                        return true
+                    }
+                }
+                return false
+            }
             switch selector {
             case #selector(NSResponder.moveDown(_:)): return onLinkKey(.down)
             case #selector(NSResponder.moveUp(_:)): return onLinkKey(.up)
@@ -414,7 +478,19 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         }
 
         func textViewDidChangeSelection(_ notification: Notification) {
+            restyleIfTheCursorChangedLine()
             reportDraft()
+        }
+
+        /// Build 287: the hidden `**` / `#` show on the cursor's line only, so moving to
+        /// another line restyles. Only then, and never under a half-typed accent.
+        private var styledLine: NSRange?
+        private func restyleIfTheCursorChangedLine() {
+            guard let textView, !textView.hasMarkedText() else { return }
+            let ns = textView.string as NSString
+            let at = min(textView.selectedRange().location, ns.length)
+            let line = ns.lineRange(for: NSRange(location: at, length: 0))
+            if line != styledLine { highlight(tint: nil) }
         }
 
         func commandClicked(at offset: Int) {
@@ -425,13 +501,48 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         /// Ticks the task whose box was clicked, as an ordinary edit, so ⌘Z undoes it.
         func boxClicked(at offset: Int) {
             guard let textView, let ticked = TaskBox.toggled(textView.string, at: offset) else { return }
-            let edit = TaskBox.edit(from: textView.string, to: ticked)
+            replace(with: ticked, selection: nil)
+        }
+
+        /// Build 287: the right-click menu on a box.
+        func boxMenu(_ action: BoxAction, at offset: Int) {
+            guard let textView else { return }
+            let changed: String?
+            switch action {
+            case .cancel: changed = TaskBox.cancelled(textView.string, at: offset)
+            case .tomorrow: changed = TaskBox.movedToTomorrow(textView.string, at: offset)
+            }
+            if let changed { replace(with: changed, selection: nil) }
+        }
+
+        /// Build 287: Format › Bold (⌘B), Italic (⌘I), Heading (⌥⌘H).
+        func format(_ action: FormatAction) {
+            guard let textView, !textView.hasMarkedText() else { return }
+            let selected = textView.selectedRange()
+            switch action {
+            case .bold, .italic:
+                let done = RichText.toggling(textView.string, selection: selected, marker: action == .bold ? "**" : "*")
+                replace(with: done.text, selection: done.selection)
+            case .heading:
+                let done = RichText.cyclingHeading(textView.string, at: selected.location)
+                replace(with: done.text, selection: NSRange(location: done.cursor, length: 0))
+            }
+        }
+
+        /// Writes only the part that changed, as an ordinary edit, so ⌘Z undoes it. Nil keeps
+        /// the cursor where it was.
+        private func replace(with new: String, selection: NSRange?) {
+            guard let textView else { return }
+            let edit = TaskBox.edit(from: textView.string, to: new)
             let selected = textView.selectedRange()
             guard textView.shouldChangeText(in: edit.range, replacementString: edit.replacement) else { return }
             textView.textStorage?.replaceCharacters(in: edit.range, with: edit.replacement)
             textView.didChangeText()
             let length = (textView.string as NSString).length
-            textView.setSelectedRange(NSRange(location: min(selected.location, length), length: 0))
+            var target = selection ?? NSRange(location: selected.location, length: 0)
+            target.location = min(target.location, length)
+            target.length = min(target.length, length - target.location)
+            textView.setSelectedRange(target)
         }
 
         /// Tells the note screen what is being typed and where the caret is. Reading only:
@@ -476,8 +587,12 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // Restyling would wipe the marking AppKit keeps on a half-typed accent. The next
             // `textDidChange`, when the letter is finished, styles everything.
             guard !textView.hasMarkedText() else { return }
+            let ns = textView.string as NSString
+            let cursor = min(textView.selectedRange().location, ns.length)
+            styledLine = ns.lineRange(for: NSRange(location: cursor, length: 0))
             MarkdownAttributes.apply(to: storage, text: textView.string, tint: lastTint,
-                                     primary: .labelColor, secondary: .secondaryLabelColor, faint: .tertiaryLabelColor)
+                                     primary: .labelColor, secondary: .secondaryLabelColor, faint: .tertiaryLabelColor,
+                                     hideMarkers: true, cursor: cursor)
             textView.typingAttributes = MarkdownAttributes.base(color: .labelColor)
         }
     }
@@ -544,6 +659,15 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         boxTap.delegate = context.coordinator
         textView.addGestureRecognizer(boxTap)
         context.coordinator.boxTap = boxTap
+        // Build 287: a long press on a box offers Cancel task / Move to tomorrow. Same rule:
+        // it only begins on a box, so the text view's own long press (the loupe) is untouched.
+        let boxPress = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.boxPressed(_:)))
+        boxPress.delegate = context.coordinator
+        textView.addGestureRecognizer(boxPress)
+        context.coordinator.boxPress = boxPress
+        let menu = UIEditMenuInteraction(delegate: context.coordinator)
+        textView.addInteraction(menu)
+        context.coordinator.boxMenu = menu
         // The bar above the keyboard (his pick A, 11 Nov): one button for now, the checkbox.
         textView.inputAccessoryView = context.coordinator.formatBar(tint: UIColor(tint))
         return textView
@@ -579,8 +703,15 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
     }
 
     @MainActor
-    final class Coordinator: NSObject, UITextViewDelegate, UIGestureRecognizerDelegate {
+    final class Coordinator: NSObject, UITextViewDelegate, UIGestureRecognizerDelegate, UIEditMenuInteractionDelegate {
         weak var boxTap: UIGestureRecognizer?
+        weak var boxPress: UIGestureRecognizer?
+        var boxMenu: UIEditMenuInteraction?
+        /// The box the open long-press menu is about.
+        private var menuBox: Int?
+        /// True while restyling, which sets the selection back and must not restyle again.
+        private var styling = false
+        private var styledLine: NSRange?
         var text: Binding<String>
         var linkDraft: Binding<LinkDraftOnScreen?>
         var openLink: (String) -> Void
@@ -602,7 +733,30 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {
+            // Build 287: the hidden `**` / `#` show on the cursor's line only.
+            if !styling, textView.markedTextRange == nil, cursorLine(of: textView) != styledLine {
+                highlight(tint: nil)
+            }
             reportDraft()
+        }
+
+        func textViewDidBeginEditing(_ textView: UITextView) { highlight(tint: nil) }
+        func textViewDidEndEditing(_ textView: UITextView) { highlight(tint: nil) }
+
+        /// Return on a task or bullet line carries the list on (build 287).
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            guard text == "\n", range.length == 0, textView.markedTextRange == nil,
+                  let next = RichText.continuingList(textView.text, at: range.location) else { return true }
+            write(next.text, selection: NSRange(location: next.cursor, length: 0))
+            return false
+        }
+
+        /// The line the cursor is on, or nil while the note is only being read: then every
+        /// marker is hidden.
+        private func cursorLine(of textView: UITextView) -> NSRange? {
+            guard textView.isFirstResponder else { return nil }
+            let ns = textView.text as NSString
+            return ns.lineRange(for: NSRange(location: min(textView.selectedRange.location, ns.length), length: 0))
         }
 
         // MARK: Ticking a box, and the bar above the keyboard (build 286)
@@ -620,13 +774,13 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         }
 
         func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
-            guard recognizer === boxTap, let textView else { return true }
+            guard recognizer === boxTap || recognizer === boxPress, let textView else { return true }
             return boxOffset(at: recognizer.location(in: textView)) != nil
         }
 
         func gestureRecognizer(_ recognizer: UIGestureRecognizer,
                                shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
-            recognizer === boxTap
+            recognizer === boxTap || recognizer === boxPress
         }
 
         @objc func boxTapped(_ recognizer: UITapGestureRecognizer) {
@@ -635,8 +789,36 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             write(ticked, cursor: nil)
         }
 
-        /// Writes only the part that changed, through the text view, so Undo works.
+        @objc func boxPressed(_ recognizer: UILongPressGestureRecognizer) {
+            guard recognizer.state == .began, let textView, let boxMenu else { return }
+            let point = recognizer.location(in: textView)
+            guard let offset = boxOffset(at: point) else { return }
+            menuBox = offset
+            boxMenu.presentEditMenu(with: UIEditMenuConfiguration(identifier: "box", sourcePoint: point))
+        }
+
+        func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration,
+                                 suggestedActions: [UIMenuElement]) -> UIMenu? {
+            guard configuration.identifier as? String == "box", let box = menuBox else { return nil }
+            let cancel = UIAction(title: "Cancel task") { [weak self] _ in
+                guard let self, let textView = self.textView,
+                      let changed = TaskBox.cancelled(textView.text, at: box) else { return }
+                self.write(changed, cursor: nil)
+            }
+            let tomorrow = UIAction(title: "Move to tomorrow") { [weak self] _ in
+                guard let self, let textView = self.textView,
+                      let changed = TaskBox.movedToTomorrow(textView.text, at: box) else { return }
+                self.write(changed, cursor: nil)
+            }
+            return UIMenu(children: [cancel, tomorrow])
+        }
+
         private func write(_ new: String, cursor: Int?) {
+            write(new, selection: cursor.map { NSRange(location: $0, length: 0) })
+        }
+
+        /// Writes only the part that changed, through the text view, so Undo works.
+        private func write(_ new: String, selection: NSRange?) {
             guard let textView else { return }
             let edit = TaskBox.edit(from: textView.text, to: new)
             guard let start = textView.position(from: textView.beginningOfDocument, offset: edit.range.location),
@@ -645,7 +827,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             let selected = textView.selectedRange
             textView.replace(range, withText: edit.replacement)
             let length = (textView.text as NSString).length
-            textView.selectedRange = NSRange(location: min(cursor ?? selected.location, length), length: 0)
+            var target = selection ?? NSRange(location: selected.location, length: 0)
+            target.location = min(target.location, length)
+            target.length = min(target.length, length - target.location)
+            textView.selectedRange = target
             textViewDidChange(textView)
         }
 
@@ -656,7 +841,23 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             task.accessibilityLabel = "Task"
             task.accessibilityIdentifier = "format.task"
             task.tintColor = tint
-            bar.items = [task, .flexibleSpace()]
+            // Build 287: bold, italic and heading, drawn as letters (no stock icons).
+            func letter(_ title: String, _ font: UIFont, _ id: String, _ label: String, _ action: Selector) -> UIBarButtonItem {
+                let button = UIButton(type: .system)
+                button.setAttributedTitle(NSAttributedString(string: title, attributes: [.font: font, .foregroundColor: tint]), for: .normal)
+                button.addTarget(self, action: action, for: .touchUpInside)
+                button.frame = CGRect(x: 0, y: 0, width: 40, height: 36)
+                button.accessibilityLabel = label
+                button.accessibilityIdentifier = id
+                return UIBarButtonItem(customView: button)
+            }
+            let size: CGFloat = 19
+            let bold = letter("B", .systemFont(ofSize: size, weight: .bold), "format.bold", "Bold", #selector(makeBold))
+            let italicFont = UIFont.systemFont(ofSize: size, weight: .regular).fontDescriptor.withSymbolicTraits(.traitItalic)
+                .map { UIFont(descriptor: $0, size: size) } ?? .italicSystemFont(ofSize: size)
+            let italic = letter("I", italicFont, "format.italic", "Italic", #selector(makeItalic))
+            let heading = letter("H", .systemFont(ofSize: size, weight: .semibold), "format.heading", "Heading", #selector(makeHeading))
+            bar.items = [task, bold, italic, heading, .flexibleSpace()]
             bar.sizeToFit()
             return bar
         }
@@ -665,6 +866,19 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             guard let textView else { return }
             let switched = TaskBox.switchingTask(textView.text, at: textView.selectedRange.location)
             write(switched.text, cursor: switched.cursor)
+        }
+
+        @objc func makeBold() { toggle("**") }
+        @objc func makeItalic() { toggle("*") }
+        @objc func makeHeading() {
+            guard let textView else { return }
+            let done = RichText.cyclingHeading(textView.text, at: textView.selectedRange.location)
+            write(done.text, cursor: done.cursor)
+        }
+        private func toggle(_ marker: String) {
+            guard let textView else { return }
+            let done = RichText.toggling(textView.text, selection: textView.selectedRange, marker: marker)
+            write(done.text, selection: done.selection)
         }
 
         /// Reading only: what is being typed and where the caret is.
@@ -696,9 +910,15 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         func highlight(tint: UIColor?) {
             guard let textView else { return }
             if let tint { lastTint = tint }
+            // Not under a half-typed letter: restyling would wipe its marking.
+            guard textView.markedTextRange == nil else { return }
             let selected = textView.selectedRange
+            styling = true
+            defer { styling = false }
+            styledLine = cursorLine(of: textView)
             MarkdownAttributes.apply(to: textView.textStorage, text: textView.text, tint: lastTint,
-                                     primary: .label, secondary: .secondaryLabel, faint: .tertiaryLabel)
+                                     primary: .label, secondary: .secondaryLabel, faint: .tertiaryLabel,
+                                     hideMarkers: true, cursor: styledLine.map { _ in selected.location })
             textView.typingAttributes = MarkdownAttributes.base(color: .label)
             textView.selectedRange = selected
         }

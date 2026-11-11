@@ -1,5 +1,8 @@
 import SwiftUI
 import ParagonCore
+#if os(macOS)
+import AppKit
+#endif
 
 @main
 struct ParagonApp: App {
@@ -75,6 +78,17 @@ struct ParagonApp: App {
                     .keyboardShortcut(.rightArrow, modifiers: [.command, .control])
                     .disabled(!model.canGoForward)
             }
+            #if os(macOS)
+            // Build 287: Format › Bold, Italic, Heading, sent to the note's text view.
+            CommandGroup(replacing: .textFormatting) {
+                Button("Bold") { NSApp.sendAction(#selector(LinkingTextView.paragonBold(_:)), to: nil, from: nil) }
+                    .keyboardShortcut("b", modifiers: [.command])
+                Button("Italic") { NSApp.sendAction(#selector(LinkingTextView.paragonItalic(_:)), to: nil, from: nil) }
+                    .keyboardShortcut("i", modifiers: [.command])
+                Button("Heading") { NSApp.sendAction(#selector(LinkingTextView.paragonHeading(_:)), to: nil, from: nil) }
+                    .keyboardShortcut("h", modifiers: [.command, .option])
+            }
+            #endif
             CommandGroup(replacing: .help) {
                 #if os(macOS)
                 HelpMenuButtons()
