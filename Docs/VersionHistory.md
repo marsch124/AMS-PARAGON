@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (285) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (286) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 286 · 11 November 2026
+
+**Tick tasks right in the note.** The first step of "checkboxes, rich text, Apple Pencil": you can now tick a task in the text of a note, and the iPhone and iPad get a bar above the keyboard.
+
+**Before (build 285).** In a note's text (Edit) the box `[ ]` of a task was only a few characters. To tick the task you had to type an x, or tick it in the Tasks box under the note header.
+
+**Now, ticking in the text.** Every task line in Edit has a box you can press: tap it on the iPhone and iPad, click it on the Mac.
+- It works exactly like ticking the task in a task list. The box becomes `[x]` and the line gets the done date, so Reminders sync and the Done list see it.
+- A repeating task gets its next copy on the line below, as it does in a list.
+- Pressing a ticked or cancelled box opens the task again.
+- Pressing anywhere else in the line only puts the cursor there, as before.
+- The box is drawn a little bolder, in the note's colour, so it is plain that you can press it.
+
+**Now, the bar above the keyboard (iPhone and iPad).** While you type in a note, a slim bar sits above the keyboard. For now it has one button: the checkbox. It turns the line the cursor is on into a task, or a task back into an ordinary line. Bold, italic and headings will join this bar in the rich-text build. On the Mac there is no bar: you type `- [ ] ` as before, or click the box.
+
+**What did not change.** The Tasks box under the note header, the task menu, the file format and the sync are as in build 285.
+
+**The version.** It shows as "PARAGON 1.0 (286)".
 
 ## Build 285 · 11 November 2026
 

@@ -4927,6 +4927,15 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 286 (11 November 2026)
+
+"Tick tasks right in the note". Step 1 of "checkboxes, rich text, Apple Pencil" (he chose checkboxes first; format bar above the keyboard, option A, like Apple Notes). Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Tasks, "Ticking a task in the note's text").
+
+- **Before:** the `[ ]` in the editor was plain text; ticking was by typing an x or in the task box under the header.
+- **Core:** `Markdown/TaskBox.swift`: `TaskBox.boxRange(in:near:)` finds the box on the line at a position; `TaskBox.toggled(_:at:date:calendar:)` ticks/opens it with `TaskItem.markDone` / `markOpen` + `nextOccurrence` (same rule as `AppModel.toggle`, so `@done(…)`, Reminders sync and Done see it; a repeating task gets its next copy on the line below); `TaskBox.switchingTask(_:at:)` for the keyboard button (`- [ ] ` on/off). Test `TaskBoxTests` (one data test).
+- **Editor (`MarkdownSyntaxEditor.swift`):** Mac `LinkingTextView.mouseDown` toggles when the click is on a box. iOS `BoxTapRecognizer` only begins on a box (`gestureRecognizerShouldBegin`), so the text view's own tap that places the caret is untouched (the build 114 trap noted in that file). Box drawn bolder in the note's colour.
+- **Format bar:** iOS `inputAccessoryView` = `FormatBar` (UIToolbar), one button for now, id `format.task`; bold/italic/headings come with the rich-text build. No Mac bar or shortcut: Mac types `- [ ] ` or clicks the box. `BuildStamp.number` = 286.
+
 ## Build 285 (11 November 2026)
 
 "The sync line stays". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (How iCloud moves the files, Map).

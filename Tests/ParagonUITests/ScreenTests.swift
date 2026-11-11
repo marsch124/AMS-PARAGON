@@ -102,6 +102,27 @@ final class ScreenTests: XCTestCase {
                       "The editor did not take the typing. It shows: \(shown.prefix(200))")
     }
 
+    /// Build 286: the checkbox button above the keyboard turns the line into a task, and the
+    /// editor still takes typing (the extra tap recogniser only begins on a box).
+    #if os(iOS)
+    func testTheKeyboardBarMakesATask() {
+        go(to: .projects)
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+        let editor = element("note.editor")
+        XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
+        editor.press()
+        editor.typeText("Tick me from the bar")
+        let task = app.buttons["format.task"]
+        XCTAssertTrue(task.waitForExistence(timeout: 10), "No checkbox button above the keyboard.")
+        task.tap()
+        let shown = editor.value as? String ?? ""
+        XCTAssertTrue(shown.contains("- [ ] Tick me from the bar"),
+                      "The button did not make a task. The editor shows: \(shown.suffix(300))")
+    }
+    #endif
+
     /// The settings block at the top of a note can be folded away and comes back (build 246).
     /// Build 248: the **time?** button on a task row writes `~45m` into the note. Both the
     /// button and the choice are pressed at the middle of their frames (`press(_:at:)`).

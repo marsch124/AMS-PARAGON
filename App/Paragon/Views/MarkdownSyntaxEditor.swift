@@ -114,6 +114,12 @@ enum MarkdownAttributes {
                 guard span.range.location >= 0, NSMaxRange(span.range) <= whole.length, span.range.length > 0 else { continue }
                 storage.addAttributes(attributes(for: span.style, tint: tint, secondary: secondary, faint: faint), range: span.range)
             }
+            // Build 286: the box is something to press, so it is drawn in the note's colour.
+            for box in TaskBox.boxRanges(in: text) where NSMaxRange(box) <= whole.length {
+                storage.addAttributes([.foregroundColor: tint,
+                                       .font: PlatformFont.systemFont(ofSize: baseSize, weight: .bold)],
+                                      range: box)
+            }
         }
         storage.endEditing()
     }
@@ -159,6 +165,20 @@ enum MarkdownAttributes {
 /// which is what a text view is for — a link opens on ⌘-click and never by accident.
 final class LinkingTextView: NSTextView {
     var onCommandClick: ((Int) -> Void)?
+    /// A plain click on a task's box (build 286): ticks it instead of placing the cursor.
+    var onBoxClick: ((Int) -> Void)?
+
+    /// The box under `point` (in this view's coordinates), by the start of its `[`.
+    func boxOffset(at point: NSPoint) -> Int? {
+        guard let layout = layoutManager, let container = textContainer else { return nil }
+        let p = NSPoint(x: point.x - textContainerOrigin.x, y: point.y - textContainerOrigin.y)
+        var fraction: CGFloat = 0
+        let index = layout.characterIndex(for: p, in: container, fractionOfDistanceBetweenInsertionPoints: &fraction)
+        guard let box = TaskBox.boxRange(in: string, near: index) else { return nil }
+        let glyphs = layout.glyphRange(forCharacterRange: box, actualCharacterRange: nil)
+        let rect = layout.boundingRect(forGlyphRange: glyphs, in: container).insetBy(dx: -3, dy: -2)
+        return rect.contains(p) ? box.location : nil
+    }
 
     static func scrollable() -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
@@ -177,11 +197,15 @@ final class LinkingTextView: NSTextView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
         guard event.modifierFlags.contains(.command) else {
+            if event.clickCount == 1, let box = boxOffset(at: point) {
+                onBoxClick?(box)
+                return
+            }
             super.mouseDown(with: event)
             return
         }
-        let point = convert(event.locationInWindow, from: nil)
         let offset = characterIndexForInsertion(at: point)
         onCommandClick?(offset)
     }
@@ -195,6 +219,14 @@ final class LinkingTextView: NSTextView {
             var rect = layout.boundingRect(forGlyphRange: glyphs, in: container)
             rect.origin.x += textContainerInset.width
             rect.origin.y += textContainerInset.height
+            addCursorRect(rect, cursor: .pointingHand)
+        }
+        // And over every task's box, which a click ticks (build 286).
+        for box in TaskBox.boxRanges(in: string) {
+            let glyphs = layout.glyphRange(forCharacterRange: box, actualCharacterRange: nil)
+            var rect = layout.boundingRect(forGlyphRange: glyphs, in: container)
+            rect.origin.x += textContainerOrigin.x
+            rect.origin.y += textContainerOrigin.y
             addCursorRect(rect, cursor: .pointingHand)
         }
     }
@@ -219,6 +251,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         guard let textView = scrollView.documentView as? LinkingTextView else { return scrollView }
         textView.onCommandClick = { [weak coordinator = context.coordinator] offset in
             coordinator?.commandClicked(at: offset)
+        }
+        textView.onBoxClick = { [weak coordinator = context.coordinator] offset in
+            coordinator?.boxClicked(at: offset)
         }
         textView.delegate = context.coordinator
         textView.allowsUndo = true
@@ -387,6 +422,18 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             openLink(title)
         }
 
+        /// Ticks the task whose box was clicked, as an ordinary edit, so ⌘Z undoes it.
+        func boxClicked(at offset: Int) {
+            guard let textView, let ticked = TaskBox.toggled(textView.string, at: offset) else { return }
+            let edit = TaskBox.edit(from: textView.string, to: ticked)
+            let selected = textView.selectedRange()
+            guard textView.shouldChangeText(in: edit.range, replacementString: edit.replacement) else { return }
+            textView.textStorage?.replaceCharacters(in: edit.range, with: edit.replacement)
+            textView.didChangeText()
+            let length = (textView.string as NSString).length
+            textView.setSelectedRange(NSRange(location: min(selected.location, length), length: 0))
+        }
+
         /// Tells the note screen what is being typed and where the caret is. Reading only:
         /// nothing here changes the text, so typing is never interrupted.
         private func reportDraft() {
@@ -490,6 +537,15 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         // What the screen tests type into (build 191). A name of its own, so a change to the
         // screen around it cannot quietly stop the test from finding it.
         textView.accessibilityIdentifier = "note.editor"
+        // Build 286: a tap on a task's box ticks it. This recogniser only *begins* on a box
+        // (`gestureRecognizerShouldBegin`), so everywhere else the text view's own tap places
+        // the caret untouched — the trap of build 114 above was a recogniser that always began.
+        let boxTap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.boxTapped(_:)))
+        boxTap.delegate = context.coordinator
+        textView.addGestureRecognizer(boxTap)
+        context.coordinator.boxTap = boxTap
+        // The bar above the keyboard (his pick A, 11 Nov): one button for now, the checkbox.
+        textView.inputAccessoryView = context.coordinator.formatBar(tint: UIColor(tint))
         return textView
     }
 
@@ -523,7 +579,8 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
     }
 
     @MainActor
-    final class Coordinator: NSObject, UITextViewDelegate {
+    final class Coordinator: NSObject, UITextViewDelegate, UIGestureRecognizerDelegate {
+        weak var boxTap: UIGestureRecognizer?
         var text: Binding<String>
         var linkDraft: Binding<LinkDraftOnScreen?>
         var openLink: (String) -> Void
@@ -546,6 +603,68 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ textView: UITextView) {
             reportDraft()
+        }
+
+        // MARK: Ticking a box, and the bar above the keyboard (build 286)
+
+        /// The box under `point`, by the start of its `[`, when the point is really on it.
+        private func boxOffset(at point: CGPoint) -> Int? {
+            guard let textView, let position = textView.closestPosition(to: point) else { return nil }
+            let index = textView.offset(from: textView.beginningOfDocument, to: position)
+            guard let box = TaskBox.boxRange(in: textView.text, near: index),
+                  let start = textView.position(from: textView.beginningOfDocument, offset: box.location),
+                  let end = textView.position(from: start, offset: box.length),
+                  let range = textView.textRange(from: start, to: end) else { return nil }
+            let rect = textView.firstRect(for: range).insetBy(dx: -8, dy: -6)
+            return rect.contains(point) ? box.location : nil
+        }
+
+        func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            guard recognizer === boxTap, let textView else { return true }
+            return boxOffset(at: recognizer.location(in: textView)) != nil
+        }
+
+        func gestureRecognizer(_ recognizer: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+            recognizer === boxTap
+        }
+
+        @objc func boxTapped(_ recognizer: UITapGestureRecognizer) {
+            guard let textView, let offset = boxOffset(at: recognizer.location(in: textView)),
+                  let ticked = TaskBox.toggled(textView.text, at: offset) else { return }
+            write(ticked, cursor: nil)
+        }
+
+        /// Writes only the part that changed, through the text view, so Undo works.
+        private func write(_ new: String, cursor: Int?) {
+            guard let textView else { return }
+            let edit = TaskBox.edit(from: textView.text, to: new)
+            guard let start = textView.position(from: textView.beginningOfDocument, offset: edit.range.location),
+                  let end = textView.position(from: start, offset: edit.range.length),
+                  let range = textView.textRange(from: start, to: end) else { return }
+            let selected = textView.selectedRange
+            textView.replace(range, withText: edit.replacement)
+            let length = (textView.text as NSString).length
+            textView.selectedRange = NSRange(location: min(cursor ?? selected.location, length), length: 0)
+            textViewDidChange(textView)
+        }
+
+        func formatBar(tint: UIColor) -> UIView {
+            let bar = UIToolbar(frame: CGRect(x: 0, y: 0, width: 320, height: 44))
+            let task = UIBarButtonItem(image: Marks.uiImage("checkmark.square.fill", size: 22),
+                                       style: .plain, target: self, action: #selector(switchTask))
+            task.accessibilityLabel = "Task"
+            task.accessibilityIdentifier = "format.task"
+            task.tintColor = tint
+            bar.items = [task, .flexibleSpace()]
+            bar.sizeToFit()
+            return bar
+        }
+
+        @objc func switchTask() {
+            guard let textView else { return }
+            let switched = TaskBox.switchingTask(textView.text, at: textView.selectedRange.location)
+            write(switched.text, cursor: switched.cursor)
         }
 
         /// Reading only: what is being typed and where the caret is.

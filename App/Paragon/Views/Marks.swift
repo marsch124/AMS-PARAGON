@@ -206,6 +206,11 @@ import UIKit
 extension Marks {
     /// The mark as a template image, for the places UIKit draws itself: the tab bar.
     static func image(_ name: String, size: CGFloat = 24) -> Image {
+        Image(uiImage: uiImage(name, size: size))
+    }
+
+    /// The same drawing as a UIKit image, for the bar above the keyboard (build 286).
+    static func uiImage(_ name: String, size: CGFloat = 24) -> UIImage {
         let ref = ref(name)
         let path: String
         switch ref.kind {
@@ -227,7 +232,7 @@ extension Marks {
             cg.setStrokeColor(UIColor.black.cgColor)
             cg.strokePath()
         }
-        return Image(uiImage: drawn.withRenderingMode(.alwaysTemplate))
+        return drawn.withRenderingMode(.alwaysTemplate)
     }
 }
 #endif
