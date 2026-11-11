@@ -10,6 +10,8 @@ struct SettingsView: View {
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     var body: some View {
+        // Build 285: a press on the sync line opens Settings here, at Reminders sync.
+        ScrollViewReader { proxy in
         Form {
             Section("Vault") {
                 LabeledContent("Folder") {
@@ -88,6 +90,7 @@ struct SettingsView: View {
                     Text(model.config.dailyNotesListName).foregroundStyle(.secondary)
                 }
             }
+            .id("settings.sync")
             .disabled(model.vault == nil)
 
             Section("Backups") {
@@ -257,7 +260,21 @@ struct SettingsView: View {
         } message: { backup in
             Text("\(backup.noteCount) notes are written back into the vault, replacing the current versions. What you have now is saved as a backup first.")
         }
-        .onAppear { model.refreshBackups() }
+        .onAppear {
+            model.refreshBackups()
+            jumpToSync(proxy)
+        }
+        .onChange(of: model.settingsJumpToSync) { _, jump in if jump { jumpToSync(proxy) } }
+        }
+    }
+
+    private func jumpToSync(_ proxy: ScrollViewProxy) {
+        guard model.settingsJumpToSync else { return }
+        // After the page has laid itself out, or the scroll lands nowhere.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            withAnimation { proxy.scrollTo("settings.sync", anchor: .top) }
+            model.settingsJumpToSync = false
+        }
     }
 }
 

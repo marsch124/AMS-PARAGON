@@ -4927,6 +4927,14 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 285 (11 November 2026)
+
+"The sync line stays". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (How iCloud moves the files, Map).
+
+- **Before:** the grey line showed only while `syncWaitsForCloud` (build 284); the Map on the Mac replaced the detail in the main window.
+- **Sync line:** now always shown. Core `Sync/SyncWait.swift`: `SyncStatus.line(...)` and `isProblem`; test `SyncStatusTests`. States: "Not synced yet", "Syncing…", "Sync waiting for iCloud…", "Synced at 09:12" (with "yesterday" / "9 Nov" when not today), orange "Last sync: N conflict(s)" (warnings stay grey). `SyncStatusBar` in `Views/Theme.swift` (id `sync.status`) replaces `SyncWaitingBar`; same places (sidebar `safeAreaInset`, TodayView phone only). Pressing it calls `AppModel.openSyncSettings` and sets `settingsJumpToSync`: Mac Settings window, iPad Settings sheet, iPhone Settings page, each scrolled to Reminders sync.
+- **Mac Map window:** `Window("Map", id: ParagonApp.mapWindowID)` in ParagonApp.swift (one window; opening again fronts it), `MapMenuButton` (Go › Map, ⇧⌘M), `MapView(ownWindow: true)`. ContentView turns a sidebar choice of `.map` into opening the window and puts the sidebar selection back, so the main window stays. A click highlights the links and opens the note in the main window (`model.show(section: sidebarSection(for:), notePath:)`) while the Map stays in front. iPhone and iPad unchanged. `BuildStamp.number` = 285.
+
 ## Build 284 (11 November 2026)
 
 "You can see the sync waiting". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (How iCloud moves the files).

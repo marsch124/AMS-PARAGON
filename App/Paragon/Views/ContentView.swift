@@ -179,6 +179,15 @@ struct ContentView: View {
                 break
             }
         }
+        #if os(macOS)
+        // Build 285: on the Mac the Map lives in its own window. Choosing it in the sidebar
+        // opens (or fronts) that window and leaves this one where it was.
+        .onChange(of: model.section) { old, new in
+            guard new == .map else { return }
+            openWindow(id: ParagonApp.mapWindowID)
+            model.section = (old == nil || old == .map) ? .today : old
+        }
+        #endif
         .onAppear {
             model.afterUpdate { model.drainOutbox() }
             #if os(macOS)
@@ -446,17 +455,15 @@ struct SidebarView: View {
         .navigationTitle("PARAGON")
         .safeAreaInset(edge: .bottom) {
             // Only the iCloud warning stays at the foot: it is deliberately hard to miss.
-            // Build 284: a sync waiting for iCloud says so here too, quietly.
-            if model.vaultWarning != nil || model.syncWaitsForCloud {
-                VStack(spacing: 2) {
-                    if let warning = model.vaultWarning {
-                        VaultWarningBar(text: warning) { model.fetchMissingNotes() }
-                    }
-                    if model.syncWaitsForCloud { SyncWaitingBar() }
+            // Build 285: the sync line is always here, under it.
+            VStack(spacing: 2) {
+                if let warning = model.vaultWarning {
+                    VaultWarningBar(text: warning) { model.fetchMissingNotes() }
                 }
-                .padding(.vertical, 4)
-                .background(.bar)
+                SyncStatusBar()
             }
+            .padding(.vertical, 4)
+            .background(.bar)
         }
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)

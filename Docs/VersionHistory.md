@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (284) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (285) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 285 · 11 November 2026
+
+**The sync line stays.** Two changes: the sync line is always there now, and on the Mac the Map has its own window.
+
+**Before (build 284).** The grey sync line showed only while a sync waited for iCloud. The rest of the time you could not tell whether the last sync had worked. On the Mac the Map replaced the note you were in, in the main window.
+
+**Now, the sync line.** The small line at the foot of the sidebar (Mac and iPad) and at the top of Today (iPhone) is always there and says where the sync stands:
+- **Not synced yet** before the first sync since the app started.
+- **Syncing…** while a sync runs.
+- **Sync waiting for iCloud…** while it waits for notes from iCloud, as in build 284.
+- **Synced at 09:12** when all went well, in grey. When the last sync was not today the day is there too: **Synced yesterday at 21:40**, or **Synced 9 Nov at 21:40**.
+- **Last sync: 2 conflicts** (or **1 conflict**) in orange when the last sync reported conflicts. Warnings stay grey.
+
+Press the line and Settings opens at **Reminders sync**: on the Mac the Settings window, on the iPad the Settings sheet, on the iPhone the Settings page, each scrolled to that part.
+
+**Now, the Map on the Mac.** Choosing **Map** in the sidebar, or **Go › Map** (⇧⌘M), opens one big Map window. There is only ever one: choosing Map again brings it to the front. The main window stays where it was, with the note you were reading. In the Map, click a box: its links light up, and the note opens in the main window behind it, so the Map stays in front.
+
+**What did not change.** The iPhone and the iPad keep the Map as before. The sync itself is as in build 284.
+
+**The version.** It shows as "PARAGON 1.0 (285)".
 
 ## Build 284 · 11 November 2026
 

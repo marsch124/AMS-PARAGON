@@ -6,6 +6,9 @@ import ParagonCore
 /// lights up everything it serves and everything that serves it, and opens its note.
 struct MapView: View {
     @EnvironmentObject private var model: AppModel
+    /// Build 285: true in the Mac's own Map window. A click then opens the note in the main
+    /// window, in the section it belongs to, while the Map stays in front.
+    var ownWindow = false
     @State private var map = LinkMap(roots: [])
     @State private var selectedID: String?
     @State private var zoom: CGFloat = 1
@@ -194,7 +197,12 @@ struct MapView: View {
     private func select(_ node: MapNode) {
         selectedID = node.id
         model.log("map: selected \(node.id)")
-        if let path = node.notePath, model.selectedNotePath != path {
+        guard let path = node.notePath else { return }
+        if ownWindow {
+            if let note = model.note(at: path) {
+                model.show(section: model.sidebarSection(for: note), notePath: path)
+            }
+        } else if model.selectedNotePath != path {
             model.selectedNotePath = path
         }
     }

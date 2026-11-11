@@ -124,17 +124,54 @@ struct EmptyStateView: View {
 /// The line at the foot of the sidebar when the vault is not all readable: notes iCloud has
 /// not sent, or files that could not be read at all. It is deliberately hard to miss — an
 /// app that quietly draws an empty vault looks exactly like an app that has lost everything.
-/// Build 284: a sync is waiting for iCloud and will start by itself. Calm, not orange: nothing
-/// is wrong, it only says the sync has not been forgotten.
-struct SyncWaitingBar: View {
+/// Build 285: the sync line is always there (284 showed it only while a sync waited). It says
+/// where the sync stands — not yet, syncing, waiting for iCloud, synced at 09:12 — grey while
+/// all is well and orange only when the last sync had conflicts. A press opens Settings at the
+/// Reminders sync part. On the iPhone the caller wraps it in a link to the Settings page, so it
+/// is drawn without its own button there (`pressable: false`).
+struct SyncStatusBar: View {
+    @EnvironmentObject private var model: AppModel
+    var pressable = true
+    #if os(macOS)
+    @Environment(\.openSettings) private var openSettings
+    #endif
+
+    private var finishedAt: Date? { model.lastReport.map { $0.finishedAt ?? $0.startedAt } }
+    private var conflicts: Int { model.lastReport?.conflicts.count ?? 0 }
+    private var problem: Bool {
+        SyncStatus.isProblem(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
+                             finishedAt: finishedAt, conflicts: conflicts)
+    }
+
     var body: some View {
-        MarkLabel(SyncWait.waitingLine, "arrow.triangle.2.circlepath")
+        if pressable {
+            Button(action: open) { label }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("sync.status")
+        } else {
+            label.accessibilityIdentifier("sync.status")
+        }
+    }
+
+    private var label: some View {
+        MarkLabel(SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
+                                  finishedAt: finishedAt, conflicts: conflicts),
+                  problem ? "exclamationmark.triangle.fill" : "arrow.triangle.2.circlepath")
             .font(Txt.listSecond)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(problem ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 4)
             .padding(.horizontal, 8)
-            .accessibilityIdentifier("sync.waiting")
+            .contentShape(Rectangle())
+    }
+
+    private func open() {
+        model.settingsJumpToSync = true
+        #if os(macOS)
+        openSettings()
+        #else
+        model.activeSheet = .settings
+        #endif
     }
 }
 

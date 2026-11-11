@@ -54,11 +54,16 @@ struct TodayView: View {
                 VaultWarningBar(text: warning) { model.fetchMissingNotes() }
                     .padding(.bottom, Theme.tight)
             }
-            // Build 284: the phone has no sidebar, so a waiting sync says so here.
-            if isPhone, model.syncWaitsForCloud {
-                SyncWaitingBar()
+            // Build 284: the phone has no sidebar, so the sync line sits here. Build 285: always,
+            // and a press opens the Settings page at the Reminders sync part.
+            #if os(iOS)
+            if isPhone {
+                NavigationLink(value: PhoneRoute.settings) { SyncStatusBar(pressable: false) }
+                    .buttonStyle(.plain)
+                    .simultaneousGesture(TapGesture().onEnded { model.settingsJumpToSync = true })
                     .padding(.bottom, Theme.tight)
             }
+            #endif
             // **Close the day sits beside the date, not in the window's toolbar.** A control
             // that governs a column belongs in that column next to its own name (build 167),
             // and the date row build 220 put here is that name. It costs no new furniture: the

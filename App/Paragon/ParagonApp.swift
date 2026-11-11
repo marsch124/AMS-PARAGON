@@ -16,6 +16,8 @@ struct ParagonApp: App {
     /// The main window's name, so the menu bar clock's **Show PARAGON** can open a fresh one when
     /// it was closed (build 257's review).
     static let mainWindowID = "main"
+    /// The Map's own window on the Mac (build 285): one only, big, beside the main window.
+    static let mapWindowID = "map"
 
     var body: some Scene {
         WindowGroup(id: ParagonApp.mainWindowID) {
@@ -59,6 +61,8 @@ struct ParagonApp: App {
                 // can stay up while a note is open in the main window.
                 PlannerMenuButton()
                     .disabled(model.vault == nil)
+                MapMenuButton()
+                    .disabled(model.vault == nil)
                 Divider()
                 #endif
                 // Arrows, not the browsers' \u{2318}[ and \u{2318}]: on a Swedish keyboard those
@@ -93,6 +97,17 @@ struct ParagonApp: App {
                 .modifier(HandsInMainWindowOpener(model: model))
         }
         .defaultSize(width: 900, height: 620)
+        // Build 285, his ask: the Map in a window of its own, so it has the whole width a
+        // drawing needs instead of the middle column. `Window`, not `WindowGroup`: there is
+        // only ever one, and asking again brings it to the front.
+        Window("Map", id: ParagonApp.mapWindowID) {
+            MapView(ownWindow: true)
+                .environmentObject(model)
+                .environment(\.focusBarShown, false)
+                .frame(minWidth: 640, minHeight: 420)
+                .modifier(HandsInMainWindowOpener(model: model))
+        }
+        .defaultSize(width: 1200, height: 800)
         MenuBarExtra(isInserted: $showMenuBarItem) {
             QuickCaptureView(compact: true)
                 .environmentObject(model)
@@ -192,6 +207,16 @@ struct HandsInMainWindowOpener: ViewModifier {
 /// Opens the planner window from the Go menu. Its own view because `openWindow` is read from
 /// the environment, which a `View` has and the `App` struct does not — the same shape as
 /// `HelpMenuButtons`.
+/// Go › Map (build 285): opens the Map's own window, or brings it to the front.
+struct MapMenuButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Map") { openWindow(id: ParagonApp.mapWindowID) }
+            .keyboardShortcut("m", modifiers: [.command, .shift])
+    }
+}
+
 struct PlannerMenuButton: View {
     @Environment(\.openWindow) private var openWindow
 

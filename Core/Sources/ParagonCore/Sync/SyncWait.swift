@@ -29,3 +29,38 @@ public enum SyncWait {
     public static let message =
         "Notes are still arriving from iCloud. The sync starts by itself as soon as they are here."
 }
+
+/// The sync line that is always there (build 285): at the foot of the sidebar on the Mac and
+/// the iPad, at the top of Today on the iPhone. Build 284 showed it only while a sync waited;
+/// now it says, quietly, where the sync stands, and a press on it opens Settings at the
+/// Reminders sync part. Grey while all is well, orange only when the last sync had conflicts.
+public enum SyncStatus {
+    /// What the line says. The first that applies wins: a running sync, then a waiting one,
+    /// then the last one's outcome.
+    public static func line(syncing: Bool, waiting: Bool, finishedAt: Date?, conflicts: Int,
+                            now: Date = Date(), calendar: Calendar = .current) -> String {
+        if syncing { return "Syncing…" }
+        if waiting { return SyncWait.waitingLine }
+        guard let finishedAt else { return "Not synced yet" }
+        if conflicts > 0 { return "Last sync: \(conflicts) conflict\(conflicts == 1 ? "" : "s")" }
+        let time = DateFormatter()
+        time.calendar = calendar
+        time.timeZone = calendar.timeZone
+        time.dateFormat = "HH:mm"
+        let clock = time.string(from: finishedAt)
+        if calendar.isDate(finishedAt, inSameDayAs: now) { return "Synced at \(clock)" }
+        if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+           calendar.isDate(finishedAt, inSameDayAs: yesterday) { return "Synced yesterday at \(clock)" }
+        let day = DateFormatter()
+        day.calendar = calendar
+        day.timeZone = calendar.timeZone
+        day.locale = Locale(identifier: "en_GB")
+        day.dateFormat = "d MMM"
+        return "Synced \(day.string(from: finishedAt)) at \(clock)"
+    }
+
+    /// Orange, not grey: only conflicts, and only when nothing newer is happening.
+    public static func isProblem(syncing: Bool, waiting: Bool, finishedAt: Date?, conflicts: Int) -> Bool {
+        !syncing && !waiting && finishedAt != nil && conflicts > 0
+    }
+}
