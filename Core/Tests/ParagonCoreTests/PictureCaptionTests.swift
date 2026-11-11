@@ -52,6 +52,17 @@ final class PictureCaptionTests: XCTestCase {
         XCTAssertEqual(Pictures.zoom(9), Pictures.maxZoom)
     }
 
+    func testShowWordsAndSketchSnippets() {
+        let text = "A\n![One](../Pictures/1.png)\nB"
+        XCTAssertEqual(Pictures.showingWords("Marina AB\n\n Invoice 4711 ", in: text, linkAt: 2),
+                       "A\n![One](../Pictures/1.png)\n> Marina AB\n> Invoice 4711\nB")
+        XCTAssertEqual(Pictures.showingWords("Hi", in: "![One](1.png)", linkAt: 0), "![One](1.png)\n> Hi\n")
+        XCTAssertEqual(Pictures.showingWords("  \n", in: text, linkAt: 2), text)
+        let pad = Note(relativePath: "Areas/Pad.md", kind: .area, text: "# Pad\n\n![Sketch](../Sketches/Sketch%201.png)\n")
+        let hits = NoteIndex(notes: [pad]).search(SearchQuery.parse("milk"), pictureText: ["Sketches/Sketch 1.png": "buy milk"])
+        XCTAssertEqual(hits.first?.snippets, ["In a sketch: buy milk"])
+    }
+
     func testSearchFindsWordsInsidePictures() {
         let boat = Note(relativePath: "Projects/Boat.md", kind: .project, text: "# Boat\n\n![Picture](../Pictures/receipt.png)\n")
         let index = NoteIndex(notes: [boat])

@@ -237,9 +237,11 @@ public extension NoteIndex {
             let title = note.displayTitle.lowercased()
             let body = note.body.lowercased()
             let titleHits = terms.filter { title.contains($0) }.count
-            let pictures = pictureText.isEmpty || terms.isEmpty ? "" :
+            // Build 296: each picture's words with where they come from, a sketch or a picture.
+            let read: [(sketch: Bool, text: String)] = pictureText.isEmpty || terms.isEmpty ? [] :
                 Pictures.matches(in: note.body, notePath: note.relativePath)
-                    .compactMap { pictureText[$0.path] }.joined(separator: "\n")
+                    .compactMap { m in pictureText[m.path].map { (Pictures.isSketch(m.path), $0) } }
+            let pictures = read.map(\.text).joined(separator: "\n")
             let pictureLower = pictures.lowercased()
             guard terms.allSatisfy({ title.contains($0) || body.contains($0) || pictureLower.contains($0) }) else { continue }
 
@@ -270,12 +272,13 @@ public extension NoteIndex {
                     }
                     if snippets.count >= 3 { break }
                 }
-                if snippets.count < 3 && !pictures.isEmpty {
-                    for line in pictures.components(separatedBy: .newlines) where snippets.count < 3 {
+                for picture in read where snippets.count < 3 {
+                    for line in picture.text.components(separatedBy: .newlines) where snippets.count < 3 {
                         let lower = line.lowercased()
                         guard terms.contains(where: { lower.contains($0) }) else { continue }
                         let words = line.trimmingCharacters(in: .whitespaces)
-                        snippets.append("In a picture: " + (words.count > 80 ? String(words.prefix(80)) + "…" : words))
+                        snippets.append((picture.sketch ? "In a sketch: " : "In a picture: ")
+                                        + (words.count > 80 ? String(words.prefix(80)) + "…" : words))
                     }
                 }
             }

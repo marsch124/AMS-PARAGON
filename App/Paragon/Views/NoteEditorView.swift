@@ -547,7 +547,8 @@ struct NoteEditorView: View {
                             },
                             drop: { offset, urls in dropPictures(urls, at: offset) },
                             paste: { offset, data, ext in pastePicture(data, ext: ext, at: offset) },
-                            copyWords: { model.copyPictureWords($0) })
+                            copyWords: { model.copyPictureWords($0) },
+                            showWords: { offset, picture in showWords(of: picture, at: offset) })
     }
 
     /// Build 290: the picture whose caption is being written, and the words so far.
@@ -650,10 +651,24 @@ struct NoteEditorView: View {
             return
         }
         sketchVersion += 1
+        // Build 296: a sketch drawn on again has new words; the note's text did not change,
+        // so nothing else would read them.
+        model.readPicturesSoon()
         guard request.picturePath == nil else { return }
         let put = Sketches.inserting(link: Sketches.link(toFile: fileName, fromNote: path),
                                      into: text, at: request.offset ?? (text as NSString).length)
         text = put.text
+    }
+
+    /// Build 296: Show words — the picture's words as a quote under it, read now if need be.
+    private func showWords(of picture: String, at offset: Int) {
+        Task {
+            guard let words = await model.pictureWords(picture) else {
+                model.flash("No words found in this picture")
+                return
+            }
+            text = Pictures.showingWords(words, in: text, linkAt: offset)
+        }
     }
 
     /// Raised after a save so the row under the text loads the new picture.
@@ -2262,8 +2277,8 @@ struct SketchSheet: View {
                     Button(pictureOnly == nil ? "Cancel" : "Done") { dismiss() }
                         .accessibilityIdentifier("sketch.cancel")
                 }
-                if pictureOnly != nil, let path = request.picturePath {
-                    ToolbarItem(placement: .cancellationAction) {
+                if let path = request.picturePath {
+                    ToolbarItem(placement: pictureOnly == nil ? .topBarTrailing : .cancellationAction) {
                         CopyWordsButton(path: path, tint: tint)
                     }
                 }

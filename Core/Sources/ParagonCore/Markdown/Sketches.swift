@@ -173,6 +173,27 @@ public extension Pictures {
 
     /// A pinch's zoom kept between normal size and `maxZoom`.
     static func zoom(_ scale: Double) -> Double { min(max(scale, 1), maxZoom) }
+
+    /// Build 296: Show words — a picture's words written into the note as a quote, on the
+    /// lines straight after the line that holds the picture (`linkAt` = where its link starts,
+    /// in the markdown). Blank lines inside the words are left out.
+    static func showingWords(_ words: String, in text: String, linkAt: Int) -> String {
+        let ns = text as NSString
+        guard linkAt >= 0, linkAt <= ns.length else { return text }
+        let lineEnd = ns.lineRange(for: NSRange(location: linkAt, length: 0))
+        var end = NSMaxRange(lineEnd)
+        let quote = words.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .map { "> " + $0 }
+            .joined(separator: "\n")
+        guard !quote.isEmpty else { return text }
+        var insert = quote + "\n"
+        // The last line of the note has no line break yet: give it one first.
+        if end == ns.length, !text.hasSuffix("\n") { insert = "\n" + insert }
+        if end > ns.length { end = ns.length }
+        return ns.replacingCharacters(in: NSRange(location: end, length: 0), with: insert)
+    }
 }
 
 /// Build 293: pictures pasted with ⌘V, and the gallery of a note's pictures.

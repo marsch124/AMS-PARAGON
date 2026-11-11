@@ -108,6 +108,8 @@ struct PictureHooks {
     var paste: (Int, Data, String) -> Void = { _, _, _ in }
     /// Build 295: Copy words on a picture in the text — its file, from the vault's root.
     var copyWords: (String) -> Void = { _ in }
+    /// Build 296: Show words — where the picture's link starts in the markdown, and its file.
+    var showWords: (Int, String) -> Void = { _, _ in }
 }
 
 /// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
@@ -499,6 +501,15 @@ final class LinkingTextView: NSTextView {
     /// Build 295: right-click › Copy words on a picture.
     var onPictureCopyWords: ((PictureAttachment) -> Void)?
 
+    /// Build 296: right-click › Show words on a picture (its place in the text, the picture).
+    var onPictureShowWords: ((Int, PictureAttachment) -> Void)?
+
+    @objc private func showWordsChosen(_ item: NSMenuItem) {
+        guard let index = item.representedObject as? Int, let storage = textStorage, index < storage.length,
+              let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment else { return }
+        onPictureShowWords?(index, a)
+    }
+
     @objc private func copyWordsChosen(_ item: NSMenuItem) {
         guard let index = item.representedObject as? Int, let storage = textStorage, index < storage.length,
               let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment else { return }
@@ -536,6 +547,12 @@ final class LinkingTextView: NSTextView {
             caption.representedObject = index
             caption.target = self
             menu.insertItem(.separator(), at: 0)
+            if onPictureShowWords != nil {
+                let show = NSMenuItem(title: "Show words", action: #selector(showWordsChosen(_:)), keyEquivalent: "")
+                show.representedObject = index
+                show.target = self
+                menu.insertItem(show, at: 0)
+            }
             if onPictureCopyWords != nil {
                 let copy = NSMenuItem(title: "Copy words", action: #selector(copyWordsChosen(_:)), keyEquivalent: "")
                 copy.representedObject = index
@@ -667,6 +684,11 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         }
         textView.onPictureCopyWords = { [weak coordinator = context.coordinator] picture in
             coordinator?.pictures?.copyWords(picture.path)
+        }
+        textView.onPictureShowWords = { [weak coordinator = context.coordinator, weak textView] index, picture in
+            guard let coordinator, let storage = textView?.textStorage else { return }
+            let at = (PictureText.markdown(from: storage, upTo: index) as NSString).length
+            coordinator.pictures?.showWords(at, picture.path)
         }
         textView.onPictureCaption = { [weak coordinator = context.coordinator, weak textView] index, picture in
             guard let coordinator, let storage = textView?.textStorage else { return }
@@ -1286,7 +1308,11 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
                 let copy = UIAction(title: "Copy words") { [weak self] _ in
                     self?.pictures?.copyWords(picture.path)
                 }
-                return UIMenu(children: [caption, copy])
+                let show = UIAction(title: "Show words") { [weak self] _ in
+                    guard let self else { return }
+                    self.pictures?.showWords(self.markdownOffset(index), picture.path)
+                }
+                return UIMenu(children: [caption, copy, show])
             }
             guard configuration.identifier as? String == "box", let box = menuBox else { return nil }
             let cancel = UIAction(title: "Cancel task") { [weak self] _ in

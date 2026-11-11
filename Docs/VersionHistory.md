@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (295) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (296) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 296 · 12 November 2026
+
+**Words under pictures, and sketches in search.**
+
+**Before (build 295).** You could copy the words PARAGON read in a picture, but not see them in the note. A search result from a sketch said "In a picture: ...", as if it were a photo. After you drew on a sketch again, its new words were read only once the note's text changed, so search could stay behind. And on the iPhone and iPad, a sketch opened to draw on had no Copy words button; only photos and pasted pictures had it.
+
+**Now, Show words (iPhone, iPad and Mac).**
+- Press and hold a picture in a note (right-click on the Mac) and choose **Show words**. It sits in the same menu as **Caption...** and **Copy words**.
+- The words PARAGON read in the picture are written into the note right under the picture, as a quote: each line starts with ">". So you can read them, edit them and search them like normal text.
+- If the words have not been read yet, PARAGON reads the picture right then.
+- A picture with no words says **No words found in this picture**, and nothing is written.
+
+**Now, sketches in search (iPhone, iPad and Mac).**
+- Handwriting in sketches was already read and searched since build 294. A search result from a sketch now says "In a sketch: ..." instead of "In a picture: ...".
+- Fixed: after you draw on a sketch again, its new words are read straight away. Before, they were read only once the note's text changed.
+- On the iPhone and iPad, a sketch opened to draw on now has a **Copy words** button at the top too, as photos and pasted pictures have.
+
+**What did not change.** Copy words, zoom, captions, paste, sorting the gallery, the files in your vault and all the colours are as in build 295.
+
+**The version.** It shows as "PARAGON 1.0 (296)".
 
 ## Build 295 · 11 November 2026
 
