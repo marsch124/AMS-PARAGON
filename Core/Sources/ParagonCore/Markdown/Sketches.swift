@@ -157,6 +157,24 @@ public extension Pictures {
     }
 }
 
+/// Build 295: Copy words on a picture, and how far a picture opened big can zoom.
+public extension Pictures {
+    /// What Copy words puts on the clipboard: the words read in the picture, without blank
+    /// lines at either end; nil when nothing was read (the picture has no words).
+    static func wordsToCopy(_ read: String?) -> String? {
+        guard let read else { return nil }
+        let words = read.trimmingCharacters(in: .whitespacesAndNewlines)
+        return words.isEmpty ? nil : words
+    }
+
+    /// The most a picture opened big can be enlarged, and where a double-tap takes it.
+    static let maxZoom: Double = 5
+    static let doubleTapZoom: Double = 2.5
+
+    /// A pinch's zoom kept between normal size and `maxZoom`.
+    static func zoom(_ scale: Double) -> Double { min(max(scale, 1), maxZoom) }
+}
+
 /// Build 293: pictures pasted with ⌘V, and the gallery of a note's pictures.
 public extension Pictures {
     /// A pasted picture's name, from the moment it is pasted: `Pasted 2026-11-11 201405.png`.

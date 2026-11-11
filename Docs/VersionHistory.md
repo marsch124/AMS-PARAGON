@@ -1,6 +1,32 @@
 # Version history
 
-The version is shown as 1.0 (294) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (295) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 295 · 11 November 2026
+
+**Pictures: copy their words, pinch to zoom.**
+
+**Before (build 294).** Search could find words inside a picture, but you could not get those words out: you had to read them off the picture and type them again. A picture opened big could not be zoomed, so small print in a photographed receipt stayed small. And when a search with task boxes ticked found nothing, the hint "The words are in N notes..." counted only the notes whose text held the words, so it could say nothing at all when the words were only inside a picture.
+
+**Now, Copy words (iPhone, iPad and Mac).**
+- **Copy words** puts the words PARAGON read in a picture on the clipboard, so you can paste them anywhere.
+- Three places: (1) the picture opened big has a **Copy words** button at the top; (2) in a note's text, press and hold a picture (iPhone and iPad) or right-click it (Mac) and choose **Copy words**, next to **Caption...**; (3) in the **Pictures** gallery, press and hold (iPhone and iPad) or right-click (Mac) a thumbnail.
+- If the words have not been read yet, PARAGON reads the picture right then, so it works at once, also for a picture just added.
+- A picture with no words says **No words found in this picture**, and nothing is copied.
+- A short note, **Words copied**, tells you it worked.
+- The words are read on the device with Apple's text recognition; nothing leaves your iPhone, iPad or Mac.
+
+**Now, pinch to zoom (iPhone, iPad and Mac).**
+- On a picture opened big, pinch with two fingers to zoom in, up to 5 times. On the Mac, pinch on the trackpad.
+- While zoomed, drag the picture to move around in it.
+- Double-tap to go back to normal size. When the picture is at normal size, a double-tap zooms in to 2.5 times.
+- **Done** (Escape on the Mac) closes the picture as before.
+
+**Now, the search hint counts pictures too.** When a search with task boxes ticked finds nothing, the hint "The words are in N notes..." now counts the notes found by the words inside their pictures as well as the notes whose text holds the words. A search whose words are only in a picture no longer gets a hint that says nothing.
+
+**What did not change.** Search results, the "In a picture: ..." line, captions, paste, sorting the gallery, the files in your vault and all the colours are as in build 294. Copy words changes no file: neither the note nor the picture.
+
+**The version.** It shows as "PARAGON 1.0 (295)".
 
 ## Build 294 · 11 November 2026
 

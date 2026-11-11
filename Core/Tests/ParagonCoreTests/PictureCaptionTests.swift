@@ -43,6 +43,15 @@ final class PictureCaptionTests: XCTestCase {
         XCTAssertEqual(Pictures.reordering(text, notePath: "Projects/Boat.md", moving: "Nope.png", onto: "Pictures/2.png"), text)
     }
 
+    func testCopyWordsAndZoomLimits() {
+        XCTAssertEqual(Pictures.wordsToCopy("\n Marina AB\nInvoice 4711 \n\n"), "Marina AB\nInvoice 4711")
+        XCTAssertNil(Pictures.wordsToCopy("  \n "))
+        XCTAssertNil(Pictures.wordsToCopy(nil))
+        XCTAssertEqual(Pictures.zoom(0.4), 1)
+        XCTAssertEqual(Pictures.zoom(3), 3)
+        XCTAssertEqual(Pictures.zoom(9), Pictures.maxZoom)
+    }
+
     func testSearchFindsWordsInsidePictures() {
         let boat = Note(relativePath: "Projects/Boat.md", kind: .project, text: "# Boat\n\n![Picture](../Pictures/receipt.png)\n")
         let index = NoteIndex(notes: [boat])

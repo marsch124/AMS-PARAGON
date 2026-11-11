@@ -408,7 +408,8 @@ struct SearchView: View {
         guard query.wantsTasks, !query.terms.isEmpty else { return query.summary }
         var wordsOnly = SearchQuery()
         wordsOnly.terms = query.terms
-        let count = model.index.search(wordsOnly).count
+        // Build 295: words read in pictures count here too, as they do in the results.
+        let count = model.index.search(wordsOnly, pictureText: model.pictureText).count
         guard count > 0 else { return query.summary }
         let notes = count == 1 ? "1 note" : "\(count) notes"
         return query.summary
@@ -626,6 +627,31 @@ extension AppModel {
             if self.picturesChangedWhileReading {
                 self.picturesChangedWhileReading = false
                 self.readPicturesSoon()
+            }
+        }
+    }
+}
+
+extension AppModel {
+    /// Build 295: the words in one picture, read now if they have not been read yet.
+    func pictureWords(_ path: String) async -> String? {
+        if let known = pictureText[path] { return Pictures.wordsToCopy(known) }
+        guard let root = vault?.rootURL else { return nil }
+        let read = await Task.detached(priority: .userInitiated) {
+            PictureReader.read(paths: [path], root: root)[path]
+        }.value
+        if let read, pictureText[path] != read { pictureText[path] = read }
+        return Pictures.wordsToCopy(read)
+    }
+
+    /// Build 295: Copy words on a picture — its words on the clipboard, and a short note.
+    func copyPictureWords(_ path: String) {
+        Task {
+            if let words = await pictureWords(path) {
+                MapExport.copyToPasteboard(words)
+                flash("Words copied")
+            } else {
+                flash("No words found in this picture")
             }
         }
     }

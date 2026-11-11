@@ -106,6 +106,8 @@ struct PictureHooks {
     /// Build 293/294: a pasted picture — where in the markdown, its data, and its file
     /// extension ("png" from the Mac, "jpg" from the iPhone and iPad).
     var paste: (Int, Data, String) -> Void = { _, _, _ in }
+    /// Build 295: Copy words on a picture in the text — its file, from the vault's root.
+    var copyWords: (String) -> Void = { _ in }
 }
 
 /// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
@@ -494,6 +496,15 @@ final class LinkingTextView: NSTextView {
         return true
     }
 
+    /// Build 295: right-click › Copy words on a picture.
+    var onPictureCopyWords: ((PictureAttachment) -> Void)?
+
+    @objc private func copyWordsChosen(_ item: NSMenuItem) {
+        guard let index = item.representedObject as? Int, let storage = textStorage, index < storage.length,
+              let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment else { return }
+        onPictureCopyWords?(a)
+    }
+
     @objc private func captionChosen(_ item: NSMenuItem) {
         guard let index = item.representedObject as? Int, let storage = textStorage, index < storage.length,
               let a = storage.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment else { return }
@@ -525,6 +536,12 @@ final class LinkingTextView: NSTextView {
             caption.representedObject = index
             caption.target = self
             menu.insertItem(.separator(), at: 0)
+            if onPictureCopyWords != nil {
+                let copy = NSMenuItem(title: "Copy words", action: #selector(copyWordsChosen(_:)), keyEquivalent: "")
+                copy.representedObject = index
+                copy.target = self
+                menu.insertItem(copy, at: 0)
+            }
             menu.insertItem(caption, at: 0)
             return menu
         }
@@ -647,6 +664,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         }
         textView.onPictureClick = { [weak coordinator = context.coordinator] path in
             coordinator?.pictures?.open(path)
+        }
+        textView.onPictureCopyWords = { [weak coordinator = context.coordinator] picture in
+            coordinator?.pictures?.copyWords(picture.path)
         }
         textView.onPictureCaption = { [weak coordinator = context.coordinator, weak textView] index, picture in
             guard let coordinator, let storage = textView?.textStorage else { return }
@@ -1263,7 +1283,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
                     guard let self else { return }
                     self.pictures?.caption(self.markdownOffset(index), picture.link)
                 }
-                return UIMenu(children: [caption])
+                let copy = UIAction(title: "Copy words") { [weak self] _ in
+                    self?.pictures?.copyWords(picture.path)
+                }
+                return UIMenu(children: [caption, copy])
             }
             guard configuration.identifier as? String == "box", let box = menuBox else { return nil }
             let cancel = UIAction(title: "Cancel task") { [weak self] _ in
