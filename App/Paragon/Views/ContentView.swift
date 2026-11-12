@@ -1341,7 +1341,8 @@ struct KindBadge: View {
             .font(Txt.list.weight(.semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
-            .background(tint ?? kind.tint, in: Circle())
+            // Build 310: white on a part colour always sits on the deep shade.
+            .background((tint ?? kind.tint).deep, in: Circle())
             .accessibilityLabel(kind.displayName)
     }
 }
