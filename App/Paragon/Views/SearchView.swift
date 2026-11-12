@@ -249,20 +249,20 @@ struct SearchView: View {
 
     @ViewBuilder
     private func filters(_ query: SearchQuery) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             group("Tasks", tint: SidebarSection.allActions.tint,
                   note: "Tick any of these and the results are tasks, not notes.") {
                 ForEach(Self.taskStates, id: \.self) { state in
                     FilterBox(title: SearchQuery.label(for: state).capitalizedFirst,
                               isOn: query.taskStates.contains(state),
                               tint: SidebarSection.allActions.tint,
-                              token: "is:\(state.rawValue)") { toggle("is:\(state.rawValue)") }
+                              token: "is:\(state.rawValue)", chip: true) { toggle("is:\(state.rawValue)") }
                 }
                 ForEach(Self.dues, id: \.self) { due in
                     FilterBox(title: SearchQuery.label(for: due).capitalizedFirst,
                               isOn: query.dues.contains(due),
                               tint: SidebarSection.calendar.tint,
-                              token: "due:\(due.rawValue)") { toggle("due:\(due.rawValue)") }
+                              token: "due:\(due.rawValue)", chip: true) { toggle("due:\(due.rawValue)") }
                 }
             }
             group("Kind of note", tint: ParaKind.project.tint, note: nil) {
@@ -270,7 +270,7 @@ struct SearchView: View {
                     FilterBox(title: kind.displayName,
                               isOn: query.kinds.contains(kind),
                               tint: kind.tint,
-                              token: "type:\(kind.rawValue)") { toggle("type:\(kind.rawValue)") }
+                              token: "type:\(kind.rawValue)", chip: true) { toggle("type:\(kind.rawValue)") }
                 }
             }
             group("How the note stands", tint: SidebarSection.review.tint, note: nil) {
@@ -279,7 +279,7 @@ struct SearchView: View {
                     FilterBox(title: status.label,
                               isOn: asked.contains(status),
                               tint: SidebarSection.review.tint,
-                              token: "status:\(status.rawValue)") { toggle("status:\(status.rawValue)") }
+                              token: "status:\(status.rawValue)", chip: true) { toggle("status:\(status.rawValue)") }
                 }
             }
             tagGroup(query)
@@ -297,20 +297,25 @@ struct SearchView: View {
                 FilterBox(title: "#\(tag)",
                           isOn: query.tags.contains(tag.lowercased()),
                           tint: SidebarSection.tags.tint,
-                          token: "#\(tag)") { toggle("#\(tag)") }
+                          token: "#\(tag)", chip: true) { toggle("#\(tag)") }
             }
         }
     }
 
-    /// Tick boxes on the Mac breathe a little more than the phone's chips.
-    #if os(macOS)
-    private let boxSpacing: CGFloat = 14
-    #else
-    private let boxSpacing: CGFloat = 6
-    #endif
+    /// Build 302: the same chips as All actions on every device, so one spacing.
+    private let boxSpacing: CGFloat = 5
 
     /// One titled row of boxes. `WrappingHStack` so a narrow column moves whole boxes to the
     /// next line rather than squeezing every one of them thinner (build 138).
+    /// Build 302: the group's name in small grey capitals, as on All actions — the chips
+    /// carry the colour.
+    private func groupName(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(Txt.pill.weight(.semibold))
+            .tracking(0.6)
+            .foregroundStyle(.secondary)
+    }
+
     private func group<Content: View>(_ title: String, tint: Color, note: String?,
                                       @ViewBuilder boxes: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -320,7 +325,7 @@ struct SearchView: View {
                 // the pane's 200 points ended in the middle of the second group (his 9 November
                 // test: the last groups were cut). The Mac keeps the wrapping boxes.
                 HStack(alignment: .center, spacing: 8) {
-                    SectionLabel(title: title, count: nil, tint: tint)
+                    groupName(title)
                         .fixedSize()
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: boxSpacing) {
@@ -331,7 +336,7 @@ struct SearchView: View {
                     }
                 }
             } else {
-                SectionLabel(title: title, count: nil, tint: tint)
+                groupName(title)
             }
             if let note {
                 Text(note)
@@ -476,6 +481,7 @@ struct FilterBox: View {
         .buttonStyle(.plain)
         .accessibilityLabel(isOn ? "\(title), ticked" : "\(title), not ticked")
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
+        .accessibilityIdentifier(token.map { "search.box.\($0)" } ?? "")
     }
 
     @ViewBuilder

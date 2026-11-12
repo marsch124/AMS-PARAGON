@@ -4936,6 +4936,15 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - **Unchanged:** Mac and iPad keep `SyncStatusBar` at the foot of the sidebar.
 - **BuildStamp:** `BuildStamp.number` = 300.
 
+## Build 302 (12 November 2026)
+
+"Search gets the premium chips". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Search screen boxes, All actions note), `Look.md` (section 12).
+
+- **Before:** Search filter boxes were Mac `.checkbox` toggles, big coloured group headings on the iPhone.
+- **Now:** every Search `FilterBox` passes `chip: true` (Mac, iPad, iPhone): off = soft grey fill, ticked = group colour fill, white words, small tick. Group names via new `groupName(_:)` in SearchView (small grey capitals). Spacing between chips 5 pt everywhere. `chipBody` now carries the `search.box.<token>` identifier.
+- **Test:** `testASearchBoxIsATickBoxThatTurnsUpTheTasks` now finds `app.buttons` instead of `app.checkBoxes`.
+- **BuildStamp:** `BuildStamp.number` = 302.
+
 ## Build 301 (12 November 2026)
 
 "Same sync ring everywhere, haptic, New Entry, premium filter chips". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (sync ring paragraph, Reminders sync on the iPhone, All actions, New Entry wording), `Look.md` (sections 6, 8, 12).
@@ -4944,7 +4953,7 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - **Sync ring:** shared view `SyncRingMark` (PhoneRootView.swift), used by `PhoneSyncButton` and `SyncStatusBar` (Theme.swift). 22 pt ring round the hand-drawn sync mark; fills down over 2 h; green < 1 h, yellow after or while waiting for iCloud, full red on conflicts, grey before any sync. Short word beside it (time, Yesterday, date, Syncing, iCloud, Not yet, N conflicts). Press = sync now; context menu (long press on iPad) = Sync now / Show me what would change... / Last sync report... / Sync settings....
 - **Haptic (iPhone):** `.sensoryFeedback` on `PhoneSyncButton`, triggered when `isSyncing` goes true -> false; success tap, warning when the sync had conflicts.
 - **New Entry:** title, + button name and tip, and the empty detail column's button renamed (was New note). Inbox's "New note from this line..." unchanged (makes a note).
-- **Filter chips:** `FilterBox(chip: true)` on All actions, Mac and iPhone: small grey capital row names (WHEN / MARK / TAGS); chips off = soft grey fill, on = screen colour fill, white text, small tick; the fixed 260 pt box-area height removed (sized to content). Search keeps Mac `.checkbox` toggles.
+- **Filter chips:** `FilterBox(chip: true)` on All actions, Mac and iPhone: small grey capital row names (WHEN / MARK / TAGS); chips off = soft grey fill, on = screen colour fill, white text, small tick; the fixed 260 pt box-area height removed (sized to content). Search kept Mac `.checkbox` toggles until build 302.
 - **BuildStamp:** `BuildStamp.number` = 301.
 
 ## Build 294 (11 November 2026)

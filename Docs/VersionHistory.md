@@ -1,6 +1,23 @@
 # Version history
 
-The version is shown as 1.0 (301) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (302) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 302 · 12 November 2026
+
+**Search has the same neat filter chips as All actions.**
+
+**Before (build 301).** The filter boxes on All actions were small rounded chips, but **Search** still had its old boxes: on the Mac Apple's own tick boxes, on the phone a row of chips with big coloured headings.
+
+**Now, the Search boxes are chips on the Mac, the iPad and the iPhone.**
+- The four groups (**Tasks**, **Kind of note**, **How the note stands**, **Tags**) are the same premium chips as on All actions.
+- A chip that is off has a soft grey fill. A chip that is ticked is filled in its group's own colour, with white words and a small tick.
+- The group names are small grey capitals instead of big coloured headings.
+- On the Mac they were Apple's own tick boxes before; now they are chips, like on the phone.
+- The space between chips is 5 points everywhere.
+
+**What did not change.** What the boxes search for, the results, the saved searches and the other screens.
+
+**The version.** It shows as "PARAGON 1.0 (302)".
 
 ## Build 301 · 12 November 2026
 
@@ -23,7 +40,7 @@ The version is shown as 1.0 (301) at the foot of the Mac sidebar and at the foot
 - The row names are small grey capitals (**WHEN**, **MARK**, **TAGS**) instead of big green headings.
 - Each choice is a rounded chip. Off: a soft grey fill. Ticked: filled in the screen's colour with white words and a small tick. The same on the Mac and the iPhone.
 - The empty gap under the boxes is gone. Before, the box area was always 260 points tall; now it is only as tall as its boxes, so more of your list shows.
-- **Search** keeps its Mac tick boxes.
+- **Search** kept its Mac tick boxes in this build; build 302 gave it the chips too.
 
 **What did not change.** What the sync does, the lists, your notes and the other screens.
 

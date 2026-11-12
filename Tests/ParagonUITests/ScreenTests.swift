@@ -3131,8 +3131,8 @@ final class ScreenTests: XCTestCase {
                       "The window's toolbar has no notes switch (calendar.noteToggle). On screen: \(visibleTexts())")
     }
 
-    /// **The Search boxes are the Mac's own tick boxes** (look 1.0): `search.box.is:open` is a
-    /// check box, found as one, and ticking it turns the results into the task list, whose
+    /// **The Search boxes are chips** (build 302; look 1.0 had the Mac's own tick boxes):
+    /// `search.box.is:open` is a button found by its name, and ticking it turns the results into the task list, whose
     /// heading counts tasks ("3 tasks"). The boxes used to be chips drawn as buttons with no
     /// name of their own. The Search row is the sidebar's last, below a 450-point window's
     /// edge, so it is brought into view first (build 279's CI).
@@ -3145,9 +3145,9 @@ final class ScreenTests: XCTestCase {
         bringIntoView(search)
         search.press()
 
-        let box = app.checkBoxes.matching(identifier: "search.box.is:open").firstMatch
+        let box = app.buttons.matching(identifier: "search.box.is:open").firstMatch
         XCTAssertTrue(box.waitForExistence(timeout: 20),
-                      "Search has no Not done tick box (search.box.is:open) among its check boxes. On screen: \(visibleTexts())")
+                      "Search has no Not done chip (search.box.is:open) among its buttons. On screen: \(visibleTexts())")
         if box.isHittable { box.press() } else { box.pressCentre() }
 
         // The results' own heading (`search.results`): "1 task" or "N tasks" once a task box
