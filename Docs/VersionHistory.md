@@ -1,6 +1,10 @@
 # Version history
 
-The version is shown as 1.0 (312) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (313) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 313 · 13 November 2026
+
+**The same app as build 312, sent again.** Apple received the iPhone half of build 312 on 12 November at 22:29 and did not finish preparing it in more than two hours (the Mac half was ready after a few minutes). Nothing in the app changed: everything listed under build 312 below is in build 313. Only the number is new: it shows as "PARAGON 1.0 (313)".
 
 ## Build 312 · 12 November 2026
 
