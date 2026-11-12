@@ -559,8 +559,7 @@ struct WeekOverviewView: View {
                             Text(dayTitle(day.date))
                                 .fontWeight(day.date == .today() ? .bold : .regular)
                             if day.dailyNotePath != nil {
-                                MarkImage("doc.text")
-                                    .font(Txt.listSecond)
+                                MarkImage("doc.text", text: .footnote)
                             }
                             Spacer()
                             Button("Open day") { model.openDailyNote(for: day.date) }

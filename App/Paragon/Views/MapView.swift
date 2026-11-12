@@ -671,8 +671,7 @@ struct MapNodeView: View {
 
     private func groupCard(_ group: MapNode.Group) -> some View {
         HStack(spacing: 8 * zoom) {
-            MarkImage(group == .archive ? "archivebox" : "questionmark.folder")
-                .font(Txt.mapTitle(zoom))
+            MarkImage(group == .archive ? "archivebox" : "questionmark.folder", size: 16 * zoom)
                 .foregroundStyle(node.tint)
             VStack(alignment: .leading, spacing: 1) {
                 Text(group.title)
@@ -692,8 +691,7 @@ struct MapNodeView: View {
 
     private func chip(icon: String, title: String, detail: String?, tint: Color) -> some View {
         HStack(spacing: 6 * zoom) {
-            MarkImage(icon)
-                .font(Txt.mapLabel(zoom))
+            MarkImage(icon, size: 12 * zoom)
                 .foregroundStyle(tint)
             Text(title)
                 .font(Txt.mapLabel(zoom))

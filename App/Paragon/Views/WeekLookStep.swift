@@ -107,7 +107,7 @@ struct WeekLookStep: View {
 
         // Build 100's rule: a note not yet on this device must never read as a quiet week.
         if !model.notesWaitingForCloud.isEmpty {
-            MarkLabel(cloudText, "icloud")
+            MarkLabel(cloudText, "icloud", text: .body)
                 .font(Txt.value)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -197,7 +197,7 @@ struct WeekLookStep: View {
     }
 
     private func timerLine(_ look: WeekLook) -> some View {
-        MarkLabel(look.workedText ?? "The focus timer was not used \(weekWords).", "timer")
+        MarkLabel(look.workedText ?? "The focus timer was not used \(weekWords).", "timer", text: .body)
             .font(Txt.value)
             .foregroundStyle(look.workedText == nil ? Color.secondary : Color.primary)
     }
@@ -485,7 +485,7 @@ private struct EveningLineRow: View {
                     .foregroundStyle(.soft)
                     .frame(width: 36, alignment: .leading)
                 if line.waiting {
-                    MarkLabel(line.text, "icloud")
+                    MarkLabel(line.text, "icloud", text: .body)
                         .font(Txt.value)
                         .foregroundStyle(.orange)
                 } else {

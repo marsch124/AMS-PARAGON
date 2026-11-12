@@ -138,7 +138,7 @@ struct AreaDashboardView: View {
 
     /// The orange line that says the list may be short. Drawn by `body`, never inside `rows`.
     private var comingLine: some View {
-        MarkLabel("Some notes are still coming from iCloud. More projects may appear here.", "icloud")
+        MarkLabel("Some notes are still coming from iCloud. More projects may appear here.", "icloud", text: .footnote)
             .font(Txt.label)
             .foregroundStyle(Color.orange)
             .fixedSize(horizontal: false, vertical: true)
@@ -243,13 +243,13 @@ struct AreaProjectRow: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             } icon: {
-                MarkImage(ChainSymbol.task)
+                MarkImage(ChainSymbol.task, text: .footnote)
                     .foregroundStyle(ParaKind.project.tint)
             }
             .font(Txt.label)
         case .allFinished(let count):
             WrappingHStack(spacing: 6, lineSpacing: 4) {
-                MarkLabel(ProjectLine.finishedText(count: count), "checkmark.circle.fill")
+                MarkLabel(ProjectLine.finishedText(count: count), "checkmark.circle.fill", text: .footnote)
                     .font(Txt.label)
                     .foregroundStyle(ParaKind.project.tint.ink)
                 if isRunning {
@@ -260,7 +260,7 @@ struct AreaProjectRow: View {
         case .waitingOnly(let count):
             // Build 279: the open lines are all waiting for somebody else, not finished.
             WrappingHStack(spacing: 6, lineSpacing: 4) {
-                MarkLabel(ProjectLine.waitingText(count: count), WaitingShowing.symbol)
+                MarkLabel(ProjectLine.waitingText(count: count), WaitingShowing.symbol, text: .footnote)
                     .font(Txt.label)
                     .foregroundStyle(ParaKind.project.tint.ink)
                 if isRunning {
@@ -358,8 +358,7 @@ struct SubAreaRow: View {
                 .alignmentGuide(.firstTextBaseline) { dimensions in dimensions[.bottom] - 4 }
                 .accessibilityHidden(true)
         } else {
-            MarkImage(ChainSymbol.area)
-                .font(Txt.label)
+            MarkImage(ChainSymbol.area, text: .footnote)
                 .foregroundStyle(ParaKind.area.tint)
         }
     }

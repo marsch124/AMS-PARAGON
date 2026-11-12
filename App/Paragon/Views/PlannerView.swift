@@ -861,8 +861,7 @@ private struct PlanCardFace: View {
     }
 
     private var calendarMark: some View {
-        MarkImage("calendar")
-            .font(Txt.listSecond)
+        MarkImage("calendar", text: .footnote)
             .foregroundStyle(SidebarSection.calendar.tint)
     }
 }
@@ -920,8 +919,7 @@ private struct PlanTaskCard: View {
     @ViewBuilder private var content: some View {
         if oneLine {
             HStack(spacing: 4) {
-                MarkImage("circle")
-                    .font(Txt.listSecond)
+                MarkImage("circle", text: .footnote)
                     .foregroundStyle(.soft)
                 Text(startTime)
                     .font(Txt.listSecond.monospacedDigit())
@@ -935,8 +933,7 @@ private struct PlanTaskCard: View {
         } else {
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 3) {
-                    MarkImage("circle")
-                        .font(Txt.listSecond)
+                    MarkImage("circle", text: .footnote)
                         .foregroundStyle(.soft)
                     Text(time)
                         .font(Txt.listSecond.monospacedDigit())
@@ -1257,7 +1254,7 @@ struct PlannerActionsView: View {
     @ViewBuilder
     private func servesLine(for ref: TaskRef) -> some View {
         if let serves = serves(ref) {
-            MarkLabel(serves.title, serves.symbol)
+            MarkLabel(serves.title, serves.symbol, text: .footnote)
                 .font(Txt.listSecond)
                 .foregroundStyle(serves.tint.ink)
                 .lineLimit(1)

@@ -233,8 +233,7 @@ struct ProjectGroupHeader: View {
     var body: some View {
         Button(action: toggle) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                MarkImage("chevron.right")
-                    .font(Txt.listSecond.weight(.semibold))
+                MarkImage("chevron.right", text: .footnote)
                     .foregroundStyle(.soft)
                     .rotationEffect(.degrees(open ? 90 : 0))
                 badge
@@ -266,7 +265,7 @@ struct ProjectGroupHeader: View {
                 if group.needsALookCount > 0 {
                     // Orange, as everywhere in PARAGON: look at this. On the heading, so a
                     // folded group still says it (build 100).
-                    MarkLabel("\(group.needsALookCount)", "exclamationmark.triangle.fill")
+                    MarkLabel("\(group.needsALookCount)", "exclamationmark.triangle.fill", text: .footnote)
                         .font(Txt.label.weight(.semibold))
                         .foregroundStyle(Theme.attention)
                 }
@@ -320,15 +319,13 @@ struct ProjectGroupHeader: View {
             KindBadge(kind: .goal, size: 20, markName: ChainSymbol.datedGoal, tint: ChainTint.datedGoal)
         case .noGoal:
             // Dashed and grey: not connected, as on the Map (build 82).
-            MarkImage(ChainSymbol.datedGoal)
-                .font(Txt.listSecond.weight(.semibold))
+            MarkImage(ChainSymbol.datedGoal, text: .footnote)
                 .foregroundStyle(.soft)
                 .frame(width: 20, height: 20)
                 .overlay(Circle().strokeBorder(Color.secondary.opacity(0.7),
                                                style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         case .ended(let status):
             MarkImage(status.markName)
-                .font(Txt.listTitle)
                 .foregroundStyle(endedTint(status))
                 .frame(width: 20, height: 20)
         }
@@ -668,7 +665,6 @@ struct ProjectTile: View {
                 .font(Txt.sectionTitle)
         } else {
             MarkImage(ChainSymbol.project)
-                .font(Txt.listTitle)
                 .rowTint(tint)
         }
     }

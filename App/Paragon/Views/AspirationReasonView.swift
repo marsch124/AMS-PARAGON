@@ -216,7 +216,7 @@ struct AspirationReasonBox: View {
             // An older copy with no reason in it says nothing about the newer one: not "no
             // reason written", which would be an absence drawn for a note that cannot be read
             // yet (builds 100, 261). Orange with the cloud, as Start the day draws the same state.
-            MarkLabel("Being updated from iCloud. The reason may show here in a moment.", "icloud")
+            MarkLabel("Being updated from iCloud. The reason may show here in a moment.", "icloud", text: .footnote)
                 .font(Txt.label)
                 .foregroundStyle(Color.orange)
                 .fixedSize(horizontal: false, vertical: true)

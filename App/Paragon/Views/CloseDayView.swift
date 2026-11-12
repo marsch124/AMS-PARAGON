@@ -321,7 +321,7 @@ struct CountPill: View {
     let tint: Color
 
     var body: some View {
-        MarkLabel(text, markName)
+        MarkLabel(text, markName, text: .footnote)
             .font(Txt.label.weight(.semibold))
             .foregroundStyle(tint.capsuleWords)
             .padding(.horizontal, 10)
@@ -487,8 +487,7 @@ struct ServedRow: View {
 
     private var capsule: some View {
         HStack(spacing: 4) {
-            MarkImage(symbol)
-                .imageScale(.small)
+            MarkImage(symbol, text: .callout)
             // A wrapping row places each item at its full width and never squeezes one, so the
             // whole capsule has to fit the narrowest column it lives in (builds 250, 255): the
             // Mac's middle column at its 220-point minimum leaves the card about 185 points.

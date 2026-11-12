@@ -202,7 +202,7 @@ struct SearchView: View {
                 Button {
                     savedFolded.toggle()
                 } label: {
-                    MarkLabel("Saved searches", savedFolded ? "chevron.right" : "chevron.down")
+                    MarkLabel("Saved searches", savedFolded ? "chevron.right" : "chevron.down", text: .footnote)
                         .font(Txt.label.weight(.semibold))
                         .foregroundStyle(.soft)
                 }
@@ -505,8 +505,7 @@ struct FilterBox: View {
         #else
         Button(action: action) {
             HStack(spacing: 5) {
-                MarkImage(isOn ? "checkmark.square.fill" : "square")
-                    .font(Txt.label)
+                MarkImage(isOn ? "checkmark.square.fill" : "square", text: .footnote)
                     .foregroundStyle(isOn ? tint : Color.secondary)
                 Text(title)
                     .font(Txt.label)
@@ -636,7 +635,7 @@ struct SavedSearchChip: View {
 
     var body: some View {
         Button(action: run) {
-            MarkLabel(search.name, "bookmark")
+            MarkLabel(search.name, "bookmark", text: .footnote)
                 .font(Txt.label)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)

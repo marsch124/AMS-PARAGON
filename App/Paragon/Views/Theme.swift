@@ -388,7 +388,7 @@ struct VaultWarningBar: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            MarkLabel(text, "exclamationmark.triangle.fill")
+            MarkLabel(text, "exclamationmark.triangle.fill", text: .footnote)
                 .font(Txt.listSecond)
                 .foregroundStyle(.orange)
                 .multilineTextAlignment(.center)
@@ -830,7 +830,6 @@ struct StateToggle: View {
     var body: some View {
         Button(action: action) {
             MarkImage(markName)
-                .font(Txt.list.weight(.semibold))
                 .frame(width: 30, height: 26)
                 .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
                 .background { fill }
@@ -893,7 +892,6 @@ struct FoldButton<Label: View>: View {
         } label: {
             HStack(spacing: 6) {
                 MarkImage("chevron.right")
-                    .font(Txt.list.weight(.semibold))
                     .foregroundStyle(.soft)
                     .rotationEffect(.degrees(isOpen ? 90 : 0))
                 label()

@@ -388,7 +388,7 @@ struct ReviewOpenAllButton: View {
 
     var body: some View {
         Button(action: action) {
-            MarkLabel(words, symbol)
+            MarkLabel(words, symbol, text: .body)
                 .font(Txt.value)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
@@ -495,7 +495,7 @@ struct ReviewStat: View {
     let tint: Color
 
     var body: some View {
-        MarkLabel(text, symbol)
+        MarkLabel(text, symbol, text: .footnote)
             .font(Txt.label)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
@@ -536,17 +536,17 @@ struct HealthRow: View {
                 // work lives in its projects, so "0 open" would sit beside a row with no
                 // "No next action" flag. The two facts could not both be true of that row.
                 if health.note.kind != .area {
-                    MarkLabel("\(health.openTaskCount) open", "checklist")
+                    MarkLabel("\(health.openTaskCount) open", "checklist", text: .footnote)
                 }
                 if health.overdueTaskCount > 0 {
-                    MarkLabel("\(health.overdueTaskCount) overdue", "clock.badge.exclamationmark")
+                    MarkLabel("\(health.overdueTaskCount) overdue", "clock.badge.exclamationmark", text: .footnote)
                         .rowTint(.red)
                 }
                 // "In 7 days", not "this week": it counts back from today, and the step 7 week
                 // is Monday to Sunday (review of 263).
-                MarkLabel("\(health.completedLast7Days) done in 7 days", "checkmark")
+                MarkLabel("\(health.completedLast7Days) done in 7 days", "checkmark", text: .footnote)
                 if let due = health.note.dueDate {
-                    MarkLabel(due.description, "calendar")
+                    MarkLabel(due.description, "calendar", text: .footnote)
                 }
             }
             .font(Txt.label)
@@ -646,15 +646,15 @@ struct GoalHealthRow: View {
                 GoalProgressBar(progress: health.progress, width: 54, showsCounts: false,
                                 tint: ChainTint.forGoal(health.note))
                 if health.progress.projectsTotal > 0 {
-                    MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag")
+                    MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag", text: .footnote)
                 } else {
-                    MarkLabel("no projects yet", "flag")
+                    MarkLabel("no projects yet", "flag", text: .footnote)
                 }
-                MarkLabel("\(health.areas.count) areas", "circle.grid.2x2")
-                MarkLabel("\(health.openTaskCount) open", "checklist")
-                MarkLabel("\(health.completedLast30Days) done in 30d", "checkmark")
+                MarkLabel("\(health.areas.count) areas", "circle.grid.2x2", text: .footnote)
+                MarkLabel("\(health.openTaskCount) open", "checklist", text: .footnote)
+                MarkLabel("\(health.completedLast30Days) done in 30d", "checkmark", text: .footnote)
                 if let target = health.note.targetDate {
-                    MarkLabel(target.description, "flag.checkered")
+                    MarkLabel(target.description, "flag.checkered", text: .footnote)
                 }
             }
             .font(Txt.label)
