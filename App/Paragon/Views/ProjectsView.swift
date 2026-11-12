@@ -80,6 +80,7 @@ struct ProjectsListView: View {
 
     private var groupedList: some View {
         List(selection: model.noteSelection) {
+            Group {
             ForEach(model.projectGroups) { group in
                 Section {
                     if isOpen(group) {
@@ -101,6 +102,9 @@ struct ProjectsListView: View {
                     }
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.kind(.project).tint)
         }
     }
 

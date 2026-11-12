@@ -43,6 +43,7 @@ struct TemplatesView: View {
                 // Plain sections with a fold button in the header. DisclosureGroups inside a
                 // List drew their rows on top of each other (build 90).
                 List(selection: $model.templateSelection) {
+                    Group {
                     ForEach(groups) { group in
                         Section {
                             if !folded.contains(group.title) {
@@ -85,6 +86,9 @@ struct TemplatesView: View {
                             }
                         }
                     }
+                    }
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(SidebarSection.templates.tint)
                 }
             }
         }

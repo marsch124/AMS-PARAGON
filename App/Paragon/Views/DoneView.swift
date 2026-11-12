@@ -74,6 +74,7 @@ struct DoneView: View {
                     Divider()
                 }
                 List(selection: model.noteSelection) {
+                    Group {
                     if let diary, diary.days.isEmpty {
                         // While notes are still coming from iCloud, "nothing" is not something this
                         // screen may say: the days may be in those notes (build 100; the Inbox's
@@ -100,6 +101,9 @@ struct DoneView: View {
                             }
                         }
                     }
+                    }
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(SidebarSection.done.tint)
                 }
             }
         }

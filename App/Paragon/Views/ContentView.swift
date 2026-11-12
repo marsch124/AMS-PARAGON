@@ -140,6 +140,10 @@ struct ContentView: View {
                 }
             }
         }
+        // Review round 4: the iPhone layout, and every sheet over it, knows it is one — its
+        // lists draw the app's page and cards (`phonePage`, `phoneCard`). After `.sheet`, so
+        // the sheets read it too.
+        .environment(\.phoneLook, isCompact && model.vault != nil)
         .onOpenURL { url in
             model.handle(url: url)
             #if os(macOS)
@@ -734,6 +738,8 @@ struct NoteListView: View {
                     // Drag a note up or down to arrange the list; the position is written into
                     // the note as `order:` so both devices agree. Not while searching.
                     .onMove(perform: mover(for: listed))
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(shown?.tint)
                 }
                 .searchable(text: $searchText, prompt: "Search notes")
                 .onChange(of: shown) { _, _ in searchText = "" }
@@ -741,6 +747,11 @@ struct NoteListView: View {
                 }
             }
         }
+        #if os(iOS)
+        // Review round 4: on the iPhone every section opens with its slim band and sits on
+        // the app's page. Nothing on the iPad.
+        .modifier(PhoneSectionLook(section: shown))
+        #endif
         .navigationTitle(shown?.title ?? "Notes")
         .toolbar {
             if shown == .recent {

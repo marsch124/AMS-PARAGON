@@ -40,6 +40,7 @@ struct TagsView: View {
                 // note can carry two tags and would then appear twice, and two rows with the
                 // same selection tag is what left the Inbox unclickable in builds 71 to 74.
                 List {
+                    Group {
                     ForEach(uses) { use in
                         Section {
                             if opened.contains(use.tag.lowercased()) {
@@ -49,6 +50,9 @@ struct TagsView: View {
                             header(for: use)
                         }
                     }
+                    }
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(SidebarSection.tags.tint)
                 }
                 .searchable(text: $filter, prompt: "Find a tag")
             }
@@ -206,6 +210,7 @@ struct SnippetsView: View {
                                tint: SidebarSection.snippets.tint)
             } else {
                 List {
+                    Group {
                     Section {
                         ForEach(model.snippets) { snippet in
                             VStack(alignment: .leading, spacing: 3) {
@@ -227,6 +232,9 @@ struct SnippetsView: View {
                         NavigationLink("Edit the Snippets file", value: PhoneRoute.template(Snippets.fileName))
                     }
                     #endif
+                    }
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(SidebarSection.snippets.tint)
                 }
             }
         }

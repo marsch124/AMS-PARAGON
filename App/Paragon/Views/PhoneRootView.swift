@@ -121,6 +121,8 @@ struct PhoneRootView: View {
         case .today:
             PhoneStack(section: item.section, isActive: tab == item) {
                 TodayView()
+                    // Review round 4: the app's page behind Today, as behind every section.
+                    .phonePage()
                     .navigationTitle("Today")
                     .toolbar {
                         // The same **+** as Plan, Actions and Inbox (build 230, his ask), so
@@ -336,6 +338,60 @@ struct PhoneStack<Content: View>: View {
     }
 }
 
+/// **How a section looks on the iPhone** (review round 4): the slim band in the part's colour
+/// above it, as on Today, and the app's page behind it. Nothing outside the iPhone layout.
+struct PhoneSectionLook: ViewModifier {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.phoneLook) private var phoneLook
+    let section: SidebarSection?
+
+    func body(content: Content) -> some View {
+        if phoneLook {
+            VStack(spacing: 0) {
+                // Today draws its own band, with the day's buttons on it.
+                if let section, section != .today {
+                    PhoneBand(tint: section.tint, text: model.phoneBandText(for: section))
+                        .padding(.bottom, Theme.tight)
+                }
+                content
+            }
+            .phonePage()
+        } else {
+            content
+        }
+    }
+}
+
+extension AppModel {
+    /// The one fact a section's band says: a count the sidebar already keeps, or the date.
+    /// Never the section's name — the navigation bar says that.
+    func phoneBandText(for section: SidebarSection) -> String {
+        let count = count(for: section)
+        func inAll() -> String { count == 0 ? "Nothing here yet" : "\(count) in all" }
+        switch section {
+        case .inbox: return count == 0 ? "Nothing waiting" : "\(count) waiting"
+        case .allActions: return count == 0 ? "Nothing open" : "\(count) open"
+        case .timeBlocks:
+            return count == 0 ? "No time blocks today" : count == 1 ? "1 time block today" : "\(count) time blocks today"
+        case .done: return count == 0 ? "Nothing ticked today" : "\(count) ticked today"
+        case .review:
+            return count == 0 ? DayWords.weekAndYear(.current())
+                : count == 1 ? "1 project needs a look" : "\(count) projects need a look"
+        case .kind(.project): return count == 0 ? "None running" : "\(count) running"
+        case .kind(.goal): return count == 0 ? "None with a date yet" : "\(count) with a date"
+        case .deleted: return count == 0 ? "Nothing deleted" : "\(count) can be put back"
+        case .templates: return templates.isEmpty ? "Nothing here yet" : "\(templates.count) in all"
+        // The Calendar writes the day it shows right under the band, so the band says what
+        // that day asks for instead of the date a second time.
+        case .calendar:
+            let due = sidebarCounts.dueByToday
+            return due == 0 ? "Nothing due today" : "\(due) due by today"
+        case .today, .map, .search: return DayWords.withWeekday(DateOnly.today())
+        case .recent, .snippets, .tags, .work, .aspirations, .kind: return inAll()
+        }
+    }
+}
+
 enum PhoneRoute: Hashable {
     case note(String)
     case template(String)
@@ -359,6 +415,7 @@ struct PhoneBrowseView: View {
 
     var body: some View {
         List {
+            Group {
             ForEach(groups, id: \.0) { group in
                 Section(group.0) {
                     ForEach(group.1) { section in
@@ -414,7 +471,11 @@ struct PhoneBrowseView: View {
                     }
                 }
             }
+            }
+            // Review round 4: Browse belongs to no part, so its cards wear the app's own purple.
+            .phoneCard(Theme.fallbackTint)
         }
+        .phonePage()
         // 1.0: Apple's large title, which shrinks as the list scrolls. The long press that
         // reveals Work lives on the version row at the foot of this list (build 117), which is
         // the way in that can actually be found; the title's own long press (build 112) is gone

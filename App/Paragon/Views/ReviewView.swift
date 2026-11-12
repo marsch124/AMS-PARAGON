@@ -48,6 +48,7 @@ struct ReviewView: View {
         let report = model.index.review(config: model.config)
         let due = model.dueForReview()
         List(selection: model.noteSelection) {
+            Group {
             // **Never folded**: it is the week in one block, and it holds the one button that
             // opens or closes every part below it (build 167: a control that governs what a
             // column shows belongs in that column).
@@ -273,6 +274,9 @@ struct ReviewView: View {
                     }
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.review.tint)
         }
         // For the screen test, which scrolls this list to reach step 7 (build 263).
         .accessibilityIdentifier("review.list")
