@@ -545,6 +545,18 @@ final class ScreenTests: XCTestCase {
     }
     #endif
 
+    /// One part of the switch **Actions | Waiting for** on All actions (build 312), found by
+    /// the words it starts with: the part also carries its count ("Actions 3"). Apple's
+    /// two-part switch is a row of buttons on the phone and of radio buttons on the Mac.
+    private func switchPart(_ words: String) -> XCUIElement {
+        let named = NSPredicate(format: "label BEGINSWITH %@", words)
+        #if os(macOS)
+        return app.radioButtons.matching(named).firstMatch
+        #else
+        return app.segmentedControls.buttons.matching(named).firstMatch
+        #endif
+    }
+
     /// The boxes start folded on the phone and open on the Mac, so this asks the screen rather
     /// than assuming. Pressing the fold button blind would close them on the Mac.
     private func openTheBoxes() {
@@ -1100,7 +1112,7 @@ final class ScreenTests: XCTestCase {
     }
 
     /// **Waiting for**, with nothing waiting (build 279). The test vault holds no line he is
-    /// waiting on anybody for, so the switch beside the column's name must open a list that says
+    /// waiting on anybody for, so the **Waiting for** part of the switch must open a list that says
     /// *why* it is empty and what to do, never a blank one (build 100), and switching back must
     /// bring the boxes and the actions back. With nothing waiting, the pointer under the boxes
     /// draws nothing at all: there is nothing to point at.
@@ -1113,9 +1125,9 @@ final class ScreenTests: XCTestCase {
         XCTAssertFalse(element("actions.waitingPointer").exists,
                        "The pointer to the waiting list is drawn although nothing is waiting.")
 
-        let toggle = element("actions.waiting")
+        let toggle = switchPart("Waiting for")
         XCTAssertTrue(toggle.waitForExistence(timeout: 20),
-                      "The Waiting for switch is not beside the column's name. On screen: \(visibleTexts())")
+                      "The switch Actions | Waiting for is not under the title. On screen: \(visibleTexts())")
         toggle.pressCentre()
 
         XCTAssertTrue(element("waiting.empty").waitForExistence(timeout: 20),
@@ -1124,8 +1136,8 @@ final class ScreenTests: XCTestCase {
                        "The screen claims notes are still coming from iCloud in a vault that is all here.")
         XCTAssertFalse(element("waiting.list").exists, "A list is drawn although nothing is waiting.")
 
-        // The same switch is in the other header; pressing it brings the first half back.
-        let back = element("actions.waiting")
+        // The same switch stays on the other half; its **Actions** part brings the first half back.
+        let back = switchPart("Actions")
         XCTAssertTrue(back.waitForExistence(timeout: 10),
                       "The Waiting for half has no switch to go back with. On screen: \(visibleTexts())")
         back.pressCentre()
@@ -1177,7 +1189,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(becomes(within: 10) { self.words(of: pointer).contains("1 waiting") },
                       "The pointer does not say one line is waiting. It says: \(words(of: pointer))")
 
-        let toggle = element("actions.waiting")
+        let toggle = switchPart("Waiting for")
         XCTAssertTrue(toggle.waitForExistence(timeout: 10), "The Waiting for switch is missing.")
         toggle.pressCentre()
 
@@ -1223,7 +1235,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(words(of: caption).contains("waited"), "The start of the wait was lost when the date moved.")
 
         // And back to the actions, with the pointer there again.
-        let back = element("actions.waiting")
+        let back = switchPart("Actions")
         XCTAssertTrue(back.waitForExistence(timeout: 10), "The Waiting for half has no switch to go back with.")
         back.pressCentre()
         XCTAssertTrue(element("actions.fold").waitForExistence(timeout: 20),
@@ -1920,7 +1932,8 @@ final class ScreenTests: XCTestCase {
     /// that is a bit scary."* Every part starts folded, so step 7's week bar is not there at
     /// first; its heading names the week it shows rather than "the week"; pressing the heading
     /// opens the step and pressing it again folds it; and **Open all** in the summary opens
-    /// every part. The test vault wipes the app's settings first, so "folded at first" is the
+    /// every part. Since build 312 the first part with something to do opens by itself; step 7
+    /// counts nothing to do, so it still starts folded. The test vault wipes the app's settings first, so "folded at first" is the
     /// default and not something an earlier test left behind. Everything pressed is found among
     /// buttons (build 249).
     func testTheReviewFoldsStepByStep() {
@@ -1933,7 +1946,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertFalse(heading.label.contains("at the week"),
                        "Step 7's heading does not name the week it shows. It says: \(heading.label)")
         XCTAssertFalse(element("review.lookBack").exists,
-                       "Step 7 is open the first time the review is shown. Every part should start folded.")
+                       "Step 7 is open the first time the review is shown. It counts nothing to do, so it should start folded.")
 
         if heading.isHittable { heading.press() } else { heading.pressCentre() }
         XCTAssertTrue(reveal("review.lookBack").exists,
@@ -1963,6 +1976,9 @@ final class ScreenTests: XCTestCase {
         let heading = reveal(app.buttons.matching(identifier: "review.part.\(part)").firstMatch)
         XCTAssertTrue(heading.exists,
                       "The Weekly review has no heading review.part.\(part). On screen: \(visibleTexts())")
+        // Build 312: the first part with something to do opens by itself. A part that is
+        // already open is left alone — a press would fold it.
+        if (heading.value as? String) == "open" { return }
         if heading.isHittable { heading.press() } else { heading.pressCentre() }
     }
 

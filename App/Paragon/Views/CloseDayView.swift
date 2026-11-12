@@ -23,6 +23,9 @@ struct CloseDayView: View {
     /// `onAppear` runs again when the sheet is re-laid-out, and reading the note a second time
     /// would throw away what he has typed since.
     @State private var loaded = false
+    /// Build 312: how often this sheet has been opened (see `HintParagraph`). Counted once per
+    /// opening, under the same `loaded` guard as the note.
+    @AppStorage("closeDayHintOpens") private var hintOpens = 0
     /// Why the words could not be saved, shown in the sheet (build 261). A sheet's messages
     /// belong in the sheet (build 238), and closing it would have thrown the words away.
     @State private var saveProblem: String?
@@ -107,6 +110,7 @@ struct CloseDayView: View {
         .onAppear {
             model.loadFirstPicks()
             guard !loaded else { return }
+            hintOpens = HintRule.counting(hintOpens)
             lookingBack = model.lookingBack(for: day)
             shownLookingBack = lookingBack
             loaded = true
@@ -181,10 +185,8 @@ struct CloseDayView: View {
                     .font(Txt.label)
                     .foregroundStyle(.soft)
             } else {
-                Text("Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.")
-                    .font(Txt.label)
-                    .foregroundStyle(.soft)
-                    .fixedSize(horizontal: false, vertical: true)
+                HintParagraph(text: "Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.",
+                              opens: hintOpens, tint: tint, identifier: "closeDay.how")
                 ForEach(tomorrowShown) { ref in
                     // **First** in front of the row, larger (build 240): the tick circle came
                     // first before, and a press meant for the mark finished the task instead.
