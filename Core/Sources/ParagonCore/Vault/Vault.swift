@@ -213,8 +213,15 @@ public final class Vault {
     /// The budget is a local count, never state on this object: the sync engine reads the same
     /// vault off the main thread with a budget of its own, and a shared counter could have handed
     /// the main thread a wait.
-    public func allNotes(cloudFetches: Int = 0) throws -> [Note] {
+    ///
+    /// **`known` is what the caller already holds** (review round 2, hardening-17). A note in it
+    /// whose file is here, current, and still carries the very date it was read with is handed
+    /// back as it is, without opening the file: a re-read of 5,000 notes then costs a listing,
+    /// not 5,000 reads. Everything else — new, changed, an older copy, not here — is read as
+    /// before, and named in `notesReadAfresh`.
+    public func allNotes(cloudFetches: Int = 0, reusing known: [Note] = []) throws -> [Note] {
         var listing = Listing(budget: max(0, cloudFetches))
+        for note in known where note.modifiedAt != nil { listing.known[note.relativePath] = note }
         var result: [Note] = listNotes(kind: .inbox, into: &listing)
         for kind in [ParaKind.project, .area, .resource, .archive, .daily, .goal] {
             result.append(contentsOf: listNotes(kind: kind, into: &listing))
@@ -223,6 +230,7 @@ public final class Vault {
         notesWaitingForCloud = listing.waiting
         notesBeingUpdated = listing.stale
         cloudFetchesLeftAfterLastLoad = listing.budget
+        notesReadAfresh = listing.fresh
         return result
     }
 
@@ -243,6 +251,10 @@ public final class Vault {
         var waiting: [String] = []
         var skipped: [String] = []
         var stale: [String] = []
+        /// What the caller already holds, by path; a note still at its date is not read again.
+        var known: [String: Note] = [:]
+        /// The notes that were read from their files this time.
+        var fresh: [String] = []
     }
 
     private func listNotes(kind: ParaKind, into listing: inout Listing) -> [Note] {
@@ -250,7 +262,7 @@ public final class Vault {
             let inboxURL = url(for: config.inboxFile)
             guard CloudFiles.exists(inboxURL) else { return [] }
             let presence: CloudFiles.Presence = fm.fileExists(atPath: inboxURL.path) ? CloudFiles.presence(of: inboxURL) : .away
-            guard let inbox = readListed(config.inboxFile, presence: presence, into: &listing) else { return [] }
+            guard let inbox = readListed(config.inboxFile, presence: presence, at: inboxURL, into: &listing) else { return [] }
             return [inbox]
         }
         guard let folder = config.folder(for: kind) else { return [] }
@@ -260,8 +272,11 @@ public final class Vault {
         // vault look empty — no files seen, so nothing even reported as unreadable (build 104).
         guard fm.fileExists(atPath: folderURL.path),
               let enumerator = fm.enumerator(at: folderURL,
-                                             includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey,
-                                                                          .isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey],
+                                             // Not the iCloud keys: asked for here they are fetched
+                                             // for every file and then fetched again by
+                                             // `presence(of:)`, which doubled the cost of a
+                                             // listing (measured, review round 2).
+                                             includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
                                              options: [.skipsPackageDescendants]) else { return [] }
         var result: [Note] = []
         for case let fileURL as URL in enumerator {
@@ -278,8 +293,8 @@ public final class Vault {
             }
             guard !name.hasPrefix("."), fileURL.pathExtension.lowercased() == "md",
                   (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
-                  let rel = relativePath(for: fileURL) else { continue }
-            if let note = readListed(rel, presence: CloudFiles.presence(of: fileURL), into: &listing) {
+                  let rel = listedRelativePath(of: fileURL) else { continue }
+            if let note = readListed(rel, presence: CloudFiles.presence(of: fileURL), at: fileURL, into: &listing) {
                 result.append(note)
             }
         }
@@ -295,11 +310,35 @@ public final class Vault {
         return result.sorted(by: Note.byArrangedOrder)
     }
 
+    /// The vault path of a file the listing found. The listing walks from the vault's own root,
+    /// so the file's path nearly always starts with it and the answer is a cut of the string;
+    /// working it out through the file system instead cost a fifth of a second for 5,000 notes
+    /// (review round 2). Anything else goes the careful way.
+    private func listedRelativePath(of fileURL: URL) -> String? {
+        let root = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
+        let path = fileURL.path
+        if path.hasPrefix(root), !path.contains("/../"), !path.contains("/./") {
+            return String(path.dropFirst(root.count))
+        }
+        return relativePath(for: fileURL)
+    }
+
     /// One note found while listing (build 261). Read when its contents are here — an older copy
     /// counts, and is also named in `stale` so whole-vault writes can wait for the newer one —
     /// waited for only while the listing's budget allows, and otherwise named as still coming.
     /// A try costs one whether or not the file comes.
-    private func readListed(_ rel: String, presence: CloudFiles.Presence, into listing: inout Listing) -> Note? {
+    ///
+    /// `fileURL` is the file as the listing found it, when it is there at all: its date decides
+    /// whether a note the caller already holds can be handed back unread.
+    private func readListed(_ rel: String, presence: CloudFiles.Presence, at fileURL: URL? = nil,
+                            into listing: inout Listing) -> Note? {
+        if let fileURL {
+            if presence == .here, let held = listing.known[rel],
+               Self.canReuse(held, fileDate: try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
+                             kind: kind(forRelativePath: rel)) {
+                return held
+            }
+        }
         var waiting = false
         if presence == .away {
             guard listing.budget > 0 else {
@@ -315,6 +354,7 @@ public final class Vault {
         do {
             let note = try readNote(relativePath: rel, presence: presence, waitingForCloud: waiting)
             if presence == .stale { listing.stale.append(rel) }
+            listing.fresh.append(rel)
             return note
         } catch {
             if presence == .away || (error as? VaultError) == .notDownloadedYet(rel) {
@@ -384,6 +424,18 @@ public final class Vault {
     /// renamed with its links — waits until they are current, or it would write over the newer
     /// version from the old one.
     public private(set) var notesBeingUpdated: [String] = []
+
+    /// The notes the last `allNotes` read from their files: new ones, changed ones, and every
+    /// one when the caller held nothing. A note handed back unread is not in it.
+    public private(set) var notesReadAfresh: [String] = []
+
+    /// The rule for handing a held note back unread: the file carries exactly the date the note
+    /// was read (or saved) with, and the note is still of the kind its folder says. A date that
+    /// differs either way — newer, or older after a backup was put back — means read it.
+    static func canReuse(_ held: Note, fileDate: Date?, kind: ParaKind?) -> Bool {
+        guard let fileDate, let heldDate = held.modifiedAt, let kind else { return false }
+        return heldDate == fileDate && held.kind == kind
+    }
 
     /// Notes `allNotes()` could not read because iCloud has not sent them to this device yet.
     /// They are not lost and not broken: a download has been asked for and they will appear.

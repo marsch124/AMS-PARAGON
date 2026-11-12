@@ -136,6 +136,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var vault: Vault?
     @Published private(set) var notes: [Note] = [] {
         didSet {
+            stateGeneration &+= 1
             index = NoteIndex(notes: notes)
             refreshProjectGroups()
             // The one place that sees every change to the notes (build 271): `save` and
@@ -551,7 +552,7 @@ final class AppModel: ObservableObject {
     // MARK: Work notes
 
     /// Notes in the vault's Work folder: a separate set, deliberately outside everything else.
-    @Published private(set) var workNotes: [Note] = []
+    @Published private(set) var workNotes: [Note] = [] { didSet { stateGeneration &+= 1 } }
     /// Whether the Work row is in the sidebar. Not stored anywhere: it goes when the app does.
     @Published var workRevealed = false
     func refreshWorkNotes() {
@@ -943,10 +944,26 @@ final class AppModel: ObservableObject {
     /// A cheap fingerprint of every note file's path and modification date.
     private func currentVaultSignature() -> String? {
         guard let vault else { return nil }
-        var parts: [String] = []
+        return Self.signature(of: vault, notes: notes, fromFiles: true)
+    }
+
+    /// The fingerprint. `fromFiles` asks each note's file for its date; false takes the date the
+    /// note was read with, which is what a re-read uses (review round 2): a file changed between
+    /// that read and this line then still differs from the fingerprint, and the next check reads
+    /// it, instead of the change being signed off unseen. The two give the same answer for a
+    /// note that has not changed since it was read. `nonisolated`, so the background re-read can
+    /// work it out on a `Vault` of its own.
+    nonisolated private static func signature(of vault: Vault, notes: [Note], fromFiles: Bool) -> String {
+        var parts: [String] = signatureOfFolders(in: vault)
         for note in notes {
-            parts.append("\(note.relativePath)@\(vault.modificationDate(of: note.relativePath)?.timeIntervalSince1970 ?? 0)")
+            let date = fromFiles ? vault.modificationDate(of: note.relativePath) : note.modifiedAt
+            parts.append("\(note.relativePath)@\(date?.timeIntervalSince1970 ?? 0)")
         }
+        return parts.joined(separator: "|")
+    }
+
+    nonisolated private static func signatureOfFolders(in vault: Vault) -> [String] {
+        var parts: [String] = []
         // Folder dates change when notes are added or removed. Templates is in the list so a
         // template edited on the other device is picked up too; nothing else notices it.
         for folder in [vault.config.projectsFolder, vault.config.areasFolder, vault.config.resourcesFolder,
@@ -958,7 +975,7 @@ final class AppModel: ObservableObject {
             let path = "\(vault.config.templatesFolder)/\(name).md"
             parts.append("\(path)@\(vault.modificationDate(of: path)?.timeIntervalSince1970 ?? 0)")
         }
-        return parts.joined(separator: "|")
+        return parts
     }
 
     // MARK: Files iCloud has not sent yet
@@ -1071,7 +1088,7 @@ final class AppModel: ObservableObject {
         guard vault != nil, !isSyncing else { return }
         if !notesWaitingForCloud.isEmpty || !cloudDownloads.isEmpty {
             log("iCloud reported a change; re-reading the vault")
-            reload()
+            reloadInBackground()
         } else {
             checkForExternalChanges()
         }
@@ -1168,15 +1185,20 @@ final class AppModel: ObservableObject {
         // Notes still coming from iCloud need another look even though nothing on disk has
         // changed: materialising a file does not change its date, so the signature below would
         // never notice them arriving (build 102).
+        //
+        // Both re-reads below run in the background (review round 2, hardening-17): this is the
+        // 10 s tick, and read here it stopped the app for as long as the vault took to read —
+        // every 10 s for as long as one note was still coming.
         if !notesWaitingForCloud.isEmpty {
-            reload()
+            reloadInBackground()
             return
         }
+        lookForParkedVersionsNowAndThen()
         let signature = currentVaultSignature()
         if vaultSignature == nil { vaultSignature = signature; return }
         guard signature != vaultSignature else { return }
         log("files changed outside the app; reloading")
-        reload()
+        reloadInBackground()
     }
 
     private func watchForExternalChanges() {
@@ -1286,10 +1308,14 @@ final class AppModel: ObservableObject {
             // time inside `init` before the first frame, and a launch that waited for iCloud
             // here is what iOS stopped. What is not on this device is named in
             // `notesWaitingForCloud` and fetched by `fetchCloudFiles` on a thread of its own.
-            notes = try vault.allNotes(cloudFetches: 0)
+            //
+            // **Only the notes whose date changed are opened** (review round 2): the ones this
+            // app already holds at the file's own date are handed back as they are.
+            notes = try vault.allNotes(cloudFetches: 0, reusing: notes)
             unreadableNotes = vault.skippedFiles
             notesWaitingForCloud = vault.notesWaitingForCloud
             notesBeingUpdated = vault.notesBeingUpdated
+            lookForParkedVersions(in: vault.notesReadAfresh)
             if waitingBefore.contains(where: { !notesWaitingForCloud.contains($0) }) {
                 // `afterUpdate`: a reload can run inside a view update. `drainOutbox` returns at
                 // once when the outbox is empty, and its own reload sees nothing newly arrived,
@@ -1308,7 +1334,9 @@ final class AppModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
-        vaultSignature = currentVaultSignature()
+        // From the dates the notes were read with, not a second look at the files: see
+        // `signature(of:notes:fromFiles:)`.
+        vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
         refreshDeleted()
         refreshSnippets()
         refreshWorkNotes()
@@ -1317,6 +1345,213 @@ final class AppModel: ObservableObject {
         // and `notesWaitingForCloud` was set after it. By the time the wait is over both are in
         // place, and a burst of reloads is one write.
         writeWidgetSnapshotSoon()
+        // After everything above, so a background re-read that started before this one knows
+        // its answer is the older of the two.
+        reloadsDone &+= 1
+    }
+
+    // MARK: Re-reading in the background (review round 2, hardening-17)
+
+    /// Counts every change this app makes to what a re-read fills in: the notes, the work notes,
+    /// Deleted, snippets, templates, tags and saved searches. **A background re-read hands its
+    /// list over only when this has not moved since it started** — otherwise something here is
+    /// newer than what it read, and an older list must never replace it.
+    private var stateGeneration = 0
+    /// How many times `reload()` has run, so a background re-read overtaken by one stands down.
+    private var reloadsDone = 0
+    /// One background re-read at a time, numbered like the iCloud pass: one that has not come
+    /// back after a minute is taken as stuck, a new one may start, and the old answer is ignored.
+    private var backgroundReadStarted: Date?
+    private var backgroundReadNumber = 0
+    private var backgroundReadWantedAgain = false
+
+    /// Everything `reload()` reads, read on another thread.
+    private struct VaultReading: Sendable {
+        var notes: [Note]
+        var unreadable: [String]
+        var waiting: [String]
+        var updating: [String]
+        var readAfresh: [String]
+        var signature: String
+        var deleted: [DeletedNote]
+        var snippets: [Snippet]
+        var templates: [TemplateFile]
+        var knownTags: [String]
+        var standardPlaceholders: [String]
+        var reasonPlaceholders: [String]
+        var workNotes: [Note]
+        var savedSearches: [SavedSearch]
+    }
+
+    /// The whole re-read, on a `Vault` of its own made from the plain URL: a `Vault` is a class
+    /// the main thread changes, so the one the app holds never leaves it.
+    nonisolated private static func readVault(at root: URL, reusing known: [Note]) -> VaultReading? {
+        guard let own = try? Vault(rootURL: root) else { return nil }
+        // The folders' dates first: a note added while the notes are being read then makes the
+        // next check differ, and it is read then.
+        let folders = signatureOfFolders(in: own)
+        guard let notes = try? own.allNotes(cloudFetches: 0, reusing: known) else { return nil }
+        let templates = own.templates()
+        return VaultReading(
+            notes: notes, unreadable: own.skippedFiles, waiting: own.notesWaitingForCloud,
+            updating: own.notesBeingUpdated, readAfresh: own.notesReadAfresh,
+            signature: (folders + notes.map { "\($0.relativePath)@\($0.modifiedAt?.timeIntervalSince1970 ?? 0)" })
+                .joined(separator: "|"),
+            deleted: own.deletedNotes(), snippets: own.snippets(), templates: templates,
+            knownTags: own.knownTags(),
+            standardPlaceholders: own.areaStandardPlaceholders(among: templates),
+            reasonPlaceholders: own.goalReasonPlaceholders(among: templates),
+            workNotes: own.workNotes(), savedSearches: own.savedSearches())
+    }
+
+    /// Re-reads the vault without stopping the app: the reading happens on another thread and
+    /// the finished lists are handed to the screen. For changes that came from outside — the
+    /// 10 s check, iCloud's own notice — where nobody is waiting on the answer. Everything the
+    /// app does itself still calls `reload()`, which has its answer before the next line.
+    func reloadInBackground() {
+        guard let vault else { return }
+        let now = Date()
+        if let started = backgroundReadStarted, now.timeIntervalSince(started) < 60 {
+            backgroundReadWantedAgain = true
+            return
+        }
+        if backgroundReadStarted != nil { log("a background re-read has not come back; starting another") }
+        backgroundReadNumber += 1
+        backgroundReadStarted = now
+        backgroundReadWantedAgain = false
+        let number: Int = backgroundReadNumber
+        let root: URL = vault.rootURL
+        let known: [Note] = notes
+        let generation: Int = stateGeneration
+        let reloads: Int = reloadsDone
+        Task { [weak self] in
+            let reading: VaultReading? = await AppModel.offMain { () -> VaultReading? in
+                AppModel.readVault(at: root, reusing: known)
+            }
+            self?.backgroundReadFinished(reading, number: number, root: root, generation: generation, reloads: reloads)
+        }
+    }
+
+    private func backgroundReadFinished(_ reading: VaultReading?, number: Int, root: URL, generation: Int, reloads: Int) {
+        // One given up as stuck, coming back after all: a newer one has its say.
+        guard number == backgroundReadNumber else { return }
+        backgroundReadStarted = nil
+        let again = backgroundReadWantedAgain
+        backgroundReadWantedAgain = false
+        // Another folder was opened meanwhile, or a sync has started: its own reload follows.
+        guard let vault, vault.rootURL == root, !isSyncing else { return }
+        // A `reload()` ran while this was reading: the screen already has something newer.
+        guard reloads == reloadsDone else {
+            if again { reloadInBackground() }
+            return
+        }
+        guard let reading, generation == stateGeneration else {
+            // Something was changed here while the reading went on (a task ticked, a note saved),
+            // so this list is older than the screen in that one place. It is thrown away and the
+            // vault read again now — only the files that changed are opened.
+            log("background re-read set aside; reading again")
+            reload()
+            return
+        }
+        let waitingBefore = notesWaitingForCloud
+        // Nothing different: the lists are left alone, so nothing on screen is drawn again.
+        if reading.notes != notes { notes = reading.notes }
+        if reading.unreadable != unreadableNotes { unreadableNotes = reading.unreadable }
+        if reading.waiting != notesWaitingForCloud { notesWaitingForCloud = reading.waiting }
+        if reading.updating != notesBeingUpdated { notesBeingUpdated = reading.updating }
+        if reading.deleted != deletedNotes { deletedNotes = reading.deleted }
+        if reading.snippets != snippets { snippets = reading.snippets }
+        if reading.templates != templates { templates = reading.templates }
+        if reading.knownTags != knownTags { knownTags = reading.knownTags }
+        standardPlaceholders = reading.standardPlaceholders
+        reasonPlaceholders = reading.reasonPlaceholders
+        if reading.workNotes != workNotes { workNotes = reading.workNotes }
+        if reading.savedSearches != savedSearches { savedSearches = reading.savedSearches }
+        vaultSignature = reading.signature
+        afterReading(waitingBefore: waitingBefore)
+        lookForParkedVersions(in: reading.readAfresh)
+        writeWidgetSnapshotSoon()
+        if again { reloadInBackground() }
+    }
+
+    // MARK: Versions iCloud has parked (review round 2, hardening-09)
+
+    private var parkedToAsk: Set<String> = []
+    private var parkedTries: [String: Int] = [:]
+    private var parkedLookRunning = false
+    private var lastParkedSweep: Date?
+
+    /// Every ten minutes, all notes are asked about, not only the changed ones: when this
+    /// device's version is the one iCloud kept, the other is parked without this file's date
+    /// moving, and no re-read would ever name it.
+    private func lookForParkedVersionsNowAndThen() {
+        let now = Date()
+        if let last = lastParkedSweep, now.timeIntervalSince(last) < 600 {
+            if !parkedToAsk.isEmpty { lookForParkedVersions(in: []) }
+            return
+        }
+        lastParkedSweep = now
+        lookForParkedVersions(in: notes.map(\.relativePath))
+    }
+
+    /// Asks iCloud, on another thread, whether it holds a second version of these notes. Each one
+    /// found is written beside its note as "(conflict …)", he is told, and only then is it
+    /// taken off iCloud's list. Called after every re-read with the notes that were opened.
+    private func lookForParkedVersions(in paths: [String]) {
+        guard let vault else { return }
+        parkedToAsk.formUnion(paths)
+        guard !parkedLookRunning, !parkedToAsk.isEmpty else { return }
+        parkedLookRunning = true
+        if paths.count == notes.count { lastParkedSweep = Date() }
+        let asking: [String] = Array(parkedToAsk)
+        parkedToAsk = []
+        let root: URL = vault.rootURL
+        Task { [weak self] in
+            let found: ParkedVersionsFound = await AppModel.offMain { () -> ParkedVersionsFound in
+                guard let own = try? Vault(rootURL: root) else { return ParkedVersionsFound() }
+                return own.settleParkedVersions(of: asking)
+            }
+            self?.parkedVersionsLooked(found, root: root)
+        }
+    }
+
+    private func parkedVersionsLooked(_ found: ParkedVersionsFound, root: URL) {
+        parkedLookRunning = false
+        guard let vault, vault.rootURL == root else {
+            parkedToAsk = []
+            parkedTries = [:]
+            return
+        }
+        // A version that could not be read yet is asked for again on the next checks, a few
+        // times; the ten-minute look at every note finds it after that.
+        for path in found.notYet {
+            parkedTries[path, default: 0] += 1
+            if parkedTries[path, default: 0] <= 5 { parkedToAsk.insert(path) }
+        }
+        guard let message = found.message else { return }
+        for kept in found.kept {
+            parkedTries[kept.note] = nil
+            log("iCloud had parked a version of \(kept.note); kept as \(kept.copy)")
+        }
+        // The copies are new notes: shown now, unless a sync is running, whose own re-read follows.
+        if !isSyncing { reload() }
+        // Said the way the editor says its own conflict; added to a message already up, never
+        // put in its place.
+        errorMessage = errorMessage.map { "\($0)\n\n\(message)" } ?? message
+    }
+
+    /// What follows a re-read that brought notes in: a capture kept for a note that has now
+    /// arrived is filed, and a sync that was waiting for the whole vault starts.
+    private func afterReading(waitingBefore: [String]) {
+        if waitingBefore.contains(where: { !notesWaitingForCloud.contains($0) }) {
+            afterUpdate { [weak self] in self?.drainOutbox() }
+        }
+        if syncWaitsForCloud, SyncWait.step(waiting: notesWaitingForCloud.count,
+                                            updating: notesBeingUpdated.count) == .start {
+            syncWaitsForCloud = false
+            log("sync starts: the vault is all here")
+            afterUpdate { [weak self] in Task { await self?.syncNow(quietly: true) } }
+        }
     }
 
     // MARK: The iPhone widget (build 174)
@@ -1714,7 +1949,7 @@ final class AppModel: ObservableObject {
 
     /// Searches he gave a name to (build 173). Kept in `.ams-para/searches.json`, so they
     /// travel with the vault through iCloud and are in every backup.
-    @Published private(set) var savedSearches: [SavedSearch] = []
+    @Published private(set) var savedSearches: [SavedSearch] = [] { didSet { stateGeneration &+= 1 } }
 
     func refreshSavedSearches() {
         savedSearches = vault?.savedSearches() ?? []
@@ -1758,7 +1993,7 @@ final class AppModel: ObservableObject {
     // MARK: Deleted notes
 
     /// What is in the Deleted list, most recently deleted first.
-    @Published private(set) var deletedNotes: [DeletedNote] = []
+    @Published private(set) var deletedNotes: [DeletedNote] = [] { didSet { stateGeneration &+= 1 } }
 
     func refreshDeleted() {
         deletedNotes = vault?.deletedNotes() ?? []
@@ -2158,10 +2393,10 @@ final class AppModel: ObservableObject {
     // MARK: Templates and snippets
 
     /// The blocks of task lines from `Templates/Snippets.md`.
-    @Published private(set) var snippets: [Snippet] = []
+    @Published private(set) var snippets: [Snippet] = [] { didSet { stateGeneration &+= 1 } }
     /// Tags made but not put on anything yet. A tag with nothing carrying it has nowhere to
     /// live in a markdown vault, so those few are kept in the vault's own state folder.
-    @Published private(set) var knownTags: [String] = []
+    @Published private(set) var knownTags: [String] = [] { didSet { stateGeneration &+= 1 } }
     /// Which template the Templates section is showing, shared by its two columns.
     @Published var templateSelection: String?
 
@@ -2178,7 +2413,7 @@ final class AppModel: ObservableObject {
     private(set) var reasonPlaceholders: [String] = []
 
     /// Every template file with the kind of note it makes.
-    @Published private(set) var templates: [TemplateFile] = []
+    @Published private(set) var templates: [TemplateFile] = [] { didSet { stateGeneration &+= 1 } }
 
     var templateNames: [String] { templates.map(\.name) }
 
