@@ -510,7 +510,7 @@ struct StartDayView: View {
                     .presentationCompactAdaptation(.popover)
                 }
             }
-            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+            TaskRow(ref: ref, showNote: true, place: .startDay) { model.toggle(ref) }
         }
     }
 

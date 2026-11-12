@@ -51,7 +51,7 @@ final class IPadScreens: XCTestCase {
                           "These tests look at the iPad's screens, and this is not an iPad.")
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments += ["-paragon-test-vault"]
+        app.launchArguments += ["-paragon-test-vault", "-paragon-settings-block-open"]
         // A question from iOS, such as Calendar access, would sit on top of every screen after it.
         _ = addUIInterruptionMonitor(withDescription: "A question from iOS") { alert in
             for title in ["Don’t Allow", "Don't Allow", "OK"] where alert.buttons[title].exists {

@@ -258,12 +258,15 @@ struct TodayView: View {
     }
 
     private var dayButtons: some View {
-        HStack(spacing: 6) {
+        // **Build 312 (flow-04, his pick C): one small word under each pill** — Note, Start,
+        // Close — drawn the way the sync ring's word is (the same small size, one point under
+        // the mark), in the band's own white. The pills and their places are unchanged.
+        HStack(alignment: .top, spacing: 6) {
             HeaderActionButton(title: nil,
                                spokenTitle: model.todayNote == nil ? "Create today's note" : "Open today's note",
                                markName: "calendar",
                                tint: SidebarSection.today.tint,
-                               onBand: true,
+                               onBand: true, caption: "Note",
                                identifier: "today.note") {
                 model.openDailyNote(for: .today())
             }
@@ -271,14 +274,14 @@ struct TodayView: View {
                                spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
                                markName: StartDayView.symbol,
                                tint: Theme.morningTint,
-                               strong: true, onBand: true) {
+                               strong: true, onBand: true, caption: "Start") {
                 model.activeSheet = .startDay
             }
             .accessibilityIdentifier("today.startDay")
             HeaderActionButton(title: nil,
                                spokenTitle: "Close the day: what you finished, what did not happen, and one line about it",
                                markName: CloseDayView.symbol,
-                               tint: Theme.eveningTint, onBand: true) {
+                               tint: Theme.eveningTint, onBand: true, caption: "Close") {
                 model.activeSheet = .closeDay
             }
             .accessibilityIdentifier("today.closeDay")
@@ -454,12 +457,37 @@ private struct HeaderActionButton: View {
     var strong = false
     /// On a screen's band (build 282): a white circle with the mark in its colour.
     var onBand = false
+    /// One small word under the pill (build 312), for the band's three symbol-only buttons.
+    /// Part of the button, so a press on the word counts too.
+    var caption: String?
     /// For the screen tests (build 277); empty when the button has no name of its own.
     var identifier = ""
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
+            if let caption {
+                // The sync ring's shape (`SyncRingMark`): mark, one point, the small word.
+                VStack(spacing: 1) {
+                    pill
+                    Text(caption)
+                        .font(Txt.tiny)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+                .contentShape(Rectangle())
+            } else {
+                pill
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(spokenTitle)
+        .accessibilityIdentifier(identifier)
+        .help(spokenTitle)
+    }
+
+    private var pill: some View {
             label
                 .font(Txt.label.weight(strong ? .bold : .semibold))
                 .lineLimit(1)
@@ -473,11 +501,6 @@ private struct HeaderActionButton: View {
                                                 lineWidth: strong ? 1.5 : 1))
                 // The tap area is the label, so the padding goes inside it (build 186).
                 .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(spokenTitle)
-        .accessibilityIdentifier(identifier)
-        .help(spokenTitle)
     }
 
     /// Views only, so the `@ViewBuilder` rule holds (build 58). Nothing hangs off this

@@ -43,7 +43,7 @@ final class ScreenTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments += ["-paragon-test-vault"]
+        app.launchArguments += ["-paragon-test-vault", "-paragon-settings-block-open"]
         app.launch()
     }
 
@@ -185,8 +185,12 @@ final class ScreenTests: XCTestCase {
     #endif
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).
-    /// Build 248: the **time?** button on a task row writes `~45m` into the note. Both the
-    /// button and the choice are pressed at the middle of their frames (`press(_:at:)`).
+    /// Build 248: the time button on a task row gives the task a time. **Build 312 (flow-19):
+    /// the dashed "How long?" is asked only in Start the day and Plan the day**, so the test
+    /// first proves a project's task row has no such button, then gives a task its time in
+    /// Start the day. The proof there is the button's own spoken words ("Takes 45 min"); that
+    /// the time is written as `~45m` is pinned in Core (`TaskTimeTests`). Both the button and
+    /// the choice are pressed at the middle of their frames (`press(_:at:)`).
     func testATaskCanBeGivenATime() {
         go(to: .projects)
 
@@ -194,50 +198,43 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 20),
                       "The Projects list does not show the test project.")
         row.press()
-
-        let editor = element("note.editor")
-        XCTAssertTrue(editor.waitForExistence(timeout: 20),
+        XCTAssertTrue(element("note.editor").waitForExistence(timeout: 20),
                       "The note opened without its editor.")
-
-        // The row first: it is found the way every row is (build 211), and its frame says
-        // whether the task box is on screen at all. Build 249's first run found the button but
-        // the phone could not work out where it was, so both frames go into every message.
         let row2 = element("task.Book the night train")
         XCTAssertTrue(row2.waitForExistence(timeout: 10),
                       "The note's task box has no row for the test task. On screen: \(visibleTexts())")
+        XCTAssertFalse(app.buttons.matching(identifier: "task.time.Book the night train").firstMatch.exists,
+                       "A task without a time still asks How long? on a project page (build 312 took that away).")
+
+        go(to: .today)
+        let open = element("today.startDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Start the day button. On screen: \(visibleTexts())")
+        open.pressCentre()
+        let field = element("startDay.newAction")
+        XCTAssertTrue(field.waitForExistence(timeout: 20),
+                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+        field.press()
+        field.typeText("Water the plants")
+        element("startDay.add").pressCentre()
+
         // **Among buttons, never "any element"** (build 249's second run): the name also lands
         // on an element with no frame at all — a wrapper SwiftUI makes around the button for its
         // popover — and `firstMatch` over every kind of element picked that one.
-        let named = app.descendants(matching: .any).matching(identifier: "task.time.Book the night train")
-        let time = app.buttons.matching(identifier: "task.time.Book the night train").firstMatch
-        XCTAssertTrue(time.waitForExistence(timeout: 10),
-                      "The task row has no time button (\(named.count) elements carry its name). On screen: \(visibleTexts())")
-        let whereItIs = "row \(row2.frame), button \(time.frame), window \(app.windows.firstMatch.frame), \(named.count) named"
-        // **Both platforms press the button** since build 250. Before it the Mac's note column
-        // was wider than its window at 900 points and the button sat past the window's edge
-        // (x 980 in a window ending at 962); the header row now wraps, so the row fits. If the
-        // button is off the window again, that is the fault this check is here to catch.
-        #if os(macOS)
-        let window = app.windows.firstMatch.frame
-        XCTAssertTrue(window.contains(time.frame),
-                      "The time button is outside the window, so the note column is too wide again: \(whereItIs)")
-        #endif
+        let time = app.buttons.matching(identifier: "task.time.Water the plants").firstMatch
+        XCTAssertTrue(time.waitForExistence(timeout: 20),
+                      "Start the day does not ask How long? on a task without a time. On screen: \(visibleTexts())")
         let timeFrame = time.frame
         guard Self.isOnScreen(timeFrame) else {
-            XCTFail("The time button has no place on screen: \(whereItIs)")
+            XCTFail("The time button has no place on screen: \(timeFrame)")
             return
         }
         press(time, at: timeFrame)
 
         let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
         let opened = choice.waitForExistence(timeout: 10)
-        #if os(macOS)
-        let why = opened ? "" : " The app's log: \(diagnosticsTail())"
-        #else
-        let why = ""
-        #endif
         XCTAssertTrue(opened,
-                      "Pressing the time button did not show the choices (\(whereItIs)). On screen: \(visibleTexts())\(why)")
+                      "Pressing the time button did not show the choices. On screen: \(visibleTexts())")
         guard opened else { return }
         // Measured once and used once (build 249's third run): reading `frame` twice asks the
         // app twice, and a popover can answer differently the second time.
@@ -248,8 +245,9 @@ final class ScreenTests: XCTestCase {
             choice.press()
         }
 
-        XCTAssertTrue(editorHolds(editor, "Book the night train ~45m", within: 10),
-                      "The note does not carry the time: \(String(((editor.value as? String) ?? "").suffix(200)))")
+        let set = app.buttons.matching(identifier: "task.time.Water the plants").firstMatch
+        XCTAssertTrue(becomes(within: 10) { set.exists && self.words(of: set).contains("45") },
+                      "The task did not take the time. Its button says: \(words(of: set))")
     }
 
     /// The editor's text is the proof: `type:` is in it, then not, then in it again.
@@ -1235,7 +1233,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertEqual(app.state, .runningForeground, "PARAGON stopped while the Waiting for list was used.")
     }
 
-    /// The focus timer (build 256): **Focus on this** under a task's time button starts the
+    /// The focus timer (build 256): **Focus on this** on a task's menu starts the
     /// clock and the bar appears; **Pause** turns into **Go on** and back; **Stop** takes the
     /// bar away. A clock stopped inside half a minute writes nothing and asks nothing, so the
     /// test needs no long wait; on a slow runner the question may come, and is answered. What a
@@ -1250,21 +1248,26 @@ final class ScreenTests: XCTestCase {
         let editor = element("note.editor")
         XCTAssertTrue(editor.waitForExistence(timeout: 20), "The note opened without its editor.")
 
-        let time = app.buttons.matching(identifier: "task.time.Book the night train").firstMatch
-        XCTAssertTrue(time.waitForExistence(timeout: 10),
-                      "The task row has no time button. On screen: \(visibleTexts())")
-        let timeFrame = time.frame
-        guard Self.isOnScreen(timeFrame) else {
-            XCTFail("The time button has no place on screen: \(timeFrame)")
-            return
-        }
-        press(time, at: timeFrame)
-
-        let start = app.buttons.matching(identifier: "focus.start").firstMatch
+        // **Build 312 (flow-19):** a task without a time has no time button on a project page
+        // any more, so the clock is started from the row's menu, where **Focus on this** is the
+        // first line (right-click on the Mac, a long press on the phone).
+        let task = element("task.Book the night train")
+        XCTAssertTrue(task.waitForExistence(timeout: 10),
+                      "The note's task box has no row for the test task. On screen: \(visibleTexts())")
+        #if os(macOS)
+        task.rightClick()
+        let start = app.menuItems["Focus on this"].firstMatch
+        #else
+        task.press(forDuration: 1.2)
+        let start = app.buttons["Focus on this"].firstMatch
+        #endif
         XCTAssertTrue(start.waitForExistence(timeout: 10),
-                      "The time button's list has no Focus on this. On screen: \(visibleTexts())")
-        let startFrame = start.frame
-        if Self.isOnScreen(startFrame) { press(start, at: startFrame) } else { start.press() }
+                      "The task's menu has no Focus on this. On screen: \(visibleTexts())")
+        #if os(macOS)
+        start.click()
+        #else
+        start.tap()
+        #endif
 
         XCTAssertTrue(element("focus.bar").waitForExistence(timeout: 10),
                       "Focus on this was pressed and no timer bar appeared. On screen: \(visibleTexts())")

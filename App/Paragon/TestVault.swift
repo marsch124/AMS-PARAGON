@@ -26,6 +26,14 @@ enum TestVault {
 
     static var isWanted: Bool { ProcessInfo.processInfo.arguments.contains(argument) }
 
+    /// Build 312: passed by the screen tests beside `argument`, so a note opens with its
+    /// settings block shown (the tests read `type:` and friends in the editor). Without it the
+    /// test vault starts folded, like a fresh install.
+    static let settingsBlockOpenArgument = "-paragon-settings-block-open"
+    static var wantsSettingsBlockOpen: Bool {
+        ProcessInfo.processInfo.arguments.contains(settingsBlockOpenArgument)
+    }
+
     /// Wipes what an earlier test run left behind. The simulator keeps the app's container
     /// between runs, so without this a stored section, a remembered note or an `editorMode`
     /// would decide what the next test sees — which is the very thing that made builds 123 to
