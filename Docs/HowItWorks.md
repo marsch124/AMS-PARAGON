@@ -313,7 +313,7 @@ Since build 304, swipe a task from the left edge, in any list, to tick it done (
 
 ### Swiping a task to tomorrow
 
-Since build 305, on the iPhone and iPad, swipe a task from the right edge to the left, in any task list, to move it to tomorrow. A full swipe moves it at once, and a message "Moved to tomorrow." appears. The task keeps its time of day (a call at 14:00 becomes a call at 14:00 tomorrow) and its repeat rule. Finished and cancelled tasks do not offer it. Swiping from the left still ticks a task done. On the Mac the right-click menu's date options are as before.
+Since build 305, on the iPhone and iPad, swipe a task from the right edge to the left, in any task list, to move it to tomorrow. A full swipe moves it at once, and a message "Moved to tomorrow." appears at the bottom with an **Undo** button for about eight seconds (since build 306). **Undo** gives the task its old date back, or no date if it had none; it only does so if the task still has the date the swipe gave it. The task keeps its time of day (a call at 14:00 becomes a call at 14:00 tomorrow) and its repeat rule, and **Undo** never changes the time of day. Finished and cancelled tasks do not offer it. Swiping from the left still ticks a task done. Since build 306 the same right-edge swipe works on lines in the **Inbox**: a **Tomorrow** button with the sunrise mark, in the evening colour, and a full swipe moves the line at once, with the same message and **Undo**. Only open lines have it. On the Mac the right-click menu's date options are as before.
 
 ### Ticking a task in the note's text
 
@@ -430,14 +430,15 @@ the **pencil** that turns writing on and off.
 
 ### Undo for one-press changes
 
-Two changes happen in one press, with no question first. Both can be put back for a short time.
+Three changes happen in one press, with no question first. Each can be put back for a short time.
 
 - **Move every overdue task to today or tomorrow**: the two small buttons over **Overdue** on Today. The message at the bottom says how many tasks moved.
+- **Swipe to tomorrow** (since build 306): the right-edge swipe on a task row or an Inbox line. The message says "Moved to tomorrow."
 - **Delete** in the Inbox: the Delete key, or **Delete** in the line's menu. The message says which line was deleted.
 
 While the message has an **Undo** button it stays for about eight seconds. The **Undo** button goes earlier if another message takes its place, and when you open or close a vault. One press on **Undo** is enough; a second press does nothing.
 
-- After a move, **Undo** gives every task its own old date back, not one date for all of them.
+- After a move, **Undo** gives every task its own old date back, not one date for all of them. After a swipe to tomorrow it gives that task its old date, or no date if it had none. The time of day is never changed by a move, so **Undo** leaves it alone.
 - After a delete, **Undo** puts the line back with its subtasks, in the same place. If the Inbox has changed since — a capture from your other device came in, for example — the line is added near where it was and nothing is written over. If the line is already there, the message says so and nothing is added. If iCloud is still bringing a newer copy of that note, **Undo** does not put it back: the message says the line stays deleted, because a write over an old copy could lose a newer capture.
 - **Undo** only changes what is still as the press left it. A task you ticked off, gave another date or deleted in the meantime, or that another device changed, is left as it is.
 - The message after **Undo** says how many were put back, and names the ones that were not, with the reason. For example: "5 of 6 tasks put back. “Send the invoice” was changed after the move, so it was left as it is." That message has no **Undo** of its own, so it goes away after the usual two and a half seconds.
@@ -448,7 +449,7 @@ There is no **Undo** on the buttons in **Close the day**, because that screen co
 
 Everything you capture lands here, and the screen is built for emptying it.
 
-The middle column is the list of lines waiting to be sorted, with a capture field on top. Click a line to pick it, and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it**. The first three set the line's date, and the button for the date it already has is filled in and outlined in orange, so the four buttons also tell you where the line stands. **Today** and **Tomorrow** keep a time the line already has; **Pick a date** opens the date window with its **At** line, and the line then shows its time beside the date. **File it** is a menu: move the line to a project or an area, turn it into a note, block time for it, take the date off again, or delete it. **Delete** asks nothing first: the message at the bottom has an **Undo** button for about eight seconds (see **Undo for one-press changes**). To rename a line, right-click it on the Mac or hold it on the phone — the same menu opens there, with **Rename…** on it.
+The middle column is the list of lines waiting to be sorted, with a capture field on top. Click a line to pick it, and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it**. The first three set the line's date, and the button for the date it already has is filled in and outlined in orange, so the four buttons also tell you where the line stands. **Today** and **Tomorrow** keep a time the line already has; **Pick a date** opens the date window with its **At** line, and the line then shows its time beside the date. **File it** is a menu: move the line to a project or an area, turn it into a note, block time for it, take the date off again, or delete it. **Delete** asks nothing first: the message at the bottom has an **Undo** button for about eight seconds (see **Undo for one-press changes**). Since build 306 you can also swipe an open line from the right edge to move it to tomorrow without picking it first: a **Tomorrow** button with the sunrise mark, in the evening colour; a full swipe does it at once, keeps the time of day, and shows "Moved to tomorrow." with an **Undo** button. To rename a line, right-click it on the Mac or hold it on the phone — the same menu opens there, with **Rename…** on it.
 
 On the Mac the four buttons are in the right-hand column, under the line you are sorting and above the places it can go, so everything about one line is in one place. On the phone there is no right-hand column, so the buttons appear just under the line you tapped. On both, the line you picked keeps its ordinary colours and the other lines fade, so the one you are working on stands out.
 

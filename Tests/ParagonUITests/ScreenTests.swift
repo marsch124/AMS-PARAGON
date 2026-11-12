@@ -492,6 +492,37 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Moved to tomorrow."].waitForExistence(timeout: 10),
                       "Tomorrow was pressed and no message said so. On screen: \(visibleTexts())")
     }
+
+    /// **Build 306:** an Inbox line swiped from the right goes to tomorrow, and the message's
+    /// **Undo** takes the date off again (the test line has none). The date is read off the
+    /// line itself, so this proves the file was written and then put back.
+    func testSwipingAnInboxLineToTomorrowCanBeUndone() {
+        go(to: .inbox)
+        let line = element("inbox.Call the bank about the ferry")
+        XCTAssertTrue(line.waitForExistence(timeout: 20),
+                      "The Inbox does not show the test line. On screen: \(visibleTexts())")
+        line.swipeLeft()
+        let tomorrow = element("inbox.swipeTomorrow.Call the bank about the ferry")
+        XCTAssertTrue(tomorrow.waitForExistence(timeout: 10),
+                      "A swipe from the right showed no Tomorrow button. On screen: \(visibleTexts())")
+        tomorrow.tap()
+
+        let undo = app.buttons.matching(identifier: "flash.undo").firstMatch
+        XCTAssertTrue(undo.waitForExistence(timeout: 20),
+                      "The swipe to tomorrow offered no Undo. On screen: \(visibleTexts())")
+        let day = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+        let parts = Calendar.current.dateComponents([.year, .month, .day], from: day)
+        let text = String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!)
+        let dated = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+        XCTAssertTrue(dated.waitForExistence(timeout: 20),
+                      "The line was swiped to tomorrow and shows no \(text). On screen: \(visibleTexts())")
+
+        undo.pressCentre()
+
+        XCTAssertTrue(becomes(within: 20) { !dated.exists },
+                      "Undo was pressed and the line still says \(text). On screen: \(visibleTexts())")
+    }
     #endif
 
     /// The boxes start folded on the phone and open on the Mac, so this asks the screen rather

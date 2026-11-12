@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (305) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (306) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 306 · 12 November 2026
+
+**Swipe an Inbox line to tomorrow, and Undo after any swipe to tomorrow.**
+
+**Before (build 305).** Task rows could be swiped to tomorrow, but Inbox lines could not: they had only the Tomorrow button after you picked a line. After a swipe to tomorrow the message "Moved to tomorrow." had no way back; to undo it you had to open the task and set the old date by hand.
+
+**New, swipe an Inbox line to tomorrow.**
+- In the Inbox, swipe a line from the right edge to the left to move it to tomorrow. A full swipe does it at once.
+- The button says **Tomorrow**, with the hand-drawn sunrise mark, in the evening colour, the same as on task rows since build 305.
+- The line keeps its time of day (a call at 14:00 becomes a call at 14:00 tomorrow).
+- Only open lines offer it. Ticked and cancelled lines do not.
+
+**New, Undo after a swipe to tomorrow.**
+- Both swipes (task rows in every list, and Inbox lines) now show "Moved to tomorrow." in the banner at the bottom with an **Undo** button. It is the same **Undo** that the buttons over **Overdue** on Today have had since build 277, and it stays about eight seconds.
+- **Undo** gives the task its old date back, or no date if it had none. The time of day is never changed by the move, so **Undo** does not touch it either.
+- **Undo** only writes back if the task still has the date the swipe gave it. If you or another device changed the date in the meantime, the task is left as it is (the same rule as the Overdue undo).
+
+**What did not change.** Swipe from the left edge to tick, the **Tomorrow** button under a picked Inbox line, the Mac right-click date options, and the buttons over Overdue.
+
+**The version.** It shows as "PARAGON 1.0 (306)".
 
 ## Build 305 · 12 November 2026
 

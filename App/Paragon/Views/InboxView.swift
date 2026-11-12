@@ -315,6 +315,25 @@ struct InboxRow: View {
         // between them they cost builds 71 to 74 — a line could no longer be picked at all.
         // Renaming is on the menu instead, and a line is filed by clicking a destination.
         .contextMenu { InboxLineMenu(ref: ref, rename: startEditing) }
+        // **Build 306 (his pick): swipe an Inbox line from the right to move it to tomorrow**,
+        // the same button task rows got in build 305, with an Undo in the message. Open lines
+        // only. A swipe action takes no click, so a line can still be picked (builds 71–74).
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            if !ref.task.isDone && ref.task.status != .cancelled {
+                Button {
+                    model.moveTasks([ref], to: DateOnly.today().adding(days: 1),
+                                    offersUndo: true, message: "Moved to tomorrow.")
+                } label: {
+                    Label {
+                        Text("Tomorrow")
+                    } icon: {
+                        Marks.templateImage("sunrise", size: 20)
+                    }
+                }
+                .tint(Theme.eveningTint)
+                .accessibilityIdentifier("inbox.swipeTomorrow.\(ref.task.title)")
+            }
+        }
         // The row is one thing to accessibility, named by its line, and it says out loud
         // whether it is the selected one (build 191). That is what lets a screen test check
         // the very fault of builds 71 to 74 — a line that cannot be picked — and it is also

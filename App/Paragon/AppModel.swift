@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 305
+    static let number = 306
 }
 
 @MainActor
@@ -1894,7 +1894,11 @@ final class AppModel: ObservableObject {
     /// the write, so it lists only the tasks that were really found and given the date; the
     /// closure may run twice (a note changed on disk is read again), and the second run
     /// replaces the first run's list.
-    func moveTasks(_ refs: [TaskRef], to date: DateOnly, offersUndo: Bool = false) {
+    ///
+    /// **Build 306:** `message` replaces the "1 task moved." words — a swipe to tomorrow (a task
+    /// row or an Inbox line) says "Moved to tomorrow." and offers the same Undo, so a swipe that
+    /// went too far gives the old date back. The time of day is never touched by the move.
+    func moveTasks(_ refs: [TaskRef], to date: DateOnly, offersUndo: Bool = false, message custom: String? = nil) {
         flushPendingEdits()
         guard let vault, !refs.isEmpty else { return }
         var byNote: [String: [TaskRef]] = [:]
@@ -1920,7 +1924,7 @@ final class AppModel: ObservableObject {
         reload()
         if result.isComplete {
             let moved = refs.filter { result.saved.contains($0.notePath) }.count
-            let message = moved == 1 ? "1 task moved." : "\(moved) tasks moved."
+            let message = custom ?? (moved == 1 ? "1 task moved." : "\(moved) tasks moved.")
             var undoable: [MovedTask] = []
             for path in result.saved {
                 for record in movedByNote[path] ?? [] where record.changedTheDate { undoable.append(record) }

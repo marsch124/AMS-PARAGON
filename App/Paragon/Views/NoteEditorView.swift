@@ -1769,8 +1769,10 @@ struct TaskRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             if !ref.task.isDone && ref.task.status != .cancelled {
                 Button {
-                    model.setDueDate(ref, DateOnly.today().adding(days: 1))
-                    model.flash("Moved to tomorrow.")
+                    // Build 306: through `moveTasks`, so the message carries an Undo that
+                    // gives the old date back. The time of day stays, as before.
+                    model.moveTasks([ref], to: DateOnly.today().adding(days: 1),
+                                    offersUndo: true, message: "Moved to tomorrow.")
                 } label: {
                     Label {
                         Text("Tomorrow")
