@@ -47,7 +47,7 @@ struct PhoneRootView: View {
             case .plan: return SidebarSection.timeBlocks.markName
             case .actions: return SidebarSection.allActions.markName
             case .inbox: return "tray"
-            case .browse: return "square.grid.2x2"
+            case .browse: return "folder"
             }
         }
 

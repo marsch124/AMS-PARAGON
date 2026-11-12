@@ -209,7 +209,9 @@ struct NoteIconChip: View {
             fallbackTint: current.tint,
             onPick: { picked in choose(picked) },
             onColour: { picked in chooseColour(picked) },
-            onCancel: { picking = false }
+            onCancel: { picking = false },
+            // 311: his rule — hand-drawn only. A symbol picked earlier is still drawn.
+            appleSymbols: false
         )
         .modifier(IconPickerSize())
     }

@@ -813,14 +813,9 @@ struct GoalProgressBar: View {
 /// another text size.
 struct MoveToArchiveIcon: View {
     var body: some View {
-        VStack(spacing: 0) {
-            MarkImage("arrow.down")
-                .font(Txt.listSecond.weight(.bold))
-            MarkImage("archivebox")
-                .font(Txt.list)
-        }
-        .frame(height: 21)
-        .accessibilityLabel("Move to the Archive")
+        // 311: one drawing, an arrow into a tray (it was two icons stacked, twice the height).
+        MarkImage("archivebox.and.arrow.down")
+            .accessibilityLabel("Move to the Archive")
     }
 }
 

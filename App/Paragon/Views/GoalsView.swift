@@ -437,7 +437,7 @@ enum ChainSymbol {
     static let datedGoal = SidebarSection.kind(.goal).markName   // target
     static let project = SidebarSection.kind(.project).markName  // flag
     static let area = SidebarSection.kind(.area).markName        // circle.grid.2x2
-    static let task = SidebarSection.allActions.markName         // circle
+    static let task = "circle"                                   // the ring is an open task (311)
 
     /// The right one for a goal note, whichever kind of goal it is.
     static func forGoal(_ note: Note) -> String {

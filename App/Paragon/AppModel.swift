@@ -78,9 +78,10 @@ enum SidebarSection: Hashable, Identifiable {
         case .map: return "point.3.filled.connected.trianglepath.dotted"
         case .timeBlocks: return "calendar.badge.clock"
         case .done: return "checkmark.circle"
-        // A plain ring, because Done is that ring with a tick in it and a task's own
-        // checkbox is the same circle. His idea, build 153.
-        case .allActions: return "circle"
+        // 311 (his tick in the premium review, icons-02): the ticked list. The plain ring of
+        // build 153 also meant "an open task" and "Active", so the tab said nothing by itself;
+        // the ring now stands for an open task only.
+        case .allActions: return "checklist"
         case .recent: return "clock.arrow.circlepath"
         case .deleted: return "trash"
         case .templates: return "doc.badge.gearshape"

@@ -21,7 +21,7 @@ packages:
   # not the share extension, not the widgets, and not ParagonCore, which stays free of it.
   AMSIcons:
     url: https://github.com/marsch124/AMS-Icons
-    revision: 355a839
+    revision: 39e8e93
 
 targets:
   Paragon:
