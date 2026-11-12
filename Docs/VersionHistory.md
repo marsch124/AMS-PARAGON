@@ -126,7 +126,7 @@ The version is shown as 1.0 (312) at the foot of the Mac sidebar and at the foot
 **14. iPhone and Mac: Start the day and Close the day explain themselves 3 times, then stop.**
 - Before: both screens showed a paragraph of explanation every day. It pushed your tasks down the screen.
 - Now: the paragraph is shown the first 3 times you open the screen. Each screen counts for itself.
-- From the 4th time there is only a small hand-drawn info mark, called **How this works**. Tap it to show the paragraph, and again to hide it.
+- From the 4th time there is only a small hand-drawn info mark, called **What to do here**. Tap it to show the paragraph, and again to hide it.
 - The one-line hints under the fields are unchanged.
 
 ### Calmer lists

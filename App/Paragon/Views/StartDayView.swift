@@ -665,9 +665,9 @@ struct HintParagraph: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("How this works")
+                .accessibilityLabel("What to do here")
                 .accessibilityIdentifier(identifier)
-                .help(asked ? "Hide the explanation" : "How this works")
+                .help(asked ? "Hide the explanation" : "What to do here")
             }
             if byItself || asked {
                 Text(text)

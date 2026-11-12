@@ -3554,7 +3554,7 @@ final class AppModel: ObservableObject {
         guard !title.isEmpty else { return nil }
         let length = planLength(of: ref.task)
         guard let start = DayPlan.nextFreeStart(length: length, from: planningStart(on: day),
-                                                busy: planningBusy(on: day)) else { return nil }
+                                                busy: planningBusy(on: day, excluding: [ref])) else { return nil }
         addPlanBlock(PlanBlock(start: start, end: start + length, title: title), on: day)
         return start
     }

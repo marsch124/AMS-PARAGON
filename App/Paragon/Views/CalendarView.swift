@@ -820,6 +820,5 @@ struct PlanWeekScreen: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .accessibilityIdentifier("plan.weekScreen")
     }
 }

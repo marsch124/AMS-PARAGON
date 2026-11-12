@@ -48,7 +48,7 @@ struct QuickCaptureView: View {
     @FocusState private var focused: Bool
 
     private var reading: CaptureReading { CaptureReading(line: text) }
-    private var canSave: Bool { !text.trimmingCharacters(in: .whitespaces).isEmpty }
+    private var canSave: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     /// One of his extras: the empty field says hello. Picked on appear, never mid-typing.
     static let greetings = [
@@ -548,7 +548,8 @@ struct CaptureSaveItem: ToolbarContent {
     }
 
     private var button: some View {
-        Button("Save", action: save)
+        // The bar squeezes a filled button to "S…" unless the word holds its own width.
+        Button(action: save) { Text("Save").lineLimit(1).fixedSize() }
             .buttonStyle(.filled(SidebarSection.inbox.tint))
             .accessibilityIdentifier("capture.save")
     }

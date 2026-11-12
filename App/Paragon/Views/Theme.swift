@@ -174,9 +174,11 @@ struct SyncStatusBar: View {
             Menu {
                 SyncChoices(settings: open)
             } label: {
-                label
+                // Primary, or the Menu paints the grey caption in a pale tint (build 312).
+                label.foregroundStyle(Color.primary)
             }
             .buttonStyle(.plain)
+            .tint(Color.primary)
             .disabled(model.vault == nil)
             .accessibilityIdentifier("sync.status")
             #endif
@@ -1227,6 +1229,7 @@ private struct TileTap: ViewModifier {
         if let action {
             content
                 .onTapGesture(perform: action)
+                .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isButton)
                 .accessibilityIdentifier("tray.tile")
         } else {

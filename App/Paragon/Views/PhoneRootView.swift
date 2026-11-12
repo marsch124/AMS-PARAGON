@@ -211,8 +211,12 @@ struct PhoneSyncButton: View {
             TimelineView(.periodic(from: .now, by: 60)) { context in
                 label(now: context.date)
             }
+            // A Menu paints its label in the tab's tint, which turned the grey caption into
+            // a pale colour that was hard to read; primary keeps it the grey it was.
+            .foregroundStyle(Color.primary)
         }
         .buttonStyle(.plain)
+        .tint(Color.primary)
         .disabled(model.vault == nil)
         // Build 301 (his ask): a gentle tap you can feel when a sync finishes — a soft one
         // when all is well, the warning buzz when it ended with conflicts.

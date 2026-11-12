@@ -549,7 +549,7 @@ final class ScreenTests: XCTestCase {
     /// the words it starts with: the part also carries its count ("Actions 3"). Apple's
     /// two-part switch is a row of buttons on the phone and of radio buttons on the Mac.
     private func switchPart(_ words: String) -> XCUIElement {
-        let named = NSPredicate(format: "label BEGINSWITH %@", words)
+        let named = NSPredicate(format: "label BEGINSWITH %@ OR title BEGINSWITH %@ OR value BEGINSWITH %@", words, words, words)
         #if os(macOS)
         return app.radioButtons.matching(named).firstMatch
         #else
