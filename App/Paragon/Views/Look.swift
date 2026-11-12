@@ -188,6 +188,8 @@ enum Txt {
     static let mono = Font.system(size: 14, design: .monospaced)
     /// A small coloured capsule: a status, a count, a fact.
     static let pill = Font.system(size: 11, weight: .medium)
+    /// The one small word under a symbol: the sync ring's word, the Today band's captions.
+    static let tiny = Font.system(size: 10)
     /// The sizes the note editor draws with (NSAttributedString wants numbers, not Fonts).
     enum Editor {
         static let text: CGFloat = 15
@@ -210,6 +212,7 @@ enum Txt {
     static let button = Font.body.weight(.semibold)
     static let mono = Font.system(.body, design: .monospaced)
     static let pill = Font.caption.weight(.medium)
+    static let tiny = Font.caption2
     enum Editor {
         static var text: CGFloat { UIFont.preferredFont(forTextStyle: .body).pointSize }
         static var h1: CGFloat { UIFont.preferredFont(forTextStyle: .title2).pointSize }

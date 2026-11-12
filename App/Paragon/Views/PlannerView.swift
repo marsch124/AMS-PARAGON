@@ -1225,7 +1225,7 @@ struct PlannerActionsView: View {
             ForEach(actions) { ref in
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .top, spacing: 6) {
-                        TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                        TaskRow(ref: ref, showNote: true, place: .plan) { model.toggle(ref) }
                         Button {
                             let start = nextFreeStart()
                             model.addPlanBlock(PlanBlock(start: start,

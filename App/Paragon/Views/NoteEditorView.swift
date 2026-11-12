@@ -37,7 +37,10 @@ struct NoteEditorView: View {
     @AppStorage("editorMode") private var mode: EditorMode = .edit
     /// The settings block at the top folded out of the editor (build 246). One setting for
     /// every note: he asked to compress "this area of each note", not one at a time.
-    @AppStorage("frontmatterFolded") private var frontmatterFolded = false
+    /// **Build 312 (flow-02): folded to begin with.** A fresh install starts folded, and an
+    /// older one is folded once at the first start of 312 (`AppModel.foldSettingsBlockOnce`,
+    /// Core's `SettingsBlockFold`); after that it is whatever he last chose.
+    @AppStorage(SettingsBlockFold.key) private var frontmatterFolded = true
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     private var isPhone: Bool { sizeClass == .compact }
@@ -255,6 +258,7 @@ struct NoteEditorView: View {
                     } label: {
                         MoveToArchiveIcon()
                     }
+                    .accessibilityIdentifier("note.moveToArchive")
                     .help("Move this note to the Archive folder and stop syncing its tasks")
                 }
                 // No Rename button. It was a second pencil beside the Edit toggle and a whole
@@ -1657,6 +1661,9 @@ struct TaskRow: View {
     @Environment(\.focusBarShown) private var focusBarShown
     let ref: TaskRef
     let showNote: Bool
+    /// Where the row is drawn (build 312, flow-19): only **Start the day** and **Plan the day**
+    /// ask "How long?" on a task without a time. Every other list leaves this alone.
+    var place: TaskTimePill.Place = .list
     var onAddSubtask: (() -> Void)? = nil
     let toggle: () -> Void
     @State private var pickingDate = false
@@ -1759,9 +1766,14 @@ struct TaskRow: View {
             Spacer()
             // How long it takes (build 248). A finished task keeps its time as plain words and
             // asks for nothing: "time?" on a ticked line would be a question with no use.
+            // **Build 312 (flow-19): the dashed question only where the day is planned.** Core's
+            // `TaskTimePill` decides; on every other list a row without a time shows nothing
+            // here, and **How long** on the row's menu is where a time is given.
             if useTaskTimes && !renaming {
                 if !ref.task.isDone {
-                    TaskTimeButton(ref: ref, tint: tint, offersFocus: focusBarShown)
+                    if TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes) != .nothing {
+                        TaskTimeButton(ref: ref, tint: tint, offersFocus: focusBarShown)
+                    }
                 } else if let minutes = ref.task.minutes {
                     Text(TaskTime.label(minutes))
                         .font(Txt.label)

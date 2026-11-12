@@ -804,10 +804,26 @@ struct GoalProgressBar: View {
 /// Since build 311 it is one hand-drawn mark of its own ("archivebox.and.arrow.down"), the
 /// same height as every other toolbar icon. A fixed 16 points: it sits in a toolbar, which
 /// does not grow with the text size.
+///
+/// **Build 312 (his yes, 12 November): on the Mac the word "Archive" stands beside the
+/// drawing**, so the button says what it does without a tooltip. Beside, not under: a Mac
+/// toolbar is one line high and a second line would be cut. The iPad keeps the drawing alone.
 struct MoveToArchiveIcon: View {
     var body: some View {
+        #if os(macOS)
+        HStack(spacing: 4) {
+            MarkImage("archivebox.and.arrow.down", size: 16)
+            Text("Archive")
+                .font(Txt.listSecond.weight(.medium))
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Move to the Archive")
+        #else
         MarkImage("archivebox.and.arrow.down", size: 16)
             .accessibilityLabel("Move to the Archive")
+        #endif
     }
 }
 

@@ -371,6 +371,16 @@ final class AppModel: ObservableObject {
     /// Not published: the publish watcher below appends to it.
     private(set) var diagnostics: [String] = []
 
+    /// Build 312 (flow-02): the settings block at the top of every note is folded **once**, on
+    /// the first start of this build, whatever an older build stored. After that the fold is
+    /// his own choice again. The rule is Core's `SettingsBlockFold`.
+    static func foldSettingsBlockOnce(_ defaults: UserDefaults = .standard) {
+        guard !defaults.bool(forKey: SettingsBlockFold.flippedKey) else { return }
+        let stored = defaults.object(forKey: SettingsBlockFold.key) as? Bool
+        defaults.set(SettingsBlockFold.isFolded(stored: stored, flipped: false), forKey: SettingsBlockFold.key)
+        defaults.set(true, forKey: SettingsBlockFold.flippedKey)
+    }
+
     init() {
         log("launch build \(BuildStamp.number)")
         loadCaughtToday()
@@ -388,15 +398,24 @@ final class AppModel: ObservableObject {
             exit(3)
         } else if TestVault.isWanted {
             TestVault.resetSettings()
+            // Build 312: the settings wiped above leave the block folded, as on a fresh
+            // install. The screen tests read a note's settings in the editor (`type:`,
+            // `horizon:`, `icon:`), so they ask for it open; a launch for pictures does not.
+            if TestVault.wantsSettingsBlockOpen {
+                UserDefaults.standard.set(false, forKey: SettingsBlockFold.key)
+            }
+            UserDefaults.standard.set(true, forKey: SettingsBlockFold.flippedKey)
             if let url = try? TestVault.make() {
                 openVault(at: url)
             } else {
                 vaultProblem = "The test vault could not be made."
             }
         } else {
+            Self.foldSettingsBlockOnce()
             restoreVault()
         }
         #else
+        Self.foldSettingsBlockOnce()
         restoreVault()
         #endif
         // After the screen tests have wiped the settings, so a test never inherits a clock a
