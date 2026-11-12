@@ -190,9 +190,9 @@ enum PictureText {
     }
 
     /// The pictures in a text storage, to put back after restyling.
-    nonisolated static func pictures(in storage: NSAttributedString) -> [(Int, PictureAttachment)] {
+    nonisolated static func pictures(in storage: NSAttributedString, range: NSRange? = nil) -> [(Int, PictureAttachment)] {
         var found: [(Int, PictureAttachment)] = []
-        storage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: storage.length)) { value, range, _ in
+        storage.enumerateAttribute(.attachment, in: range ?? NSRange(location: 0, length: storage.length)) { value, range, _ in
             if let a = value as? PictureAttachment { found.append((range.location, a)) }
         }
         return found
@@ -346,8 +346,9 @@ enum MarkdownAttributes {
         storage.setAttributes(base(color: primary), range: whole)
         PictureText.attach(pictures, to: storage)
         // Very long notes are left plain: highlighting every keystroke would drag.
-        if whole.length <= 200_000 {
-            for span in MarkdownHighlight.spans(in: text) {
+        if whole.length <= plainOver {
+            let spans = MarkdownHighlight.spans(in: text)
+            for span in spans {
                 guard span.range.location >= 0, NSMaxRange(span.range) <= whole.length, span.range.length > 0 else { continue }
                 storage.addAttributes(attributes(for: span.style, tint: tint, secondary: secondary, faint: faint), range: span.range)
             }
@@ -362,7 +363,7 @@ enum MarkdownAttributes {
             if hideMarkers {
                 let hidden: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.clear,
                                                              .font: PlatformFont.systemFont(ofSize: 0.1)]
-                for range in MarkdownHighlight.hiddenMarkers(in: text, cursor: cursor) where NSMaxRange(range) <= whole.length {
+                for range in MarkdownHighlight.hiddenMarkers(in: text, spans: spans, cursor: cursor) where NSMaxRange(range) <= whole.length {
                     storage.addAttributes(hidden, range: range)
                 }
             }
@@ -370,6 +371,51 @@ enum MarkdownAttributes {
         storage.endEditing()
     }
 
+    /// A note longer than this is left plain.
+    static let plainOver = 200_000
+
+    /// The same for a few whole lines only (premium review, hardening-20): what typing on a
+    /// line restyles, so a long note is not gone through from top to bottom on every key.
+    /// `block` and `inCode` come from `MarkdownHighlight.restyle(of:around:)`, which hands out
+    /// lines only when their look depends on nothing but themselves. The pictures in those
+    /// lines are put back exactly as the whole pass does.
+    static func apply(to storage: NSTextStorage, lines block: NSRange, inCode: Bool, tint: PlatformColor,
+                      primary: PlatformColor, secondary: PlatformColor, faint: PlatformColor,
+                      hideMarkers: Bool = false, cursor: Int? = nil) {
+        let ns = storage.mutableString
+        guard block.location >= 0, block.length > 0, NSMaxRange(block) <= ns.length else { return }
+        let pictures = PictureText.pictures(in: storage, range: block)
+        storage.beginEditing()
+        storage.setAttributes(base(color: primary), range: block)
+        PictureText.attach(pictures, to: storage)
+        if ns.length <= plainOver {
+            let end = NSMaxRange(block)
+            let spans = MarkdownHighlight.spans(in: ns, lines: block, inCode: inCode)
+            for span in spans {
+                guard span.range.location >= block.location, NSMaxRange(span.range) <= end, span.range.length > 0 else { continue }
+                storage.addAttributes(attributes(for: span.style, tint: tint, secondary: secondary, faint: faint), range: span.range)
+            }
+            // From here on in the lines' own numbering, and moved back into place.
+            let part = ns.substring(with: block)
+            for box in TaskBox.boxRanges(in: part) where NSMaxRange(box) <= block.length {
+                storage.addAttributes([.foregroundColor: tint,
+                                       .font: PlatformFont.systemFont(ofSize: baseSize, weight: .bold)],
+                                      range: NSRange(location: box.location + block.location, length: box.length))
+            }
+            if hideMarkers {
+                let hidden: [NSAttributedString.Key: Any] = [.foregroundColor: PlatformColor.clear,
+                                                             .font: PlatformFont.systemFont(ofSize: 0.1)]
+                let local = spans.map { MarkdownSpan(range: NSRange(location: $0.range.location - block.location, length: $0.range.length), style: $0.style) }
+                // No cursor at all hides every marker (the phone while only reading); a cursor
+                // on another line hides every marker in these lines, which is the same here.
+                let near = cursor.flatMap { $0 >= block.location && $0 <= end ? $0 - block.location : nil }
+                for range in MarkdownHighlight.hiddenMarkers(in: part, spans: local, cursor: near) where NSMaxRange(range) <= block.length {
+                    storage.addAttributes(hidden, range: NSRange(location: range.location + block.location, length: range.length))
+                }
+            }
+        }
+        storage.endEditing()
+    }
     private static func attributes(for style: MarkdownStyle, tint: PlatformColor,
                                    secondary: PlatformColor, faint: PlatformColor) -> [NSAttributedString.Key: Any] {
         switch style {
@@ -403,6 +449,53 @@ enum MarkdownAttributes {
         case .rule:
             return [.foregroundColor: faint]
         }
+    }
+}
+
+/// Remembers the change being typed, so that only its lines are restyled afterwards (premium
+/// review, hardening-20). The text view says what is about to change (`willChange`); once it
+/// has changed, `plan` says which lines to restyle. Whenever anything is unclear — two
+/// changes before one restyle, a change nobody announced, a length that does not add up, a
+/// line that opens or closes a code block — the answer is the whole note, as before.
+@MainActor
+struct TypingRestyle {
+    private var pending: (location: Int, inserted: Int, lengthAfter: Int)?
+    private var whole = false
+
+    /// A change was announced and has not been restyled yet.
+    var isWaiting: Bool { pending != nil || whole }
+
+    mutating func willChange(_ storage: NSTextStorage, in range: NSRange, to replacement: String) {
+        guard pending == nil, !whole else { whole = true; return }
+        let ns = storage.mutableString
+        let added = (replacement as NSString).length
+        guard range.location >= 0, NSMaxRange(range) <= ns.length,
+              range.length <= MarkdownHighlight.longestPart, added <= MarkdownHighlight.longestPart else { whole = true; return }
+        // The lines as they are before the change: taking the ``` off a code block changes
+        // every line after it, and afterwards nothing in the line says so any more.
+        let lines = ns.lineRange(for: range)
+        guard lines.length <= MarkdownHighlight.longestPart,
+              !MarkdownHighlight.reachesOtherLines(ns.substring(with: lines)) else { whole = true; return }
+        pending = (range.location, added, ns.length - range.length + added)
+    }
+
+    mutating func plan(for storage: NSTextStorage) -> MarkdownHighlight.Restyle {
+        defer { reset() }
+        guard !whole, let pending, storage.length == pending.lengthAfter else { return .whole }
+        let ns = storage.mutableString
+        if ns.length > MarkdownAttributes.plainOver {
+            // A very long note is plain all over, so there is nothing to work out: the typed
+            // lines get the plain look, and no line depends on another.
+            let reach = min(pending.inserted + 1, ns.length - pending.location)
+            let block = ns.lineRange(for: NSRange(location: pending.location, length: reach))
+            return block.length <= MarkdownHighlight.longestPart ? .lines(block, inCode: false) : .whole
+        }
+        return MarkdownHighlight.restyle(of: ns, around: NSRange(location: pending.location, length: pending.inserted))
+    }
+
+    mutating func reset() {
+        pending = nil
+        whole = false
     }
 }
 
@@ -924,8 +1017,60 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // on it. It is not restyled or measured until the letter is finished, which calls
             // this again.
             guard !textView.hasMarkedText() else { return }
-            highlight(tint: nil)
+            restyleAfterTyping()
             reportDraft()
+        }
+
+        // MARK: Restyling only what changed (premium review, hardening-20)
+
+        /// The change being typed, so only its lines are restyled.
+        private var typing = TypingRestyle()
+        /// The whole note is restyled once typing pauses.
+        private var wholeRestyle: Task<Void, Never>?
+        /// The last whole restyle found the note too long to style and left it plain.
+        private var plainAllOver = false
+
+        func textView(_ textView: NSTextView, shouldChangeTextIn range: NSRange, replacementString: String?) -> Bool {
+            if let replacementString, let storage = textView.textStorage {
+                typing.willChange(storage, in: range, to: replacementString)
+            }
+            return true
+        }
+
+        /// After a key: the lines it changed, and the whole note a moment after the last key.
+        /// Whenever the change is not a plain one, the whole note straight away, as before.
+        private func restyleAfterTyping() {
+            guard let textView, let storage = textView.textStorage else { return }
+            guard case .lines(let block, let inCode) = typing.plan(for: storage) else {
+                highlight(tint: nil)
+                return
+            }
+            let cursor = min(textView.selectedRange().location, storage.length)
+            styledLine = storage.mutableString.lineRange(for: NSRange(location: cursor, length: 0))
+            restyle(block, inCode: inCode, cursor: cursor, in: storage)
+            textView.typingAttributes = MarkdownAttributes.base(color: .labelColor)
+            restyleWholeSoon()
+        }
+
+        private func restyle(_ block: NSRange, inCode: Bool, cursor: Int, in storage: NSTextStorage) {
+            MarkdownAttributes.apply(to: storage, lines: block, inCode: inCode, tint: lastTint,
+                                     primary: .labelColor, secondary: .secondaryLabelColor, faint: .tertiaryLabelColor,
+                                     hideMarkers: true, cursor: cursor)
+        }
+
+        private func restyleWholeSoon() {
+            wholeRestyle?.cancel()
+            wholeRestyle = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled, let self else { return }
+                self.wholeRestyle = nil
+                // A very long note that is already plain all over: nothing to put right.
+                if self.plainAllOver, let length = self.textView?.textStorage?.length, length > MarkdownAttributes.plainOver {
+                    self.typing.reset()
+                } else {
+                    self.highlight(tint: nil)
+                }
+            }
         }
 
         func textViewDidChangeSelection(_ notification: Notification) {
@@ -937,11 +1082,28 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         /// another line restyles. Only then, and never under a half-typed accent.
         private var styledLine: NSRange?
         private func restyleIfTheCursorChangedLine() {
-            guard let textView, !textView.hasMarkedText() else { return }
-            let ns = textView.string as NSString
+            guard let textView, !textView.hasMarkedText(), let storage = textView.textStorage else { return }
+            // In the middle of a key press the text has changed and `textDidChange` has not
+            // run yet: it restyles in a moment. (The timer is the net for a change that was
+            // announced and never came.)
+            if typing.isWaiting { restyleWholeSoon(); return }
+            let ns = storage.mutableString
             let at = min(textView.selectedRange().location, ns.length)
             let line = ns.lineRange(for: NSRange(location: at, length: 0))
-            if line != styledLine { highlight(tint: nil) }
+            guard line != styledLine else { return }
+            // A very long note is plain all over: no line looks different under the cursor.
+            if plainAllOver, ns.length > MarkdownAttributes.plainOver { styledLine = line; return }
+            // Only the line the cursor left and the one it came to change their look.
+            guard let old = styledLine, NSMaxRange(old) <= ns.length,
+                  ns.lineRange(for: NSRange(location: old.location, length: 0)) == old,
+                  case .lines(let left, let leftCode) = MarkdownHighlight.restyle(of: ns, around: NSRange(location: old.location, length: 0)),
+                  case .lines(let come, let comeCode) = MarkdownHighlight.restyle(of: ns, around: NSRange(location: line.location, length: 0)) else {
+                highlight(tint: nil)
+                return
+            }
+            styledLine = line
+            restyle(left, inCode: leftCode, cursor: at, in: storage)
+            restyle(come, inCode: comeCode, cursor: at, in: storage)
         }
 
         func commandClicked(at offset: Int) {
@@ -1039,7 +1201,11 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // Restyling would wipe the marking AppKit keeps on a half-typed accent. The next
             // `textDidChange`, when the letter is finished, styles everything.
             guard !textView.hasMarkedText() else { return }
+            wholeRestyle?.cancel()
+            wholeRestyle = nil
+            typing.reset()
             let ns = textView.string as NSString
+            plainAllOver = ns.length > MarkdownAttributes.plainOver
             let cursor = min(textView.selectedRange().location, ns.length)
             styledLine = ns.lineRange(for: NSRange(location: cursor, length: 0))
             MarkdownAttributes.apply(to: storage, text: textView.string, tint: lastTint,
@@ -1108,6 +1274,8 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         context.coordinator.pictures = pictures
         context.coordinator.shownVersion = pictures?.version
         context.coordinator.show(text)
+        context.coordinator.styledTint = tint
+        context.coordinator.styledScheme = context.environment.colorScheme
         context.coordinator.highlight(tint: UIColor(tint))
         // What the screen tests type into (build 191). A name of its own, so a change to the
         // screen around it cannot quietly stop the test from finding it.
@@ -1156,6 +1324,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             }
             return
         }
+        var replaced = false
         let versionChanged = context.coordinator.shownVersion != pictures?.version
         if versionChanged { context.coordinator.cache = [:]; context.coordinator.shownVersion = pictures?.version }
         if versionChanged || context.coordinator.markdown() != text {
@@ -1163,8 +1332,17 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             context.coordinator.show(text)
             let length = (textView.text as NSString).length
             textView.selectedRange = NSRange(location: min(selected.location, length), length: 0)
+            replaced = true
         }
-        context.coordinator.highlight(tint: UIColor(tint))
+        // Restyled only when something it depends on changed, as on the Mac (build 252). This
+        // runs after every key — the text is a binding — and restyling the whole note here
+        // each time undid the point of restyling only the typed line (hardening-20).
+        let scheme = context.environment.colorScheme
+        if replaced || context.coordinator.styledTint != tint || context.coordinator.styledScheme != scheme {
+            context.coordinator.styledTint = tint
+            context.coordinator.styledScheme = scheme
+            context.coordinator.highlight(tint: UIColor(tint))
+        }
     }
 
     @MainActor
@@ -1177,6 +1355,15 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         /// True while restyling, which sets the selection back and must not restyle again.
         private var styling = false
         private var styledLine: NSRange?
+        /// The tint and the light or dark look the text was last styled with (as on the Mac).
+        var styledTint: Color?
+        var styledScheme: ColorScheme?
+        /// Premium review, hardening-20: the change being typed, so only its lines are
+        /// restyled, and the whole note once typing pauses.
+        private var typing = TypingRestyle()
+        private var wholeRestyle: Task<Void, Never>?
+        /// The last whole restyle found the note too long to style and left it plain.
+        private var plainAllOver = false
         var text: Binding<String>
         var linkDraft: Binding<LinkDraftOnScreen?>
         var openLink: (String) -> Void
@@ -1239,16 +1426,86 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         func textViewDidChange(_ textView: UITextView) {
             let now = markdown()
             if text.wrappedValue != now { text.wrappedValue = now }
-            highlight(tint: nil)
+            restyleAfterTyping(in: textView)
             reportDraft()
+        }
+
+        /// After a key: the lines it changed, and the whole note a moment after the last key.
+        /// Whenever the change is not a plain one, the whole note straight away, as before.
+        private func restyleAfterTyping(in textView: UITextView) {
+            // Not under a half-typed letter; the change stays noted, so the finished letter
+            // restyles the whole note.
+            guard textView.markedTextRange == nil else { return }
+            let storage = textView.textStorage
+            guard case .lines(let block, let inCode) = typing.plan(for: storage) else {
+                highlight(tint: nil)
+                return
+            }
+            let selected = textView.selectedRange
+            styling = true
+            defer { styling = false }
+            styledLine = cursorLine(of: textView)
+            restyle(block, inCode: inCode, cursor: styledLine.map { _ in selected.location }, in: storage)
+            textView.typingAttributes = MarkdownAttributes.base(color: .label)
+            textView.selectedRange = selected
+            restyleWholeSoon()
+        }
+
+        private func restyle(_ block: NSRange, inCode: Bool, cursor: Int?, in storage: NSTextStorage) {
+            MarkdownAttributes.apply(to: storage, lines: block, inCode: inCode, tint: lastTint,
+                                     primary: .label, secondary: .secondaryLabel, faint: .tertiaryLabel,
+                                     hideMarkers: true, cursor: cursor)
+        }
+
+        private func restyleWholeSoon() {
+            wholeRestyle?.cancel()
+            wholeRestyle = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled, let self else { return }
+                self.wholeRestyle = nil
+                // A very long note that is already plain all over: nothing to put right.
+                if self.plainAllOver, let length = self.textView?.textStorage.length, length > MarkdownAttributes.plainOver {
+                    self.typing.reset()
+                } else {
+                    self.highlight(tint: nil)
+                }
+            }
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {
             // Build 287: the hidden `**` / `#` show on the cursor's line only.
-            if !styling, textView.markedTextRange == nil, cursorLine(of: textView) != styledLine {
-                highlight(tint: nil)
+            if !styling, textView.markedTextRange == nil {
+                if typing.isWaiting {
+                    // In the middle of a key press: `textViewDidChange` restyles in a moment.
+                    restyleWholeSoon()
+                } else {
+                    restyleIfTheCursorChangedLine(in: textView)
+                }
             }
             reportDraft()
+        }
+
+        /// Only the line the cursor left and the one it came to change their look.
+        private func restyleIfTheCursorChangedLine(in textView: UITextView) {
+            let line = cursorLine(of: textView)
+            guard line != styledLine else { return }
+            let storage = textView.textStorage
+            let ns = storage.mutableString
+            if plainAllOver, ns.length > MarkdownAttributes.plainOver { styledLine = line; return }
+            guard let old = styledLine, let line, NSMaxRange(old) <= ns.length,
+                  ns.lineRange(for: NSRange(location: old.location, length: 0)) == old,
+                  case .lines(let left, let leftCode) = MarkdownHighlight.restyle(of: ns, around: NSRange(location: old.location, length: 0)),
+                  case .lines(let come, let comeCode) = MarkdownHighlight.restyle(of: ns, around: NSRange(location: line.location, length: 0)) else {
+                highlight(tint: nil)
+                return
+            }
+            let selected = textView.selectedRange
+            styling = true
+            defer { styling = false }
+            styledLine = line
+            restyle(left, inCode: leftCode, cursor: selected.location, in: storage)
+            restyle(come, inCode: comeCode, cursor: selected.location, in: storage)
+            textView.selectedRange = selected
         }
 
         func textViewDidBeginEditing(_ textView: UITextView) { highlight(tint: nil) }
@@ -1257,7 +1514,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         /// Return on a task or bullet line carries the list on (build 287).
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
             guard text == "\n", range.length == 0, textView.markedTextRange == nil,
-                  let next = RichText.continuingList(textView.text, at: range.location) else { return true }
+                  let next = RichText.continuingList(textView.text, at: range.location) else {
+                typing.willChange(textView.textStorage, in: range, to: text)
+                return true
+            }
             write(next.text, selection: NSRange(location: next.cursor, length: 0))
             return false
         }
@@ -1497,6 +1757,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             if let tint { lastTint = tint }
             // Not under a half-typed letter: restyling would wipe its marking.
             guard textView.markedTextRange == nil else { return }
+            wholeRestyle?.cancel()
+            wholeRestyle = nil
+            typing.reset()
+            plainAllOver = textView.textStorage.length > MarkdownAttributes.plainOver
             let selected = textView.selectedRange
             styling = true
             defer { styling = false }
