@@ -61,9 +61,21 @@ struct NoteEditorView: View {
     private var displayText: String { shownText(from: storedText, folded: frontmatterFolded) }
 
     private func shownText(from stored: String, folded: Bool) -> String {
+        // Asked for on every key (`scheduleSave`) and every redraw, and reading a very long
+        // note line by line each time made typing in it slow (premium review, hardening-20).
+        // The answer for the same text is the same, so the last one is kept.
+        if let last = shownMemo.last, last.folded == folded, last.stored == stored { return last.shown }
         let masked = TaskIDMasking.hidden(in: stored)
-        return folded ? FrontmatterFold.body(of: masked) : masked
+        let shown = folded ? FrontmatterFold.body(of: masked) : masked
+        shownMemo.last = (stored, folded, shown)
+        return shown
     }
+
+    /// The last answer of `shownText`. A plain box, not state: filling it redraws nothing.
+    private final class ShownMemo {
+        var last: (stored: String, folded: Bool, shown: String)?
+    }
+    @State private var shownMemo = ShownMemo()
 
     /// The whole text to write, from what the editor shows. The settings block comes from
     /// `baseText`, the latest copy of the file, so a line a button wrote while the block was
@@ -93,11 +105,12 @@ struct NoteEditorView: View {
             pendingSave = nil
             if isDirty {
                 let unsaved = wholeText(from: text, folded: frontmatterFolded)
+                let startedFrom = baseText
                 let openedIn = vaultPath
                 isDirty = false
                 model.afterUpdate {
                     // Only into the vault the note was opened from.
-                    if model.vaultPath == openedIn { model.saveText(unsaved, forNoteAt: path) }
+                    if model.vaultPath == openedIn { model.saveText(unsaved, forNoteAt: path, startedFrom: startedFrom) }
                 }
             }
         }
@@ -134,7 +147,7 @@ struct NoteEditorView: View {
             pendingSave = nil
             if isDirty {
                 lastWritten = nil
-                model.saveText(wholeText(from: text, folded: wasFolded), forNoteAt: path)
+                model.saveText(wholeText(from: text, folded: wasFolded), forNoteAt: path, startedFrom: baseText)
                 isDirty = false
                 baseText = model.note(at: path)?.text ?? baseText
             }
@@ -938,9 +951,21 @@ struct NoteEditorView: View {
     /// Puts the hidden markers and the folded block back and saves.
     private func write(_ shown: String) {
         lastWritten = shown
-        model.saveText(wholeText(from: shown, folded: frontmatterFolded), forNoteAt: path)
+        // `baseText` is the version this typing started from. While he types it is not moved
+        // on by a reload (`onChange(of: storedText)` leaves a dirty editor alone), so the save
+        // can tell that the note changed under him (premium review, hardening-03).
+        let outcome = model.saveText(wholeText(from: shown, folded: frontmatterFolded), forNoteAt: path, startedFrom: baseText)
         isDirty = false
         baseText = model.note(at: path)?.text ?? baseText
+        if outcome == .replaced, let now = model.note(at: path)?.text {
+            // The note changed on the other device meanwhile: it now holds both changes put
+            // together, or the other version (this one is kept as a copy beside it). Shown
+            // here and now, before another key — typing on over the old screen would save a
+            // text that knows nothing of the other change, as if it had been deleted.
+            lastWritten = nil
+            let merged = shownText(from: now, folded: frontmatterFolded)
+            if merged != text { text = merged }
+        }
     }
 
     private func addTask() {

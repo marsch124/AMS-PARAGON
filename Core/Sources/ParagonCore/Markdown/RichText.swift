@@ -144,6 +144,11 @@ extension MarkdownHighlight {
     /// The `**`, `*`, `~~` and heading `# ` to hide while writing (build 287): every one, except on
     /// the line holding `cursor`, where they stay so they can be edited. Nil cursor hides all.
     public static func hiddenMarkers(in text: String, cursor: Int?) -> [NSRange] {
+        hiddenMarkers(in: text, spans: spans(in: text), cursor: cursor)
+    }
+
+    /// The same, from spans already worked out, so the editor reads the note once, not twice.
+    public static func hiddenMarkers(in text: String, spans: [MarkdownSpan], cursor: Int?) -> [NSRange] {
         let ns = text as NSString
         var cursorLine: NSRange?
         if let cursor, cursor >= 0, cursor <= ns.length {
@@ -155,7 +160,7 @@ extension MarkdownHighlight {
             return NSIntersectionRange(r, c).length > 0 || (r.location >= c.location && r.location <= NSMaxRange(c))
         }
         var hidden: [NSRange] = []
-        for span in spans(in: text) {
+        for span in spans {
             switch span.style {
             case .heading(let level):
                 var length = level

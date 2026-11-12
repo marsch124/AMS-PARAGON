@@ -1633,10 +1633,29 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Saves the editor's text. If the file changed on disk meanwhile, the editor's version is
-    /// kept as a conflict copy next to it and the fresh file is shown, so nothing is lost.
-    func saveText(_ text: String, forNoteAt path: String) {
-        guard let vault else { return }
+    /// What became of a save from the editor.
+    enum EditorSave {
+        /// The note holds exactly what the editor handed in (or already did).
+        case saved
+        /// The note holds something else now — both changes put together, or the other
+        /// device's version — and the editor has to show that.
+        case replaced
+        /// Nothing was written; the editor keeps its text.
+        case failed
+    }
+
+    /// Saves the editor's text.
+    ///
+    /// `base` is the note's text the editor's text was made from (premium review, hardening-03).
+    /// The 10-second look for outside changes reloads the notes while he is still typing, so
+    /// the copy in `notes` can be the other device's newer one — and writing the editor's text
+    /// over *that* passed the date check and silently lost the other device's change. With a
+    /// base, a note that no longer holds it is never overwritten: changes to different lines
+    /// are put together (`TextMerge`), and when they meet, the editor's version is kept as a
+    /// conflict copy next to the note and the note keeps the other version, so nothing is lost.
+    @discardableResult
+    func saveText(_ text: String, forNoteAt path: String, startedFrom base: String? = nil) -> EditorSave {
+        guard let vault else { return .failed }
         guard var note = note(at: path) else {
             // The open note left the list while he typed — iCloud took its contents off this
             // device (build 261). Returning in silence would throw the typing away, so it is
@@ -1648,32 +1667,84 @@ final class AppModel: ObservableObject {
                     errorMessage = "\"\(orphan.displayTitle)\" is being fetched from iCloud again. What you typed is kept as \"\(copy.displayTitle)\" next to it."
                 }
             }
-            return
+            return .failed
         }
-        guard note.text != text else { return }
+        guard note.text != text else { return .saved }
+        if let base, note.text != base {
+            // The note was reloaded under the editor: it holds the other side's change.
+            return settle(typed: text, startedFrom: base, other: note, in: vault)
+        }
         note.text = text
         note.modifiedAt = note.modifiedAt ?? Date()
         do {
-            let saved = try vault.save(note)
-            if let i = notes.firstIndex(where: { $0.relativePath == path }) {
-                notes[i] = saved
-            } else if let i = workNotes.firstIndex(where: { $0.relativePath == path }) {
-                workNotes[i] = saved
-            } else {
-                reload()
-            }
+            keep(try vault.save(note))
             vaultSignature = currentVaultSignature()
+            return .saved
         } catch VaultError.modifiedOnDisk {
-            do {
-                let copy = try vault.saveConflictCopy(of: note)
-                log("conflict copy written: \(copy.relativePath)")
-                reload()
-                errorMessage = "\"\(note.displayTitle)\" was changed outside the app while you were editing it. Your version is saved as \"\(copy.displayTitle)\" next to it; the note now shows the other version."
-            } catch {
-                errorMessage = error.localizedDescription
+            // The file is newer than the copy in `notes` (the reload has not happened yet).
+            if let base, let onDisk = try? vault.loadNote(relativePath: path) {
+                return settle(typed: text, startedFrom: base, other: onDisk, in: vault)
             }
+            return keepAsConflictCopy(note, other: nil, in: vault)
         } catch {
             errorMessage = error.localizedDescription
+            return .failed
+        }
+    }
+
+    /// The editor's text and a note that changed under it: together when the changes are on
+    /// different lines, otherwise the typing as a copy beside the note.
+    private func settle(typed text: String, startedFrom base: String, other: Note, in vault: Vault) -> EditorSave {
+        var mine = other
+        mine.text = text
+        guard case .merged(let merged) = TextMerge.threeWay(base: base, mine: text, theirs: other.text) else {
+            return keepAsConflictCopy(mine, other: other, in: vault)
+        }
+        var note = other
+        if merged != other.text {
+            note.text = merged
+            note.modifiedAt = note.modifiedAt ?? Date()
+            do {
+                note = try vault.save(note)
+            } catch VaultError.modifiedOnDisk {
+                // It changed once more in this very moment. Not a second try: the copy is safe.
+                return keepAsConflictCopy(mine, other: try? vault.loadNote(relativePath: other.relativePath), in: vault)
+            } catch {
+                errorMessage = error.localizedDescription
+                return .failed
+            }
+        }
+        log("editor save put together with an outside change: \(note.relativePath)")
+        keep(note)
+        vaultSignature = currentVaultSignature()
+        return merged == text ? .saved : .replaced
+    }
+
+    /// Writes the editor's version next to the note as "(conflict …)" and shows the other one.
+    private func keepAsConflictCopy(_ mine: Note, other: Note?, in vault: Vault) -> EditorSave {
+        do {
+            let copy = try vault.saveConflictCopy(of: mine)
+            log("conflict copy written: \(copy.relativePath)")
+            // The other version goes into the list here and now, so the editor shows it before
+            // another key is pressed; the reload then brings the copy into the lists.
+            if let other { keep(other, orReload: false) }
+            reload()
+            errorMessage = "\"\(mine.displayTitle)\" was changed outside the app while you were editing it. Your version is saved as \"\(copy.displayTitle)\" next to it; the note now shows the other version."
+            return .replaced
+        } catch {
+            errorMessage = error.localizedDescription
+            return .failed
+        }
+    }
+
+    /// Puts a saved note in whichever list holds it.
+    private func keep(_ saved: Note, orReload: Bool = true) {
+        if let i = notes.firstIndex(where: { $0.relativePath == saved.relativePath }) {
+            notes[i] = saved
+        } else if let i = workNotes.firstIndex(where: { $0.relativePath == saved.relativePath }) {
+            workNotes[i] = saved
+        } else if orReload {
+            reload()
         }
     }
 
