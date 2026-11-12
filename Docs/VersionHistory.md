@@ -1,6 +1,122 @@
 # Version history
 
-The version is shown as 1.0 (309) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (310) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 310 · 12 November 2026
+
+**Colours you can read, by day and by night: every button, band, row and small grey word was measured, and the weak ones were made stronger.** This is round 4 of the premium review. Round 1 was build 307, round 2 was build 308, round 3 was build 309. Nothing works differently. Only colours changed, and on the iPhone the page, the cards and the top of the list screens.
+
+The numbers such as "4.3 to 1" say how well words can be read on what is behind them. 1 to 1 cannot be seen. 4.5 to 1 is the usual mark for small text. A higher number is easier to read.
+
+**Before (build 309).**
+- On the Mac, **Done** in **Start the day** and **Close the day** turned grey like **Cancel** when the window was behind another window. At night, when it had colour, it was white words on a bright shade (2.0 to 1).
+- While **Save** could not act yet, its word nearly vanished (1.1 to 1 on the iPhone, 1.4 to 1 on the Mac).
+- On the Mac at night, the chosen row in the sidebar had white words on a bright shade (**Projects** 2.2 to 1, **Today** 2.8 to 1). Its count could not be seen (1.3 to 1).
+- At night the band at the top was a dull, dusty colour (**Today** #6F5E94), and the icons on the three round white buttons were pale (2.0 to 2.7 to 1).
+- The faintest grey words were #C5C5C7 on white by day (1.7 to 1) and #464649 on black at night (2.2 to 1).
+- Helper sentences and small labels were Apple's grey (3.4 to 4.0 to 1 by day).
+- On the iPhone the chosen tab, the links and many buttons were Apple's blue, which belongs to no part of PARAGON.
+- The **Inbox** was amber (#B0631A by day, #E8A053 at night), nearly the same as the orange blocks in **Plan**.
+- The small words in capsules measured 3.2 to 4.0 to 1 by day.
+- The **Start the day** orange #D4640A measured 3.7 to 1 as words on white.
+- On the iPhone the cards were plain white on Apple's grey by day, and plain grey on pure black at night.
+- The number on the **Inbox** tab was Apple's red.
+- On the iPhone only **Today** and an open note had the band in their colour.
+- In lists that mix parts, a row showed only a small dot, 8 points.
+
+**1. The main button is PARAGON's own, and never grey.**
+- Every button that does something (**Done**, **Save**, **Add**, **Set**, **Make task** and the others) is now PARAGON's own filled button, not Apple's.
+- It is filled in the deep day shade of its part, with white words. It looks the same by day and at night.
+- On the Mac it no longer turns grey when the window is behind another window.
+- **Done** in **Start the day** is #B35300 (white words 5.1 to 1). **Done** in **Close the day** is #6E3A86 (8.0 to 1). Other buttons take their part's day shade (4.5 to 6.4 to 1).
+- A button that belongs to no part, such as **Set** in the date window, is purple #6B4EA8.
+
+**2. A button that cannot act yet keeps a word you can read.**
+- Before: 40 % of the colour with white words, 1.1 to 1.4 to 1.
+- Now by day: the same pale fill, 40 %, with the word in the part's colour, 30 % deeper. For example **Save** in **Projects**: 4.8 to 1.
+- Now at night: a 30 % fill with the word in the part's bright night shade.
+
+**3. The chosen row in the Mac sidebar, at night.**
+- Before: the bright night shade with white words, for example **Projects** #78BD95 (2.2 to 1).
+- Now: the deep day shade, the same as by day, with white words and a white count. **Projects** #2E7D5B, **Today** #6B4EA8, **Goals** #8F6E10, **Weekly review** #1E7F84. White words measure 4.5 to 6.4 to 1.
+- By day the row looks as before. The count on it is now white there too.
+
+**4. The band at night.**
+- Before: the bright night shade made darker with 30 % black, for example **Today** #6F5E94.
+- Now: the deep day shade, running to 80 % of itself over black towards the bottom right. **Today** runs from #6B4EA8 to #563E86, **Projects** from #2E7D5B to #256449, **Goals** from #8F6E10 to #72580D. White words measure 4.5 to 10 to 1.
+- The icons on the three round white buttons on **Today** are now always the deep day shade, by day and at night: the calendar #6B4EA8, the cup of **Start the day** #B35300, the moon of **Close the day** #6E3A86. At night they were #A98FE0, #FFA23A and #C79AE0 on white (2.0 to 2.7 to 1).
+- The band by day is unchanged.
+
+**5. The faintest grey words can be read.**
+- These are the hours down the side of **Plan** and **Calendar**, the project's name in a task chip, and "Nothing planned".
+- By day: #C5C5C7 → #737A86 (1.7 to 1 → 4.3 to 1).
+- At night: #464649 → #8B93A0 (2.2 to 1 → 6.8 to 1).
+
+**6. Helper sentences and small labels are darker by day.**
+- Helper sentences, the second line of a row and small labels now use PARAGON's own soft grey: #5C6470 by day (6.0 to 1) and #A9B1BC at night.
+- Before, they were Apple's grey: #8A8A8E and #7F7F7F on the iPhone, #808080 on the Mac (3.4 to 4.0 to 1 by day).
+- This was changed in about 240 places. Before, PARAGON's grey was used in 13 places.
+
+**7. No Apple blue on the iPhone.**
+- The chosen tab at the bottom now has the colour of its screen: **Today** and **Plan** purple, **Actions** green, **Inbox** leaf green. Before, it was Apple's blue on every tab.
+- Links and buttons on a screen have that screen's colour. For example "This week" and "Open day" in **Calendar** are purple, and the **+** on **Goals** is gold.
+- **Browse**, **Settings** and anything that belongs to no part are purple: #6B4EA8 by day (6.4 to 1), #A98FE0 at night (7.7 to 1). Purple is the colour of **Today**, the first screen.
+
+**8. The Inbox is leaf green.**
+- Before: amber, #B0631A by day and #E8A053 at night.
+- Now: leaf green, #5E7D12 by day (4.8 to 1 on white) and #B4D25A at night (12 to 1).
+- **Snippets** and **Quick capture** change with it, and so does the Inbox number in the **What is waiting** widget.
+- Why: the amber was nearly the orange of the blocks in **Plan**. At night the two could not be told apart, and on the iPhone the two tabs are neighbours. Leaf green is used by no other part.
+- The orange of **Plan**, the orange of **Start the day** and the golds are unchanged.
+
+**9. The small words in capsules are deeper by day.**
+- A capsule is the small rounded label: a count beside a heading, a status such as **On hold**, "0 due today".
+- By day its words are now a quarter (25 %) deeper than the part's colour. For example green #2E7D5B → #225E44, orange #D4640A → #9F4B08.
+- Before: 3.2 to 4.0 to 1. Now: 5.1 to 8.8 to 1.
+- The fill of the capsule (14 % of the colour) and the night look are unchanged.
+
+**10. Orange words on white are one step deeper.**
+- Where the **Start the day** orange is written as words on white, it is now #B35300 (5.1 to 1). Before it was #D4640A (3.7 to 1). For example the headings in **Start the day** and the word **Done** at the top of that screen on the iPhone.
+- The same rule makes two more colours one step deeper where they are written as words by day: the orange of **Plan** (was 4.3 to 1) and the slate blue of the now-line (was 4.4 to 1).
+- Fills and icons keep #D4640A. Night is unchanged (#FFA23A, 8.5 to 1).
+
+**11. iPhone: the page and the cards carry colour, as on the Mac.**
+- Before: white cards on Apple's grey page by day (#F2F2F7), and grey cards (#1C1C1E) on pure black at night.
+- Now the page is #F3F5F8 by day and #15181C at night.
+- A card is white with 7 % of its part's colour by day, and #1E2228 with 13 % of its part's colour at night. For example at night a card on **Today** is #302E40 and a card in **Projects** is #263632.
+- This is the same rule as the panels on the Mac.
+
+**12. iPhone: the number on the Inbox tab is not red.**
+- Before: Apple's red. In PARAGON red means overdue or danger.
+- Now: a white number on the Inbox's leaf green.
+
+**13. iPhone: every list screen opens with its colour.**
+- Before: only **Today** and an open note had the band. **Inbox**, **Plan**, **Actions**, **Goals**, **Projects**, **Calendar** and **Weekly review** opened with a plain black or white title.
+- Now every list screen opens with the slim band that **Today** has: one row, in the part's deep colour, with a count or the date in white.
+
+**14. Lists that mix parts show the part's icon.**
+- In **Search**, **Recent**, **Done** and the **Map**, a row now shows the small icon of its part in the part's colour. Before, it showed a plain dot, 8 points.
+- Why: for someone who sees red and green poorly, or on a dim screen, some of the dots looked the same (**Projects** green, **Areas** pink and **Archive** grey; **Resources** blue and **Calendar** purple). The icon tells them apart without colour.
+- A list of one part only keeps its dot.
+
+**15. The colour families are written down.**
+- Nothing changed here. Some parts share one colour on purpose, and this is now written in the look document:
+  - **Today**, **Calendar** and **Plan**: purple.
+  - **Resources**, **Recent**, **Templates** and **Search**: blue.
+  - **Goals** and the **Map**: gold.
+  - **Projects** and **All actions**: green.
+  - **Weekly review** and **Done**: teal.
+  - **Areas** and **Tags**: pink.
+  - **Inbox** and **Snippets**: leaf green.
+- The lilac of **Close the day** stays as it is. It is one family with the purple of **Today**, and its moon icon tells the two apart.
+
+**16. The look document matches the app.**
+- `Docs/Look.md` now lists only the colours and rules that PARAGON really uses. It has a new part, **The steps of a colour**, which says which shade of a colour is used where.
+- A new small data test (`ShadeRuleTests`) checks the numbers: white words on every filled button and band, coloured words on white, and the words in a capsule.
+
+**What did not change.** Your notes, tasks, backups and sync. Every button is in the same place and does the same thing. The colours of the other parts (green, pink, blue, gold, purple, teal, the two oranges, lilac). The band by day. The capsules at night.
+
+**The version.** It shows as "PARAGON 1.0 (310)".
 
 ## Build 309 · 12 November 2026
 
