@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 299
+    static let number = 300
 }
 
 @MainActor
@@ -4140,6 +4140,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var syncWaitsForCloud = false
     /// Set by a press on the sync line (build 285): Settings scrolls to Reminders sync once.
     @Published var settingsJumpToSync = false
+    /// Build 300: the iPhone sync button's "Sync settings…" asks the tab in front to push Settings.
+    @Published var phoneSyncSettingsRequests = 0
 
     func syncNow(force: Bool = false, quietly: Bool = false) async {
         guard let vault, !isSyncing else { return }

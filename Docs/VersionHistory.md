@@ -1,6 +1,29 @@
 # Version history
 
-The version is shown as 1.0 (299) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (300) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 300 · 12 November 2026
+
+**The sync button shows the sync.**
+
+**Before (build 299).** On the iPhone a green pill under the Today title said "Synced at 10:05". Pressing it opened Settings. The sync button at the top right only started a sync and showed nothing about the last one.
+
+**Now, on the iPhone, the pill is gone.** The sync button at the top right of every iPhone screen (Today, Inbox and the others) has a clock ring round it:
+- Just after a sync the ring is full. It empties over two hours, like a clock running down.
+- It is green for the first hour and yellow after that. It is also yellow while a sync waits for notes to arrive from iCloud.
+- It is a full red ring when the last sync had conflicts.
+- It is a grey, empty ring when there has never been a sync.
+- While syncing, the button turns and the ring is full.
+
+**Now, a small word under the button** says what happened: the time of the last sync today ("10:05"), "Yesterday", the day ("9 Nov"), "Syncing", "iCloud" (waiting for iCloud), "Not yet", or "2 conflicts".
+
+**Now, press and long press.**
+- Press the button: sync now, as before.
+- Press and hold: a menu with **Sync now**, **Show me what would change…**, **Last sync report…** and **Sync settings…**. **Sync settings…** opens Settings at the Reminders sync part; this is what pressing the pill used to do.
+
+**What did not change.** The Mac and the iPad are as in build 299: the sync pill stays at the foot of the sidebar. Nothing else changed.
+
+**The version.** It shows as "PARAGON 1.0 (300)".
 
 ## Build 299 · 12 November 2026
 

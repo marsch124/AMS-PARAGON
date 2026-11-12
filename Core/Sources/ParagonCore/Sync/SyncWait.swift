@@ -64,3 +64,60 @@ public enum SyncStatus {
         !syncing && !waiting && finishedAt != nil && conflicts > 0
     }
 }
+
+/// Build 300, the clock ring: on the iPhone the sync button itself says where the sync
+/// stands, and the "Synced at" pill on Today is gone. A ring round the button is full just
+/// after a sync and empties over two hours, like a clock running down: green for the first
+/// hour, yellow after that (and while a sync waits for iCloud), red when the last sync had
+/// conflicts. Under the button a small word: the time, "Yesterday", the day, or what is wrong.
+public enum SyncRing {
+    public enum Mood: Equatable, Sendable { case none, fresh, aging, problem }
+
+    /// How long a full ring takes to run down, and when green turns yellow.
+    public static let span: TimeInterval = 2 * 60 * 60
+    public static let freshFor: TimeInterval = 60 * 60
+
+    public static func mood(syncing: Bool, waiting: Bool, finishedAt: Date?, conflicts: Int,
+                            now: Date = Date()) -> Mood {
+        if syncing { return .fresh }
+        if SyncStatus.isProblem(syncing: syncing, waiting: waiting, finishedAt: finishedAt, conflicts: conflicts) { return .problem }
+        if waiting { return .aging }
+        guard let finishedAt else { return .none }
+        return now.timeIntervalSince(finishedAt) < freshFor ? .fresh : .aging
+    }
+
+    /// How much of the ring is drawn, 0 to 1. Full while syncing and when something is wrong
+    /// (a whole red ring), empty when there has never been a sync.
+    public static func fill(syncing: Bool, waiting: Bool, finishedAt: Date?, conflicts: Int,
+                            now: Date = Date()) -> Double {
+        if syncing || waiting { return 1 }
+        if SyncStatus.isProblem(syncing: syncing, waiting: waiting, finishedAt: finishedAt, conflicts: conflicts) { return 1 }
+        guard let finishedAt else { return 0 }
+        let age = max(0, now.timeIntervalSince(finishedAt))
+        return max(0, min(1, 1 - age / span))
+    }
+
+    /// The small word under the button.
+    public static func word(syncing: Bool, waiting: Bool, finishedAt: Date?, conflicts: Int,
+                            now: Date = Date(), calendar: Calendar = .current) -> String {
+        if syncing { return "Syncing" }
+        if waiting { return "iCloud" }
+        guard let finishedAt else { return "Not yet" }
+        if conflicts > 0 { return conflicts == 1 ? "1 conflict" : "\(conflicts) conflicts" }
+        if calendar.isDate(finishedAt, inSameDayAs: now) {
+            let time = DateFormatter()
+            time.calendar = calendar
+            time.timeZone = calendar.timeZone
+            time.dateFormat = "HH:mm"
+            return time.string(from: finishedAt)
+        }
+        if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+           calendar.isDate(finishedAt, inSameDayAs: yesterday) { return "Yesterday" }
+        let day = DateFormatter()
+        day.calendar = calendar
+        day.timeZone = calendar.timeZone
+        day.locale = Locale(identifier: "en_GB")
+        day.dateFormat = "d MMM"
+        return day.string(from: finishedAt)
+    }
+}

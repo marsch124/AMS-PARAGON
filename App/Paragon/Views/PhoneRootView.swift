@@ -116,7 +116,7 @@ struct PhoneRootView: View {
                             }
                             .accessibilityIdentifier("capture.open")
                         }
-                        ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() }
+                        PhoneSyncItem()
                     }
             }
         case .plan:
@@ -125,7 +125,7 @@ struct PhoneRootView: View {
                 // every page alive, so a list that followed `model.section` became a copy of
                 // whichever page was in front.
                 NoteListView(fixed: item.section)
-                    .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
+                    .toolbar { PhoneSyncItem() }
             }
         case .actions:
             PhoneStack(section: item.section, isActive: tab == item) {
@@ -133,7 +133,7 @@ struct PhoneRootView: View {
                 // every page alive, so a list that followed `model.section` became a copy of
                 // whichever page was in front.
                 NoteListView(fixed: item.section)
-                    .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
+                    .toolbar { PhoneSyncItem() }
             }
         case .inbox:
             PhoneStack(section: item.section, isActive: tab == item) {
@@ -141,7 +141,7 @@ struct PhoneRootView: View {
                 // every page alive, so a list that followed `model.section` became a copy of
                 // whichever page was in front.
                 NoteListView(fixed: item.section)
-                    .toolbar { ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() } }
+                    .toolbar { PhoneSyncItem() }
             }
         case .browse:
             PhoneStack(section: item.section, isActive: tab == item) {
@@ -153,21 +153,102 @@ struct PhoneRootView: View {
 
 /// Sync with Reminders from the phone. The Mac has this in the window toolbar; without it
 /// here the phone could only wait for auto sync, and iOS never asked for Reminders access.
+///
+/// Build 300, the clock ring: the button itself says where the sync stands, so the
+/// "Synced at" pill on Today is gone. A ring round the button is full just after a sync and
+/// runs down over two hours — green for the first hour, then yellow; a whole red ring when
+/// the last sync had conflicts — with a small word under it (the time, "Yesterday", …).
+/// Press = sync now; long press = the old pill's menu, Sync settings included.
+/// Build 300: the clock ring and the word under it are wider than the round glass iOS 26
+/// draws behind a toolbar button, which cut the word off — so this one item has none.
+struct PhoneSyncItem: ToolbarContent {
+    var body: some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .topBarTrailing) { PhoneSyncButton() }
+        }
+    }
+}
+
 struct PhoneSyncButton: View {
     @EnvironmentObject private var model: AppModel
 
+    private var finishedAt: Date? { model.lastReport.map { $0.finishedAt ?? $0.startedAt } }
+    private var conflicts: Int { model.lastReport?.conflicts.count ?? 0 }
+
     var body: some View {
-        Button {
-            Task { await model.syncNow() }
-        } label: {
-            if model.isSyncing {
-                ProgressView()
-            } else {
-                MarkImage("arrow.triangle.2.circlepath", size: 22)
-                    .accessibilityLabel("Sync with Reminders")
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            Button {
+                Task { await model.syncNow() }
+            } label: {
+                label(now: context.date)
+            }
+            .buttonStyle(.plain)
+        }
+        .disabled(model.vault == nil)
+        .contextMenu {
+            Button("Sync now") { Task { await model.syncNow() } }
+            Button("Show me what would change…") { Task { await model.previewSync() } }
+            if model.lastReport != nil {
+                Button("Last sync report…") { model.showLastReport() }
+            }
+            Divider()
+            Button("Sync settings…") {
+                model.settingsJumpToSync = true
+                model.phoneSyncSettingsRequests += 1
             }
         }
-        .disabled(model.isSyncing || model.vault == nil)
+        .accessibilityIdentifier("sync.status")
+    }
+
+    private func colour(_ mood: SyncRing.Mood) -> Color {
+        switch mood {
+        case .none: return .secondary
+        case .fresh: return .green
+        case .aging: return .yellow
+        case .problem: return .red
+        }
+    }
+
+    private func label(now: Date) -> some View {
+        let syncing = model.isSyncing
+        let waiting = model.syncWaitsForCloud
+        let mood = SyncRing.mood(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                 conflicts: conflicts, now: now)
+        let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                 conflicts: conflicts, now: now)
+        let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                 conflicts: conflicts, now: now)
+        let tint = colour(mood)
+        return VStack(spacing: 1) {
+            ZStack {
+                Circle().stroke(tint.opacity(0.22), lineWidth: 2.2)
+                Circle()
+                    .trim(from: 0, to: fill)
+                    .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.easeInOut(duration: 0.4), value: fill)
+                MarkImage("arrow.triangle.2.circlepath", size: 14)
+                    .foregroundStyle(mood == .none ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
+                    .rotationEffect(.degrees(syncing ? 360 : 0))
+                    .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
+                               value: syncing)
+            }
+            .frame(width: 26, height: 26)
+            Text(word)
+                .font(.caption2)
+                .monospacedDigit()
+                .foregroundStyle(mood == .problem ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Sync with Reminders")
+        .accessibilityValue(SyncStatus.line(syncing: syncing, waiting: waiting,
+                                            finishedAt: finishedAt, conflicts: conflicts, now: now))
     }
 }
 
@@ -223,6 +304,12 @@ struct PhoneStack<Content: View>: View {
         //
         // Driven by the *count* of requests, not by `workRevealed`: that flag changes on the
         // first long press and never again, so the second one went nowhere (build 122).
+        // Build 300: "Sync settings…" on the sync button's long-press menu opens Settings at
+        // the Reminders sync part, on the tab in front.
+        .onChange(of: model.phoneSyncSettingsRequests) { _, _ in
+            guard isActive else { return }
+            if path.last != .settings { path.append(.settings) }
+        }
         .onChange(of: model.workRequests) { _, _ in
             guard isActive, section == nil else { return }
             if path.last != .section(.work) { path.append(.section(.work)) }

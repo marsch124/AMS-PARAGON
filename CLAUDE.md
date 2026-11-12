@@ -4927,6 +4927,15 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - Local pictures: `Work/look-1.0/tools/` (fakegroup.m + launcher.c) is the only safe way to
   drive the local Mac build; never `open amspara://` (it opens his real app).
 
+## Build 300 (12 November 2026)
+
+"The sync button shows the sync". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Reminders sync on the iPhone, the sync pill paragraph), `Look.md` (section 8).
+
+- **Before:** iPhone showed the `SyncStatusBar` pill ("Synced at 10:05") at the top of Today; pressing it opened Settings at Reminders sync. The phone sync button (`PhoneSyncButton`) only started a sync.
+- **Now (iPhone only):** the pill is gone from Today. `PhoneSyncButton` (top right of every screen) has a clock ring: full right after a sync, empties over 2 hours; green the first hour, yellow after (and yellow while waiting for iCloud); full red when the last sync had conflicts; grey empty when never synced; while syncing the button turns and the ring is full. Caption under it: time today ("10:05"), "Yesterday", "9 Nov", "Syncing", "iCloud", "Not yet", "N conflicts". Press = sync now; long press = menu: Sync now, Show me what would change..., Last sync report..., Sync settings... (opens Settings at Reminders sync via `AppModel.openSyncSettings`, formerly the pill's action).
+- **Unchanged:** Mac and iPad keep `SyncStatusBar` at the foot of the sidebar.
+- **BuildStamp:** `BuildStamp.number` = 300.
+
 ## Build 294 (11 November 2026)
 
 "Paste on iPhone, search inside pictures, sorting the gallery". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` ("Sketches and photos": Pasting a picture (iPhone and iPad), Sorting the gallery; Search Everywhere: Words inside pictures).
