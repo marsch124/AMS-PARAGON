@@ -18,6 +18,14 @@ OUT=${SHIP_OUT:-/tmp/paragon-ship-$BUILD}
 W="$OUT/wt"
 AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY_PATH" -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID")
 mkdir -p "$OUT"
+
+# iCloud Drive parks a second copy as "name 2" when two writes meet (build 308, hardening-15).
+# A stray copy in the repository or in .git means something was lost or doubled: stop and look.
+STRAY=$( { git -C "$R" ls-files; ls -1 "$R/.git"; } | grep -E ' [2-9](\.[^/. ]+)?(/|$)' || true)
+if [ -n "$STRAY" ]; then
+  echo "NOT UPLOADED: stray iCloud copies found (names ending in \" 2\"):"; echo "$STRAY"; exit 1
+fi
+
 COMMIT=$(git -C "$R" rev-parse HEAD)
 git -C "$R" worktree add --detach "$W" "$COMMIT" >/dev/null
 trap 'git -C "$R" worktree remove --force "$W" 2>/dev/null || true' EXIT
