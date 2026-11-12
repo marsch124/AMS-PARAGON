@@ -61,9 +61,9 @@ struct MapView: View {
                 // buttons there pushed the word "Map" out past them while every other screen
                 // has its name hard left (build 155, his report). Only the New note button
                 // belongs in front of the title.
-                Button { step(-1) } label: { MarkLabel("Zoom out", "minus.magnifyingglass") }
+                Button { step(-1) } label: { MarkLabel("Zoom out", "minus.magnifyingglass", size: 16) }
                     .disabled(zoom <= Self.zoomSteps.first!)
-                Button { step(1) } label: { MarkLabel("Zoom in", "plus.magnifyingglass") }
+                Button { step(1) } label: { MarkLabel("Zoom in", "plus.magnifyingglass", size: 16) }
                     .disabled(zoom >= Self.zoomSteps.last!)
                 // Build 159: the app's own two-state control rather than a
                 // `Toggle(.button)`, which draws a plain macOS button that looks the same
@@ -81,7 +81,7 @@ struct MapView: View {
                     Button("Copy image") { MapExport.copyImage(for: map) }
                     Button("Copy as outline") { MapExport.copyToPasteboard(map.outline()) }
                 } label: {
-                    MarkLabel("Export", "square.and.arrow.up")
+                    MarkLabel("Export", "square.and.arrow.up", size: 16)
                 }
                 .disabled(map.isEmpty)
                 .help("Save the map as a PDF or a picture, or copy it")
@@ -691,7 +691,7 @@ struct MapNodeView: View {
 
     private func chip(icon: String, title: String, detail: String?, tint: Color) -> some View {
         HStack(spacing: 6 * zoom) {
-            MarkImage(icon, size: 12 * zoom)
+            MarkImage(icon, size: max(10, 12 * zoom))
                 .foregroundStyle(tint)
             Text(title)
                 .font(Txt.mapLabel(zoom))

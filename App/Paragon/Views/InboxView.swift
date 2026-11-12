@@ -673,7 +673,11 @@ struct AreaDestinationGroup: View {
                     Button(action: toggle) {
                         MarkImage(isFolded ? "chevron.right" : "chevron.down", text: .footnote)
                             .foregroundStyle(.soft)
-                            .frame(width: 16)
+                            // The drawing is 12 points; the press area is 16 by 22. The negative
+                            // padding keeps the row as tall as it was with the 16-point mark.
+                            .frame(width: 16, height: 22)
+                            .contentShape(Rectangle())
+                            .padding(.vertical, -3)
                     }
                     .buttonStyle(.plain)
                     .help(isFolded ? "Show the sub-areas" : "Hide the sub-areas")

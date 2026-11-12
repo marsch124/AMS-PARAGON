@@ -531,7 +531,7 @@ struct WeekOverviewView: View {
                     Button {
                         model.openWeeklyNote(for: overview.week)
                     } label: {
-                        MarkLabel(overview.weeklyNotePath == nil ? "Create weekly note" : "Open weekly note", "calendar.badge.clock")
+                        MarkLabel(overview.weeklyNotePath == nil ? "Create weekly note" : "Open weekly note", "calendar")
                     }
                     .tag(overview.weeklyNotePath ?? "")
                 } header: {

@@ -98,7 +98,7 @@ struct TemplatesView: View {
                     newName = ""
                     making = true
                 } label: {
-                    MarkLabel("New template", "plus")
+                    MarkLabel("New template", "plus", size: 16)
                 }
                 .help("Add another template, so a kind of note can start in more than one way")
             }

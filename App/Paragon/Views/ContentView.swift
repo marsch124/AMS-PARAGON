@@ -93,7 +93,7 @@ struct ContentView: View {
                         Button {
                             model.activeSheet = .settings
                         } label: {
-                            MarkLabel("Settings", "gear")
+                            MarkLabel("Settings", "gear", size: 16)
                         }
                         #endif
                     }
@@ -610,7 +610,11 @@ struct NoteListView: View {
                 } label: {
                     MarkImage(foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down", text: .footnote)
                         .foregroundStyle(.soft)
-                        .frame(width: 14)
+                        // The drawing is 12 points; the press area is 14 by 22. The negative
+                        // padding keeps the row as tall as it was with the 16-point mark.
+                        .frame(width: 14, height: 22)
+                        .contentShape(Rectangle())
+                        .padding(.vertical, -3)
                 }
                 .buttonStyle(.plain)
                 .help(foldedAreas.contains(note.relativePath) ? "Show the sub-areas" : "Hide the sub-areas")
@@ -769,7 +773,7 @@ struct NoteListView: View {
                     // toolbar can, and the plainest "add something" there is. The colour is the
                     // section's own — the same tint `ModeAccent` lays over the detail column
                     // (build 107) — so the button says which list it will add to.
-                    MarkLabel("New", "plus.circle.fill")
+                    MarkLabel("New", "plus.circle.fill", size: 16)
                         .foregroundStyle(shown?.tint ?? Color.accentColor)
                 }
                 .help("Add something new to this section, or to the Inbox (⌘N)")
@@ -1346,7 +1350,9 @@ struct KindBadge: View {
     var tint: Color? = nil
 
     var body: some View {
-        MarkImage(markName ?? SidebarSection.kind(kind).markName)
+        // A fixed 16, as before build 311: the disc does not grow with the text size, so
+        // the mark in it must not either.
+        MarkImage(markName ?? SidebarSection.kind(kind).markName, size: 16)
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             // Build 310: white on a part colour always sits on the deep shade.

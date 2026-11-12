@@ -199,7 +199,7 @@ struct NoteEditorView: View {
                                 noteTitleDraft = note.displayTitle
                                 renamingNote = true
                             } label: {
-                                MarkLabel("Rename", "pencil")
+                                MarkLabel("Rename", "pencil", size: 16)
                             }
                         }
                         if let note, model.canArchive(note) {
@@ -207,18 +207,18 @@ struct NoteEditorView: View {
                                 flushSave()
                                 model.archive(note)
                             } label: {
-                                MarkLabel("Archive", "archivebox")
+                                MarkLabel("Archive", "archivebox", size: 16)
                             }
                         }
                         if let note, note.kind != .inbox {
                             Button(role: .destructive) {
                                 confirmTrash = true
                             } label: {
-                                MarkLabel("Delete", "trash")
+                                MarkLabel("Delete", "trash", size: 16)
                             }
                         }
                     } label: {
-                        MarkLabel("More", "ellipsis.circle")
+                        MarkLabel("More", "ellipsis.circle", size: 16)
                     }
                 }
             } else {
@@ -228,14 +228,14 @@ struct NoteEditorView: View {
                 Button {
                     model.goBack()
                 } label: {
-                    MarkLabel("Back", "chevron.backward")
+                    MarkLabel("Back", "chevron.backward", size: 16)
                 }
                 .disabled(!model.canGoBack)
                 .help("Back to the note you came from (\u{2303}\u{2318}\u{2190})")
                 Button {
                     model.goForward()
                 } label: {
-                    MarkLabel("Forward", "chevron.forward")
+                    MarkLabel("Forward", "chevron.forward", size: 16)
                 }
                 .disabled(!model.canGoForward)
                 .help("Forward again (\u{2303}\u{2318}\u{2192})")
@@ -264,7 +264,7 @@ struct NoteEditorView: View {
                     Button {
                         confirmTrash = true
                     } label: {
-                        MarkLabel("Delete", "trash")
+                        MarkLabel("Delete", "trash", size: 16)
                     }
                     .help("Delete this note; it waits in Deleted (⌘⌫)")
                     .keyboardShortcut(.delete, modifiers: [.command])
@@ -1736,14 +1736,14 @@ struct TaskRow: View {
                     if let due = ref.task.dueDate {
                         // The date and, since build 277 when the **At** line can write one, the
                         // time of day: `dueText` in Core is the one wording of it.
-                        MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
+                        MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
                             .rowTint(due < .today() && !ref.task.isDone ? Color.red : Color.secondary)
                     }
                     if let rule = ref.task.repeatRule {
-                        MarkLabel(rule.label, "repeat")
+                        MarkLabel(rule.label, "repeat", text: .footnote)
                     }
                     if showNote {
-                        MarkLabel(ref.noteTitle, noteSymbol)
+                        MarkLabel(ref.noteTitle, noteSymbol, text: .footnote)
                             .rowTint(tint.ink)
                     }
                 }
@@ -2141,7 +2141,7 @@ struct TaskSyntaxButton: View {
         Button {
             showing = true
         } label: {
-            MarkImage("info.circle")
+            MarkImage("info.circle", size: 16)
                 .foregroundStyle(.soft)
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())

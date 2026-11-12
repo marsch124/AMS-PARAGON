@@ -220,7 +220,7 @@ struct PlannerDayView: View {
     }
 
     private var previousDayButton: some View {
-        Button { move(-1) } label: { MarkImage("chevron.left") }
+        Button { move(-1) } label: { MarkImage("chevron.left", size: 16) }
             .help("The day before")
             .accessibilityLabel("The day before")
             .accessibilityIdentifier("plan.previousDay")
@@ -233,7 +233,7 @@ struct PlannerDayView: View {
     }
 
     private var nextDayButton: some View {
-        Button { move(1) } label: { MarkImage("chevron.right") }
+        Button { move(1) } label: { MarkImage("chevron.right", size: 16) }
             .help("The day after")
             .accessibilityLabel("The day after")
             .accessibilityIdentifier("plan.nextDay")
@@ -269,7 +269,7 @@ struct PlannerDayView: View {
         Button {
             sheet = .calendarBlocks
         } label: {
-            MarkImage("calendar.badge.clock")
+            MarkImage("calendar.badge.clock", size: 16)
         }
         .help("The other kind of block: real events in Apple Calendar")
         .accessibilityLabel("Calendar blocks")

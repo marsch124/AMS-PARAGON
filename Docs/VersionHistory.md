@@ -30,11 +30,11 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 - Before: two icons stacked, an arrow on top of a box, twice as tall as its neighbours in the Mac note toolbar.
 - Now: one drawing, an arrow going into a tray. It is as tall as the buttons beside it.
 
-**2. Actions is a ticked list. The ring means an open task only.**
+**2. Actions is a ticked list. The ring is an open task.**
 - Before: the **Actions** tab on the iPhone and **All actions** in the Mac sidebar showed an empty ring, the same ring as an open task and **Active**.
 - Now: both show a ticked list.
-- The ring now means one thing: an open task.
-- Lists of open tasks show the ticked list too: "3 open", and the **Tasks** heading in a note.
+- The ring is an open task. It also stands for the status **Active** and for a choice you have not picked.
+- A count of open tasks, such as "3 open" in the **Weekly review**, shows the ring.
 
 **3. Browse is a folder.**
 - Before: the **Browse** tab on the iPhone showed four squares, the same as **Areas**.
@@ -51,9 +51,9 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 
 **6. Icons take their size from the text beside them.**
 - Before: every icon was 16 points, whatever stood beside it. About 32 places asked for another size in vain.
-- Now: an icon beside a title is 26 points, beside normal text 16 points, beside small grey text 12 points, and so on.
-- Beside normal text an icon is 16 points, as before.
-- When you make text larger in the iPhone's settings, the icons grow with it. Before, they stayed the same.
+- Now: an icon beside normal text is 16 points, as before. Beside small text it is 12 points, and beside the largest title 32 points. The sizes in between follow the text in the same way.
+- When you make text larger in the iPhone's settings, the icons beside text grow with it. Before, they stayed the same.
+- Icons inside buttons that have no words, in the bars at the top of a screen and in boxes of a fixed size keep their size when text is made larger.
 
 **7. One line weight, and never thinner than 1.3 points.**
 - An icon of 16 points or more is drawn as before: one line of 1.9 on a grid of 24.
@@ -85,10 +85,9 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 - Now: the four dots are points of the line, like every other icon.
 
 **13. One icon, one meaning.**
-- **Waiting for** a person: a person in a ring. Before: an hourglass.
-- "who?": a question mark in a ring.
-- A time of day: a plain clock face. Before: the stopwatch.
-- **Remove**: a dash in a ring. Before: a bare dash.
+- Waiting: the hourglass, and nothing else. It is the **Waiting for** switch in **All actions** and the "2 waiting" on a project.
+- A time of day on a task: a plain clock face. Before: the stopwatch.
+- **Dropped**, and "Reminders deleted" in the sync report: a dash in a ring. Before: a bare dash.
 - **Missed** and cancelled: a cross in a ring. Before: a bare cross.
 
 **14. Typed ticks are drawn ticks.**
@@ -98,8 +97,8 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 **15. New: the kinds you have not picked are clear.**
 - This is the row of kinds on the **New** screen: **Aspiration**, **Goal**, **Project**, **Area** and **Resource**.
 - Before: the kinds you had not picked were pale icons on pale discs, at under half strength.
-- Now: they are drawn in the full line colour on a clear ground.
-- Only the kind you chose has the filled disc and the frame.
+- Now: they are drawn in the full line colour on a clear ground, inside a thin grey outline.
+- Only the kind you chose has the filled disc and the coloured frame.
 
 **16. The AMS Icon Library folder is complete.**
 - Before: the central AMS Icon Library folder held 50 icons.

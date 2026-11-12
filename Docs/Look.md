@@ -200,15 +200,25 @@ Reworked in build 311 (review round 5). Before, every icon was 16 points whateve
 
 An icon takes its size from the text beside it. No screen picks its own icon size.
 
-| Text beside the icon | Icon, in points |
+| Text beside the icon (Apple's text style) | Icon, in points |
 |----------------------|-----------------|
-| Page title (26) | 26 |
-| Normal text: value, list row, button | 16 |
-| Small grey text: label, second line, capsule | 12 |
+| Large title | 32 |
+| Title | 26 |
+| Title 2 | 21 |
+| Title 3 | 19 |
+| Headline | 16 |
+| Body: normal text, a value, a list row, a button with words | 16 |
+| Callout | 15 |
+| Subheadline | 14 |
+| Footnote: small grey text, a label, a second line, a capsule | 12 |
+| Caption | 12 |
+| Caption 2 | 11 |
 
-- The other steps of the text scale (section 1) follow the same rule: the icon is the size that sits level with its text.
+- These eleven rows are the whole rule (`MarkRule` in Core); the icon is the size that sits level with its text.
 - Beside normal text an icon is 16 points, as before build 311. Before, about 32 places asked for another size and still got 16.
-- On the iPhone the icon grows with its text when the text size is made larger in the iPhone's settings.
+- On the iPhone an icon beside text grows with that text when the text size is made larger in the iPhone's settings.
+- Icons inside buttons that have no words, in toolbars and bars, and in boxes of a fixed size (a kind's round badge, the two-state switch, the tiles on **New**) have a fixed size, 16 points in most places. They keep it when text is made larger, because their box does not grow.
+- On the Map a chip's icon follows the zoom and is never smaller than 10 points.
 - A rule test checks the size and the line weight of an icon.
 
 ### Which mark means what
@@ -217,19 +227,20 @@ One mark, one meaning. Before build 311 the ring, the four squares, the hourglas
 
 | Mark | Means | Before build 311 |
 |------|-------|------------------|
-| Ring | One open task. Nothing else. | Also All actions and Active |
-| Ticked list | Actions (iPhone tab), All actions (Mac sidebar), a list of open tasks ("3 open", the Tasks heading in a note) | The ring |
+| Ring | An open task; also the status Active and a choice not picked. "3 open" in the Weekly review. | Also All actions |
+| Ticked list | Actions (iPhone tab), All actions (Mac sidebar) | The ring |
 | Four squares | Areas | Also the Browse tab |
 | Folder | Browse (iPhone tab) | Four squares |
+| Calendar page | Calendar, a date, the weekly note (Create / Open weekly note) | Unchanged |
+| Eye | Looked at; "N notes due for a look" | Unchanged |
 | Upright day line with two blocks | Plan and Time blocks | A calendar page with a tiny clock, which looked like Calendar |
 | Round arrows with a tick | Weekly review | A tick with lines, which looked like Snippets |
 | Two pages, one behind the other | Templates | A page with a tiny gear, a blob at list size |
 | Three small rings | More (the … on a note) | Three specks; now about twice as visible |
 | Arrow into a tray | Move to Archive (Mac note toolbar) | Two icons stacked, an arrow on a box, twice as tall as its neighbours |
-| Person in a ring | Waiting for a person | An hourglass |
-| Question mark in a ring | "who?" | — |
-| Plain clock face | A time of day | The stopwatch |
-| Dash in a ring | Remove | A bare dash |
+| Hourglass | Waiting (the Waiting-for switch, "N waiting") | Unchanged |
+| Plain clock face | A time of day on a task | The stopwatch |
+| Dash in a ring | Dropped; reminders deleted | A bare dash |
 | Cross in a ring | Missed, cancelled | A bare cross |
 | Star | An aspiration. Nothing else. | Unchanged |
 | Target | A goal with a date | Unchanged |

@@ -452,7 +452,7 @@ struct ReviewSummary: View {
         if dueForReview > 0 {
             out.append(Worry(text: dueForReview == 1 ? "1 note due for a look"
                                                      : "\(dueForReview) notes due for a look",
-                             symbol: "calendar.badge.clock"))
+                             symbol: "eye"))
         }
         if !report.projectsWithoutGoal.isEmpty {
             out.append(Worry(text: report.projectsWithoutGoal.count == 1
@@ -536,7 +536,7 @@ struct HealthRow: View {
                 // work lives in its projects, so "0 open" would sit beside a row with no
                 // "No next action" flag. The two facts could not both be true of that row.
                 if health.note.kind != .area {
-                    MarkLabel("\(health.openTaskCount) open", "checklist", text: .footnote)
+                    MarkLabel("\(health.openTaskCount) open", "circle", text: .footnote)
                 }
                 if health.overdueTaskCount > 0 {
                     MarkLabel("\(health.overdueTaskCount) overdue", "clock.badge.exclamationmark", text: .footnote)
@@ -651,7 +651,7 @@ struct GoalHealthRow: View {
                     MarkLabel("no projects yet", "flag", text: .footnote)
                 }
                 MarkLabel("\(health.areas.count) areas", "circle.grid.2x2", text: .footnote)
-                MarkLabel("\(health.openTaskCount) open", "checklist", text: .footnote)
+                MarkLabel("\(health.openTaskCount) open", "circle", text: .footnote)
                 MarkLabel("\(health.completedLast30Days) done in 30d", "checkmark", text: .footnote)
                 if let target = health.note.targetDate {
                     MarkLabel(target.description, "flag.checkered", text: .footnote)

@@ -611,7 +611,7 @@ private struct ThingChoice: View {
                 if chosen {
                     KindBadge(kind: thing.kind, size: 18, markName: symbol, tint: tint)
                 } else {
-                    MarkImage(symbol)
+                    MarkImage(symbol, size: 16)
                         .foregroundStyle(tint.ink)
                         .frame(width: 18, height: 18)
                         .accessibilityLabel(thing.kind.displayName)

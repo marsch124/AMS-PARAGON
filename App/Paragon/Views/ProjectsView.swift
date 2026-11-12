@@ -319,13 +319,13 @@ struct ProjectGroupHeader: View {
             KindBadge(kind: .goal, size: 20, markName: ChainSymbol.datedGoal, tint: ChainTint.datedGoal)
         case .noGoal:
             // Dashed and grey: not connected, as on the Map (build 82).
-            MarkImage(ChainSymbol.datedGoal, text: .footnote)
+            MarkImage(ChainSymbol.datedGoal, size: 12)
                 .foregroundStyle(.soft)
                 .frame(width: 20, height: 20)
                 .overlay(Circle().strokeBorder(Color.secondary.opacity(0.7),
                                                style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
         case .ended(let status):
-            MarkImage(status.markName)
+            MarkImage(status.markName, size: 16)
                 .foregroundStyle(endedTint(status))
                 .frame(width: 20, height: 20)
         }

@@ -797,6 +797,20 @@ struct GoalProgressBar: View {
     }
 }
 
+/// The Archive button's symbol: an arrow coming down into a tray, because the button
+/// **moves** the note rather than showing an archive. His idea, build 154 — "is it possible to
+/// make a small down arrow so that it shows the movement somehow?"
+///
+/// Since build 311 it is one hand-drawn mark of its own ("archivebox.and.arrow.down"), the
+/// same height as every other toolbar icon. A fixed 16 points: it sits in a toolbar, which
+/// does not grow with the text size.
+struct MoveToArchiveIcon: View {
+    var body: some View {
+        MarkImage("archivebox.and.arrow.down", size: 16)
+            .accessibilityLabel("Move to the Archive")
+    }
+}
+
 /// One symbol in two states.
 ///
 /// The mode button used to swap the symbol itself — an eye for Read, a pencil for Edit — and
@@ -804,21 +818,6 @@ struct GoalProgressBar: View {
 /// symbol that is either lit or not has a single reading, and it is the reading everything
 /// else in the app already uses: a tinted fill is "on", grey is "off". The dashed border says
 /// the same thing a second way, which is what the Map's dashed boxes have always meant here.
-/// The Archive button's symbol: a small arrow coming down into the box, because the button
-/// **moves** the note rather than showing an archive. His idea, build 154 — "is it possible to
-/// make a small down arrow so that it shows the movement somehow?"
-///
-/// Drawn here rather than named, because SF Symbols has no archivebox carrying an arrow. A
-/// `VStack`, not a `ZStack` with offsets: the two pieces then cannot drift over each other at
-/// another text size.
-struct MoveToArchiveIcon: View {
-    var body: some View {
-        // 311: one drawing, an arrow into a tray (it was two icons stacked, twice the height).
-        MarkImage("archivebox.and.arrow.down")
-            .accessibilityLabel("Move to the Archive")
-    }
-}
-
 struct StateToggle: View {
     let markName: String
     /// What the symbol stands for, e.g. "Edit". Read aloud and shown as the tooltip.
@@ -829,7 +828,8 @@ struct StateToggle: View {
 
     var body: some View {
         Button(action: action) {
-            MarkImage(markName)
+            // A fixed 16: the 30 by 26 box does not grow with the text size.
+            MarkImage(markName, size: 16)
                 .frame(width: 30, height: 26)
                 .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
                 .background { fill }

@@ -121,7 +121,7 @@ struct WeekLookStep: View {
             Button {
                 chosenWeek = shownWeek.adding(weeks: -1)
             } label: {
-                MarkImage("chevron.left")
+                MarkImage("chevron.left", size: 16)
                     .frame(width: 30, height: 28)
                     .contentShape(Rectangle())
             }
@@ -142,7 +142,7 @@ struct WeekLookStep: View {
             Button {
                 chosenWeek = shownWeek.adding(weeks: 1)
             } label: {
-                MarkImage("chevron.right")
+                MarkImage("chevron.right", size: 16)
                     .frame(width: 30, height: 28)
                     .contentShape(Rectangle())
             }
