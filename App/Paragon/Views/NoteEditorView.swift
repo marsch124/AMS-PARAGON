@@ -548,7 +548,8 @@ struct NoteEditorView: View {
                             drop: { offset, urls in dropPictures(urls, at: offset) },
                             paste: { offset, data, ext in pastePicture(data, ext: ext, at: offset) },
                             copyWords: { model.copyPictureWords($0) },
-                            showWords: { offset, picture in showWords(of: picture, at: offset) })
+                            showWords: { offset, picture in showWords(of: picture, at: offset) },
+                            makeTasks: { offset, picture in makeTasks(of: picture, at: offset) })
     }
 
     /// Build 290: the picture whose caption is being written, and the words so far.
@@ -668,6 +669,18 @@ struct NoteEditorView: View {
                 return
             }
             text = Pictures.showingWords(words, in: text, linkAt: offset)
+        }
+    }
+
+    /// Build 298: Make tasks — each line of the picture's words as an open task under it.
+    private func makeTasks(of picture: String, at offset: Int) {
+        Task {
+            guard let words = await model.pictureWords(picture) else {
+                model.flash("No words found in this picture")
+                return
+            }
+            text = Pictures.makingTasks(words, in: text, linkAt: offset)
+            model.flash("Tasks made")
         }
     }
 
@@ -2499,6 +2512,8 @@ struct PictureZoom: View {
     @State private var selecting = false
     @State private var box: CGRect?
     @State private var said: String?
+    /// Build 298: where the searched words sit on the picture (0…1, origin bottom left).
+    @State private var found: [CGRect] = []
 
     var body: some View {
         GeometryReader { geo in
@@ -2513,6 +2528,18 @@ struct PictureZoom: View {
                 .frame(width: geo.size.width, height: geo.size.height)
                 .scaleEffect(scale)
                 .offset(offset)
+                ForEach(Array(found.enumerated()), id: \.offset) { _, part in
+                    if let fitted = Pictures.frameBox(of: part, imageSize: imageSize, frame: geo.size) {
+                        let b = Pictures.zoomedBox(fitted.insetBy(dx: -2, dy: -2), scale: scale, offset: offset, frame: geo.size)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(tint.opacity(0.22))
+                            .overlay(RoundedRectangle(cornerRadius: 3).stroke(tint.opacity(0.8), lineWidth: 1))
+                            .frame(width: b.width, height: b.height)
+                            .position(x: b.midX, y: b.midY)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .accessibilityIdentifier("picture.found")
                 if let box {
                     Rectangle()
                         .fill(tint.opacity(0.15))
@@ -2535,7 +2562,17 @@ struct PictureZoom: View {
         .clipped()
         .overlay(alignment: .bottom) { selectBar }
         .accessibilityIdentifier("picture.zoom")
-        .task(id: path) { load() }
+        .task(id: path) { load(); await findSearchedWords() }
+    }
+
+    /// Build 298: marks where the words of the current search sit on the picture.
+    private func findSearchedWords() async {
+        let terms = Pictures.searchTerms(model.queryText)
+        guard !terms.isEmpty, let root = model.vault?.rootURL else { found = []; return }
+        let file = root.appendingPathComponent(path)
+        found = await Task.detached(priority: .userInitiated) {
+            PictureReader.boxes(of: terms, in: file)
+        }.value
     }
 
     /// Select part, the hint while selecting, and what happened.

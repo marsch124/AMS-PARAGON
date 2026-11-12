@@ -86,4 +86,25 @@ final class PictureCaptionTests: XCTestCase {
         XCTAssertEqual(hits.map(\.note.relativePath), ["Projects/Boat.md"])
         XCTAssertEqual(hits.first?.snippets, ["In a picture: Invoice 4711 total 300 kr"])
     }
+
+    func testWordsFoundOnAPictureAndMakeTasks() {
+        XCTAssertEqual(Pictures.searchTerms("Milk  #shop bread"), ["milk", "bread"])
+        let line = "Buy milk, more MILK"
+        XCTAssertEqual(Pictures.termRanges(in: line, terms: ["milk"]).map { String(line[$0]) }, ["milk", "MILK"])
+        XCTAssertTrue(Pictures.termRanges(in: line, terms: ["eggs"]).isEmpty)
+        // A 200×100 picture in a 200×200 frame sits from y 50 to 150; the top-left quarter
+        // of the picture (Vision: x 0, y 0.5, w 0.5, h 0.5) is the box 0,50 100×50.
+        let box = Pictures.frameBox(of: CGRect(x: 0, y: 0.5, width: 0.5, height: 0.5),
+                                    imageSize: CGSize(width: 200, height: 100), frame: CGSize(width: 200, height: 200))
+        XCTAssertEqual(box, CGRect(x: 0, y: 50, width: 100, height: 50))
+        XCTAssertEqual(Pictures.region(of: box!, imageSize: CGSize(width: 200, height: 100), frame: CGSize(width: 200, height: 200)),
+                       CGRect(x: 0, y: 0.5, width: 0.5, height: 0.5))
+        // Zoomed 2× around the middle (100,100) and moved 10 right.
+        XCTAssertEqual(Pictures.zoomedBox(box!, scale: 2, offset: CGSize(width: 10, height: 0), frame: CGSize(width: 200, height: 200)),
+                       CGRect(x: -90, y: 0, width: 200, height: 100))
+        let text = "A\n![One](../Pictures/1.png)\nB"
+        XCTAssertEqual(Pictures.makingTasks("Call Anna\n\n Buy milk ", in: text, linkAt: 2),
+                       "A\n![One](../Pictures/1.png)\n- [ ] Call Anna\n- [ ] Buy milk\nB")
+        XCTAssertEqual(Pictures.makingTasks(" \n", in: text, linkAt: 2), text)
+    }
 }

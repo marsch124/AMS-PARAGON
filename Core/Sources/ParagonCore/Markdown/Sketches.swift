@@ -207,6 +207,16 @@ public extension Pictures {
     /// lines straight after the line that holds the picture (`linkAt` = where its link starts,
     /// in the markdown). Blank lines inside the words are left out.
     static func showingWords(_ words: String, in text: String, linkAt: Int) -> String {
+        writingUnder(words, prefix: "> ", in: text, linkAt: linkAt)
+    }
+
+    /// Build 298: Make tasks — each line of a picture's words as an open task, on the lines
+    /// straight after the picture's line. Blank lines are left out.
+    static func makingTasks(_ words: String, in text: String, linkAt: Int) -> String {
+        writingUnder(words, prefix: "- [ ] ", in: text, linkAt: linkAt)
+    }
+
+    private static func writingUnder(_ words: String, prefix: String, in text: String, linkAt: Int) -> String {
         let ns = text as NSString
         guard linkAt >= 0, linkAt <= ns.length else { return text }
         let lineEnd = ns.lineRange(for: NSRange(location: linkAt, length: 0))
@@ -214,7 +224,7 @@ public extension Pictures {
         let quote = words.components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
-            .map { "> " + $0 }
+            .map { prefix + $0 }
             .joined(separator: "\n")
         guard !quote.isEmpty else { return text }
         var insert = quote + "\n"
@@ -273,5 +283,54 @@ public enum DayDistance {
         case let n where n > 1: return "In \(n) days"
         default: return "\(-n) days ago"
         }
+    }
+}
+
+/// Build 298: the searched words found on a picture opened big.
+public extension Pictures {
+    /// The words of a search, lowercased, one per entry (filters like `#tag` already removed
+    /// by `SearchQuery.words(in:)`).
+    static func searchTerms(_ search: String) -> [String] {
+        SearchQuery.words(in: search).lowercased()
+            .split(whereSeparator: \.isWhitespace).map(String.init)
+    }
+
+    /// Where each term sits in one line the picture's reading found, ignoring case.
+    static func termRanges(in line: String, terms: [String]) -> [Range<String.Index>] {
+        var found: [Range<String.Index>] = []
+        for term in terms where !term.isEmpty {
+            var from = line.startIndex
+            while from < line.endIndex,
+                  let r = line.range(of: term, options: [.caseInsensitive, .diacriticInsensitive], range: from..<line.endIndex) {
+                found.append(r)
+                from = r.upperBound
+            }
+        }
+        return found.sorted { $0.lowerBound < $1.lowerBound }
+    }
+
+    /// The inverse of `region(of:imageSize:frame:)`: a part of the picture (0…1, origin at the
+    /// bottom left, as Apple's text reading gives it) as a box in a frame the picture fits in.
+    static func frameBox(of part: CGRect, imageSize: CGSize, frame: CGSize) -> CGRect? {
+        guard imageSize.width > 0, imageSize.height > 0, frame.width > 0, frame.height > 0 else { return nil }
+        let fit: CGFloat = min(frame.width / imageSize.width, frame.height / imageSize.height)
+        let w: CGFloat = imageSize.width * fit
+        let h: CGFloat = imageSize.height * fit
+        let left: CGFloat = (frame.width - w) / 2
+        let top: CGFloat = (frame.height - h) / 2
+        return CGRect(x: left + part.minX * w,
+                      y: top + (1 - part.maxY) * h,
+                      width: part.width * w,
+                      height: part.height * h)
+    }
+
+    /// A box in the frame after the picture is zoomed by `scale` around the frame's middle and
+    /// moved by `offset` — so the boxes stay on the words while zooming and moving.
+    static func zoomedBox(_ box: CGRect, scale: CGFloat, offset: CGSize, frame: CGSize) -> CGRect {
+        let cx = frame.width / 2, cy = frame.height / 2
+        return CGRect(x: cx + (box.minX - cx) * scale + offset.width,
+                      y: cy + (box.minY - cy) * scale + offset.height,
+                      width: box.width * scale,
+                      height: box.height * scale)
     }
 }

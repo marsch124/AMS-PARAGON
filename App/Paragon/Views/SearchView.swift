@@ -695,6 +695,25 @@ enum PictureReader {
         return result
     }
 
+    /// Build 298: where each search term sits on the picture — 0…1, origin at the bottom left.
+    static func boxes(of terms: [String], in file: URL) -> [CGRect] {
+        guard let source = CGImageSourceCreateWithURL(file as CFURL, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return [] }
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = true
+        request.automaticallyDetectsLanguage = true
+        do { try VNImageRequestHandler(cgImage: image).perform([request]) } catch { return [] }
+        var boxes: [CGRect] = []
+        for observation in request.results ?? [] {
+            guard let line = observation.topCandidates(1).first else { continue }
+            for range in Pictures.termRanges(in: line.string, terms: terms) {
+                if let box = try? line.boundingBox(for: range)?.boundingBox { boxes.append(box) }
+            }
+        }
+        return boxes
+    }
+
     /// The words in one picture, line by line; nil when it cannot be read.
     static func recognize(_ file: URL, region: CGRect? = nil) -> String? {
         guard let source = CGImageSourceCreateWithURL(file as CFURL, nil),
