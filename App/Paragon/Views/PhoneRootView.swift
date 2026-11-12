@@ -20,6 +20,9 @@ struct PhoneRootView: View {
     @EnvironmentObject private var model: AppModel
     @State private var tab: Tab = .today
 
+    /// Before the tab bar exists, so its first badge is already drawn in the Inbox's colour.
+    init() { PhoneRootView.colourTheInboxCount() }
+
     enum Tab: Int, Hashable, CaseIterable, Identifiable {
         case today, plan, actions, inbox, browse
 
@@ -84,7 +87,6 @@ struct PhoneRootView: View {
         }
         // Build 310: the chosen tab wears its part's colour (it was Apple's blue on every tab).
         .tint((tab.section?.tint ?? Theme.fallbackTint).ink)
-        .onAppear(perform: PhoneRootView.colourTheInboxCount)
         // A section asked for from another tab — the **Week** button on **Plan** is the first
         // (build 225). Browse is the tab that can hold any section, so the request chooses it
         // here and `PhoneStack` pushes the screen in the same turn.
@@ -100,8 +102,16 @@ struct PhoneRootView: View {
     static func colourTheInboxCount() {
         let shades = SidebarSection.inbox.tint.shades
         let ground = ShadeRule.ground(day: shades.day)
-        UITabBarItem.appearance().badgeColor =
-            UIColor(red: ground.red, green: ground.green, blue: ground.blue, alpha: 1)
+        let colour = UIColor(red: ground.red, green: ground.green, blue: ground.blue, alpha: 1)
+        UITabBarItem.appearance().badgeColor = colour
+        let bar = UITabBarAppearance()
+        bar.configureWithDefaultBackground()
+        for item in [bar.stackedLayoutAppearance, bar.inlineLayoutAppearance, bar.compactInlineLayoutAppearance] {
+            item.normal.badgeBackgroundColor = colour
+            item.selected.badgeBackgroundColor = colour
+        }
+        UITabBar.appearance().standardAppearance = bar
+        UITabBar.appearance().scrollEdgeAppearance = bar
     }
 
     /// One page. A `switch` inside a `@ViewBuilder` is fine; a `var` would not be (build 58).
