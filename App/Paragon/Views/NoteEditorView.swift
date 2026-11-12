@@ -1965,9 +1965,14 @@ struct WeekAgendaView: View {
                             .foregroundStyle(.soft)
                     }
                     if !day.completed.isEmpty {
-                        Text("✓ \(day.completed.count)")
-                            .font(Txt.listSecond)
-                            .foregroundStyle(.soft)
+                        HStack(spacing: 3) {
+                            MarkImage("checkmark", size: 11)
+                            Text("\(day.completed.count)")
+                                .font(Txt.listSecond)
+                        }
+                        .foregroundStyle(.soft)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(day.completed.count) done")
                     }
                 }
                 .foregroundStyle(day.date == .today() ? ParaKind.daily.tint.ink : .secondary)

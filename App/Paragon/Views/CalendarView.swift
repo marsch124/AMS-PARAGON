@@ -649,9 +649,14 @@ struct MonthDayCell: View {
                         .background(day.overdueCount > 0 ? Color.red.opacity(0.22) : ParaKind.daily.tint.opacity(0.25), in: Capsule())
                 }
                 if !day.completed.isEmpty {
-                    Text("✓\(day.completed.count)")
-                        .font(Txt.listSecond)
-                        .foregroundStyle(.soft)
+                    HStack(spacing: 1) {
+                        MarkImage("checkmark", size: 10)
+                        Text("\(day.completed.count)")
+                            .font(Txt.listSecond)
+                    }
+                    .foregroundStyle(.soft)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(day.completed.count) done")
                 }
                 if day.dailyNotePath != nil && day.due.isEmpty && day.completed.isEmpty {
                     Circle().fill(ParaKind.daily.tint).frame(width: 4, height: 4)
