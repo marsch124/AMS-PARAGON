@@ -14,6 +14,8 @@ public final class SyncEngine {
     public let deviceID: String
     public var config: VaultConfig
     public var now: () -> Date = { Date() }
+    /// The identity of each list PARAGON is linked to, by name, for the run in progress.
+    private var knownListIDs: [String: String] = [:]
 
     public init(vault: Vault, store: RemindersStore, deviceID: String, config: VaultConfig? = nil) {
         self.vault = vault
@@ -43,7 +45,8 @@ public final class SyncEngine {
     }
 
     /// Runs a sync. Throws `SyncEngineError.needsConfirmation` when the run would cancel or
-    /// delete more than a handful and `allowMassChanges` is false; nothing was changed then.
+    /// delete more than a handful, or join a new note to a list PARAGON did not make, and
+    /// `allowMassChanges` is false; nothing was changed then.
     @discardableResult
     public func run(allowMassChanges: Bool = false) async throws -> SyncReport {
         switch try await sync(allowMassChanges: allowMassChanges) {
@@ -56,12 +59,17 @@ public final class SyncEngine {
     /// `MassChangeSummary.needsConfirmation`, it stops before writing anything, to notes or to
     /// Reminders, and says what it would do. Only a run started by a person who then said yes
     /// passes `allowMassChanges: true`; a timed sync never does.
+    /// The same stop and the same yes cover a new note whose name is that of a Reminders list
+    /// PARAGON did not make and that has reminders in it (hardening-14).
     public func sync(allowMassChanges: Bool = false) async throws -> SyncOutcome {
         var report = SyncReport(startedAt: now())
         var state = try vault.loadSyncState(deviceID: deviceID)
         // A device with no memory of an earlier sync must not call every difference a conflict
         // and let the note win: what was ticked or renamed in Reminders is taken over instead.
         let firstSync = state.links.isEmpty
+        knownListIDs = state.listIDs
+        /// Ids given to tasks in this run: these tasks are from this device.
+        var assignedNow = Set<String>()
 
         // 1. Load notes, assign ids to tasks that have none, and give copies of an id a fresh one.
         // Up to `cloudFetchesPerLoad` waits for iCloud, as before build 261. `run()` is
@@ -126,6 +134,7 @@ public final class SyncEngine {
                     while allTaskIDs.contains(id) { id = TaskItem.makeID() }
                 }
                 allTaskIDs.insert(id)
+                assignedNow.insert(id)
                 task.id = id
                 let assigned = task
                 if note.replace(task: assigned, previousID: previousID) {
@@ -174,17 +183,21 @@ public final class SyncEngine {
 
         // 2. Read Reminders; nothing is written yet. Every mapped list that exists, plus lists
         // that linked reminders were last seen in, so a renamed note finds its reminders.
-        let listNames = try await store.listNames()
-        let existingLists = Set(listNames)
+        let storeLists = try await store.lists()
+        let existingLists = Set(storeLists.map(\.name))
+        let existingListIDs = Set(storeLists.map(\.id))
         var remindersByID: [String: ReminderRecord] = [:]
         var remindersByMarker: [String: ReminderRecord] = [:]
+        /// Every reminder that carries a mark, so two with the same mark are seen (hardening-10).
+        var allByMarker: [String: [ReminderRecord]] = [:]
         var fetchedLists = Set<String>()
         func fetch(_ list: String) async throws {
             guard fetchedLists.insert(list).inserted else { return }
             for record in try await store.reminders(inList: list) {
                 remindersByID[record.identifier] = record
-                if let marker = Self.markerTaskID(in: record.notes), remindersByMarker[marker] == nil {
-                    remindersByMarker[marker] = record
+                if let marker = Self.markerTaskID(in: record.notes) {
+                    allByMarker[marker, default: []].append(record)
+                    if remindersByMarker[marker] == nil { remindersByMarker[marker] = record }
                 }
             }
         }
@@ -218,6 +231,65 @@ public final class SyncEngine {
                 remindersByID[record.identifier] = record
                 remindersByMarker[taskID] = record
             }
+        }
+
+        // 2b-2. Two reminders with the same mark (hardening-10): two devices each made one for
+        // the same task before they saw the other's. The older one stays, so every device picks
+        // the same one; without dates, the one linked here. A twin with the same title is
+        // removed (a tick on it is kept); one with another title is somebody's own reminder
+        // and becomes a task of its own instead. Decided here, done after the brake.
+        var twinsToRemove: [ReminderRecord] = []
+        var keepersToTick: [ReminderRecord] = []
+        var looseTwins = Set<String>()
+        for (marker, records) in allByMarker.sorted(by: { $0.key < $1.key }) where records.count > 1 && taskLocations[marker] != nil {
+            let linkedID = state.links[marker]?.reminderID
+            let dated = records.allSatisfy { $0.createdAt != nil }
+            let ordered = records.sorted { a, b in
+                if dated, a.createdAt != b.createdAt { return (a.createdAt ?? .distantPast) < (b.createdAt ?? .distantPast) }
+                if (a.identifier == linkedID) != (b.identifier == linkedID) { return a.identifier == linkedID }
+                return a.identifier < b.identifier
+            }
+            var keeper = ordered[0]
+            var tick = false
+            for twin in ordered.dropFirst() {
+                if Self.singleLine(twin.title) == Self.singleLine(keeper.title) {
+                    if twin.isCompleted, !keeper.isCompleted {
+                        keeper.isCompleted = true
+                        keeper.completedAt = twin.completedAt ?? now()
+                        tick = true
+                    }
+                    twinsToRemove.append(twin)
+                    remindersByID[twin.identifier] = nil
+                } else {
+                    looseTwins.insert(twin.identifier)
+                }
+            }
+            if tick { keepersToTick.append(keeper) }
+            remindersByID[keeper.identifier] = keeper
+            remindersByMarker[marker] = keeper
+            if state.links[marker] != nil { state.links[marker]?.reminderID = keeper.identifier }
+        }
+
+        // 2b-3. A new note named like a Reminders list that PARAGON is not linked to
+        // (hardening-14). A list is ours when its identity is the one remembered, when this
+        // device linked reminders in it before identities were kept, or when a reminder in it
+        // carries the mark of one of the note's tasks (another device made it). The inbox and
+        // daily lists and a list named in the note's `reminders-list:` were chosen by the user.
+        // Any other list with reminders of its own is joined only after a yes.
+        var joins: [MassChangeSummary.ListJoin] = []
+        for (list, path) in pathForList.sorted(by: { $0.key < $1.key }) where existingLists.contains(list) {
+            guard let note = notesByPath[path], note.kind != .inbox, note.kind != .daily,
+                  note.frontmatter.string("reminders-list") == nil else { continue }
+            if let known = state.listIDs[list] {
+                if storeLists.contains(where: { $0.name == list && $0.id == known }) { continue }
+            } else if state.links.values.contains(where: { $0.listName == list }) {
+                continue
+            }
+            let inList = remindersByID.values.filter { $0.listName == list }
+            let own = Set(note.tasks.compactMap(\.id))
+            if inList.contains(where: { Self.markerTaskID(in: $0.notes).map(own.contains) ?? false }) { continue }
+            let foreign = inList.filter { Self.markerTaskID(in: $0.notes) == nil }.count
+            if foreign > 0 { joins.append(.init(noteTitle: note.title, listName: list, reminderCount: foreign)) }
         }
 
         // 2c. Mapped lists that do not exist. When all of a note's reminders now live together in
@@ -270,18 +342,33 @@ public final class SyncEngine {
                 }
                 changesPerList[link.listName, default: 0] += 1
             }
-            if MassChangeSummary.needsConfirmation(total: summary.total,
-                                                   perList: changesPerList.map { ($0.value, linkedPerList[$0.key] ?? 0) }) {
-                summary.exampleTitles = Array((cancelTitles + deleteTitles).prefix(5))
-                summary.lists = changesPerList.keys.sorted()
+            let mass = MassChangeSummary.needsConfirmation(total: summary.total,
+                                                           perList: changesPerList.map { ($0.value, linkedPerList[$0.key] ?? 0) })
+            if mass || !joins.isEmpty {
+                if mass {
+                    summary.exampleTitles = Array((cancelTitles + deleteTitles).prefix(5))
+                    summary.lists = changesPerList.keys.sorted()
+                } else {
+                    summary.tasksToCancel = 0
+                    summary.remindersToDelete = 0
+                }
+                summary.listsToJoin = joins
                 return .needsConfirmation(summary)
             }
+        }
+        for join in joins {
+            report.warnings.append("The note \"\(join.noteTitle)\" was joined to the Reminders list \"\(join.listName)\", which was already there.")
         }
 
         // Ids are written before Reminders is changed, so a failure later cannot leave
         // reminders carrying ids no note knows about.
         try persistNotes()
         indexTasks()
+        // A task that got its id in this run is from this device: it never waits for a reminder,
+        // also not when this run fails before making one.
+        state.waitingForReminder.formUnion(assignedNow)
+        /// Two lists with one name: unmarked reminders in the one PARAGON is not linked to stay out.
+        var otherListsLeftAlone = Set<String>()
         /// Paths of notes in Deleted, read once and only when a link points at a missing note.
         var deletedPaths: Set<String>?
         func isInDeleted(_ path: String) -> Bool {
@@ -292,6 +379,14 @@ public final class SyncEngine {
 
         do {
             for list in listsToCreate { try await store.ensureList(named: list) }
+
+            // The twins found in 2b-2: a tick moves to the one that stays, the other goes.
+            for keeper in keepersToTick { try await store.update(keeper) }
+            for twin in twinsToRemove {
+                try await store.delete(identifier: twin.identifier)
+                report.remindersDeleted += 1
+                report.warnings.append("\"\(twin.title)\" was in Reminders twice; the extra one was removed.")
+            }
 
             /// `Parent › Child` prefix for subtasks, nil for top-level tasks.
             func parentPrefix(_ path: String, _ task: TaskItem) -> String? {
@@ -367,6 +462,21 @@ public final class SyncEngine {
 
             indexTasks()
 
+            // 4a. An open task that came with a mark but has no link and no reminder in its list
+            // was made on another device (hardening-10). Its reminder may be in another list, so
+            // look everywhere; and it may not have arrived yet, so the first sync that sees the
+            // task only notes it, and the next one makes the reminder if there still is none.
+            let arrived = taskLocations.sorted { $0.key < $1.key }.filter { taskID, location in
+                state.links[taskID] == nil && remindersByMarker[taskID] == nil && !location.task.isDone && !assignedNow.contains(taskID)
+            }
+            if !arrived.isEmpty {
+                for (taskID, record) in try await store.findReminders(arrived.map { ReminderLookup(taskID: $0.key, identifier: "") })
+                where !handledReminderIDs.contains(record.identifier) {
+                    remindersByID[record.identifier] = record
+                    remindersByMarker[taskID] = record
+                }
+            }
+
             // 4. Tasks without a link: match by marker, else create a reminder for open tasks.
             for (taskID, location) in taskLocations.sorted(by: { $0.key < $1.key }) where state.links[taskID] == nil {
                 let listName = listForPath[location.path] ?? ""
@@ -381,8 +491,12 @@ public final class SyncEngine {
                     continue
                 }
                 guard !location.task.isDone else { continue }
+                guard state.waitingForReminder.contains(taskID) else {
+                    state.waitingForReminder.insert(taskID)
+                    continue
+                }
                 let prefix = parentPrefix(location.path, location.task)
-                var draft = ReminderRecord(listName: listName, title: location.task.title)
+                var draft = ReminderRecord(listName: listName, listID: knownListIDs[listName] ?? "", title: location.task.title)
                 apply(task: location.task, to: &draft, listName: listName, parentPrefix: prefix)
                 let created = try await store.create(draft)
                 handledReminderIDs.insert(created.identifier)
@@ -395,7 +509,12 @@ public final class SyncEngine {
             // 5. Reminders without a link: import into the note that owns the list.
             for reminder in remindersByID.values.sorted(by: { $0.identifier < $1.identifier }) where !handledReminderIDs.contains(reminder.identifier) {
                 guard var path = pathForList[reminder.listName] else { continue }
-                if Self.markerTaskID(in: reminder.notes) != nil {
+                if let ours = knownListIDs[reminder.listName], existingListIDs.contains(ours),
+                   !reminder.listID.isEmpty, reminder.listID != ours {
+                    otherListsLeftAlone.insert(reminder.listName)
+                    continue
+                }
+                if Self.markerTaskID(in: reminder.notes) != nil, !looseTwins.contains(reminder.identifier) {
                     // Marked by PARAGON but not linked here and not in any note this device can see.
                     // That happens on a fresh device before the notes arrive; never delete on that basis.
                     continue
@@ -435,6 +554,9 @@ public final class SyncEngine {
                                            lastTaskFingerprint: Self.fingerprint(appended),
                                            lastReminderFingerprint: Self.fingerprint(updated), lastSyncedAt: now())
             }
+            for list in otherListsLeftAlone.sorted() {
+                report.warnings.append("There are two Reminders lists called \"\(list)\". PARAGON uses the one it is linked to and leaves the other alone.")
+            }
         } catch {
             // Keep what was achieved so far; the next run continues from here instead of redoing it.
             try? persistNotes()
@@ -445,6 +567,25 @@ public final class SyncEngine {
         // 6. Persist notes and state first, then the marker writes that depend on them.
         try persistNotes()
         state.lastRun = now()
+        indexTasks()
+        state.waitingForReminder = state.waitingForReminder.filter { taskID in
+            state.links[taskID] == nil && taskLocations[taskID].map { !$0.task.isDone } ?? false
+        }
+        // Remember each mapped list by its own identity (hardening-14). When two share the name,
+        // the one a linked reminder is in.
+        if let lists = try? await store.lists() {
+            let mapped = Set(listForPath.values)
+            for list in mapped {
+                let ids = lists.filter { $0.name == list && !$0.id.isEmpty }.map(\.id)
+                if let known = state.listIDs[list], ids.contains(known) { continue }
+                let linkedIDs = Set(state.links.values.map(\.reminderID))
+                let home = remindersByID.values.sorted { $0.identifier < $1.identifier }
+                    .first { $0.listName == list && linkedIDs.contains($0.identifier) && ids.contains($0.listID) }?.listID
+                state.listIDs[list] = home ?? ids.first
+            }
+            let linkedNames = Set(state.links.values.map(\.listName))
+            state.listIDs = state.listIDs.filter { mapped.contains($0.key) || linkedNames.contains($0.key) }
+        }
         try vault.save(syncState: state, deviceID: deviceID)
         for updated in pendingReminderUpdates {
             do {
@@ -566,6 +707,7 @@ public final class SyncEngine {
             var updated = reminder
             if Self.markerTaskID(in: updated.notes) != task.id || listChanged {
                 updated.notes = Self.notes(updated.notes, withMarkerFor: task.id ?? "")
+                if listChanged { updated.listID = knownListIDs[listName] ?? "" }
                 updated.listName = listName
                 try await store.update(updated)
             }
@@ -578,6 +720,7 @@ public final class SyncEngine {
     // MARK: Field mapping
 
     func apply(task: TaskItem, to reminder: inout ReminderRecord, listName: String, parentPrefix: String? = nil) {
+        if reminder.listName != listName { reminder.listID = knownListIDs[listName] ?? "" }
         reminder.listName = listName
         reminder.title = Self.reminderTitle(for: task.title, parentPrefix: parentPrefix)
         reminder.dueDate = task.dueDate

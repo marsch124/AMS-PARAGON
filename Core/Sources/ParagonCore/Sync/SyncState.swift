@@ -27,8 +27,25 @@ public struct SyncState: Codable, Equatable, Sendable {
     public var version = 1
     public var links: [String: TaskLink] = [:]
     public var lastRun: Date?
+    /// The Reminders lists PARAGON is linked to: list name → the list's own identity. A list
+    /// with the same name but another identity is not ours until its reminders say so.
+    public var listIDs: [String: String] = [:]
+    /// Tasks that had a mark but no link and no reminder at the last sync. They came from
+    /// another device, whose reminder may still be on its way: a reminder is made for them
+    /// only when the next sync still finds none.
+    public var waitingForReminder: Set<String> = []
 
     public init() {}
+
+    /// Files written before a field existed still load.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        version = try c.decodeIfPresent(Int.self, forKey: .version) ?? 1
+        links = try c.decode([String: TaskLink].self, forKey: .links)
+        lastRun = try c.decodeIfPresent(Date.self, forKey: .lastRun)
+        listIDs = try c.decodeIfPresent([String: String].self, forKey: .listIDs) ?? [:]
+        waitingForReminder = try c.decodeIfPresent(Set<String>.self, forKey: .waitingForReminder) ?? []
+    }
 
     public static let encoder: JSONEncoder = {
         let e = JSONEncoder()
@@ -88,20 +105,45 @@ public struct MassChangeSummary: Equatable, Sendable {
     public var exampleTitles: [String] = []
     /// The Reminders lists the changes are in.
     public var lists: [String] = []
+    /// New notes named like a Reminders list that PARAGON did not make and that has reminders in it.
+    public var listsToJoin: [ListJoin] = []
+
+    /// A note that would be joined to a list that was already there.
+    public struct ListJoin: Equatable, Sendable {
+        public var noteTitle: String
+        public var listName: String
+        /// The reminders in that list now.
+        public var reminderCount: Int
+
+        public init(noteTitle: String, listName: String, reminderCount: Int) {
+            self.noteTitle = noteTitle
+            self.listName = listName
+            self.reminderCount = reminderCount
+        }
+    }
 
     public init() {}
 
-    public var total: Int { tasksToCancel + remindersToDelete }
+    public var total: Int { tasksToCancel + remindersToDelete + listsToJoin.reduce(0) { $0 + $1.reminderCount } }
 
     public var message: String {
+        var sentences: [String] = []
         var parts: [String] = []
         if tasksToCancel > 0 { parts.append("cancel \(tasksToCancel) task\(tasksToCancel == 1 ? "" : "s") in your notes") }
         if remindersToDelete > 0 { parts.append("delete \(remindersToDelete) reminder\(remindersToDelete == 1 ? "" : "s")") }
-        var text = "This sync would " + parts.joined(separator: " and ") + "."
-        if !exampleTitles.isEmpty {
-            text += " For example: " + exampleTitles.map { "\u{201C}\($0)\u{201D}" }.joined(separator: ", ") + "."
+        if !parts.isEmpty {
+            var text = "This sync would " + parts.joined(separator: " and ") + "."
+            if !exampleTitles.isEmpty {
+                text += " For example: " + exampleTitles.map { "\u{201C}\($0)\u{201D}" }.joined(separator: ", ") + "."
+            }
+            sentences.append(text)
         }
-        return text + " Nothing was changed."
+        for join in listsToJoin {
+            let n = join.reminderCount
+            sentences.append("Reminders already has a list called \u{201C}\(join.listName)\u{201D} with \(n) reminder\(n == 1 ? "" : "s") that PARAGON did not make. This sync would join it to the note \u{201C}\(join.noteTitle)\u{201D} and add \(n == 1 ? "that reminder" : "those reminders") to the note as tasks.")
+        }
+        if !listsToJoin.isEmpty { sentences.append("To keep them apart, cancel and rename the note or the list.") }
+        return sentences.joined(separator: " ") + " Nothing was changed."
     }
 
     /// More than this many cancelled tasks and deleted reminders in one run needs a yes.
