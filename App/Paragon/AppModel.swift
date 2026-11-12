@@ -127,7 +127,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 302
+    static let number = 303
 }
 
 @MainActor
@@ -1810,8 +1810,12 @@ final class AppModel: ObservableObject {
             var task = ref.task
             task.markOpen()
             note.replace(task: task)
-        } else if let next = note.complete(task: ref.task) {
-            flash("Done. Next time: \(next.dueDate?.description ?? "")")
+        } else {
+            // Build 303: a gentle tap you can feel (iPhone and iPad only).
+            Haptics.done()
+            if let next = note.complete(task: ref.task) {
+                flash("Done. Next time: \(next.dueDate?.description ?? "")")
+            }
         }
         save(note)
     }

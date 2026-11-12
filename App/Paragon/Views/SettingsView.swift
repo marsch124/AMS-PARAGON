@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var showingImporter = false
     @State private var backupToRestore: VaultBackup?
     @AppStorage("showMenuBarItem") private var showMenuBarItem = true
+    @AppStorage("showSyncMenuBarItem") private var showSyncMenuBarItem = true
     @AppStorage("hideFinishedTasks") private var hideFinishedTasks = false
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
@@ -44,6 +45,10 @@ struct SettingsView: View {
             }
 
             Section("Reminders sync") {
+                #if os(macOS)
+                // Build 303: the sync ring in the menu bar.
+                Toggle("Show the sync ring in the menu bar", isOn: $showSyncMenuBarItem)
+                #endif
                 Button {
                     Task { await model.syncNow() }
                 } label: {

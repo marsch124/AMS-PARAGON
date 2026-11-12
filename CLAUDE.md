@@ -4936,6 +4936,16 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - **Unchanged:** Mac and iPad keep `SyncStatusBar` at the foot of the sidebar.
 - **BuildStamp:** `BuildStamp.number` = 300.
 
+## Build 303 (12 November 2026)
+
+"Sync ring in the Mac menu bar, a tap on ticking". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Reminders sync, ticking), `Look.md` (section 8).
+
+- **Before:** the sync ring was only at the foot of the sidebar (Mac/iPad) and on the iPhone button. Ticking a task gave no haptic.
+- **Menu bar:** second `MenuBarExtra` (`.menu` style) in ParagonApp.swift beside the quick-capture tray. Label `MenuBarSyncLabel` draws `SyncRingGlyph` into an `NSImage` with `ImageRenderer` each minute (16 pt) with the short word (10:55, Yesterday, Syncing...). `SyncRingGlyph` is the model-free ring shared by the sidebar, the iPhone button and the menu bar; same colours/rules (green < 1 h, yellow after or waiting for iCloud, full red on conflicts, grey before any sync; fills down over 2 h). Menu `MenuBarSyncMenu`: sync line, Sync now, Show me what would change..., Last sync report..., Sync settings..., Show PARAGON.
+- **Setting:** `@AppStorage showSyncMenuBarItem` (default on), switch "Show the sync ring in the menu bar" in Settings > Reminders sync.
+- **Haptic (iPhone/iPad):** `Haptics.done()` in Theme.swift, called from `AppModel.toggle` (any list) and on a box in a note (iOS editor); only when ticking done, never when unticking, nothing on the Mac.
+- **BuildStamp:** `BuildStamp.number` = 303.
+
 ## Build 302 (12 November 2026)
 
 "Search gets the premium chips". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Search screen boxes, All actions note), `Look.md` (section 12).

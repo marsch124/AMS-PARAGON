@@ -1304,6 +1304,10 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             }
             guard let textView, let offset = boxOffset(at: recognizer.location(in: textView)),
                   let ticked = TaskBox.toggled(textView.text, at: offset) else { return }
+            // Build 303: the soft tap when a box is ticked done (not when one is unticked).
+            if ticked.components(separatedBy: "[x]").count > textView.text.components(separatedBy: "[x]").count {
+                Haptics.done()
+            }
             write(ticked, cursor: nil)
         }
 

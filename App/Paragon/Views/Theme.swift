@@ -222,20 +222,8 @@ struct SyncRingMark: View {
         let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                  conflicts: conflicts, now: now)
         let tint = colour(mood)
-        let mark = ZStack {
-            Circle().stroke(tint.opacity(0.22), lineWidth: 2.2)
-            Circle()
-                .trim(from: 0, to: fill)
-                .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.4), value: fill)
-            MarkImage("arrow.triangle.2.circlepath", size: ring * 0.54)
-                .foregroundStyle(mood == .none ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
-                .rotationEffect(.degrees(syncing ? 360 : 0))
-                .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
-                           value: syncing)
-        }
-        .frame(width: ring, height: ring)
+        let mark = SyncRingGlyph(fill: fill, tint: tint, plain: mood == .none,
+                                 syncing: syncing, ring: ring)
         let text = Text(word)
             .font(axis == .vertical ? .caption2 : Txt.listSecond.weight(.medium))
             .monospacedDigit()
@@ -256,6 +244,125 @@ struct SyncRingMark: View {
                                             finishedAt: finishedAt, conflicts: conflicts, now: now))
     }
 }
+
+/// The ring itself, with no model: the sidebar, the iPhone button and the Mac menu bar
+/// (build 303, drawn into a picture there) all draw this one.
+struct SyncRingGlyph: View {
+    let fill: Double
+    let tint: Color
+    var plain = false
+    var syncing = false
+    var ring: CGFloat = 26
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(tint.opacity(0.22), lineWidth: 2.2)
+            Circle()
+                .trim(from: 0, to: fill)
+                .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.4), value: fill)
+            MarkImage("arrow.triangle.2.circlepath", size: ring * 0.54)
+                .foregroundStyle(plain ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
+                .rotationEffect(.degrees(syncing ? 360 : 0))
+                .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
+                           value: syncing)
+        }
+        .frame(width: ring, height: ring)
+    }
+}
+
+/// **Build 303 (his yes to my idea): a gentle tap you can feel when a task is ticked done** on
+/// the iPhone and iPad — the same soft tap as a finished sync (build 301). Nothing on the Mac.
+enum Haptics {
+    static func done() {
+        #if os(iOS)
+        UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.6)
+        #endif
+    }
+}
+
+#if os(macOS)
+/// **Build 303 (his yes to my idea): the sync clock ring in the Mac menu bar**, beside the
+/// quick-capture tray, so the sync can be seen without opening PARAGON. The menu bar only
+/// draws pictures and words, so the ring is drawn into a picture each minute (and whenever
+/// the sync changes) and the time goes beside it as words.
+struct MenuBarSyncLabel: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            let now = context.date
+            let finishedAt = model.lastReport.map { $0.finishedAt ?? $0.startedAt }
+            let conflicts = model.lastReport?.conflicts.count ?? 0
+            let syncing = model.isSyncing
+            let waiting = model.syncWaitsForCloud
+            let mood = SyncRing.mood(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                     conflicts: conflicts, now: now)
+            let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                     conflicts: conflicts, now: now)
+            let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                     conflicts: conflicts, now: now)
+            Image(nsImage: Self.picture(fill: fill, mood: mood))
+            Text(word)
+        }
+    }
+
+    @MainActor
+    static func picture(fill: Double, mood: SyncRing.Mood) -> NSImage {
+        let tint: Color
+        switch mood {
+        case .none: tint = .gray
+        case .fresh: tint = .green
+        case .aging: tint = .yellow
+        case .problem: tint = .red
+        }
+        let renderer = ImageRenderer(content: SyncRingGlyph(fill: fill, tint: tint, ring: 16)
+            .padding(1))
+        renderer.scale = 2
+        let image = renderer.nsImage ?? NSImage()
+        image.isTemplate = false
+        return image
+    }
+}
+
+/// What the menu bar ring opens: where the sync stands, and the same four choices as the
+/// sidebar ring's right-click.
+struct MenuBarSyncMenu: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
+
+    var body: some View {
+        let finishedAt = model.lastReport.map { $0.finishedAt ?? $0.startedAt }
+        Text(SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
+                             finishedAt: finishedAt,
+                             conflicts: model.lastReport?.conflicts.count ?? 0))
+        Divider()
+        Button("Sync now") { Task { await model.syncNow() } }
+            .disabled(model.isSyncing || model.vault == nil)
+        Button("Show me what would change…") {
+            openWindow(id: ParagonApp.mainWindowID)
+            Task { await model.previewSync() }
+        }
+        if model.lastReport != nil {
+            Button("Last sync report…") {
+                openWindow(id: ParagonApp.mainWindowID)
+                model.showLastReport()
+            }
+        }
+        Divider()
+        Button("Sync settings…") {
+            model.settingsJumpToSync = true
+            openSettings()
+        }
+        Button("Show PARAGON") {
+            openWindow(id: ParagonApp.mainWindowID)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+}
+#endif
 
 struct VaultWarningBar: View {
     let text: String

@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (302) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (303) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 303 · 12 November 2026
+
+**The sync ring in the Mac menu bar, and a tap you can feel when you tick a task.**
+
+**Before (build 302).** The sync ring lived only at the foot of the Mac sidebar and on the iPhone's sync button, so you had to open the PARAGON window to see how fresh the last sync was. Ticking a task done on the iPhone or iPad made no feel at all.
+
+**Now, the Mac menu bar has a second PARAGON item.**
+- Beside the quick-capture item there is a clock ring (16 points) with the short word next to it ("10:55", "Yesterday", "Syncing…"). It follows the same rules as the sidebar ring: green for the first hour, yellow after that or while a sync waits for iCloud, a full red ring after conflicts, grey and empty before any sync. It empties over two hours and redraws every minute.
+- Clicking it opens a menu: the sync line (for example "Synced at 10:55"), **Sync now**, **Show me what would change…**, **Last sync report…**, **Sync settings…** and **Show PARAGON**.
+- **Settings › Reminders sync** has a new switch, **Show the sync ring in the menu bar**. It is on by default; switch it off and the item is gone.
+
+**Now, iPhone and iPad give a soft tap when you tick a task done.**
+- You feel it in any list, and on a box in a note.
+- Unticking a task gives nothing. The Mac gives nothing.
+
+**What did not change.** The sync itself, the sidebar ring, the quick-capture item and what ticking does to a task.
+
+**The version.** It shows as "PARAGON 1.0 (303)".
 
 ## Build 302 · 12 November 2026
 

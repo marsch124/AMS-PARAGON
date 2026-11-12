@@ -15,6 +15,7 @@ struct ParagonApp: App {
     @NSApplicationDelegateAdaptor(ReminderAppDelegate.self) private var reminderDelegate
     #endif
     @AppStorage("showMenuBarItem") private var showMenuBarItem = true
+    @AppStorage("showSyncMenuBarItem") private var showSyncMenuBarItem = true
     static let plannerWindowID = "planner"
     /// The main window's name, so the menu bar clock's **Show PARAGON** can open a fresh one when
     /// it was closed (build 257's review).
@@ -134,6 +135,15 @@ struct ParagonApp: App {
             Text("PARAGON quick capture")
         }
         .menuBarExtraStyle(.window)
+        // Build 303: the sync clock ring, its own item beside the capture tray.
+        MenuBarExtra(isInserted: $showSyncMenuBarItem) {
+            MenuBarSyncMenu()
+                .environmentObject(model)
+        } label: {
+            MenuBarSyncLabel()
+                .environmentObject(model)
+        }
+        .menuBarExtraStyle(.menu)
         Settings {
             SettingsView()
                 .environmentObject(model)
