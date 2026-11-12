@@ -2148,6 +2148,9 @@ struct NoteGallery: View {
     /// Build 294: one picture dragged onto another takes its place.
     var move: (String, String) -> Void = { _, _ in }
     @AppStorage("galleryFolded") private var folded = false
+    @EnvironmentObject private var model: AppModel
+    /// Build 297: the gallery's search box.
+    @State private var search = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -2155,9 +2158,19 @@ struct NoteGallery: View {
                 SectionLabel(title: "Pictures", count: paths.count, markName: "photo", tint: tint)
             }
             if !folded {
+                TextField("Search pictures", text: $search)
+                    .textFieldStyle(.roundedBorder)
+                    .font(Txt.label)
+                    .accessibilityIdentifier("gallery.search")
+                let shown = Pictures.filtered(paths, by: search, pictureText: model.pictureText)
+                if shown.isEmpty {
+                    Text("No picture has these words")
+                        .font(Txt.label).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("gallery.none")
+                }
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        ForEach(paths, id: \.self) { picture in
+                        ForEach(shown, id: \.self) { picture in
                             Button { open(picture) } label: {
                                 GalleryThumb(path: picture, version: version)
                             }
@@ -2262,8 +2275,8 @@ struct SketchSheet: View {
     var body: some View {
         NavigationStack {
             Group {
-                if let pictureOnly {
-                    PictureZoom(image: pictureOnly)
+                if pictureOnly != nil, let path = request.picturePath {
+                    PictureZoom(path: path, tint: tint)
                 } else if loaded {
                     SketchCanvas(drawing: $drawing)
                         .accessibilityIdentifier("sketch.canvas")
@@ -2426,7 +2439,7 @@ struct SketchSheet: View {
                     .tint(tint)
             }
             if let picture = request.picturePath {
-                PictureZoom(path: picture)
+                PictureZoom(path: picture, tint: tint)
                     .frame(height: 480)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3), lineWidth: 1))
@@ -2471,47 +2484,48 @@ struct CopyWordsButton: View {
 }
 
 /// A picture opened big: pinch to zoom (up to `Pictures.maxZoom`), drag to move around
-/// while zoomed, double-tap to zoom in or back to normal.
+/// while zoomed, double-tap to zoom in or back to normal. Build 297: Select part — drag a
+/// box over some words and only those are read and copied.
 struct PictureZoom: View {
     @EnvironmentObject private var model: AppModel
-    var path: String? = nil
-    @State var image: Image? = nil
+    let path: String
+    var tint: Color = .accentColor
+    @State private var image: Image?
+    @State private var imageSize: CGSize = .zero
     @State private var scale: Double = 1
     @State private var lastScale: Double = 1
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
-
-    init(image: Image) { _image = State(initialValue: image) }
-    init(path: String) { self.path = path }
+    @State private var selecting = false
+    @State private var box: CGRect?
+    @State private var said: String?
 
     var body: some View {
         GeometryReader { geo in
-            Group {
-                if let image {
-                    image.resizable().scaledToFit()
-                } else {
-                    Text("On its way from iCloud").font(Txt.label).foregroundStyle(.secondary)
+            ZStack {
+                Group {
+                    if let image {
+                        image.resizable().scaledToFit()
+                    } else {
+                        Text("On its way from iCloud").font(Txt.label).foregroundStyle(.secondary)
+                    }
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
+                .scaleEffect(scale)
+                .offset(offset)
+                if let box {
+                    Rectangle()
+                        .fill(tint.opacity(0.15))
+                        .overlay(Rectangle().stroke(tint, lineWidth: 1.5))
+                        .frame(width: box.width, height: box.height)
+                        .position(x: box.midX, y: box.midY)
                 }
             }
-            .frame(width: geo.size.width, height: geo.size.height)
-            .scaleEffect(scale)
-            .offset(offset)
             .contentShape(Rectangle())
-            .gesture(MagnifyGesture()
-                .onChanged { value in scale = Pictures.zoom(lastScale * value.magnification) }
-                .onEnded { _ in
-                    lastScale = scale
-                    if scale <= 1 { withAnimation(.easeOut(duration: 0.2)) { reset() } }
-                    else { offset = clamped(offset, in: geo.size); lastOffset = offset }
-                })
-            .simultaneousGesture(DragGesture()
-                .onChanged { value in
-                    guard scale > 1 else { return }
-                    offset = clamped(CGSize(width: lastOffset.width + value.translation.width,
-                                            height: lastOffset.height + value.translation.height), in: geo.size)
-                }
-                .onEnded { _ in lastOffset = offset })
+            .gesture(selecting ? nil : zoomGesture(geo.size))
+            .simultaneousGesture(dragGesture(geo.size))
             .onTapGesture(count: 2) {
+                guard !selecting else { return }
                 withAnimation(.easeOut(duration: 0.2)) {
                     if scale > 1 { reset() } else { scale = Pictures.doubleTapZoom; lastScale = scale }
                 }
@@ -2519,8 +2533,93 @@ struct PictureZoom: View {
         }
         .background(Color.white)
         .clipped()
+        .overlay(alignment: .bottom) { selectBar }
         .accessibilityIdentifier("picture.zoom")
-        .task(id: path ?? "") { if let path { image = load(path) } }
+        .task(id: path) { load() }
+    }
+
+    /// Select part, the hint while selecting, and what happened.
+    private var selectBar: some View {
+        HStack(spacing: 8) {
+            if let said {
+                Text(said).font(Txt.label).foregroundStyle(.secondary)
+            } else if selecting {
+                Text("Drag over the words to copy").font(Txt.label).foregroundStyle(.secondary)
+            }
+            Button(selecting ? "Stop selecting" : "Select part") {
+                selecting.toggle()
+                box = nil
+                if selecting { withAnimation(.easeOut(duration: 0.2)) { reset() } }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(tint)
+            .controlSize(.small)
+            .accessibilityIdentifier("picture.selectPart")
+        }
+        .padding(6)
+        .background(.regularMaterial, in: Capsule())
+        .padding(8)
+    }
+
+    private func zoomGesture(_ size: CGSize) -> some Gesture {
+        MagnifyGesture()
+            .onChanged { value in scale = Pictures.zoom(lastScale * value.magnification) }
+            .onEnded { _ in
+                lastScale = scale
+                if scale <= 1 { withAnimation(.easeOut(duration: 0.2)) { reset() } }
+                else { offset = clamped(offset, in: size); lastOffset = offset }
+            }
+    }
+
+    /// Moves a zoomed picture around; while selecting, draws the box instead.
+    private func dragGesture(_ size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 4)
+            .onChanged { value in
+                if selecting {
+                    box = CGRect(x: min(value.startLocation.x, value.location.x),
+                                 y: min(value.startLocation.y, value.location.y),
+                                 width: abs(value.location.x - value.startLocation.x),
+                                 height: abs(value.location.y - value.startLocation.y))
+                } else if scale > 1 {
+                    offset = clamped(CGSize(width: lastOffset.width + value.translation.width,
+                                            height: lastOffset.height + value.translation.height), in: size)
+                }
+            }
+            .onEnded { _ in
+                if selecting {
+                    if let box { copyPart(box, frame: size) }
+                } else {
+                    lastOffset = offset
+                }
+            }
+    }
+
+    /// Reads only the words inside the box, copies them, and says so.
+    private func copyPart(_ box: CGRect, frame: CGSize) {
+        guard let region = Pictures.region(of: box, imageSize: imageSize, frame: frame),
+              let root = model.vault?.rootURL else { tell("No words in that part"); return }
+        let file = root.appendingPathComponent(path)
+        Task {
+            let read = await Task.detached(priority: .userInitiated) {
+                PictureReader.recognize(file, region: region)
+            }.value
+            if let words = Pictures.wordsToCopy(read) {
+                MapExport.copyToPasteboard(words)
+                tell("Words copied")
+                selecting = false
+            } else {
+                tell("No words in that part")
+            }
+            self.box = nil
+        }
+    }
+
+    private func tell(_ text: String) {
+        said = text
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            if said == text { said = nil }
+        }
     }
 
     private func reset() { scale = 1; lastScale = 1; offset = .zero; lastOffset = .zero }
@@ -2531,12 +2630,17 @@ struct PictureZoom: View {
         return CGSize(width: min(max(o.width, -maxX), maxX), height: min(max(o.height, -maxY), maxY))
     }
 
-    private func load(_ path: String) -> Image? {
-        guard let data = model.vault?.fileData(at: path) else { return nil }
+    private func load() {
+        guard let data = model.vault?.fileData(at: path) else { return }
         #if os(iOS)
-        return UIImage(data: data).map { Image(uiImage: $0) }
+        if let ui = UIImage(data: data) { image = Image(uiImage: ui); imageSize = ui.size }
         #else
-        return NSImage(data: data).map { Image(nsImage: $0) }
+        if let ns = NSImage(data: data) {
+            image = Image(nsImage: ns)
+            if let rep = ns.representations.first, rep.pixelsWide > 0 {
+                imageSize = CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+            } else { imageSize = ns.size }
+        }
         #endif
     }
 }

@@ -63,6 +63,20 @@ final class PictureCaptionTests: XCTestCase {
         XCTAssertEqual(hits.first?.snippets, ["In a sketch: buy milk"])
     }
 
+    func testGallerySearchAndPartOfAPicture() {
+        let paths = ["Pictures/a.png", "Pictures/b.png", "Sketches/c.png"]
+        let read = ["Pictures/a.png": "Marina AB Invoice", "Sketches/c.png": "buy MILK and bread"]
+        XCTAssertEqual(Pictures.filtered(paths, by: "", pictureText: read), paths)
+        XCTAssertEqual(Pictures.filtered(paths, by: "milk BREAD", pictureText: read), ["Sketches/c.png"])
+        XCTAssertEqual(Pictures.filtered(paths, by: "nothing", pictureText: read), [])
+        // A 200×100 picture in a 200×200 frame sits from y 50 to 150.
+        let r = Pictures.region(of: CGRect(x: 0, y: 50, width: 100, height: 50),
+                                imageSize: CGSize(width: 200, height: 100), frame: CGSize(width: 200, height: 200))
+        XCTAssertEqual(r, CGRect(x: 0, y: 0.5, width: 0.5, height: 0.5))
+        XCTAssertNil(Pictures.region(of: CGRect(x: 0, y: 0, width: 200, height: 40),
+                                     imageSize: CGSize(width: 200, height: 100), frame: CGSize(width: 200, height: 200)))
+    }
+
     func testSearchFindsWordsInsidePictures() {
         let boat = Note(relativePath: "Projects/Boat.md", kind: .project, text: "# Boat\n\n![Picture](../Pictures/receipt.png)\n")
         let index = NoteIndex(notes: [boat])

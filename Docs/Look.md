@@ -163,7 +163,7 @@ Browse has a large title that shrinks when you scroll. The long press that revea
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (296)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (297)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 

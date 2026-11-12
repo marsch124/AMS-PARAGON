@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// Apple Pencil sketches (build 288). A sketch is a PNG in the vault's `Sketches` folder, with a
 /// `.drawing` file of the same name beside it so it can be drawn on again. The note holds an
@@ -173,6 +174,34 @@ public extension Pictures {
 
     /// A pinch's zoom kept between normal size and `maxZoom`.
     static func zoom(_ scale: Double) -> Double { min(max(scale, 1), maxZoom) }
+
+    /// Build 297: the gallery's search — the pictures whose words hold every word typed,
+    /// in their order. An empty search keeps them all.
+    static func filtered(_ paths: [String], by search: String, pictureText: [String: String]) -> [String] {
+        let terms = search.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
+        guard !terms.isEmpty else { return paths }
+        return paths.filter { path in
+            guard let words = pictureText[path]?.lowercased() else { return false }
+            return terms.allSatisfy { words.contains($0) }
+        }
+    }
+
+    /// Build 297: a box dragged over a picture shown to fit in `frame`, as the part of the
+    /// picture it covers — 0…1 with the origin at the bottom left, as Apple's text reading
+    /// wants it. nil when the box misses the picture or is too small to hold a word.
+    static func region(of box: CGRect, imageSize: CGSize, frame: CGSize) -> CGRect? {
+        guard imageSize.width > 0, imageSize.height > 0, frame.width > 0, frame.height > 0 else { return nil }
+        let fit: CGFloat = min(frame.width / imageSize.width, frame.height / imageSize.height)
+        let w: CGFloat = imageSize.width * fit
+        let h: CGFloat = imageSize.height * fit
+        let shown = CGRect(x: (frame.width - w) / 2, y: (frame.height - h) / 2, width: w, height: h)
+        let part = box.standardized.intersection(shown)
+        guard !part.isNull, part.width >= 8, part.height >= 8 else { return nil }
+        return CGRect(x: (part.minX - shown.minX) / shown.width,
+                      y: 1 - (part.maxY - shown.minY) / shown.height,
+                      width: part.width / shown.width,
+                      height: part.height / shown.height)
+    }
 
     /// Build 296: Show words — a picture's words written into the note as a quote, on the
     /// lines straight after the line that holds the picture (`linkAt` = where its link starts,

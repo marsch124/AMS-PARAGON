@@ -1,6 +1,29 @@
 # Version history
 
-The version is shown as 1.0 (296) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (297) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 297 · 12 November 2026
+
+**Find a picture, copy part of it.**
+
+**Before (build 296).** The Pictures gallery of a note always showed every picture, so in a note with many pictures you had to look through all of them to find one. Copy words always copied all the words of a picture, even when you wanted only one line of a receipt.
+
+**Now, Search pictures (iPhone, iPad and Mac).**
+- The **Pictures** panel of a note (shown when a note has two or more pictures) has a small **Search pictures** box.
+- Type, and only the pictures whose words contain everything you typed are shown. Capital letters do not matter.
+- Clear the box and all the pictures are shown again.
+- If no picture matches, it says **No picture has these words**.
+
+**Now, Select part (iPhone, iPad and Mac).**
+- A picture opened big has a **Select part** button at the bottom.
+- Press it, then drag a box over just the words you want. When you let go, only the words inside the box are read and copied, and a short note says **Words copied**. If there are no words in the box, it says **No words in that part**.
+- Zoom goes back to normal size while you select.
+- Press the button again (it now reads **Stop selecting**) to leave without copying.
+- It works for photos and pasted pictures. On the iPhone and iPad, a sketch opens for drawing, so there the words of a sketch are copied with the **Copy words** button only.
+
+**What did not change.** Copy words (all the words), Show words, zoom, captions, paste, sorting the gallery, the files in your vault and all the colours are as in build 296.
+
+**The version.** It shows as "PARAGON 1.0 (297)".
 
 ## Build 296 · 12 November 2026
 
