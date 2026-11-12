@@ -759,6 +759,34 @@ final class ScreenTests: XCTestCase {
                       "The week has an undated task but drew no tray. On screen: \(visibleTexts())")
     }
 
+    #if os(iOS)
+    /// Build 312: on the iPhone **Week** opens the week inside the Plan tab. The screen is
+    /// titled "Plan the week", the Plan tab is still the chosen one, and the back arrow leads
+    /// to Plan the day again (its Week button is the proof). The tray's tile is a button there.
+    func testTheWeekOpensInsideThePlanTabOnThePhone() {
+        go(to: .plan)
+        XCTAssertTrue(element("plan.more").waitForExistence(timeout: 20),
+                      "The Plan screen has no More menu. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("tray.tile").waitForExistence(timeout: 10),
+                      "The Plan tray has no tile to tap. On screen: \(visibleTexts())")
+        let week = element("plan.week")
+        XCTAssertTrue(week.waitForExistence(timeout: 20),
+                      "The Plan screen has no Week button. On screen: \(visibleTexts())")
+        week.pressCentre()
+
+        XCTAssertTrue(app.navigationBars["Plan the week"].waitForExistence(timeout: 20),
+                      "Week did not open as Plan the week. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("week.strip").waitForExistence(timeout: 10),
+                      "Plan the week has no seven-day strip. On screen: \(visibleTexts())")
+        XCTAssertTrue(app.tabBars.buttons["Plan"].isSelected,
+                      "The Plan tab is no longer the chosen one after Week.")
+
+        app.navigationBars["Plan the week"].buttons.firstMatch.tap()
+        XCTAssertTrue(element("plan.week").waitForExistence(timeout: 10),
+                      "The back arrow did not return to Plan the day. On screen: \(visibleTexts())")
+    }
+    #endif
+
     /// Build 251: a goal for the week is written on the week screen and shown on Today.
     /// Pressed at the button's own place (`press(_:at:)`, build 249), and the button is looked
     /// for among buttons, never any element.

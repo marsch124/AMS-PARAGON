@@ -172,6 +172,16 @@ public enum DayPlan {
         return starts
     }
 
+    /// **Next free time** (build 312, the phone's tap on an action in **Plan**): the first gap
+    /// of `length` minutes on the day, or nil when there is none before `until`. The one search
+    /// `freeStarts` already is, asked for one block: from `from` rounded up to the quarter
+    /// hour, clear of everything in `busy`, ending by `until`. Nil is an answer — the caller
+    /// says so in words and places nothing.
+    public static func nextFreeStart(length: Int, from: Int, until: Int = 24 * 60,
+                                     busy: [Range<Int>]) -> Int? {
+        freeStarts(count: 1, length: length, from: from, until: until, busy: busy).first
+    }
+
     /// Like `freeStarts(count:length:…)`, but each block has **its own length** (build 249: a
     /// task's time). One answer per length, in order: a start, or nil when that block found no
     /// room before `until`. A block that does not fit does not stop the ones after it — a long

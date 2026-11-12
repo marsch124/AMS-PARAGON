@@ -1071,6 +1071,9 @@ struct TaskTray: View {
     /// push everything else off the bottom — build 213's lesson about what a list costs.
     var shown = 12
     var identifier: String
+    /// What a tap on a tile does (build 312, the phone's Plan: a small menu with **Next free
+    /// time** and **Pick a time…**). Nil everywhere else: there a tile is only dragged.
+    var onTap: ((TaskRef) -> Void)? = nil
 
     var body: some View {
         if !items.isEmpty {
@@ -1129,7 +1132,26 @@ struct TaskTray: View {
                               style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
         )
         .contentShape(RoundedRectangle(cornerRadius: 7))
+        .modifier(TileTap(action: onTap.map { tapped in { tapped(ref) } }))
         .draggable(TaskTransfer(ref))
         .help(dropHint)
+    }
+}
+
+/// A tap on a tray tile, only where the tray was given something to do with it. The drag is the
+/// system's own (`.draggable`: hold, then move), not a `DragGesture`, so the two do not argue
+/// over the press the way build 85's pair did.
+private struct TileTap: ViewModifier {
+    let action: (() -> Void)?
+
+    func body(content: Content) -> some View {
+        if let action {
+            content
+                .onTapGesture(perform: action)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("tray.tile")
+        } else {
+            content
+        }
     }
 }
