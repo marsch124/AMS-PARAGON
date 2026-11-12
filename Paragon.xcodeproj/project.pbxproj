@@ -463,6 +463,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=iphone*]" = FallbackTint;
 				CODE_SIGN_ENTITLEMENTS = App/Config/Paragon/Paragon.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "App/Config/Paragon/Paragon-macOS-Debug.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -688,6 +689,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=iphone*]" = FallbackTint;
 				CODE_SIGN_ENTITLEMENTS = App/Config/Paragon/Paragon.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "App/Config/Paragon/Paragon-macOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";

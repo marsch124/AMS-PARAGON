@@ -302,16 +302,10 @@ struct QuickCaptureView: View {
                     .buttonStyle(.plain)
                     .foregroundStyle(.soft)
             }
-            Button(action: save) {
-                Text("Save")
-                    .font(Txt.listTitle)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(canSave ? SidebarSection.inbox.tint.deep : SidebarSection.inbox.tint.deep.opacity(0.4),
-                                in: RoundedRectangle(cornerRadius: 11))
-                    .foregroundStyle(canSave ? Color.white : SidebarSection.inbox.tint.waitingWords)
-            }
-            .buttonStyle(.plain)
+            // Build 310: the app's one main button. A plain button dims its word while it
+            // waits, which made "Save" unreadable at night.
+            Button("Save", action: save)
+                .buttonStyle(.main(SidebarSection.inbox.tint))
             .disabled(!canSave)
             .accessibilityIdentifier("capture.save")
         }

@@ -738,16 +738,8 @@ struct SheetFooter: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("sheet.cancel")
-            Button(action: act) {
-                Text(actionTitle)
-                    .font(Txt.listTitle)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(canAct ? tint.deep : tint.deep.opacity(0.4),
-                                in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(canAct ? Color.white : tint.waitingWords)
-            }
-            .buttonStyle(.plain)
+            Button(actionTitle, action: act)
+                .buttonStyle(.main(tint))
             .disabled(!canAct)
             .accessibilityIdentifier("sheet.action")
         }

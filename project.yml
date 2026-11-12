@@ -111,6 +111,9 @@ targets:
         ENABLE_HARDENED_RUNTIME: true
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Build 310: on the iPhone and iPad nothing falls back to Apple's blue (sheets, the
+        # text cursor, system alerts). The Mac keeps the accent he chose in System Settings.
+        "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME[sdk=iphone*]": FallbackTint
       # Build 307 (hardening-01): the Mac Debug build is a different app to macOS — its own
       # bundle id, so its own sandbox container and its own settings. Until then it shared both
       # with the PARAGON he runs, and the launch check before every upload (-paragon-test-vault)
