@@ -114,6 +114,9 @@ The numbers such as "4.3 to 1" say how well words can be read on what is behind 
 - `Docs/Look.md` now lists only the colours and rules that PARAGON really uses. It has a new part, **The steps of a colour**, which says which shade of a colour is used where.
 - A new small data test (`ShadeRuleTests`) checks the numbers: white words on every filled button and band, coloured words on white, and the words in a capsule.
 
+**17. Fixed on the Mac: a group name on two lines in Projects is no longer cut.**
+Before: when the name of an aspiration or goal above a group of projects needed two lines ("Be able to hike with Anna at the age of 80"), the top of its round badge was cut off and the line under the heading ran through the tails of the letters on the second line. Now: the heading has 8 points of room above and below (it had 4), so the badge is whole and the line sits under the words. You sent the picture on 2026-11-12.
+
 **What did not change.** Your notes, tasks, backups and sync. Every button is in the same place and does the same thing. The colours of the other parts (green, pink, blue, gold, purple, teal, the two oranges, lilac). The band by day. The capsules at night.
 
 **The version.** It shows as "PARAGON 1.0 (310)".

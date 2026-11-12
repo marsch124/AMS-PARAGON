@@ -39,22 +39,44 @@ extension Color {
 /// here. No screen mixes its own.
 extension Color {
     private static let stepLock = NSLock()
-    private static var stepCache: [Color: (day: Shade, night: Shade)] = [:]
+    private static var stepCache: [Color: (day: Shade, night: Shade, solid: Bool)] = [:]
+    private static var derivedCache: [Color: [Int: Color]] = [:]
 
-    /// The colour's two shades as numbers, read from its colour set (or whatever it is made of).
-    var shades: (day: Shade, night: Shade) {
+    private var measured: (day: Shade, night: Shade, solid: Bool) {
         Color.stepLock.lock()
         defer { Color.stepLock.unlock() }
         if let known = Color.stepCache[self] { return known }
+        var solid = true
         func shade(_ scheme: ColorScheme) -> Shade {
             var environment = EnvironmentValues()
             environment.colorScheme = scheme
             let c = resolve(in: environment)
+            if c.opacity < 0.99 { solid = false }
             return Shade(red: Double(c.red), green: Double(c.green), blue: Double(c.blue))
         }
-        let both = (day: shade(.light), night: shade(.dark))
-        Color.stepCache[self] = both
-        return both
+        let day = shade(.light), night = shade(.dark)
+        let all = (day: day, night: night, solid: solid)
+        Color.stepCache[self] = all
+        return all
+    }
+
+    /// The colour's two shades as numbers, read from its colour set (or whatever it is made of).
+    var shades: (day: Shade, night: Shade) {
+        let m = measured
+        return (m.day, m.night)
+    }
+
+    /// One step of this colour, made once and kept: SwiftUI then sees the same colour on
+    /// every pass. A see-through colour (Apple's greys) has no steps and is returned as it is.
+    private func step(_ which: Int, _ make: ((day: Shade, night: Shade)) -> Color) -> Color {
+        let m = measured
+        guard m.solid else { return self }
+        Color.stepLock.lock()
+        defer { Color.stepLock.unlock() }
+        if let known = Color.derivedCache[self]?[which] { return known }
+        let made = make((m.day, m.night))
+        Color.derivedCache[self, default: [:]][which] = made
+        return made
     }
 
     init(_ shade: Shade) {
@@ -67,29 +89,20 @@ extension Color {
 
     /// **The ground for white words**: a full-colour button, the chosen sidebar row, the band
     /// at night, an icon on a white circle. The deep day shade, the same by day and by night.
-    var deep: Color { Color(ShadeRule.ground(day: shades.day)) }
+    var deep: Color { step(0) { Color(ShadeRule.ground(day: $0.day)) } }
 
     /// **The colour as words on the page**: a heading, a link, the word Done on a sheet. By
     /// day one step deeper where the day shade is weak on white; the night shade at night.
-    var ink: Color {
-        let s = shades
-        return Color(day: ShadeRule.ink(day: s.day), night: s.night)
-    }
+    var ink: Color { step(1) { Color(day: ShadeRule.ink(day: $0.day), night: $0.night) } }
 
     /// **Small words in a capsule**: a quarter deeper by day, the night shade at night.
-    var capsuleWords: Color {
-        let s = shades
-        return Color(day: ShadeRule.capsuleWords(day: s.day), night: s.night)
-    }
+    var capsuleWords: Color { step(2) { Color(day: ShadeRule.capsuleWords(day: $0.day), night: $0.night) } }
 
     /// **The word on a main button that cannot act yet.**
-    var waitingWords: Color {
-        let s = shades
-        return Color(day: ShadeRule.waitingWords(day: s.day), night: s.night)
-    }
+    var waitingWords: Color { step(3) { Color(day: ShadeRule.waitingWords(day: $0.day), night: $0.night) } }
 
     /// **The far end of the night band.**
-    var bandEnd: Color { Color(ShadeRule.bandEnd(ground: ShadeRule.ground(day: shades.day))) }
+    var bandEnd: Color { step(4) { Color(ShadeRule.bandEnd(ground: ShadeRule.ground(day: $0.day))) } }
 }
 
 /// **Quiet words** (build 310): helper sentences, a row's second line, small labels. The
@@ -307,12 +320,12 @@ struct MainButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let waiting = scheme == .dark ? ShadeRule.waitingFillNight : ShadeRule.waitingFillDay
         configuration.label
-            .font(Txt.button)
+            .font(small ? Txt.label.weight(.semibold) : Txt.button)
             .lineLimit(1)
             .foregroundStyle(isEnabled ? Color.white : color.waitingWords)
             .frame(maxWidth: wide ? .infinity : nil)
             .padding(.horizontal, wide ? 0 : small ? 10 : 14)
-            .padding(.vertical, wide ? 9 : small ? 3 : 6)
+            .padding(.vertical, wide ? 9 : small ? 3 : tall ? 6 : MainButtonStyle.regularPad)
             .background(isEnabled ? color.deep.opacity(configuration.isPressed ? 0.8 : 1)
                                   : (scheme == .dark ? color : color.deep).opacity(waiting),
                         in: RoundedRectangle(cornerRadius: wide ? Theme.radius : 7))
@@ -320,6 +333,13 @@ struct MainButtonStyle: ButtonStyle {
     }
 
     private var small: Bool { controlSize == .small || controlSize == .mini }
+    private var tall: Bool { controlSize == .large || controlSize == .extraLarge }
+    /// As tall as Apple's own button beside it: Cancel on the Mac is lower than on the iPhone.
+    #if os(macOS)
+    private static let regularPad: CGFloat = 4
+    #else
+    private static let regularPad: CGFloat = 6
+    #endif
 }
 
 extension ButtonStyle where Self == MainButtonStyle {
@@ -429,6 +449,7 @@ struct SheetBar: View {
                     // Build 310: the app's own filled button. Apple's turns grey whenever
                     // the window is not the front one.
                     .buttonStyle(.filled(tint))
+                    .controlSize(.large)
                     .disabled(!canAct)
                     .accessibilityIdentifier(actionIdentifier)
                 // ⌘S saves too. A button carries one shortcut, so the second lives on a button

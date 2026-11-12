@@ -176,7 +176,7 @@ struct NoteEditorView: View {
             Text("The file is renamed too, and every note that links to it is pointed at the new name.")
         }
         .sheet(item: $sketch) { request in
-            SketchSheet(request: request, tint: note?.tint ?? .accentColor) { png, drawing in
+            SketchSheet(request: request, tint: note?.tint ?? Theme.fallbackTint) { png, drawing in
                 saveSketch(request, png: png, drawing: drawing)
             }
             .environmentObject(model)
@@ -245,7 +245,7 @@ struct NoteEditorView: View {
                 // state you can see, rather than a row of words where the selected one is
                 // easy to miss.
                 StateToggle(markName: "pencil", title: "Edit", isOn: mode == .edit,
-                            tint: note?.tint ?? .accentColor) {
+                            tint: note?.tint ?? Theme.fallbackTint) {
                     mode = mode == .edit ? .preview : .edit
                 }
                 if let note, model.canArchive(note) {
@@ -736,7 +736,7 @@ struct NoteEditorView: View {
     private func editorColumns(scrolls: Bool) -> some View {
         HStack(spacing: 0) {
             if mode != .preview {
-                MarkdownSyntaxEditor(text: $text, tint: note?.tint ?? .accentColor,
+                MarkdownSyntaxEditor(text: $text, tint: note?.tint ?? Theme.fallbackTint,
                                      linkDraft: $linkDraft, completion: $linkCompletion,
                                      openLink: { model.openWikiLink($0, from: path) },
                                      onLinkKey: handleLinkKey,
@@ -791,7 +791,7 @@ struct NoteEditorView: View {
                 let below = linkDraft.caret.y + linkDraft.lineHeight + 4
                 let fits = below + height <= geo.size.height
                 let y = fits ? below : max(linkDraft.caret.y - height - 4, 0)
-                WikiLinkList(titles: linkTitles, choice: $linkChoice, tint: note?.tint ?? .accentColor,
+                WikiLinkList(titles: linkTitles, choice: $linkChoice, tint: note?.tint ?? Theme.fallbackTint,
                              kindFor: { model.index.note(matching: $0)?.kind ?? model.note(at: path)?.kind ?? .resource },
                              pick: { title in linkCompletion = LinkCompletion(draft: linkDraft.draft, title: title) })
                     .frame(width: min(320, max(geo.size.width - 24, 160)))
@@ -814,7 +814,7 @@ struct NoteEditorView: View {
             // Edit is on. No Split on the phone: he asked for it gone.
             if isPhone {
                 StateToggle(markName: "pencil", title: "Edit", isOn: mode == .edit,
-                            tint: note?.tint ?? .accentColor) {
+                            tint: note?.tint ?? Theme.fallbackTint) {
                     mode = mode == .edit ? .preview : .edit
                 }
             }
@@ -1669,7 +1669,7 @@ struct TaskRow: View {
 
     /// Tasks take the colour of the note they live in.
     private var tint: Color {
-        model.note(at: ref.notePath)?.tint ?? .accentColor
+        model.note(at: ref.notePath)?.tint ?? Theme.fallbackTint
     }
 
     private var isNext: Bool { ref.task.tags.contains(Note.nextActionTag) }

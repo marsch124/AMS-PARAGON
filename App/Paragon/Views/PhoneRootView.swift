@@ -99,11 +99,16 @@ struct PhoneRootView: View {
     /// Build 310: the number on the Inbox tab is white on the Inbox's own colour. Apple's red
     /// badge said "trouble", and red here means overdue or danger (build 182's rule). Only the
     /// Inbox tab ever shows a number, so the one colour is right for every badge there is.
-    static func colourTheInboxCount() {
-        let shades = SidebarSection.inbox.tint.shades
-        let ground = ShadeRule.ground(day: shades.day)
+    static func colourTheInboxCount() { _ = inboxCountColoured }
+
+    /// Once for the life of the app.
+    private static let inboxCountColoured: Bool = {
+        let ground = ShadeRule.ground(day: SidebarSection.inbox.tint.shades.day)
         let colour = UIColor(red: ground.red, green: ground.green, blue: ground.blue, alpha: 1)
         UITabBarItem.appearance().badgeColor = colour
+        // The badge colour alone is not enough: seen on screen, the number stayed red until
+        // the bar's own appearance carried it too. Apple's default background, so the bar
+        // looks as it did.
         let bar = UITabBarAppearance()
         bar.configureWithDefaultBackground()
         for item in [bar.stackedLayoutAppearance, bar.inlineLayoutAppearance, bar.compactInlineLayoutAppearance] {
@@ -112,7 +117,8 @@ struct PhoneRootView: View {
         }
         UITabBar.appearance().standardAppearance = bar
         UITabBar.appearance().scrollEdgeAppearance = bar
-    }
+        return true
+    }()
 
     /// One page. A `switch` inside a `@ViewBuilder` is fine; a `var` would not be (build 58).
     @ViewBuilder

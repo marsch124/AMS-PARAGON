@@ -218,6 +218,14 @@ struct ProjectsListView: View {
 /// colour is in the words, as on every other heading. **The whole line folds**, never a
 /// small triangle (build 205), and it is a header, so it never takes the selection (build 201).
 struct ProjectGroupHeader: View {
+    /// Build 310 (his picture): on the Mac a name on two lines was cut — the badge at the top
+    /// and the tails of the second line by the line under it. The Mac's list gives a header
+    /// less room than it asks for, so the heading asks for more there.
+    #if os(macOS)
+    static let pad: CGFloat = 8
+    #else
+    static let pad: CGFloat = 4
+    #endif
     let group: ProjectGroup
     let open: Bool
     let toggle: () -> Void
@@ -266,7 +274,7 @@ struct ProjectGroupHeader: View {
             // The whole line, never a `Spacer` beside a short button: the Mac reported a wrong
             // frame for that shape and a test's click landed in the list (build 247).
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 4)
+            .padding(.vertical, ProjectGroupHeader.pad)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
