@@ -4836,54 +4836,71 @@ tabs. **Nobody had ever opened it on an iPad**, so he asked for the iPad mini in
 
 Round 1 was build 307 (commit 92a017f: hardening-01, -02, -04, -05, -06, -08, -11, -12; its rules
 are in `Docs/HowItWorks.md` › **Exact safety rules (build 307)**). Round 2 is the twelve findings
-below. **This section was written from the plan while the code was being written in parallel:
-check each line against the code before relying on a detail**, and fix the `<!-- CHECK -->`
-marks in `Docs/VersionHistory.md` and `Docs/HowItWorks.md` to the real on-screen words.
+below. This section and the 308 texts in `Docs/` were checked against the merged code on
+2026-11-12; the on-screen words quoted in the docs are the ones in the code.
 The user-facing rules are in `Docs/HowItWorks.md` › **Exact safety rules (build 308)**.
 
 - **hardening-03 — the editor knows its base version.** The editor remembers which version of
   the note its text started from. On save, if the file on disk is no longer that version, a
-  three-way line merge runs (base, mine, theirs). Different lines: both kept in the note. The
+  three-way line merge runs (base, mine, theirs; `TextMerge.swift`). Different lines, also
+  neighbouring ones: both kept in the note, silently. The
   same line: no guessing — the editor's text goes beside the note as
   `<name> (conflict <date time>).md` and the note shows the other version. Before 308 any
   outside change while typing produced a conflict copy. Never write over a newer file.
 - **hardening-07 — sidebar task counts are cached.** Worked out once per note change, not on
   every redraw of the sidebar. A count must be thrown away when its note is re-read, renamed,
   archived or deleted; a stale count is the bug to look for here.
-- **hardening-09 — iCloud's parked versions.** After each re-read of the vault, unresolved
-  iCloud conflict versions (`NSFileVersion`) are looked for. Each is saved beside its note as
-  `<name> (conflict <date time>).md`, then marked resolved, and he is told which notes are
-  affected. No merge and no delete on his behalf. (Memory: `reference_icloud_conflict_copies`.)
+- **hardening-09 — iCloud's parked versions.** Unresolved iCloud conflict versions
+  (`NSFileVersion`, `ParkedVersions.swift`) are looked for after each re-read for the notes
+  that changed, and for all notes every 10 minutes. Each is saved beside its note as
+  `<name> (conflict yyyy-MM-dd HHmm).md`, then marked resolved, and he is told ("… was changed
+  on two devices at the same time. …"). A version identical to the note makes no copy. No
+  merge and no delete on his behalf. (Memory: `reference_icloud_conflict_copies`.)
 - **hardening-10 — twin reminders.** Two reminders carrying the same PARAGON mark (two devices
-  each made one for the same task): one is kept, the twin removed, and the report says so. A
-  task that arrived from another device gets no reminder in the round it arrives in; it waits
-  one round so the other device's reminder can arrive first and be linked.
-- **hardening-13 — a second backup outside the vault.** In a folder he chooses once (for
-  example Dropbox) or in the device's own storage. It carries the notes **and** the pictures
-  and sketches; the in-vault backups (`.ams-para/Backups`) stay notes-only with build 307's
-  tiers. Settings › Backups shows when the last outside copy was made. A failed outside copy
-  never stops the in-vault backup.
+  each made one for the same task): the **older** one is kept (so every device picks the same
+  one), the twin removed, a tick on the twin moves to the keeper, and the report says
+  "“X” was in Reminders twice; the extra one was removed." A twin with a different title is
+  not deleted. A task that arrived from another device with no reminder anywhere (all lists
+  are searched) gets none in the sync it arrives in (`waitingForReminder`); the second sync
+  makes one if there still is none.
+- **hardening-13 — a second backup outside the vault.** Settings section **Second copy,
+  outside the vault**: by default in the device's own storage (Application Support), or in a
+  folder he chooses ("Choose a folder…" / "Change folder…", "Keep it on this Mac", "Show in
+  Finder" on the Mac), always under `PARAGON Backups`. A folder inside the vault is refused.
+  Made once a day after the daily copy and with Back up now; carries notes, settings **and**
+  pictures and sketches, with build 307's tiers. The in-vault backups (`.ams-para/Backups`)
+  stay without pictures on purpose. Lines "Kept" and "Last made". An unreachable folder: the
+  copy is kept on the device and the section says so. A failed outside copy never stops the
+  in-vault backup. No in-app restore from the outside copy yet.
 - **hardening-14 — Reminders lists by identity.** Once linked, a list is found by its own
-  identifier, the name is only for the first link. A new note whose name matches a list PARAGON
-  did not make asks before joining it; "leave it alone" changes nothing in his list.
+  identifier (`SyncState.listIDs`); the name is only for the first link. Two lists with one
+  name: the linked one is used, the other left alone, with a report line. A new note whose
+  name matches a list holding reminders PARAGON did not make stops the sync with the build-307
+  "Sync stopped to ask you" alert (Do it / Cancel); Cancel changes nothing. Not asked for
+  empty lists, inbox/daily lists, lists named in `reminders-list:`, already-linked lists.
 - **hardening-15 — tidy-up of the code folder.** The stray project copy
   (`Paragon 2.xcodeproj`) is removed, and `Tools/ship.sh` stops when it finds stray " 2"
   copies (iCloud/Finder duplicates) in the code folder. Not in What's new: nothing he sees.
-- **hardening-16 — choosing a folder looks first.** Nothing is written before he agrees. An
-  existing vault: "This folder has N notes — open it". Anything else: "not a PARAGON vault —
-  set it up here?" with Cancel. While iCloud is still listing the folder it waits and says
-  so; a folder that is still arriving is never called empty.
+- **hardening-16 — choosing a folder looks first.** A sheet (`FolderLook.swift`,
+  `folderChoice.*` identifiers) shows what was found; nothing is written before he agrees. An
+  existing vault: "This folder has N notes." with **Open it**. Anything else: "This folder is
+  not a PARAGON vault." with **Set it up here**. While iCloud is still listing the folder it
+  waits and says so; a folder that is still arriving is never called empty. Cancel (Escape on
+  the Mac). Launch and "Open … again" still open directly.
 - **hardening-17 — incremental, background re-read.** A re-read reads only notes whose file
-  changed and runs off the main thread. Everything that needs the whole vault (sync,
-  rename with links, restore) still waits for a finished re-read.
-- **hardening-18 — file names.** A very long title gets a shortened file name; the full title
-  is kept in the note and shown everywhere. A rename that only changes capitals is allowed
-  (the case-insensitive disk made the note collide with itself).
+  changed. The 10 s check, coming to the front and iCloud notices read off the main thread.
+  Everything that needs the whole vault (sync, rename with links, restore) still waits for a
+  finished re-read.
+- **hardening-18 — file names.** A file name is capped at 180 bytes
+  (`Vault.longestFileNameBytes`); the full title is kept in the note's `title:` line, shown
+  everywhere, and links resolve by it; colliding short names get " 2", " 3". A rename that
+  only changes capitals is allowed (the case-insensitive disk made the note collide with
+  itself).
 - **hardening-19 — the sync has its own vault access.** The sync uses its own copy of the
   vault access (its own security-scoped handle), not the one the screen uses, so neither can
   end the other's access.
-- **hardening-20 — big notes.** While typing, only the lines around the cursor are restyled;
-  the whole note is restyled after a pause. Short notes behave as before.
+- **hardening-20 — big notes.** While typing, only the changed lines are restyled
+  (`MarkdownRestyle.swift`); the whole note is restyled 0.4 s after the last key.
 
 **Docs for 308:** What's new has eleven numbered items (hardening-15 left out on purpose);
 How it works changed in **Your vault**, **Renaming a note**, **Bold, italic…**, **Reminders
