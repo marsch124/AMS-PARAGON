@@ -168,13 +168,13 @@ struct ProjectsListView: View {
             }
             if group.lines.contains(where: \.goalIsMissing) {
                 parts.append(isPhone
-                    ? "A line saying No goal called … names a goal that was not found: press and hold the project and choose Serves."
+                    ? "A line saying No goal called … names a goal that was not found: hold the project and choose Serves."
                     : "A line saying No goal called … names a goal that was not found: right-click the project and choose Serves.")
             }
             return parts.isEmpty ? nil : parts.joined(separator: " ")
         case .noGoal:
             return isPhone
-                ? "Press and hold a project and choose Serves to give it a goal."
+                ? "Hold a project and choose Serves to give it a goal."
                 : "Right-click a project and choose Serves to give it a goal."
         default:
             return nil
@@ -235,9 +235,13 @@ struct ProjectGroupHeader: View {
                     // how tall it is, so at 280 points the name was cut with "…" instead of
                     // wrapping (the reviewer of 280).
                     .fixedSize(horizontal: false, vertical: true)
-                Text("\(group.lines.count)")
-                    .font(Txt.label.monospacedDigit())
-                    .foregroundStyle(Theme.soft)
+                // Round 3: "Done 1 · 1 this year" said the same number twice. The count gives
+                // way when the year's line already says it.
+                if yearCaption != ProjectGroup.thisYearText(group.lines.count) {
+                    Text("\(group.lines.count)")
+                        .font(Txt.label.monospacedDigit())
+                        .foregroundStyle(Theme.soft)
+                }
                 if let caption = yearCaption {
                     // Build 269: on Done alone, how many ended this year. Grey, and it gives
                     // way before the name does in a narrow column (builds 138, 212).

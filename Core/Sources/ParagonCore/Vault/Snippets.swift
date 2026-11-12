@@ -84,6 +84,30 @@ public enum Snippets {
         }
     }
 
+    /// One line the way a reader sees it, with no code in it (round 3): the task box and the
+    /// braces are gone, a question is shown in round brackets, and a date the app fills in is
+    /// a plain word. `- [ ] Ask {{who}} to {{what}} >{{tomorrow}}` reads
+    /// "Ask (who) to (what), tomorrow". Only for showing; `filled` is what goes into a note.
+    public static func plainLook(_ line: String) -> String {
+        var text = line.trimmingCharacters(in: .whitespaces)
+        for mark in ["- [ ] ", "- [x] ", "* [ ] ", "- ", "* "] where text.hasPrefix(mark) {
+            text = String(text.dropFirst(mark.count))
+            break
+        }
+        let words = ["date": "today", "today": "today", "tomorrow": "tomorrow", "week": "in a week"]
+        for name in placeholders(in: text) {
+            let braces = "{{\(name)}}"
+            if let word = words[name.lowercased()] {
+                text = text.replacingOccurrences(of: " >" + braces, with: ", " + word)
+                text = text.replacingOccurrences(of: ">" + braces, with: word)
+                text = text.replacingOccurrences(of: braces, with: word)
+            } else {
+                text = text.replacingOccurrences(of: braces, with: "(\(name))")
+            }
+        }
+        return text.trimmingCharacters(in: .whitespaces)
+    }
+
     /// Every `{{name}}` in the text, in order, as written.
     public static func placeholders(in text: String) -> [String] {
         guard let regex = try? NSRegularExpression(pattern: "\\{\\{([^}]+)\\}\\}") else { return [] }

@@ -583,16 +583,16 @@ struct SearchHelpView: View {
                         model.queryText = example.0
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(example.0).font(Txt.mono)
-                            Text(example.1).font(Txt.label).foregroundStyle(.secondary)
+                            Text(example.1).font(Txt.list)
+                            Text(example.0).font(Txt.listSecond).foregroundStyle(.secondary)
                         }
                     }
                     .buttonStyle(.plain)
                 }
             } header: {
-                Text("The same thing, typed")
+                Text("Examples")
             } footer: {
-                Text("Every box has a word you can type instead: type:, status:, tag: or #tag, area:, in:, due:, is:. A \"quoted phrase\" matches as a whole.")
+                Text("The small grey line is the same search, typed. Every box has a word you can type instead: type:, status:, tag: or #tag, area:, in:, due:, is:. A \"quoted phrase\" matches as a whole.")
                     .font(Txt.listSecond)
                     .fixedSize(horizontal: false, vertical: true)
             }

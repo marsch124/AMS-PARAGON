@@ -40,6 +40,22 @@ extension Color {
 /// part's colour, text and values 15, small labels 12, and Apple's own 13 / 11 for lists, the
 /// sidebar and menus. On the iPhone each name is one of Apple's text styles, so everything
 /// grows with the text size he sets in Settings.
+/// Each device shows only its own words (round 3): "Tap" and "Hold" on the iPhone and the
+/// iPad, "Click" and "Right-click" on the Mac. Never both in one sentence.
+enum DeviceWords {
+    #if os(macOS)
+    static let click = "Click"
+    static let clickSmall = "click"
+    static let holdARow = "Right-click a row"
+    static let holdSmall = "right-click"
+    #else
+    static let click = "Tap"
+    static let clickSmall = "tap"
+    static let holdARow = "Hold a row"
+    static let holdSmall = "hold"
+    #endif
+}
+
 enum Txt {
     #if os(macOS)
     /// The open note's title, or the title of a whole-column screen.

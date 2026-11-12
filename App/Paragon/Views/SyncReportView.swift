@@ -40,7 +40,8 @@ struct SyncReportView: View {
                             .font(Txt.label)
                             .foregroundStyle(.tertiary)
                     } else {
-                        Text("No sync has run yet.")
+                        Text("No sync has run yet")
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                     }
                 }

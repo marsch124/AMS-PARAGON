@@ -27,7 +27,7 @@ enum NewThing: String, CaseIterable, Identifiable {
         case .project: return "Project"
         case .area: return "Area"
         case .resource: return "Resource"
-        case .capture: return "Capture"
+        case .capture: return "Inbox"
         }
     }
 
@@ -139,7 +139,7 @@ struct NewNoteSheet: View {
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         // 1.0: Cancel and Create at the top right on the Mac (Escape, Return, ⌘S), in the
         // navigation bar on the iPhone. `SheetChrome` in Look.swift is the one shape.
-        .sheetChrome(title: "New Entry", tint: tint(for: thing), actionTitle: "Create",
+        .sheetChrome(title: "New", tint: tint(for: thing), actionTitle: "Save",
                      canAct: canCreate, showsAction: !thing.isCapture,
                      cancel: { dismiss() }, act: create)
         .onAppear {
@@ -249,7 +249,7 @@ struct NewNoteSheet: View {
     /// the bottom corner. `SheetFooter` (Theme.swift) is where that is put right, for every
     /// sheet at once since build 191.
     private var footer: some View {
-        SheetFooter(actionTitle: "Create", tint: tint(for: thing), canAct: canCreate,
+        SheetFooter(actionTitle: "Save", tint: tint(for: thing), canAct: canCreate,
                     cancel: { dismiss() }, act: create)
     }
 
@@ -628,7 +628,7 @@ private struct ThingChoice: View {
         .buttonStyle(.plain)
         // "Make a new aspiration" rather than "Make a aspiration": six names now, and one of
         // them starts with a vowel.
-        .help(thing.isCapture ? "Write a line straight into the Inbox" : "Make a new \(thing.name.lowercased())")
+        .help(thing.isCapture ? "Write a line straight into the Inbox" : "Add a new \(thing.name.lowercased())")
         // "new.project" and so on, for the screen tests (build 192).
         .accessibilityIdentifier("new.\(thing.rawValue)")
     }
@@ -1030,7 +1030,7 @@ struct NoteFromLinkSheet: View {
         }
         .padding(isPhone ? 14 : 20)
         .frame(minWidth: sheetMinWidth)
-        .sheetChrome(title: "Make this note", tint: tint, actionTitle: "Create",
+        .sheetChrome(title: "Add this note", tint: tint, actionTitle: "Save",
                      cancel: cancel, act: create)
     }
 

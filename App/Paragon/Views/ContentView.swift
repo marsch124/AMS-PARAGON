@@ -487,7 +487,7 @@ struct SidebarView: View {
         .listRowBackground(chosen ? RoundedRectangle(cornerRadius: 6).fill(section.tint).padding(.horizontal, 8) : nil)
         // "sidebar.Inbox", "sidebar.Projects" and so on: what the Mac screen tests click
         // (build 195). Accessibility only; nothing here takes the row's click (builds 71-74).
-        .accessibilityIdentifier("sidebar.\(section.title)")
+        .accessibilityIdentifier("sidebar.\(section.key)")
     }
 }
 
@@ -744,10 +744,10 @@ struct NoteListView: View {
                     // toolbar can, and the plainest "add something" there is. The colour is the
                     // section's own — the same tint `ModeAccent` lays over the detail column
                     // (build 107) — so the button says which list it will add to.
-                    MarkLabel("New Entry", "plus.circle.fill")
+                    MarkLabel("New", "plus.circle.fill")
                         .foregroundStyle(shown?.tint ?? Color.accentColor)
                 }
-                .help("New Entry in this section, or a quick capture (⌘N)")
+                .help("Add something new to this section, or to the Inbox (⌘N)")
                 // On Today it opens on Capture, so it carries the name the phone's + has and
                 // the screen tests press to capture (build 299: the tray button is gone).
                 .accessibilityIdentifier(shown == .today ? "capture.open" : "list.newNote")
@@ -762,7 +762,7 @@ struct NoteListView: View {
         .alert("New work note", isPresented: $makingWorkNote) {
             TextField("Title", text: $workNoteTitle)
             Button("Cancel", role: .cancel) { workNoteTitle = "" }
-            Button("Create") {
+            Button("Add") {
                 let title = workNoteTitle
                 workNoteTitle = ""
                 model.createWorkNote(title: title)
@@ -1228,7 +1228,7 @@ struct DetailView: View {
             EmptyStateView(title: "",
                            markName: "doc.text",
                            message: "Choose a note in the middle column, or make a new one.",
-                           actionTitle: "New Entry…",
+                           actionTitle: "New…",
                            action: { model.activeSheet = .newNote })
         }
     }

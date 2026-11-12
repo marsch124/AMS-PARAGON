@@ -21,13 +21,13 @@ That is PARA with a Goals layer on top. Every note answers "what does this serve
 
 ## How PARAGON looks
 
-Every part of PARAGON has one colour, and the colour means the same thing everywhere. **Projects** and **All actions** are green. **Areas** and **Tags** are pink. **Resources**, **Recent**, **Templates** and **Search** are blue. **Archive**, **Deleted** and **Work** are grey. **Goals** and the **Map** are gold, and **Aspirations** a deeper gold. **Inbox**, **Snippets** and **Quick capture** are amber. **Today**, **Calendar**, **Time Blocks** and the daily and weekly notes are purple. **Weekly review** and **Done** are teal. Blocks in **Plan the day** are orange. Red is only for things that are overdue or will be deleted. The colour shows in the icon in the sidebar, in the headings, in the main button, in the small dot at the left of a list row, and in the links of a note of that part. Day and night each have their own shade.
+Every part of PARAGON has one colour, and the colour means the same thing everywhere. **Projects** and **All actions** are green. **Areas** and **Tags** are pink. **Resources**, **Recent**, **Templates** and **Search** are blue. **Archive**, **Deleted** and **Work** are grey. **Goals** and the **Map** are gold, and **Aspirations** a deeper gold. **Inbox**, **Snippets** and **Quick capture** are amber. **Today**, **Calendar**, **Plan** and the daily and weekly notes are purple. **Weekly review** and **Done** are teal. Blocks in **Plan** are orange. Red is only for things that are overdue or will be deleted. The colour shows in the icon in the sidebar, in the headings, in the main button, in the small dot at the left of a list row, and in the links of a note of that part. Day and night each have their own shade.
 
 Every screen opens with a band in its part's colour (new in build 282). It is a soft gradient, from the part's colour to a slightly deeper shade of the same colour towards the bottom right. On it are the title in white, the date or the facts in small white words, and one big number, 34 points, bold. Since build 291 **Today** has no big number: it carries three small round buttons (today's note, **Start the day**, **Close the day**). A project, an area or a resource says, for example, "2 open tasks · 0 of 2 done". A goal's page says "40 %" with "of the way · Target 15 Aug 2027" under it. The band is the same on the Mac and the iPhone, by day and by night. On **Today** the band's top row holds three small white circles: today's note, **Start the day** and **Close the day**. On the Mac, the row you have chosen in the sidebar is filled in its part's colour, with white words. Everything under the band is as before: the tinted panels, the 17-point coloured headings, the dots, the pop-ups, the text sizes and the icons. Nothing has moved and no function has changed.
 
 Information sits in panels. A panel is white by day and dark grey at night, with a light tint of its part's colour over it. At night it also has a thin line round it. The note's facts, its **Tasks** and its **Linked notes** are panels. Where you can change something, you see a bordered pop-up or a bordered button. Where you cannot, you see plain words. The main button of a screen is always in colour. When it cannot be used yet, it is the same colour, only paler. Headings are in the colour of their part, not in grey capitals.
 
-There is one set of text sizes. On the Mac the page title is 26 points (white, in the band at the top of the screen). The one big number in a band is 34 points, bold. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, its headings step from 22 to 18 to 15 points, and code is 14 points. Edit and Read show the note at the same size. The header, the panels and the text of a note stop at 680 points wide and sit in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's settings. Every icon is a hand-drawn mark in one line weight, in the app, the widgets and the share sheet. Your own icon for a note (see **Your own icon**), when you choose one of Apple's symbols in the icon picker, is not changed. On the Mac, **Search** is in the toolbar at the top of the window (since build 299 there is no separate **Quick capture** button there; **New Entry** does it; the screen was called New note before build 301) (Sync is the small clock ring with a word at the foot of the sidebar; a pill from build 292, a ring since build 301), and the **+** **New Entry** button stays over the list column. On **Time Blocks** and on the **Calendar**'s right-hand column, the page's own buttons are in that toolbar too: the day arrows with **Today**, **+ Block**, **Week** and the calendar-blocks button; **+ Block time** and the **Note** / **Schedule** switch. On the iPhone and the iPad they stay in the page. **Start the day** and **Close the day** stay in Today's top row, now as white circles in the band, and **Show all** stays in the Goals header. The version shows at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, as PARAGON 1.0 (303).
+There is one set of text sizes. On the Mac the page title is 26 points (white, in the band at the top of the screen). The one big number in a band is 34 points, bold. A heading is 17 points, in the colour of its part. Text is 15 points and small labels are 12 points. Lists use 13 points, with 11 points for the one quiet second line of a row. The note editor uses 15 points for text, its headings step from 22 to 18 to 15 points, and code is 14 points. Edit and Read show the note at the same size. The header, the panels and the text of a note stop at 680 points wide and sit in the middle, so lines are easy to follow on a big screen. On the iPhone the text uses Apple's own styles, so it grows and shrinks with the text size you set in the iPhone's settings. Every icon is a hand-drawn mark in one line weight, in the app, the widgets and the share sheet. Your own icon for a note (see **Your own icon**), when you choose one of Apple's symbols in the icon picker, is not changed. On the Mac, **Search** is in the toolbar at the top of the window (since build 299 there is no separate **Quick capture** button there; **New** does it; the screen was called New note before build 301) (Sync is the small clock ring with a word at the foot of the sidebar; a pill from build 292, a ring since build 301), and the **+** **New** button stays over the list column. On **Plan** and on the **Calendar**'s right-hand column, the page's own buttons are in that toolbar too: the day arrows with **Today**, **+ Block**, **Week** and the calendar-blocks button; **+ Block time** and the **Note** / **Schedule** switch. On the iPhone and the iPad they stay in the page. **Start the day** and **Close the day** stay in Today's top row, now as white circles in the band, and **Show all** stays in the Goals header. The version shows at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, as PARAGON 1.0 (303).
 
 A row in a list is a coloured dot (or the note's own icon), one title, and at most one quiet second line, for example "0 of 2 · Due in 12 d". That goes for every list, the **Projects** list included, and for the rows in **Goals** and **Aspirations**. A status such as Paused or Someday is a small capsule at the right. An empty screen shows the part's icon in a soft circle of the part's colour, above one calm title (since build 291 the explaining sentence is gone; a warning such as "Still coming from iCloud" keeps its sentence). Counts beside headings, for example "Calendar 1", are small capsules in the heading's colour. The old text continues: the explanation in small grey, and a quiet bordered button where there is one.
 
@@ -77,9 +77,9 @@ Links between notes use `[[Note title]]`; see **Linking notes with [[ ]]** below
 
 ### Making one
 
-**⌘N** opens one screen with six buttons across the top: **Aspiration**, **Goal**, **Project**, **Area**, **Resource** and **Capture**, each in its own colour. Under them is the name field with the cursor already in it, so a note is usually a name and Return, and one line says what the kind you chose is for.
+**⌘N** opens one screen with six buttons across the top: **Aspiration**, **Goal**, **Project**, **Area**, **Resource** and **Inbox**, each in its own colour. Under them is the name field with the cursor already in it, so a note is usually a name and Return, and one line says what the kind you chose is for.
 
-Under that, everything else a note can be given as it is made, each choice with its small label. **Cancel** and **Create** are side by side at the top right of the window on the Mac, and **Create** is filled in the colour of the kind. **Escape** is Cancel, **Return** and **⌘S** are Create, and **Tab** moves from one text field to the next, as it does everywhere on the Mac. The choice chips are buttons, so Tab does not stop on each one. On the iPhone, **Cancel** is on the left of the bar and **Create** on the right. **Make this note** (from a link) has the same bar.
+Under that, everything else a note can be given as it is made, each choice with its small label. **Cancel** and **Save** are side by side at the top right of the window on the Mac, and **Save** is filled in the colour of the kind. **Escape** is Cancel, **Return** and **⌘S** are Save, and **Tab** moves from one text field to the next, as it does everywhere on the Mac. The choice chips are buttons, so Tab does not stop on each one. On the iPhone, **Cancel** is on the left of the bar and **Save** on the right. **Make this note** (from a link) has the same bar.
 
 - **Aspiration** — the aspiration it serves is not asked for: an aspiration is the top of the chain. Only its name and its tags.
 - **Goal** — a **Target** date and the aspiration it serves. Write the date as 2031-12-01 or pick it from the calendar. The two buttons carry the two icons: the star for an aspiration, the target for a goal with a date. The measure is not asked for here. Set it later with **Set a measure…** at the top of the goal.
@@ -92,9 +92,9 @@ Only the choices that apply to the kind you have chosen are shown.
 
 Two lists have a field at the top to make a new thing: **Serves…** (a goal or an aspiration) and **In area…** (an area). They work the same way. If a thing of that kind already has the name, it is chosen and nothing new is made. If the name cannot be used, the box says why in orange and your words stay in the field. For example, an aspiration and a goal with a date cannot have the same name, because both are kept in the **Goals** folder. And a goal that is Done, Missed or Dropped, and still in the **Goals** folder, is not in the list, so it cannot be chosen: the box tells you, and you use another name. A goal or an area that you put away with **Archive** is not looked at: its name can be used again, because the archived note is parked in the **Archive** folder.
 
-**Which choice it starts on (build 299).** In a section with its own kind (Projects, Areas, Resources, Goals, Aspirations) the screen starts on that kind. On Today it starts on **Capture**. Everywhere else (Inbox, Calendar, Search and so on) it starts on the choice you used last time, not always Project.
+**Which choice it starts on (build 299).** In a section with its own kind (Projects, Areas, Resources, Goals, Aspirations) the screen starts on that kind. On Today it starts on **Inbox**. Everywhere else (Inbox, Calendar, Search and so on) it starts on the choice you used last time, not always Project.
 
-**Capture** is the last button. It turns the lower half into the quick capture screen, so the same screen takes a project and a line you must not forget. See **Quick capture** below; since build 299 this is the only capture button in the Mac and iPad window (the tray is gone), and **⇧⌘N** still opens it directly. The menu bar capture and the iPhone's one **+** are as before.
+**Inbox** is the last button. It turns the lower half into the quick capture screen, so the same screen takes a project and a line you must not forget. See **Quick capture** below; since build 299 this is the only capture button in the Mac and iPad window (the tray is gone), and **⇧⌘N** still opens it directly. The menu bar capture and the iPhone's one **+** are as before.
 
 ### Renaming a note
 
@@ -118,7 +118,7 @@ An area can say which aspiration it belongs to, and a project which goal it deli
 Open a project and press **In area…** at the top. Pick an area, for example Health. The button then says **In Health**, in pink. A sub-area is listed after its own area, as **Health › Yoga**. **In no area** takes the project out again, and **Open Health** goes to the area.
 
 - The same list is on the right-click menu of a project in the **Projects** list (press and hold on the iPhone) › **In area**.
-- On the **New Entry** screen, a new project has the same **In area…** button. Its list also has a field to make a new area without leaving the screen: type the name and press **Add area**. A name already in use chooses that area; no second one is made.
+- On the **New** screen, a new project has the same **In area…** button. Its list also has a field to make a new area without leaving the screen: type the name and press **Add area**. A name already in use chooses that area; no second one is made.
 - It is kept in the note's settings block as `area: Health`. You can also write that line yourself.
 - **Only this line puts a project in an area.** A `[[Health]]` link in the project's text, or Health in its `related:` line, links the two notes, but the project is not in Health because of it.
 - If the line names an area that does not exist, for example after a spelling mistake, the button shows the name in grey, and its list says **No area is called …**. Pick the right area to fix it.
@@ -283,7 +283,7 @@ Open an area, for example Health. Above its text there is a part that shows what
 
 ## Sub-areas
 
-**Making one.** Open the area note and click **Part of…** in the top row, then pick the area it belongs to. "Not part of another area" takes it back out. The same choices sit on the right-click menu of an area in the list (long-press on the phone), and **New Entry › Area** has a **Part of** chip for making one from the start.
+**Making one.** Open the area note and click **Part of…** in the top row, then pick the area it belongs to. "Not part of another area" takes it back out. The same choices sit on the right-click menu of an area in the list (long-press on the phone), and **New › Area** has a **Part of** chip for making one from the start.
 
 A sub-area is an ordinary area note with one extra line in its frontmatter, `parent: Health`. That means it behaves like any other area:
 
@@ -304,7 +304,7 @@ Tasks are ordinary list lines inside the notes:
 - `- [-] Cancelled` and `- [>] Moved to another day`
 - `>2026-09-10` sets a date, `>2026-09-10T14:30` a date with a time of day. You do not have to type the time: the **At** line in the date window writes it (see **The date window and its At line**).
 - `!`, `!!`, `!!!` set the priority
-- `~45m`, `~1h` or `~1h30m` says how long the task takes. **Start the day** asks for it before it plans a task, adds up what you picked, and **Plan** makes each block that long. The small button on the right of every task row writes it for you: it shows **time?** while there is none. **Settings › Tasks › Use task times** hides all of it.
+- `~45m`, `~1h` or `~1h30m` says how long the task takes. **Start the day** asks for it before it plans a task, adds up what you picked, and **Plan** makes each block that long. The small button on the right of every task row writes it for you: it shows **How long?** while there is none. **Settings › Tasks › Use task times** hides all of it.
 - `#tag` adds a tag
 - an indented `- [ ]` under a task is a subtask
 - `^t3cd432` at the end is the marker the app uses to match the task with its reminder. The editor hides it, so you will only see it in another editor. If it ever goes missing, the next sync puts it back.
@@ -403,7 +403,7 @@ Right-click any task, anywhere in the app — long-press on the phone — for th
 - **Waiting for…**: you handed this task to somebody else. A small window asks **Who?** and the line goes into the **Waiting for** list under **All actions**. On a line that is already waiting there is also **Not waiting any more**. See **Waiting for** under **All actions**.
 - **Repeat**: every day, week, 2 weeks, month, 3 months or year. When you tick a repeating task, the next one appears below it with the next date. In the file this is `@repeat(weekly)`.
 - **Make this the next action** (in a project): the task gets a `#next` tag and a badge, and Today lists it under "Next actions". One per project. It is not offered on a line you are waiting on somebody else for.
-- **Block time for this…**: opens Time Blocks with the title filled in.
+- **Block time for this…**: opens **Plan** with the title filled in.
 - **Rename…**: turns the line into a field. Type and press Return. The date, repeat, tags and subtasks stay, and so does the reminder it is linked to.
 - **Move to**: the Inbox, any active project or any active area. Subtasks move along. The reminder follows on the next sync. You can also drag the task onto another note in the middle column.
 
@@ -421,7 +421,7 @@ You can also **drag** a task: onto a note in the middle column or onto Inbox to 
 - **Apple Reminders rings at that time**, for a task in a note that syncs to Reminders. After the next sync, a task you gave a time gets an alarm in Reminders at that time. Before, a task with only a date did not ring. A note marked Not synced, a Resource and a Goal never go to Reminders, so no alarm rings for their tasks.
 - The word is **At**, not "Time", because a task's **time** already means how long it takes (`~45m`).
 
-A task with a time is a fixed point in the day. **Plan** draws it at its hour (see **Plan the day**), and **Start the day** keeps that hour free, as long as no note is still coming from iCloud: a task in a note that has not arrived yet cannot be kept free, and **Start the day** says so in its message. The Calendar section's day draws it at its hour too, as long as the task's own time. Quick capture's date window has no **At** line: write `>2026-11-04T14:00` in the capture, or set the time afterwards.
+A task with a time is a fixed point in the day. **Plan** draws it at its hour (see **Plan** below), and **Start the day** keeps that hour free, as long as no note is still coming from iCloud: a task in a note that has not arrived yet cannot be kept free, and **Start the day** says so in its message. The Calendar section's day draws it at its hour too, as long as the task's own time. Quick capture's date window has no **At** line: write `>2026-11-04T14:00` in the capture, or set the time afterwards.
 
 ### Adding a task at the bottom of a note
 
@@ -495,7 +495,7 @@ Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both s
 
 ### Seeing what a sync will do
 
-The toolbar buttons explain themselves when you hold the pointer over them: the coloured **+** is **New Entry** in this section (⌘N); since build 299 the tray button is gone, because **New Entry** has **Capture** as one of its choices, and **Quick capture**, a thought into the Inbox, stays on ⇧⌘N; and the sync runs by itself every few minutes (set in Settings). Since build 292 there is no sync button in the toolbar: the sync ring at the foot of the sidebar (a pill until build 301) does it (see below), and **File › Sync with Reminders** (⇧⌘R) still works. The ring's tip says, for example, "Synced with Reminders at 15:05 - all fine". When the sync had notes for you, it says "... N things worth knowing, nothing to do (see Last sync report...)" instead of the old "Last sync: 8 warnings"; the word "warnings" became "worth knowing".
+The toolbar buttons explain themselves when you hold the pointer over them: the coloured **+** is **New** in this section (⌘N); since build 299 the tray button is gone, because **New** has **Inbox** as one of its choices, and **Quick capture**, a thought into the Inbox, stays on ⇧⌘N; and the sync runs by itself every few minutes (set in Settings). Since build 292 there is no sync button in the toolbar: the sync ring at the foot of the sidebar (a pill until build 301) does it (see below), and **File › Sync with Reminders** (⇧⌘R) still works. The ring's tip says, for example, "Synced with Reminders at 15:05 - all fine". When the sync had notes for you, it says "... N things worth knowing, nothing to do (see Last sync report...)" instead of the old "Last sync: 8 warnings"; the word "warnings" became "worth knowing".
 
 Right-click the sync ring (press and hold on the iPad) for its menu: **Sync now**, **Show me what would change…**, **Last sync report…** and **Sync settings…**. **Show me what would change…** rehearses the entire sync on a copy of your vault and a copy of your reminders and shows the result. Nothing is touched. From that sheet you can press **Sync now** to do it for real. **Last sync report…** shows the same for the sync you ran.
 
@@ -503,9 +503,9 @@ Right-click the sync ring (press and hold on the iPad) for its menu: **Sync now*
 
 There are **two rows in the sidebar**, because there are two different things.
 
-**Aspirations** says what you are becoming. An aspiration has no date, because you never tick one off. It is the A in PARAGON. Press **Aspiration** at the top of the New Entry screen to make one.
+**Aspirations** says what you are becoming. An aspiration has no date, because you never tick one off. It is the A in PARAGON. Press **Aspiration** at the top of the **New** screen to make one.
 
-**Goals** says what you will have done, and by when. A goal has a target date, a measure of what success looks like, and the aspiration it serves, chosen in the **Serves aspiration** box. Press **Goal** at the top of the New Entry screen.
+**Goals** says what you will have done, and by when. A goal has a target date, a measure of what success looks like, and the aspiration it serves, chosen in the **Serves aspiration** box. Press **Goal** at the top of the **New** screen.
 
 A project or an area serves a goal with the `goal:` line. Press **Serves…** at the top of the project or area to choose the goal, or press **Add a project…** on the goal itself (see below). A goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "No project or area serves this", "Past its target date" or "Done".
 
@@ -546,7 +546,7 @@ Where the button is: at the foot of a goal's own note, on the Mac and on the iPh
 
 ### When you last looked at it
 
-At the top of an aspiration, a goal with a date or an area, a grey button with an eye says when you last looked at it: **Looked at 12 days ago**, or **Never looked at**.
+At the top of an aspiration, a goal with a date or an area, a grey button with an eye says when you last looked at it: **Looked at 12 days ago**, or **Not reviewed yet**.
 
 - Press it. A small box says how often that kind of note gets a look, and when the next look is due, for example "Goals with a date get a look every 3 months. The next look is due in 78 days."
 - Press **I looked at it today** in the box. PARAGON writes `reviewed:` with today's date into the note's settings block, and the button says **Looked at today**.
@@ -597,7 +597,7 @@ Older words still read as they always did: `achieved` and `completed` mean Done,
 
 When you mark a project **Done**, **Missed** or **Dropped**, PARAGON looks at the goal the project worked for. If nothing else is working on that goal, a short question comes up on the screen you are on. It does not matter whether you marked the project in its own note, in **Projects** or in the weekly **Review**. The question reads **What is next for this goal?**. Under it, one sentence says: Nothing is working on "(the goal's name)" now. It has up to three buttons:
 
-- **Add a project…** opens **New Entry** on **Project**. The goal is already chosen in the button that otherwise says **Serves a goal…**. Write the name and press **Create**.
+- **Add a project…** opens **New** on **Project**. The goal is already chosen in the button that otherwise says **Serves a goal…**. Write the name and press **Save**.
 - **Mark the goal done** is there only after **Done**. It marks the goal itself Done, with its own day, and a short message at the bottom of the window says so.
 - **Not now** closes the question and changes nothing.
 
@@ -629,9 +629,9 @@ measure**), then **The reason** (see below), then, in order:
 
 **Add a goal…** under the goals makes a new goal that serves the aspiration, and **Add a project…** under a goal with no project yet makes a project for it. You stay on the aspiration.
 
-Each row is one title and one quiet second line, for example "1 goal · Never looked at ·
+Each row is one title and one quiet second line, for example "1 goal · Not reviewed yet ·
 Health": how many goals serve it, **when you last looked at it** ("Looked at 12 days ago", or
-"Never looked at"), and an area that serves it. When one of its goals needs attention, a small
+"Not reviewed yet"), and an area that serves it. When one of its goals needs attention, a small
 orange capsule sits at the right of the row. An aspiration with nothing under it yet says
 **Nothing serves this yet** in its second line.
 
@@ -746,8 +746,8 @@ The per cent never says 100 until everything really is finished, and never says 
 - In **Start the day**, press **Pick** at the left of the two or three that matter most (the round circle after it marks the task as done, as everywhere else), then press the button at the bottom (it says **Plan 2 actions**, for example). Each one goes into today's plan as a block as long as the task's own time, or one hour when it has none, in the free time left today: after the time it is now, and never on top of a block you already have, a calendar event or another task that has a time of day (a call at 14:00 keeps its hour). A task in a note that is still coming from iCloud is not known yet, so its hour is not kept free; the message after the button then says so, and **Plan** shows the task once its note has arrived. **A picked task that has a time of day goes in at that time, if the hour is free**; if it is taken, or the time has already passed, the block goes into the first free time instead. Nothing is placed after midnight; if not all of them fit, a message says how many did. An action already in today's plan says **In the plan at** and the time in place of **Pick**. The blocks are ordinary plan blocks — move them or make them longer on **Plan**. With nothing picked, the button says **Done** and only closes.
 - **Morning reminder.** In **Settings › Morning reminder**, turn on **Remind me to start the day** and choose a time (07:30 unless you change it). PARAGON then sends one notification every morning at that time: "Start the day. What matters most today? Pick it and put it in your plan." Press it and **Start the day** opens. On the iPhone the keyboard does not come up by itself, so you see the whole list first. It comes every day, at the weekend too, because your leisure tasks are in PARAGON as well. Turn the switch off and it stops.
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a day at that time. Press it and **Close the day** opens. Turn the switch off and it stops.
-- **Both reminders work the same way.** The first time you turn one on, the iPhone or the Mac asks whether PARAGON may send notifications. That one answer is for both reminders and for the focus timer. Under the time, Settings says when the next reminder will come, for example "Next reminder: tomorrow at 07:30". If no reminder can come, it says why in orange and where to change it. Each part has its own **Send one in 10 seconds**, which sends the same notification once, so you can try it now. Press that notification and the same screen opens as from the real one. Below the button it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac delivered it. The iPhone and the Mac each have their own switches and times. A Focus mode, such as Do Not Disturb, can hold a notification back, and PARAGON cannot see that.
-- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New Entry**, nothing is closed and nothing you typed is lost: **Start the day** or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, or the question **What is next for this goal?** is on screen, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan the day** windows do not open it.
+- **Both reminders work the same way.** The first time you turn one on, the iPhone or the Mac asks whether PARAGON may send notifications. That one answer is for both reminders and for the focus timer. Under the time, Settings says when the next reminder will come, for example "Next reminder: tomorrow at 07:30". If no reminder can come, it says why in orange and where to change it. Each part has its own **Try it now**, which sends the same notification once, so you can try it now. Press that notification and the same screen opens as from the real one. Below the button it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac delivered it. The iPhone and the Mac each have their own switches and times. A Focus mode, such as Do Not Disturb, can hold a notification back, and PARAGON cannot see that.
+- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New**, nothing is closed and nothing you typed is lost: **Start the day** or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, or the question **What is next for this goal?** is on screen, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan** windows do not open it.
 - **Close the day** is one page you work down and finish. From the top:
   - **Did not happen**: everything still open that was due today or earlier. Each has a
     **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is
@@ -771,7 +771,7 @@ The per cent never says 100 until everything really is finished, and never says 
     the tasks are on the **Done** screen.
   - **Planned and worked**: a small table with three columns, **Task**, **Planned** and
     **Worked**, and **All of today** at the bottom. **Planned** is the length of the block in
-    **Plan the day**. For a task you worked on without a block, it is the task's own time, such
+    **Plan**. For a task you worked on without a block, it is the task's own time, such
     as **45 min**. **Worked** is what the focus timer wrote under **Worked** in today's note. A
     time worked that is longer than the time planned is orange and bold. A dash means there is
     nothing to show: no block and no task time, or the timer was not used on it. Blocks and work
@@ -808,7 +808,7 @@ The per cent never says 100 until everything really is finished, and never says 
   says so: **Goal for next week**, **Goal for last week**, **Goal for week 45**. Press the box, write the line, and press Return
   or **Done**. An empty box is grey and dashed; a written goal is gold. Save an empty line to
   remove the goal. It is kept in the week's note as `focus: …`, and **Today** shows it in one
-  line under the date. Below the goal is **To place**: every open task
+  line under the date. Below the goal is **Not planned yet**: every open task
   with no date yet, next actions first, drawn as dashed tiles. Under it is a row of seven small
   cells, one per day, each with the number of tasks due on it — today's cell is marked. Under
   the number is the total of their task times, for example **2 h 30**; a task with no time
@@ -827,10 +827,10 @@ The app reads events from the calendars you choose in Settings › Apple Calenda
 
 The Calendar section shows the day's schedule in the right-hand column: hours down the side, events in place, your time blocks on top, a line for the time it is now, and a strip at the top for all-day events and tasks with no time. A task that has a time of day is drawn at its hour, as long as the task's own time (`~45m`), or half an hour when it has none. An event that began the day before is drawn from 00:00 on this day, and one that goes on past midnight is drawn down to 24:00, so nothing runs out of the day; the time written under its name is still the event's own. Press **+ Block time** or double-click an hour to reserve time; click a block to change or delete it; drag a task onto an hour to block that hour for it. The **Note** / **Schedule** switch swaps between the schedule and the daily note. On the Mac, **+ Block time** and the switch are in the toolbar at the top of the window; on the iPhone and the iPad they are at the top of the column.
 
-### Plan the day
+### Plan
 
 There is a second kind of block, and it is the opposite of a Time Block: it stays inside
-PARAGON. It is what the **Time Blocks** section shows. **Go › Plan the Day…** (⇧⌘P) on the
+PARAGON. It is what the **Plan** section shows. **Go › Plan…** (⇧⌘P) on the
 Mac opens the same thing in a window of its own, which can stay up while you work in a note.
 
 On today, a slate blue line and dot cross both lanes at the time it is now, and move as the day goes on. It is the same line the Calendar section's day view draws. The colour is its own on purpose: every other colour in PARAGON means a kind of note or a warning, and the time of day is neither.
@@ -923,7 +923,7 @@ So they sync like everything else, and you can read and correct them by hand in 
 the daily note does not exist yet, the first block makes it. In **Read** mode a plan line is
 drawn as a block in its own orange, not as ordinary text.
 
-Time Blocks are the one thing the app writes to Calendar. They are blocks of time you reserve, separate from tasks. Add one in the Time Blocks section: it becomes an ordinary event in the calendar chosen under "Time blocks go to", and shows on all your devices. Click a block to edit it, right-click (long-press on the phone) to open it in Calendar or delete it. Nothing else in your calendars is ever changed.
+Time Blocks are the one thing the app writes to Calendar. They are blocks of time you reserve, separate from tasks. Add one in the **Plan** section: it becomes an ordinary event in the calendar chosen under "Time blocks go to", and shows on all your devices. Click a block to edit it, right-click (long-press on the phone) to open it in Calendar or delete it. Nothing else in your calendars is ever changed.
 
 ## The focus timer
 
@@ -932,13 +932,13 @@ today's daily note, so you can see later how long things really took.
 
 ### Starting it
 
-- Press the **time?** button on a task (or its time, such as **45 min**) and choose **Focus on
+- Press the **How long?** button on a task (or its time, such as **45 min**) and choose **Focus on
   this** at the bottom of the list. Or right-click the task (press and hold on the iPhone) and
   choose **Focus on this**, the first line of the menu.
-- A block in **Plan the day** has **Focus on this** on its right-click menu too. If exactly one open task has the same name as the block, the clock also belongs to that task, so you can tick it off when you stop. See **A clock on a block** below.
+- A block in **Plan** has **Focus on this** on its right-click menu too. If exactly one open task has the same name as the block, the clock also belongs to that task, so you can tick it off when you stop. See **A clock on a block** below.
 - On **Today**, the line that starts with **Now** has a small orange clock button. It starts the focus timer on the plan block you are in.
 - **Focus on this** is not offered inside **Start the day** and **Close the day**, nor in the
-  Mac's separate **Plan the day** window (⇧⌘P), because the bar cannot be seen there. Nor is it
+  Mac's separate **Plan** window (⇧⌘P), because the bar cannot be seen there. Nor is it
   offered on a task in a work note.
 - Only one clock runs at a time. Starting a new one stops the one running and writes its time
   down first, as not done. A clock that had run for more than 12 hours is stopped without
@@ -961,8 +961,7 @@ Mac it sits at the foot of the window. It has two round buttons:
 
 ### When the planned time is up
 
-When the task has a time, such as **45 min**, or the clock runs on a block from **Plan the
-day**, one notification comes when that much work time has passed. It comes even when PARAGON
+When the task has a time, such as **45 min**, or the clock runs on a block from **Plan**, one notification comes when that much work time has passed. It comes even when PARAGON
 is closed, with the ordinary notification sound, once. When **Use task times** is off in
 Settings, no task has a time, so no notification comes for a task.
 
@@ -996,7 +995,7 @@ Click it for a short menu: the task, how long you planned (when the task has a t
 - While the question is open, **Pause**, **Go on** and **Stop…** are grey and cannot be pressed.
   If a reminder is pressed then, **Start the day** or **Close the day** opens after you have
   answered the question.
-- If another screen is open in PARAGON, such as **New Entry** or **Close the day**, **Stop…**
+- If another screen is open in PARAGON, such as **New** or **Close the day**, **Stop…**
   stops the clock but does not close that screen. The question comes when you close it.
 
 ### Stopping it
@@ -1006,7 +1005,7 @@ shed. You planned 45 min." Then:
 
 - **Done, tick it off** ticks the task in its note. If the task can no longer be found there —
   renamed, moved or already ticked — the time is still saved and nothing else is ticked.
-- **Not done yet** leaves the task open. For a block from **Plan the day** that belongs to no task, this answer is called **Save the time**, and there is no **Done, tick it off** (see **A clock on a block** below).
+- **Not done yet** leaves the task open. For a block from **Plan** that belongs to no task, this answer is called **Save the time**, and there is no **Done, tick it off** (see **A clock on a block** below).
 - **Don't save the time** writes nothing, for a clock that was left running by mistake.
 
 The first two write the time into today's daily note under a heading **Worked**, one line for
@@ -1031,7 +1030,7 @@ beside what you planned, under **Planned and worked**.
 
 ### A clock on a block
 
-A clock started on a block from **Plan the day**, from the block's right-click menu (press and hold on the iPhone) or from the clock button on **Today**, can belong to a task too.
+A clock started on a block from **Plan**, from the block's right-click menu (press and hold on the iPhone) or from the clock button on **Today**, can belong to a task too.
 
 - It belongs to a task when exactly one open task has the same name as the block. That is usually the task the block was made from, for example by **Start the day**.
 - Then the question after stop is the same as for a task: **Done, tick it off** and **Not done yet**. **Done, tick it off** ticks that task in its note.
@@ -1074,7 +1073,7 @@ Each level of the chain is on its own rhythm, because they do not change at the 
 
 All four can be changed under **Settings › Review rhythm**, where each one is a row of named lengths — every week, every month, every 6 months — rather than a count of days. The project one is the same setting the review has always had, so there is one number for it, not two.
 
-Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever looked at says **never looked at**, with **due now** on the right, and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
+Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever looked at says **not reviewed yet**, with **due now** on the right, and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
 
 Press a row to open the note with the review still beside it. **Right-click a row** (long-press on the phone) for **I looked at it today**, which writes `reviewed:` with today's date into the note and starts that note's rhythm again; the row then leaves the list. The line under the heading says so, so the menu is not something you have to know about. Because it is written into the note, both devices agree and it is in your backups. The same button is at the top of an aspiration, a goal or an area; see **When you last looked at it**.
 
@@ -1408,7 +1407,7 @@ counts notes and tasks separately.
 
 #### Making a tag before you use it
 
-The **Tags** screen has a field at the top. Write a word there and press **Make**. The tag is
+The **Tags** screen has a field at the top. Write a word there and press **Add**. The tag is
 kept even though nothing carries it yet, so it is offered in the **Tags…** panel of every note
 from then on. It is marked **not used yet** in the list until something takes it.
 
@@ -1476,7 +1475,7 @@ A template says what it makes in its own `type:` line, so you can keep several s
 
 - **+** in the toolbar adds one. Give it a name and say what it makes; it starts as a copy of the one that kind uses now.
 - The template **named after its kind** — Project, Area, Resource, Goal — is the one used unless you choose another.
-- When a kind has more than one, **New Entry** grows a **Template** chip.
+- When a kind has more than one, **New** grows a **Template** chip.
 - Right-click a template — long-press on the phone — to **Rename** or **Delete** it. Deleting the template only removes the template; notes already made from it are untouched.
 
 ### Changing them
@@ -1492,8 +1491,8 @@ Open **Templates** in the sidebar, pick a file and edit it. It saves itself a mo
 ## Quick capture
 
 - ⇧⌘N opens the capture panel in the app. On the Mac there is also a panel in the menu bar.
-- **New Entry** (⌘N) has **Capture** as its fifth button, which gives the same screen.
-- On the iPhone it is the **+** at the top left of **Today**. It opens the **New Entry** screen with **Capture** already chosen. The **+** on the other tabs opens the same screen, starting on the kind that fits that tab.
+- **New** (⌘N) has **Inbox** as its last button, which gives the same screen.
+- On the iPhone it is the **+** at the top left of **Today**. It opens the **New** screen with **Inbox** already chosen. The **+** on the other tabs opens the same screen, starting on the kind that fits that tab.
 - On the iPhone, Share › PARAGON sends text or a link.
 - Other apps and Shortcuts can call `amspara://capture?text=Call%20the%20bank&target=inbox`.
 
@@ -1507,7 +1506,7 @@ Write a line and the app reads it back to you in chips:
 - **Priority !!** — it found the marks.
 - **#travel** — it found a tag.
 
-The **#tag…** button under the field opens the whole list of tags you already have, the same one the New Entry screen and a note's header use, so you can see what you have before making a new one. Tags on a capture are written into the words as `#travel`, which is how a task carries a tag.
+The **#tag…** button under the field opens the whole list of tags you already have, the same one the **New** screen and a note's header use, so you can see what you have before making a new one. Tags on a capture are written into the words as `#travel`, which is how a task carries a tag.
 
 **If a chip does not appear, the app did not read that part.** That is the point of them: you
 see what will be saved before you save it. The chips are dashed because they are not buttons;
@@ -1575,7 +1574,7 @@ Sync with Reminders from the phone with the button in the top right of every scr
 
 On the phone, a note's own actions — Rename, Archive and Delete — are behind the **⋯** button at the top right of the note. On the Mac they are buttons in the toolbar. The pencil is not in there: it is always on screen.
 
-On the phone, **Today**, **Plan**, **Actions**, **Inbox** and **Browse** open with a large title. It becomes a small title when you scroll. The tab bar icons are hand-drawn marks. The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is Plan the day and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. The version, PARAGON 1.0 (280), is at the foot of **Browse**; a long press on it shows the **Work** section. On the Mac the same long press is on the **PARA** heading in the sidebar. Every tab except **Browse** has a **+** at the top left. On **Today** it opens **Capture**, for a quick line into the Inbox. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
+On the phone, **Today**, **Plan**, **Actions**, **Inbox** and **Browse** open with a large title. It becomes a small title when you scroll. The tab bar icons are hand-drawn marks. The phone shows five tabs: **Today**, **Plan**, **Actions**, **Inbox** and **Browse**. **Plan** is the day on an hour ruler and **Actions** is All actions. **Browse** holds everything else: Aspirations, Goals, Projects, Areas, Resources, Archive, Calendar, Done, Review, Map, Search, and Settings with Help. The version, PARAGON 1.0 (280), is at the foot of **Browse**; a long press on it shows the **Work** section. On the Mac the same long press is on the **PARA** heading in the sidebar. Every tab except **Browse** has a **+** at the top left. On **Today** it opens **Inbox**, for a quick line into the Inbox. Tap a note to open it and swipe from the left edge to go back. Long-press a task for the task menu. The share sheet in other apps has a PARAGON entry that sends text or a link to the Inbox.
 
 ## Moving between the tabs
 
@@ -1617,13 +1616,13 @@ Three widgets on the Mac and two on the iPhone. **Today's plan** is for the Mac 
 
 - The big line is made from your plan blocks only. It names the same block as the **Now** and **Then** lines on **Today**. Your calendar events are never in it.
 - The medium widget has a small ruler of the next three hours on its right, and the large one has a ruler of six hours below the words. The small widget has the words only.
-- The ruler has two lanes, like **Plan the day**: **Calendar** on the left and **Time blocks** on the right. A plan block is an orange box with an edge. A calendar event is a purple outline with no fill. When your desktop is not in front, macOS draws widgets in grey, and then the shape still tells them apart.
+- The ruler has two lanes, like **Plan**: **Calendar** on the left and **Time blocks** on the right. A plan block is an orange box with an edge. A calendar event is a purple outline with no fill. When your desktop is not in front, macOS draws widgets in grey, and then the shape still tells them apart.
 - The thin blue-grey line with a dot is the time right now.
 - The words and the line move by themselves, also when PARAGON is closed. The widget has a new picture ready for every minute of the next hour, and then for every quarter hour. macOS decides when it really draws them. If it is late, the line and **at 14:00** stay right, and **in 25 min** can be up to a quarter of an hour old.
-- A block that you also put into Apple Calendar shows in both lanes, as it does in **Plan the day**. The big line uses the block only, so it never shows it twice. Two events at the same time are drawn on top of each other in the small ruler.
+- A block that you also put into Apple Calendar shows in both lanes, as it does in **Plan**. The big line uses the block only, so it never shows it twice. Two events at the same time are drawn on top of each other in the small ruler.
 - On a day with no blocks it says **No blocks planned today.** and **Click to plan the day.** After the last block it says **Nothing more planned today.**
-- Click it and PARAGON opens on **Time Blocks**, on today. If PARAGON already has its window open, the click uses that window and brings it to the front. It does not open a second window.
-- If you add, move or remove a block in **Plan the day**, or an event changes in Apple Calendar, the widget follows after a few seconds.
+- Click it and PARAGON opens on **Plan**, on today. If PARAGON already has its window open, the click uses that window and brings it to the front. It does not open a second window.
+- If you add, move or remove a block in **Plan**, or an event changes in Apple Calendar, the widget follows after a few seconds.
 - The Calendar lane needs **Show the day's events in Today and in daily notes** to be on in Settings, and Calendar access to be allowed. If not, the lane says **Calendar not shown**, on the medium widget inside the lane and on the large one above it. The widget never asks for Calendar access: that question belongs to PARAGON itself.
 
 Clicking or tapping any of the three opens PARAGON.
@@ -1714,7 +1713,7 @@ The app checks every few seconds whether files changed outside it and reloads th
 
 **Versions parked by iCloud (since build 308).** When both devices save the same note at nearly the same moment, iCloud keeps one version and parks the other where no app shows it. PARAGON looks for parked versions after each re-read, for the notes that changed, and every 10 minutes for all notes. It saves each one beside its note as "… (conflict date time).md" and tells you: "Trip" was changed on two devices at the same time. The other version is saved as "Trip (conflict 2026-11-06 2040)" next to it. With several notes: 3 notes were changed on two devices at the same time. The other versions are saved next to them, with "(conflict …)" in their names. A parked version that is the same as the note makes no copy. Open the copy, take what you need, and delete it.
 
-A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment. If the note then turns out to have a line already, written on your other device, that line is kept and your words go below it. The goal for the week and **Plan the day** work the same way: nothing you typed is thrown away, and the box stays open until it can be saved. While a week's note is still coming, its goal box says so in orange and cannot be pressed. If the goal was changed on your other device while you were typing, the box does not write over it: a message says what the goal now is, your words stay in the box, and pressing **Done** again puts yours in its place.
+A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment. If the note then turns out to have a line already, written on your other device, that line is kept and your words go below it. The goal for the week and **Plan** work the same way: nothing you typed is thrown away, and the box stays open until it can be saved. While a week's note is still coming, its goal box says so in orange and cannot be pressed. If the goal was changed on your other device while you were typing, the box does not write over it: a message says what the goal now is, your words stay in the box, and pressing **Done** again puts yours in its place.
 
 ## Getting new versions
 
@@ -1724,7 +1723,7 @@ lives in your Applications folder like any other app.
 
 ## Keyboard shortcuts
 
-- **Escape** closes an edit window without saving (Cancel). **⌘S** saves it (or creates, in **New Entry**). **Tab** moves to the next text field.
+- **Escape** closes an edit window without saving (Cancel). **⌘S** saves it (in **New** too). **Tab** moves to the next text field.
 - ⌘N new entry, ⇧⌘N quick capture, ⇧⌘F search everywhere, ⇧⌘R sync with Reminders
 - ⌃⌘← back to the note you came from, ⌃⌘→ forward again
 - ⌘⌫ delete the open note (it waits in Deleted)

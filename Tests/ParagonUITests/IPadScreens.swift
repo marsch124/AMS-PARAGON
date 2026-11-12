@@ -40,8 +40,8 @@ final class IPadScreens: XCTestCase {
                                    "Areas", "Resources", "Search"]
 
     /// The middle column's title where it is not the row's name: Time Blocks draws
-    /// `PlannerView`, titled "Plan the day" (seen in CI 361's pictures).
-    private static let titles = ["Time Blocks": "Plan the day"]
+    /// `PlannerView`, titled "Plan" since round 3 (the row's identifier kept its old name).
+    private static let titles = ["Time Blocks": "Plan"]
 
     /// The test vault's project, as `TestVault` names it.
     private static let project = "note.Projects/Plan the Kungsleden trip.md"

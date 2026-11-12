@@ -50,16 +50,17 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Missed** — it is over, and it did not happen.
 - **Dropped** — you decided not to do it. Shown in grey, not orange, because it was a decision and not a failure.
 - **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 21 October". In **Projects**, the finished groups put the newest ending first, each box shows its day, and the **Done** heading says how many of its projects ended this year.
-- **What is next for this goal?** — the question that comes up when you mark a project Done, Missed or Dropped and its goal is left with nothing working on it. **Add a project…** opens **New Note** with the goal already chosen, **Mark the goal done** is there only after Done, and **Not now** closes it and changes nothing.
+- **What is next for this goal?** — the question that comes up when you mark a project Done, Missed or Dropped and its goal is left with nothing working on it. **Add a project…** opens **New** with the goal already chosen, **Mark the goal done** is there only after Done, and **Not now** closes it and changes nothing.
 
 ## Tasks
 
 - **Task** or **action** — one line with a tick box, in any note. The two words mean the same thing.
+- **How long?** — the small dashed button on the right of a task that has no task time yet. Press it to say how long the task takes.
 - **Next action** — the one task in a note you would do next. A note has at most one. It carries the tag `#next`.
 - **Due date** — the day a task should be done. Written `>2026-09-29` on the task line.
 - **Overdue** — a task whose due date has passed. Its date is shown in red.
 - **At** — the time of day a task is due, like `T14:00` after its date on the task line. You set it in the date window, in the line called **At**, or press one of the quick times there. **No time of day** there takes it away. It is not the same as **Task time**, which is how long the task takes. In a note that syncs to Reminders, Apple Reminders rings at that time. **Plan** shows a task with a time as a small grey card at its hour.
-- **Task time** — how long a task takes, like `~45m` on the task line. The small button on the right of a task sets it; it says **time?** while there is none. **Use task times** in Settings turns it on and off.
+- **Task time** — how long a task takes, like `~45m` on the task line. The small button on the right of a task sets it; it says **How long?** while there is none. **Use task times** in Settings turns it on and off.
 - **Working day ends** — the time in Settings that **Start the day** measures your picks against. 16:00 to begin with. Tasks can still be planned after it; it is a measure, not a limit.
 - **Important** — one, two or three `!` on a task line. More marks mean more important.
 - **Repeat** — a task that comes back after you tick it, like `@repeat(weekly)`.
@@ -76,20 +77,20 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Planning your day and week
 
 - **Today** — the tasks due today and the overdue ones, with today's calendar events.
-- **Plan the day** — the screen with your day on an hour ruler. On the Mac it is the **Time Blocks** row in the sidebar. On the iPhone it is the **Plan** tab.
+- **Plan** — the screen with your day on an hour ruler. It has the same name everywhere: the **Plan** row in the Mac's sidebar and the **Plan** tab on the iPhone. The lane inside it where your blocks sit is still called **Time blocks**.
 - **Plan block** — an orange block of time you set aside for something, like "09:30–11:00 Deep work". It is a line in the day's daily note, under **Plan**. It stays in PARAGON unless you tick **In Apple Calendar**.
-- **Time blocks lane** — the right-hand lane on **Plan the day**, where your plan blocks sit. Drop a task on an hour here to make a block. A task that has a time of day (**At**) is drawn here too, as a small grey card with a thin border and no orange, so you can tell it from a block. It cannot be moved.
-- **Calendar lane** — the left-hand lane on **Plan the day**. It shows your Apple Calendar events and is read only.
-- **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan the day**.
+- **Time blocks lane** — the right-hand lane on **Plan**, where your plan blocks sit. Drop a task on an hour here to make a block. A task that has a time of day (**At**) is drawn here too, as a small grey card with a thin border and no orange, so you can tell it from a block. It cannot be moved.
+- **Calendar lane** — the left-hand lane on **Plan**. It shows your Apple Calendar events and is read only.
+- **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan**.
 - **Now line** — the thin blue line that shows the time right now.
 - **Now and Then** — two short lines under the date on **Today**, on a day with a plan. The first starts with **Now** and names the plan block you are in, with a small orange clock button that starts the focus timer on it. The second starts with **Then** and names the next block. They are not the **Now line**, which is the thin blue line across the hours.
-- **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **time?** button opens, and first on a task's right-click menu.
+- **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **How long?** button opens, and first on a task's right-click menu.
 - **Focus timer** — a clock on one task while you work. A bar at the foot of the screen shows it, with a pause button and a stop button. On the Mac the time also shows in the menu bar, on the right among the small icons there.
 - **Notification when the time is up** — one notification when you have worked as long as the task's time, or the plan block's length. Paused time does not count. The clock keeps running until you stop it.
 - **Worked** — a heading in the daily note where the focus timer writes how long you worked: one line for each stretch, like `- 08:02-08:54 Write the offer`.
 - **Week** — **Calendar › Week**: the seven days of a week, with what is due on each.
 - **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**. Step 8 of the **Weekly review** writes it too, for the week you are about to work in.
-- **To place** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
+- **Not planned yet** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
 - **Start the day** — the cup button on **Today**. At the top it shows what you wrote last evening, the goal for the week and today's calendar events. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added there with **+**.
 - **Close the day** — the moon button on **Today**. It shows what your finished tasks went towards, what did not happen, and what is to do tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.
 - **First** — a mark you put on an action in **Close the day**. The next morning, **Start the day** shows it first in its list, above **Overdue**.
@@ -97,19 +98,22 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
 - **Looking back** — the part of a daily or weekly note where one line about the day or the week is kept.
 - **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
-- **Today's plan** (the widget) — a widget for the Mac, found under **Edit Widgets**. The big orange line names the plan block you are in now, or else the next one, with when it is. A small ruler of the next hours shows your plan blocks as orange boxes and your calendar events as purple outlines. Click it to open **Time Blocks**. It is not the same as the **Today** screen or the **Plan the day** screen.
+- **Today's plan** (the widget) — a widget for the Mac, found under **Edit Widgets**. The big orange line names the plan block you are in now, or else the next one, with when it is. A small ruler of the next hours shows your plan blocks as orange boxes and your calendar events as purple outlines. Click it to open **Plan**. It is not the same as the **Today** screen or the **Plan** screen.
 
 ## Getting things in
 
 - **Inbox** — where new things land before you decide where they belong.
-- **Capture** — writing something down quickly, to sort later. It goes to the Inbox.
+- **Capture** — writing something down quickly, to sort later. It goes to the Inbox. In **New**, the button for it is called **Inbox**, because that is where the line lands.
+- **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
+- **Add** and **Save** — a button that adds one thing straight away says **Add**, like **Add** beside a new tag. A screen with fields to fill in ends with **Save**. The app does not say Make or Create for this.
 - **File it** — moving an Inbox line into a project or an area.
 
 ## Looking after the whole
 
 - **Weekly review** — a walk through everything, step by step, once a week. It shows what needs a look.
 - **Due for a look** — notes you have not looked at for a while. They are listed at the top of the **Weekly review**. How often each kind is due is set in **Settings › Review rhythm**.
-- **Looked at** — when you last looked at an aspiration, a goal or an area, like **Looked at 12 days ago** or **Never looked at**. It is a button at the top of the note. Press it, then **I looked at it today**, and today's date is kept as `reviewed:` in the settings block.
+- **Changed today** — in the **Weekly review**, on a project or a goal: something in it was changed today. **Changed 3d ago** means three days ago.
+- **Looked at** — when you last looked at an aspiration, a goal or an area, like **Looked at 12 days ago**, or **Not reviewed yet** when you never have. It is a button at the top of the note. Press it, then **I looked at it today**, and today's date is kept as `reviewed:` in the settings block.
 - **I looked at it today** — says you have just looked at a note, so it leaves **Due for a look** until it is due again. It is in the box the **Looked at** button opens, on the right-click menu of a row in **Aspirations**, **Goals** and **Areas**, and in the **Weekly review**.
 - **Look back at last week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended. The heading names the week it shows: **last week**, **this week**, or a week number.
 - **How was the week?** — a box in step 7 of the **Weekly review**. You write a line or two about the week, and it is kept in that week's note under **Looking back**. It is not the same as the two questions under **Review** that a weekly note already has.
@@ -125,11 +129,13 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 - **Template** — the starting text for a new note of one kind.
 - **Snippet** — a short block of text you can put into any note.
-- **Tags** — the list of every tag, with how much of the vault uses it. You can rename, delete or make a tag here.
+- **Tags** — the list of every tag, with how much of the vault uses it. You can rename, delete or add a tag here.
 
 ## Behind the scenes
 
 - **Vault** — the folder on your disk or in iCloud that holds all your notes as plain text files.
+- **Not synced yet** — the words under the sync ring before the first sync in this session.
+- **Reminders list:** — at the top of a project or an area: the list in Apple Reminders its tasks go to.
 - **Reminders sync** — tasks are copied both ways between PARAGON and Apple Reminders. Goals and aspirations never sync.
 - **Backup** — a dated copy of the whole vault, made every day and before each sync, kept in tiers (last 5 before-sync copies, one per day for 14 days, one per week for 2 months). Since build 308 a second copy, with pictures and sketches, is made once a day outside the vault: on this device, or in a folder you choose.
 - **Conflict copy** — a file named "… (conflict date time).md" beside a note. It holds a second version of the note that PARAGON would not throw away: your text when both devices changed the same line, or a version iCloud had parked.

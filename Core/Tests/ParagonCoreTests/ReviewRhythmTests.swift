@@ -50,8 +50,8 @@ final class ReviewRhythmTests: XCTestCase {
         // One side says it was never looked at, the other that a look is due now: never the
         // same words twice on one row (build 270).
         XCTAssertEqual(schedule[0].whenText, "due now")
-        XCTAssertEqual(schedule[0].lastText, "never looked at")
-        XCTAssertEqual(schedule[0].lookedAtText, "Never looked at")
+        XCTAssertEqual(schedule[0].lastText, "not reviewed yet")
+        XCTAssertEqual(schedule[0].lookedAtText, "Not reviewed yet")
     }
 
     func testTheRhythmDecidesWhenSomethingIsDue() {
@@ -186,7 +186,7 @@ final class ReviewRhythmTests: XCTestCase {
     // MARK: The words two screens say (build 199)
 
     func testLookedAtSaysNeverRatherThanANumber() {
-        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: nil), "Never looked at")
+        XCTAssertEqual(ReviewWording.lookedAt(daysAgo: nil), "Not reviewed yet")
     }
 
     func testLookedAtInDaysMonthsAndYears() {
@@ -273,7 +273,7 @@ final class ReviewRhythmTests: XCTestCase {
         XCTAssertEqual(due(.goal, 93, every: 90).nextText, "A look was due 3 days ago.")
         // Never looked at is due now, and never a big number (build 141).
         XCTAssertEqual(due(.goal, nil, every: 90).nextText, "A look is due now.")
-        XCTAssertEqual(due(.goal, nil, every: 90).lookedAtText, "Never looked at")
+        XCTAssertEqual(due(.goal, nil, every: 90).lookedAtText, "Not reviewed yet")
         XCTAssertEqual(due(.goal, 0, every: 90).lookedAtText, "Looked at today")
     }
 
@@ -294,6 +294,6 @@ final class ReviewRhythmTests: XCTestCase {
             // overload (build 168).
             XCTAssertEqual(small.first.map { String($0) }, big.first.map { String($0).lowercased() })
         }
-        XCTAssertEqual(ReviewWording.lookedAtLowercased(daysAgo: nil), "never looked at")
+        XCTAssertEqual(ReviewWording.lookedAtLowercased(daysAgo: nil), "not reviewed yet")
     }
 }

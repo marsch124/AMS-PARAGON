@@ -31,7 +31,7 @@ struct MapView: View {
             }
             if map.isEmpty {
                 EmptyStateView(title: "Nothing to map yet", markName: SidebarSection.map.markName,
-                               message: "Create a goal, then give your projects and areas a goal: line. They show up here, top down.",
+                               message: "Add a goal, then give your projects and areas a goal: line. They show up here, top down.",
                                tint: SidebarSection.map.tint)
             } else {
                 let layout = MapLayout(map: map, zoom: zoom, pinned: model.pinnedMapPositions)
@@ -758,6 +758,15 @@ struct MapNodeView: View {
 
 /// The legend, and for the chosen box: what it serves and what serves it.
 struct MapFooter: View {
+    /// Each device its own words (round 3).
+    private var boxHint: String {
+        #if os(macOS)
+        return "Click a box to see what it serves and what serves it. The note opens on the right."
+        #else
+        return "Tap a box to see what it serves and what serves it, and to open its note."
+        #endif
+    }
+
     @EnvironmentObject private var model: AppModel
     let map: LinkMap
     let selectedID: String?
@@ -798,7 +807,7 @@ struct MapFooter: View {
                     .foregroundStyle(.secondary)
                 }
             } else {
-                Text("Click a box to see what it serves and what serves it. The note opens on the right.")
+                Text(boxHint)
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
             }

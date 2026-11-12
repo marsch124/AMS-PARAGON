@@ -755,8 +755,8 @@ struct AspirationChainBody: View {
                     // Build 269: the old line asked him to type `goal:` into another note. The
                     // button under it makes the goal instead, already serving this aspiration.
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Nothing works towards this yet.")
-                            .font(Txt.value)
+                        Text("Nothing works towards this yet")
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                         AddServingNoteButton(model: model, parent: chain.note)
                     }
@@ -809,8 +809,8 @@ struct AspirationChainBody: View {
         VStack(alignment: .leading, spacing: 10) {
             Heading(text: "Goals", color: ChainTint.datedGoal, count: chain.goals.count)
             if chain.isBare {
-                Text("Nothing works towards this yet.")
-                    .font(Txt.value)
+                Text("Nothing works towards this yet")
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
             ForEach(chain.goals) { goal in
@@ -973,8 +973,8 @@ struct ChainGoalBlock: View {
             Heading(text: "Projects", color: ParaKind.project.tint,
                     count: goal.projects.count + goal.finishedProjects.count)
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
-                Text("No project delivers this goal yet.")
-                    .font(Txt.value)
+                Text("No project delivers this goal yet")
+                    .font(Txt.label)
                     .foregroundStyle(Theme.attention)
             }
             ForEach(goal.projects) { project in
@@ -1064,7 +1064,7 @@ struct ChainGoalBlock: View {
     private var rail: some View {
         VStack(alignment: .leading, spacing: 4) {
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
-                Text("No project delivers this goal yet.")
+                Text("No project delivers this goal yet")
                     .font(Txt.label)
                     .foregroundStyle(Theme.attention)
                 AddServingNoteButton(model: model, parent: goal.note)
@@ -1574,11 +1574,11 @@ extension ServingNote {
     /// The Mac's tooltip on the button.
     var helpText: String {
         switch link {
-        case .area: return "Make a new project in this area. You stay on this page."
+        case .area: return "Add a new project in this area. You stay on this page."
         case .goal:
             return makesAGoal
-                ? "Make a new goal that serves this aspiration. You stay on this page."
-                : "Make a new project that serves this goal. You stay on this page."
+                ? "Add a new goal that serves this aspiration. You stay on this page."
+                : "Add a new project that serves this goal. You stay on this page."
         }
     }
 

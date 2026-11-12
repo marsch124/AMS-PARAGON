@@ -30,7 +30,7 @@ final class SyncRingTests: XCTestCase {
         XCTAssertEqual(word(ago(25)), "10:05")
         XCTAssertEqual(word(ago(25), s: true), "Syncing")
         XCTAssertEqual(word(ago(25), w: true), "iCloud")
-        XCTAssertEqual(word(nil), "Not yet")
+        XCTAssertEqual(word(nil), "Not synced yet")
         XCTAssertEqual(word(ago(25), 3), "3 conflicts")
         XCTAssertEqual(word(ago(24 * 60)), "Yesterday")
         XCTAssertEqual(word(ago(3 * 24 * 60)), "9 Nov")

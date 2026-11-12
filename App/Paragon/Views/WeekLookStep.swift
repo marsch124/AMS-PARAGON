@@ -72,7 +72,7 @@ struct WeekLookStep: View {
 
         if eveningLines(look).isEmpty {
             Text("No evening lines \(weekWords). **Close the day** writes them.")
-                .font(Txt.value)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         } else {
             ForEach(eveningLines(look)) { line in
@@ -190,8 +190,8 @@ struct WeekLookStep: View {
         if let text = look.finishedText {
             CountPill(text: text, markName: "checkmark.circle", tint: .green)
         } else {
-            Text("No task was ticked off \(weekWords).")
-                .font(Txt.value)
+            Text("No task was ticked off \(weekWords)")
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
     }
