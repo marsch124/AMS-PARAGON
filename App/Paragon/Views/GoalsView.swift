@@ -795,7 +795,7 @@ struct AspirationChainBody: View {
                 ForEach(chain.areas) { area in
                     Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
                         MarkLabel(area.title, ChainSymbol.area)
-                            .foregroundStyle(ParaKind.area.tint)
+                            .foregroundStyle(ParaKind.area.tint.ink)
                     }
                     .buttonStyle(.plain)
                 }
@@ -987,7 +987,7 @@ struct ChainGoalBlock: View {
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
                     MarkLabel(area.title, ChainSymbol.area)
                         .font(Txt.value)
-                        .foregroundStyle(ParaKind.area.tint)
+                        .foregroundStyle(ParaKind.area.tint.ink)
                 }
                 .buttonStyle(.plain)
             }
@@ -1021,7 +1021,7 @@ struct ChainGoalBlock: View {
                 mark
                 Text(goal.note.title)
                     .font(Txt.sectionTitle)
-                    .foregroundStyle(ParaKind.goal.tint)
+                    .foregroundStyle(ParaKind.goal.tint.ink)
                     .lineLimit(2)
             }
             WrappingHStack(spacing: 6, lineSpacing: 5) {
@@ -1079,7 +1079,7 @@ struct ChainGoalBlock: View {
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
                     MarkLabel(area.title, ChainSymbol.area)
                         .font(Txt.value)
-                        .foregroundStyle(ParaKind.area.tint)
+                        .foregroundStyle(ParaKind.area.tint.ink)
                 }
                 .buttonStyle(.plain)
             }
@@ -1105,7 +1105,7 @@ struct ChainProjectRow: View {
                     Text(project.note.title)
                         .font(Txt.value)
                         .strikethrough(project.note.isEnded)
-                        .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
+                        .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint.ink)
                         .lineLimit(2)
                     // **Build 169: the count belongs to the project, so it sits next to it.**
                     // A `Spacer` pushed "2 open" out to the right edge of a wide column, far
@@ -1165,7 +1165,7 @@ struct ChainChip: View {
                 Capsule().strokeBorder(tint.opacity(0.55),
                                        style: StrokeStyle(lineWidth: 1, dash: dashed ? [3, 2] : []))
             )
-            .foregroundStyle(tint)
+            .foregroundStyle(tint == .secondary ? tint : tint.capsuleWords)
     }
 }
 
@@ -1415,7 +1415,7 @@ struct AddServingNoteButton: View {
         Button { adding = true } label: {
             MarkLabel(plan.buttonTitle, "plus.circle")
                 .font(Txt.value)
-                .foregroundStyle(plan.tint)
+                .foregroundStyle(plan.tint.ink)
                 .helpWhenClosed(plan.helpText, open: adding)
         }
         .buttonStyle(.bordered)
@@ -1484,7 +1484,7 @@ struct AddServingNoteBox: View {
         VStack(alignment: .leading, spacing: 10) {
             MarkLabel(plan.heading, plan.symbol)
                 .font(Txt.label.weight(.semibold))
-                .foregroundStyle(plan.tint)
+                .foregroundStyle(plan.tint.ink)
             TextField("Name", text: $typed)
                 .textFieldStyle(.roundedBorder)
                 .focused($focused)

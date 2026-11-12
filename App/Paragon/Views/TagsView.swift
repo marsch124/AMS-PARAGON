@@ -114,7 +114,7 @@ struct TagsView: View {
                     .frame(width: 12)
                 Text("#\(use.tag)")
                     .font(Txt.listTitle)
-                    .foregroundStyle(SidebarSection.tags.tint)
+                    .foregroundStyle(SidebarSection.tags.tint.ink)
                 Spacer(minLength: 6)
                 Text(summary(of: use))
                     .font(Txt.label)
@@ -276,7 +276,7 @@ struct NoteTagsChip: View {
                 .helpWhenClosed("Add or remove this note's tags", open: showing)
         }
         .buttonStyle(.bordered)
-        .foregroundStyle(live.tags.isEmpty ? Color.secondary : SidebarSection.tags.tint)
+        .foregroundStyle(live.tags.isEmpty ? Theme.soft : SidebarSection.tags.tint.ink)
         .popover(isPresented: $showing) {
             TagChoices(model: model, title: "Tags on this note", chosen: chosen)
         }

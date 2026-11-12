@@ -270,11 +270,11 @@ struct MonthGridCell: View {
             Text("\(date.day)")
                 .font(Txt.value)
                 .fontWeight(isToday ? .bold : .regular)
-                .foregroundStyle(isSelected ? Color.white : (isToday ? ParaKind.daily.tint : Color.primary))
+                .foregroundStyle(isSelected ? Color.white : (isToday ? ParaKind.daily.tint.ink : Color.primary))
                 .frame(width: 22, height: 20)
                 .background {
                     if isSelected {
-                        Circle().fill(ParaKind.daily.tint)
+                        Circle().fill(ParaKind.daily.tint.deep)
                     } else if isToday {
                         Circle().strokeBorder(ParaKind.daily.tint, lineWidth: 1.5)
                     }
@@ -732,7 +732,7 @@ struct WeekGoalBox: View {
                 Text(shownTitle)
                     .font(Txt.listSecond.weight(.semibold))
                     .textCase(.uppercase)
-                    .foregroundStyle(goal == nil ? Color.secondary : tint)
+                    .foregroundStyle(goal == nil ? Color.secondary : tint.ink)
                 Text(goal ?? emptyText)
                     .font(goal == nil ? .callout : .callout.weight(.semibold))
                     .foregroundStyle(goal != nil ? Color.primary : (waiting ? Color.orange : Color.secondary))

@@ -475,7 +475,7 @@ struct InboxQuadrant: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
+        .foregroundStyle(isOn ? tint.capsuleWords : Color.primary.opacity(0.62))
         .background {
             if isOn {
                 RoundedRectangle(cornerRadius: 9).fill(tint.opacity(0.18))
@@ -603,7 +603,7 @@ struct InboxFileItView: View {
                 if let due = ref.task.dueDate {
                     MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
                         .font(Txt.label)
-                        .foregroundStyle(due < .today() ? Color.red : .secondary)
+                        .foregroundStyle(due < .today() ? Color.red : Theme.soft)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

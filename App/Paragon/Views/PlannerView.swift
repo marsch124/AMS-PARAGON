@@ -670,7 +670,7 @@ struct PlannerDayView: View {
             }
             Text(draftSummary)
                 .font(Txt.value.weight(.semibold))
-                .foregroundStyle(Theme.planBlockTint)
+                .foregroundStyle(Theme.planBlockTint.ink)
             Toggle("Also put this block in Apple Calendar", isOn: $draftInCalendar)
             Text(draftInCalendar
                  ? "An event is written to the calendar under Settings \u{203a} Apple Calendar \u{203a} Time blocks go to. Change the block here and the event follows it; remove the block, or take the tick off, and the event goes."
@@ -830,14 +830,14 @@ private struct PlanCardFace: View {
             HStack(spacing: 4) {
                 Text(startTime)
                     .font(Txt.listSecond.monospacedDigit())
-                    .foregroundStyle(tint.opacity(0.85))
+                    .foregroundStyle(tint.capsuleWords.opacity(0.85))
                     .fixedSize()
                 if alsoAnEvent {
                     calendarMark
                 }
                 Text(title)
                     .font(Txt.label.weight(filled ? .semibold : .regular))
-                    .foregroundStyle(tint)
+                    .foregroundStyle(tint.capsuleWords)
                     .lineLimit(1)
             }
         } else {
@@ -845,7 +845,7 @@ private struct PlanCardFace: View {
                 HStack(spacing: 3) {
                     Text(time)
                         .font(Txt.listSecond.monospacedDigit())
-                        .foregroundStyle(tint.opacity(0.85))
+                        .foregroundStyle(tint.capsuleWords.opacity(0.85))
                     if alsoAnEvent {
                         calendarMark
                     }
@@ -853,7 +853,7 @@ private struct PlanCardFace: View {
                 }
                 Text(title)
                     .font(Txt.label.weight(filled ? .semibold : .regular))
-                    .foregroundStyle(tint)
+                    .foregroundStyle(tint.capsuleWords)
                     .lineLimit(3)
                 Spacer(minLength: 0)
             }
@@ -1116,7 +1116,7 @@ private struct LengthChip: View {
         Button(action: choose) {
             Text(title)
                 .font(Txt.label.weight(isOn ? .semibold : .regular))
-                .foregroundStyle(isOn ? Theme.planBlockTint : Color.secondary)
+                .foregroundStyle(isOn ? Theme.planBlockTint.capsuleWords : Theme.soft)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(Theme.planBlockTint.opacity(isOn ? 0.2 : 0), in: Capsule())
@@ -1259,7 +1259,7 @@ struct PlannerActionsView: View {
         if let serves = serves(ref) {
             MarkLabel(serves.title, serves.symbol)
                 .font(Txt.listSecond)
-                .foregroundStyle(serves.tint)
+                .foregroundStyle(serves.tint.ink)
                 .lineLimit(1)
                 .padding(.leading, 22)
         }

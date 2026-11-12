@@ -206,7 +206,7 @@ struct AspirationReasonBox: View {
         if let reason {
             Text(reason)
                 .font(Txt.value)
-                .foregroundStyle(tint)
+                .foregroundStyle(tint.ink)
                 .lineLimit(4)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)

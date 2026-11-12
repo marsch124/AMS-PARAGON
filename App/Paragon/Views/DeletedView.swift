@@ -61,7 +61,8 @@ struct DeletedRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            TintStripe(color: deleted.kind.tint, height: 34)
+            // Build 310: Deleted mixes every part, so the row shows the part's icon, not a dot.
+            PartMark(markName: SidebarSection.kind(deleted.kind).markName, color: deleted.kind.tint)
             VStack(alignment: .leading, spacing: 3) {
                 Text(deleted.title)
                     .font(Txt.listTitle)

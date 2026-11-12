@@ -199,13 +199,13 @@ struct QuickCaptureView: View {
             if !embedded && compact {
                 MarkLabel("Quick capture", "tray.and.arrow.down")
                     .font(Txt.listTitle)
-                    .foregroundStyle(SidebarSection.inbox.tint)
+                    .foregroundStyle(SidebarSection.inbox.tint.ink)
             }
             Spacer()
             if let confirmation {
                 Text(confirmation)
                     .font(Txt.label)
-                    .foregroundStyle(SidebarSection.inbox.tint)
+                    .foregroundStyle(SidebarSection.inbox.tint.ink)
                     .transition(.opacity)
             }
             Button {
@@ -307,9 +307,9 @@ struct QuickCaptureView: View {
                     .font(Txt.listTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 11)
-                    .background(canSave ? SidebarSection.inbox.tint : SidebarSection.inbox.tint.opacity(0.4),
+                    .background(canSave ? SidebarSection.inbox.tint.deep : SidebarSection.inbox.tint.deep.opacity(0.4),
                                 in: RoundedRectangle(cornerRadius: 11))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(canSave ? Color.white : SidebarSection.inbox.tint.waitingWords)
             }
             .buttonStyle(.plain)
             .disabled(!canSave)
@@ -458,7 +458,7 @@ struct PickChip: View {
             Text(title)
                 .font(Txt.label)
                 .fontWeight(isOn ? .semibold : .regular)
-                .foregroundStyle(isOn ? tint : Color.secondary)
+                .foregroundStyle(isOn ? tint.capsuleWords : Theme.soft)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(tint.opacity(isOn ? 0.16 : 0), in: Capsule())

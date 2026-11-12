@@ -263,7 +263,7 @@ struct WaitingForList: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(line.captionText(today: today))
                     .font(Txt.label)
-                    .foregroundStyle(overdue ? Color.red : Color.secondary)
+                    .foregroundStyle(overdue ? Color.red : Theme.soft)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("waiting.caption.\(title)")

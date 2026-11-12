@@ -228,7 +228,7 @@ struct ProjectGroupHeader: View {
                 badge
                 Text(group.title)
                     .font(Txt.sectionTitle)
-                    .foregroundStyle(headingTint)
+                    .foregroundStyle(headingTint.ink)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                     // Build 281: a List measures its header one line tall unless the text says

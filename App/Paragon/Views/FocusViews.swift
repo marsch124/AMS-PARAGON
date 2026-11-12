@@ -222,7 +222,7 @@ struct FocusStopView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                         .foregroundStyle(.white)
-                        .background(ParaKind.project.tint, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(ParaKind.project.tint.deep, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
