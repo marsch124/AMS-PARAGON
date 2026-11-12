@@ -15,14 +15,41 @@ public enum GoalHorizon: String, CaseIterable, Codable, Sendable {
     }
 }
 
+/// A note's task lines, read once and kept (hardening 07). `Note.tasks` used to read the whole
+/// body again on every call, and the sidebar asked every note several times per redraw: on
+/// 5,000 notes that was most of a second per number. The box belongs to one body: `Note.body`'s
+/// `didSet` hands the note a fresh, empty box, so a copy that is then edited never shares the
+/// answer of the text it came from, and copies with the same text share one reading.
+///
+/// It is not part of what a note *is*: two notes are equal whatever their boxes hold.
+final class ParsedTasks: @unchecked Sendable, Equatable {
+    private let lock = NSLock()
+    private var kept: [TaskItem]?
+
+    func tasks(of body: String) -> [TaskItem] {
+        lock.lock()
+        defer { lock.unlock() }
+        if let kept { return kept }
+        let parsed = TaskParser.parse(text: body)
+        kept = parsed
+        return parsed
+    }
+
+    static func == (lhs: ParsedTasks, rhs: ParsedTasks) -> Bool { true }
+}
+
 /// A markdown note: optional YAML frontmatter followed by a body.
 public struct Note: Equatable, Identifiable, Sendable {
     /// Path relative to the vault root, e.g. `Projects/Website relaunch.md`.
     public var relativePath: String
     public var kind: ParaKind
     public var frontmatter: Frontmatter
-    public var body: String
+    /// **Every change of the body throws the read tasks away** — whoever writes it (`text`,
+    /// `lines`, or a caller setting `body` itself). Keep it that way: a second way to change
+    /// the words that does not pass here would leave `tasks` answering for the old text.
+    public var body: String { didSet { parsedTasks = ParsedTasks() } }
     public var modifiedAt: Date?
+    private var parsedTasks = ParsedTasks()
 
     public var id: String { relativePath }
 
@@ -169,7 +196,9 @@ public struct Note: Equatable, Identifiable, Sendable {
 
     // MARK: Tasks
 
-    public var tasks: [TaskItem] { TaskParser.parse(text: body) }
+    /// The body's task lines. Read on the first ask and kept until the body changes (see
+    /// `ParsedTasks`), so asking is free and nothing has to be handed around to save a reading.
+    public var tasks: [TaskItem] { parsedTasks.tasks(of: body) }
 
     public var openTasks: [TaskItem] { tasks.filter { !$0.isDone } }
 
