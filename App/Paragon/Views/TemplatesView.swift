@@ -64,8 +64,7 @@ struct TemplatesView: View {
                                 toggleFold(group.title)
                             } label: {
                                 HStack(spacing: 6) {
-                                    MarkImage(folded.contains(group.title) ? "chevron.right" : "chevron.down")
-                                        .font(Txt.listSecond)
+                                    MarkImage(folded.contains(group.title) ? "chevron.right" : "chevron.down", text: .footnote)
                                     Text(group.title.uppercased())
                                         .font(Txt.label.weight(.semibold))
                                     Spacer(minLength: 0)

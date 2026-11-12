@@ -148,7 +148,7 @@ struct AllActionsView: View {
             Button {
                 showsWaiting = true
             } label: {
-                MarkLabel(text, WaitingShowing.symbol)
+                MarkLabel(text, WaitingShowing.symbol, text: .footnote)
                     .font(Txt.label)
                     .foregroundStyle(tint.ink)
                     .frame(maxWidth: .infinity, alignment: .leading)

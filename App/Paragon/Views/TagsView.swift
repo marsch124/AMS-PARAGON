@@ -112,8 +112,7 @@ struct TagsView: View {
             toggle(use.tag)
         } label: {
             HStack(spacing: 8) {
-                MarkImage(isOpen ? "chevron.down" : "chevron.right")
-                    .font(Txt.listSecond)
+                MarkImage(isOpen ? "chevron.down" : "chevron.right", text: .footnote)
                     .foregroundStyle(.soft)
                     .frame(width: 12)
                 Text("#\(use.tag)")

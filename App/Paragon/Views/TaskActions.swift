@@ -337,7 +337,7 @@ struct TaskTimeChoices: View {
             if let focus, model.canFocus(on: ref) {
                 Divider()
                 Button(action: focus) {
-                    MarkLabel("Focus on this", "timer")
+                    MarkLabel("Focus on this", "timer", text: .body)
                         .font(Txt.value.weight(.semibold))
                         .foregroundStyle(Theme.planBlockTint.ink)
                         .contentShape(Rectangle())

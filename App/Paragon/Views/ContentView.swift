@@ -411,8 +411,7 @@ struct SidebarView: View {
                     toolsFolded.toggle()
                 } label: {
                     HStack(spacing: 6) {
-                        MarkImage(toolsFolded ? "chevron.right" : "chevron.down")
-                            .font(Txt.listSecond)
+                        MarkImage(toolsFolded ? "chevron.right" : "chevron.down", text: .footnote)
                         Text("Tools")
                         Spacer(minLength: 0)
                     }
@@ -609,8 +608,7 @@ struct NoteListView: View {
                 Button {
                     fold(note)
                 } label: {
-                    MarkImage(foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down")
-                        .font(Txt.listSecond)
+                    MarkImage(foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down", text: .footnote)
                         .foregroundStyle(.soft)
                         .frame(width: 14)
                 }
@@ -1349,7 +1347,6 @@ struct KindBadge: View {
 
     var body: some View {
         MarkImage(markName ?? SidebarSection.kind(kind).markName)
-            .font(Txt.list.weight(.semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
             // Build 310: white on a part colour always sits on the deep shade.

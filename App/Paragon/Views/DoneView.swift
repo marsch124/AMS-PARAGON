@@ -168,8 +168,7 @@ private struct DoneDayCard: View {
                 .foregroundStyle(.soft)
             if let evening = day.eveningLine {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    MarkImage(CloseDayView.symbol)
-                        .font(Txt.label)
+                    MarkImage(CloseDayView.symbol, text: .footnote)
                         .foregroundStyle(Theme.eveningTint)
                     // The whole line, as he wrote it: it is his own words.
                     Text(evening)
@@ -179,7 +178,7 @@ private struct DoneDayCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else if waiting {
-                MarkLabel("Still coming from iCloud", "icloud")
+                MarkLabel("Still coming from iCloud", "icloud", text: .footnote)
                     .font(Txt.label)
                     .foregroundStyle(.orange)
             }

@@ -1,5 +1,6 @@
 import SwiftUI
 import AMSIcons
+import ParagonCore
 
 // 1.0 (build 280): every icon in the app is a hand-drawn mark from the AMS-Icons package —
 // one 1.9 stroke on a 24-point grid, round ends, no fill — never an SF Symbol and never an
@@ -144,15 +145,33 @@ enum Marks {
 }
 
 /// A hand-drawn mark in place of `Image(systemName:)`. It takes the colour of the text around
-/// it, like the symbol did; the size is in points (16 is a sidebar row, 17 the toolbar).
+/// it, like the symbol did.
+///
+/// Round 5 of the premium review: a mark has its size one of two ways. `size:` is a fixed
+/// number of points (17 in the toolbar, 14 on a small button) and never changes. `text:` is
+/// the text style the mark sits beside: it is sized by `MarkRule.size(for:)` and grows with
+/// the text size chosen in the iPhone's settings. With neither it sits beside body text (16).
+/// `.font(…)` and `.imageScale(…)` on a mark do nothing — it is a drawing, not a symbol.
 struct MarkImage: View {
     let name: String
-    var size: CGFloat = 16
+    /// A fixed size in points, or nil when the mark follows a text style.
+    private let fixed: CGFloat?
+    @ScaledMetric private var scaled: CGFloat
 
-    init(_ name: String, size: CGFloat = 16) {
+    init(_ name: String, size: CGFloat) {
         self.name = name
-        self.size = size
+        self.fixed = size
+        self._scaled = ScaledMetric(wrappedValue: size)
     }
+
+    init(_ name: String, text: MarkRule.TextStyle = .body) {
+        self.name = name
+        self.fixed = nil
+        self._scaled = ScaledMetric(wrappedValue: CGFloat(MarkRule.size(for: text)), relativeTo: text.fontStyle)
+    }
+
+    /// Half points are fine on screen and keep the drawn images few.
+    private var size: CGFloat { fixed ?? (scaled * 2).rounded() / 2 }
 
     var body: some View {
         // A template image rather than a stroked shape: a macOS toolbar, a menu, a context
@@ -166,12 +185,32 @@ struct MarkImage: View {
     }
 }
 
+extension MarkRule.TextStyle {
+    /// Apple's text style of the same name, for growing with the text size.
+    var fontStyle: Font.TextStyle {
+        switch self {
+        case .largeTitle: return .largeTitle
+        case .title: return .title
+        case .title2: return .title2
+        case .title3: return .title3
+        case .headline: return .headline
+        case .body: return .body
+        case .callout: return .callout
+        case .subheadline: return .subheadline
+        case .footnote: return .footnote
+        case .caption: return .caption
+        case .caption2: return .caption2
+        }
+    }
+}
+
 extension Marks {
     /// One image per name and size, drawn once.
     private static var cache: [String: Image] = [:]
 
     static func templateImage(_ name: String, size: CGFloat) -> Image {
-        let key = "\(name)@\(size)"
+        // The key counts in hundredths of a point, so 9.92 and 9.920000001 are one image.
+        let key = "\(name)@\(Int((size * 100).rounded()))"
         if let done = cache[key] { return done }
         #if canImport(UIKit)
         let made = image(name, size: size)
@@ -181,25 +220,46 @@ extension Marks {
         cache[key] = made
         return made
     }
+
+    /// The line to draw a mark of that size with, on the 24-point grid: 1.9, and heavier for
+    /// a mark under 16 points so that it is never thinner than 1.3 points on screen.
+    static func gridLine(forSize size: CGFloat) -> CGFloat {
+        CGFloat(MarkRule.lineWidth(forSize: Double(size)))
+    }
 }
 
-/// A `Label` whose icon is a hand-drawn mark, in place of `Label(_:systemImage:)`.
+/// A `Label` whose icon is a hand-drawn mark, in place of `Label(_:systemImage:)`. The mark
+/// has a fixed `size:` or follows a `text:` style, as `MarkImage` does; `.font(…)` on the
+/// label sets the words only.
 struct MarkLabel: View {
     let title: String
     let name: String
-    var size: CGFloat = 16
+    private let fixed: CGFloat?
+    private let style: MarkRule.TextStyle
 
-    init(_ title: String, _ name: String, size: CGFloat = 16) {
+    init(_ title: String, _ name: String, size: CGFloat) {
         self.title = title
         self.name = name
-        self.size = size
+        self.fixed = size
+        self.style = .body
+    }
+
+    init(_ title: String, _ name: String, text: MarkRule.TextStyle = .body) {
+        self.title = title
+        self.name = name
+        self.fixed = nil
+        self.style = text
     }
 
     var body: some View {
         Label {
             Text(title)
         } icon: {
-            MarkImage(name, size: size)
+            if let fixed {
+                MarkImage(name, size: fixed)
+            } else {
+                MarkImage(name, text: style)
+            }
         }
     }
 }
@@ -230,7 +290,7 @@ extension Marks {
             cg.translateBy(x: -size / 2, y: -size / 2)
             cg.scaleBy(x: scale, y: scale)
             cg.addPath(GridShape(d: path).path(in: CGRect(x: 0, y: 0, width: 24, height: 24)).cgPath)
-            cg.setLineWidth(1.9)
+            cg.setLineWidth(gridLine(forSize: size))
             cg.setLineCap(.round)
             cg.setLineJoin(.round)
             cg.setStrokeColor(UIColor.black.cgColor)
@@ -261,7 +321,7 @@ extension Marks {
             cg.translateBy(x: -size / 2, y: -size / 2)
             cg.scaleBy(x: scale, y: scale)
             cg.addPath(GridShape(d: path).path(in: CGRect(x: 0, y: 0, width: 24, height: 24)).cgPath)
-            cg.setLineWidth(1.9)
+            cg.setLineWidth(gridLine(forSize: size))
             cg.setLineCap(.round)
             cg.setLineJoin(.round)
             cg.setStrokeColor(NSColor.black.cgColor)

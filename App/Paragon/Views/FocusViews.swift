@@ -118,8 +118,7 @@ struct FocusBar: View {
     }
 
     private func round(_ symbol: String) -> some View {
-        MarkImage(symbol)
-            .font(Txt.listSecond.weight(.bold))
+        MarkImage(symbol, text: .footnote)
             .frame(width: 28, height: 28)
             .background(.background.opacity(0.18), in: Circle())
             .contentShape(Circle())

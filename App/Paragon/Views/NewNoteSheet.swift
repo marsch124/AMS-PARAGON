@@ -671,7 +671,7 @@ private struct ChipLabel: View {
     let isSet: Bool
 
     var body: some View {
-        MarkLabel(text, markName)
+        MarkLabel(text, markName, text: .body)
             .font(Txt.value)
             .lineLimit(1)
             .foregroundStyle(isSet ? tint.capsuleWords : Color.primary.opacity(0.62))

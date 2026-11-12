@@ -176,8 +176,7 @@ struct AspirationsListView: View {
             if isOpen { opened.remove(chain.note.relativePath) } else { opened.insert(chain.note.relativePath) }
         } label: {
             HStack(spacing: 6) {
-                MarkImage(isOpen ? "chevron.down" : "chevron.right")
-                    .font(Txt.listSecond)
+                MarkImage(isOpen ? "chevron.down" : "chevron.right", text: .footnote)
                     .foregroundStyle(.soft)
                     .frame(width: 14)
                 AspirationRow(chain: chain)
@@ -397,8 +396,7 @@ struct GoalEndedHeader: View {
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: 6) {
-                MarkImage(folded ? "chevron.right" : "chevron.down")
-                    .font(Txt.listSecond)
+                MarkImage(folded ? "chevron.right" : "chevron.down", text: .footnote)
                 Text(status.label)
                 Text("\(count)")
                     .font(Txt.listSecond.monospacedDigit())
@@ -756,7 +754,7 @@ struct AspirationChainBody: View {
                 GoalMeasureChip(model: model, note: chain.note, onChainPage: true)
             }
             if let changed = chain.activity.summary {
-                MarkLabel(changed, "clock.arrow.circlepath")
+                MarkLabel(changed, "clock.arrow.circlepath", text: .footnote)
                     .font(Txt.label)
                     .foregroundStyle(Theme.soft)
                     .lineLimit(2)
@@ -881,8 +879,7 @@ struct AspirationChainBody: View {
                          defaultMark: ChainSymbol.forGoal(note))
                 .accessibilityHidden(true)
         } else {
-            MarkImage(ChainSymbol.datedGoal)
-                .font(Txt.listSecond)
+            MarkImage(ChainSymbol.datedGoal, text: .footnote)
                 .foregroundStyle(.soft)
         }
     }
@@ -965,7 +962,7 @@ struct ChainGoalBlock: View {
                 NoteHeader(note: goal.note, inset: false, progress: goal.progress,
                            notices: goal.flags.filter { $0 != .achieved }.map(\.label))
                 if let changed = goal.activity.summary {
-                    MarkLabel(changed, "clock.arrow.circlepath")
+                    MarkLabel(changed, "clock.arrow.circlepath", text: .footnote)
                         .font(Txt.label)
                         .foregroundStyle(Theme.soft)
                         .lineLimit(2)
@@ -1001,7 +998,7 @@ struct ChainGoalBlock: View {
             }
             ForEach(goal.areas) { area in
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
-                    MarkLabel(area.title, ChainSymbol.area)
+                    MarkLabel(area.title, ChainSymbol.area, text: .body)
                         .font(Txt.value)
                         .foregroundStyle(ParaKind.area.tint.ink)
                 }
@@ -1022,8 +1019,7 @@ struct ChainGoalBlock: View {
                          defaultMark: ChainSymbol.forGoal(goal.note))
                 .accessibilityHidden(true)
         } else {
-            MarkImage(ChainSymbol.datedGoal)
-                .font(Txt.label)
+            MarkImage(ChainSymbol.datedGoal, text: .footnote)
                 .foregroundStyle(ParaKind.goal.tint)
         }
     }
@@ -1093,7 +1089,7 @@ struct ChainGoalBlock: View {
             }
             ForEach(goal.areas) { area in
                 Button { model.show(section: model.section ?? .kind(.goal), notePath: area.relativePath) } label: {
-                    MarkLabel(area.title, ChainSymbol.area)
+                    MarkLabel(area.title, ChainSymbol.area, text: .body)
                         .font(Txt.value)
                         .foregroundStyle(ParaKind.area.tint.ink)
                 }
@@ -1115,8 +1111,7 @@ struct ChainProjectRow: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    MarkImage(ChainSymbol.project)
-                        .font(Txt.listSecond)
+                    MarkImage(ChainSymbol.project, text: .footnote)
                         .foregroundStyle(project.note.isEnded ? Color.secondary : ParaKind.project.tint)
                     Text(project.note.title)
                         .font(Txt.value)
@@ -1136,7 +1131,7 @@ struct ChainProjectRow: View {
                     Spacer(minLength: 0)
                 }
                 if let next = project.nextAction {
-                    MarkLabel("Next: \(next.title)", ChainSymbol.task)
+                    MarkLabel("Next: \(next.title)", ChainSymbol.task, text: .footnote)
                         .font(Txt.label)
                         .foregroundStyle(.soft)
                         .lineLimit(2)
@@ -1148,7 +1143,7 @@ struct ChainProjectRow: View {
                     // Build 279: nothing he can do himself, but not idle: every open line waits
                     // for somebody else. The same words and the same calm grey as the Projects
                     // list (build 168), never the orange of a project nobody can act on.
-                    MarkLabel(ProjectLine.waitingText(count: project.waitingCount), WaitingShowing.symbol)
+                    MarkLabel(ProjectLine.waitingText(count: project.waitingCount), WaitingShowing.symbol, text: .footnote)
                         .font(Txt.label)
                         .foregroundStyle(.soft)
                         .lineLimit(2)
@@ -1215,7 +1210,7 @@ struct NoteStatusChip: View {
             .pickerStyle(.inline)
             .labelsHidden()
         } label: {
-            MarkLabel(status.label, symbol(for: status))
+            MarkLabel(status.label, symbol(for: status), text: .footnote)
                 .font(Txt.label)
                 .foregroundStyle(tint(for: status))
         }
@@ -1346,7 +1341,7 @@ struct GoalsHeader<Trailing: View>: View {
     var body: some View {
         HStack(spacing: 8) {
             if quiet && !showingAll {
-                MarkLabel(title, markName)
+                MarkLabel(title, markName, text: .footnote)
                     .font(Txt.label)
                     .foregroundStyle(Theme.soft)
                     .lineLimit(1)
@@ -1387,7 +1382,7 @@ struct NoAspirationPrompt: View {
         Menu {
             NoteGoalOptions(model: model, note: note)
         } label: {
-            MarkLabel("Give it an aspiration", "exclamationmark.triangle.fill")
+            MarkLabel("Give it an aspiration", "exclamationmark.triangle.fill", text: .footnote)
                 .font(Txt.label)
                 .rowTint(.orange)
         }
@@ -1429,7 +1424,7 @@ struct AddServingNoteButton: View {
     var body: some View {
         let plan = ServingNote(under: live, link: link)
         Button { adding = true } label: {
-            MarkLabel(plan.buttonTitle, "plus.circle")
+            MarkLabel(plan.buttonTitle, "plus.circle", text: .body)
                 .font(Txt.value)
                 .foregroundStyle(plan.tint.ink)
                 .helpWhenClosed(plan.helpText, open: adding)
@@ -1498,7 +1493,7 @@ struct AddServingNoteBox: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            MarkLabel(plan.heading, plan.symbol)
+            MarkLabel(plan.heading, plan.symbol, text: .footnote)
                 .font(Txt.label.weight(.semibold))
                 .foregroundStyle(plan.tint.ink)
             TextField("Name", text: $typed)
@@ -1684,7 +1679,7 @@ struct LookedAtChip: View {
     @ViewBuilder
     private func face(_ due: ReviewDue) -> some View {
         if onChainPage {
-            MarkLabel(due.lookedAtText, "eye")
+            MarkLabel(due.lookedAtText, "eye", text: .footnote)
                 .font(Txt.label)
                 .lineLimit(1)
                 .padding(.horizontal, 8)
@@ -1719,7 +1714,7 @@ struct LookedAtBox: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            MarkLabel(due.lookedAtText, "eye")
+            MarkLabel(due.lookedAtText, "eye", text: .footnote)
                 .font(Txt.label.weight(.semibold))
             Text(due.rhythmText + " " + due.nextText)
                 .font(Txt.label)

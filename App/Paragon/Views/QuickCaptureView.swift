@@ -197,7 +197,7 @@ struct QuickCaptureView: View {
         HStack(spacing: 8) {
             // 1.0: on the Mac the sheet's bar carries the title; the phone's screen keeps it.
             if !embedded && compact {
-                MarkLabel("Quick capture", "tray.and.arrow.down")
+                MarkLabel("Quick capture", "tray.and.arrow.down", text: .body)
                     .font(Txt.listTitle)
                     .foregroundStyle(SidebarSection.inbox.tint.ink)
             }
@@ -315,8 +315,7 @@ struct QuickCaptureView: View {
     @ViewBuilder
     private var flight: some View {
         if flying && !reduceMotion {
-            MarkImage("tray.and.arrow.down.fill")
-                .font(Txt.pageTitle)
+            MarkImage("tray.and.arrow.down.fill", text: .largeTitle)
                 .foregroundStyle(SidebarSection.inbox.tint)
                 .transition(.scale(scale: 0.2).combined(with: .opacity))
                 .allowsHitTesting(false)
@@ -370,7 +369,7 @@ struct ReadChip: View {
     let tint: Color
 
     var body: some View {
-        MarkLabel(title, markName)
+        MarkLabel(title, markName, text: .footnote)
             .font(Txt.label)
             .foregroundStyle(tint)
             .padding(.horizontal, 8)

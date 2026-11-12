@@ -11,7 +11,7 @@ struct SyncReportView: View {
         let preview = model.reportIsPreview
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                MarkLabel(preview ? "If you sync now" : "Last sync", preview ? "eye" : "arrow.triangle.2.circlepath")
+                MarkLabel(preview ? "If you sync now" : "Last sync", preview ? "eye" : "arrow.triangle.2.circlepath", text: .body)
                     .font(Txt.listTitle)
                 Spacer()
                 if let finished = report?.finishedAt {
@@ -97,7 +97,7 @@ struct SyncReportView: View {
 
     private func section(_ title: String, _ lines: [String], icon: String, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            MarkLabel(title, icon)
+            MarkLabel(title, icon, text: .footnote)
                 .font(Txt.label.weight(.medium))
                 .foregroundStyle(tint)
             ForEach(lines, id: \.self) { line in

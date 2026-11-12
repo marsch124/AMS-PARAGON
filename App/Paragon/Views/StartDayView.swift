@@ -292,7 +292,7 @@ struct StartDayView: View {
             .accessibilityLabel("Last evening you wrote: \(lastEveningText)")
             .accessibilityIdentifier("startDay.lastEvening")
         } else if model.dailyNoteIsWaitingForCloud(yesterday) {
-            MarkLabel("Last evening's note is still coming from iCloud.", "icloud")
+            MarkLabel("Last evening's note is still coming from iCloud.", "icloud", text: .footnote)
                 .font(Txt.label)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -309,7 +309,7 @@ struct StartDayView: View {
         if let goal = model.weekGoal(for: .current()) {
             WeekGoalLine(goal: goal, identifier: "startDay.weekGoal")
         } else if model.weeklyNoteIsWaitingForCloud(.current()) {
-            MarkLabel("This week's note is still coming from iCloud.", "icloud")
+            MarkLabel("This week's note is still coming from iCloud.", "icloud", text: .footnote)
                 .font(Txt.label)
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -399,8 +399,7 @@ struct StartDayView: View {
                 Button {
                     addAction()
                 } label: {
-                    MarkImage("plus.circle.fill")
-                        .font(Txt.sectionTitle)
+                    MarkImage("plus.circle.fill", text: .headline)
                         .foregroundStyle(canAdd ? tint : Color.secondary.opacity(0.5))
                         .contentShape(Rectangle())
                 }

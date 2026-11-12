@@ -1323,7 +1323,7 @@ struct ProjectEndedLine: View {
             }
             .font(Txt.label)
         } else {
-            MarkLabel("Set the day it ended\u{2026}", status.markName)
+            MarkLabel("Set the day it ended\u{2026}", status.markName, text: .footnote)
                 .font(Txt.label)
                 .foregroundStyle(.soft)
                 .padding(.horizontal, 8)
@@ -2142,7 +2142,6 @@ struct TaskSyntaxButton: View {
             showing = true
         } label: {
             MarkImage("info.circle")
-                .font(Txt.list)
                 .foregroundStyle(.soft)
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())

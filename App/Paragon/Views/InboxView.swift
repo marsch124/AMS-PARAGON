@@ -304,7 +304,7 @@ struct InboxRow: View {
                 if let due = ref.task.dueDate {
                     // With the time of day when it has one (build 277): the At line can be
                     // reached from the Inbox's **Pick a date**, so this row has to show it.
-                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
+                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
                         .font(Txt.listSecond)
                         .rowTint(due < .today() ? Color.red : .secondary)
                 }
@@ -470,7 +470,6 @@ struct InboxQuadrant: View {
     private func face(_ symbol: String, _ title: String, isOn: Bool, dashed: Bool) -> some View {
         VStack(spacing: 3) {
             MarkImage(symbol)
-                .font(Txt.value.weight(.medium))
             Text(title)
                 .font(Txt.listSecond.weight(.semibold))
                 .lineLimit(1)
@@ -604,7 +603,7 @@ struct InboxFileItView: View {
                     .font(Txt.sectionTitle)
                     .fixedSize(horizontal: false, vertical: true)
                 if let due = ref.task.dueDate {
-                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
+                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
                         .font(Txt.label)
                         .foregroundStyle(due < .today() ? Color.red : Theme.soft)
                 }
@@ -672,8 +671,7 @@ struct AreaDestinationGroup: View {
                 DestinationRow(note: branch.area, selected: selected)
                 if !branch.subAreas.isEmpty {
                     Button(action: toggle) {
-                        MarkImage(isFolded ? "chevron.right" : "chevron.down")
-                            .font(Txt.label)
+                        MarkImage(isFolded ? "chevron.right" : "chevron.down", text: .footnote)
                             .foregroundStyle(.soft)
                             .frame(width: 16)
                     }
