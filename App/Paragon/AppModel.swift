@@ -138,6 +138,7 @@ final class AppModel: ObservableObject {
         didSet {
             index = NoteIndex(notes: notes)
             refreshProjectGroups()
+            refreshSidebarCounts()
             // The one place that sees every change to the notes (build 271): `save` and
             // `saveText` put the saved note into this array and never call `reload()`.
             writeWidgetSnapshotSoon()
@@ -159,6 +160,11 @@ final class AppModel: ObservableObject {
     /// date has moved (build 254, from the review of 253: a Mac left open overnight showed
     /// yesterday's flags beside today's dates until some note changed).
     private var projectGroupsDay = DateOnly.today()
+    /// The sidebar's numbers that need every note read (hardening 07): worked out once per
+    /// change of the notes, like `projectGroups`, and never in `count(for:)`, which every
+    /// sidebar row calls on every change the model publishes. It carries its own day, and the
+    /// 10 s poll works it out again once the date has moved.
+    @Published private(set) var sidebarCounts = SidebarCounts()
     @Published var section: SidebarSection? = .inbox {
         didSet { if section != oldValue { log("section -> \(section.map(\.title) ?? "nil")"); tameSoon() } }
     }
@@ -533,6 +539,8 @@ final class AppModel: ObservableObject {
             guard let vault else { return }
             objectWillChange.send()
             do { try vault.save(config: newValue) } catch { errorMessage = error.localizedDescription }
+            // "Needs attention" on the Review row reads the config (stale days, the rhythm).
+            refreshSidebarCounts()
             // The review rhythm lives in the config and decides how many notes are "due for a
             // look", which the What is waiting widget shows. Build 275: a changed rhythm now
             // reaches the widget like any other change. An unchanged picture writes nothing.
@@ -831,29 +839,30 @@ final class AppModel: ObservableObject {
         return base.filter { $0.title.localizedCaseInsensitiveContains(query) || $0.body.localizedCaseInsensitiveContains(query) }
     }
 
+    /// Nothing here reads every note: those numbers are in `sidebarCounts` (hardening 07).
     func count(for section: SidebarSection) -> Int {
         switch section {
         case .inbox: return note(at: vault?.config.inboxFile)?.openTasks.count ?? 0
-        case .today: return index.openTasks(dueOnOrBefore: .today()).count + (todayNote?.openTasks.count ?? 0)
+        case .today: return sidebarCounts.dueByToday + (todayNote?.openTasks.count ?? 0)
         case .calendar, .map, .search: return 0
         case .recent: return recentNotes.count
         case .deleted: return deletedNotes.count
         case .templates: return 0
         case .snippets: return snippets.count
-        case .tags: return index.allTags.count
+        case .tags: return sidebarCounts.tags
         case .work: return workNotes.count
-        case .allActions: return index.openTasks(includeArchived: false).count
+        case .allActions: return sidebarCounts.openTasks
         case .timeBlocks: return timeBlocks.filter { $0.day == .today() }.count
-        case .done: return index.tasksCompleted(on: .today()).count
-        case .review: return index.review(config: config).projectsNeedingAttention.count
-        case .aspirations: return index.aspirations().count
+        case .done: return sidebarCounts.doneToday
+        case .review: return sidebarCounts.projectsNeedingAttention
+        case .aspirations: return sidebarCounts.aspirations
         // **Dated goals only**, since build 199: the row is a list of them, and a count that
         // included the aspirations would not be the number of rows below it.
-        case .kind(.goal): return index.datedGoals().count
+        case .kind(.goal): return sidebarCounts.datedGoals
         // **The projects still running**, since build 253: Done, Missed and Dropped fold away
         // at the foot of the list, and a count that included them would not be the work in it.
-        case .kind(.project): return notes.filter { $0.kind == .project && !$0.isEnded && !$0.isArchived }.count
-        case .kind(let kind): return notes.filter { $0.kind == kind }.count
+        case .kind(.project): return sidebarCounts.liveProjects
+        case .kind(let kind): return sidebarCounts.notesByKind[kind] ?? 0
         }
     }
 
@@ -1160,6 +1169,7 @@ final class AppModel: ObservableObject {
     /// few seconds. A dirty editor keeps its text; its save then meets the conflict check.
     func checkForExternalChanges() {
         if DateOnly.today() != projectGroupsDay { refreshProjectGroups() }
+        if DateOnly.today() != sidebarCounts.day { refreshSidebarCounts() }
         // The widgets' midnight rule (build 271): nothing in the notes changes at midnight, but
         // the day on the summary does, and "today" is what its lines are counted from.
         if let last = lastWidgetSnapshot, last.day != DateOnly.today() { writeWidgetSnapshot() }
@@ -2123,6 +2133,11 @@ final class AppModel: ObservableObject {
     func reorderProjects(in group: [Note], from source: IndexSet, to destination: Int) {
         let whole = notes.filter { $0.kind == .project }
         arrange(ProjectOrder.moving(group, within: whole, from: source, to: destination))
+    }
+
+    private func refreshSidebarCounts() {
+        let counts = index.sidebarCounts(today: .today(), config: config)
+        if counts != sidebarCounts { sidebarCounts = counts }
     }
 
     private func refreshProjectGroups() {
