@@ -244,7 +244,7 @@ One mark, one meaning. Before build 311 the ring, the four squares, the hourglas
 
 ### The icon picker
 
-- **Icon…** on a project, an area, a goal, an aspiration or a resource offers only the 132 hand-drawn icons. Before build 311 it also offered about 305 of Apple's symbols.
+- **Icon…** on a project, an area, a goal, an aspiration or a resource offers only the 134 hand-drawn icons. Before build 311 it also offered about 305 of Apple's symbols.
 - A note that already has an Apple symbol keeps it until it is changed. That is the one place a stock symbol is still drawn.
 - The clear cross in the picker's search box is a hand-drawn mark.
 
@@ -254,8 +254,8 @@ Apple's own back arrow, the small arrows at the end of a row, the fold triangles
 
 ### Where the icons come from
 
-- The shared icon package holds 219 drawings: 132 hand-drawn icons, 69 app marks and 18 control marks. Build 311 added 3 app marks (folder, person, clock) and 2 control marks.
-- The central AMS Icon Library folder is built from that package and holds all 219, with the Day / Night sheet. Before build 311 it held 50. The Today sun and the parcel box are the very same drawings as the library's sun and box.
+- The shared icon package holds 221 drawings: 134 hand-drawn icons, 69 app marks and 18 control marks. Build 311 added 3 app marks (folder, person, clock) and 2 control marks.
+- The central AMS Icon Library folder is built from that package and holds all 221, with the Day / Night sheet. Before build 311 it held 50. The Today sun and the parcel box are the very same drawings as the library's sun and box.
 - A new icon is drawn in the same style in the AMS Icon Library (source `TemplateIcons.swift`), and the library is built again.
 - No stock icons and no emoji. `LookRulesTests` fails on `systemImage:`, `Image(systemName:)` or an emoji in the source.
 

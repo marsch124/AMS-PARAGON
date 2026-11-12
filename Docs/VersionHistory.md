@@ -16,7 +16,7 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 - The app icon was a gradient with four coloured tiles, a gold frame, a white frame and a filled star.
 - Every icon was 16 points, whatever stood beside it: a 26-point title, normal text or small grey words. About 32 places asked for another size and did not get it.
 - Small icons had thin lines: 0.7 points on the small tick in **Search**, 0.8 to 0.95 in the **Calendar**, 1.0 in the widgets and 1.1 in the sync ring.
-- The icon picker offered 132 hand-drawn icons and about 305 of Apple's symbols.
+- The icon picker offered 134 hand-drawn icons and about 305 of Apple's symbols.
 - **Templates** showed a page with a tiny gear. At the size of a list row the gear was a blob.
 - **More** (the **…** on a note) was three specks.
 - **Weekly review** showed a tick with lines. It looked like **Snippets**.
@@ -62,8 +62,8 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 
 **8. The icon picker shows only hand-drawn icons.**
 - This is **Icon…** on a project, an area, a goal or a resource.
-- Before: 132 hand-drawn icons and about 305 of Apple's symbols.
-- Now: only the 132 hand-drawn icons. Apple's symbols are no longer offered.
+- Before: 134 hand-drawn icons and about 305 of Apple's symbols.
+- Now: only the 134 hand-drawn icons. Apple's symbols are no longer offered.
 - A note that already has an Apple symbol keeps it until you change it.
 - The clear cross in the picker's search box is hand-drawn too.
 
@@ -103,7 +103,7 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 
 **16. The AMS Icon Library folder is complete.**
 - Before: the central AMS Icon Library folder held 50 icons.
-- Now: it holds all 219 drawings: 132 hand-drawn icons, 69 app marks and 18 control marks, with the Day / Night sheet. It was built again from the shared icon package.
+- Now: it holds all 221 drawings: 134 hand-drawn icons, 69 app marks and 18 control marks, with the Day / Night sheet. It was built again from the shared icon package.
 - The sun of **Today** and the parcel box are now the very same drawings as the library's sun and box.
 
 **Left as it is.** Apple's own back arrow, the small arrows at the end of a row, the fold triangles, the search field and the sidebar button stay Apple's. They belong to the frame the iPhone and the Mac draw, not to PARAGON.
