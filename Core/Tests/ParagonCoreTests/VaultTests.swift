@@ -216,4 +216,31 @@ final class DailyNoteTests: XCTestCase {
         XCTAssertFalse(vault.isNotePath(".ams-para/config.json"))
         XCTAssertFalse(vault.isNotePath("Templates/Daily.md"))
     }
+
+    /// Review round 3: a second vault object for another thread takes the settings it is given,
+    /// and does not fall back to the standard ones when config.json cannot be read just then.
+    func testASecondVaultKeepsTheSettingsItIsGiven() throws {
+        var config = vault.config
+        config.syncAreas.toggle()
+        try FileManager.default.removeItem(at: vault.configURL)
+        XCTAssertEqual(try Vault(rootURL: vault.rootURL).config, VaultConfig())
+        XCTAssertEqual(try Vault(rootURL: vault.rootURL, config: config).config, config)
+    }
+
+    /// Review round 3: two conflict copies in the same minute are two files, not one written
+    /// over the other; the very same words a second time are the copy already there.
+    func testASecondConflictCopyInTheSameMinuteDoesNotOverwriteTheFirst() throws {
+        var note = try vault.createNote(kind: .project, title: "Race")
+        let when = Date()
+        note.body = "first"
+        let one = try vault.saveConflictCopy(of: note, at: when)
+        note.body = "second"
+        let two = try vault.saveConflictCopy(of: note, at: when)
+        let again = try vault.saveConflictCopy(of: note, at: when)
+        XCTAssertNotEqual(one.relativePath, two.relativePath)
+        XCTAssertTrue(two.relativePath.hasSuffix(" 2).md"))
+        XCTAssertEqual(again.relativePath, two.relativePath)
+        XCTAssertTrue(try vault.loadNote(relativePath: one.relativePath).body.contains("first"))
+        XCTAssertTrue(try vault.loadNote(relativePath: two.relativePath).body.contains("second"))
+    }
 }

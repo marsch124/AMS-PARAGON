@@ -41,4 +41,18 @@ final class TextMergeTests: XCTestCase {
                                           theirs: theirs.joined(separator: "\n")),
                        .merged(both.joined(separator: "\n")))
     }
+
+    /// Review round 3: the sync wrote its hidden mark onto task A while task B was being typed
+    /// under it. Nothing he can see was changed twice, so it is one note, not a conflict copy.
+    func testASyncMarkOnTheLineAboveIsNotAConflict() {
+        let base = "# Shed\n- [ ] Buy wood\n"
+        let mine = "# Shed\n- [ ] Buy wood\n- [ ] Paint\n"
+        let theirs = "# Shed\n- [ ] Buy wood ^tabc123\n"
+        XCTAssertEqual(TextMerge.threeWay(base: base, mine: mine, theirs: theirs), .conflict)
+        XCTAssertEqual(TextMerge.threeWayKeepingTaskMarks(base: base, mine: mine, theirs: theirs),
+                       .merged("# Shed\n- [ ] Buy wood ^tabc123\n- [ ] Paint\n"))
+        // The same task changed on both sides is still a conflict, mark or no mark.
+        XCTAssertEqual(TextMerge.threeWayKeepingTaskMarks(base: base, mine: "# Shed\n- [ ] Buy wood and nails\n",
+                                                          theirs: "# Shed\n- [x] Buy wood ^tabc123\n"), .conflict)
+    }
 }

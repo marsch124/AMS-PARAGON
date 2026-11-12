@@ -642,4 +642,19 @@ final class TimeAndSubtaskSyncTests: XCTestCase {
         XCTAssertEqual(tasks[0].status, .open)
         XCTAssertEqual(tasks[1].status, .done)
     }
+
+    /// Review round 3: a conflict copy carries the note's own title, so both would claim one
+    /// Reminders list and every task would be there twice. The copy is left out by its name.
+    func testConflictCopiesAreNotSynced() throws {
+        var note = try vault.createNote(kind: .project, title: "Race")
+        note.body = "- [ ] Train\n"
+        note = try vault.save(note)
+        let copy = try vault.saveConflictCopy(of: note)
+        var numbered = note
+        numbered.relativePath = "Projects/Race (conflict 2026-11-12 0930 2).md"
+        XCTAssertTrue(copy.isConflictCopy)
+        XCTAssertTrue(numbered.isConflictCopy)
+        XCTAssertFalse(note.isConflictCopy)
+        XCTAssertEqual(engine.syncableNotes(from: [copy, note, numbered]).map(\.relativePath), [note.relativePath])
+    }
 }

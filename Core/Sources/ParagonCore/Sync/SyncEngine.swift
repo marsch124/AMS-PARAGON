@@ -29,7 +29,7 @@ public final class SyncEngine {
     /// Notes whose tasks are mirrored to Reminders.
     public func syncableNotes(from notes: [Note]) -> [Note] {
         notes.filter { note in
-            guard note.kind.isTaskKind, note.isSyncEnabled, !note.isArchived else { return false }
+            guard note.kind.isTaskKind, note.isSyncEnabled, !note.isArchived, !note.isConflictCopy else { return false }
             if note.kind == .area && !config.syncAreas { return false }
             if note.kind == .daily && !config.syncDailyNotes { return false }
             return true

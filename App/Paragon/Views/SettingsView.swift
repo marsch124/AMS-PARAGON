@@ -154,7 +154,8 @@ struct SettingsView: View {
                 }
                 .accessibilityIdentifier("settings.outsideBackup.place")
                 LabeledContent("Last made") {
-                    Text(model.lastOutsideBackup.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? "Not yet")
+                    Text(model.lastOutsideBackup.map { $0.formatted(date: .abbreviated, time: .shortened) }
+                         ?? (model.outsideBackupRunning ? "Being made now\u{2026}" : "Not yet"))
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("settings.outsideBackup.last")

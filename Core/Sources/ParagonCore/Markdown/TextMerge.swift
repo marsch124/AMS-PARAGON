@@ -13,6 +13,21 @@ public enum TextMerge {
         case conflict
     }
 
+    /// The same, for a note with tasks (review round 3). The sync writes a hidden `^t` mark at
+    /// the end of a task line. To the plain merge that is "the line changed there", and a task
+    /// typed right under it here is "new lines in the same place": a conflict, though nothing
+    /// he can see was changed twice. So when the plain merge gives up, the three texts are put
+    /// together without their marks, and the marks come back from `theirs` — the file, which
+    /// holds the newest ones. A real conflict is one without the marks too, and stays one.
+    public static func threeWayKeepingTaskMarks(base: String, mine: String, theirs: String) -> Result {
+        let plain = threeWay(base: base, mine: mine, theirs: theirs)
+        guard plain == .conflict else { return plain }
+        let bare = threeWay(base: TaskIDMasking.hidden(in: base), mine: TaskIDMasking.hidden(in: mine),
+                            theirs: TaskIDMasking.hidden(in: theirs))
+        guard case .merged(let merged) = bare else { return .conflict }
+        return .merged(TaskIDMasking.restored(merged, from: theirs))
+    }
+
     public static func threeWay(base: String, mine: String, theirs: String) -> Result {
         if mine == theirs || theirs == base { return .merged(mine) }
         if mine == base { return .merged(theirs) }

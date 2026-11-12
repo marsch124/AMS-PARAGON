@@ -1471,8 +1471,8 @@ final class AppModel: ObservableObject {
 
     /// The whole re-read, on a `Vault` of its own made from the plain URL: a `Vault` is a class
     /// the main thread changes, so the one the app holds never leaves it.
-    nonisolated private static func readVault(at root: URL, reusing known: [Note]) -> VaultReading? {
-        guard let own = try? Vault(rootURL: root) else { return nil }
+    nonisolated private static func readVault(at root: URL, config: VaultConfig, reusing known: [Note]) -> VaultReading? {
+        guard let own = try? Vault(rootURL: root, config: config) else { return nil }
         // The folders' dates first: a note added while the notes are being read then makes the
         // next check differ, and it is read then.
         let folders = signatureOfFolders(in: own)
@@ -1507,12 +1507,13 @@ final class AppModel: ObservableObject {
         backgroundReadWantedAgain = false
         let number: Int = backgroundReadNumber
         let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
         let known: [Note] = notes
         let generation: Int = stateGeneration
         let reloads: Int = reloadsDone
         Task { [weak self] in
             let reading: VaultReading? = await AppModel.offMain { () -> VaultReading? in
-                AppModel.readVault(at: root, reusing: known)
+                AppModel.readVault(at: root, config: config, reusing: known)
             }
             self?.backgroundReadFinished(reading, number: number, root: root, generation: generation, reloads: reloads)
         }
@@ -1592,9 +1593,10 @@ final class AppModel: ObservableObject {
         let asking: [String] = Array(parkedToAsk)
         parkedToAsk = []
         let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
         Task { [weak self] in
             let found: ParkedVersionsFound = await AppModel.offMain { () -> ParkedVersionsFound in
-                guard let own = try? Vault(rootURL: root) else { return ParkedVersionsFound() }
+                guard let own = try? Vault(rootURL: root, config: config) else { return ParkedVersionsFound() }
                 return own.settleParkedVersions(of: asking)
             }
             self?.parkedVersionsLooked(found, root: root)
@@ -1913,7 +1915,9 @@ final class AppModel: ObservableObject {
         note.modifiedAt = note.modifiedAt ?? Date()
         do {
             keep(try vault.save(note))
-            vaultSignature = currentVaultSignature()
+            // From the dates the notes were read with, not from the files (review round 3, as in
+            // `reload()`): asking the files here signed off another note's outside change unseen.
+            vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
             return .saved
         } catch VaultError.modifiedOnDisk {
             // The file is newer than the copy in `notes` (the reload has not happened yet).
@@ -1932,7 +1936,7 @@ final class AppModel: ObservableObject {
     private func settle(typed text: String, startedFrom base: String, other: Note, in vault: Vault) -> EditorSave {
         var mine = other
         mine.text = text
-        guard case .merged(let merged) = TextMerge.threeWay(base: base, mine: text, theirs: other.text) else {
+        guard case .merged(let merged) = TextMerge.threeWayKeepingTaskMarks(base: base, mine: text, theirs: other.text) else {
             return keepAsConflictCopy(mine, other: other, in: vault)
         }
         var note = other
@@ -1951,7 +1955,7 @@ final class AppModel: ObservableObject {
         }
         log("editor save put together with an outside change: \(note.relativePath)")
         keep(note)
-        vaultSignature = currentVaultSignature()
+        vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
         return merged == text ? .saved : .replaced
     }
 
@@ -2164,10 +2168,11 @@ final class AppModel: ObservableObject {
     func purgeOldDeleted() {
         guard let vault else { return }
         let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
         let days: Int = Self.deletedKeptForDays
         Task { [weak self] in
             let done: Bool = await AppModel.offMain { () -> Bool in
-                guard let own = try? Vault(rootURL: root) else { return false }
+                guard let own = try? Vault(rootURL: root, config: config) else { return false }
                 own.purgeDeleted(olderThan: days)
                 return true
             }
@@ -4470,7 +4475,9 @@ final class AppModel: ObservableObject {
         backUpOutside(reason: "manual", force: true)
     }
 
-    private var outsideBackupRunning = false
+    /// True while the second copy is being made, so Settings can say so: the first one copies
+    /// every picture and can take a while, and "Not yet" read as "not working".
+    @Published private(set) var outsideBackupRunning = false
 
     /// Makes the second copy — notes, settings, pictures and sketches — outside the vault, on a
     /// thread of its own like the daily copy (never the main thread: with pictures this is the
@@ -4483,7 +4490,10 @@ final class AppModel: ObservableObject {
         if TestVault.isWanted { return }
         #endif
         let today = DateOnly.today().description
-        guard force || defaults.string(forKey: lastOutsideBackupDayKey) != today else { return }
+        // Once a day — but one that has never been made is always due (review round 3), whatever
+        // the day's mark says: Settings showed "Not yet" beside a first copy inside the vault.
+        let neverMade = defaults.double(forKey: lastOutsideBackupKey) == 0
+        guard force || neverMade || defaults.string(forKey: lastOutsideBackupDayKey) != today else { return }
         if notes.isEmpty, !notesWaitingForCloud.isEmpty { return }
         guard !outsideBackupRunning else { return }
         let chosen = chosenBackupPlace()
@@ -4491,11 +4501,12 @@ final class AppModel: ObservableObject {
         guard let place = chosen ?? deviceBackupPlace else { return }
         outsideBackupRunning = true
         let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
         Task { [weak self] in
             let outcome: Result<VaultBackup?, Error> = await AppModel.offMain {
                 let scoped = chosen?.startAccessingSecurityScopedResource() ?? false
                 defer { if scoped { chosen?.stopAccessingSecurityScopedResource() } }
-                return Result { try Vault(rootURL: root).makeOutsideCopy(in: place, reason: reason) }
+                return Result { try Vault(rootURL: root, config: config).makeOutsideCopy(in: place, reason: reason) }
             }
             guard let self else { return }
             self.outsideBackupRunning = false
@@ -4580,13 +4591,17 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         fetchCloudFiles()
         let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
         let outcome: Result<VaultBackup?, Error> = await AppModel.offMain {
-            Result { try Vault(rootURL: root).makeBackup(reason: reason) }
+            Result { try Vault(rootURL: root, config: config).makeBackup(reason: reason) }
         }
         guard self.vault?.rootURL == root else { return .failed }
         switch outcome {
         case .success(let made):
             refreshBackups()
+            // The second copy too, if the day's has not been made (or none ever): in the
+            // background, never waited for.
+            if reason != "manual" { backUpOutside(reason: "daily") } // "Back up now" makes its own
             guard let made else { return .unchanged }
             log("backup saved: \(made.folderName)")
             return .made(made)
@@ -4626,9 +4641,10 @@ final class AppModel: ObservableObject {
         // notes without saying so is worse than none.
         fetchCloudFiles()
         let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
         Task { [weak self] in
             let outcome: Result<VaultBackup?, Error> = await AppModel.offMain {
-                Result { try Vault(rootURL: root).makeBackup(reason: "daily") }
+                Result { try Vault(rootURL: root, config: config).makeBackup(reason: "daily") }
             }
             guard let self else { return }
             self.dailyBackupRunning = false
@@ -4786,7 +4802,7 @@ final class AppModel: ObservableObject {
             }
             // The sync works off the main thread, so it gets a vault object of its own (hardening-19);
             // what the screen shows afterwards comes from `reload()`, on the main actor, from the app's own.
-            let engine = SyncEngine(vault: try Vault(rootURL: vault.rootURL), store: remindersStore,
+            let engine = SyncEngine(vault: try Vault(rootURL: vault.rootURL, config: vault.config), store: remindersStore,
                                     deviceID: deviceID, config: vault.config)
             let report: SyncReport
             switch try await engine.sync(allowMassChanges: allowMassChanges) {

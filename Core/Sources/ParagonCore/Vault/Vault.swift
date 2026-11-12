@@ -53,6 +53,20 @@ public final class Vault {
         self.config = (try? loadConfig()) ?? VaultConfig()
     }
 
+    /// A second `Vault` on the same folder, for work on another thread, with the settings the
+    /// app already holds (review round 3). `init(rootURL:)` reads config.json and, when that
+    /// cannot be read in that moment (iCloud is writing it), goes on with the standard settings
+    /// without a word — other folder names, other sync choices — for one whole sync or re-read.
+    public init(rootURL: URL, config: VaultConfig) throws {
+        let url = rootURL.standardizedFileURL.resolvingSymlinksInPath()
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue else {
+            throw VaultError.notADirectory(url.path)
+        }
+        self.rootURL = url
+        self.config = config
+    }
+
     // MARK: Config and state files
 
     public var stateFolderURL: URL { rootURL.appendingPathComponent(Self.stateFolderName, isDirectory: true) }
@@ -524,16 +538,23 @@ public final class Vault {
     }
 
     /// Writes the note's text next to the original as "<name> (conflict yyyy-MM-dd HHmm).md",
-    /// for the case where both sides changed. Returns the new note.
+    /// for the case where both sides changed. Returns the new note. **Never written over another
+    /// copy** (review round 3): a second one in the same minute gets " 2", " 3" … after the time,
+    /// as `keepParkedCopies` does; a name already holding the very same words is that copy.
     @discardableResult
     public func saveConflictCopy(of note: Note, at date: Date = Date()) throws -> Note {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HHmm"
-        let base = note.relativePath.hasSuffix(".md") ? String(note.relativePath.dropLast(3)) : note.relativePath
-        var copy = note
-        copy.relativePath = "\(base) (conflict \(formatter.string(from: date))).md"
-        copy.modifiedAt = nil
-        return try save(copy, force: true)
+        var number = 1
+        while true {
+            let path = Self.conflictCopyPath(for: note.relativePath, at: date, number: number)
+            if !CloudFiles.exists(url(for: path)) {
+                var copy = note
+                copy.relativePath = path
+                copy.modifiedAt = nil
+                return try save(copy, force: true)
+            }
+            if let there = try? loadNote(relativePath: path), there.text == note.text { return there }
+            number += 1
+        }
     }
 
     /// Creates a note from the kind's template (if present) or a minimal frontmatter block.

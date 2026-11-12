@@ -144,6 +144,15 @@ public struct Note: Equatable, Identifiable, Sendable {
     /// The Reminders list that mirrors this note (frontmatter `reminders-list`, else the title).
     public var remindersListName: String { frontmatter.string("reminders-list") ?? title }
 
+    /// A copy the app wrote beside a note because both sides had changed it:
+    /// "<name> (conflict 2026-11-12 0930).md", with " 2", " 3" … after the time for more in the
+    /// same minute. It carries the note's own `title:`, so the sync leaves it out — both would
+    /// claim one Reminders list (review round 3). Renamed, it is an ordinary note again.
+    public var isConflictCopy: Bool {
+        let name = (relativePath as NSString).lastPathComponent
+        return name.range(of: #" \(conflict \d{4}-\d{2}-\d{2} \d{4}( \d+)?\)\.md$"#, options: .regularExpression) != nil
+    }
+
     public var isArchived: Bool { kind == .archive || status == "archived" }
 
     /// Date of the last review (frontmatter `reviewed: YYYY-MM-DD`).

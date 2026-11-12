@@ -24,6 +24,9 @@ The version is shown as 1.0 (308) at the foot of the Mac sidebar and at the foot
 - If your other device changed the note while you typed, PARAGON compares three things: where you started, your text, and the other device's text.
 - When the two of you changed **different lines**, both changes are kept in the one note, also when the lines are next to each other. Nothing is set aside, you are not asked anything and no message is shown.
 - When you both changed **the same line**, nothing is guessed. Your text is saved beside the note as a copy named "… (conflict date time).md", as before, and the note shows the other version. The message is the one you know: "Trip" was changed outside the app while you were editing it. Your version is saved as "Trip (conflict 2026-11-06 2040)" next to it; the note now shows the other version.
+- The sync's own hidden mark on a task does not count as a change to that line. If a sync marks a task while you are typing a new task right under it, both are kept in the one note and no copy is made.
+- Two copies made in the same minute are two files: the second gets " 2" after the time. One is never written over the other.
+- A "(conflict …)" copy is left out of the Reminders sync for as long as it has that name, so its tasks do not show twice in Reminders.
 - What you will notice: far fewer conflict copies. A tick on the phone and a new line on the Mac in the same note now simply both arrive.
 
 **2. Versions that iCloud parked are found and shown to you.**
@@ -41,7 +44,7 @@ The version is shown as 1.0 (308) at the foot of the Mac sidebar and at the foot
 - Until now every backup lived inside the vault folder. If that folder was lost, the backups went with it.
 - Now PARAGON also keeps a second copy **outside** the notes folder. Settings has a new section, **Second copy, outside the vault**. Without any choice from you the copy is kept on this Mac (on the iPhone: on this iPhone), in the app's own storage. **Choose a folder…** puts it in a folder of your own instead, for example in Dropbox; the button is then called **Change folder…**, and **Keep it on this Mac** goes back. A folder inside the vault is refused. On the Mac, **Show in Finder** opens the place.
 - The outside copy holds the notes, the settings **and the pictures and sketches**. The copies inside the vault still have no pictures, on purpose. The outside copy is made once a day, after the daily copy, and with **Back up now**; old ones are thinned out by the same rules as the copies inside the vault.
-- The section shows two lines: **Kept** ("on this Mac" or "in the folder “Dropbox”") and **Last made** (the date and time, or "Not yet").
+- The section shows two lines: **Kept** ("on this Mac" or "in the folder “Dropbox”") and **Last made** (the date and time, "Being made now…" while the first one is being made, or "Not yet"). A second copy that has never been made is made as soon as the vault is open, in the background, whatever else was done that day.
 - If the folder you chose cannot be reached (the disk is not connected, Dropbox is not there), the copy is kept on this device instead and the section says: "The folder you chose could not be reached, so this copy was kept on this Mac. Choose the folder again." The backups inside the vault are made as always. There is no restore from the outside copy inside the app yet; you take notes back from it by hand.
 
 **5. Reminders lists are known by their own identity, and a list of yours is never taken over without asking.**
