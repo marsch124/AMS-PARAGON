@@ -14,11 +14,31 @@ struct SettingsView: View {
     @AppStorage("hideFinishedTasks") private var hideFinishedTasks = false
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
+    @Environment(\.phoneLook) private var phoneLook
+
+    private var helpSection: some View {
+        Section("Help") {
+            #if os(macOS)
+            // The Mac's manual is its own window, reached from the Help menu. Only the list
+            // of words gets a row here too, so it can be found from both places (build 228).
+            WordsWindowButton()
+            #else
+            NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks").navigationTitle("How it works") }
+                .accessibilityIdentifier("settings.howItWorks")
+            NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words").navigationTitle("Words") }
+            NavigationLink("Version history") { HelpDocument(fileName: "VersionHistory").navigationTitle("Version history") }
+            #endif
+        }
+    }
+
     var body: some View {
         // Build 285: a press on the sync line opens Settings here, at Reminders sync.
         ScrollViewReader { proxy in
         Form {
             Group {
+            // Round 6 (build 312): help is needed when you are lost, so on the iPhone it is
+            // the first thing in Settings. The Mac and the iPad keep it where it was.
+            if phoneLook { helpSection }
             Section("Vault") {
                 LabeledContent("Folder") {
                     Text(model.vaultPath ?? "No vault selected")
@@ -230,17 +250,8 @@ struct SettingsView: View {
                     .foregroundStyle(.soft)
             }
 
-            Section("Help") {
-                #if os(macOS)
-                // The Mac's manual is its own window, reached from the Help menu. Only the list
-                // of words gets a row here too, so it can be found from both places (build 228).
-                WordsWindowButton()
-                #else
-                NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks").navigationTitle("How it works") }
-                NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words").navigationTitle("Words") }
-                NavigationLink("Version history") { HelpDocument(fileName: "VersionHistory").navigationTitle("Version history") }
-                #endif
-            }
+            // Round 6 (build 312): on the iPhone Help is the first group, above (see the top).
+            if !phoneLook { helpSection }
 
             // Morning first, the order of the day (build 267).
             DayReminderSection(kind: .morning)

@@ -1609,6 +1609,27 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(found, "The version line does not read like 1.0 (280). It says: \(words)")
     }
 
+    #if os(iOS)
+    /// Round 6 (build 312): Browse opens with the search field (`browse.Search`) and has a
+    /// gear at the top right (`browse.settings`) that opens Settings, where Help is the first
+    /// group, so **How it works** (`settings.howItWorks`) is on screen without scrolling.
+    func testBrowseOpensWithSearchAndTheGearOpensSettingsWithHelpFirst() {
+        let browse = element("tab.browse")
+        XCTAssertTrue(browse.waitForExistence(timeout: appears), "No Browse tab.")
+        browse.press()
+        XCTAssertTrue(element("browse.Search").waitForExistence(timeout: 20),
+                      "Browse has no search field at the top (browse.Search). On screen: \(visibleTexts())")
+        let gear = element("browse.settings")
+        XCTAssertTrue(gear.waitForExistence(timeout: 20),
+                      "Browse has no gear (browse.settings). On screen: \(visibleTexts())")
+        gear.press()
+        let help = element("settings.howItWorks")
+        XCTAssertTrue(help.waitForExistence(timeout: 20),
+                      "Settings does not open with How it works (settings.howItWorks). On screen: \(visibleTexts())")
+        XCTAssertTrue(help.isHittable, "How it works is not on the first screen of Settings.")
+    }
+    #endif
+
     #if os(macOS)
     /// 1.0: Escape is Cancel on every edit sheet.
     func testEscapeClosesTheNewNoteSheet() {
@@ -1651,7 +1672,7 @@ final class ScreenTests: XCTestCase {
         for name in Self.way(to: place) {
             let step = element(name)
             #if os(iOS)
-            // A row far down Browse (Search is its last) is not in the list until it is scrolled
+            // A row far down Browse (Deleted is the last of Plan) is not in the list until it is scrolled
             // to: the phone's List only holds the rows on screen (build 281). Each round waits
             // for the row first, so the drag never lands on the screen before Browse. A drag
             // through the middle of the screen, never `swipeUp()`: that starts at the bottom

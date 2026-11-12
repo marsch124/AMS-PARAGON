@@ -415,12 +415,23 @@ struct PhoneBrowseView: View {
         ("Goals and PARA", [.aspirations, .kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]),
         // Time Blocks and All actions are not here: they are tabs of their own since build
         // 183, and a second door into one room is what build 166 argued against.
-        ("Plan", [.calendar, .review, .map, .recent, .done, .deleted, .search]),
+        // Round 6 (build 312): Search is the field at the top of this screen and Recent is the
+        // strip under it, so neither is a row down here any more.
+        ("Plan", [.calendar, .review, .map, .done, .deleted]),
         ("Tools", SidebarSection.tools),
     ]
 
     var body: some View {
         List {
+            // Round 6 (build 312): the search first, then the notes opened last. Both lie on
+            // the page itself, not on a card, so they read as the head of the screen.
+            Section {
+                searchField
+                if !recent.isEmpty { recentStrip }
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
             Group {
             ForEach(groups, id: \.0) { group in
                 Section(group.0) {
@@ -487,6 +498,78 @@ struct PhoneBrowseView: View {
         // the way in that can actually be found; the title's own long press (build 112) is gone
         // with the inline title it needed.
         .navigationTitle("Browse")
+        // Round 6 (build 312): Settings and Help one press away, at the top. Browse has no
+        // other control in its bar, so this is the one the phone's bar has room for.
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(value: PhoneRoute.settings) {
+                    MarkImage("gear", size: 22)
+                        .accessibilityLabel("Settings and Help")
+                }
+                .accessibilityIdentifier("browse.settings")
+            }
+        }
+    }
+
+    /// The notes on the strip: `BrowseRule` says how many.
+    private var recent: [Note] { BrowseRule.recentStrip(model.recentNotes) }
+
+    /// The one search, at the top (round 6, his pick). It looks like a field and opens the
+    /// Search screen with the keyboard up, so the words, the boxes and the results are the
+    /// ones Search has always had and there is no second search to keep in step. It carries
+    /// the name the Search row had, so the screen tests still find their way.
+    private var searchField: some View {
+        Button {
+            // The same way the Week button on Plan opens its screen (build 225): the request
+            // pushes Search onto this tab's stack.
+            model.openSection(.search)
+        } label: {
+            HStack(spacing: Theme.gap) {
+                MarkImage(SidebarSection.search.markName)
+                Text("Search notes")
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(.soft)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Search notes")
+        .accessibilityIdentifier("browse.\(SidebarSection.search.key)")
+    }
+
+    /// The notes opened last, one press each (round 6): a single line that scrolls sideways,
+    /// each note with its part's mark and colour and the name every list shows for it.
+    private var recentStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(Array(recent.enumerated()), id: \.element.relativePath) { place, note in
+                    Button {
+                        model.noteSelection.wrappedValue = note.relativePath
+                    } label: {
+                        HStack(spacing: Theme.tight) {
+                            PartMark(note: note)
+                            Text(note.displayTitle)
+                                .font(Txt.label)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(maxWidth: 150)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background { PhoneCardFill(tint: note.tint) }
+                        .clipShape(Capsule())
+                        .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("browse.recent.\(place)")
+                }
+            }
+        }
+        .padding(.top, Theme.gap)
     }
 }
 

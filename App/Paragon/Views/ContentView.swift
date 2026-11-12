@@ -711,13 +711,13 @@ struct NoteListView: View {
                 AspirationsListView()
                     // The field has to exist here, or there would be no way to start a search
                     // in this section and the `!searching` branch above could never be taken.
-                    .searchable(text: $searchText, prompt: "Search notes")
+                    .listSearch($searchText)
             } else if shown == .kind(.goal), !searching {
                 // Build 199: every goal with a date, in one list, whether or not an
                 // aspiration holds it. His words about the screen before: *"I am not choosing
                 // an aspiration, no goals are visible on the Goals page."*
                 DatedGoalsListView()
-                    .searchable(text: $searchText, prompt: "Search notes")
+                    .listSearch($searchText)
             } else if shown == .kind(.project), !searching, !model.projectGroups.isEmpty {
                 // Build 253, his ask: *"The project list is a bit boring."* Each project is a
                 // box under the aspiration it works towards, saying what it needs next. A
@@ -725,12 +725,12 @@ struct NoteListView: View {
                 // so does an empty vault, to "No projects yet".
                 askingToTrash(ProjectsListView(rename: { startRenaming($0) },
                                                trash: { noteToTrash = $0 }))
-                    .searchable(text: $searchText, prompt: "Search notes")
+                    .listSearch($searchText)
             } else {
                 let listed = visibleNotes
                 if listed.isEmpty {
                     emptyList(searching: !searchText.trimmingCharacters(in: .whitespaces).isEmpty)
-                        .searchable(text: $searchText, prompt: "Search notes")
+                        .listSearch($searchText)
                 } else {
                 askingToTrash(
                 List(selection: model.noteSelection) {
@@ -743,7 +743,7 @@ struct NoteListView: View {
                     // Review round 4: on the iPhone each row is a card in the part's colour.
                     .phoneCard(shown?.tint)
                 }
-                .searchable(text: $searchText, prompt: "Search notes")
+                .listSearch($searchText)
                 .onChange(of: shown) { _, _ in searchText = "" }
                 )
                 }
@@ -1380,6 +1380,26 @@ struct TintStripe: View {
 /// same colour — the shape says which part it is to an eye that cannot tell the colours
 /// apart. 14 points, lower than a line of words, so no row grows. A list of one part keeps
 /// its dot: there the dot says nothing a shape would have to repeat.
+/// The "Search notes" field of a list. **Not on the iPhone** since round 6 (build 312): there
+/// the one search is the field at the top of Browse, and a second, different one that only
+/// showed after a pull down was what the review found. The Mac and the iPad keep theirs.
+private struct ListSearch: ViewModifier {
+    @Binding var text: String
+    @Environment(\.phoneLook) private var phoneLook
+
+    func body(content: Content) -> some View {
+        if phoneLook {
+            content
+        } else {
+            content.searchable(text: $text, prompt: "Search notes")
+        }
+    }
+}
+
+extension View {
+    func listSearch(_ text: Binding<String>) -> some View { modifier(ListSearch(text: text)) }
+}
+
 struct PartMark: View {
     let markName: String
     let color: Color
