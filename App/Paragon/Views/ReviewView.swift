@@ -462,8 +462,7 @@ struct ReviewSummary: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             // The same wording Today uses, so the two screens name a day the same way.
-            Text(DateOnly.today().date()?.formatted(.dateTime.weekday(.wide).day().month(.wide))
-                 ?? DateOnly.today().description)
+            Text(DayWords.withWeekday(DateOnly.today()))
                 .font(Txt.listTitle)
             Text(report.completedLast7Days == 1 ? "1 task finished in the last 7 days"
                                                 : "\(report.completedLast7Days) tasks finished in the last 7 days")

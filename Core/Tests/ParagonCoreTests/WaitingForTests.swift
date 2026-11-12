@@ -383,8 +383,8 @@ final class WaitingForTests: XCTestCase {
         }
         XCTAssertEqual(try words(nil), "No follow-up date")
         XCTAssertEqual(try words("2026-11-02"), "Follow up today")
-        XCTAssertEqual(try words("2026-11-06"), "Follow up Fri 6 Nov")
-        XCTAssertEqual(try words("2027-02-06"), "Follow up Sat 6 Feb 2027", "The year when it is not this year's")
+        XCTAssertEqual(try words("2026-11-06"), "Follow up 2026-11-06")
+        XCTAssertEqual(try words("2027-02-06"), "Follow up 2027-02-06")
         XCTAssertEqual(try words("2026-11-01"), "Follow up was yesterday")
         XCTAssertEqual(try words("2026-10-30"), "Follow up was 3 days ago")
     }
@@ -404,9 +404,9 @@ final class WaitingForTests: XCTestCase {
     func testTheCaptionUnderARow() throws {
         let both = try XCTUnwrap(WaitingLine(ref: try ref("- [ ] Waiting for Anna: the quote >2026-11-06 @since(2026-10-28)")))
         XCTAssertEqual(both.captionText(today: today, calendar: gregorian, locale: english),
-                       "Follow up Fri 6 Nov \u{00B7} waited 5 days")
+                       "Follow up 2026-11-06 \u{00B7} waited 5 days")
         let noStart = try XCTUnwrap(WaitingLine(ref: try ref("- [ ] Waiting for Anna: the quote >2026-11-06")))
-        XCTAssertEqual(noStart.captionText(today: today, calendar: gregorian, locale: english), "Follow up Fri 6 Nov")
+        XCTAssertEqual(noStart.captionText(today: today, calendar: gregorian, locale: english), "Follow up 2026-11-06")
         let nothing = try XCTUnwrap(WaitingLine(ref: try ref("- [ ] Chase the plumber #waiting")))
         XCTAssertEqual(nothing.captionText(today: today, calendar: gregorian, locale: english), "No follow-up date")
     }

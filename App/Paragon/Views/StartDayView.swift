@@ -244,8 +244,7 @@ struct StartDayView: View {
     private var heading: some View {
         // 1.0: the title is in the bar above; this line is the day.
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-                 ?? day.description)
+            Text(DayWords.withWeekday(day))
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
         }

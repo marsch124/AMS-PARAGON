@@ -649,7 +649,7 @@ struct DatedGoalRow: View {
         var late = false
         if let percent = health.progress.percent { parts.append("\(percent) %") }
         if let target = note.targetDate {
-            parts.append("\(target.description) \u{00B7} \(target.timeLeftText(from: .today()))")
+            parts.append("\(DayWords.plain(target)) \u{00B7} \(target.timeLeftText(from: .today()))")
             if overdue(target) { late = true }
         }
         if let measure = note.measure, !measure.isEmpty { parts.append(measure) }

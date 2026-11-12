@@ -128,8 +128,7 @@ struct CloseDayView: View {
     private var heading: some View {
         // 1.0: the title is in the bar above; this line is the day.
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text(day.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-                 ?? day.description)
+            Text(DayWords.withWeekday(day))
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
@@ -207,11 +206,8 @@ struct CloseDayView: View {
         }
     }
 
-    /// "Thu 1 Oct", the same short form as the date at the top of the sheet.
-    private var tomorrowText: String {
-        tomorrow.date()?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-            ?? tomorrow.description
-    }
+    /// "Thursday 2026-10-01", the same form as the date at the top of the sheet.
+    private var tomorrowText: String { DayWords.withWeekday(tomorrow) }
 
     /// Dated for tomorrow, and every marked one, always; then the first few next actions.
     private var tomorrowShown: [TaskRef] {

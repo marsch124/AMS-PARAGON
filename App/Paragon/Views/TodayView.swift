@@ -83,16 +83,18 @@ struct TodayView: View {
             // white above the date and the day's one number under it. The two buttons keep
             // their place at the row's right end. The phone's title stays in its bar.
             VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: isPhone ? .center : .top, spacing: 8) {
-                // The date keeps its width first, so what gives way is the buttons' words and
-                // never the date breaking over two lines (build 138).
-                VStack(alignment: .leading, spacing: 1) {
-                    if !isPhone {
+            // **Review round 3: the Mac's date was cut to "Thursday, 12 No…".** The three buttons
+            // never give way (they are symbols at a fixed size), so in a narrow column the date
+            // was what lost. On the Mac the date now has a line of its own under the title and
+            // the buttons, the whole width of the band; the phone keeps its one row, where
+            // "Thursday 2026-11-12" beside three symbols always fits.
+            HStack(alignment: .center, spacing: 8) {
+                Group {
+                    if isPhone {
+                        bandDate
+                    } else {
                         Text("Today").font(Txt.pageTitle).foregroundStyle(.white)
                     }
-                    Text(today.date()?.formatted(.dateTime.weekday(.wide).day().month(.wide)) ?? today.description)
-                        .font(Txt.label)
-                        .foregroundStyle(.white.opacity(0.85))
                 }
                 .lineLimit(1)
                 .layoutPriority(1)
@@ -101,6 +103,12 @@ struct TodayView: View {
                 // side. Symbols only, on every screen (build 247): he asked for the words to go.
                 // Their names stay as the spoken title and the Mac's tooltip (build 159).
                 dayButtons
+            }
+            if !isPhone {
+                bandDate
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             // Build 291 put today's note on a second row as a worded white button; build 304
             // (his ask, a screenshot) made it a small round button beside Start and Close the
@@ -237,6 +245,14 @@ struct TodayView: View {
     }
 
     /// The morning and evening buttons, symbols only.
+    /// "Thursday 2026-11-12", the one date style (`DayWords`).
+    private var bandDate: some View {
+        Text(DayWords.withWeekday(DateOnly.today()))
+            .font(Txt.label)
+            .foregroundStyle(.white.opacity(0.85))
+            .accessibilityIdentifier("today.band.date")
+    }
+
     private var dayButtons: some View {
         HStack(spacing: 6) {
             HeaderActionButton(title: nil,

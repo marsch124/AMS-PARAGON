@@ -1100,14 +1100,14 @@ struct NoteRow: View {
             if let roll = goalProgress, let fraction = roll.fraction {
                 parts.append("\(Int((fraction * 100).rounded())) %")
             }
-            if let target = note.targetDate { parts.append("by \(target.description)") }
+            if let target = note.targetDate { parts.append("by \(DayWords.plain(target))") }
             else if let horizon = note.horizon { parts.append(horizon.label) }
         case .area:
             if note.openTasks.count > 0 { parts.append("\(note.openTasks.count) open") }
         case .resource:
             if !note.related.isEmpty { parts.append("\(note.related.count) linked") }
         case .daily:
-            if let due = note.dueDate { parts.append(due.description) }
+            if let due = note.dueDate { parts.append(DayWords.plain(due)) }
         default:
             if note.openTasks.count > 0 { parts.append("\(note.openTasks.count) open") }
             if let due = note.dueDate {
@@ -1127,7 +1127,7 @@ struct NoteRow: View {
             leadingMark
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(note.title)
+                    Text(note.displayTitle)
                         .font(Txt.listTitle)
                         .lineLimit(1)
                     Spacer(minLength: 6)
@@ -1240,7 +1240,7 @@ extension SyncStatusBar {
         let auto = minutes > 0 ? " It also runs by itself every \(minutes) minutes." : ""
         let head = "Sync tasks with Apple Reminders now (⇧⌘R).\(auto)"
         guard let report else { return head }
-        let time = (report.finishedAt ?? report.startedAt).formatted(date: .omitted, time: .shortened)
+        let time = DayWords.time(report.finishedAt ?? report.startedAt)
         if !report.conflicts.isEmpty {
             return "\(head)\nLast sync at \(time): \(report.conflicts.count) to look at — open Last sync report…"
         }

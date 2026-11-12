@@ -506,6 +506,23 @@ struct TypingRestyle {
 /// which is what a text view is for — a link opens on ⌘-click and never by accident.
 final class LinkingTextView: NSTextView {
     var onCommandClick: ((Int) -> Void)?
+    /// Review round 3: the text view took or gave up the keyboard. While it does not hold it the
+    /// note is only being read, and every `#` and `**` is hidden — the first line's too, as on
+    /// the iPhone. Told a moment later, when the window has finished changing who holds it.
+    var onFocusChange: (() -> Void)?
+
+    override func becomeFirstResponder() -> Bool {
+        let took = super.becomeFirstResponder()
+        if took { DispatchQueue.main.async { [weak self] in self?.onFocusChange?() } }
+        return took
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let gave = super.resignFirstResponder()
+        if gave { DispatchQueue.main.async { [weak self] in self?.onFocusChange?() } }
+        return gave
+    }
+
     /// A plain click on a task's box (build 286): ticks it instead of placing the cursor.
     var onBoxClick: ((Int) -> Void)?
     /// Build 287: a right-click on a box adds Cancel task / Move to tomorrow.
@@ -777,6 +794,9 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = LinkingTextView.scrollable()
         guard let textView = scrollView.documentView as? LinkingTextView else { return scrollView }
+        textView.onFocusChange = { [weak coordinator = context.coordinator] in
+            coordinator?.highlight(tint: nil)
+        }
         textView.onCommandClick = { [weak coordinator = context.coordinator] offset in
             coordinator?.commandClicked(at: offset)
         }
@@ -925,6 +945,7 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // must never point into once it is freed. Nothing it does on its way out is recorded.
             textView.allowsUndo = false
             textView.onCommandClick = nil
+            textView.onFocusChange = nil
             textView.onBoxClick = nil
             textView.onBoxMenu = nil
             textView.onFormat = nil
@@ -1045,14 +1066,22 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
                 highlight(tint: nil)
                 return
             }
-            let cursor = min(textView.selectedRange().location, storage.length)
-            styledLine = storage.mutableString.lineRange(for: NSRange(location: cursor, length: 0))
+            let cursor = cursorPlace(in: textView)
+            styledLine = cursor.map { storage.mutableString.lineRange(for: NSRange(location: $0, length: 0)) }
             restyle(block, inCode: inCode, cursor: cursor, in: storage)
             textView.typingAttributes = MarkdownAttributes.base(color: .labelColor)
             restyleWholeSoon()
         }
 
-        private func restyle(_ block: NSRange, inCode: Bool, cursor: Int, in storage: NSTextStorage) {
+        /// Where the cursor is, or nil while the note is only being read (the text view does not
+        /// hold the keyboard): then every marker is hidden, the first line's `#` too — the
+        /// iPhone's rule (`cursorLine(of:)` there), now the Mac's as well (review round 3).
+        private func cursorPlace(in textView: NSTextView) -> Int? {
+            guard textView.window?.firstResponder === textView else { return nil }
+            return min(textView.selectedRange().location, (textView.string as NSString).length)
+        }
+
+        private func restyle(_ block: NSRange, inCode: Bool, cursor: Int?, in storage: NSTextStorage) {
             MarkdownAttributes.apply(to: storage, lines: block, inCode: inCode, tint: lastTint,
                                      primary: .labelColor, secondary: .secondaryLabelColor, faint: .tertiaryLabelColor,
                                      hideMarkers: true, cursor: cursor)
@@ -1088,13 +1117,13 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             // announced and never came.)
             if typing.isWaiting { restyleWholeSoon(); return }
             let ns = storage.mutableString
-            let at = min(textView.selectedRange().location, ns.length)
-            let line = ns.lineRange(for: NSRange(location: at, length: 0))
+            let at = cursorPlace(in: textView)
+            let line = at.map { ns.lineRange(for: NSRange(location: $0, length: 0)) }
             guard line != styledLine else { return }
             // A very long note is plain all over: no line looks different under the cursor.
             if plainAllOver, ns.length > MarkdownAttributes.plainOver { styledLine = line; return }
             // Only the line the cursor left and the one it came to change their look.
-            guard let old = styledLine, NSMaxRange(old) <= ns.length,
+            guard let old = styledLine, let line, NSMaxRange(old) <= ns.length,
                   ns.lineRange(for: NSRange(location: old.location, length: 0)) == old,
                   case .lines(let left, let leftCode) = MarkdownHighlight.restyle(of: ns, around: NSRange(location: old.location, length: 0)),
                   case .lines(let come, let comeCode) = MarkdownHighlight.restyle(of: ns, around: NSRange(location: line.location, length: 0)) else {
@@ -1206,8 +1235,8 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
             typing.reset()
             let ns = textView.string as NSString
             plainAllOver = ns.length > MarkdownAttributes.plainOver
-            let cursor = min(textView.selectedRange().location, ns.length)
-            styledLine = ns.lineRange(for: NSRange(location: cursor, length: 0))
+            let cursor = cursorPlace(in: textView)
+            styledLine = cursor.map { ns.lineRange(for: NSRange(location: $0, length: 0)) }
             MarkdownAttributes.apply(to: storage, text: textView.string, tint: lastTint,
                                      primary: .labelColor, secondary: .secondaryLabelColor, faint: .tertiaryLabelColor,
                                      hideMarkers: true, cursor: cursor)

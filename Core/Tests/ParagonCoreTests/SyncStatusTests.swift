@@ -16,7 +16,7 @@ final class SyncStatusTests: XCTestCase {
         XCTAssertEqual(line(at(11, 9, 12), w: true), "Sync waiting for iCloud…")
         XCTAssertEqual(line(at(11, 9, 12)), "Synced at 09:12")
         XCTAssertEqual(line(at(10, 21, 40)), "Synced yesterday at 21:40")
-        XCTAssertEqual(line(at(9, 21, 40)), "Synced 9 Nov at 21:40")
+        XCTAssertEqual(line(at(9, 21, 40)), "Synced 2026-11-09 at 21:40")
         XCTAssertEqual(line(at(11, 9, 12), 1), "Last sync: 1 conflict")
         XCTAssertEqual(line(at(11, 9, 12), 2), "Last sync: 2 conflicts")
         XCTAssertTrue(SyncStatus.isProblem(syncing: false, waiting: false, finishedAt: now, conflicts: 2))

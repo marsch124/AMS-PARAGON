@@ -420,7 +420,7 @@ public final class Vault {
             return try loadNote(relativePath: path)
         }
         let template = (try? String(contentsOf: templatesURL.appendingPathComponent("Daily.md"), encoding: .utf8)) ?? Templates.daily
-        let text = Templates.fill(template, title: Note.dailyTitle(for: date), date: date)
+        let text = Templates.fill(template, title: Note.dailyHeading(for: date), date: date)
         let note = Note(relativePath: path, kind: .daily, text: text, modifiedAt: Date())
         try save(note)
         return note

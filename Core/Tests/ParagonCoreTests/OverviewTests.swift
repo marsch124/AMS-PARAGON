@@ -62,7 +62,7 @@ final class WeeklyNoteAndOverviewTests: XCTestCase {
         XCTAssertTrue(note.body.hasPrefix("# Week 36, "))
         XCTAssertTrue(note.body.contains("## Focus"))
         XCTAssertTrue(vault.weeklyNoteExists(for: week))
-        XCTAssertEqual(note.displayTitle, week.title)
+        XCTAssertEqual(note.displayTitle, "Week 36 \u{00B7} 2026", "Shown in the one date style; the heading in the file keeps its own form")
     }
 
     func testCalendarNotesSortNewestFirstWithWeeklyBeforeItsMonday() throws {

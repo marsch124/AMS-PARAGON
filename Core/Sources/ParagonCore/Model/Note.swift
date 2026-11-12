@@ -177,7 +177,7 @@ public struct Note: Equatable, Identifiable, Sendable {
     /// Title for lists: calendar notes show their date or week, everything else its title.
     public var displayTitle: String {
         if let dailyDate { return Self.dailyTitle(for: dailyDate) }
-        if let weekRef { return weekRef.title }
+        if let weekRef { return DayWords.weekAndYear(weekRef) }
         return title
     }
 
@@ -192,15 +192,23 @@ public struct Note: Equatable, Identifiable, Sendable {
         return DateOnly(year: y, month: m, day: d)
     }
 
-    private static let dailyTitleFormatter: DateFormatter = {
+    private static let dailyHeadingFormatter: DateFormatter = {
         let f = DateFormatter()
         f.setLocalizedDateFormatFromTemplate("EEEE d MMMM yyyy")
         return f
     }()
 
+    /// The name the app shows for a daily note: "Thursday 2026-11-12", the one date style
+    /// (`DayWords`). Display only — the file stays `20261112.md`.
     public static func dailyTitle(for date: DateOnly) -> String {
+        DayWords.withWeekday(date)
+    }
+
+    /// The heading written into a **new** daily note's first line. This is the note's content,
+    /// so it keeps the form it has always had; the one date style is for what the app shows.
+    public static func dailyHeading(for date: DateOnly) -> String {
         guard let d = date.date() else { return date.description }
-        return dailyTitleFormatter.string(from: d)
+        return dailyHeadingFormatter.string(from: d)
     }
 
     // MARK: Tasks

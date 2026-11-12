@@ -947,7 +947,7 @@ private struct DateChip: View {
         Button {
             picking = true
         } label: {
-            ChipLabel(text: current.map { "\(name) \($0.description)" } ?? emptyLabel,
+            ChipLabel(text: current.map { "\(name) \(DayWords.plain($0))" } ?? emptyLabel,
                       markName: "flag.checkered",
                       tint: tint,
                       isSet: current != nil)

@@ -248,15 +248,8 @@ struct QuickCaptureView: View {
         case .yesterday?: return "Was due yesterday"
         default: break
         }
-        guard let date = dueDate.date() else { return "Due \(dueDate)" }
-        return "Due " + QuickCaptureView.dayAndMonth.string(from: date)
+        return "Due " + DayWords.withWeekday(dueDate)
     }
-
-    private static let dayAndMonth: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("d MMMM")
-        return f
-    }()
 
     /// The buttons that write the syntax for him, so it never has to be remembered.
     private var addRow: some View {

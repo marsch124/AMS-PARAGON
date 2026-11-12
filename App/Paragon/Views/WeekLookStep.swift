@@ -131,12 +131,12 @@ struct WeekLookStep: View {
             .accessibilityLabel("Earlier week")
             .accessibilityIdentifier("review.lookBack.earlier")
 
-            Text(shownWeek.title)
+            Text(DayWords.weekSpan(shownWeek))
                 .font(Txt.value.weight(.semibold))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel(shownWeek.title)
+                .accessibilityLabel(DayWords.weekSpan(shownWeek))
                 .accessibilityIdentifier("review.lookBack")
 
             Button {
@@ -505,7 +505,7 @@ private struct EveningLineRow: View {
     }
 
     private var dayName: String {
-        line.day.date()?.formatted(.dateTime.weekday(.abbreviated)) ?? line.day.description
+        DayWords.shortWeekday(line.day)
     }
 }
 
@@ -610,11 +610,11 @@ private struct WeekDayBars: View {
     }
 
     private func dayName(_ day: DateOnly) -> String {
-        day.date()?.formatted(.dateTime.weekday(.abbreviated)) ?? day.description
+        DayWords.shortWeekday(day)
     }
 
     private func spoken(_ record: DayRecord, count: Int, future: Bool, waiting: Bool) -> String {
-        let name = record.day.date()?.formatted(.dateTime.weekday(.wide)) ?? record.day.description
+        let name = DayWords.weekday(record.day)
         if future { return "\(name): still to come" }
         if waiting && count == 0 { return "\(name): still coming from iCloud" }
         switch count {

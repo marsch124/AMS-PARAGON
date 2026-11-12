@@ -126,7 +126,7 @@ struct SettingsView: View {
                         ForEach(model.backups) { backup in
                             HStack {
                                 VStack(alignment: .leading, spacing: 1) {
-                                    Text(backup.date.formatted(date: .abbreviated, time: .shortened))
+                                    Text(DayWords.plainWithTime(backup.date))
                                     Text("\(backup.noteCount) notes · \(backup.reason)")
                                         .font(Txt.label)
                                         .foregroundStyle(.secondary)
@@ -154,7 +154,7 @@ struct SettingsView: View {
                 }
                 .accessibilityIdentifier("settings.outsideBackup.place")
                 LabeledContent("Last made") {
-                    Text(model.lastOutsideBackup.map { $0.formatted(date: .abbreviated, time: .shortened) }
+                    Text(model.lastOutsideBackup.map { DayWords.plainWithTime($0) }
                          ?? (model.outsideBackupRunning ? "Being made now\u{2026}" : "Not yet"))
                         .foregroundStyle(.secondary)
                 }
@@ -316,7 +316,7 @@ struct SettingsView: View {
             }
         }
         .modifier(FolderChoiceSheet(asked: $askedAboutFolder))
-        .confirmationDialog("Restore the backup from \(backupToRestore.map { $0.date.formatted(date: .abbreviated, time: .shortened) } ?? "")?",
+        .confirmationDialog("Restore the backup from \(backupToRestore.map { DayWords.plainWithTime($0.date) } ?? "")?",
                             isPresented: Binding(get: { backupToRestore != nil }, set: { if !$0 { backupToRestore = nil } }),
                             presenting: backupToRestore) { backup in
             Button("Restore", role: .destructive) { model.restore(backup) }
@@ -420,7 +420,7 @@ struct WidgetStatusSection: View {
 
     private var writtenText: String {
         guard let snapshot else { return "nothing written yet" }
-        return snapshot.written.formatted(date: .abbreviated, time: .shortened)
+        return DayWords.plainWithTime(snapshot.written)
     }
 
     private var explanation: String {
@@ -586,9 +586,9 @@ struct DayReminderSection: View {
         case .asking:
             return ("Sending…", false)
         case .waiting(let due):
-            return ("Sent. It should appear at \(due.formatted(date: .omitted, time: .standard)).", false)
+            return ("Sent. It should appear at \(DayWords.time(due, seconds: true)).", false)
         case .delivered(let at):
-            return ("Delivered by \(device) at \(at.formatted(date: .omitted, time: .standard)). If you did not see it, a Focus mode such as Do Not Disturb may be holding it back.", false)
+            return ("Delivered by \(device) at \(DayWords.time(at, seconds: true)). If you did not see it, a Focus mode such as Do Not Disturb may be holding it back.", false)
         case .notDelivered:
             return ("It was sent, but \(device) did not deliver it. Check \(settingsPlace).", true)
         case .notAllowed:
@@ -604,8 +604,8 @@ struct DayReminderSection: View {
         let calendar = Calendar.current
         let day = calendar.isDateInToday(next) ? "today"
             : calendar.isDateInTomorrow(next) ? "tomorrow"
-            : next.formatted(date: .abbreviated, time: .omitted)
-        return "Next reminder: \(day) at \(next.formatted(date: .omitted, time: .shortened))"
+            : DayWords.withWeekday(next)
+        return "Next reminder: \(day) at \(DayWords.time(next))"
     }
 
     /// Minutes since midnight shown as a time of day, today's date standing in for any day.

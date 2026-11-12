@@ -36,12 +36,6 @@ struct DayCalendarView: View {
     /// "alla datum, ett till 31, tar upp alldeles för mycket plats".
     @AppStorage("showsMonthGrid") private var showsMonthGrid = false
 
-    private static let longDate: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("EEEE d MMMM y")
-        return f
-    }()
-
     var body: some View {
         let day = model.selectedDate
         let overview = model.index.dayOverview(for: day)
@@ -75,10 +69,10 @@ struct DayCalendarView: View {
         model.afterUpdate { model.openDailyNote(for: next) }
     }
 
-    /// "v. 37 · 3 due · 2 events". A plain function, not a view builder: it is only text.
+    /// "Week 37 · 3 due · 2 events". A plain function, not a view builder: it is only text.
     private func summary(day: DateOnly, overview: DayOverview) -> String {
         let events = model.events(on: day).count
-        var parts = ["v. \(WeekRef(containing: day).week)"]
+        var parts = [DayWords.week(day)]
         if !overview.due.isEmpty { parts.append("\(overview.due.count) due") }
         if events > 0 { parts.append(events == 1 ? "1 event" : "\(events) events") }
         if !overview.completed.isEmpty { parts.append("\(overview.completed.count) done") }
@@ -175,7 +169,7 @@ struct DayCalendarView: View {
     }
 
     private func dayTitle(_ date: DateOnly) -> String {
-        date.date().map(Self.longDate.string(from:)) ?? date.description
+        DayWords.withWeekday(date)
     }
 }
 
@@ -189,12 +183,8 @@ struct MonthGrid: View {
     let next: () -> Void
     let pick: (DateOnly) -> Void
 
-    private static let weekdaySymbols: [String] = {
-        var cal = Calendar(identifier: .iso8601)
-        cal.locale = Locale.current
-        let symbols = cal.veryShortStandaloneWeekdaySymbols
-        return Array(symbols[1...]) + [symbols[0]]
-    }()
+    /// Monday first, English whatever the device's region (`DayWords`).
+    private static let weekdaySymbols = ["M", "T", "W", "T", "F", "S", "S"]
 
     /// The days of the month padded with nils so every row is a Monday-to-Sunday week.
     private var rows: [[DateOnly?]] {
@@ -225,7 +215,7 @@ struct MonthGrid: View {
                 GridRow {
                     Text("")
                         .frame(width: 22)
-                    ForEach(Self.weekdaySymbols, id: \.self) { symbol in
+                    ForEach(Array(Self.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
                             .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
@@ -311,7 +301,7 @@ struct MonthGridCell: View {
     }
 
     private var helpText: String {
-        var parts: [String] = [date.description]
+        var parts: [String] = [DayWords.withWeekday(date)]
         if !overview.due.isEmpty { parts.append("\(overview.due.count) due") }
         if events > 0 { parts.append("\(events) events") }
         if overview.dailyNotePath != nil { parts.append("daily note") }
@@ -411,12 +401,6 @@ private struct WeekStrip: View {
     @EnvironmentObject private var model: AppModel
     let days: [DayOverview]
 
-    private static let dayLetter: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("EEE")
-        return f
-    }()
-
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 5) {
@@ -472,8 +456,7 @@ private struct WeekStrip: View {
     }
 
     private func name(_ date: DateOnly) -> String {
-        guard let real = date.date() else { return date.description }
-        return Self.dayLetter.string(from: real)
+        DayWords.shortWeekday(date)
     }
 }
 
@@ -481,12 +464,6 @@ private struct WeekStrip: View {
 /// a tray of unplaced work above a seven-cell strip you can drop it on.
 struct WeekOverviewView: View {
     @EnvironmentObject private var model: AppModel
-
-    private static let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("EEE d MMM")
-        return f
-    }()
 
     /// The work waiting to be put on a day: every open task with **no date**, next actions
     /// first because those are the ones you most want to place.
@@ -547,7 +524,7 @@ struct WeekOverviewView: View {
                     }
                     .tag(overview.weeklyNotePath ?? "")
                 } header: {
-                    Text(overview.week.title)
+                    Text(DayWords.weekSpan(overview.week))
                 }
                 ForEach(overview.days) { day in
                     Section {
@@ -587,7 +564,7 @@ struct WeekOverviewView: View {
     }
 
     private func dayTitle(_ date: DateOnly) -> String {
-        date.date().map(Self.dayFormatter.string(from:)) ?? date.description
+        DayWords.withWeekday(date)
     }
 }
 
@@ -596,12 +573,8 @@ struct MonthOverviewView: View {
     @EnvironmentObject private var model: AppModel
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
-    private let weekdaySymbols: [String] = {
-        var cal = Calendar(identifier: .iso8601)
-        cal.locale = Locale.current
-        let symbols = cal.veryShortStandaloneWeekdaySymbols
-        return Array(symbols[1...]) + [symbols[0]]
-    }()
+    /// Monday first, English whatever the device's region (`DayWords`).
+    private let weekdaySymbols = ["M", "T", "W", "T", "F", "S", "S"]
 
     var body: some View {
         let overview = model.index.monthOverview(for: model.selectedMonth)
@@ -623,7 +596,7 @@ struct MonthOverviewView: View {
             Divider()
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 2) {
-                    ForEach(weekdaySymbols, id: \.self) { symbol in
+                    ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
                             .font(Txt.listSecond)
                             .foregroundStyle(.secondary)
@@ -676,7 +649,7 @@ struct MonthDayCell: View {
         .frame(height: 44)
         .background(isSelected ? ParaKind.daily.tint.opacity(0.20) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
-        .accessibilityLabel("\(day.date.description), \(day.due.count) due, \(day.completed.count) done")
+        .accessibilityLabel("\(DayWords.withWeekday(day.date)), \(day.due.count) due, \(day.completed.count) done")
     }
 }
 

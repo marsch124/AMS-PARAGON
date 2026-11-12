@@ -103,18 +103,18 @@ final class NoteEndingTests: XCTestCase {
         let body = "# Shed\n\n- [x] Pour the base\n- [x] Raise the walls\n  - [x] A subtask is not counted\n- [-] Paint it\n- [ ] Still open\n"
         let note = project("status: done\ncreated: 2026-09-09\nended: 2026-10-20\n", body: body)
         let line = ProjectEnding(note: note)?.line(today: today, locale: english)
-        XCTAssertEqual(line, "Done on 20 October · after 41 days · 2 tasks finished")
+        XCTAssertEqual(line, "Done on 2026-10-20 · after 41 days · 2 tasks finished")
     }
 
     func testTheYearIsAddedWhenItIsNotThisYear() {
         let note = project("status: dropped\nended: 2025-03-03\n")
         let line = ProjectEnding(note: note)?.line(today: today, locale: english) ?? ""
-        XCTAssertTrue(line.hasPrefix("Dropped on 3 March 2025"), line)
+        XCTAssertTrue(line.hasPrefix("Dropped on 2025-03-03"), line)
     }
 
     func testAPartTheNoteCannotProveIsLeftOut() {
         let note = project("status: missed\nended: 2026-10-20\n")
-        XCTAssertEqual(ProjectEnding(note: note)?.line(today: today, locale: english), "Missed on 20 October")
+        XCTAssertEqual(ProjectEnding(note: note)?.line(today: today, locale: english), "Missed on 2026-10-20")
     }
 
     func testNoDayMeansNoLine() {

@@ -108,18 +108,6 @@ struct DayScheduleView: View {
     private static let gutter: CGFloat = 52
     private let calendar = Calendar.current
 
-    private static let hourLabel: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("j")
-        return f
-    }()
-
-    private static let timeLabel: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("jm")
-        return f
-    }()
-
     var body: some View {
         let items = timedItems()
         let range = hourRange(items)
@@ -413,12 +401,12 @@ struct DayScheduleView: View {
     // MARK: Text
 
     private func hourText(_ hour: Int) -> String {
-        guard let date = date(hour: hour) else { return "\(hour)" }
-        return Self.hourLabel.string(from: date)
+        // 24 hours, whatever the device's region says (`DayWords`).
+        String(format: "%02d:00", hour % 24)
     }
 
     private func timeText(_ start: Date, _ end: Date) -> String {
-        "\(Self.timeLabel.string(from: start))–\(Self.timeLabel.string(from: end))"
+        "\(DayWords.time(start, calendar: calendar))–\(DayWords.time(end, calendar: calendar))"
     }
 }
 

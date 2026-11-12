@@ -277,8 +277,7 @@ struct PlannerDayView: View {
     }
 
     private var dayTitle: String {
-        guard let date = day.date() else { return day.description }
-        return PlannerDayView.longDate.string(from: date)
+        DayWords.withWeekday(day)
     }
 
     /// Plain text, built outside the ViewBuilder.
@@ -289,12 +288,6 @@ struct PlannerDayView: View {
         if events > 0 { parts.append(events == 1 ? "1 event" : "\(events) events") }
         return parts.joined(separator: " \u{00b7} ")
     }
-
-    private static let longDate: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("EEEE d MMMM y")
-        return f
-    }()
 
     private func move(_ days: Int) {
         model.plannerDay = day.adding(days: days, calendar: WeekRef.calendar)

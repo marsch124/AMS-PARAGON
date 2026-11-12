@@ -239,7 +239,7 @@ struct WidgetFoot: View {
     private var state: String {
         if !entry.folderFound { return "shared folder missing" }
         guard let snapshot = entry.snapshot else { return "nothing written yet" }
-        return "written " + snapshot.written.formatted(date: .omitted, time: .shortened)
+        return "written " + DayWords.time(snapshot.written)
     }
 
     var body: some View {

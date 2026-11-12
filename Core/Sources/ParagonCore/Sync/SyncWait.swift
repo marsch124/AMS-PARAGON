@@ -43,20 +43,11 @@ public enum SyncStatus {
         if waiting { return SyncWait.waitingLine }
         guard let finishedAt else { return "Not synced yet" }
         if conflicts > 0 { return "Last sync: \(conflicts) conflict\(conflicts == 1 ? "" : "s")" }
-        let time = DateFormatter()
-        time.calendar = calendar
-        time.timeZone = calendar.timeZone
-        time.dateFormat = "HH:mm"
-        let clock = time.string(from: finishedAt)
+        let clock = DayWords.time(finishedAt, calendar: calendar)
         if calendar.isDate(finishedAt, inSameDayAs: now) { return "Synced at \(clock)" }
         if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
            calendar.isDate(finishedAt, inSameDayAs: yesterday) { return "Synced yesterday at \(clock)" }
-        let day = DateFormatter()
-        day.calendar = calendar
-        day.timeZone = calendar.timeZone
-        day.locale = Locale(identifier: "en_GB")
-        day.dateFormat = "d MMM"
-        return "Synced \(day.string(from: finishedAt)) at \(clock)"
+        return "Synced \(DayWords.plain(finishedAt, calendar: calendar)) at \(clock)"
     }
 
     /// Orange, not grey: only conflicts, and only when nothing newer is happening.
@@ -104,21 +95,10 @@ public enum SyncRing {
         if waiting { return "iCloud" }
         guard let finishedAt else { return "Not yet" }
         if conflicts > 0 { return conflicts == 1 ? "1 conflict" : "\(conflicts) conflicts" }
-        if calendar.isDate(finishedAt, inSameDayAs: now) {
-            let time = DateFormatter()
-            time.calendar = calendar
-            time.timeZone = calendar.timeZone
-            time.dateFormat = "HH:mm"
-            return time.string(from: finishedAt)
-        }
+        if calendar.isDate(finishedAt, inSameDayAs: now) { return DayWords.time(finishedAt, calendar: calendar) }
         if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
            calendar.isDate(finishedAt, inSameDayAs: yesterday) { return "Yesterday" }
-        let day = DateFormatter()
-        day.calendar = calendar
-        day.timeZone = calendar.timeZone
-        day.locale = Locale(identifier: "en_GB")
-        day.dateFormat = "d MMM"
-        return day.string(from: finishedAt)
+        return DayWords.plain(finishedAt, calendar: calendar)
     }
 }
 

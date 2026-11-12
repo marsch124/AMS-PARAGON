@@ -135,7 +135,7 @@ public struct DoneDiary: Equatable, Sendable {
     /// called "Daily note"** rather than by its long date. The day's name is the line above, and
     /// a label repeating it carries nothing (build 169). Only that one note: `ownNoteTitle` is
     /// its title, `Note.dailyTitle(for:)` of the day. A weekly note is a daily note too, by its
-    /// folder, and keeps its own name ("Week 43, 19 Oct – 25 Oct 2026"), as does another day's note whose task was
+    /// folder, and keeps its own name ("Week 43 · 2026"), as does another day's note whose task was
     /// ticked this day — "Daily notes" would not be true of them (review of 268). Most first,
     /// then by name, as `servedCounts(of:)` orders them.
     public static func labels(_ counts: [ServedCount], ownNoteTitle: String) -> [ServedCount] {

@@ -15,7 +15,7 @@ struct SyncReportView: View {
                     .font(Txt.listTitle)
                 Spacer()
                 if let finished = report?.finishedAt {
-                    Text(finished.formatted(date: .omitted, time: .shortened))
+                    Text(DayWords.time(finished))
                         .foregroundStyle(.secondary)
                 }
             }

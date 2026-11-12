@@ -130,7 +130,7 @@ struct TimeBlocksView: View {
                 .fill(block.color)
                 .frame(width: 8, height: 8)
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 3 }
-            Text("\(block.start.formatted(date: .omitted, time: .shortened)) – \(block.end.formatted(date: .omitted, time: .shortened))")
+            Text("\(DayWords.time(block.start)) – \(DayWords.time(block.end))")
                 .font(Txt.value.monospacedDigit())
                 .foregroundStyle(.secondary)
                 .frame(minWidth: 110, alignment: .leading)
@@ -231,7 +231,6 @@ struct TimeBlocksView: View {
         if day == today { return "Today" }
         if day == today.adding(days: 1) { return "Tomorrow" }
         if day == today.adding(days: -1) { return "Yesterday" }
-        guard let date = day.date() else { return day.description }
-        return date.formatted(.dateTime.weekday(.wide).day().month(.wide))
+        return DayWords.withWeekday(day)
     }
 }

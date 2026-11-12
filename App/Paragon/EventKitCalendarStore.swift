@@ -23,10 +23,10 @@ struct CalendarEvent: Identifiable, Equatable {
         if isAllDay { return "All day" }
         guard let dayStart = day.date(calendar: calendar),
               let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else {
-            return start.formatted(date: .omitted, time: .shortened)
+            return DayWords.time(start, calendar: calendar)
         }
-        let from = start < dayStart ? "…" : start.formatted(date: .omitted, time: .shortened)
-        let to = end > dayEnd ? "…" : end.formatted(date: .omitted, time: .shortened)
+        let from = start < dayStart ? "…" : DayWords.time(start, calendar: calendar)
+        let to = end > dayEnd ? "…" : DayWords.time(end, calendar: calendar)
         return "\(from) – \(to)"
     }
 }

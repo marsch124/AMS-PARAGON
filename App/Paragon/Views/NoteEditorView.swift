@@ -186,7 +186,7 @@ struct NoteEditorView: View {
                 model.insert(snippet, answers: answers, into: path)
             }
         }
-        .navigationTitle(note?.title ?? path)
+        .navigationTitle(note?.displayTitle ?? path)
         .toolbar {
             // The phone's navigation bar has room for a back button, a title and one control.
             // Everything went in as separate items and the segmented picker was squeezed to
@@ -985,7 +985,7 @@ struct ProjectDeadlineChip: View {
 
     var body: some View {
         Button { picking = true } label: {
-            MarkLabel(note.dueDate.map { "Due \($0.description)" } ?? "Set a deadline\u{2026}", "calendar")
+            MarkLabel(note.dueDate.map { "Due \(DayWords.plain($0))" } ?? "Set a deadline\u{2026}", "calendar")
         }
         .buttonStyle(.bordered)
         .foregroundStyle(note.dueDate == nil ? Color.secondary : ParaKind.project.tint)
@@ -1061,9 +1061,9 @@ struct GoalTargetChip: View {
     /// short facts. The one place both are spelled, so the goals drawn inside an aspiration's
     /// chain, which carry no button, say it the same way.
     static func words(for target: DateOnly, withTimeLeft: Bool) -> String {
-        guard withTimeLeft else { return "Target \(target.description)" }
+        guard withTimeLeft else { return "Target \(DayWords.plain(target))" }
         let left = target.timeLeftText(from: DateOnly.today())
-        return "Target \(target.description) · \(left)"
+        return "Target \(DayWords.plain(target)) · \(left)"
     }
 
     /// What the header's label says. Written out as a function returning `String`, never an
@@ -1077,7 +1077,7 @@ struct GoalTargetChip: View {
     /// What a screen reader says, and what the screen test reads.
     private static func spoken(_ target: DateOnly?) -> String {
         guard let target else { return "Set a target date" }
-        return "Target \(target.description)"
+        return "Target \(DayWords.plain(target))"
     }
 
     /// Grey when no date is set, orange when the date has passed on a goal that is still
@@ -1473,7 +1473,7 @@ struct NoteHeader: View {
         let open = tasks.filter { !$0.isDone }.count
         if let fraction = progress?.fraction {
             BandNumber(number: "\(Int((fraction * 100).rounded())) %",
-                       words: note.targetDate.map { "of the way · Target \($0.description)" } ?? "of the way",
+                       words: note.targetDate.map { "of the way · Target \(DayWords.plain($0))" } ?? "of the way",
                        identifier: "note.band")
         } else if !tasks.isEmpty {
             BandNumber(number: "\(open)",
@@ -1939,12 +1939,6 @@ struct WeekAgendaView: View {
     let week: WeekRef
     @State private var expanded = true
 
-    private static let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("EEE d")
-        return f
-    }()
-
     var body: some View {
         let overview = model.index.weekOverview(for: week)
         VStack(alignment: .leading, spacing: 4) {
@@ -1962,7 +1956,7 @@ struct WeekAgendaView: View {
                 .foregroundStyle(.tertiary)
             ForEach(overview.days) { day in
                 HStack {
-                    Text(day.date.date().map(Self.dayFormatter.string(from:)) ?? day.date.description)
+                    Text(DayWords.withWeekday(day.date))
                         .font(Txt.label.weight(day.date == .today() ? .bold : .semibold))
                     Spacer()
                     if !day.due.isEmpty {

@@ -729,8 +729,8 @@ struct MapNodeView: View {
             let open = note.openTasks.count
             parts.append(open == 0 ? "no open tasks" : "\(open) open")
         }
-        if let due = note.dueDate { parts.append("due \(due)") }
-        if let target = note.targetDate { parts.append("by \(target)") }
+        if let due = note.dueDate { parts.append("due \(DayWords.plain(due))") }
+        if let target = note.targetDate { parts.append("by \(DayWords.plain(target))") }
         return parts.joined(separator: " · ")
     }
 

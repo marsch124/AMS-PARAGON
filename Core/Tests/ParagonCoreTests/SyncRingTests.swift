@@ -33,7 +33,7 @@ final class SyncRingTests: XCTestCase {
         XCTAssertEqual(word(nil), "Not yet")
         XCTAssertEqual(word(ago(25), 3), "3 conflicts")
         XCTAssertEqual(word(ago(24 * 60)), "Yesterday")
-        XCTAssertEqual(word(ago(3 * 24 * 60)), "9 Nov")
+        XCTAssertEqual(word(ago(3 * 24 * 60)), "2026-11-09")
     }
 
     /// Build 304: the count of tasks due today beside the Mac menu bar ring.

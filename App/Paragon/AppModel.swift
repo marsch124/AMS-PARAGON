@@ -438,7 +438,7 @@ final class AppModel: ObservableObject {
     }
 
     func log(_ line: String) {
-        let stamp = Date().formatted(date: .omitted, time: .standard)
+        let stamp = DayWords.time(Date(), seconds: true)
         diagnostics.append("\(stamp) \(line)")
         if diagnostics.count > 500 { diagnostics.removeFirst(100) }
         print("PARAGON " + line)
@@ -3863,7 +3863,7 @@ final class AppModel: ObservableObject {
                 written += spans.reduce(0) { $0 + $1.minutes }
                 changed = true
             } catch {
-                problem = "The time for \(day.description) could not be written: \(error.localizedDescription)"
+                problem = "The time for \(DayWords.withWeekday(day)) could not be written: \(error.localizedDescription)"
             }
         }
         if changed { reload() }

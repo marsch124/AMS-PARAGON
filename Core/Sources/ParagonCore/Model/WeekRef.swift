@@ -109,10 +109,6 @@ public struct MonthRef: Hashable, Comparable, Sendable {
 
     public static func current() -> MonthRef { MonthRef(containing: .today()) }
 
-    /// `September 2026`
-    public var title: String {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("MMMM yyyy")
-        return firstDay.date().map(f.string(from:)) ?? "\(year)-\(month)"
-    }
+    /// `2026-09`, the one date style for a month alone (`DayWords`).
+    public var title: String { DayWords.month(self) }
 }

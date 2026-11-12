@@ -147,24 +147,11 @@ public enum WaitingFor {
 
     // MARK: Words
 
-    /// "Fri 6 Nov", and "Sat 6 Feb 2027" when the year is not this year's.
-    ///
-    /// The weekday and the month are the locale's own words; the order is always day first. They
-    /// are formatted one by one, because a ready-made pattern for "weekday, day, month" differs
-    /// between English locales (a comma, an order) and the wording here is pinned by tests.
+    /// "2026-11-06", the one date style (`DayWords`), as a row's caption writes a follow-up day.
+    /// The other arguments are kept for the callers; the wording no longer follows the region.
     public static func dayText(_ day: DateOnly, today: DateOnly,
                                calendar: Calendar = .current, locale: Locale = .current) -> String {
-        guard let date = day.date(calendar: calendar) else { return day.description }
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("EEE")
-        let weekday = formatter.string(from: date)
-        formatter.setLocalizedDateFormatFromTemplate("MMM")
-        let month = formatter.string(from: date)
-        var text = "\(weekday) \(day.day) \(month)"
-        if day.year != today.year { text += " \(day.year)" }
-        return text
+        DayWords.plain(day)
     }
 
     /// The person chooser in the task menu's window: every distinct name already used, most

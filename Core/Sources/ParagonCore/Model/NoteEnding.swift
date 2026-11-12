@@ -130,15 +130,11 @@ public struct ProjectEnding: Equatable, Sendable {
         }
     }
 
-    /// "20 October", with the year when it is not this year's.
+    /// "2026-10-20", the one date style (`DayWords`). The other arguments are kept for the
+    /// callers; the wording no longer follows the region or the year.
     public static func dayText(_ day: DateOnly, today: DateOnly,
                                calendar: Calendar = .current, locale: Locale = .current) -> String {
-        guard let date = day.date(calendar: calendar) else { return day.description }
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate(day.year == today.year ? "d MMMM" : "d MMMM y")
-        return formatter.string(from: date)
+        DayWords.plain(day)
     }
 
     /// The whole line, or nil when no end day was written.

@@ -28,12 +28,6 @@ struct DoneView: View {
     private var isPhone: Bool { false }
     #endif
 
-    private static let dayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("EEEE d MMMM")
-        return f
-    }()
-
     var body: some View {
         let today = diary?.today ?? DateOnly.today()
         // **The first `ScrollViewReader` in the app** (build 268): a square at the top goes to
@@ -136,12 +130,12 @@ struct DoneView: View {
         diary = index.doneDiary(today: DateOnly.today())
     }
 
-    /// How a day is named on its card and on its square: "Today", "Yesterday", "Tuesday 14
-    /// October". One function, so the two can never name one day two ways.
+    /// How a day is named on its card and on its square: "Today", "Yesterday", "Tuesday
+    /// 2026-10-14". One function, so the two can never name one day two ways.
     static func title(for day: DateOnly, today: DateOnly) -> String {
         if day == today { return "Today" }
         if day == today.adding(days: -1) { return "Yesterday" }
-        return day.date().map(dayFormatter.string(from:)) ?? day.description
+        return DayWords.withWeekday(day)
     }
 }
 
@@ -260,12 +254,6 @@ struct DoneSquaresView: View {
     /// The size the grid falls back to in a narrow column.
     private static let smallSide: CGFloat = 12
 
-    private static let monthFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("MMMM")
-        return f
-    }()
-
     private var folded: Binding<Bool> {
         isPhone ? $phoneFolded : $deskFolded
     }
@@ -358,7 +346,7 @@ struct DoneSquaresView: View {
     }
 
     private func monthName(_ day: DateOnly) -> String {
-        day.date().map(Self.monthFormatter.string(from:)) ?? ""
+        DayWords.month(day)
     }
 
     /// One day: a button when it can go somewhere, a plain square when it is drawn, and empty
