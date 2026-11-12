@@ -165,7 +165,7 @@ The picture opened big marks the words you searched for with tinted boxes (build
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (298)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (299)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 

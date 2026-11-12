@@ -79,15 +79,9 @@ struct ContentView: View {
                 }
                 .toolbar {
                     ToolbarItemGroup {
-                        Button {
-                            model.activeSheet = .quickCapture
-                        } label: {
-                            MarkLabel("Quick capture", "tray.and.arrow.down")
-                        }
-                        .help("Capture a thought into the Inbox, today's note or a project (⇧⌘N)")
-                        // The same name the phone's Today button carries, so one screen test
-                        // opens the capture on both platforms (build 196).
-                        .accessibilityIdentifier("capture.open")
+                        // Build 299, his ask: no Quick capture button here any more. The coloured
+                        // + New note button over the list does it (Capture is one of its six
+                        // choices); ⇧⌘N still opens Quick capture straight away.
                         // Build 292: no sync button here. He asked for it to go; the sync
                         // runs by itself, the pill at the foot of the sidebar shows how it
                         // stands and syncs on a press, and File › Sync with Reminders keeps ⇧⌘R.
@@ -747,8 +741,10 @@ struct NoteListView: View {
                     MarkLabel("New note", "plus.circle.fill")
                         .foregroundStyle(shown?.tint ?? Color.accentColor)
                 }
-                .help("New note in this section (⌘N)")
-                .accessibilityIdentifier("list.newNote")
+                .help("New note in this section, or a quick capture (⌘N)")
+                // On Today it opens on Capture, so it carries the name the phone's + has and
+                // the screen tests press to capture (build 299: the tray button is gone).
+                .accessibilityIdentifier(shown == .today ? "capture.open" : "list.newNote")
             }
             if shown == .work {
                 ToolbarItem {

@@ -108,13 +108,15 @@ struct InboxTriageView: View {
 
     private var inbox: Note? { InboxItems.note(model) }
     private var items: [TaskRef] { InboxItems.waiting(model) }
+    /// Build 299: notes captured into the Inbox, listed under the tasks.
+    private var notes: [InboxNotes.Line] { inbox.map { InboxNotes.lines(in: $0.text) } ?? [] }
     private var selected: TaskRef? { InboxItems.selected(model) }
 
     var body: some View {
         VStack(spacing: 0) {
             captureBar
             Divider()
-            if items.isEmpty, model.inboxIsComingFromCloud {
+            if items.isEmpty, notes.isEmpty, model.inboxIsComingFromCloud {
                 // Not "Inbox zero": the Inbox note has not reached this device yet (build 261),
                 // and an empty Inbox is something this app may only say when it knows.
                 EmptyStateView(title: "Still coming from iCloud",
@@ -124,7 +126,7 @@ struct InboxTriageView: View {
                                actionTitle: "Ask iCloud again",
                                action: { model.fetchMissingNotes() },
                                warns: true)
-            } else if items.isEmpty {
+            } else if items.isEmpty, notes.isEmpty {
                 EmptyStateView(title: "Inbox zero",
                                markName: "tray",
                                message: "Nothing left to sort. Anything you capture — here, from the menu bar, or from the share sheet on the phone — lands in this list.",
@@ -146,6 +148,21 @@ struct InboxTriageView: View {
                                 .padding(.leading, 23)
                                 .listRowBackground(plainRowFill)
                                 .listRowSeparator(.hidden)
+                        }
+                    }
+                    // Build 299: notes captured into the Inbox, under the tasks.
+                    if !notes.isEmpty {
+                        Section {
+                            ForEach(notes, id: \.self) { line in
+                                InboxNoteRow(line: line,
+                                             makeTask: { changeInbox { InboxNotes.makingTask($0, line: line) } },
+                                             delete: { changeInbox { InboxNotes.removing($0, line: line) } })
+                                    .listRowBackground(plainRowFill)
+                            }
+                        } header: {
+                            SectionLabel(title: "Notes", count: notes.count, markName: "doc.text",
+                                         tint: SidebarSection.inbox.tint)
+                                .accessibilityIdentifier("inbox.notes")
                         }
                     }
                 }
@@ -218,6 +235,13 @@ struct InboxTriageView: View {
     }
 
     // MARK: Doing things
+
+    /// Build 299: Make task or Delete on a captured note — the Inbox note's text, changed.
+    private func changeInbox(_ change: (String) -> String) {
+        guard let inbox else { return }
+        let new = change(inbox.text)
+        if new != inbox.text { model.saveText(new, forNoteAt: inbox.relativePath) }
+    }
 
     private func capture() {
         let text = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -711,5 +735,34 @@ struct DestinationRow: View {
         let open = note.openTasks.count
         let kind = note.kind == .project ? "Project" : (isSubArea ? "Sub-area" : "Area")
         return open == 0 ? kind : "\(kind) · \(open) open"
+    }
+}
+
+/// Build 299: one note captured into the Inbox — its words, Make task, and the bin.
+struct InboxNoteRow: View {
+    let line: InboxNotes.Line
+    let makeTask: () -> Void
+    let delete: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(line.text)
+                .font(Txt.list)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button("Make task", action: makeTask)
+                .buttonStyle(.borderedProminent)
+                .tint(SidebarSection.inbox.tint)
+                .controlSize(.small)
+                .accessibilityIdentifier("inbox.note.makeTask")
+            Button(action: delete) {
+                MarkImage("trash", size: 14)
+            }
+            .accessibilityLabel("Delete")
+            .buttonStyle(.borderless)
+            .foregroundStyle(.secondary)
+            .help("Delete this note")
+            .accessibilityIdentifier("inbox.note.delete")
+        }
+        .accessibilityIdentifier("inbox.note")
     }
 }

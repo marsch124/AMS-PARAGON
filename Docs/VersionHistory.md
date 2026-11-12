@@ -1,6 +1,34 @@
 # Version history
 
-The version is shown as 1.0 (298) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (299) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 299 · 12 November 2026
+
+**One New note button, and notes in the Inbox.**
+
+**Before (build 298).** On the Mac and the iPad window there were two buttons at the top right that opened the same capture screen: the tray (Quick capture) and the coloured **+ New note**. **New note** always started on Project when you were in Inbox, Calendar or Search. A capture saved as **A note** into the Inbox was written into the Inbox note, but the Inbox screen listed only tasks, so you could not see these notes there.
+
+**Now, one button (Mac and iPad window).**
+- The separate **Quick capture** button (the tray) at the top right of the window is gone.
+- The coloured **+ New note** button does everything: its window has **Capture** as one of its six choices.
+- The keyboard shortcuts stay: **⌘N** New note, **⇧⌘N** Quick capture.
+- The menu bar capture and the iPhone are unchanged (the iPhone already had just one **+** button).
+
+**Now, New note remembers your last choice.**
+- In a section with its own kind (Projects, Areas, Resources, Goals, Aspirations) it still starts on that kind.
+- On Today it starts on **Capture**.
+- Everywhere else (Inbox, Calendar, Search and so on) it starts on the choice you used last time, instead of always Project.
+
+**Now, captured notes show in the Inbox.**
+- A capture saved as **A note** into the Inbox is written into the Inbox note under a **Notes** heading.
+- The Inbox screen has a **Notes** part under the tasks, with one row for each captured note.
+- Each row has **Make task**: it becomes a task in the list above, to sort like any other.
+- Each row also has a bin button to delete the note.
+- The Inbox shows **Inbox zero** only when there are no tasks and no notes.
+
+**What did not change.** Tasks in the Inbox, Quick capture itself, the menu bar capture, the files in your vault and all the colours are as in build 298.
+
+**The version.** It shows as "PARAGON 1.0 (299)".
 
 ## Build 298 · 12 November 2026
 

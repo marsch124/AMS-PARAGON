@@ -107,6 +107,8 @@ struct NewNoteSheet: View {
     #endif
 
     @State private var thing: NewThing = .project
+    /// Build 299: the choice used last time, for screens with no kind of their own.
+    @AppStorage("newNoteLastThing") private var lastThing = NewThing.project.rawValue
     @State private var title = ""
     @State private var target = ""
     /// The goal this note serves: an aspiration for a dated goal or an area, any goal for a
@@ -143,6 +145,8 @@ struct NewNoteSheet: View {
         .onAppear {
             if let match = NewThing.forSection(model.section) {
                 thing = match
+            } else if let last = NewThing(rawValue: lastThing) {
+                thing = last
             }
             // Opened by "What is next for this goal?" (build 271): the kind first, then the
             // goal, because choosing a kind clears the goal (`pick(_:)`). Taken once; the model
@@ -157,7 +161,10 @@ struct NewNoteSheet: View {
             DispatchQueue.main.async { nameFocused = !thing.isCapture }
         }
         // Each kind has its own templates, so the choice starts again at its default.
-        .onChange(of: thing) { _, _ in template = defaultTemplateName }
+        .onChange(of: thing) { _, new in
+            template = defaultTemplateName
+            lastThing = new.rawValue
+        }
     }
 
     /// A phone sheet may not be given a minimum width wider than the phone (build 158).
