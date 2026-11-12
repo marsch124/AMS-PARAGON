@@ -237,7 +237,7 @@ One mark, one meaning. Before build 311 the ring, the four squares, the hourglas
 | Round arrows with a tick | Weekly review | A tick with lines, which looked like Snippets |
 | Two pages, one behind the other | Templates | A page with a tiny gear, a blob at list size |
 | Three small rings | More (the … on a note) | Three specks; now about twice as visible |
-| Arrow into a tray | Move to Archive (Mac note toolbar) | Two icons stacked, an arrow on a box, twice as tall as its neighbours |
+| Archive box with a small arrow going into it | Move to Archive (Mac note toolbar) | Two icons stacked, an arrow on a box, twice as tall as its neighbours |
 | Hourglass | Waiting (the Waiting-for switch, "N waiting") | Unchanged |
 | Plain clock face | A time of day on a task | The stopwatch |
 | Dash in a ring | Dropped; reminders deleted | A bare dash |

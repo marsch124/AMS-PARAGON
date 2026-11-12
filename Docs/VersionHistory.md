@@ -28,7 +28,7 @@ The numbers such as "1.3 points" say how thick the line of an icon is on the scr
 
 **1. Move to Archive is one drawing.**
 - Before: two icons stacked, an arrow on top of a box, twice as tall as its neighbours in the Mac note toolbar.
-- Now: one drawing, an arrow going into a tray. It is as tall as the buttons beside it.
+- Now: one drawing, the archive box with a small arrow going into it. It is as tall as the buttons beside it.
 
 **2. Actions is a ticked list. The ring is an open task.**
 - Before: the **Actions** tab on the iPhone and **All actions** in the Mac sidebar showed an empty ring, the same ring as an open task and **Active**.

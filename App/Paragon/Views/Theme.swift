@@ -797,7 +797,7 @@ struct GoalProgressBar: View {
     }
 }
 
-/// The Archive button's symbol: an arrow coming down into a tray, because the button
+/// The Archive button's symbol: the archive box with a small arrow going into it, because the button
 /// **moves** the note rather than showing an archive. His idea, build 154 — "is it possible to
 /// make a small down arrow so that it shows the movement somehow?"
 ///
