@@ -133,6 +133,7 @@ struct TodayView: View {
                     .padding(.bottom, Theme.tight)
             }
             List(selection: model.noteSelection) {
+                Group {
                 if model.showsCalendarEvents {
                     Section {
                         // **The message is never folded away.** With Calendar access off, the
@@ -225,6 +226,9 @@ struct TodayView: View {
                         foldHeader("Important, no date", count: important.count, tint: SidebarSection.today.tint)
                     }
                 }
+                }
+                // Review round 4: on the iPhone each row is a card in the part's colour.
+                .phoneCard(SidebarSection.today.tint)
             }
         }
         .task(id: today) { await model.loadEvents(for: today) }

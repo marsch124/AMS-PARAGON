@@ -108,6 +108,7 @@ struct TimeBlocksView: View {
         let grouped = Dictionary(grouping: model.timeBlocks, by: \.day)
         let days = grouped.keys.sorted()
         return List {
+            Group {
             if days.isEmpty {
                 Text(model.calendarAccessGranted == false
                      ? "Time blocks need Calendar access."
@@ -121,6 +122,9 @@ struct TimeBlocksView: View {
                     }
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.timeBlocks.tint)
         }
     }
 

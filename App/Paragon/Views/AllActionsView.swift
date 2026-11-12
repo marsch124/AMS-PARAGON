@@ -281,6 +281,7 @@ struct AllActionsView: View {
 
     private func list(_ groups: [(note: Note, tasks: [TaskRef])]) -> some View {
         List(selection: model.noteSelection) {
+            Group {
             ForEach(groups, id: \.note.relativePath) { group in
                 Section {
                     ForEach(group.tasks) { ref in
@@ -300,6 +301,9 @@ struct AllActionsView: View {
                     }
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.allActions.tint)
         }
     }
 

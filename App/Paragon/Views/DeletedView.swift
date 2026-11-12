@@ -18,6 +18,7 @@ struct DeletedView: View {
                                message: "Notes you delete wait here for \(AppModel.deletedKeptForDays) days, so a mistake is never final. Tasks are not kept here — only whole notes.")
             } else {
                 List {
+                    Group {
                     Section {
                         ForEach(listed) { deleted in
                             DeletedRow(deleted: deleted)
@@ -26,6 +27,9 @@ struct DeletedView: View {
                         Text("Kept for \(AppModel.deletedKeptForDays) days, then cleared out.")
                             .font(Txt.label)
                     }
+                    }
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(SidebarSection.deleted.tint)
                 }
             }
         }

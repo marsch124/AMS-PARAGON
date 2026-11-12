@@ -343,7 +343,7 @@ struct PanelStyle: ViewModifier {
                 ZStack {
                     shape.fill(Theme.surface)
                     if let tint {
-                        shape.fill(tint.opacity(scheme == .dark ? 0.13 : 0.07))
+                        shape.fill(tint.opacity(Theme.tintShare(scheme)))
                     }
                     if scheme == .dark {
                         shape.strokeBorder(Theme.line, lineWidth: 1)
@@ -596,5 +596,106 @@ struct BandNumber: View {
         .minimumScaleFactor(0.7)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(identifier)
+    }
+}
+
+// MARK: - The iPhone's page, cards and band (review round 4)
+
+extension Theme {
+    /// How much of a part's colour lies over a panel or a card: 7 % by day, 13 % at night.
+    static func tintShare(_ scheme: ColorScheme) -> Double { scheme == .dark ? 0.13 : 0.07 }
+}
+
+private struct PhoneLookKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// True inside the iPhone layout (`PhoneRootView` and the sheets over it), false on the
+    /// Mac and in the iPad's columns. Set once, in `ContentView`. Not the size class: a
+    /// column of the iPad's split view is "compact" too.
+    var phoneLook: Bool {
+        get { self[PhoneLookKey.self] }
+        set { self[PhoneLookKey.self] = newValue }
+    }
+}
+
+#if os(iOS)
+/// **An iPhone card**: the surface with the part's colour over it, 7 % by day and 13 % at
+/// night — a panel's fill, as a list row's background. Outside the iPhone layout it is
+/// Apple's own card, so the iPad is as it was.
+struct PhoneCardFill: View {
+    let tint: Color?
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.phoneLook) private var phoneLook
+
+    var body: some View {
+        if phoneLook {
+            ZStack {
+                Theme.surface
+                if let tint { tint.opacity(Theme.tintShare(scheme)) }
+            }
+        } else {
+            Color(UIColor.secondarySystemGroupedBackground)
+        }
+    }
+}
+
+private struct PhoneCard: ViewModifier {
+    let tint: Color?
+    @Environment(\.phoneLook) private var phoneLook
+
+    func body(content: Content) -> some View {
+        content.listRowBackground(phoneLook ? PhoneCardFill(tint: tint) : nil)
+    }
+}
+
+private struct PhonePage: ViewModifier {
+    @Environment(\.phoneLook) private var phoneLook
+
+    func body(content: Content) -> some View {
+        content
+            .scrollContentBackground(phoneLook ? .hidden : .automatic)
+            .background(phoneLook ? Theme.canvas : Color.clear)
+    }
+}
+
+/// **The slim band every iPhone list screen opens with**: one row in the part's colour, the
+/// screen's one fact — a count or the date — in white. The same band Today draws.
+struct PhoneBand: View {
+    let tint: Color
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(Txt.label)
+            .monospacedDigit()
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .accessibilityIdentifier("phone.band")
+            .band(tint, vertical: 6)
+    }
+}
+#endif
+
+extension View {
+    /// The iPhone's page: `Theme.canvas` behind a list or a scrolling screen, in place of
+    /// Apple's grouped grey. Nothing on the Mac or the iPad.
+    func phonePage() -> some View {
+        #if os(iOS)
+        modifier(PhonePage())
+        #else
+        self
+        #endif
+    }
+
+    /// The iPhone's cards: on the content of a `List` (a `Group`, a `Section`, a row), gives
+    /// each row the surface with the part's colour over it. Nothing on the Mac or the iPad.
+    func phoneCard(_ tint: Color?) -> some View {
+        #if os(iOS)
+        modifier(PhoneCard(tint: tint))
+        #else
+        self
+        #endif
     }
 }

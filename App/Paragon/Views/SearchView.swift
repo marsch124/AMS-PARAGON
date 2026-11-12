@@ -372,6 +372,7 @@ struct SearchView: View {
                 hit.tasks.map { TaskRef(notePath: hit.note.relativePath, noteTitle: hit.note.displayTitle, task: $0) }
             }
             List(selection: model.noteSelection) {
+                Group {
                 Section {
                     ForEach(refs) { ref in
                         TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
@@ -380,9 +381,13 @@ struct SearchView: View {
                 } header: {
                     resultsHeading("\(refs.count) task\(refs.count == 1 ? "" : "s")")
                 }
+                }
+                // Review round 4: on the iPhone each row is a card in the part's colour.
+                .phoneCard(SidebarSection.search.tint)
             }
         } else {
             List(selection: model.noteSelection) {
+                Group {
                 Section {
                     ForEach(hits) { hit in
                         SearchHitRow(hit: hit)
@@ -391,6 +396,9 @@ struct SearchView: View {
                 } header: {
                     resultsHeading("\(hits.count) note\(hits.count == 1 ? "" : "s")")
                 }
+                }
+                // Review round 4: on the iPhone each row is a card in the part's colour.
+                .phoneCard(SidebarSection.search.tint)
             }
         }
     }
@@ -569,6 +577,7 @@ struct SearchHelpView: View {
 
     var body: some View {
         List {
+            Group {
             Section {
                 Text("Write a word above, or tick any of the boxes. Ticking two boxes in the same row means either of them; boxes in different rows are added together.")
                     .font(Txt.label)
@@ -596,6 +605,9 @@ struct SearchHelpView: View {
                     .font(Txt.listSecond)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.search.tint)
         }
     }
 }

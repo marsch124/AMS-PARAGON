@@ -370,7 +370,8 @@ struct NoteEditorView: View {
         }
         // The phone has no third column, so the note screen itself carries the section's
         // colour (build 111). Same tint, same rule as the Mac's right-hand panel.
-
+        // Review round 4: the open note sits on the app's page, like the lists it came from.
+        .phonePage()
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 Divider()

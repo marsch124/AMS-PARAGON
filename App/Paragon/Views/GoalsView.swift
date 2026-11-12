@@ -75,6 +75,7 @@ struct AspirationsListView: View {
     private func deskList(chains: [AspirationChain],
                           ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List(selection: model.noteSelection) {
+            Group {
             if !chains.isEmpty {
                 Section {
                     ForEach(chains) { chain in
@@ -98,6 +99,9 @@ struct AspirationsListView: View {
             ForEach(ended, id: \.status) { group in
                 endedSection(group.status, group.notes)
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.aspirations.tint)
         }
     }
 
@@ -128,6 +132,7 @@ struct AspirationsListView: View {
     private func phoneList(chains: [AspirationChain],
                            ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List {
+            Group {
             if !chains.isEmpty {
                 Section("Aspirations") {
                     ForEach(chains) { chain in
@@ -144,6 +149,9 @@ struct AspirationsListView: View {
                     endedHeader(group.status, group.notes.count)
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.aspirations.tint)
         }
     }
 
@@ -266,6 +274,7 @@ struct DatedGoalsListView: View {
     private func deskList(live: (wanting: [Note], rest: [Note]),
                           ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List(selection: model.noteSelection) {
+            Group {
             if !live.wanting.isEmpty {
                 Section {
                     ForEach(live.wanting) { note in
@@ -300,12 +309,16 @@ struct DatedGoalsListView: View {
                                     folded: endedFolded) { endedFolded.toggle() }
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.kind(.goal).tint)
         }
     }
 
     private func phoneList(live: (wanting: [Note], rest: [Note]),
                            ended: [(status: NoteStatus, notes: [Note])]) -> some View {
         List {
+            Group {
             if !live.wanting.isEmpty {
                 Section("Needs a look") {
                     ForEach(live.wanting) { note in row(note) }
@@ -328,6 +341,9 @@ struct DatedGoalsListView: View {
                                     folded: endedFolded) { endedFolded.toggle() }
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.kind(.goal).tint)
         }
     }
 

@@ -223,6 +223,7 @@ struct WaitingForList: View {
 
     private var rows: some View {
         List {
+            Group {
             ForEach(list.groups) { group in
                 Section {
                     ForEach(group.lines) { line in
@@ -232,6 +233,9 @@ struct WaitingForList: View {
                     heading(group)
                 }
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.allActions.tint)
         }
         .accessibilityIdentifier("waiting.list")
     }

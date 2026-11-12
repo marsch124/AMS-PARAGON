@@ -84,7 +84,10 @@ struct InboxTriageView: View {
     /// platform, and **the two platforms need opposite answers**: on iOS an inset-grouped
     /// list's white card *is* the row background, so `Color.clear` there would show the grey
     /// page behind the row.
-    private var plainRowFill: Color? { Color(UIColor.secondarySystemGroupedBackground) }
+    ///
+    /// Review round 4: on the iPhone that card is the app's own — the surface with the
+    /// Inbox's colour over it (`PhoneCardFill`); on the iPad it is Apple's card, as before.
+    private var plainRowFill: PhoneCardFill? { PhoneCardFill(tint: SidebarSection.inbox.tint) }
     #else
     /// On the Mac it is the other way round: the **list** paints the background and a row is
     /// transparent to begin with, so clear is the plain state and naming an `NSColor` would

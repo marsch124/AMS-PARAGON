@@ -18,6 +18,7 @@ struct SettingsView: View {
         // Build 285: a press on the sync line opens Settings here, at Reminders sync.
         ScrollViewReader { proxy in
         Form {
+            Group {
             Section("Vault") {
                 LabeledContent("Folder") {
                     Text(model.vaultPath ?? "No vault selected")
@@ -305,8 +306,12 @@ struct SettingsView: View {
                     .font(Txt.label)
                     .foregroundStyle(.soft)
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(Theme.fallbackTint)
         }
         .formStyle(.grouped)
+        .phonePage()
         .navigationTitle("Settings")
         #if os(macOS)
         .frame(width: 520, height: 560)

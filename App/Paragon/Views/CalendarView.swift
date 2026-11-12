@@ -123,6 +123,7 @@ struct DayCalendarView: View {
     @ViewBuilder
     private func dayContents(day: DateOnly, overview: DayOverview) -> some View {
         List(selection: model.noteSelection) {
+            Group {
             if model.showsCalendarEvents {
                 Section {
                     CalendarEventRows(date: day)
@@ -167,6 +168,9 @@ struct DayCalendarView: View {
                 }
                 .tag(overview.dailyNotePath ?? "")
             }
+            }
+            // Review round 4: on the iPhone each row is a card in the part's colour.
+            .phoneCard(SidebarSection.calendar.tint)
         }
     }
 
@@ -336,10 +340,14 @@ struct DailyNotesListView: View {
                                tint: ParaKind.daily.tint)
             } else {
                 List(selection: model.noteSelection) {
+                    Group {
                     ForEach(listed) { note in
                         DailyNoteRow(note: note, preview: true)
                             .tag(note.relativePath)
                     }
+                    }
+                    // Review round 4: on the iPhone each row is a card in the part's colour.
+                    .phoneCard(SidebarSection.calendar.tint)
                 }
             }
         }
@@ -518,6 +526,7 @@ struct WeekOverviewView: View {
                      identifier: "week.tray")
             WeekStrip(days: overview.days)
             List(selection: model.noteSelection) {
+                Group {
                 Section {
                     Button {
                         model.openWeeklyNote(for: overview.week)
@@ -561,6 +570,9 @@ struct WeekOverviewView: View {
                         .acceptsTaskDrop { ref in model.setDueDate(ref, day.date) }
                     }
                 }
+                }
+                // Review round 4: on the iPhone each row is a card in the part's colour.
+                .phoneCard(SidebarSection.calendar.tint)
             }
         }
     }
