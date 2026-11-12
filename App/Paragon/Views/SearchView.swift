@@ -292,7 +292,7 @@ struct SearchView: View {
     @ViewBuilder
     private func tagGroup(_ query: SearchQuery) -> some View {
         let tags = model.allTagNames
-        group("Tags", tint: SidebarSection.tags.tint, note: tags.isEmpty ? "No tags in the vault yet." : nil) {
+        group("Tags", tint: SidebarSection.tags.tint, note: tags.isEmpty ? "No tags in the vault yet" : nil) {
             ForEach(tags, id: \.self) { tag in
                 FilterBox(title: "#\(tag)",
                           isOn: query.tags.contains(tag.lowercased()),
