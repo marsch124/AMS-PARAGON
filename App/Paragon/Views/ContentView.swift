@@ -528,6 +528,9 @@ struct NoteListView: View {
 
     private var searching: Bool { !searchText.trimmingCharacters(in: .whitespaces).isEmpty }
 
+    /// Build 312: the phone's Actions and Inbox tabs carry the round capture + above the tabs.
+    private var hasFloatingCapture: Bool { fixed == .allActions || fixed == .inbox }
+
     /// Areas are a two-level list: each area followed by its sub-areas unless it is folded.
     /// While searching, and for every other section, the plain flat list.
     private var visibleNotes: [Note] {
@@ -763,6 +766,9 @@ struct NoteListView: View {
                 }
             }
             // Over the list it adds to, rather than away at the right by the search field.
+            // Build 312: not on the phone's Actions and Inbox tabs (`fixed` is the phone's),
+            // where the round + above the tabs has taken its place.
+            if !hasFloatingCapture {
             ToolbarItem(placement: .navigation) {
                 Button {
                     if shown == .work { makingWorkNote = true } else { model.activeSheet = .newNote }
@@ -780,6 +786,7 @@ struct NoteListView: View {
                 // On Today it opens on Capture, so it carries the name the phone's + has and
                 // the screen tests press to capture (build 299: the tray button is gone).
                 .accessibilityIdentifier(shown == .today ? "capture.open" : "list.newNote")
+            }
             }
             if shown == .work {
                 ToolbarItem {

@@ -36,6 +36,27 @@ final class SyncRingTests: XCTestCase {
         XCTAssertEqual(word(ago(3 * 24 * 60)), "2026-11-09")
     }
 
+    /// Build 312: the caption under the ring names the sync and says how long ago.
+    func testTheCaptionSaysSyncedAndHowLongAgo() {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Stockholm")!
+        let now = cal.date(from: DateComponents(year: 2026, month: 11, day: 12, hour: 10, minute: 30))!
+        func caption(_ minutes: Double?, _ c: Int = 0, s: Bool = false, w: Bool = false) -> String {
+            SyncRing.caption(syncing: s, waiting: w, finishedAt: minutes.map { now.addingTimeInterval(-$0 * 60) },
+                             conflicts: c, now: now, calendar: cal)
+        }
+        XCTAssertEqual(caption(nil), "Not synced")
+        XCTAssertEqual(caption(0.5), "Synced just now")
+        XCTAssertEqual(caption(5), "Synced 5 min ago")
+        XCTAssertEqual(caption(59.9), "Synced 59 min ago")
+        XCTAssertEqual(caption(60), "Synced 1 h ago")
+        XCTAssertEqual(caption(23 * 60), "Synced 23 h ago")
+        XCTAssertEqual(caption(3 * 24 * 60), "Synced 2026-11-09")
+        XCTAssertEqual(caption(5, s: true), "Syncing")
+        XCTAssertEqual(caption(5, w: true), "iCloud")
+        XCTAssertEqual(caption(5, 1), "1 conflict")
+    }
+
     /// Build 304: the count of tasks due today beside the Mac menu bar ring.
     func testTheMenuBarShowsTodaysCountBesideTheRing() {
         XCTAssertNil(SyncRing.dueTodayBadge(0))

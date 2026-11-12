@@ -353,7 +353,29 @@ final class ScreenTests: XCTestCase {
                       "The note that opened does not carry the name that was typed. It shows: \(shown.prefix(200))")
     }
 
-    /// Quick capture, end to end: the Quick capture button (top left of Today on the phone, the
+    #if os(iOS)
+    /// Build 312 (review round 6): the round + above the tabs is on Actions too, opens the
+    /// capture screen, and that screen has one Cancel and a Save that can be pressed at once.
+    func testTheRoundPlusOnActionsOpensCaptureWithOneCancelAndSave() {
+        go(to: .allActions)
+
+        let open = element("capture.open")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "All actions has no round + above the tabs. On screen: \(visibleTexts())")
+        open.press()
+
+        XCTAssertTrue(element("capture.text").waitForExistence(timeout: 20),
+                      "The round + did not open the capture screen. On screen: \(visibleTexts())")
+        let save = element("capture.save")
+        XCTAssertTrue(save.waitForExistence(timeout: 10), "The capture screen has no Save button.")
+        XCTAssertTrue(save.isEnabled, "Save is grey before anything is written; it should say what is missing instead.")
+        XCTAssertEqual(app.buttons.matching(identifier: "sheet.cancel").count, 1,
+                       "The capture screen should have exactly one Cancel.")
+        app.buttons["sheet.cancel"].firstMatch.tap()
+    }
+    #endif
+
+    /// Quick capture, end to end: the Quick capture button (the round + above the tabs on the phone, the
     /// window's toolbar on the Mac), a line typed, **Save**, and the line waiting in the Inbox.
     /// That is the whole point of the app's fastest path, and build 158 rebuilt the screen on
     /// a Mac panel width that had pushed Save off the phone.

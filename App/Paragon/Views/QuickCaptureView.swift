@@ -60,7 +60,7 @@ struct QuickCaptureView: View {
 
     var body: some View {
         Group {
-            if isPhone { phoneBody } else { deskBodyChromed }
+            if isPhone { phoneBodyChromed } else { deskBodyChromed }
         }
         .onAppear {
             focused = true
@@ -119,12 +119,43 @@ struct QuickCaptureView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollDismissesKeyboard(.interactively)
-            saveBar
         }
         .padding(embedded ? 0 : 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .overlay(alignment: .top) { flight }
+        // Build 312 (review round 6): ONE Save, top right in the bar, full colour; the one
+        // Cancel is the bar's, top left. The wide Save at the foot and the second Cancel
+        // beside it are gone — the foot is where the keyboard is (build 231's trouble).
+        .modifier(CaptureSaveInBar(save: saveOrSayWhy))
     }
+
+    /// On its own the phone's capture gets the same bar the New screen gives it: Cancel left,
+    /// Save right. Inside the New screen that bar is already there and only Save is added.
+    @ViewBuilder
+    private var phoneBodyChromed: some View {
+        if embedded {
+            phoneBody
+        } else {
+            phoneBody
+                .sheetChrome(title: "Quick capture", tint: SidebarSection.inbox.tint,
+                             actionTitle: "Save", showsAction: false,
+                             cancel: { dismiss() }, act: save)
+        }
+    }
+
+    /// The phone's Save can always be pressed. With nothing written it says what is missing,
+    /// in the line at the top where "Saved to Inbox" also appears.
+    private func saveOrSayWhy() {
+        if canSave { save(); return }
+        focused = true
+        withAnimation(.easeOut(duration: 0.2)) { confirmation = Self.nothingWritten }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2.5))
+            if confirmation == Self.nothingWritten { withAnimation { confirmation = nil } }
+        }
+    }
+
+    static let nothingWritten = "Write something first"
 
     // MARK: The Mac, unchanged in shape
 
@@ -292,22 +323,6 @@ struct QuickCaptureView: View {
             Text(model.caughtToday == 1 ? "1 saved today." : "\(model.caughtToday) saved today.")
                 .font(Txt.listSecond)
                 .foregroundStyle(.soft)
-        }
-    }
-
-    private var saveBar: some View {
-        HStack(spacing: 10) {
-            if !compact {
-                Button("Cancel") { dismiss() }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.soft)
-            }
-            // Build 310: the app's one main button. A plain button dims its word while it
-            // waits, which made "Save" unreadable at night.
-            Button("Save", action: save)
-                .buttonStyle(.main(SidebarSection.inbox.tint))
-            .disabled(!canSave)
-            .accessibilityIdentifier("capture.save")
         }
     }
 
@@ -500,3 +515,99 @@ struct CaptureSyntaxHelp: View {
         }
     }
 }
+
+// MARK: The phone's Save and the floating + (build 312)
+
+/// **Save** at the top right of the phone's capture screen, white on the Inbox's full colour.
+/// Never grey: pressed early it says what is missing. Nothing on the Mac and the iPad, whose
+/// capture keeps its own Save.
+struct CaptureSaveInBar: ViewModifier {
+    let save: () -> Void
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        content.toolbar { CaptureSaveItem(save: save) }
+        #else
+        content
+        #endif
+    }
+}
+
+#if os(iOS)
+/// Without the round glass iOS 26 draws behind a bar button: the button brings its own colour.
+struct CaptureSaveItem: ToolbarContent {
+    let save: () -> Void
+
+    var body: some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: .confirmationAction) { button }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .confirmationAction) { button }
+        }
+    }
+
+    private var button: some View {
+        Button("Save", action: save)
+            .buttonStyle(.filled(SidebarSection.inbox.tint))
+            .accessibilityIdentifier("capture.save")
+    }
+}
+
+/// **The round + above the tabs** (review round 6, his pick A): bottom right on Today, Actions
+/// and Inbox, where a thumb reaches it. It opens the New screen with **Capture** chosen — the
+/// same screen Today's top-left + opened — and keeps that button's name, `capture.open`.
+///
+/// It sits in the bottom safe area, so a list scrolls its last row clear of it, and it steps
+/// aside while the keyboard is up (it would ride up on top of the keys otherwise).
+struct PhoneCaptureButton: ViewModifier {
+    @EnvironmentObject private var model: AppModel
+    @State private var keyboardUp = false
+
+    static let size: CGFloat = 54
+
+    func body(content: Content) -> some View {
+        content
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                if !keyboardUp { button }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                keyboardUp = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                keyboardUp = false
+            }
+            // A second chance, in case the keyboard went without the warning (as `FocusBar`).
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
+                keyboardUp = false
+            }
+    }
+
+    private var button: some View {
+        Button {
+            // Capture, whatever this tab would otherwise start on. Set in the same breath as
+            // the sheet is asked for, as `WhatNextDialog` does.
+            model.newNotePreset = NewNotePreset(thing: .capture, servesGoal: "")
+            model.activeSheet = .newNote
+        } label: {
+            MarkImage("plus", size: 24)
+                .foregroundStyle(Color.white)
+                .frame(width: Self.size, height: Self.size)
+                .background(SidebarSection.inbox.tint.deep, in: Circle())
+                .shadow(color: .black.opacity(0.22), radius: 4, y: 2)
+                .contentShape(Circle())
+                .accessibilityLabel("New")
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("capture.open")
+        .padding(.trailing, 16)
+        .padding(.top, 6)
+        .padding(.bottom, 10)
+    }
+}
+
+extension View {
+    /// The floating capture + of the phone's Today, Actions and Inbox tabs.
+    func phoneCaptureButton() -> some View { modifier(PhoneCaptureButton()) }
+}
+#endif

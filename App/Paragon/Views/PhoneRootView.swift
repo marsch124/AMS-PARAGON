@@ -130,25 +130,11 @@ struct PhoneRootView: View {
                     // Review round 4: the app's page behind Today, as behind every section.
                     .phonePage()
                     .navigationTitle("Today")
+                    // Build 312 (review round 6, his pick A): the **+** left the top-left
+                    // corner, the hardest spot for a thumb, and floats bottom right above the
+                    // tabs (`PhoneCaptureButton`, still named `capture.open`).
+                    .phoneCaptureButton()
                     .toolbar {
-                        // The same **+** as Plan, Actions and Inbox (build 230, his ask), so
-                        // every tab has one button in one place. It opens the New note screen
-                        // with **Capture** already chosen (`NewThing.forSection(.today)`), so a
-                        // quick line is still one press away. Leading, because Today is the
-                        // root of its stack and has no back button: the phone's bar fits a
-                        // title and one control per side (build 88).
-                        //
-                        // Still named `capture.open` for the screen tests: pressing it still
-                        // opens the capture screen, which is what that name has always meant.
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                model.activeSheet = .newNote
-                            } label: {
-                                MarkImage("plus.circle.fill", size: 22)
-                                    .accessibilityLabel("New")
-                            }
-                            .accessibilityIdentifier("capture.open")
-                        }
                         PhoneSyncItem()
                     }
             }
@@ -166,6 +152,7 @@ struct PhoneRootView: View {
                 // every page alive, so a list that followed `model.section` became a copy of
                 // whichever page was in front.
                 NoteListView(fixed: item.section)
+                    .phoneCaptureButton()
                     .toolbar { PhoneSyncItem() }
             }
         case .inbox:
@@ -174,6 +161,7 @@ struct PhoneRootView: View {
                 // every page alive, so a list that followed `model.section` became a copy of
                 // whichever page was in front.
                 NoteListView(fixed: item.section)
+                    .phoneCaptureButton()
                     .toolbar { PhoneSyncItem() }
             }
         case .browse:
@@ -191,7 +179,7 @@ struct PhoneRootView: View {
 /// "Synced at" pill on Today is gone. A ring round the button is full just after a sync and
 /// runs down over two hours — green for the first hour, then yellow; a whole red ring when
 /// the last sync had conflicts — with a small word under it (the time, "Yesterday", …).
-/// Press = sync now; long press = the old pill's menu, Sync settings included.
+/// Press = the small menu, Sync now first (build 312; it was sync at once, menu on a long press).
 /// Build 300: the clock ring and the word under it are wider than the round glass iOS 26
 /// draws behind a toolbar button, which cut the word off — so this one item has none.
 struct PhoneSyncItem: ToolbarContent {
@@ -212,32 +200,25 @@ struct PhoneSyncButton: View {
     private var conflicts: Int { model.lastReport?.conflicts.count ?? 0 }
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
-            Button {
-                Task { await model.syncNow() }
-            } label: {
+        // Build 312 (review round 6): a plain tap opens the small menu, **Sync now** first.
+        // Until now a tap synced at once and the other choices hid behind a long press.
+        Menu {
+            SyncChoices {
+                model.settingsJumpToSync = true
+                model.phoneSyncSettingsRequests += 1
+            }
+        } label: {
+            TimelineView(.periodic(from: .now, by: 60)) { context in
                 label(now: context.date)
             }
-            .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
         .disabled(model.vault == nil)
         // Build 301 (his ask): a gentle tap you can feel when a sync finishes — a soft one
         // when all is well, the warning buzz when it ended with conflicts.
         .sensoryFeedback(trigger: model.isSyncing) { was, now in
             guard was, !now else { return nil }
             return conflicts > 0 ? .warning : .impact(flexibility: .soft, intensity: 0.6)
-        }
-        .contextMenu {
-            Button("Sync now") { Task { await model.syncNow() } }
-            Button("Show me what would change…") { Task { await model.previewSync() } }
-            if model.lastReport != nil {
-                Button("Last sync report…") { model.showLastReport() }
-            }
-            Divider()
-            Button("Sync settings…") {
-                model.settingsJumpToSync = true
-                model.phoneSyncSettingsRequests += 1
-            }
         }
         .accessibilityIdentifier("sync.status")
     }
