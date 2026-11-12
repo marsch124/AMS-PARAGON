@@ -344,7 +344,7 @@ private struct NowAndNextLines: View {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("Now")
                     .fontWeight(.semibold)
-                    .foregroundStyle(Theme.planBlockTint)
+                    .foregroundStyle(Theme.planBlockTint.ink)
                     .fixedSize()
                 Text(block.timeText)
                     .monospacedDigit()

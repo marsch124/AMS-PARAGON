@@ -150,7 +150,7 @@ struct AllActionsView: View {
             } label: {
                 MarkLabel(text, WaitingShowing.symbol)
                     .font(Txt.label)
-                    .foregroundStyle(tint)
+                    .foregroundStyle(tint.ink)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
             }

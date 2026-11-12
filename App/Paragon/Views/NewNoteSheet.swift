@@ -616,7 +616,7 @@ private struct ThingChoice: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .padding(.horizontal, 2)
-            .foregroundStyle(chosen ? tint : Color.secondary)
+            .foregroundStyle(chosen ? tint.capsuleWords : Theme.soft)
             .background(tint.opacity(chosen ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 9))
             .overlay(
                 RoundedRectangle(cornerRadius: 9)
@@ -665,7 +665,7 @@ private struct ChipLabel: View {
         MarkLabel(text, markName)
             .font(Txt.value)
             .lineLimit(1)
-            .foregroundStyle(isSet ? tint : Color.primary.opacity(0.62))
+            .foregroundStyle(isSet ? tint.capsuleWords : Color.primary.opacity(0.62))
             .padding(.horizontal, 11)
             .padding(.vertical, 6)
             .background(tint.opacity(isSet ? 0.16 : 0), in: Capsule())

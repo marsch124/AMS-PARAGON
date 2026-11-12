@@ -609,7 +609,7 @@ struct PickButton: View {
             Text(isOn ? onTitle : offTitle)
                 .font(large ? .callout.weight(.semibold) : .caption.weight(.semibold))
                 .lineLimit(1)
-                .foregroundStyle(isOn ? tint : Color.primary.opacity(0.62))
+                .foregroundStyle(isOn ? tint.capsuleWords : Color.primary.opacity(0.62))
                 .frame(width: large ? PickButton.largeWidth - 16 : nil)
                 .padding(.horizontal, large ? 8 : 10)
                 .padding(.vertical, large ? 6 : 3)

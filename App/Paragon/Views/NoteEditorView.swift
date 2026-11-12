@@ -987,7 +987,7 @@ struct ProjectDeadlineChip: View {
             MarkLabel(note.dueDate.map { "Due \(DayWords.plain($0))" } ?? "Set a deadline\u{2026}", "calendar")
         }
         .buttonStyle(.bordered)
-        .foregroundStyle(note.dueDate == nil ? Color.secondary : ParaKind.project.tint)
+        .foregroundStyle(note.dueDate == nil ? Theme.soft : ParaKind.project.tint.ink)
         .help("When this project has to be finished. The weekly review compares it with the goal it serves.")
         .popover(isPresented: $picking) {
             DateChoiceView(current: note.dueDate,
@@ -1140,7 +1140,7 @@ struct GoalMeasureChip: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: 260, alignment: .leading)
-                .foregroundStyle(measure == nil ? Color.secondary : tint)
+                .foregroundStyle(measure == nil ? Theme.soft : tint.ink)
         }
     }
 
@@ -1400,7 +1400,7 @@ struct NoteHeader: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(kindWord(for: note))
                         .font(Txt.label)
-                        .foregroundStyle(note.tint)
+                        .foregroundStyle(note.tint.ink)
                     if showsIconChip(for: note) {
                         NoteIconChip(model: model, note: note)
                     }
@@ -1723,7 +1723,7 @@ struct TaskRow: View {
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 1)
                                 .background(tint.opacity(0.2), in: Capsule())
-                                .rowTint(tint)
+                                .rowTint(tint.capsuleWords)
                         }
                     }
                 }
@@ -1743,7 +1743,7 @@ struct TaskRow: View {
                     }
                     if showNote {
                         MarkLabel(ref.noteTitle, noteSymbol)
-                            .rowTint(tint)
+                            .rowTint(tint.ink)
                     }
                 }
                 .font(Txt.label)
@@ -1969,7 +1969,7 @@ struct WeekAgendaView: View {
                             .foregroundStyle(.soft)
                     }
                 }
-                .foregroundStyle(day.date == .today() ? ParaKind.daily.tint : .secondary)
+                .foregroundStyle(day.date == .today() ? ParaKind.daily.tint.ink : .secondary)
                 .padding(.vertical, 3)
                 .padding(.horizontal, 4)
                 .acceptsTaskDrop { ref in model.setDueDate(ref, day.date) }
@@ -2016,7 +2016,7 @@ struct GoalDashboardView: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? goal.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
-                            .foregroundStyle(flag == .achieved ? goal.tint : Color.orange)
+                            .foregroundStyle(flag == .achieved ? goal.tint.capsuleWords : Color.orange.capsuleWords)
                     }
                 }
             }
@@ -2069,7 +2069,7 @@ struct GoalDashboardView: View {
 
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(Txt.listTitle).foregroundStyle(goal.tint)
+            Text(value).font(Txt.listTitle).foregroundStyle(goal.tint.ink)
             Text(label).font(Txt.listSecond).foregroundStyle(.soft)
         }
     }
@@ -2178,7 +2178,7 @@ private struct TaskSyntaxHelp: View {
                     GridRow {
                         Text(row.code)
                             .font(Txt.mono)
-                            .foregroundStyle(ParaKind.project.tint)
+                            .foregroundStyle(ParaKind.project.tint.ink)
                         Text(row.meaning)
                             .font(Txt.label)
                             .foregroundStyle(.soft)
@@ -2498,7 +2498,7 @@ struct SketchSheet: View {
         VStack(spacing: 10) {
             HStack {
                 Text(request.picturePath.map(Pictures.isSketch) ?? false ? "Sketch" : "Picture")
-                    .font(Txt.sectionTitle).foregroundStyle(tint)
+                    .font(Txt.sectionTitle).foregroundStyle(tint.ink)
                 Spacer()
                 if let picture = request.picturePath {
                     CopyWordsButton(path: picture, tint: tint)

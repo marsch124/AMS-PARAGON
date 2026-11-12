@@ -323,7 +323,7 @@ struct CountPill: View {
     var body: some View {
         MarkLabel(text, markName)
             .font(Txt.label.weight(.semibold))
-            .foregroundStyle(tint)
+            .foregroundStyle(tint.capsuleWords)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(Capsule().fill(tint.opacity(0.12)))
@@ -446,7 +446,7 @@ private struct PlannedWorkedSection: View {
     /// `Text`, so the totals can be made bold without leaving `Text`.
     private func cell(_ minutes: Int?, over: Bool = false) -> Text {
         guard let minutes else {
-            return Text("\u{2013}").foregroundStyle(Color.secondary)
+            return Text("\u{2013}").foregroundStyle(Theme.soft)
         }
         let text = Text(TaskTime.label(minutes)).monospacedDigit()
         return over ? text.foregroundStyle(Color.orange).bold() : text
@@ -502,7 +502,7 @@ struct ServedRow: View {
                 .foregroundStyle(.soft)
         }
         .font(Txt.label.weight(.medium))
-        .foregroundStyle(tint)
+        .foregroundStyle(tint.capsuleWords)
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
         .background(Capsule().fill(tint.opacity(0.12)))
@@ -516,7 +516,7 @@ struct ServedRow: View {
                 .frame(width: 18)
             Text(served.title)
                 .font(Txt.value.weight(.medium))
-                .foregroundStyle(tint)
+                .foregroundStyle(tint.ink)
                 .lineLimit(2)
             Text(served.count == 1 ? "1 task" : "\(served.count) tasks")
                 .font(Txt.value)
@@ -568,7 +568,7 @@ private struct LeftoverRow: View {
             Button {
                 choosingDay = true
             } label: {
-                capsule("Day…", colour: .secondary)
+                capsule("Day…", colour: Theme.soft)
             }
             .buttonStyle(.plain)
             .help("Move this to another day")

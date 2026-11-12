@@ -53,7 +53,7 @@ struct GoalHorizonChip: View {
             ChainChip(text: Self.words(horizon), tint: ChainTint.datedGoal, filled: false)
         } else {
             MarkLabel(Self.words(horizon), "scope")
-                .foregroundStyle(ChainTint.datedGoal)
+                .foregroundStyle(ChainTint.datedGoal.ink)
         }
     }
 

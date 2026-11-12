@@ -346,7 +346,7 @@ struct WelcomeView: View {
                 .font(Txt.pageTitle.bold())
             Text(explanation)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(model.vaultProblem == nil ? Color.secondary : Color.orange)
+                .foregroundStyle(model.vaultProblem == nil ? Theme.soft : Color.orange)
                 .frame(maxWidth: 420)
             // The way back comes first when there is one: it is the answer nine times out of
             // ten, and choosing a folder by hand is the fallback, not the first offer.
@@ -588,6 +588,17 @@ struct NoteListView: View {
         shown == .kind(.area) && !searching && !model.index.subAreas(of: note).isEmpty
     }
 
+    /// Build 310: true where this list holds notes of more than one part (Recent, and a
+    /// search started from a page that is not one part's own list). There a row wears its
+    /// part's small icon, not the dot: for red-green colour blindness the dots of Projects,
+    /// Areas and Archive are nearly one colour.
+    private var mixesParts: Bool {
+        switch shown {
+        case .kind(_)?, .inbox?, .calendar?, .aspirations?, .work?: return false
+        default: return true
+        }
+    }
+
     private func noteRow(_ note: Note) -> some View {
         HStack(spacing: 4) {
             if foldable(note) {
@@ -609,7 +620,8 @@ struct NoteListView: View {
                     goalSymbol: note.goal.map { ChainSymbol.forGoal(named: $0, in: model.index) }
                         ?? ChainSymbol.datedGoal,
                     goalTint: note.goal.map { ChainTint.forGoal(named: $0, in: model.index) }
-                        ?? ChainTint.datedGoal)
+                        ?? ChainTint.datedGoal,
+                    showsPart: mixesParts)
         }
         .padding(.leading, model.index.parentArea(of: note) == nil ? 0 : 18)
         .tag(note.relativePath)
@@ -1013,7 +1025,7 @@ struct NoteGoalChip: View {
             MarkLabel(title, symbol)
         }
         .fixedSize()
-        .foregroundStyle(note.goal == nil ? Color.secondary : tint)
+        .foregroundStyle(note.goal == nil ? Theme.soft : tint.ink)
         .help(helpText)
     }
 }
@@ -1046,7 +1058,7 @@ struct AreaParentChip: View {
             MarkLabel(title, "arrow.turn.left.up")
         }
         .fixedSize()
-        .foregroundStyle(ParaKind.area.tint)
+        .foregroundStyle(ParaKind.area.tint.ink)
         .help("Put this area under another area, or take it back out")
     }
 }
@@ -1062,6 +1074,9 @@ struct NoteRow: View {
     var goalSymbol: String = ChainSymbol.datedGoal
     /// Its colour, handed in for the same reason and always with it (build 189).
     var goalTint: Color = ChainTint.datedGoal
+    /// True in a list that mixes parts (build 310): the part's small icon stands where the
+    /// dot stood, so the part can be told without its colour.
+    var showsPart = false
 
     /// A note that has its own icon (build 274 for an area; every kind in `ParaKind.takesIcon`
     /// since 276: projects, areas, goals and resources) shows it here, on its colour, in place of
@@ -1080,6 +1095,8 @@ struct NoteRow: View {
             NoteIconTile(note: note, fallbackTint: note.tint, size: 30,
                          defaultMark: note.declaredKind == .goal ? ChainSymbol.forGoal(note) : nil)
                 .accessibilityHidden(true)
+        } else if showsPart {
+            PartMark(note: note)
         } else {
             TintStripe(color: note.tint, height: 34)
         }
@@ -1340,6 +1357,36 @@ struct TintStripe: View {
         Circle()
             .fill(color)
             .frame(width: 8, height: 8)
+    }
+}
+
+/// **The part's small icon where a list mixes parts** (build 310): Recent, Deleted, a search
+/// across the vault. It stands where the 8-point dot stands in a list of one part, in the
+/// same colour — the shape says which part it is to an eye that cannot tell the colours
+/// apart. 14 points, lower than a line of words, so no row grows. A list of one part keeps
+/// its dot: there the dot says nothing a shape would have to repeat.
+struct PartMark: View {
+    let markName: String
+    let color: Color
+
+    init(markName: String, color: Color) {
+        self.markName = markName
+        self.color = color
+    }
+
+    /// A note's part: the star or the target for a goal, as everywhere else (build 168).
+    init(note: Note) {
+        self.init(markName: note.kind == .goal ? ChainSymbol.forGoal(note)
+                                               : SidebarSection.kind(note.kind).markName,
+                  color: note.tint)
+    }
+
+    var body: some View {
+        MarkImage(markName, size: 14)
+            // A symbol in a row that can be chosen: it steps aside on the selection's fill.
+            .rowTint(color)
+            .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
+            .accessibilityHidden(true)
     }
 }
 

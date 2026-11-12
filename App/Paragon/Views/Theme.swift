@@ -74,7 +74,7 @@ struct WeekGoalLine: View {
     let identifier: String
 
     var body: some View {
-        (Text("This week: ").fontWeight(.semibold).foregroundColor(ParaKind.goal.tint)
+        (Text("This week: ").fontWeight(.semibold).foregroundColor(ParaKind.goal.tint.ink)
             + Text(goal))
             .font(Txt.label)
             .lineLimit(2)
@@ -519,7 +519,7 @@ struct DateTimeChoiceView: View {
                 .accessibilityIdentifier("date.field")
             Text(parsed == nil ? "Write the date as 2031-12-01." : "Or pick it below.")
                 .font(Txt.label)
-                .foregroundStyle(parsed == nil ? Color.red : Color.secondary)
+                .foregroundStyle(parsed == nil ? Color.red : Theme.soft)
             DatePicker("Date", selection: $date, displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .labelsHidden()
@@ -600,7 +600,7 @@ struct DateTimeChoiceView: View {
             }
             Text(atHint)
                 .font(Txt.label)
-                .foregroundStyle(reading == .invalid ? Color.red : Color.secondary)
+                .foregroundStyle(reading == .invalid ? Color.red : Theme.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -743,9 +743,9 @@ struct SheetFooter: View {
                     .font(Txt.listTitle)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(canAct ? tint : tint.opacity(0.4),
+                    .background(canAct ? tint.deep : tint.deep.opacity(0.4),
                                 in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(canAct ? Color.white : tint.waitingWords)
             }
             .buttonStyle(.plain)
             .disabled(!canAct)
@@ -784,7 +784,7 @@ struct GoalProgressBar: View {
                     .tint(tint)
                     .frame(width: width)
                 Text("\(percent)%")
-                    .foregroundStyle(tint)
+                    .foregroundStyle(tint.ink)
                 if showsCounts {
                     Text(counts)
                         .foregroundStyle(.soft)

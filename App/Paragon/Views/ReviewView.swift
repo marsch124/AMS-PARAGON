@@ -361,7 +361,7 @@ struct ReviewPartHeading: View {
         FoldButton(isOpen: $isOpen, accessibilityName: shown) {
             Text(shown)
                 .font(Txt.sectionTitle)
-                .foregroundStyle(SidebarSection.review.tint)
+                .foregroundStyle(SidebarSection.review.tint.ink)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -392,7 +392,7 @@ struct ReviewOpenAllButton: View {
         // Borderless, so on the phone only this button answers a press in its row. The row
         // carries no `.tag`, so the colour never sits on a selection fill (build 201).
         .buttonStyle(.borderless)
-        .foregroundStyle(SidebarSection.review.tint)
+        .foregroundStyle(SidebarSection.review.tint.ink)
         .accessibilityLabel(words)
         .accessibilityIdentifier("review.openAll")
     }
@@ -497,7 +497,7 @@ struct ReviewStat: View {
             .padding(.vertical, 3)
             .background(tint.opacity(0.16), in: Capsule())
             .overlay(Capsule().strokeBorder(tint, lineWidth: 1))
-            .foregroundStyle(tint)
+            .foregroundStyle(tint.capsuleWords)
     }
 }
 
@@ -556,7 +556,7 @@ struct HealthRow: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .onHold ? Color.secondary.opacity(0.15) : Theme.attention.opacity(0.18), in: Capsule())
-                            .rowTint(flag == .onHold ? Color.secondary : Theme.attention)
+                            .rowTint(flag == .onHold ? Color.secondary : Theme.attention.capsuleWords)
                     }
                 }
             }
@@ -626,7 +626,7 @@ struct GoalHealthRow: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(health.note.tint.opacity(0.18), in: Capsule())
-                        .rowTint(health.note.tint)
+                        .rowTint(health.note.tint.capsuleWords)
                 }
                 Spacer(minLength: 6)
                 if let days = health.daysSinceActivity {
@@ -664,7 +664,7 @@ struct GoalHealthRow: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? health.note.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
-                            .rowTint(flag == .achieved ? health.note.tint : Color.orange)
+                            .rowTint(flag == .achieved ? health.note.tint.capsuleWords : Color.orange.capsuleWords)
                     }
                 }
             }

@@ -160,7 +160,7 @@ struct MarkdownPreview: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(plan.timeText)
                     .font(Txt.value.monospacedDigit())
-                    .foregroundStyle(Theme.planBlockTint)
+                    .foregroundStyle(Theme.planBlockTint.capsuleWords)
                 inline(plan.title)
                 Spacer(minLength: 0)
             }

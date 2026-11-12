@@ -444,19 +444,19 @@ struct WidgetStatusSection: View {
         Section("Widget") {
             LabeledContent("Shared folder") {
                 Text(folderFound ? "Found" : "Not found")
-                    .foregroundStyle(folderFound ? Color.secondary : Color.orange)
+                    .foregroundStyle(folderFound ? Theme.soft : Color.orange)
             }
             LabeledContent("Last written") {
-                Text(writtenText).foregroundStyle(Color.secondary)
+                Text(writtenText).foregroundStyle(Theme.soft)
             }
             LabeledContent("Actions in it") {
-                Text("\(snapshot?.items.count ?? 0)").foregroundStyle(Color.secondary)
+                Text("\(snapshot?.items.count ?? 0)").foregroundStyle(Theme.soft)
             }
             #if os(macOS)
             // What the Today's plan widget has to draw (build 273): the blocks and the timed
             // events in the file. It is a Mac widget, so the phone has no such line.
             LabeledContent("Today's plan") {
-                Text(snapshot?.planSummary ?? "Not written yet").foregroundStyle(Color.secondary)
+                Text(snapshot?.planSummary ?? "Not written yet").foregroundStyle(Theme.soft)
             }
             #endif
             Button("Write it again now") {
@@ -475,7 +475,7 @@ struct WidgetStatusSection: View {
             }
             Text(explanation)
                 .font(Txt.label)
-                .foregroundStyle(Color.secondary)
+                .foregroundStyle(Theme.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .onAppear(perform: refresh)
@@ -545,7 +545,7 @@ struct DayReminderSection: View {
             if let line = testLine {
                 Text(line.text)
                     .font(Txt.label)
-                    .foregroundStyle(line.isProblem ? Color.orange : Color.secondary)
+                    .foregroundStyle(line.isProblem ? Color.orange : Theme.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

@@ -471,7 +471,7 @@ struct FilterBox: View {
             .padding(.horizontal, 9)
             .padding(.vertical, 4)
             .background(
-                Capsule().fill(isOn ? AnyShapeStyle(tint.gradient) : AnyShapeStyle(Color.primary.opacity(0.06)))
+                Capsule().fill(isOn ? AnyShapeStyle(tint.deep.gradient) : AnyShapeStyle(Color.primary.opacity(0.06)))
             )
             .overlay(Capsule().strokeBorder(isOn ? Color.clear : Color.primary.opacity(0.08), lineWidth: 0.5))
             .shadow(color: isOn ? tint.opacity(0.28) : .clear, radius: 3, y: 1)
@@ -502,7 +502,7 @@ struct FilterBox: View {
                     .foregroundStyle(isOn ? tint : Color.secondary)
                 Text(title)
                     .font(Txt.label)
-                    .foregroundStyle(isOn ? Color.primary : Color.secondary)
+                    .foregroundStyle(isOn ? Color.primary : Theme.soft)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -537,7 +537,7 @@ struct SearchHitRow: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(hit.note.tint.opacity(0.18), in: Capsule())
-                        .rowTint(hit.note.tint)
+                        .rowTint(hit.note.tint.capsuleWords)
                 }
             }
             ForEach(hit.snippets.prefix(2), id: \.self) { snippet in
@@ -633,7 +633,7 @@ struct SavedSearchChip: View {
                     Capsule().strokeBorder(tint, style: StrokeStyle(lineWidth: 1.2,
                                                                     dash: isCurrent ? [] : [3, 3]))
                 )
-                .foregroundStyle(tint)
+                .foregroundStyle(isCurrent ? SidebarSection.search.tint.capsuleWords : tint)
         }
         .buttonStyle(.plain)
         .help(search.query)

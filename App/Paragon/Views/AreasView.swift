@@ -251,7 +251,7 @@ struct AreaProjectRow: View {
             WrappingHStack(spacing: 6, lineSpacing: 4) {
                 MarkLabel(ProjectLine.finishedText(count: count), "checkmark.circle.fill")
                     .font(Txt.label)
-                    .foregroundStyle(ParaKind.project.tint)
+                    .foregroundStyle(ParaKind.project.tint.ink)
                 if isRunning {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
                                                   markName: "circle.dashed", dashed: true))
@@ -262,7 +262,7 @@ struct AreaProjectRow: View {
             WrappingHStack(spacing: 6, lineSpacing: 4) {
                 MarkLabel(ProjectLine.waitingText(count: count), WaitingShowing.symbol)
                     .font(Txt.label)
-                    .foregroundStyle(ParaKind.project.tint)
+                    .foregroundStyle(ParaKind.project.tint.ink)
                 if isRunning {
                     ProjectPill(fact: ProjectFact(id: "noNext", text: "No next action",
                                                   markName: "circle.dashed", dashed: true))

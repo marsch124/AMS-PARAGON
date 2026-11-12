@@ -339,7 +339,7 @@ struct TaskTimeChoices: View {
                 Button(action: focus) {
                     MarkLabel("Focus on this", "timer")
                         .font(Txt.value.weight(.semibold))
-                        .foregroundStyle(Theme.planBlockTint)
+                        .foregroundStyle(Theme.planBlockTint.ink)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
