@@ -110,7 +110,7 @@ How a colour is worn:
 - A status such as Paused, Someday or Ended is a small capsule at the right edge (11 points, the part's colour on a 14 % tint).
 - A group heading in a list is the 17-point heading in the colour of what the group is (an aspiration's gold, grey for "No goal"), with the count beside it. No band behind it. In a narrow column (the Projects list is about 280 points) the group's name wraps onto a second line. It is never cut off with "…" (`ProjectGroupHeader`, build 281).
 - Every list uses this row, the **Projects** list included. A project's second line is its progress and what it needs: "0 of 2 · Next: Define the outcome and the first step", "All 3 finished · No next action", "No tasks yet", or for an ended project "Ended 20 October · 2 tasks finished". Its weekly bars sit at the right of the row when something has been finished; On hold, Done, Missed and Dropped are the status capsule. No card, no frame, no tile, no progress bar and no chips in a row. The goal, the deadline and the tags are in the facts panel. After that, when there is room: its deadline, an overdue count, "Due after its goal" and the goal it serves when the heading does not already name it.
-- The goal rows and the aspiration rows are the same: "0 % · 2027-08-15 · in about 9 months", "1 goal · Never looked at · Health". A goal with no aspiration keeps its **Give it an aspiration** button at the right; a warning is an orange capsule there.
+- The goal rows and the aspiration rows are the same: "0 % · 2027-08-15 · in about 9 months", "1 goal · Not reviewed yet · Health". A goal with no aspiration keeps its **Give it an aspiration** button at the right; a warning is an orange capsule there.
 
 ## 4. The top of a note
 

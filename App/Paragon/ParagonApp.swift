@@ -37,7 +37,7 @@ struct ParagonApp: App {
             // after it meant ⌘N opened an empty second window and never the sheet
             // (build 120). Replacing the group takes New Window out and gives ⌘N back.
             CommandGroup(replacing: .newItem) {
-                Button("New Entry…") { model.activeSheet = .newNote }
+                Button("New…") { model.activeSheet = .newNote }
                     .keyboardShortcut("n", modifiers: [.command])
                     .disabled(model.vault == nil)
                 Button("Quick Capture…") { model.activeSheet = .quickCapture }
@@ -105,7 +105,7 @@ struct ParagonApp: App {
         // The extra window, opened from Go \u{203a} Plan the Day. The planner itself is the
         // Time Blocks section; this keeps a copy of it up while a note is open. The iPhone has
         // no windows, and no need of one: there the section is the whole planner.
-        Window("Plan the day", id: ParagonApp.plannerWindowID) {
+        Window("Plan", id: ParagonApp.plannerWindowID) {
             PlannerView()
                 .environmentObject(model)
                 // This window has no timer bar, so no Focus on this (build 256).
@@ -247,7 +247,7 @@ struct PlannerMenuButton: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Button("Plan the Day\u{2026}") { openWindow(id: ParagonApp.plannerWindowID) }
+        Button("Plan\u{2026}") { openWindow(id: ParagonApp.plannerWindowID) }
             .keyboardShortcut("p", modifiers: [.command, .shift])
     }
 }

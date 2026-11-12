@@ -246,9 +246,9 @@ struct PlanHeadline: View {
         case .planned:
             planned
         case .nothingPlanned:
-            message("No blocks planned today.", "Click to plan the day.")
+            message("No blocks planned today", Self.planHint)
         case .allDone:
-            message("Nothing more planned today.", nil)
+            message("Nothing more planned today", nil)
         case .notToday:
             message(size == .small ? "Not opened today." : "Nothing since you last opened PARAGON.", nil)
         case .olderApp:
@@ -260,7 +260,7 @@ struct PlanHeadline: View {
     private var planned: some View {
         if let headline = glance.headline {
             Text(headline.title)
-                .font(.system(size: size == .small ? 17 : 22, weight: .semibold, design: .rounded))
+                .font(.system(size == .small ? .headline : .title3, design: .rounded).weight(.semibold))
                 .foregroundStyle(PlanLook.plan)
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
@@ -285,6 +285,13 @@ struct PlanHeadline: View {
                 .padding(.top, 2)
         }
     }
+
+    /// Each device its own word (round 3).
+    #if os(macOS)
+    private static let planHint = "Click to plan the day"
+    #else
+    private static let planHint = "Tap to plan the day"
+    #endif
 
     private func message(_ first: String, _ second: String?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -392,7 +399,7 @@ struct PlanRuler: View {
                 .foregroundStyle(PlanLook.plan)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .font(.system(size: 9, weight: .medium))
+        .font(.caption2.weight(.medium))
         .lineLimit(1)
     }
 
@@ -420,7 +427,7 @@ struct PlanRuler: View {
     private func calendarNotShown(_ geometry: RulerGeometry) -> some View {
         if snapshot.events == nil && !labelled {
             Text("Calendar not shown")
-                .font(.system(size: 8, weight: .medium))
+                .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)
                 .frame(width: geometry.laneWidth, alignment: .topLeading)
@@ -448,7 +455,7 @@ struct PlanRuler: View {
                 .frame(width: max(0, geometry.size.width - geometry.gutter), height: 0.5)
                 .offset(x: geometry.gutter, y: 0)
             Text(String(format: "%02d", mark.id))
-                .font(.system(size: 8))
+                .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .frame(width: geometry.gutter - 4, alignment: .trailing)
                 .offset(x: 0, y: 1)
@@ -503,7 +510,7 @@ struct PlanRuler: View {
             .overlay(alignment: .topLeading) {
                 if box.showsTitle {
                     Text(box.title)
-                        .font(.system(size: 8, weight: .medium))
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(tint)
                         .lineLimit(1)
                         .padding(.horizontal, 3)

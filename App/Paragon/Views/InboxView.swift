@@ -576,7 +576,7 @@ struct InboxFileItView: View {
     }
 
     private var destinationsTitle: String {
-        selected == nil ? "Where things go" : "Click where it should go"
+        selected == nil ? "Where things go" : "\(DeviceWords.click) where it should go"
     }
 
     /// A coloured heading over each group. `SectionLabel` paints itself secondary, and the
@@ -611,7 +611,7 @@ struct InboxFileItView: View {
             .padding(12)
             .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
         } else {
-            Text("Pick a line on the left, then click where it should go.")
+            Text("Pick a line on the left, then \(DeviceWords.clickSmall) where it should go.")
                 .font(Txt.value)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -37,7 +37,15 @@ enum SidebarSection: Hashable, Identifiable {
     case work
     case kind(ParaKind)
 
-    var id: String { title }
+    var id: String { key }
+
+    /// The name the screen tests and saved state know this row by. It never changes with the
+    /// words on screen: **Plan** was called "Time Blocks" until round 3, and its identifiers
+    /// (`sidebar.Time Blocks`) stay as they were.
+    var key: String {
+        if case .timeBlocks = self { return "Time Blocks" }
+        return title
+    }
 
     var title: String {
         switch self {
@@ -46,7 +54,7 @@ enum SidebarSection: Hashable, Identifiable {
         case .calendar: return "Calendar"
         case .review: return "Weekly review"
         case .map: return "Map"
-        case .timeBlocks: return "Time Blocks"
+        case .timeBlocks: return "Plan"
         case .done: return "Done"
         case .allActions: return "All actions"
         case .recent: return "Recent"

@@ -93,7 +93,7 @@ public enum SyncRing {
                             now: Date = Date(), calendar: Calendar = .current) -> String {
         if syncing { return "Syncing" }
         if waiting { return "iCloud" }
-        guard let finishedAt else { return "Not yet" }
+        guard let finishedAt else { return "Not synced yet" }
         if conflicts > 0 { return conflicts == 1 ? "1 conflict" : "\(conflicts) conflicts" }
         if calendar.isDate(finishedAt, inSameDayAs: now) { return DayWords.time(finishedAt, calendar: calendar) }
         if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),

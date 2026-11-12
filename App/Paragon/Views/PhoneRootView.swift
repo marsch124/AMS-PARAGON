@@ -112,7 +112,7 @@ struct PhoneRootView: View {
                                 model.activeSheet = .newNote
                             } label: {
                                 MarkImage("plus.circle.fill", size: 22)
-                                    .accessibilityLabel("New Entry")
+                                    .accessibilityLabel("New")
                             }
                             .accessibilityIdentifier("capture.open")
                         }
@@ -349,7 +349,7 @@ struct PhoneBrowseView: View {
                                     .foregroundStyle(section.tint)
                             }
                         }
-                        .accessibilityIdentifier("browse.\(section.title)")
+                        .accessibilityIdentifier("browse.\(section.key)")
                     }
                 }
             }

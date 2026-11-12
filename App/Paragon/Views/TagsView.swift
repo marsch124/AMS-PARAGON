@@ -89,7 +89,7 @@ struct TagsView: View {
             TextField("New tag", text: $newTag)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit(make)
-            Button("Make", action: make)
+            Button("Add", action: make)
                 .disabled(AppModel.cleanTag(newTag) == nil)
         }
         .padding(.horizontal, 12)
@@ -155,7 +155,7 @@ struct TagsView: View {
         let notes = model.index.notesTagged(tag)
         let tasks = model.index.tasksTagged(tag)
         if notes.isEmpty && tasks.isEmpty {
-            Text("Nothing carries this tag any more.")
+            Text("Nothing carries this tag any more")
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
         }
@@ -202,7 +202,7 @@ struct SnippetsView: View {
             if model.snippets.isEmpty {
                 EmptyStateView(title: "No snippets yet",
                                markName: SidebarSection.snippets.markName,
-                               message: "A snippet is a block of tasks you use again and again \u{2014} packing for a trip, closing a project. They live in one file, Templates \u{203a} Snippets, with a ## heading above each block.",
+                               message: "A snippet is a block of tasks you use again and again \u{2014} packing for a trip, closing a project. They live in one file, Templates \u{203a} Snippets, with a name above each block.",
                                tint: SidebarSection.snippets.tint)
             } else {
                 List {
@@ -219,7 +219,7 @@ struct SnippetsView: View {
                             .padding(.vertical, 2)
                         }
                     } footer: {
-                        Text("Add one from the Snippet button beside Add a task in any note. To change them, edit the file itself \u{2014} each ## heading starts a new block.")
+                        Text("Add one from the Snippet button beside Add a task in any note. To change them, edit the Snippets file. Each block has its name on the line above it.")
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     #if os(iOS)
@@ -236,7 +236,7 @@ struct SnippetsView: View {
     /// What the block contains, as one line of prose. Built outside the ViewBuilder.
     private func firstLines(of snippet: Snippet) -> String {
         let written = snippet.lines
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .map { Snippets.plainLook($0) }
             .filter { !$0.isEmpty }
         return written.isEmpty ? "Empty" : written.joined(separator: " \u{00b7} ")
     }

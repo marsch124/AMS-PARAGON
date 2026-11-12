@@ -209,8 +209,8 @@ struct TodayView: View {
                         EmptyView()
                     } else if dueToday.isEmpty {
                         // Build 291: a few calm words, no instructions.
-                        Text("Nothing due today.")
-                            .font(Txt.value)
+                        Text("Nothing due today")
+                            .font(Txt.label)
                             .foregroundStyle(.secondary)
                     } else {
                         rows(dueToday)

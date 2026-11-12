@@ -49,7 +49,7 @@ public struct ChainActivity: Equatable, Sendable {
             parts.append("\(projectsFinished) of \(projectsTotal) projects finished")
         }
         if let days = daysSinceActivity {
-            if days <= 0 { parts.append("something moved today") }
+            if days <= 0 { parts.append("changed today") }
             else if days == 1 { parts.append("last activity yesterday") }
             else { parts.append("last activity \(days) days ago") }
         }

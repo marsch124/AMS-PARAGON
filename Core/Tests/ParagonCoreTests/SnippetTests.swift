@@ -67,4 +67,11 @@ final class SnippetTests: XCTestCase {
         try vault.saveTemplate(named: "Project", text: "---\ntitle: {{title}}\n---\n# Mine\n")
         XCTAssertEqual(vault.templateText(named: "Project"), "---\ntitle: {{title}}\n---\n# Mine\n")
     }
+
+    /// Round 3: the Snippets list shows a line with no code in it.
+    func testALineIsShownWithoutBraces() {
+        XCTAssertEqual(Snippets.plainLook("- [ ] Ask {{who}} to {{what}} >{{tomorrow}}"),
+                       "Ask (who) to (what), tomorrow")
+        XCTAssertEqual(Snippets.plainLook("- [ ] Pack the bag"), "Pack the bag")
+    }
 }

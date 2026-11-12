@@ -19,7 +19,7 @@ struct CalendarEventRows: View {
         } else {
             let events = model.events(on: date)
             if events.isEmpty {
-                Text(model.calendarAccessGranted == nil ? "Loading events…" : "No events.")
+                Text(model.calendarAccessGranted == nil ? "Loading events…" : "No events")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else if compact {
@@ -105,6 +105,7 @@ struct CalendarEventRow: View {
             }
             .buttonStyle(.plain)
             .help("Open in Calendar")
+            .accessibilityLabel("Open in Calendar")
         }
         .contentShape(Rectangle())
         .onTapGesture(count: 2) { model.openInCalendar(event) }

@@ -216,6 +216,7 @@ struct QuickCaptureView: View {
             }
             .buttonStyle(.borderless)
             .help("What you can write in a capture")
+            .accessibilityLabel("What you can write in a capture")
         }
     }
 

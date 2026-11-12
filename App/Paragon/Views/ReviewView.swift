@@ -82,7 +82,7 @@ struct ReviewView: View {
                 if isOpen("due") {
                     // "Looked at" everywhere (build 270, his answer 3a): the button at the top
                     // of a goal, an aspiration or an area says the same words.
-                    Text("Right-click a row (long-press on the phone) for **I looked at it today**, and it leaves this list. The same button is at the top of an aspiration, a goal or an area. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
+                    Text("\(DeviceWords.holdARow) for **I looked at it today**, and it leaves this list. The same button is at the top of an aspiration, a goal or an area. Each level has its own rhythm, set under Settings \u{203A} Review rhythm.")
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -96,7 +96,7 @@ struct ReviewView: View {
                         Button {
                             model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
                         } label: {
-                            MarkLabel("\(report.inboxOpenTasks) open items to file into projects or areas", "tray")
+                            MarkLabel("\(report.inboxOpenTasks) open \(report.inboxOpenTasks == 1 ? "item" : "items") to file into projects or areas", "tray")
                         }
                     }
                 }
@@ -630,7 +630,7 @@ struct GoalHealthRow: View {
                 }
                 Spacer(minLength: 6)
                 if let days = health.daysSinceActivity {
-                    Text(days == 0 ? "moved today" : "moved \(days)d ago")
+                    Text(days == 0 ? "Changed today" : "Changed \(days)d ago")
                         .font(Txt.label)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)

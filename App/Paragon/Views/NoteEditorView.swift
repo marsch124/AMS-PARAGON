@@ -1587,7 +1587,7 @@ struct NoteHeader: View {
                 NoteTagsChip(model: model, note: note)
             }
             if note.kind.isTaskKind {
-                fact("List", note.isSyncEnabled && !note.isArchived ? listName(for: note) : "Not synced")
+                fact("Reminders list:", note.isSyncEnabled && !note.isArchived ? listName(for: note) : "Not synced")
             }
             ForEach(notices, id: \.self) { notice in
                 Pill(text: notice, color: Theme.attention)
@@ -1918,7 +1918,7 @@ struct DayAgendaView: View {
                 CalendarEventRows(date: date)
             }
             if refs.isEmpty {
-                Text("Nothing from other notes is due on this day.")
+                Text("Nothing from other notes is due on this day")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else {
@@ -2078,7 +2078,7 @@ struct GoalDashboardView: View {
     /// What the page says when nothing serves the goal yet. An aspiration uses the chain's own
     /// words (`AspirationChainBody`), so the two pages say it alike.
     private var emptyText: String {
-        GoalWording.isAspiration(goal) ? "Nothing works towards this yet." : "Nothing serves this goal yet."
+        GoalWording.isAspiration(goal) ? "Nothing works towards this yet" : "Nothing serves this goal yet"
     }
 }
 

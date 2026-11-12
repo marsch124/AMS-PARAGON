@@ -150,8 +150,8 @@ struct CloseDayView: View {
             CountPill(text: pillText(finished.count, "finished today"),
                       markName: "checkmark.circle", tint: ParaKind.project.tint)
             if finished.isEmpty {
-                Text("No task was ticked off today.")
-                    .font(Txt.value)
+                Text("No task was ticked off today")
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(model.index.servedCounts(of: finished)) { served in
@@ -177,8 +177,8 @@ struct CloseDayView: View {
             SectionLabel(title: "To do tomorrow", tint: Theme.eveningTint)
                 .padding(.top, model.showsCalendarEvents ? 8 : 0)
             if tomorrowShown.isEmpty {
-                Text("Nothing is planned for tomorrow yet.")
-                    .font(Txt.value)
+                Text("Nothing is planned for tomorrow yet")
+                    .font(Txt.label)
                     .foregroundStyle(.secondary)
             } else {
                 Text("Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.")
@@ -388,17 +388,17 @@ private struct PlannedWorkedSection: View {
             return "Today's note is still coming from iCloud, so the plan and the timer's times cannot be read yet."
         }
         if clockOn != nil {
-            return "Nothing was planned in **Plan the day** today."
+            return "Nothing was planned in **Plan** today."
         }
-        return "Nothing was planned in **Plan the day** today, and the focus timer was not used."
+        return "Nothing was planned in **Plan** today, and the focus timer was not used."
     }
 
     /// Names the task's own time only while **Use task times** is on: off, no task time is used.
     private var caption: LocalizedStringKey {
         if useTaskTimes {
-            return "Planned is the block in **Plan the day**, or the task's own time. Worked is what the focus timer measured."
+            return "Planned is the block in **Plan**, or the task's own time. Worked is what the focus timer measured."
         }
-        return "Planned is the block in **Plan the day**. Worked is what the focus timer measured."
+        return "Planned is the block in **Plan**. Worked is what the focus timer measured."
     }
 
     /// Modifiers go on the cells and on the whole grid, **never on a `GridRow`**: a modified row

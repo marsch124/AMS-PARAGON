@@ -273,7 +273,7 @@ struct TaskTimeButton: View {
                         .fontWeight(.medium)
                         .rowTint(Color.primary)
                 } else {
-                    Text("time?")
+                    Text("How long?")
                         .rowTint(Color.secondary)
                 }
             }

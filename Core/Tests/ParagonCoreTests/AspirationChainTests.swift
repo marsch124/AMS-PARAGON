@@ -132,7 +132,7 @@ final class AspirationChainTests: XCTestCase {
                        "12 tasks finished in 30 days \u{00B7} 1 of 4 projects finished \u{00B7} last activity 3 days ago")
         let today = ChainActivity(tasksFinished: 1, daysSinceActivity: 0,
                                   projectsFinished: 0, projectsTotal: 2)
-        XCTAssertEqual(today.summary, "1 task finished in 30 days \u{00B7} something moved today")
+        XCTAssertEqual(today.summary, "1 task finished in 30 days \u{00B7} changed today")
     }
 
     func testAReachedGoalLeavesTheLiveChainAndGathersAtTheFoot() throws {

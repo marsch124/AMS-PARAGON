@@ -207,7 +207,7 @@ struct WaitingForList: View {
         if model.notesWaitingForCloud.isEmpty {
             EmptyStateView(title: "Nothing is waiting for anyone",
                            markName: WaitingShowing.symbol,
-                           message: "Open an action\u{2019}s menu (right-click on a Mac, press and hold on a phone) and choose \u{201C}Waiting for\u{2026}\u{201D}. The action then shows up here, under the person.",
+                           message: "\(DeviceWords.click) an action\u{2019}s menu (or \(DeviceWords.holdSmall) the action) and choose \u{201C}Waiting for\u{2026}\u{201D}. The action then shows up here, under the person.",
                            tint: tint)
                 .accessibilityIdentifier("waiting.empty")
         } else {

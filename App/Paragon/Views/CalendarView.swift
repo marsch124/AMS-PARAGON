@@ -105,10 +105,12 @@ struct DayCalendarView: View {
             HStack(spacing: 2) {
                 Button { move(days: -1) } label: { MarkImage("chevron.left") }
                     .help("Previous day")
+                    .accessibilityLabel("Previous day")
                 Button("Today") { model.afterUpdate { model.openDailyNote(for: .today()) } }
                     .disabled(day == .today())
                 Button { move(days: 1) } label: { MarkImage("chevron.right") }
                     .help("Next day")
+                    .accessibilityLabel("Next day")
             }
             .buttonStyle(.borderless)
             .fixedSize()
@@ -130,7 +132,7 @@ struct DayCalendarView: View {
             }
             Section {
                 if overview.due.isEmpty {
-                    Text("Nothing due.")
+                    Text("Nothing due")
                         .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
@@ -512,7 +514,7 @@ struct WeekOverviewView: View {
             // work to spread over it. His choice from the drawing of the three Sunsama ideas
             // (https://claude.ai/artifact/G9Mpn5nAQtx4ByLXtptDZX).
             WeekGoalBox(week: model.selectedWeek)
-            TaskTray(items: toPlace, title: "To place", dropHint: "Drag this onto a day",
+            TaskTray(items: toPlace, title: "Not planned yet", dropHint: "Drag this onto a day",
                      identifier: "week.tray")
             WeekStrip(days: overview.days)
             List(selection: model.noteSelection) {
@@ -531,7 +533,7 @@ struct WeekOverviewView: View {
                         if day.due.isEmpty && day.undated.isEmpty && day.completed.isEmpty {
                             Text("Nothing planned")
                                 .font(Txt.label)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(.secondary)
                         }
                         ForEach(day.due + day.undated) { ref in
                             TaskRow(ref: ref, showNote: true) { model.toggle(ref) }

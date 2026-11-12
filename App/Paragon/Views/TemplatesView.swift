@@ -363,7 +363,7 @@ struct NewTemplateSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Create") {
+                Button("Save") {
                     create()
                     dismiss()
                 }

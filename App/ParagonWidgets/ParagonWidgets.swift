@@ -244,7 +244,7 @@ struct WidgetFoot: View {
 
     var body: some View {
         Text("PARAGON \(WidgetBuild.number) · \(state)")
-            .font(.system(size: 8))
+            .font(.caption2)
             .foregroundStyle(.tertiary)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
@@ -348,7 +348,7 @@ struct ActionRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
             WidgetMark(name: WidgetLook.symbol(forKind: item.noteKind))
-                .font(.system(size: 9, weight: .semibold))
+                .font(.caption2.weight(.semibold))
                 .foregroundStyle(WidgetLook.tint(forKind: item.noteKind))
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.title)
@@ -358,7 +358,7 @@ struct ActionRow: View {
                 // actions without it is just a list (build 149).
                 if !compact, let serves = item.serves {
                     Text(serves)
-                        .font(.system(size: 9))
+                        .font(.caption2)
                         .foregroundStyle(item.servesIsGoal ? WidgetLook.goal : WidgetLook.area)
                         .lineLimit(1)
                 }
@@ -366,7 +366,7 @@ struct ActionRow: View {
             Spacer(minLength: 2)
             if let due = item.dueText {
                 Text(due)
-                    .font(.system(size: 9, weight: item.isOverdue ? .semibold : .regular))
+                    .font(.caption2.weight(item.isOverdue ? .semibold : .regular))
                     .foregroundStyle(item.isOverdue ? WidgetLook.attention : .secondary)
                     .lineLimit(1)
             }
@@ -426,7 +426,7 @@ struct CountLine: View {
     var body: some View {
         HStack(spacing: 6) {
             WidgetMark(name: symbol)
-                .font(.system(size: 10, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(number == 0 ? Color.secondary : tint)
                 .frame(width: 13)
             // A zero is grey and a number is not, so the one that wants him reads first.

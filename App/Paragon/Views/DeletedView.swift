@@ -78,6 +78,7 @@ struct DeletedRow: View {
                 MarkImage("trash")
             }
             .help("Delete this one for good")
+            .accessibilityLabel("Delete this one for good")
         }
         .padding(.vertical, 2)
         .contextMenu {

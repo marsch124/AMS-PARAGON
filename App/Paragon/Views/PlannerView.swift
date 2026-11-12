@@ -118,7 +118,7 @@ struct PlannerDayView: View {
                 lanesRow
             }
         }
-        .navigationTitle("Plan the day")
+        .navigationTitle("Plan")
         #if os(macOS)
         // 1.0 (the reviewer's point): on the Mac a page's actions live in the window's toolbar,
         // not inside the page. The same six buttons with the same names; the header keeps the
@@ -283,7 +283,7 @@ struct PlannerDayView: View {
     /// Plain text, built outside the ViewBuilder.
     private var summary: String {
         var parts: [String] = []
-        parts.append(blocks.isEmpty ? "no blocks yet" : (blocks.count == 1 ? "1 block" : "\(blocks.count) blocks"))
+        parts.append(blocks.isEmpty ? "No blocks yet" : (blocks.count == 1 ? "1 block" : "\(blocks.count) blocks"))
         let events = model.events(on: day).filter { !$0.isAllDay }.count
         if events > 0 { parts.append(events == 1 ? "1 event" : "\(events) events") }
         return parts.joined(separator: " \u{00b7} ")
@@ -1201,7 +1201,7 @@ struct PlannerActionsView: View {
         // The window's name has to be the sidebar row you pressed. It said "Actions" while
         // Time Blocks was selected (build 155, his report). The heading inside the column still
         // says Actions, because that is what the column is.
-        .navigationTitle("Time Blocks")
+        .navigationTitle("Plan")
     }
 
     @ViewBuilder
@@ -1240,7 +1240,7 @@ struct PlannerActionsView: View {
                                 .foregroundStyle(Theme.planBlockTint)
                         }
                         .buttonStyle(.plain)
-                        .help("Make an hour's block for this")
+                        .help("Add an hour's block for this")
                     }
                     servesLine(for: ref)
                 }

@@ -25,14 +25,13 @@ struct SettingsView: View {
                         .lineLimit(2)
                         .truncationMode(.middle)
                 }
-                HStack {
-                    Button("Choose folder…") {
-                        pickingBackupFolder = false
-                        showingImporter = true
-                    }
-                    if model.vault != nil {
-                        Button("Close vault", role: .destructive) { model.closeVault() }
-                    }
+                Button("Choose folder…") {
+                    pickingBackupFolder = false
+                    showingImporter = true
+                }
+                // On a line of its own (round 3): the red word sat right beside Choose folder.
+                if model.vault != nil {
+                    Button("Close vault", role: .destructive) { model.closeVault() }
                 }
             }
 
@@ -79,7 +78,7 @@ struct SettingsView: View {
                     Text("The note wins").tag(ConflictPolicy.noteWins)
                     Text("The reminder wins").tag(ConflictPolicy.reminderWins)
                 }
-                Toggle("Sync tasks in Area notes", isOn: Binding(
+                Toggle("Sync tasks in area notes", isOn: Binding(
                     get: { model.config.syncAreas },
                     set: { var c = model.config; c.syncAreas = $0; model.config = c }
                 ))
@@ -225,7 +224,7 @@ struct SettingsView: View {
                         Task { await model.ensureCalendarAccess() }
                     }
                 }
-                Text("Events are only read. The one thing written to your calendar is the time blocks you add in the Time Blocks section.")
+                Text("Events are only read. The one thing written to your calendar is the time blocks you add in Plan.")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
             }
@@ -250,9 +249,17 @@ struct SettingsView: View {
                 #if os(macOS)
                 Toggle("Show capture panel in the menu bar", isOn: $showMenuBarItem)
                 #endif
-                Text("⇧⌘N opens the capture panel in the app. Other apps can add to the Inbox with a link like amspara://capture?text=Call%20the%20bank&target=inbox (Shortcuts: Open URL). On iOS, use Share › PARAGON.")
+                // Each device its own words, and no link in Settings (round 3): the link
+                // example is in How it works, under Quick capture.
+                #if os(macOS)
+                Text("⇧⌘N opens quick capture. A Shortcut can add to the Inbox from other apps: see How it works.")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
+                #else
+                Text("Use Share › PARAGON from any app")
+                    .font(Txt.label)
+                    .foregroundStyle(.secondary)
+                #endif
             }
 
             Section("Weekly review") {
@@ -532,7 +539,7 @@ struct DayReminderSection: View {
             Text(kind.explanation)
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
-            Button("Send one in 10 seconds") { reminder.sendTest(kind) }
+            Button("Try it now") { reminder.sendTest(kind) }
                 .disabled(reminder.isTesting(kind))
                 .accessibilityIdentifier(kind.testButtonIdentifier)
             if let line = testLine {
