@@ -43,6 +43,10 @@ The vault is one folder. Pick it once under Settings › Vault. Inside it the ap
 
 You can open the same folder in NotePlan, Obsidian or any text editor. If the folder lives in iCloud Drive, your iPhone can use the same vault.
 
+**Choosing a folder looks first (since build 308).** When you choose a folder, PARAGON looks inside before it writes anything and tells you what it found: a folder that is already a vault says "This folder has 214 notes — open it" <!-- CHECK: exact wording and button -->; any other folder says "This is not a PARAGON vault — set it up here?" with **Set it up** and **Cancel** <!-- CHECK: exact wording and button names -->. While iCloud is still listing the folder, PARAGON waits and says so <!-- CHECK: exact wording of the waiting line -->; it never calls a folder empty that is only still arriving. **Cancel** leaves everything as it was.
+
+**Very long titles (since build 308).** A note with a very long title gets a shortened file name in the folder. The full title is kept in the note and shown everywhere in PARAGON.
+
 ## Notes
 
 A note starts with a small block of settings between two `---` lines, then the text. The settings are plain `key: value` lines, for example:
@@ -96,7 +100,7 @@ Two lists have a field at the top to make a new thing: **Serves…** (a goal or 
 
 Press the note's **name**, the big title at the top of the note. Or right-click the note in the list (long-press on the phone) › **Rename…**; on the iPhone it is also in the **…** menu at the top of the note. The file is renamed with it, and every note that pointed at the old name — `goal:`, `area:`, `parent:`, `related:` or a `[[wikilink]]` — is updated, so no link comes loose. The note's own `# Heading` follows when it still said the old name.
 
-A name another note already uses is refused. In Apple Reminders the list follows on the next sync; the tasks keep their reminders. The Inbox and daily notes cannot be renamed.
+A name another note already uses is refused. A rename that only changes capitals ("website" to "Website") works since build 308; before, it was refused as a name already in use. In Apple Reminders the list follows on the next sync; the tasks keep their reminders. The Inbox and daily notes cannot be renamed.
 
 ### Archive and Deleted
 
@@ -337,6 +341,8 @@ At the end of the bar there are also a pencil button, for drawing a sketch, and 
 
 On the Mac the Format menu has Bold (Command-B), Italic (Command-I), Strikethrough (Shift-Command-X) and Heading (Option-Command-H), with the same rules.
 
+**Very large notes (since build 308).** While you type, only the lines around the cursor are restyled; the rest of the note is restyled when you pause for a moment. A note of several thousand lines stays quick to type in, and a short note behaves as before.
+
 ### Sketches and photos
 
 **Pictures in the text.** A picture link in a note, to a file in your vault (`.png`, `.jpg`, `.jpeg`, `.heic` or `.gif`), shows as the picture itself, right where the line is, while you write. This is the same on the iPhone, iPad and Mac, and it covers sketches, photos and pictures added in Obsidian. You do not see the link text, but the file still holds the normal markdown link, so other apps show the picture too. The picture is as wide as the text at most, and at most 320 points tall, with rounded corners. A picture that iCloud has not sent yet shows a small grey box, **On its way from iCloud**.
@@ -478,12 +484,14 @@ The sync goes both ways. Press the sync ring at the foot of the sidebar (or **Fi
 - Completing, renaming, dating or deleting on either side carries over.
 - If the same task changed in both places since the last sync, the note version wins and the sync report says so.
 - **Renaming a list in Reminders** (since build 307) does not cancel its tasks. When a task's reminder is not in its list, PARAGON looks for it in all your lists, by its identity and its PARAGON mark, and follows it to the new list.
+- **Lists are known by their own identity** (since build 308). Once a note and its Reminders list are linked, PARAGON remembers the list itself, not its name. A new note whose name matches a Reminders list PARAGON did not make (your own list "Home", say) asks before joining it: use that list, or leave it alone <!-- CHECK: title and the two buttons of this question -->. Left alone, nothing in your list changes and the note's tasks are not put into it.
+- **No twin reminders** (since build 308). If two devices each made a reminder for the same task, the sync finds the two by their PARAGON mark, keeps one and removes the twin, and the sync report says so <!-- CHECK: exact line in the sync report -->. A task that has just arrived from your other device waits one sync round before a reminder is made for it, so the other device's reminder can arrive first.
 - **The brake for mass changes** (since build 307). If one sync would cancel or delete more than 5 tasks or reminders, or more than a third of one list that has 3 or more tasks, it stops before it changes anything and shows what it would do, with **Do it** and **Cancel**. The timed automatic sync never does this on its own: it waits until you press **Sync now**. A list that fails to load is never read as "everything was deleted".
 
 **In the Mac menu bar.** Since build 303 a second PARAGON item sits beside the quick-capture one: the same clock ring as at the foot of the sidebar (green under an hour, yellow after that or while waiting for iCloud, full red after conflicts, grey and empty before any sync), with the short word beside it ("10:55", "Yesterday", "Syncing…"). Click it for a menu: the sync line (such as "Synced at 10:55"), **Sync now**, **Show me what would change…**, **Last sync report…**, **Sync settings…** and **Show PARAGON**. Since build 304 it also shows the number of tasks due today right beside the ring, for example "3 · 11:20"; nothing is shown when no task is due, and over 99 it says "99+". The ring is drawn once per minute (in build 303 it redrew without pause and the Mac app would not open). To hide it, switch off **Show the sync ring in the menu bar** in Settings › Reminders sync (on by default).
 - Subtasks become separate reminders named "Parent › Child". Tasks with a time get an alarm.
 
-Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both sync the same vault. Since build 307 the device keeps its identity in a second safe place. If its bookkeeping is missing, the first sync takes over the ticks and edits from Reminders and does not undo them. If the bookkeeping file is there but cannot be read, the sync stops with a message and you try again in a moment; it never starts from zero.
+Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both sync the same vault. Since build 307 the device keeps its identity in a second safe place. If its bookkeeping is missing, the first sync takes over the ticks and edits from Reminders and does not undo them. If the bookkeeping file is there but cannot be read, the sync stops with a message and you try again in a moment; it never starts from zero. Since build 308 the sync also has its own access to the vault folder, separate from the screen's, so a sync in the background and your typing cannot trip over each other.
 
 ### Seeing what a sync will do
 
@@ -1526,7 +1534,9 @@ Copies made by **Back up now** and before a restore count as daily or weekly, by
 - **Show in Finder** opens the folder, where you can drag a single note back by hand.
 - **Restore a copy** writes a whole backup back into the vault. What you have at that moment is saved as a backup first, and notes you created after the backup are left where they are. The backup you restore is never deleted by the restore; old backups are cleared only after it is finished. If nothing was put back, the app says so plainly.
 
-Time Machine covers the rest: these backups sit inside the vault folder, so they do not protect against losing that folder itself.
+**A second copy outside the vault (since build 308).** The backups above sit inside the vault folder, so they do not protect against losing that folder itself. For that, PARAGON keeps a second copy outside it. Choose the place once in Settings › Backups: a folder of your own (for example in Dropbox), or this device's own storage <!-- CHECK: names of the two choices and of the button -->. The outside copy holds the notes and also the pictures and sketches; the copies inside the vault hold notes only. Settings › Backups shows when the last outside copy was made <!-- CHECK: exact line, e.g. "Last outside copy: today 14:05" -->. If the outside folder cannot be reached, the backups inside the vault are still made and Settings says the outside copy is missing <!-- CHECK: exact wording -->.
+
+Time Machine is a good third net on the Mac.
 
 ## Exact safety rules (build 307)
 
@@ -1540,6 +1550,21 @@ The precise rules behind the sync and the backups, for reference.
 - **Sync memory.** Missing: the first sync takes over ticks and edits from Reminders (no note-wins on that first run). Unreadable: the sync stops with a message. The device identity is stored in two places.
 - **Deleting a note with open reminders.** One question, **Remove reminders** or **Keep reminders**. Reminders that are already done always stay. Links are dropped either way, so no "missing or unreadable" warning is repeated. **Put back** links them again by their PARAGON mark.
 - **Test copy of the Mac app.** Own name and own storage. Test mode refuses to run, and never erases settings, where a real notes folder is remembered.
+
+## Exact safety rules (build 308)
+
+The precise rules added in safety round 2, for reference.
+
+- **Typing while the other device changes the note.** The editor remembers the version its text started from. On saving, if the note on disk is no longer that version, PARAGON compares the start, your text and the other text line by line. Changes to different lines: both are kept in the note. Changes to the same line: your text is saved beside the note as "… (conflict date time).md" and the note shows the other version. Nothing is ever written over a newer file.
+- **Versions parked by iCloud.** Looked for after each re-read of the vault. Each parked version is saved beside its note as "… (conflict date time).md", then marked as dealt with in iCloud, and you are told which notes are affected. PARAGON does not merge or delete these for you.
+- **Twin reminders.** Two reminders with the same PARAGON mark: one is kept, the twin is removed, and the report says so. A task that arrived from another device gets no new reminder in the sync round it arrives in; it gets one in the next round if none has turned up by then.
+- **Reminders lists.** A linked list is found by its own identity first; its name is only used the first time. A list PARAGON did not make is joined only after you say yes.
+- **Outside backup.** A second copy outside the vault folder, in a folder you choose once or in this device's own storage, with notes, pictures and sketches. The time of the last outside copy is shown in Settings › Backups. A failed outside copy never stops the backup inside the vault.
+- **Choosing a folder.** Looked at first, nothing written before you agree. An existing vault is opened with its note count shown; any other folder is set up only after **Set it up** <!-- CHECK: button name -->. A folder iCloud is still listing is waited for, not called empty.
+- **Re-reading the vault.** Only notes whose file changed are read again, in the background. Task counts for the sidebar are worked out once per change of a note and kept.
+- **File names.** A very long title gets a shortened file name; the full title stays in the note. A rename that only changes capitals is allowed.
+- **Sync and screen.** Each has its own access to the vault folder.
+- **Very large notes.** While you type, only the lines around the cursor are restyled; the whole note is restyled when you pause.
 
 ## On the iPhone
 
@@ -1630,7 +1655,7 @@ That is the way back. If it could not open that folder by itself, it says so in 
 the buttons: the folder may have been renamed or moved, or iCloud may not have it on this
 device yet. Pressing the button again after iCloud has caught up is usually enough.
 
-**Choose a different folder…** is the second button, for when you really do want another vault.
+**Choose a different folder…** is the second button, for when you really do want another vault. Since build 308 PARAGON looks into the folder you choose before it opens it, says how many notes it has or that it is not a vault yet, and waits while iCloud is still listing it; see **Your vault**.
 
 ### When a widget looks empty
 
@@ -1661,7 +1686,7 @@ There is no PARAGON server. Everything the app knows lives in the markdown files
 
 That has one consequence worth knowing. iCloud does not push every file to every device the moment it is written. It tells the other device that a file exists and leaves the contents behind until something asks for them. Until then there is only a marker where the file should be: the name is reserved, but the note is not really on the phone yet. This is normal iCloud behaviour, and it is why "Optimise storage" on a phone with little space left can leave a lot of your vault as markers.
 
-The app therefore asks. When it starts, when you open a vault, and once a minute while it runs, it looks through the vault for anything that has not arrived and asks iCloud to fetch it. A few seconds later the file is there and the app reloads by itself. You do not have to do anything.
+The app therefore asks. When it starts, when you open a vault, and once a minute while it runs, it looks through the vault for anything that has not arrived and asks iCloud to fetch it. A few seconds later the file is there and the app reloads by itself. You do not have to do anything. Since build 308 a re-read reads only the notes that changed and runs in the background, so the screen does not stop for it, however many notes you have.
 
 **PARAGON never waits for iCloud while it starts.** It opens at once with the notes that are on the device and fetches the rest in the background, the Inbox and today's note first. While notes are still coming, a short orange line says how many — at the foot of the sidebar on the Mac, at the top of **Today** on the iPhone — with a button, **Ask iCloud again**. If the Inbox note itself has not arrived, the Inbox says **Still coming from iCloud** instead of **Inbox zero**. A capture that cannot be filed yet is kept and filed when the note arrives.
 
@@ -1683,7 +1708,11 @@ Open the Files app on the iPhone, find your vault folder, and tap the file once.
 
 ### Editing the same note on both devices
 
-The app checks every few seconds whether files changed outside it and reloads them. It never writes over a newer file. If you were typing in a note that changed elsewhere at the same time, your text is saved as a copy named "… (conflict date time).md" next to the note, and the note shows the other version. Merge the two by hand when that happens; it is rare.
+The app checks every few seconds whether files changed outside it and reloads them. It never writes over a newer file.
+
+**If you were typing in a note that changed elsewhere at the same time (since build 308).** The editor remembers which version your text started from. When the two devices changed **different lines**, PARAGON keeps both changes in the one note and you have nothing to do. When both changed **the same line**, your text is saved as a copy named "… (conflict date time).md" next to the note, the note shows the other version, and a short message says so <!-- CHECK: exact wording of the merge / conflict message -->. Merge those two by hand; it is rare. (Before build 308 your text was always set aside as a copy, even when the lines were different.)
+
+**Versions parked by iCloud (since build 308).** When both devices save the same note at nearly the same moment, iCloud keeps one version and parks the other where no app shows it. After each re-read PARAGON looks for parked versions, saves each one beside its note as "… (conflict date time).md", and tells you which notes got one <!-- CHECK: exact wording -->. Open the copy, take what you need, and delete it.
 
 A note that has not arrived yet is treated as a note that exists. The app will not make a fresh empty one in its place, which would leave you with two versions of the same note for iCloud to argue about. If you open one before it has landed, it says so and you can try again a moment later. If **Close the day** cannot save your line because today's note is still coming, it stays open with your words in it and says so; press **Done** again in a moment. If the note then turns out to have a line already, written on your other device, that line is kept and your words go below it. The goal for the week and **Plan the day** work the same way: nothing you typed is thrown away, and the box stays open until it can be saved. While a week's note is still coming, its goal box says so in orange and cannot be pressed. If the goal was changed on your other device while you were typing, the box does not write over it: a message says what the goal now is, your words stay in the box, and pressing **Done** again puts yours in its place.
 
@@ -1708,4 +1737,4 @@ Since build 305, before every upload to TestFlight, the iPhone app (in the simul
 
 ## When something looks wrong
 
-Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: the build number, what was clicked, which section and note are open, and the window layout. Paste it into the chat with the developer. The version is also shown, as PARAGON 1.0 (280), at the foot of the Mac sidebar and at the foot of Browse on the iPhone.
+Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: the build number, what was clicked, which section and note are open, and the window layout. Paste it into the chat with the developer. The version is also shown, as PARAGON 1.0 (308), at the foot of the Mac sidebar and at the foot of Browse on the iPhone.
