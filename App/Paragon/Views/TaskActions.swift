@@ -123,7 +123,7 @@ struct TaskContextMenu: View {
         if useTaskTimes {
             Menu("How long") {
                 ForEach(TaskTime.choices, id: \.self) { value in
-                    Button(ref.task.minutes == value ? "✓ \(TaskTime.label(value))" : TaskTime.label(value)) {
+                    TickedChoice(title: TaskTime.label(value), chosen: ref.task.minutes == value) {
                         model.setMinutes(ref, value)
                     }
                 }
@@ -143,10 +143,10 @@ struct TaskContextMenu: View {
             }
         }
         Menu("Repeat") {
-            Button(ref.task.repeatRule == nil ? "✓ Does not repeat" : "Does not repeat") { model.setRepeat(ref, nil) }
+            TickedChoice(title: "Does not repeat", chosen: ref.task.repeatRule == nil) { model.setRepeat(ref, nil) }
             Divider()
             ForEach(Self.repeatChoices, id: \.description) { rule in
-                Button(ref.task.repeatRule == rule ? "✓ \(rule.label)" : rule.label) { model.setRepeat(ref, rule) }
+                TickedChoice(title: rule.label, chosen: ref.task.repeatRule == rule) { model.setRepeat(ref, rule) }
             }
         }
         if note?.kind == .project, !ref.task.isSubtask {
@@ -350,5 +350,29 @@ struct TaskTimeChoices: View {
         .padding(14)
         .frame(width: 270, alignment: .leading)
         .focusEffectDisabled()
+    }
+}
+
+/// One choice in a menu of several, the chosen one with the hand-drawn tick. A menu draws
+/// only words and images, so the tick is the label's icon rather than a typed "✓" in the
+/// title (premium review, round 5).
+private struct TickedChoice: View {
+    let title: String
+    let chosen: Bool
+    let action: () -> Void
+
+    var body: some View {
+        if chosen {
+            Button(action: action) {
+                Label {
+                    Text(title)
+                } icon: {
+                    MarkImage("checkmark")
+                }
+            }
+            .accessibilityAddTraits(.isSelected)
+        } else {
+            Button(title, action: action)
+        }
     }
 }

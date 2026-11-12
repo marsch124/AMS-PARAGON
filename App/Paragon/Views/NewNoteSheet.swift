@@ -605,8 +605,17 @@ private struct ThingChoice: View {
     var body: some View {
         Button(action: choose) {
             VStack(spacing: 5) {
-                KindBadge(kind: thing.kind, size: 18, markName: symbol, tint: tint)
-                    .opacity(chosen ? 1 : 0.45)
+                // Round 5: an unchosen tile is not faded. Its icon is the part's own line
+                // colour at full strength on a clear ground; the filled disc and the frame
+                // are what say "this one".
+                if chosen {
+                    KindBadge(kind: thing.kind, size: 18, markName: symbol, tint: tint)
+                } else {
+                    MarkImage(symbol)
+                        .foregroundStyle(tint.ink)
+                        .frame(width: 18, height: 18)
+                        .accessibilityLabel(thing.kind.displayName)
+                }
                 Text(thing.name)
                     .font(Txt.label)
                     .fontWeight(chosen ? .semibold : .regular)
@@ -616,7 +625,7 @@ private struct ThingChoice: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .padding(.horizontal, 2)
-            .foregroundStyle(chosen ? tint.capsuleWords : Theme.soft)
+            .foregroundStyle(tint.capsuleWords)
             .background(tint.opacity(chosen ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 9))
             .overlay(
                 RoundedRectangle(cornerRadius: 9)
