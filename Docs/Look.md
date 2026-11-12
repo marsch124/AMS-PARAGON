@@ -161,9 +161,11 @@ Counts beside headings (for example "Calendar 1", "Projects 7") are small capsul
 
 Browse has a large title that shrinks when you scroll. The long press that reveals Work is on the version line at the foot of Browse (on the Mac it is on the PARA heading in the sidebar). The tab bar icons are the hand-drawn marks. Swipe actions on rows are as before. On the iPad the three columns are used.
 
+The picture opened big marks the words you searched for with tinted boxes (build 298): each box is the tint of the part the picture is in, a soft fill with a thin outline of the same colour, drawn over the words and moving with zoom. With no search there are no boxes.
+
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (297)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (298)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 

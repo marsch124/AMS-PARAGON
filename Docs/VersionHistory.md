@@ -1,6 +1,28 @@
 # Version history
 
-The version is shown as 1.0 (297) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (298) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 298 · 12 November 2026
+
+**Find the words on a picture, turn them into tasks.**
+
+**Before (build 297).** After you searched for words, a picture opened big looked the same as always, so you had to look for the words on it yourself. A photo of a handwritten list could only be copied or shown as text, not turned into tasks.
+
+**Now, the words are marked on the picture (iPhone, iPad and Mac).**
+- Search for some words, then open a picture big (tap it in a note, or in the Pictures gallery).
+- The places on the picture where those words are get soft tinted boxes.
+- The boxes stay on the words while you pinch to zoom and move the picture around.
+- No search means no boxes.
+
+**Now, Make tasks (iPhone, iPad and Mac).**
+- A new choice, **Make tasks**, in a picture's menu: press and hold the picture (iPhone and iPad) or right-click it (Mac). It sits next to **Caption...**, **Copy words** and **Show words**.
+- It reads the words in the picture and writes each line as an open task (a line starting with "- [ ]") straight under the picture in the note.
+- Handy for a photo of a handwritten list or a whiteboard.
+- If the picture has no words, it says **No words found in this picture**, and nothing is written.
+
+**What did not change.** Search pictures, Select part, Copy words, Show words, zoom, captions, paste, sorting the gallery, the files in your vault and all the colours are as in build 297.
+
+**The version.** It shows as "PARAGON 1.0 (298)".
 
 ## Build 297 · 12 November 2026
 
