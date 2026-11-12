@@ -1857,7 +1857,7 @@ final class AppModel: ObservableObject {
             } else {
                 reload()
             }
-            vaultSignature = currentVaultSignature()
+            vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
             return true
         } catch VaultError.modifiedOnDisk {
             log("save refused, changed on disk: \(note.relativePath)")
