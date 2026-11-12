@@ -45,6 +45,20 @@ struct PlannerView: View {
     private var isPhone: Bool { false }
     #endif
 
+    /// The action whose tile was tapped: the small menu is about this one (build 312).
+    @State private var tapped: TaskRef?
+    /// The action **Pick a time…** was chosen for; the day's own block sheet takes it from here.
+    @State private var picking: TaskRef?
+
+    /// **Next free time**: placed, and the message says where — or says there is no room.
+    private func placeAtNextFreeTime(_ ref: TaskRef) {
+        if let start = model.planAtNextFreeTime(ref, on: model.plannerDay) {
+            model.flash("Added to your plan at \(PlanBlock.clock(start)).")
+        } else {
+            model.flash("No free time left on this day. Pick a time instead.")
+        }
+    }
+
     var body: some View {
         if isPhone {
             VStack(spacing: 0) {
@@ -59,13 +73,26 @@ struct PlannerView: View {
                 TaskTray(items: model.actionsForPlanning(on: model.plannerDay),
                          title: "Actions",
                          dropHint: "Drag this onto an hour",
-                         caption: "Hold one, then drag it onto an hour under Time blocks.",
+                         caption: "Tap one for a time, or hold and drag it onto an hour.",
                          shown: 6,
-                         identifier: "plan.tray")
+                         identifier: "plan.tray",
+                         onTap: { tapped = $0 })
+                // Build 312: a tap asks where it goes. Dragging stays as the other way.
+                .confirmationDialog(tapped?.task.title ?? "",
+                                    isPresented: Binding(get: { tapped != nil },
+                                                         set: { if !$0 { tapped = nil } }),
+                                    titleVisibility: .visible,
+                                    presenting: tapped) { ref in
+                    Button("Next free time") { placeAtNextFreeTime(ref) }
+                        .accessibilityIdentifier("plan.tile.nextFree")
+                    Button("Pick a time\u{2026}") { picking = ref }
+                        .accessibilityIdentifier("plan.tile.pickTime")
+                    Button("Cancel", role: .cancel) {}
+                }
                 // One scroll for the whole page, never two inside each other (build 127).
                 ScrollView {
                     VStack(spacing: 0) {
-                        PlannerDayView(scrolls: false)
+                        PlannerDayView(scrolls: false, picking: $picking)
                         Divider().padding(.vertical, 10)
                         PlannerActionsView(scrolls: false)
                     }
@@ -91,6 +118,16 @@ struct PlannerDayView: View {
     @Environment(\.focusBarShown) private var focusBarShown
     /// False when a parent is already scrolling, so the phone never nests two scroll views.
     var scrolls: Bool = true
+    /// The action the phone's tray asked a time for (**Pick a time…**, build 312). Taken once,
+    /// then set back to nil. Nothing on the Mac sets it.
+    var picking: Binding<TaskRef?> = .constant(nil)
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
 
     @State private var editing: PlanBlock?
     @State private var draftTitle = ""
@@ -141,6 +178,16 @@ struct PlannerDayView: View {
             // Which of this day's blocks he has copied into Apple Calendar. Asked per day: the
             // planner can stand on any date, and `timeBlocks` only covers the coming weeks.
             await model.loadPlanLinks(for: day)
+        }
+        // **Pick a time…** from the phone's tray: the block sheet that **+ Block** opens, with
+        // the action's name and length filled in and the next free time as the start.
+        .onChange(of: picking.wrappedValue?.id) { _, _ in
+            guard let ref = picking.wrappedValue else { return }
+            picking.wrappedValue = nil
+            let length = model.planLength(of: ref.task)
+            let start = DayPlan.nextFreeStart(length: length, from: model.planningStart(on: day),
+                                              busy: model.planningBusy(on: day)) ?? nextFreeStart()
+            startNewBlock(at: start, titled: planBlockTitle(from: ref.task), minutes: length)
         }
         // One sheet for all of it, keyed by what is being shown (build 44).
         .sheet(item: $sheet) { which in
@@ -213,10 +260,28 @@ struct PlannerDayView: View {
                 .fixedSize()
             weekButton
                 .fixedSize()
-            calendarBlocksButton
+            moreMenu
                 .buttonStyle(.borderless)
                 .fixedSize()
         }
+    }
+
+    /// Build 312: the last button in the row was a picture with no word. It is now the
+    /// three-rings **More** mark every other menu wears, and the menu says what it opens.
+    /// The Mac's toolbar keeps its own button, with its tooltip.
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                sheet = .calendarBlocks
+            } label: {
+                MarkLabel("Blocks in Apple Calendar", "calendar.badge.clock")
+            }
+            .accessibilityIdentifier("plan.calendarBlocks")
+        } label: {
+            MarkImage("ellipsis.circle", size: 16)
+        }
+        .accessibilityLabel("More")
+        .accessibilityIdentifier("plan.more")
     }
 
     private var previousDayButton: some View {
@@ -255,9 +320,15 @@ struct PlannerDayView: View {
     /// from where the day is already being planned.
     private var weekButton: some View {
         Button {
-            model.calendarMode = .week
-            model.selectedWeek = WeekRef(containing: day)
-            model.openSection(.calendar)
+            // Build 312: on the iPhone the week slides in inside the Plan tab, and the back
+            // arrow leads here again. Everywhere else it is still Calendar › Week.
+            if isPhone {
+                model.openPlanWeek(for: day)
+            } else {
+                model.calendarMode = .week
+                model.selectedWeek = WeekRef(containing: day)
+                model.openSection(.calendar)
+            }
         } label: {
             MarkLabel("Week", "calendar")
         }
@@ -612,11 +683,11 @@ struct PlannerDayView: View {
         model.flash("Added to your plan at \(PlanBlock.clock(start)).")
     }
 
-    private func startNewBlock(at start: Int, titled title: String = "") {
+    private func startNewBlock(at start: Int, titled title: String = "", minutes: Int = 60) {
         editing = nil
         draftTitle = title
         draftStart = start
-        draftMinutes = 60
+        draftMinutes = minutes
         draftInCalendar = false
         sheet = .block
     }

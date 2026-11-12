@@ -277,6 +277,9 @@ struct PhoneStack<Content: View>: View {
                         SettingsView()
                             .navigationTitle("Settings")
                             .tint(Theme.fallbackTint.ink)
+                    case .planWeek:
+                        // Build 312: the Calendar's own week screen, pushed inside Plan.
+                        PlanWeekScreen()
                     }
                 }
         }
@@ -307,6 +310,11 @@ struct PhoneStack<Content: View>: View {
         .onChange(of: model.phoneSyncSettingsRequests) { _, _ in
             guard isActive else { return }
             if path.last != .settings { path.append(.settings) }
+        }
+        // Build 312: **Week** on Plan slides the week in here, on the Plan tab's own stack.
+        .onChange(of: model.planWeekRequests) { _, _ in
+            guard isActive, section == .timeBlocks else { return }
+            if path.last != .planWeek { path.append(.planWeek) }
         }
         .onChange(of: model.workRequests) { _, _ in
             guard isActive, section == nil else { return }
@@ -403,6 +411,8 @@ enum PhoneRoute: Hashable {
     case template(String)
     case section(SidebarSection)
     case settings
+    /// The week, inside the Plan tab (build 312).
+    case planWeek
 }
 
 /// The Browse tab: every section as a row, plus Settings.

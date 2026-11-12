@@ -3516,6 +3516,30 @@ final class AppModel: ObservableObject {
         show(section: target, notePath: nil)
     }
 
+    /// How often **Week** was pressed on the iPhone's Plan tab (build 312). The week slides in
+    /// inside that tab (`PhoneStack` watches the count), so planning never leaves Plan.
+    @Published private(set) var planWeekRequests = 0
+
+    /// The week of this day, shown inside the Plan tab. iPhone only; the Mac opens Calendar.
+    func openPlanWeek(for day: DateOnly) {
+        selectedWeek = WeekRef(containing: day)
+        planWeekRequests += 1
+    }
+
+    /// **Next free time** for one action (build 312): a plan block in the first gap of the day
+    /// that holds it, by the same start and the same busy list **Start the day** uses. Answers
+    /// the start, or nil when the day has no room left — then nothing is written.
+    @discardableResult
+    func planAtNextFreeTime(_ ref: TaskRef, on day: DateOnly) -> Int? {
+        let title = planBlockTitle(from: ref.task)
+        guard !title.isEmpty else { return nil }
+        let length = planLength(of: ref.task)
+        guard let start = DayPlan.nextFreeStart(length: length, from: planningStart(on: day),
+                                                busy: planningBusy(on: day)) else { return nil }
+        addPlanBlock(PlanBlock(start: start, end: start + length, title: title), on: day)
+        return start
+    }
+
     func show(section target: SidebarSection, notePath: String?) {
         afterUpdate {
             if self.section != target { self.section = target }

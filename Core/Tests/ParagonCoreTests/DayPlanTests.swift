@@ -245,4 +245,15 @@ final class DayPlanTests: XCTestCase {
     func testFreeStartsAskedForNothingGiveNothing() {
         XCTAssertEqual(DayPlan.freeStarts(count: 0, length: 60, from: 0, until: 24 * 60, busy: []), [])
     }
+
+    /// Build 312, **Next free time**: the first gap that holds the block, from now rounded up
+    /// to the quarter hour — and nil, not a guess, when the day has no room left.
+    func testNextFreeStartIsTheFirstGapThatHoldsTheBlockOrNothing() {
+        // 09:05 now; busy 09:00-10:00 and 10:30-12:00. Half an hour fits at 10:00, an hour not before 12:00.
+        let busy = [540..<600, 630..<720]
+        XCTAssertEqual(DayPlan.nextFreeStart(length: 30, from: 9 * 60 + 5, busy: busy), 600)
+        XCTAssertEqual(DayPlan.nextFreeStart(length: 60, from: 9 * 60 + 5, busy: busy), 720)
+        XCTAssertNil(DayPlan.nextFreeStart(length: 60, from: 23 * 60 + 20, busy: []))
+        XCTAssertNil(DayPlan.nextFreeStart(length: 60, from: 9 * 60, until: 16 * 60, busy: [540..<930]))
+    }
 }

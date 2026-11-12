@@ -808,3 +808,18 @@ struct WeekGoalBox: View {
         }
     }
 }
+
+/// **Plan the week**, inside the iPhone's Plan tab (build 312). It is the Calendar's own week
+/// screen — one week view, two ways in — pushed onto Plan's stack, so the Plan tab stays lit
+/// and the back arrow returns to Plan the day. Browse › Calendar › Week is as it was.
+struct PlanWeekScreen: View {
+    var body: some View {
+        WeekOverviewView()
+            .phonePage()
+            .navigationTitle("Plan the week")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .accessibilityIdentifier("plan.weekScreen")
+    }
+}
