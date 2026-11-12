@@ -4,6 +4,10 @@ import ParagonCore
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
     @State private var showingImporter = false
+    @State private var askedAboutFolder = false
+    /// One folder picker serves both questions (two pickers on one screen get in each other's
+    /// way): which vault to open, and where the second copy goes.
+    @State private var pickingBackupFolder = false
     @State private var backupToRestore: VaultBackup?
     @AppStorage("showMenuBarItem") private var showMenuBarItem = true
     @AppStorage("showSyncMenuBarItem") private var showSyncMenuBarItem = true
@@ -22,7 +26,10 @@ struct SettingsView: View {
                         .truncationMode(.middle)
                 }
                 HStack {
-                    Button("Choose folder…") { showingImporter = true }
+                    Button("Choose folder…") {
+                        pickingBackupFolder = false
+                        showingImporter = true
+                    }
                     if model.vault != nil {
                         Button("Close vault", role: .destructive) { model.closeVault() }
                     }
@@ -111,7 +118,7 @@ struct SettingsView: View {
                     Spacer()
                 }
                 if model.backups.isEmpty {
-                    Text("No backups yet. One is saved automatically each day and before each sync, and the last ten are kept.")
+                    Text("No backups yet. One is saved automatically each day and before each sync. Older ones are thinned out: one a day for two weeks, one a week for two months.")
                         .font(Txt.label)
                         .foregroundStyle(.secondary)
                 } else {
@@ -133,6 +140,49 @@ struct SettingsView: View {
                         .font(Txt.label)
                         .foregroundStyle(.secondary)
                 }
+            }
+            .disabled(model.vault == nil)
+
+            // Build 308 (hardening-13): the backups above sit inside the vault folder, so they
+            // are lost with it. This one is kept somewhere else, and holds the pictures too.
+            Section("Second copy, outside the vault") {
+                LabeledContent("Kept") {
+                    Text(model.outsideBackupFolderName.map { "in the folder \u{201C}\($0)\u{201D}" } ?? "on \(AppModel.thisDevice)")
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                .accessibilityIdentifier("settings.outsideBackup.place")
+                LabeledContent("Last made") {
+                    Text(model.lastOutsideBackup.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? "Not yet")
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityIdentifier("settings.outsideBackup.last")
+                if let problem = model.outsideBackupProblem {
+                    Text(problem)
+                        .font(Txt.label)
+                        .foregroundStyle(.orange)
+                        .accessibilityIdentifier("settings.outsideBackup.problem")
+                }
+                HStack {
+                    Button(model.outsideBackupFolderName == nil ? "Choose a folder…" : "Change folder…") {
+                        pickingBackupFolder = true
+                        showingImporter = true
+                    }
+                    .accessibilityIdentifier("settings.outsideBackup.choose")
+                    if model.outsideBackupFolderName != nil {
+                        Button("Keep it on \(AppModel.thisDevice)") { model.keepOutsideBackupOnDevice() }
+                            .accessibilityIdentifier("settings.outsideBackup.useDevice")
+                    }
+                    #if os(macOS)
+                    Button("Show in Finder") { model.showOutsideBackupsInFinder() }
+                        .accessibilityIdentifier("settings.outsideBackup.show")
+                    #endif
+                    Spacer()
+                }
+                Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside the vault, so they are still there if the vault folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
+                    .font(Txt.label)
+                    .foregroundStyle(.secondary)
             }
             .disabled(model.vault == nil)
 
@@ -255,9 +305,16 @@ struct SettingsView: View {
         #endif
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {
-                model.openVault(at: url)
+                if pickingBackupFolder {
+                    model.chooseOutsideBackupFolder(url)
+                } else {
+                    // Looked at first, opened only on his yes (build 308).
+                    askedAboutFolder = true
+                    model.lookAtFolder(url)
+                }
             }
         }
+        .modifier(FolderChoiceSheet(asked: $askedAboutFolder))
         .confirmationDialog("Restore the backup from \(backupToRestore.map { $0.date.formatted(date: .abbreviated, time: .shortened) } ?? "")?",
                             isPresented: Binding(get: { backupToRestore != nil }, set: { if !$0 { backupToRestore = nil } }),
                             presenting: backupToRestore) { backup in

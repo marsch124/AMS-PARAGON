@@ -10,6 +10,7 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
     @State private var showingImporter = false
+    @State private var askedAboutFolder = false
 
     /// How far above the bottom the short messages sit: clear of the focus timer's bar while a
     /// clock runs — on the phone that bar sits above the tab bar.
@@ -56,9 +57,12 @@ struct ContentView: View {
                     // competes with the sheet below for the same presentation slot.
                     .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.folder]) { result in
                         if case .success(let url) = result {
-                            model.openVault(at: url)
+                            // Looked at first, opened only on his yes (build 308).
+                            askedAboutFolder = true
+                            model.lookAtFolder(url)
                         }
                     }
+                    .modifier(FolderChoiceSheet(asked: $askedAboutFolder))
             } else if isCompact {
                 #if os(iOS)
                 PhoneRootView()
@@ -354,7 +358,7 @@ struct WelcomeView: View {
                 Button("Choose a vault folder…") { showingImporter = true }
                     .buttonStyle(.borderedProminent)
             }
-            Text("Pick an empty folder or an existing NotePlan style folder. The PARA folders, an Inbox note and templates are created if missing.")
+            Text("Pick your vault folder, an empty folder or an existing NotePlan style folder. PARAGON shows what it found first and writes nothing until you say so.")
                 .font(Txt.label)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
@@ -1332,5 +1336,110 @@ struct TintStripe: View {
         Circle()
             .fill(color)
             .frame(width: 8, height: 8)
+    }
+}
+
+
+// MARK: - A picked folder, looked at before it is opened (build 308, hardening-16)
+
+/// Presents `FolderChoiceView` for the view that asked. Both places with a folder picker (the
+/// welcome screen and Settings) can be on screen at once on the Mac, so each shows the sheet
+/// only for its own question.
+struct FolderChoiceSheet: ViewModifier {
+    @EnvironmentObject private var model: AppModel
+    @Binding var asked: Bool
+
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: Binding(
+            get: { asked && model.folderChoice != nil },
+            set: { shown in
+                if !shown {
+                    asked = false
+                    model.cancelFolderChoice()
+                }
+            }
+        )) {
+            FolderChoiceView()
+                .environmentObject(model)
+        }
+    }
+}
+
+/// What a look at the picked folder found, with Cancel and one main button. Nothing has been
+/// written when this is on screen; Cancel (Escape on the Mac) leaves the folder untouched.
+struct FolderChoiceView: View {
+    @EnvironmentObject private var model: AppModel
+
+    private var finding: FolderLook.Finding? { model.folderChoice?.finding }
+
+    static func notes(_ count: Int) -> String {
+        count == 1 ? "1 note" : "\(count.formatted()) notes"
+    }
+
+    /// The headline, the smaller lines under it, and the main button's words (nil: only Cancel).
+    private var words: (headline: String, details: [String], action: String?) {
+        let caution = "This folder is in iCloud and may not be fully listed on \(AppModel.thisDevice) yet. If it should hold more, cancel and try again in a minute."
+        switch finding {
+        case nil:
+            return ("Looking at this folder…", ["Nothing is written."], nil)
+        case .stillListing:
+            return ("iCloud is still listing this folder.", ["PARAGON is waiting and has written nothing. This can take a minute."], nil)
+        case .unreadable:
+            return ("PARAGON cannot read this folder.", ["Nothing was written. Choose another folder."], nil)
+        case .vault(let count):
+            var details = ["It is a PARAGON vault."]
+            if model.folderChoice?.mayBeIncomplete == true { details.append(caution) }
+            return ("This folder has \(Self.notes(count)).", details, "Open it")
+        case .notAVault(let count):
+            var details: [String] = []
+            if count > 0 { details.append("It has \(Self.notes(count)) of its own. They stay as they are.") }
+            details.append("Setting it up adds the PARAGON folders, an Inbox note and templates.")
+            if model.folderChoice?.mayBeIncomplete == true { details.append(caution) }
+            return ("This folder is not a PARAGON vault.", details, "Set it up here")
+        }
+    }
+
+    var body: some View {
+        let words = words
+        VStack(alignment: .leading, spacing: 8) {
+            Text(model.folderChoice?.name ?? "")
+                .font(Txt.label)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            HStack(spacing: 8) {
+                if words.action == nil, finding != .unreadable { ProgressView().controlSize(.small) }
+                Text(words.headline)
+                    .font(Txt.sectionTitle)
+                    .accessibilityIdentifier("folderChoice.headline")
+            }
+            ForEach(words.details, id: \.self) { line in
+                Text(line)
+                    .font(Txt.list)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel) { model.cancelFolderChoice() }
+                    .keyboardShortcut(.cancelAction)
+                    .accessibilityIdentifier("folderChoice.cancel")
+                if let action = words.action {
+                    Button(action) { model.confirmFolderChoice() }
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.defaultAction)
+                        .accessibilityIdentifier("folderChoice.confirm")
+                }
+            }
+            .padding(.top, 6)
+        }
+        .padding(16)
+        #if os(macOS)
+        .frame(width: 400)
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .presentationDetents([.height(260)])
+        #endif
+        .accessibilityIdentifier("folderChoice.sheet")
     }
 }

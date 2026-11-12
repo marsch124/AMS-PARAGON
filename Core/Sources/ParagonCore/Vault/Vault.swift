@@ -492,10 +492,11 @@ public final class Vault {
     public func createNote(kind: ParaKind, title: String, extraFrontmatter: [(String, String)] = [],
                            tags: [String] = [], template: String? = nil) throws -> Note {
         let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let fileName = Self.sanitizeFileName(cleanTitle)
-        guard !fileName.isEmpty, kind != .daily, let folder = config.folder(for: kind) else { throw VaultError.invalidTitle }
+        guard kind != .daily, let folder = config.folder(for: kind) else { throw VaultError.invalidTitle }
+        // The file's name may be a shortened form of a very long title; the title itself is
+        // written whole into `title:` below, which is what lists and `[[links]]` go by.
+        let fileName = try freeFileName(forTitle: cleanTitle, inFolder: folder)
         let relativePath = "\(folder)/\(fileName).md"
-        guard !CloudFiles.exists(url(for: relativePath)) else { throw VaultError.noteAlreadyExists(relativePath) }
 
         var text = template.flatMap { templateText(named: $0) } ?? templateText(for: kind) ?? Templates.minimal(kind: kind)
         text = Templates.fill(text, title: cleanTitle, date: DateOnly.today())
@@ -531,18 +532,24 @@ public final class Vault {
     /// (`Note.retargeting(_:to:)`), because that touches files this one knows nothing about.
     public func rename(_ note: Note, to newTitle: String) throws -> Note {
         let clean = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        let fileName = Self.sanitizeFileName(clean)
-        guard !clean.isEmpty, !fileName.isEmpty, note.kind != .inbox, note.kind != .daily else {
+        guard !clean.isEmpty, note.kind != .inbox, note.kind != .daily else {
             throw VaultError.invalidTitle
         }
         var renamed = note.headingRenamed(from: note.displayTitle, to: clean)
         renamed.frontmatter.set("title", clean)
 
         let folder = (note.relativePath as NSString).deletingLastPathComponent
+        let fileName = try freeFileName(forTitle: clean, inFolder: folder, replacing: note.relativePath)
         let target = folder.isEmpty ? "\(fileName).md" : "\(folder)/\(fileName).md"
         guard target != note.relativePath else { return try save(renamed) }
-        guard !CloudFiles.exists(url(for: target)) else {
-            throw VaultError.noteAlreadyExists(target)
+        if isSameFile(target, note.relativePath) {
+            // Only capitals changed ("Trip" -> "TRIP") on a disk that takes both spellings for
+            // one file: the target "exists" because it is this very note. The words are saved
+            // where the file is, then the file is given its new spelling in one step.
+            var saved = try save(renamed)
+            try respell(note.relativePath, as: target)
+            saved.relativePath = target
+            return saved
         }
         // Write the new file before removing the old one, so a failure never loses the note.
         renamed.relativePath = target
@@ -550,6 +557,63 @@ public final class Vault {
         let saved = try save(renamed)
         try fm.removeItem(at: url(for: note.relativePath))
         return saved
+    }
+
+    /// The file name (without ".md") a note with this title gets in `folder`.
+    ///
+    /// A name that is free is used as it is. A taken name throws `noteAlreadyExists`, as it
+    /// always did — unless the name is a **shortened** one (a title too long for a file name):
+    /// two different long titles can shorten to the same words, so the next one gets " 2",
+    /// " 3" … and only a note that really carries the same title is "already there".
+    /// `current` is the note being renamed: its own file never counts as taken, including
+    /// under another spelling of its capitals.
+    func freeFileName(forTitle title: String, inFolder folder: String, replacing current: String? = nil) throws -> String {
+        let base = Self.sanitizeFileName(title)
+        guard !base.isEmpty else { throw VaultError.invalidTitle }
+        let shortened = base != Self.sanitizeFileName(title, maxBytes: .max)
+        func path(_ name: String) -> String { folder.isEmpty ? "\(name).md" : "\(folder)/\(name).md" }
+        var name = base
+        var n = 2
+        while true {
+            let candidate = path(name)
+            if let current, candidate == current || isSameFile(candidate, current) { return name }
+            if !CloudFiles.exists(url(for: candidate)) { return name }
+            guard shortened, n < 1000,
+                  let there = try? loadNote(relativePath: candidate),
+                  there.title.caseInsensitiveCompare(title) != .orderedSame else {
+                throw VaultError.noteAlreadyExists(candidate)
+            }
+            name = "\(base) \(n)"
+            n += 1
+        }
+    }
+
+    /// True when two different spellings name one and the same file on disk — "Trip.md" and
+    /// "TRIP.md" on an ordinary Mac or iPhone disk. On a disk that tells capitals apart they
+    /// are two files, and this is false.
+    func isSameFile(_ a: String, _ b: String) -> Bool {
+        guard a != b else { return true }
+        func identity(_ path: String) -> NSObjectProtocol? {
+            (try? url(for: path).resourceValues(forKeys: [.fileResourceIdentifierKey]))?.fileResourceIdentifier
+        }
+        guard let ia = identity(a), let ib = identity(b) else { return false }
+        return ia.isEqual(ib)
+    }
+
+    /// Gives a file another spelling of the same name. The system's own rename does this in one
+    /// step; where it will not, the file goes by way of a temporary name and comes back if the
+    /// second step fails.
+    private func respell(_ old: String, as new: String) throws {
+        let from = url(for: old), to = url(for: new)
+        if Darwin.rename(from.path, to.path) == 0 { return }
+        let parked = from.deletingLastPathComponent().appendingPathComponent(".renaming-\(UUID().uuidString).md")
+        try fm.moveItem(at: from, to: parked)
+        do {
+            try fm.moveItem(at: parked, to: to)
+        } catch {
+            try? fm.moveItem(at: parked, to: from)
+            throw error
+        }
     }
 
     public func archive(_ note: Note) throws -> Note {
@@ -597,9 +661,32 @@ public final class Vault {
         try moveToDeleted(note)
     }
 
-    public static func sanitizeFileName(_ title: String) -> String {
+    /// The longest file name (before ".md") a title is given, in bytes. A disk allows 255 for
+    /// the whole name; the rest is room for what gets added later: ".md", " (conflict
+    /// 2026-11-12 0930)", " (archived 2026-11-12 2)", the Deleted folder's time stamp in front,
+    /// and iCloud's own ".….icloud" around a file it has not sent.
+    public static let longestFileNameBytes = 180
+
+    /// A title as a file name: no characters a disk refuses, and (build 308, hardening-18) no
+    /// longer than a disk allows — a 360-letter title used to fail with "invalid file name".
+    /// The cut falls between whole characters, never inside an accent or an emoji. The full
+    /// title is not lost: it is the note's `title:` line.
+    public static func sanitizeFileName(_ title: String, maxBytes: Int = longestFileNameBytes) -> String {
         let forbidden = CharacterSet(charactersIn: "/\\:*?\"<>|\n\r\t").union(.controlCharacters)
         let cleaned = title.unicodeScalars.map { forbidden.contains($0) ? " " : Character($0) }
-        return String(cleaned).split(separator: " ").joined(separator: " ").trimmingCharacters(in: .init(charactersIn: ". "))
+        let edges = CharacterSet(charactersIn: ". ")
+        let whole = String(cleaned).split(separator: " ").joined(separator: " ").trimmingCharacters(in: edges)
+        guard whole.utf8.count > maxBytes || whole.decomposedStringWithCanonicalMapping.utf8.count > maxBytes else { return whole }
+        var kept = ""
+        var bytes = 0
+        for character in whole {
+            // Counted in the longer of the two ways a disk may store an accented letter.
+            let piece = String(character)
+            let size = max(piece.utf8.count, piece.decomposedStringWithCanonicalMapping.utf8.count)
+            if bytes + size > maxBytes { break }
+            kept.append(character)
+            bytes += size
+        }
+        return kept.trimmingCharacters(in: edges)
     }
 }
