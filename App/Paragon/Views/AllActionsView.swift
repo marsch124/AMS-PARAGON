@@ -24,6 +24,8 @@ import ParagonCore
 struct AllActionsView: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage("actionFiltersFolded") private var deskFolded = false
+    /// Build 304: the filter boxes' measured height, so their scroll area is only as tall as they are.
+    @State private var boxesHeight: CGFloat?
     @AppStorage("actionFiltersFoldedPhone") private var phoneFolded = true
     @AppStorage(WaitingShowing.key) private var showsWaiting = false
 
@@ -90,13 +92,20 @@ struct AllActionsView: View {
         } else {
             // Build 301: only as tall as the boxes (a bare ScrollView took the whole 260 points
             // and left an empty gap); it scrolls only when they would not fit under the cap.
-            ViewThatFits(in: .vertical) {
+            // **Build 304 fix — the iPhone hung at launch.** 301 did this with `ViewThatFits`
+            // round the wrapping chips; the chips' height depends on the room offered and
+            // ViewThatFits kept re-measuring them without end, so the phone froze on start (iOS
+            // then closes it — it looked like a crash). Now the boxes are measured once inside
+            // the ScrollView (their height there never depends on the ScrollView's own height)
+            // and the ScrollView takes that height, capped.
+            let cap: CGFloat = isPhone ? 200 : 260
+            ScrollView {
                 boxes(among: all)
-                ScrollView { boxes(among: all) }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { boxesHeight = $0 }
             }
             // The same cap as the Search screen's panel: on a phone this is a whole
             // tab, and boxes filling it would leave two rows of actions to look at.
-            .frame(maxHeight: isPhone ? 200 : 260)
+            .frame(height: min(boxesHeight ?? cap, cap))
         }
         waitingPointer(waiting)
         Divider()

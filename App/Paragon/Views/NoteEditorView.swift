@@ -1745,6 +1745,24 @@ struct TaskRow: View {
             }
         }
         .contentShape(Rectangle())
+        // **Build 304 (his yes to my idea): swipe a task to tick it.** A swipe from the left
+        // edge does what the circle does — the same `toggle`, so the same gentle tap (build 303)
+        // and the same repeat rule. A full swipe ticks at once. Only inside a list (SwiftUI
+        // shows swipe actions in `List` rows only); the circle stays for everywhere else.
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            if ref.task.status != .cancelled {
+                Button(action: toggle) {
+                    Label {
+                        Text(ref.task.isDone ? "Not done" : "Done")
+                    } icon: {
+                        // The app's own hand-drawn tick and circle, never a stock symbol.
+                        Marks.templateImage(ref.task.isDone ? "circle" : "checkmark.circle.fill", size: 20)
+                    }
+                }
+                .tint(ref.task.isDone ? .gray : .green)
+                .accessibilityIdentifier("task.swipeDone.\(ref.task.title)")
+            }
+        }
         .draggable(TaskTransfer(ref))
         .contextMenu {
             TaskContextMenu(ref: ref, showNote: showNote, pickingDate: $pickingDate,

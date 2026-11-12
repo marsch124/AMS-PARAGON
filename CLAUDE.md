@@ -4936,6 +4936,16 @@ is `Work/look-1.0/design/screens.md`; the pictures before and after are under `W
 - **Unchanged:** Mac and iPad keep `SyncStatusBar` at the foot of the sidebar.
 - **BuildStamp:** `BuildStamp.number` = 300.
 
+## Build 304 (12 November 2026)
+
+"Mac opens again, swipe to tick, today's count in the menu bar, icon-only today note". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Today band, swiping a task, menu bar), `Look.md` (sections 8, 15).
+
+- **Fix:** build 303's menu bar label redrew forever (TimelineView + a fresh NSImage each pass), so the Mac app never opened (CPU 100 %, memory climbing). Now ring pictures are cached per mood and fill step (1/24) and the label uses a 60-second Timer. **Trap: never put a TimelineView or a freshly rendered NSImage in a MenuBarExtra label. It redraws forever and the Mac app never opens.**
+- **Swipe:** `.swipeActions(edge: .leading, allowsFullSwipe: true)` on task rows, id `task.swipeDone.<title>`, green Done / grey Not done, same toggle (haptic included); none on cancelled tasks.
+- **Menu bar count:** `SyncRing.menuBarTitle(dueToday:word:)` with `SyncRing.dueTodayBadge` (nil for 0, "99+" over 99). Test `testTheMenuBarShowsTodaysCountBesideTheRing`.
+- **Today band:** `today.note` is an icon-only `HeaderActionButton` (calendar, onBand), first in `dayButtons`; one row, band one row shorter.
+- **BuildStamp:** `BuildStamp.number` = 304.
+
 ## Build 303 (12 November 2026)
 
 "Sync ring in the Mac menu bar, a tap on ticking". Docs in `Docs/VersionHistory.md`, `HowItWorks.md` (Reminders sync, ticking), `Look.md` (section 8).

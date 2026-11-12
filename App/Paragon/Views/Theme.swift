@@ -230,13 +230,9 @@ struct SyncRingMark: View {
             .foregroundStyle(mood == .problem ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
             .lineLimit(1)
             .fixedSize()
-        return Group {
-            if axis == .vertical {
-                VStack(spacing: 1) { mark; text }
-            } else {
-                HStack(spacing: 6) { mark; text }
-            }
-        }
+        // Build 304 fix: one layout that never swaps its kind of view (was `Group { if … }`).
+        let layout = axis == .vertical ? AnyLayout(VStackLayout(spacing: 1)) : AnyLayout(HStackLayout(spacing: 6))
+        return layout { mark; text }
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Sync with Reminders")
@@ -262,7 +258,7 @@ struct SyncRingGlyph: View {
                 .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 0.4), value: fill)
-            MarkImage("arrow.triangle.2.circlepath", size: ring * 0.54)
+            MarkImage("arrow.triangle.2.circlepath", size: (ring * 0.54).rounded())
                 .foregroundStyle(plain ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
                 .rotationEffect(.degrees(syncing ? 360 : 0))
                 .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
@@ -289,10 +285,13 @@ enum Haptics {
 /// the sync changes) and the time goes beside it as words.
 struct MenuBarSyncLabel: View {
     @EnvironmentObject private var model: AppModel
+    /// Build 304: a plain minute timer — a `TimelineView` inside a menu bar label kept asking
+    /// for redraws without pause and the Mac app never opened.
+    @State private var now = Date()
+    private let minute = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
-            let now = context.date
+        Group {
             let finishedAt = model.lastReport.map { $0.finishedAt ?? $0.startedAt }
             let conflicts = model.lastReport?.conflicts.count ?? 0
             let syncing = model.isSyncing
@@ -303,13 +302,32 @@ struct MenuBarSyncLabel: View {
                                      conflicts: conflicts, now: now)
             let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                      conflicts: conflicts, now: now)
+            // Build 304: the number of tasks due today, right beside the ring (none when 0).
+            let due = model.index.openTasks(dueOn: DateOnly(now)).count
             Image(nsImage: Self.picture(fill: fill, mood: mood))
-            Text(word)
+            Text(SyncRing.menuBarTitle(dueToday: due, word: word))
         }
+        .onReceive(minute) { now = $0 }
     }
+
+    /// **Build 304 fix — the Mac would not open.** A fresh picture on every redraw made the menu
+    /// bar see a "new" image, redraw, and get another fresh one — forever, before any window
+    /// appeared. Each picture is now made once per mood and fill step and the SAME one is handed
+    /// back, so a redraw with nothing changed changes nothing.
+    @MainActor private static var pictures: [String: NSImage] = [:]
 
     @MainActor
     static func picture(fill: Double, mood: SyncRing.Mood) -> NSImage {
+        let step = (min(max(fill, 0), 1) * 24).rounded() / 24
+        let key = "\(mood)-\(step)"
+        if let made = pictures[key] { return made }
+        let image = makePicture(fill: step, mood: mood)
+        pictures[key] = image
+        return image
+    }
+
+    @MainActor
+    private static func makePicture(fill: Double, mood: SyncRing.Mood) -> NSImage {
         let tint: Color
         switch mood {
         case .none: tint = .gray

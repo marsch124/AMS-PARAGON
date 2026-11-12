@@ -83,7 +83,7 @@ struct TodayView: View {
             // white above the date and the day's one number under it. The two buttons keep
             // their place at the row's right end. The phone's title stays in its bar.
             VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: isPhone ? .center : .top, spacing: 8) {
                 // The date keeps its width first, so what gives way is the buttons' words and
                 // never the date breaking over two lines (build 138).
                 VStack(alignment: .leading, spacing: 1) {
@@ -102,22 +102,13 @@ struct TodayView: View {
                 // Their names stay as the spoken title and the Mac's tooltip (build 159).
                 dayButtons
             }
-            // **Build 291: no big number.** He could read "0 due today" in the Due today list
-            // a few lines down, so the band says it no more. Its room now holds the way into
-            // today's note, a white button, so the old "Today's note" heading row is gone.
-            HeaderActionButton(title: model.todayNote == nil ? "Create today's note" : "Today's note",
-                               spokenTitle: model.todayNote == nil ? "Create today's note" : "Open today's note",
-                               markName: "calendar",
-                               tint: SidebarSection.today.tint,
-                               onBand: true,
-                               identifier: "today.note") {
-                model.openDailyNote(for: today)
-            }
-            .padding(.top, 6)
+            // Build 291 put today's note on a second row as a worded white button; build 304
+            // (his ask, a screenshot) made it a small round button beside Start and Close the
+            // day, so the band is one row and shorter.
             }
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("today.band")
-            .band(SidebarSection.today.tint)
+            .band(SidebarSection.today.tint, vertical: isPhone ? 6 : 8)
             .padding(.bottom, Theme.tight)
             // **Now and Then, the day's plan in two short lines** (build 266), outside the
             // `List` for the same reason the date is (build 220). Nothing at all on a day with
@@ -248,6 +239,14 @@ struct TodayView: View {
     /// The morning and evening buttons, symbols only.
     private var dayButtons: some View {
         HStack(spacing: 6) {
+            HeaderActionButton(title: nil,
+                               spokenTitle: model.todayNote == nil ? "Create today's note" : "Open today's note",
+                               markName: "calendar",
+                               tint: SidebarSection.today.tint,
+                               onBand: true,
+                               identifier: "today.note") {
+                model.openDailyNote(for: .today())
+            }
             HeaderActionButton(title: nil,
                                spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
                                markName: StartDayView.symbol,

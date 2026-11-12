@@ -1,6 +1,35 @@
 # Version history
 
-The version is shown as 1.0 (303) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (304) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 304 · 12 November 2026
+
+**The Mac app opens again, swipe a task to tick it, today's count in the menu bar, and a tidier Today band.**
+
+**Before (build 303).** The Mac app would not open: it froze at start, one processor at 100 % and the memory climbing. The new sync ring in the menu bar kept redrawing itself without pause. Ticking a task meant tapping its circle. The menu bar ring showed only the sync word. On **Today**, the "Create today's note" / "Today's note" button was a worded button on its own second row in the purple band.
+
+**Fixed, the Mac app opens again.**
+- The ring in the menu bar is now drawn once per minute, and its pictures are kept for reuse, so nothing redraws without pause. The app opens normally and the processor stays calm.
+- The iPhone app was fine. A slow first start after a TestFlight update was just the update.
+
+**New, swipe a task to tick it.**
+- In any list, swipe a task from the left edge to tick it done. A full swipe ticks it at once.
+- On the iPhone and iPad it gives the same gentle tap as tapping the circle.
+- On a task that is already ticked, the same swipe says **Not done** and opens it again.
+- Cancelled tasks have no swipe.
+- It works in the lists (Today, All actions, Search, Inbox and the others), and on the Mac with two fingers on the trackpad.
+
+**New, today's count beside the menu bar ring.**
+- The Mac menu bar sync ring now shows the number of tasks due today right beside it, for example "3 · 11:20".
+- Nothing is shown when no task is due today. Over 99 it shows "99+".
+
+**Changed, Today's purple band.**
+- The "Create today's note" / "Today's note" button was a worded button on its own second row. It is now a small round calendar button, the same size as **Start the day** and **Close the day**, in one row with them beside the date.
+- The band is one row shorter, so the lists start higher on the screen.
+
+**What did not change.** The sync itself, the menu and the settings switch of the menu bar item, what ticking does to a task, and what the buttons on the band do.
+
+**The version.** It shows as "PARAGON 1.0 (304)".
 
 ## Build 303 · 12 November 2026
 

@@ -35,4 +35,13 @@ final class SyncRingTests: XCTestCase {
         XCTAssertEqual(word(ago(24 * 60)), "Yesterday")
         XCTAssertEqual(word(ago(3 * 24 * 60)), "9 Nov")
     }
+
+    /// Build 304: the count of tasks due today beside the Mac menu bar ring.
+    func testTheMenuBarShowsTodaysCountBesideTheRing() {
+        XCTAssertNil(SyncRing.dueTodayBadge(0))
+        XCTAssertEqual(SyncRing.dueTodayBadge(3), "3")
+        XCTAssertEqual(SyncRing.dueTodayBadge(120), "99+")
+        XCTAssertEqual(SyncRing.menuBarTitle(dueToday: 0, word: "11:20"), "11:20")
+        XCTAssertEqual(SyncRing.menuBarTitle(dueToday: 2, word: "11:20"), "2 · 11:20")
+    }
 }

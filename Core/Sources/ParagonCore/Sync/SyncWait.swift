@@ -121,3 +121,19 @@ public enum SyncRing {
         return day.string(from: finishedAt)
     }
 }
+
+extension SyncRing {
+    /// **Build 304 (his yes to my idea): the number of tasks due today beside the Mac menu bar
+    /// ring.** Nothing at all when none are due (an empty "0" would be noise), and "99+" past 99
+    /// so the menu bar item never grows wide.
+    public static func dueTodayBadge(_ count: Int) -> String? {
+        guard count > 0 else { return nil }
+        return count > 99 ? "99+" : "\(count)"
+    }
+
+    /// The menu bar's words: the count first, right beside the ring, then the sync word.
+    public static func menuBarTitle(dueToday: Int, word: String) -> String {
+        guard let badge = dueTodayBadge(dueToday) else { return word }
+        return "\(badge) · \(word)"
+    }
+}

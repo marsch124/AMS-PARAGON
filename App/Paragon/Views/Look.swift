@@ -404,13 +404,15 @@ struct BandStyle: ViewModifier {
     var inset: CGFloat = Theme.gutter + 6
     /// 0 where the band runs edge to edge; a panel's corner where it sits inside a page's gutter.
     var radius: CGFloat = 0
+    /// Space above and below the words; Today's one-row band uses less (build 304).
+    var vertical: CGFloat = 10
     @Environment(\.colorScheme) private var scheme
 
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, inset)
-            .padding(.vertical, 10)
+            .padding(.vertical, vertical)
             .background {
                 ZStack {
                     // The night shades are bright, and white words need a darker ground.
@@ -425,8 +427,9 @@ struct BandStyle: ViewModifier {
 }
 
 extension View {
-    func band(_ color: Color, inset: CGFloat = Theme.gutter + 6, radius: CGFloat = 0) -> some View {
-        modifier(BandStyle(color: color, inset: inset, radius: radius))
+    func band(_ color: Color, inset: CGFloat = Theme.gutter + 6, radius: CGFloat = 0,
+              vertical: CGFloat = 10) -> some View {
+        modifier(BandStyle(color: color, inset: inset, radius: radius, vertical: vertical))
     }
 }
 
