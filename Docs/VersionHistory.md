@@ -1,6 +1,33 @@
 # Version history
 
-The version is shown as 1.0 (300) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (301) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 301 · 12 November 2026
+
+**The same sync ring on all three devices, a tap you can feel, "New Entry", and a smaller filter.**
+
+**Before (build 300).** Only the iPhone had the clock ring on its sync button. On the Mac and the iPad a small pill at the foot of the sidebar said "Synced at 10:55". The + button's screen was called "New note" and the filter boxes on All actions took a lot of room.
+
+**Now, the Mac and iPad sidebar has the ring too.**
+- The pill that said "Synced at 10:55" is gone. In its place, at the foot of the sidebar, is the same clock ring the iPhone got in build 300: a small ring (22 points) round the hand-drawn sync mark.
+- The ring is full just after a sync and empties over two hours. It is green for the first hour and yellow after that, and also yellow while a sync waits for notes from iCloud. It is a full red ring when the last sync had conflicts, and grey and empty before any sync.
+- Next to it is a short word: the time ("10:55"), "Yesterday", the day ("9 Nov"), "Syncing", "iCloud", "Not yet", or "2 conflicts".
+- Press it to sync now. Right-click (press and hold on the iPad) for the menu: **Sync now**, **Show me what would change…**, **Last sync report…** and **Sync settings…**.
+- The Mac, the iPad and the iPhone now look and work the same.
+
+**Now, on the iPhone, you feel it when a sync is done.** When a sync finishes you get a soft tap if all is well, and a warning buzz if it ended with conflicts.
+
+**Now, "New note" is called "New Entry".** The screen the + button opens (Aspiration, Goal, Project, Area, Resource, Capture) is called **New Entry**: its title, the + button's name and tip, and the **New Entry…** button on an empty right-hand column. In the Inbox, **New note from this line…** keeps its name, because it really makes a note.
+
+**Now, the All actions filter is smaller and neater.**
+- The row names are small grey capitals (**WHEN**, **MARK**, **TAGS**) instead of big green headings.
+- Each choice is a rounded chip. Off: a soft grey fill. Ticked: filled in the screen's colour with white words and a small tick. The same on the Mac and the iPhone.
+- The empty gap under the boxes is gone. Before, the box area was always 260 points tall; now it is only as tall as its boxes, so more of your list shows.
+- **Search** keeps its Mac tick boxes.
+
+**What did not change.** What the sync does, the lists, your notes and the other screens.
+
+**The version.** It shows as "PARAGON 1.0 (301)".
 
 ## Build 300 · 12 November 2026
 

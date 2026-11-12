@@ -88,10 +88,15 @@ struct AllActionsView: View {
         if folded {
             foldedLine
         } else {
-            ScrollView { boxes(among: all) }
-                // The same cap as the Search screen's panel: on a phone this is a whole
-                // tab, and boxes filling it would leave two rows of actions to look at.
-                .frame(maxHeight: isPhone ? 200 : 260)
+            // Build 301: only as tall as the boxes (a bare ScrollView took the whole 260 points
+            // and left an empty gap); it scrolls only when they would not fit under the cap.
+            ViewThatFits(in: .vertical) {
+                boxes(among: all)
+                ScrollView { boxes(among: all) }
+            }
+            // The same cap as the Search screen's panel: on a phone this is a whole
+            // tab, and boxes filling it would leave two rows of actions to look at.
+            .frame(maxHeight: isPhone ? 200 : 260)
         }
         waitingPointer(waiting)
         Divider()
@@ -202,7 +207,7 @@ struct AllActionsView: View {
     }
 
     private func boxes(among all: [TaskRef]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 9) {
             row("When", choices: ActionFilter.When.allCases.map { when in
                 Choice(id: when.rawValue, title: when.label,
                        isOn: model.actionFilter.whens.contains(when)) {
@@ -233,11 +238,16 @@ struct AllActionsView: View {
     /// One titled row. A `WrappingHStack`, so a narrow column moves whole boxes to the next
     /// line rather than squeezing every one of them thinner (build 138).
     private func row(_ title: String, choices: [Choice]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(title: title, count: nil, tint: tint)
-            WrappingHStack(spacing: 6, lineSpacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
+            // Build 301 (his ask): small grey capitals, not a green heading — the chips carry
+            // the colour.
+            Text(title.uppercased())
+                .font(Txt.pill.weight(.semibold))
+                .tracking(0.6)
+                .foregroundStyle(.secondary)
+            WrappingHStack(spacing: 5, lineSpacing: 5) {
                 ForEach(choices) { choice in
-                    FilterBox(title: choice.title, isOn: choice.isOn, tint: tint, action: choice.action)
+                    FilterBox(title: choice.title, isOn: choice.isOn, tint: tint, chip: true, action: choice.action)
                         .accessibilityIdentifier("actions.box.\(choice.id)")
                 }
             }

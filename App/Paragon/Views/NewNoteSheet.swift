@@ -139,7 +139,7 @@ struct NewNoteSheet: View {
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         // 1.0: Cancel and Create at the top right on the Mac (Escape, Return, ⌘S), in the
         // navigation bar on the iPhone. `SheetChrome` in Look.swift is the one shape.
-        .sheetChrome(title: "New note", tint: tint(for: thing), actionTitle: "Create",
+        .sheetChrome(title: "New Entry", tint: tint(for: thing), actionTitle: "Create",
                      canAct: canCreate, showsAction: !thing.isCapture,
                      cancel: { dismiss() }, act: create)
         .onAppear {

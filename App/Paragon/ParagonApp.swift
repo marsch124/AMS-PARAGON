@@ -36,7 +36,7 @@ struct ParagonApp: App {
             // after it meant ⌘N opened an empty second window and never the sheet
             // (build 120). Replacing the group takes New Window out and gives ⌘N back.
             CommandGroup(replacing: .newItem) {
-                Button("New Note…") { model.activeSheet = .newNote }
+                Button("New Entry…") { model.activeSheet = .newNote }
                     .keyboardShortcut("n", modifiers: [.command])
                     .disabled(model.vault == nil)
                 Button("Quick Capture…") { model.activeSheet = .quickCapture }

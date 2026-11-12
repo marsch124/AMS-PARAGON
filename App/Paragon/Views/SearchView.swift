@@ -442,9 +442,44 @@ struct FilterBox: View {
     /// What the box writes into the query ("is:open", "type:project", "#travel"); the box is
     /// named `search.box.<token>` by it. All actions' boxes name themselves and pass none.
     var token: String? = nil
+    /// Build 301 (his ask, All actions): a smaller, calmer chip on every device — off is a
+    /// soft grey fill, ticked is filled in the row's colour with white words and a small tick.
+    var chip: Bool = false
     let action: () -> Void
 
     var body: some View {
+        if chip { chipBody } else { boxBody }
+    }
+
+    private var chipBody: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if isOn {
+                    MarkImage("checkmark", size: 9)
+                        .fontWeight(.bold)
+                        .transition(.scale.combined(with: .opacity))
+                }
+                Text(title)
+                    .font(Txt.pill)
+            }
+            .foregroundStyle(isOn ? Color.white : Color.primary.opacity(0.75))
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .background(
+                Capsule().fill(isOn ? AnyShapeStyle(tint.gradient) : AnyShapeStyle(Color.primary.opacity(0.06)))
+            )
+            .overlay(Capsule().strokeBorder(isOn ? Color.clear : Color.primary.opacity(0.08), lineWidth: 0.5))
+            .shadow(color: isOn ? tint.opacity(0.28) : .clear, radius: 3, y: 1)
+            .contentShape(Capsule())
+            .animation(.snappy(duration: 0.18), value: isOn)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isOn ? "\(title), ticked" : "\(title), not ticked")
+        .accessibilityAddTraits(isOn ? [.isSelected] : [])
+    }
+
+    @ViewBuilder
+    private var boxBody: some View {
         #if os(macOS)
         Toggle(isOn: Binding(get: { isOn }, set: { _ in action() })) {
             Text(title)

@@ -143,13 +143,6 @@ struct SyncStatusBar: View {
     @Environment(\.openSettings) private var openSettings
     #endif
 
-    private var finishedAt: Date? { model.lastReport.map { $0.finishedAt ?? $0.startedAt } }
-    private var conflicts: Int { model.lastReport?.conflicts.count ?? 0 }
-    private var problem: Bool {
-        SyncStatus.isProblem(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
-                             finishedAt: finishedAt, conflicts: conflicts)
-    }
-
     var body: some View {
         if pressable {
             // Build 292: the toolbar's sync button is gone, so a press here syncs now; the
@@ -173,40 +166,17 @@ struct SyncStatusBar: View {
         }
     }
 
-    /// Green while all is well, orange when something wants a look, the part's purple while
-    /// a sync runs or waits.
-    private var stateColor: Color {
-        if problem { return .orange }
-        if model.isSyncing || model.syncWaitsForCloud || finishedAt == nil { return SidebarSection.today.tint }
-        return .green
-    }
-
-    /// Build 292: a small pill — a coloured dot (a turning mark while syncing) and the line.
+    /// Build 301 (his ask): the same clock ring as the iPhone's sync button (build 300), so
+    /// all three devices look the same — the ring beside its word, centred at the sidebar foot.
+    /// The pill it replaces is gone.
     private var label: some View {
-        HStack(spacing: 6) {
-            if model.isSyncing {
-                ProgressView().controlSize(.mini)
-                    .frame(width: 8, height: 8)
-            } else {
-                Circle()
-                    .fill(stateColor)
-                    .frame(width: 7, height: 7)
-                    .overlay(Circle().stroke(stateColor.opacity(0.25), lineWidth: 3))
-            }
-            Text(SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
-                                 finishedAt: finishedAt, conflicts: conflicts))
-                .font(Txt.listSecond.weight(.medium))
-                .foregroundStyle(problem ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.secondary))
-                .lineLimit(1)
-                .monospacedDigit()
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            SyncRingMark(now: context.date, axis: .horizontal, ring: 22)
+                .padding(.vertical, 3)
+                .padding(.horizontal, 8)
+                .contentShape(Rectangle())
+                .frame(maxWidth: .infinity)
         }
-        .padding(.vertical, 4)
-        .padding(.horizontal, 10)
-        .background(stateColor.opacity(0.10), in: Capsule())
-        .overlay(Capsule().strokeBorder(stateColor.opacity(0.22), lineWidth: 0.5))
-        .contentShape(Capsule())
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 2)
     }
 
     private func open() {
@@ -216,6 +186,74 @@ struct SyncStatusBar: View {
         #else
         model.activeSheet = .settings
         #endif
+    }
+}
+
+/// **The sync clock ring** (build 300 on the iPhone, build 301 on the Mac and iPad sidebar):
+/// a ring round the hand-drawn sync mark that runs down over two hours, green under one hour,
+/// yellow after that or while it waits for iCloud, a full red ring when the last sync had
+/// conflicts, grey before any sync; the short word (10:55, Yesterday, Syncing…) beside or
+/// under it. Every rule is Core's `SyncRing`; this only draws it.
+struct SyncRingMark: View {
+    @EnvironmentObject private var model: AppModel
+    let now: Date
+    var axis: Axis = .vertical
+    var ring: CGFloat = 26
+
+    private var finishedAt: Date? { model.lastReport.map { $0.finishedAt ?? $0.startedAt } }
+    private var conflicts: Int { model.lastReport?.conflicts.count ?? 0 }
+
+    private func colour(_ mood: SyncRing.Mood) -> Color {
+        switch mood {
+        case .none: return .secondary
+        case .fresh: return .green
+        case .aging: return .yellow
+        case .problem: return .red
+        }
+    }
+
+    var body: some View {
+        let syncing = model.isSyncing
+        let waiting = model.syncWaitsForCloud
+        let mood = SyncRing.mood(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                 conflicts: conflicts, now: now)
+        let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                 conflicts: conflicts, now: now)
+        let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                 conflicts: conflicts, now: now)
+        let tint = colour(mood)
+        let mark = ZStack {
+            Circle().stroke(tint.opacity(0.22), lineWidth: 2.2)
+            Circle()
+                .trim(from: 0, to: fill)
+                .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.4), value: fill)
+            MarkImage("arrow.triangle.2.circlepath", size: ring * 0.54)
+                .foregroundStyle(mood == .none ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
+                .rotationEffect(.degrees(syncing ? 360 : 0))
+                .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
+                           value: syncing)
+        }
+        .frame(width: ring, height: ring)
+        let text = Text(word)
+            .font(axis == .vertical ? .caption2 : Txt.listSecond.weight(.medium))
+            .monospacedDigit()
+            .foregroundStyle(mood == .problem ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
+            .lineLimit(1)
+            .fixedSize()
+        return Group {
+            if axis == .vertical {
+                VStack(spacing: 1) { mark; text }
+            } else {
+                HStack(spacing: 6) { mark; text }
+            }
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Sync with Reminders")
+        .accessibilityValue(SyncStatus.line(syncing: syncing, waiting: waiting,
+                                            finishedAt: finishedAt, conflicts: conflicts, now: now))
     }
 }
 

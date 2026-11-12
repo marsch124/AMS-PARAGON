@@ -738,10 +738,10 @@ struct NoteListView: View {
                     // toolbar can, and the plainest "add something" there is. The colour is the
                     // section's own — the same tint `ModeAccent` lays over the detail column
                     // (build 107) — so the button says which list it will add to.
-                    MarkLabel("New note", "plus.circle.fill")
+                    MarkLabel("New Entry", "plus.circle.fill")
                         .foregroundStyle(shown?.tint ?? Color.accentColor)
                 }
-                .help("New note in this section, or a quick capture (⌘N)")
+                .help("New Entry in this section, or a quick capture (⌘N)")
                 // On Today it opens on Capture, so it carries the name the phone's + has and
                 // the screen tests press to capture (build 299: the tray button is gone).
                 .accessibilityIdentifier(shown == .today ? "capture.open" : "list.newNote")
@@ -1222,7 +1222,7 @@ struct DetailView: View {
             EmptyStateView(title: "",
                            markName: "doc.text",
                            message: "Choose a note in the middle column, or make a new one.",
-                           actionTitle: "New note…",
+                           actionTitle: "New Entry…",
                            action: { model.activeSheet = .newNote })
         }
     }

@@ -112,7 +112,7 @@ struct PhoneRootView: View {
                                 model.activeSheet = .newNote
                             } label: {
                                 MarkImage("plus.circle.fill", size: 22)
-                                    .accessibilityLabel("New note")
+                                    .accessibilityLabel("New Entry")
                             }
                             .accessibilityIdentifier("capture.open")
                         }
@@ -188,6 +188,12 @@ struct PhoneSyncButton: View {
             .buttonStyle(.plain)
         }
         .disabled(model.vault == nil)
+        // Build 301 (his ask): a gentle tap you can feel when a sync finishes — a soft one
+        // when all is well, the warning buzz when it ended with conflicts.
+        .sensoryFeedback(trigger: model.isSyncing) { was, now in
+            guard was, !now else { return nil }
+            return conflicts > 0 ? .warning : .impact(flexibility: .soft, intensity: 0.6)
+        }
         .contextMenu {
             Button("Sync now") { Task { await model.syncNow() } }
             Button("Show me what would change…") { Task { await model.previewSync() } }
@@ -203,52 +209,8 @@ struct PhoneSyncButton: View {
         .accessibilityIdentifier("sync.status")
     }
 
-    private func colour(_ mood: SyncRing.Mood) -> Color {
-        switch mood {
-        case .none: return .secondary
-        case .fresh: return .green
-        case .aging: return .yellow
-        case .problem: return .red
-        }
-    }
-
     private func label(now: Date) -> some View {
-        let syncing = model.isSyncing
-        let waiting = model.syncWaitsForCloud
-        let mood = SyncRing.mood(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
-                                 conflicts: conflicts, now: now)
-        let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
-                                 conflicts: conflicts, now: now)
-        let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
-                                 conflicts: conflicts, now: now)
-        let tint = colour(mood)
-        return VStack(spacing: 1) {
-            ZStack {
-                Circle().stroke(tint.opacity(0.22), lineWidth: 2.2)
-                Circle()
-                    .trim(from: 0, to: fill)
-                    .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.4), value: fill)
-                MarkImage("arrow.triangle.2.circlepath", size: 14)
-                    .foregroundStyle(mood == .none ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
-                    .rotationEffect(.degrees(syncing ? 360 : 0))
-                    .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
-                               value: syncing)
-            }
-            .frame(width: 26, height: 26)
-            Text(word)
-                .font(.caption2)
-                .monospacedDigit()
-                .foregroundStyle(mood == .problem ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
-                .lineLimit(1)
-                .fixedSize()
-        }
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Sync with Reminders")
-        .accessibilityValue(SyncStatus.line(syncing: syncing, waiting: waiting,
-                                            finishedAt: finishedAt, conflicts: conflicts, now: now))
+        SyncRingMark(now: now, axis: .vertical, ring: 26)
     }
 }
 
