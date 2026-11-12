@@ -250,7 +250,7 @@ struct PlanHeadline: View {
         case .allDone:
             message("Nothing more planned today", nil)
         case .notToday:
-            message(size == .small ? "Not opened today." : "Nothing since you last opened PARAGON.", nil)
+            message(size == .small ? "Not opened today" : "Nothing since you last opened PARAGON", nil)
         case .olderApp:
             message(size == .small ? "Open PARAGON once." : "Open PARAGON once and your plan appears here.", nil)
         }
@@ -349,7 +349,7 @@ struct RulerBox: Identifiable {
     let height: CGFloat
 
     /// A name fits only in a box that is tall and wide enough to hold a line of small text.
-    var showsTitle: Bool { height >= 13 && width >= 36 }
+    var showsTitle: Bool { height >= 16 && width >= 36 }
 }
 
 struct HourMark: Identifiable {
@@ -456,6 +456,8 @@ struct PlanRuler: View {
                 .offset(x: geometry.gutter, y: 0)
             Text(String(format: "%02d", mark.id))
                 .font(.caption2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .foregroundStyle(.tertiary)
                 .frame(width: geometry.gutter - 4, alignment: .trailing)
                 .offset(x: 0, y: 1)
@@ -513,6 +515,7 @@ struct PlanRuler: View {
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(tint)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .padding(.horizontal, 3)
                         .padding(.top, 1)
                 }

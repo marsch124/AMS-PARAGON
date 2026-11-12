@@ -164,10 +164,10 @@ final class AreaOverviewTests: XCTestCase {
 
         let empty = AreaOverview(area: health, projects: [], overCount: 0, subAreas: [],
                                  weekly: WeeklyFinished(counts: Array(repeating: 0, count: 8), lastFinished: nil))
-        XCTAssertEqual(empty.emptyText, "No projects in this area yet.")
+        XCTAssertEqual(empty.emptyText, "No projects in this area yet")
         var allOver = empty
         allOver.overCount = 1
-        XCTAssertEqual(allOver.emptyText, "No projects in this area right now.")
+        XCTAssertEqual(allOver.emptyText, "No projects in this area right now")
         XCTAssertEqual(allOver.overText, "Not shown here: 1 project that is done, missed, dropped or archived.")
     }
 }

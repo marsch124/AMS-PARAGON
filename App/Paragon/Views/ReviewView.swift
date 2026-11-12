@@ -642,7 +642,7 @@ struct GoalHealthRow: View {
                 GoalProgressBar(progress: health.progress, width: 54, showsCounts: false,
                                 tint: ChainTint.forGoal(health.note))
                 if health.progress.projectsTotal > 0 {
-                    MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) projects done", "flag")
+                    MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag")
                 } else {
                     MarkLabel("no projects yet", "flag")
                 }

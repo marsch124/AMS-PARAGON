@@ -13,6 +13,14 @@ import Foundation
 /// none of it follows the device's region. This is **display only**: file names and what is
 /// written into a note keep their own forms (`20261112.md`, `>2026-11-12`).
 public enum DayWords {
+    /// The Gregorian calendar in this device's time zone: the year is 2026 even on a device
+    /// set to another calendar.
+    public static var here: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        return calendar
+    }
+
     private static let weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
     /// A fixed Gregorian calendar in UTC, used only to ask which weekday a year-month-day is.
@@ -28,7 +36,7 @@ public enum DayWords {
     public static func plain(_ day: DateOnly) -> String { day.description }
 
     /// `2026-11-12`, the day this moment falls on in the given calendar's time zone.
-    public static func plain(_ date: Date, calendar: Calendar = .current) -> String {
+    public static func plain(_ date: Date, calendar: Calendar = DayWords.here) -> String {
         plain(DateOnly(date, calendar: calendar))
     }
 
@@ -48,7 +56,7 @@ public enum DayWords {
     }
 
     /// `Thursday 2026-11-12`, the day this moment falls on in the given calendar's time zone.
-    public static func withWeekday(_ date: Date, calendar: Calendar = .current) -> String {
+    public static func withWeekday(_ date: Date, calendar: Calendar = DayWords.here) -> String {
         withWeekday(DateOnly(date, calendar: calendar))
     }
 
@@ -83,14 +91,14 @@ public enum DayWords {
     public static func time(_ time: TimeOfDay) -> String { time.description }
 
     /// `14:30`, or `14:30:05` with seconds.
-    public static func time(_ date: Date, seconds: Bool = false, calendar: Calendar = .current) -> String {
+    public static func time(_ date: Date, seconds: Bool = false, calendar: Calendar = DayWords.here) -> String {
         let c = calendar.dateComponents([.hour, .minute, .second], from: date)
         let clock = String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
         return seconds ? clock + String(format: ":%02d", c.second ?? 0) : clock
     }
 
     /// `2026-11-12 14:30`
-    public static func plainWithTime(_ date: Date, calendar: Calendar = .current) -> String {
+    public static func plainWithTime(_ date: Date, calendar: Calendar = DayWords.here) -> String {
         "\(plain(date, calendar: calendar)) \(time(date, calendar: calendar))"
     }
 }

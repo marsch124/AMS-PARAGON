@@ -30,4 +30,12 @@ final class DayWordsTests: XCTestCase {
         // A daily and a weekly note are named the same way.
         XCTAssertEqual(Note.dailyTitle(for: day), "Thursday 2026-11-12")
     }
+
+    /// Build 309: a link that carries a daily note's shown name still finds the note.
+    func testADailyNoteIsFoundByItsShownName() {
+        let daily = Note(relativePath: "Daily/20261112.md", kind: .daily, body: "")
+        let index = NoteIndex(notes: [daily])
+        XCTAssertEqual(index.note(matching: "Thursday 2026-11-12")?.relativePath, "Daily/20261112.md")
+        XCTAssertEqual(index.note(matching: "20261112")?.relativePath, "Daily/20261112.md")
+    }
 }

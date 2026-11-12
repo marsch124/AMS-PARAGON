@@ -73,5 +73,6 @@ final class SnippetTests: XCTestCase {
         XCTAssertEqual(Snippets.plainLook("- [ ] Ask {{who}} to {{what}} >{{tomorrow}}"),
                        "Ask (who) to (what), tomorrow")
         XCTAssertEqual(Snippets.plainLook("- [ ] Pack the bag"), "Pack the bag")
+        XCTAssertEqual(Snippets.plainLook("- Call {{ who }}"), "Call (who)")
     }
 }

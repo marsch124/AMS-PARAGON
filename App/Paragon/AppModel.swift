@@ -136,7 +136,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 308
+    static let number = 309
 }
 
 @MainActor
@@ -4371,7 +4371,7 @@ final class AppModel: ObservableObject {
     @discardableResult
     func saveTimeBlock(id: String?, title: String, start: Date, end: Date, notes: String, calendarID: String?) async -> Bool {
         guard await ensureCalendarAccess() else {
-            errorMessage = "PARAGON needs Calendar access to write time blocks. Allow it in System Settings › Privacy & Security › Calendars."
+            errorMessage = "PARAGON needs Calendar access to write time blocks. Allow it in \(DeviceWords.systemSettings) › Privacy & Security › Calendars."
             return false
         }
         let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -4734,7 +4734,7 @@ final class AppModel: ObservableObject {
         defer { try? FileManager.default.removeItem(at: temporary) }
         do {
             guard try await remindersStore.requestAccess() else {
-                errorMessage = "PARAGON needs full access to Reminders. You can grant it in System Settings › Privacy & Security › Reminders."
+                errorMessage = "PARAGON needs full access to Reminders. You can grant it in \(DeviceWords.systemSettings) › Privacy & Security › Reminders."
                 return
             }
             try vault.copyContents(to: temporary)
@@ -4805,7 +4805,7 @@ final class AppModel: ObservableObject {
         guard self.vault === vault else { return }
         do {
             guard try await remindersStore.requestAccess() else {
-                errorMessage = "PARAGON needs full access to Reminders. You can grant it in System Settings › Privacy & Security › Reminders."
+                errorMessage = "PARAGON needs full access to Reminders. You can grant it in \(DeviceWords.systemSettings) › Privacy & Security › Reminders."
                 return
             }
             // The sync works off the main thread, so it gets a vault object of its own (hardening-19);

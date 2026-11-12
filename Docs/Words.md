@@ -38,8 +38,8 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **No standard written yet** — on an area: nothing is written under **Standard**. The question the Area template puts there does not count as a standard.
 - **Resource** — reference material you want to keep, like a packing list. Shown in blue.
 - **Archive** — notes you have put away. Shown in grey. They are kept, just out of the way. A project or goal that was Done, Missed or Dropped keeps that word and the day it ended.
-- **Daily note** — one note for each day. It holds that day's plan, tasks and **Looking back**.
-- **Weekly note** — one note for each week.
+- **Daily note** — one note for each day. It holds that day's plan, tasks and **Looking back**. PARAGON calls it by its day, like **Thursday 2026-11-12**. Its file is named `20261112.md`.
+- **Weekly note** — one note for each week. PARAGON calls it by its week, like **Week 46 · 2026**. Its file is named `2026-W46.md`.
 - **Settings block** — the lines between the two `---` at the top of a note, such as `type: project` and `tags: [sport]`. The buttons at the top of the note write into it. The **Settings block** line above the text folds it away.
 
 ## How a note stands
@@ -49,7 +49,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Done** — finished, and it did what it was for.
 - **Missed** — it is over, and it did not happen.
 - **Dropped** — you decided not to do it. Shown in grey, not orange, because it was a decision and not a failure.
-- **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 21 October". In **Projects**, the finished groups put the newest ending first, each box shows its day, and the **Done** heading says how many of its projects ended this year.
+- **Ended** — the day a project or a goal was marked Done, Missed or Dropped, written as `ended:` in its settings block. A finished project shows it as "Done on 2026-10-21", and its row in **Projects** as "Ended 2026-10-21". In **Projects**, the finished groups put the newest ending first, each box shows its day, and the **Done** heading says how many of its projects ended this year.
 - **What is next for this goal?** — the question that comes up when you mark a project Done, Missed or Dropped and its goal is left with nothing working on it. **Add a project…** opens **New** with the goal already chosen, **Mark the goal done** is there only after Done, and **Not now** closes it and changes nothing.
 
 ## Tasks
@@ -100,6 +100,15 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
 - **Today's plan** (the widget) — a widget for the Mac, found under **Edit Widgets**. The big orange line names the plan block you are in now, or else the next one, with when it is. A small ruler of the next hours shows your plan blocks as orange boxes and your calendar events as purple outlines. Click it to open **Plan**. It is not the same as the **Today** screen or the **Plan** screen.
 
+## Dates and times
+
+- **Date** — PARAGON writes every date the same way: year, month, day, like **2026-11-12**. Where the weekday helps, it comes first, like **Thursday 2026-11-12**: on **Today**, in **Start the day** and **Close the day**, on a day in the **Calendar**, in **Plan** and in **Done**, and as the name of a daily note. The weekday is always in English.
+- **Month** — a month alone is written like **2026-11**. It is the heading of the month in the **Calendar**, and it stands above the squares in **Done**.
+- **Week 46** — the number of the week in the year. A week runs from Monday to Sunday. The heading over a week shows its first and last day too, like **Week 46 · 2026-11-09 – 2026-11-15**.
+- **Time** — always 24 hours, like **14:30**, whatever your device is set to.
+- **Today**, **Tomorrow** and **Yesterday** — PARAGON uses these words in place of the date where they fit, like "Due tomorrow" or "Synced yesterday at 21:40".
+- **Dates inside a note** — what you or PARAGON write into a note keeps its own form, like `>2026-11-12` on a task. The first line PARAGON writes into a new daily note, like "Thursday, 12 November 2026", is part of the note and is never rewritten.
+
 ## Getting things in
 
 - **Inbox** — where new things land before you decide where they belong.
@@ -107,6 +116,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
 - **Add** and **Save** — a button that adds one thing straight away says **Add**, like **Add** beside a new tag. A screen with fields to fill in ends with **Save**. The app does not say Make or Create for this.
 - **File it** — moving an Inbox line into a project or an area.
+- **Tap**, **Hold**, **Click** and **Right-click** — PARAGON uses the words of the device you hold. On the iPhone and the iPad it says **Tap** and **Hold**. On the Mac it says **Click** and **Right-click**. **Hold** means: press and keep your finger there until a menu opens.
 
 ## Looking after the whole
 
@@ -128,13 +138,13 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Tools
 
 - **Template** — the starting text for a new note of one kind.
-- **Snippet** — a short block of text you can put into any note.
+- **Snippet** — a short block of text you can put into any note. The **Snippets** list shows each one in plain words, like "Ask (who) to (what), tomorrow": a word in round brackets is a question PARAGON asks you when you use the snippet.
 - **Tags** — the list of every tag, with how much of the vault uses it. You can rename, delete or add a tag here.
 
 ## Behind the scenes
 
 - **Vault** — the folder on your disk or in iCloud that holds all your notes as plain text files.
-- **Not synced yet** — the words under the sync ring before the first sync in this session.
+- **Not synced yet** — the words beside the sync ring before the first sync in this session. After a sync it shows the time, like "10:55", then "Yesterday", then the date, like "2026-11-09".
 - **Reminders list:** — at the top of a project or an area: the list in Apple Reminders its tasks go to.
 - **Reminders sync** — tasks are copied both ways between PARAGON and Apple Reminders. Goals and aspirations never sync.
 - **Backup** — a dated copy of the whole vault, made every day and before each sync, kept in tiers (last 5 before-sync copies, one per day for 14 days, one per week for 2 months). Since build 308 a second copy, with pictures and sketches, is made once a day outside the vault: on this device, or in a folder you choose.

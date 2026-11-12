@@ -192,7 +192,7 @@ struct SettingsView: View {
                     set: { model.showsCalendarEvents = $0 }
                 ))
                 if model.calendarAccessGranted == false {
-                    Text("Calendar access is off. Allow it in System Settings › Privacy & Security › Calendars.")
+                    Text("Calendar access is off. Allow it in \(DeviceWords.systemSettings) › Privacy & Security › Calendars.")
                         .font(Txt.label)
                         .foregroundStyle(.orange)
                 }
@@ -291,7 +291,7 @@ struct SettingsView: View {
                     ForEach(report.conflicts, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.orange) }
                     ForEach(report.warnings, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.secondary) }
                 } else {
-                    Text("Not synced yet in this session.").foregroundStyle(.secondary)
+                    Text("Not synced yet in this session").foregroundStyle(.secondary)
                 }
             }
 
@@ -553,7 +553,7 @@ struct DayReminderSection: View {
 
     private var settingsPlace: String {
         #if os(macOS)
-        return "System Settings › Notifications › PARAGON"
+        return "\(DeviceWords.systemSettings) › Notifications › PARAGON"
         #else
         return "the iPhone's Settings › Notifications › PARAGON"
         #endif

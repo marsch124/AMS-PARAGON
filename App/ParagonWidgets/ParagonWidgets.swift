@@ -337,7 +337,7 @@ struct ActionsWidgetView: View {
         if entry.snapshot == nil {
             return small ? "Open PARAGON once." : "Open PARAGON once and your actions appear here."
         }
-        return small ? "Not opened today." : "Nothing since you last opened PARAGON."
+        return small ? "Not opened today" : "Nothing since you last opened PARAGON"
     }
 }
 

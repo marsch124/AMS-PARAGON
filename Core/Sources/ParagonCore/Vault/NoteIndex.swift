@@ -29,6 +29,10 @@ public struct NoteIndex: Sendable {
             paths[note.relativePath] = note
             titles[note.title.lowercased()] = titles[note.title.lowercased()] ?? note
             titles[note.fileName.lowercased()] = titles[note.fileName.lowercased()] ?? note
+            // Build 309: a daily note is shown as "Thursday 2026-11-12"; a link or a time block
+            // that carries that shown name must still find the note. A real title wins.
+            let shown = note.displayTitle.lowercased()
+            titles[shown] = titles[shown] ?? note
         }
         self.byLowercasedTitle = titles
         self.byPath = paths

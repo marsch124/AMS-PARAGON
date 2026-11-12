@@ -611,7 +611,7 @@ struct InboxFileItView: View {
             .padding(12)
             .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
         } else {
-            Text("Pick a line on the left, then \(DeviceWords.clickSmall) where it should go.")
+            Text(DeviceWords.holds ? "Pick a line, then tap where it should go." : "Pick a line on the left, then click where it should go.")
                 .font(Txt.value)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

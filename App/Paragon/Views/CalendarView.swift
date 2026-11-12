@@ -611,7 +611,7 @@ struct MonthOverviewView: View {
                     }
                 }
                 .padding(8)
-                Text("\(overview.dueCount) tasks due this month, \(overview.completedCount) completed.")
+                Text("\(overview.dueCount) tasks due this month, \(overview.completedCount) completed")
                     .font(Txt.label)
                     .foregroundStyle(.secondary)
                     .padding(.bottom, 8)

@@ -13,7 +13,7 @@ struct CalendarEventRows: View {
 
     var body: some View {
         if model.calendarAccessGranted == false {
-            Text("Calendar access is off. Allow it in System Settings › Privacy & Security › Calendars, or turn events off in Settings.")
+            Text("Calendar access is off. Allow it in \(DeviceWords.systemSettings) › Privacy & Security › Calendars, or turn events off in Settings.")
                 .font(Txt.label)
                 .foregroundStyle(.secondary)
         } else {

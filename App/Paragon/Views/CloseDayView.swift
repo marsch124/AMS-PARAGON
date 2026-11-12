@@ -171,7 +171,7 @@ struct CloseDayView: View {
             // it were calendar events, and one heading over both the events and the actions
             // could only be true of one of them.
             if model.showsCalendarEvents {
-                SectionLabel(title: "Tomorrow's calendar events · " + tomorrowText, tint: Theme.eveningTint)
+                SectionLabel(title: "Tomorrow's events · " + tomorrowText, tint: Theme.eveningTint)
                 CalendarEventRows(date: tomorrow, compact: true)
             }
             SectionLabel(title: "To do tomorrow", tint: Theme.eveningTint)
@@ -238,7 +238,7 @@ struct CloseDayView: View {
     /// reads as a screen that failed to load (build 100).
     private var allClear: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Nothing was left over.")
+            Text("Nothing was left over")
                 .font(Txt.value.weight(.semibold))
             Text("Everything with a date for today or earlier is done or dropped.")
                 .font(Txt.label)

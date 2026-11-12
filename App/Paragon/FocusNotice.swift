@@ -108,7 +108,7 @@ enum FocusNotice {
         guard !toldNoticesAreOff else { return }
         toldNoticesAreOff = true
         #if os(macOS)
-        let place = "System Settings \u{203A} Notifications \u{203A} PARAGON"
+        let place = "\(DeviceWords.systemSettings) \u{203A} Notifications \u{203A} PARAGON"
         #else
         let place = "the iPhone\u{2019}s Settings \u{203A} Notifications \u{203A} PARAGON"
         #endif

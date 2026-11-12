@@ -1,6 +1,6 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8); the sync button's clock ring on the iPhone in build 300 (version 1.0 (300), section 8); the same ring on the Mac and iPad sidebar and the small filter chips in build 301 (version 1.0 (301), sections 8 and 12); the same chips in Search in build 302 (version 1.0 (302), section 12); the sync ring in the Mac menu bar in build 303 (version 1.0 (303), section 8). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8); the sync button's clock ring on the iPhone in build 300 (version 1.0 (300), section 8); the same ring on the Mac and iPad sidebar and the small filter chips in build 301 (version 1.0 (301), sections 8 and 12); the same chips in Search in build 302 (version 1.0 (302), section 12); the sync ring in the Mac menu bar in build 303 (version 1.0 (303), section 8); one date style and plain words in build 309 (version 1.0 (309), sections 16 and 17). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
 The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
@@ -24,7 +24,7 @@ There is one scale, kept in one place in the code (`Txt` in Look.swift). No scre
 | Code | 14 | regular, monospaced | grey | Code, and the settings block. |
 | Capsule | 11 | medium | the part's colour on a 14 % tint | A status, or a count beside a heading (since build 291), that cannot be changed. |
 
-The Map draws its box titles at 12.5 points and its labels at 11 points at normal zoom, and scales them with its zoom. The widgets keep Apple's small widget styles. The share sheet uses Apple's text styles.
+The Map draws its box titles at 12.5 points and its labels at 11 points at normal zoom, and scales them with its zoom. The widgets use Apple's own text styles (caption, headline, title), never a fixed point size (since build 309; before, fixed sizes of 8 to 10 points), so their text follows the text size set on the device. The share sheet uses Apple's text styles.
 
 ### The note editor on the Mac
 
@@ -67,9 +67,9 @@ Every part has one colour. It is the same everywhere the part shows: the icon in
 | Goals, Map | gold | #8F6E10 (before #A7811A) | #E5BE55 |
 | Aspirations | deeper gold | #8A5A12 | #E0A83E |
 | Inbox, Snippets, Quick capture | amber | #B0631A (before #C2701B) | #E8A053 |
-| Calendar, Today, Time Blocks, daily and weekly notes | purple | #6B4EA8 | #A98FE0 |
+| Calendar, Today, Plan, daily and weekly notes | purple | #6B4EA8 | #A98FE0 |
 | Weekly review, Done | teal | #1E7F84 | #5FC2C7 |
-| Blocks in Plan the day | orange | #C05E0C | #F2A45C |
+| Blocks in Plan | orange | #C05E0C | #F2A45C |
 | Start the day | orange | #D4640A (before #E06C00) | #FFA23A |
 | Close the day | dark lilac | #6E3A86 | #C79AE0 |
 | The now-line | slate blue | #4B7F9E | #8FC0DC |
@@ -109,29 +109,29 @@ How a colour is worn:
 - A date that has passed turns the row's second line red; "Due after its goal" turns a project's line orange. All else is grey.
 - A status such as Paused, Someday or Ended is a small capsule at the right edge (11 points, the part's colour on a 14 % tint).
 - A group heading in a list is the 17-point heading in the colour of what the group is (an aspiration's gold, grey for "No goal"), with the count beside it. No band behind it. In a narrow column (the Projects list is about 280 points) the group's name wraps onto a second line. It is never cut off with "…" (`ProjectGroupHeader`, build 281).
-- Every list uses this row, the **Projects** list included. A project's second line is its progress and what it needs: "0 of 2 · Next: Define the outcome and the first step", "All 3 finished · No next action", "No tasks yet", or for an ended project "Ended 20 October · 2 tasks finished". Its weekly bars sit at the right of the row when something has been finished; On hold, Done, Missed and Dropped are the status capsule. No card, no frame, no tile, no progress bar and no chips in a row. The goal, the deadline and the tags are in the facts panel. After that, when there is room: its deadline, an overdue count, "Due after its goal" and the goal it serves when the heading does not already name it.
+- Every list uses this row, the **Projects** list included. A project's second line is its progress and what it needs: "0 of 2 · Next: Define the outcome and the first step", "All 3 finished · No next action", "No tasks yet", or for an ended project "Ended 2026-10-20 · 2 tasks finished". Its weekly bars sit at the right of the row when something has been finished; On hold, Done, Missed and Dropped are the status capsule. No card, no frame, no tile, no progress bar and no chips in a row. The goal, the deadline and the tags are in the facts panel. After that, when there is room: its deadline, an overdue count, "Due after its goal" and the goal it serves when the heading does not already name it.
 - The goal rows and the aspiration rows are the same: "0 % · 2027-08-15 · in about 9 months", "1 goal · Not reviewed yet · Health". A goal with no aspiration keeps its **Give it an aspiration** button at the right; a warning is an orange capsule there.
 
 ## 4. The top of a note
 
 Since build 282 the top of a note is the band (section 15); what follows is what sits under it. The title is white on the band.
 
-The title is 26 points, bold; pressing it renames the note where that is allowed. A daily or weekly note's title is a date. It keeps one line and shrinks down to 70 % when the column is narrow; every other title wraps to two lines (build 281). Under it is the facts panel, in the note's colour. Its heading is the kind of note, for example "Project", with the note's icon beside it. Inside, the facts sit in a row that wraps. Each is a small grey label (12 points) with its value (15 points) under it: Status, In area (or Part of), Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, List and Icon. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button, not coloured words. A fact you cannot change is plain words. Tasks and Linked notes are tinted panels too.
+The title is 26 points, bold; pressing it renames the note where that is allowed. A daily or weekly note's title is a date: "Thursday 2026-11-12" for a daily note, "Week 46 · 2026" for a weekly note (section 16). It keeps one line and shrinks down to 70 % when the column is narrow; every other title wraps to two lines (build 281). Under it is the facts panel, in the note's colour. Its heading is the kind of note, for example "Project", with the note's icon beside it. Inside, the facts sit in a row that wraps. Each is a small grey label (12 points) with its value (15 points) under it: Status, In area (or Part of), Serves, Horizon, Target, Measure, Looked at, Deadline, Tags, Reminders list: and Icon. Only the ones that fit the kind of note are shown. A fact you can change is a bordered pop-up or button, not coloured words. A fact you cannot change is plain words. Tasks and Linked notes are tinted panels too.
 
-The goal's page in **Goals** and the aspiration's page in **Aspirations** (Mac and iPad) use this same header: the title at 26 points and the facts panel, headed **Goal with a date** or **Aspiration** with the **Icon…** button beside it. Its facts are Status, Serves, Horizon (a labelled pop-up: This year / Long term), Target, Progress (the per cent), Measure, Looked at, Tags and List; only the ones that fit are shown. A notice such as "Target date passed" is a small orange capsule in the panel. Under the panel comes the aspiration's Reason box, then the projects (or the goals) in a panel in the project tint, headed **Projects**, with **Add a project…** at its foot. No rail or stripe beside them.
+The goal's page in **Goals** and the aspiration's page in **Aspirations** (Mac and iPad) use this same header: the title at 26 points and the facts panel, headed **Goal with a date** or **Aspiration** with the **Icon…** button beside it. Its facts are Status, Serves, Horizon (a labelled pop-up: This year / Long term), Target, Progress (the per cent), Measure, Looked at, Tags and Reminders list:; only the ones that fit are shown. A notice such as "Target date passed" is a small orange capsule in the panel. Under the panel comes the aspiration's Reason box, then the projects (or the goals) in a panel in the project tint, headed **Projects**, with **Add a project…** at its foot. No rail or stripe beside them.
 
 When the note column is short (Mac), the editor keeps at least 60 points of height and the sections above it, the header, Tasks and Linked notes, scroll instead. The editor never shrinks to nothing.
 
 ## 5. Edit windows
 
-This is for New note, Make this note (from a link), Close the day, Start the day, and Quick capture on the Mac. All use one shape, `SheetChrome` in Look.swift.
+This is for **New**, **Add this note** (from a link), Close the day, Start the day, and Quick capture on the Mac. All use one shape, `SheetChrome` in Look.swift.
 
-Mac: a bar at the top with the title (17 points, semibold, in the part's colour) at the left, and **Cancel** and the doing button (**Create**, **Done** or **Save**) side by side at the right, then one thin line, then the form.
+Mac: a bar at the top with the title (17 points, semibold, in the part's colour) at the left, and **Cancel** and the doing button (**Save** or **Done**; never Create or Make, section 17) side by side at the right, then one thin line, then the form.
 
 - The doing button is filled in the part's colour and has the large control size.
 - **Escape** is Cancel. **Return** and **⌘S** do the doing button (the second shortcut sits on a hidden button, because one button carries one shortcut).
 - **Tab** moves between text fields as macOS does. The choice chips are buttons, not fields; do not promise that Tab reaches every chip.
-- Quick capture inside the New note sheet has no bar of its own; it keeps its one **Save**.
+- Quick capture (the **Inbox** button) inside the **New** sheet has no bar of its own; it keeps its one **Save**.
 - The first field has the keyboard focus when the sheet opens on the Mac: Start the day's **Add an action for today**, Close the day's **One line, if you feel like it**. The focus ring never starts on Cancel.
 
 iPhone: a navigation bar with the title small in the middle, **Cancel** on the left and the doing button on the right, in the part's colour and bold. The iPhone's own Quick capture screen keeps its full-width **Save** button; that button is the part's colour, paler when it cannot act.
@@ -140,7 +140,9 @@ The Date window keeps its field and calendar. **Set** is a filled button.
 
 ## 6. Empty screens
 
-Since build 291: the part's icon sits in a soft circle of the part's colour, above one calm title (15 points, grey), and, where there was a button, a quiet bordered one in the part's colour. The explaining sentence is gone. "No note open" shows only the icon and the **New Entry...** button (since build 301; before, **New note...**). A warning (for example "Still coming from iCloud") keeps its sentence. Before build 291 the icon stood alone at 60 % with a line of small grey explanation under the title (`CalmEmptyView`).
+Since build 291: the part's icon sits in a soft circle of the part's colour, above one calm title (15 points, grey), and, where there was a button, a quiet bordered one in the part's colour. The explaining sentence is gone. "No note open" shows only the icon and the **New…** button (since build 309; before, **New Entry…**). A warning (for example "Still coming from iCloud") keeps its sentence. Before build 291 the icon stood alone at 60 % with a line of small grey explanation under the title (`CalmEmptyView`).
+
+A "nothing here" line inside a list or a panel, such as "No events", "Nothing due today" or "Nothing planned", is always the label size (12 points on the Mac, Footnote on the iPhone), grey (`.secondary`), with no full stop at the end (since build 309; before, some were at the value size and most had a full stop). The one exception is "No project delivers this goal yet", which is orange because it asks for a look.
 
 Counts beside headings (for example "Calendar 1", "Projects 7") are small capsules in the heading's colour (the capsule size, section 1), not loose grey numbers. A group in a list or on **Today** that can fold shows a chevron by its heading, and the app remembers which are folded. A round button on a row (for example "open in Calendar") is tinted in the row's own colour.
 
@@ -155,7 +157,7 @@ Counts beside headings (for example "Calendar 1", "Projects 7") are small capsul
 
 - On the Mac the note's header, the panels and the text stop at 680 points (`Theme.readingWidth`) and sit centred in the column. On a wide window the rest is calm margin.
 - The sidebar column is at least 180 points wide, normally 200. The list column is 220 to 280 points; the Map list is 420 to 720.
-- Window toolbar: Search and Quick capture. Sync is not there since build 292. Since build 301 it is the clock ring at the foot of the sidebar (before, a pill with a coloured dot and "Synced at 15:05"): `SyncRingMark` (in PhoneRootView.swift, shared with the iPhone's `PhoneSyncButton`) is 22 points wide, with the hand-drawn sync mark in the middle; the ring is full just after a sync and empties over 2 hours; green under 1 hour, yellow after that or while waiting for iCloud, full red when the last sync had conflicts, grey empty before any sync; the mark turns while syncing. The short word beside it uses the sidebar's small text size and is the time ("10:55"), "Yesterday", a date, "Syncing", "iCloud", "Not yet" or "N conflicts"; one press syncs, right-click or press and hold has the menu. The iPhone, since build 300, has the same ring on the sync button at the top right of every screen (and since build 301 a soft tap you can feel when a sync ends, a warning buzz after conflicts) (full just after a sync, emptying over two hours, green the first hour then yellow, full red for conflicts, grey empty when never synced) with a small word under it ("10:05", "Yesterday", "9 Nov", "Syncing", "iCloud", "Not yet", "2 conflicts"); press syncs, press and hold has the menu. On the Mac a page's own actions live in the window toolbar too, on two pages: **Time Blocks** (the day arrows with Today, + Block, Week, the calendar-blocks button) and the **Calendar**'s right-hand column (+ Block time, the Note / Schedule switch). The page keeps the day's name and summary. The iPhone and the iPad keep these buttons in the page. The **+** New note button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. They are placed where the owner put them.
+- Window toolbar: Search and Quick capture. Sync is not there since build 292. Since build 301 it is the clock ring at the foot of the sidebar (before, a pill with a coloured dot and "Synced at 15:05"): `SyncRingMark` (in PhoneRootView.swift, shared with the iPhone's `PhoneSyncButton`) is 22 points wide, with the hand-drawn sync mark in the middle; the ring is full just after a sync and empties over 2 hours; green under 1 hour, yellow after that or while waiting for iCloud, full red when the last sync had conflicts, grey empty before any sync; the mark turns while syncing. The short word beside it uses the sidebar's small text size and is the time ("10:55"), "Yesterday", a date ("2026-11-09"), "Syncing", "iCloud", "Not synced yet" or "N conflicts"; one press syncs, right-click or press and hold has the menu. The iPhone, since build 300, has the same ring on the sync button at the top right of every screen (and since build 301 a soft tap you can feel when a sync ends, a warning buzz after conflicts) (full just after a sync, emptying over two hours, green the first hour then yellow, full red for conflicts, grey empty when never synced) with a small word under it ("10:05", "Yesterday", "9 Nov", "Syncing", "iCloud", "Not yet", "2 conflicts"); press syncs, press and hold has the menu. On the Mac a page's own actions live in the window toolbar too, on two pages: **Time Blocks** (the day arrows with Today, + Block, Week, the calendar-blocks button) and the **Calendar**'s right-hand column (+ Block time, the Note / Schedule switch). The page keeps the day's name and summary. The iPhone and the iPad keep these buttons in the page. The **+** New note button stays over the list column. **Start the day** and **Close the day** stay in Today's date row, and **Show all** stays in the Goals header. They are placed where the owner put them.
 
 - **Menu bar ring (build 303).** A second `MenuBarExtra` (`.menu` style) in the Mac menu bar, beside the quick-capture item. Its label, `MenuBarSyncLabel`, draws `SyncRingGlyph` (the model-free ring shared by the sidebar, the iPhone button and the menu bar) into an `NSImage` with `ImageRenderer`, redrawn every minute: 16 points, hand-drawn sync mark in the middle, same colours and rules as the sidebar ring (green under 1 hour, yellow after that or while waiting for iCloud, full red ring on conflicts, grey empty before any sync; it empties over 2 hours), with the short word beside it ("10:55", "Yesterday", "Syncing…") in the menu bar's own text. The menu, `MenuBarSyncMenu`: the sync line ("Synced at 10:55"), Sync now, Show me what would change…, Last sync report…, Sync settings…, Show PARAGON. Shown unless the switch "Show the sync ring in the menu bar" (Settings › Reminders sync, `@AppStorage showSyncMenuBarItem`, on by default) is off.
 - **Menu bar ring, build 304.** The label text is `SyncRing.menuBarTitle(dueToday:word:)`, which puts `SyncRing.dueTodayBadge` in front of the word: nil for 0 (nothing shown), the number up to 99, "99+" over 99, for example "3 · 11:20". Test `testTheMenuBarShowsTodaysCountBesideTheRing`. The ring pictures are cached per mood and fill step (1/24), and the label refreshes with a 60-second `Timer` instead of `TimelineView`: a `TimelineView` (or a freshly rendered `NSImage`) in a `MenuBarExtra` label looped forever and the Mac app never opened in build 303.
@@ -174,7 +176,7 @@ The picture opened big marks the words you searched for with tinted boxes (build
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (303)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (309)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 
@@ -200,6 +202,8 @@ The When / Mark / Tags filter on All actions (build 301, `FilterBox(chip: true)`
 - A panel, a row, an edit window and an empty screen follow sections 3 to 6. A row is one title and one second line, never a card.
 - An edit sheet's first field has the focus when it opens on the Mac (section 5).
 - The main button is in colour.
+- Every date, week, month and time is written by `DayWords` (section 16). No screen formats a date itself.
+- The words follow section 17: one name for each thing, the device's own words, and one style for a "nothing here" line.
 - Icons are marks, never stock symbols or emoji.
 - The screen looks right on the iPhone and the Mac, by day and by night, at a normal iPhone size.
 
@@ -209,9 +213,64 @@ Since build 282 (look A, chosen on 9 November 2026 from `Work/look-1.1/design/pr
 
 - **Fill.** A gradient from the part's colour (section 2, day or night shade) to the same colour 80 % of the way towards the bottom right. No new colour.
 - **Title.** The page title in white, at the page-title size (section 1).
-- **Small words.** The date or the facts, at the label size (12 points on the Mac), white at 85 % opacity.
-- **Big number.** One per band: 34 points, bold, white (`Txt.bandNumber`; on the iPhone Apple's large title, bold). Today (since build 291) has no big number, only small round white buttons (build 304: the calendar button for today's note, then Start the day and Close the day). A project, area or resource note: "2 open tasks · 0 of 2 done". A goal's page: "40 %" with "of the way · Target 15 Aug 2027" under it.
+- **Small words.** The date or the facts, at the label size (12 points on the Mac), white at 85 % opacity. On **Today** the date is "Thursday 2026-11-12". On the Mac it has a line of its own under the title and the buttons, the whole width of the band, one line, shrinking to 80 % before it is ever cut (since build 309; before, it sat beside the buttons and was cut to "Thursday, 12 No…"). On the iPhone it stays in the one row beside the three buttons. Its identifier is `today.band.date`.
+- **Big number.** One per band: 34 points, bold, white (`Txt.bandNumber`; on the iPhone Apple's large title, bold). Today (since build 291) has no big number, only small round white buttons (build 304: the calendar button for today's note, then Start the day and Close the day). A project, area or resource note: "2 open tasks · 0 of 2 done". A goal's page: "40 %" with "of the way · Target 2027-08-15" under it.
 - **Buttons.** **Start the day** and **Close the day** keep their place, in the band's top row, drawn as white circles. Since build 304 `today.note` is an icon-only `HeaderActionButton` (`markName` "calendar", `onBand`), first in `dayButtons`, before `today.startDay` and `today.closeDay`: three same-size round buttons in one row beside the date. It used to be a worded button on its own second row; the band is one row shorter. Its help text says "Today's note" or "Create today's note".
 - **Sidebar (Mac).** The chosen row is filled in the part's colour, with white words.
 - **Under the band.** Everything is as in builds 280 and 281: tinted panels, 17-point coloured headings, 8-point dots, pop-ups, text sizes, icons. Nothing moves, no function changes, and the part colours are unchanged.
 - **For a new screen.** Open with a `Band`; never draw a title bar of your own and never pick a size or colour for it.
+
+## 16. Dates and times
+
+Since build 309 (review round 3, his decision). PARAGON writes a date one way everywhere. The one place in the code is `DayWords` in Core (`Core/Sources/ParagonCore/Model/DayWords.swift`). No screen builds its own date text. The data test is `DayWordsTests`.
+
+| What | Form | Example | In the code |
+|------|------|---------|-------------|
+| A date, plain | year-month-day | 2026-11-12 | `DayWords.plain` |
+| A date with its weekday | full English weekday, a space, the plain date, no comma | Thursday 2026-11-12 | `DayWords.withWeekday` |
+| A weekday alone | full, or three letters where there is little room | Thursday, Thu | `DayWords.weekday`, `DayWords.shortWeekday` |
+| A month alone | year-month | 2026-11 | `DayWords.month` |
+| A week | the word Week and the ISO week number | Week 46 | `DayWords.week` |
+| The name of a weekly note | week, a middle dot, the year | Week 46 · 2026 | `DayWords.weekAndYear` |
+| The heading over a week's seven days | week, a middle dot, Monday – Sunday | Week 46 · 2026-11-09 – 2026-11-15 | `DayWords.weekSpan` |
+| A time of day | 24 hours, two digits each | 14:30 | `DayWords.time` |
+| A time with seconds (the reminder test lines, the diagnostics log) | 24 hours | 14:30:05 | `DayWords.time(_:seconds:)` |
+| A date with a time | plain date, a space, the time | 2026-11-12 14:30 | `DayWords.plainWithTime` |
+
+**The weekday form** is for the places where the day of the week helps you plan:
+
+- the band on **Today**;
+- the top line of **Start the day** and **Close the day**, and tomorrow's date in **Close the day**;
+- the day's heading in **Calendar** (day), each day's heading in **Calendar › Week**, the seven days at the top of a weekly note, and the day's title in **Plan**;
+- a day's card and square in **Done** (after "Today" and "Yesterday");
+- the name of a daily note, in the top bar and in every list (`Note.dailyTitle`, `Note.displayTitle`);
+- the first line of the **Weekly review**;
+- the due line in **Quick capture** ("Due Thursday 2026-11-12");
+- "Next reminder: Saturday 2026-11-14 at 07:30" in Settings;
+- a day in the list of Apple Calendar blocks (after "Today", "Tomorrow", "Yesterday");
+- the Mac's hover text on a day in the month grid, and the spoken name of a day in **Calendar › Month**;
+- the message when a day's worked time could not be written.
+
+**The plain form** is for everything else: a target date ("Target 2027-08-15", "by 2027-08-15"), a deadline ("Due 2026-12-01"), a due date in a row's second line, the day a project or goal ended ("Done on 2026-10-21", "Ended 2026-10-20"), a follow-up date ("Follow up 2026-11-06"), the sync line for an earlier day ("Synced 2026-11-09 at 21:40") and the word beside the sync ring ("2026-11-09"), and with a time: a backup, **Last made**, the restore question and the widget status in Settings ("2026-11-12 14:30").
+
+**Other rules.**
+
+- **The month** form is the heading of the month grid and of **Calendar › Month**, and the months above the squares in **Done**.
+- **The week** form is the first part of the grey line under the day in **Calendar** ("Week 46 · 3 due · 2 events"; before build 309, "v. 46"). Inside a sentence the week is lower case and unchanged: "Goal for week 45", "week 41".
+- **Time** is always 24 hours, whatever the region of the device says: events, plan blocks, time blocks, the sync time, "written 14:30" in the widgets. The hours down the side of the day's schedule are "09:00", "10:00".
+- **Always English, always the Gregorian calendar.** Nothing in `DayWords` reads the device's language or region. The seven letters over a month grid are fixed: M T W T F S S, Monday first.
+- **Relative words stay** where they were: Today, Tomorrow, Yesterday, "in about 9 months", "11 days over", "Looked at 12 days ago", "waited 5 days".
+- **Display only.** File names keep their forms (`20261112.md`, `2026-W46.md`, "Trip (conflict 2026-11-06 2040).md"). What is written into a note keeps its form: `>2026-11-12`, `>2026-11-12T14:30`, `@done(2026-11-12 14:30)`, `@since(2026-11-01)`, `ended:`, `reviewed:`. The heading written into a **new** daily note is unchanged (`Note.dailyHeading`, for example "# Thursday, 12 November 2026"), and so is the heading of a new weekly note (`WeekRef.title`, "# Week 46, 9 Nov – 15 Nov 2026"). These two still follow the region of the device, because they are the note's own text.
+
+## 17. Words
+
+Since build 309 (review round 3). The list of the app's own words is `Docs/Words.md`. These are the rules behind it.
+
+- **Each device shows only its own words.** "Tap" and "Hold" on the iPhone and the iPad, "Click" and "Right-click" on the Mac. Never both in one sentence, and no "long-press" or "press and hold". The one place in the code is `DeviceWords` in Look.swift (`click`, `clickSmall`, `holdARow`, `holdSmall`). A keyboard shortcut such as ⇧⌘N is named only on the Mac.
+- **One name for each thing.** **Plan** is the screen with the day on an hour ruler: the sidebar row, the window, the **Go** menu ("Plan…") and the iPhone tab. The lane inside it is **Time blocks**. The identifiers did not change (`sidebar.Time Blocks`, `browse.Time Blocks`, through `SidebarSection.key`). **New** is the screen that adds something (menu "New…"); its sixth button is **Inbox**.
+- **Add and Save.** A button that adds one thing at once says **Add** (a tag, a work note, a person in Waiting for). A sheet with fields ends with **Save** (**New**, a new template, **Add this note**). **Start the day** and **Close the day** end with **Done**. The app does not say Make or Create for adding. ("Make task" in the Inbox and "Make this the next action" on a task turn one thing into another, and keep their words.)
+- **No code where plain words will do.** Settings shows no link. The examples in Search start with plain words, with the typed form under them, small and grey. The Snippets list shows each line through `Snippets.plainLook`: no tick box, no {{ }}, a question in round brackets, a filled-in date as a word ("Ask (who) to (what), tomorrow").
+- **A label starts with a capital and says what it is.** "How long?", "Not synced yet", "Changed today", "Not reviewed yet", "Not planned yet", "No blocks yet", "Reminders list:".
+- **One and many are both right.** "1 open item", "2 open items". A number is not said twice ("Done · 1 this year").
+- **A "nothing here" line** follows section 6: label size, grey, no full stop.
+- **Every picture button has a spoken name** (`accessibilityLabel`), the same words as its hover text on the Mac.

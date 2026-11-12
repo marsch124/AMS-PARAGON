@@ -55,6 +55,7 @@ struct DeletedRow: View {
         guard deleted.deletedAt != .distantPast else { return "Deleted" }
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
+        formatter.locale = Locale(identifier: "en")   // the app is English on every device
         return "Deleted \(formatter.localizedString(for: deleted.deletedAt, relativeTo: Date()))"
     }
 

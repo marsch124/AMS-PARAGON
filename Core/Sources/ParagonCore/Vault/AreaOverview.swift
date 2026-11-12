@@ -45,7 +45,7 @@ public struct AreaOverview: Equatable, Sendable {
     /// What the list says when no project is running or on hold. Two sentences, because "yet"
     /// would be untrue of an area whose projects have all ended.
     public var emptyText: String {
-        overCount == 0 ? "No projects in this area yet." : "No projects in this area right now."
+        overCount == 0 ? "No projects in this area yet" : "No projects in this area right now"
     }
 
     /// The line under the list about the projects that are over, or nil when there are none —

@@ -167,13 +167,13 @@ struct ProjectsListView: View {
                 parts.append("Their goal has no aspiration yet. In Goals, press Give it an aspiration under that goal.")
             }
             if group.lines.contains(where: \.goalIsMissing) {
-                parts.append(isPhone
+                parts.append(DeviceWords.holds
                     ? "A line saying No goal called … names a goal that was not found: hold the project and choose Serves."
                     : "A line saying No goal called … names a goal that was not found: right-click the project and choose Serves.")
             }
             return parts.isEmpty ? nil : parts.joined(separator: " ")
         case .noGoal:
-            return isPhone
+            return DeviceWords.holds
                 ? "Hold a project and choose Serves to give it a goal."
                 : "Right-click a project and choose Serves to give it a goal."
         default:

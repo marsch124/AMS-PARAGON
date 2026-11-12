@@ -94,6 +94,8 @@ public enum Snippets {
             text = String(text.dropFirst(mark.count))
             break
         }
+        // "{{ who }}" with spaces inside reads the same as "{{who}}".
+        text = text.replacingOccurrences(of: #"\{\{\s*([^{}]*?)\s*\}\}"#, with: "{{$1}}", options: .regularExpression)
         let words = ["date": "today", "today": "today", "tomorrow": "tomorrow", "week": "in a week"]
         for name in placeholders(in: text) {
             let braces = "{{\(name)}}"

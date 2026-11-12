@@ -1,6 +1,121 @@
 # Version history
 
-The version is shown as 1.0 (308) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (309) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 309 · 12 November 2026
+
+**One date style and plain words: PARAGON now writes every date one way, and says things in plain words.** This is round 3 of the premium review. Round 1 was build 307, round 2 was build 308. Nothing works differently. Only the words and the way dates are written changed.
+
+**Before (build 308).**
+- Dates were written in many ways: "2027-08-15" in one place, "Thursday, 12 November" in another, "Thu 12 Nov", "Fri 6 Nov", "20 October", "9 Nov", and "20261112" as the name of a daily note.
+- Many dates and times followed the region set on the device. The same day could look different on the iPhone and on the Mac, and a time could show as "2:30 PM".
+- The Mac calendar said "v. 46" for the week. That is a Swedish short form in an English app.
+- The date in the purple band on **Today** was cut off on the Mac ("Thursday, 12 No…").
+- A daily note on the Mac showed a "#" before its date.
+- The iPhone told you to "right-click" and to press ⇧⌘N. The Mac told you to "long-press".
+- Settings showed a computer link under **Quick capture**.
+- One thing had several names: "Plan", "Plan the day" and "Time Blocks" for one screen; "New Entry" and "Capture"; and the buttons that add were called Add, Make and Create.
+- Some small labels were hard to understand: "time?", "Not yet", "moved today", "To place", "Never looked at".
+- Search and Snippets showed computer code first.
+- "Nothing here" lines came in two sizes, some with a full stop and some without.
+- Five picture buttons had no name for VoiceOver, and the widgets did not follow your text size.
+
+**1. One date style everywhere.**
+- A date is written like this: **2026-11-12**. Year, month, day.
+- Where the weekday helps, it comes first: **Thursday 2026-11-12**. The full weekday, a space, the date. No comma.
+- The weekday form is now in these places. Each one had its own form before:
+  - The purple band on **Today**: "Thursday, 12 November" → "Thursday 2026-11-12".
+  - The top line of **Start the day** and **Close the day**, and tomorrow's date in **Close the day**: "Thu, 12 Nov" → "Thursday 2026-11-12".
+  - The day's heading in **Calendar**, and in **Plan**: "Thursday 12 November 2026" → "Thursday 2026-11-12".
+  - Each day's heading in **Calendar › Week**: "Thu 12 Nov" → "Thursday 2026-11-12".
+  - The seven days listed at the top of a weekly note: "Thu 12" → "Thursday 2026-11-12".
+  - A day's card in **Done**: "Tuesday 14 October" → "Tuesday 2026-10-14". **Today** and **Yesterday** are still words.
+  - The first line of the **Weekly review**.
+  - The due line in **Quick capture**: "Due 15 September" → "Due Tuesday 2026-09-15". "Due today" and "Due tomorrow" are still words.
+  - The next reminder in Settings, when it is not today or tomorrow: "Next reminder: Saturday 2026-11-14 at 07:30".
+  - The small text that appears when you hold the pointer over a day in the month grid on the Mac, and what VoiceOver says for a day in **Calendar › Month**.
+- The plain form is now in these places:
+  - A finished project: "Done on 21 October" → "Done on 2026-10-21". In the **Projects** list: "Ended 20 October" → "Ended 2026-10-20".
+  - The **Waiting for** list: "Follow up Fri 6 Nov" → "Follow up 2026-11-06".
+  - Backups in Settings, **Last made** for the second copy, and the question before a restore: "12 Nov 2026 at 14:30" → "2026-11-12 14:30".
+  - The sync line, see point 4.
+- Target dates, deadlines and due dates on a row were already written "2027-08-15". They look the same as before.
+
+**2. Months and weeks.**
+- A month alone is written **2026-11**. This is the heading of **Calendar › Month** and of the month grid ("November 2026" before), and the months above the squares in **Done** ("November" before).
+- A week is **Week 46**. The line under the day in the Mac calendar said "v. 46 · nothing planned". It now says "Week 46 · nothing planned".
+- The heading over the seven days in **Calendar › Week**, and the week's name between the arrows in step 7 of the **Weekly review**: "Week 46, 9 Nov – 15 Nov 2026" → **Week 46 · 2026-11-09 – 2026-11-15**.
+- "Goal for week 45" and "week 41" inside a sentence are unchanged.
+
+**3. Times are always 24 hours, and always English.**
+- A time is written **14:30**, on every device, whatever the region of the device says. Before, a device set to a 12-hour clock showed "2:30 PM".
+- This holds for calendar events, plan blocks, time blocks, the hours down the side of the day's schedule ("09:00", "10:00"), the sync time, the sync report, and the test lines of the reminders ("Delivered by the iPhone at 07:30:05").
+- Weekdays are always English: "Thursday", or "Thu" where there is little room. The seven letters over the month grid are always M T W T F S S. Before, they followed the language of the device.
+
+**4. The sync line.**
+- After a sync on an earlier day the line said "Synced 9 Nov at 21:40". It now says **Synced 2026-11-09 at 21:40**. The short word beside the sync ring said "9 Nov". It now says "2026-11-09".
+- "Synced at 21:40" (today) and "Synced yesterday at 21:40" are unchanged.
+- Before the first sync, the word beside the ring said "Not yet". It now says **Not synced yet**.
+
+**5. Daily and weekly notes have a readable name.**
+- The name of a daily note in the top bar, and its row in **Recent** and in other lists, showed "20261112". It now shows **Thursday 2026-11-12**.
+- A weekly note showed "2026-W46" there. It now shows **Week 46 · 2026**.
+- The files keep their names: `20261112.md` and `2026-W46.md`.
+- The heading that PARAGON writes into a new daily note is unchanged, for example "# Thursday, 12 November 2026". The same holds for a new weekly note ("# Week 46, 9 Nov – 15 Nov 2026"). That heading is part of your note, so PARAGON leaves it alone. Your old notes are not touched.
+
+**6. Two Mac fixes.**
+- The date in the purple band on **Today** was cut off. On the Mac it now has a line of its own, under the title and the three round buttons, and uses the whole width of the band. On the iPhone it stays in one row beside the buttons.
+- A daily note on the Mac showed "#" before its date while you only read it. Now every "#" and "**" is hidden while the cursor is not in the note. Click into a line and the signs of that line show, so you can change them. The iPhone already did this.
+
+**7. Each device shows only its own words.**
+- On the iPhone and the iPad: **Tap** and **Hold**. On the Mac: **Click** and **Right-click**. Never both in one sentence.
+- Weekly review, **Due for a look**: "Right-click a row (long-press on the phone) for **I looked at it today**" → "Hold a row for **I looked at it today**" on the iPhone, "Right-click a row for…" on the Mac.
+- Inbox, **File it**: "Click where it should go" → "Tap where it should go" on the iPhone.
+- The Map: "Click a box…" → "Tap a box to see what it serves and what serves it, and to open its note" on the iPhone.
+- The empty **Waiting for** list no longer names both devices.
+- **Projects**: "Press and hold a project and choose Serves" → "Hold a project and choose Serves" on the iPhone.
+
+**8. Settings in plain words.**
+- **Quick capture**: the computer link ("amspara://capture?…") is gone from Settings. It is now in **How it works**, under **Quick capture**. On the iPhone the line says "Use Share › PARAGON from any app". On the Mac it says "⇧⌘N opens quick capture. A Shortcut can add to the Inbox from other apps: see How it works."
+- **Morning reminder** and **Evening reminder**: the test button said "Send one in 10 seconds". It now says **Try it now**.
+- **Vault**: **Close vault** is on a line of its own. Before, the red words sat right beside **Choose folder…**.
+- **Reminders sync**: "Sync tasks in Area notes" → "Sync tasks in area notes".
+- **Apple Calendar**: "…the time blocks you add in the Time Blocks section" → "…the time blocks you add in Plan".
+
+**9. One name for each thing.**
+- **Plan** is the name of the screen everywhere: the row in the Mac sidebar ("Time Blocks" before), the title of its window ("Plan the day" and "Time Blocks" before), and the **Go** menu ("Plan the Day…" → "Plan…"). The iPhone tab was already **Plan**. The lane inside the screen is still called **Time blocks**.
+- **New** is the name of the screen that adds something ("New Entry" before). The menu says "New…", and the **+** button is called **New**.
+- The sixth button in **New** is **Inbox** ("Capture" before), because the line lands in the Inbox.
+- **Add** and **Save**. A button that adds one thing at once says **Add**: a new tag ("Make" before) and a new work note ("Create" before). A screen with fields to fill in ends with **Save**: **New**, a new template, and a note made from a link ("Create" before). That last screen is now called "Add this note" ("Make this note" before).
+- The small help texts on the Mac say "Add a new project…" and "Add an hour's block for this" ("Make…" before). The empty Map says "Add a goal…" ("Create a goal…" before).
+- **Close the day** says "Nothing was planned in **Plan** today" ("…in **Plan the day**" before).
+
+**10. Clearer words on rows.**
+- On a task with no task time: "time?" → **How long?**
+- Weekly review, on a project or goal: "moved today" → **Changed today**, "moved 3d ago" → "Changed 3d ago". On an aspiration: "something moved today" → "changed today".
+- At the top of a project or an area: "List" → **Reminders list:**.
+- A note nobody has reviewed: "Never looked at" → **Not reviewed yet**.
+- **Calendar › Week**, the tiles with no date: "To place" → **Not planned yet**.
+- Weekly review, with one line in the Inbox: "1 open items to file…" → "1 open item to file into projects or areas".
+- **Projects**, the **Done** heading: "Done 1 · 1 this year" said the same number twice. When the two numbers are the same, the heading now says "Done · 1 this year". "Done 6 · 4 this year" is unchanged.
+- **Plan**, a day with no blocks: "no blocks yet" → "No blocks yet".
+
+**11. Search and Snippets without code.**
+- **Search**, the help list: the heading "The same thing, typed" is now **Examples**. Each example starts with plain words, for example "Everything overdue". The typed form ("due:overdue is:open") is under it, small and grey. Before, the code came first. Pressing an example still fills in the search.
+- **Snippets**: the list shows each snippet in plain words, for example "Ask (who) to (what), tomorrow". Before, it showed "- [ ] Ask {{who}} to {{what}} >{{tomorrow}}". The snippet itself is unchanged, and so is what goes into your note.
+- The two help texts in **Snippets** no longer say "## heading". They say each block has its name on the line above it.
+
+**12. One style for "nothing here".**
+- Every such line is now the same: small, grey, and with no full stop. For example "No events", "Nothing due", "Nothing due today", "Nothing planned", "No task was ticked off today", "Nothing is planned for tomorrow yet", "Nothing works towards this yet", "Nothing carries this tag any more", "No sync has run yet". The **Today's plan** widget on the Mac also lost its full stops: "No blocks planned today", "Click to plan the day", "Nothing more planned today".
+- Before, some were in the larger text size and most ended with a full stop.
+
+**13. Better for VoiceOver and for text size.**
+- Five picture buttons now have a name that VoiceOver reads: **Previous day** and **Next day** in the Calendar, **Delete this one for good** in **Deleted**, **Open in Calendar** on an event, and **What you can write in a capture** in Quick capture.
+- The text in the widgets now uses Apple's text styles, so it follows your text size. Before, it had fixed small sizes (8 to 10 points).
+
+**What did not change.** Your notes, tasks, backups and sync. The names of the files. The dates you type in a note (`>2026-11-12`) and the stamps PARAGON writes there. The heading in a new daily or weekly note. How anything works.
+
+**The version.** It shows as "PARAGON 1.0 (309)".
 
 ## Build 308 · 12 November 2026
 

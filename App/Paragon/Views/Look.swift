@@ -48,7 +48,12 @@ enum DeviceWords {
     static let clickSmall = "click"
     static let holdARow = "Right-click a row"
     static let holdSmall = "right-click"
+    /// True where a row is held (iPhone and iPad), false where it is right-clicked (Mac).
+    static let holds = false
+    static let systemSettings = "System Settings"
     #else
+    static let holds = true
+    static let systemSettings = "Settings"
     static let click = "Tap"
     static let clickSmall = "tap"
     static let holdARow = "Hold a row"

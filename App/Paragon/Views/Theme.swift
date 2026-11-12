@@ -798,7 +798,7 @@ struct GoalProgressBar: View {
 
     /// Built outside the ViewBuilder, where a `var` is allowed.
     private var counts: String {
-        var parts = ["\(progress.projectsDone) of \(progress.projectsTotal) projects done"]
+        var parts = ["\(progress.projectsDone) of \(progress.projectsTotal) \(progress.projectsTotal == 1 ? "project" : "projects") done"]
         if progress.tasksTotal > 0 {
             parts.append("\(progress.tasksDone) of \(progress.tasksTotal) tasks")
         }
