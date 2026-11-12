@@ -146,7 +146,9 @@ struct InboxTriageView: View {
                         // never take a selection fill (build 201) and a press on it never
                         // means "pick a different line".
                         if isPhone, ref.triageID == model.inboxSelection {
-                            InboxQuadrant(ref: ref, pickDate: { pickingDateFor = ref })
+                            // Build 312: on the phone **File it** opens the projects and
+                            // areas at once. Everything else is on the line's long press.
+                            InboxQuadrant(ref: ref, pickDate: { pickingDateFor = ref }, filesDirectly: true)
                                 // Lines up under the words, past the tick.
                                 .padding(.leading, 23)
                                 .listRowBackground(plainRowFill)
@@ -419,6 +421,13 @@ struct InboxQuadrant: View {
     /// the sheet belongs to that screen (build 44: one `.sheet` per screen, never two).
     let pickDate: () -> Void
     var rename: (() -> Void)?
+    /// **Build 312, the phone only.** File it opens the list of projects and areas at once:
+    /// tap the line, tap File it, tap the project — three taps, where it was four with
+    /// **Move to** one menu deeper. Turn into a note, Block time, Remove the date, Rename and
+    /// Delete are all on the line's long press (`InboxRow`'s context menu), so nothing is lost.
+    var filesDirectly = false
+
+    private var destinations: [Note] { InboxItems.destinations(model) }
 
     private var tint: Color { SidebarSection.inbox.tint }
     /// Both written out rather than compared as `dueDate == .today()`: the left side is an
@@ -446,7 +455,16 @@ struct InboxQuadrant: View {
             HStack(spacing: 6) {
                 button("calendar", "Pick a date", id: "date", isOn: hasOtherDate, action: pickDate)
                 Menu {
-                    InboxLineMenu(ref: ref, rename: rename)
+                    if !filesDirectly {
+                        InboxLineMenu(ref: ref, rename: rename)
+                    } else if destinations.isEmpty {
+                        // An empty menu opens as nothing at all (build 100): say why.
+                        Text("No project or area yet")
+                    } else {
+                        ForEach(destinations) { note in
+                            Button(note.displayTitle) { model.moveTask(ref, to: note.relativePath) }
+                        }
+                    }
                 } label: {
                     face("tray.and.arrow.down", "File it", isOn: false, dashed: false)
                 }

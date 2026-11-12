@@ -19,6 +19,12 @@ struct ReviewView: View {
     /// opening a step on the phone does not open it on the Mac (build 161's pair).
     @AppStorage("reviewOpenParts") private var deskOpenText = ""
     @AppStorage("reviewOpenPartsPhone") private var phoneOpenText = ""
+    /// **Build 312: the first part with something to do opens by itself**, once per visit
+    /// (`ReviewOpening`, Core, tested). False until that has been done. `@State`, so it lasts
+    /// while this screen is alive — the phone's push into a note and back is the same visit —
+    /// and starts again the next time the review is opened. After it, what he opens and closes
+    /// by hand is left alone.
+    @State private var visitStarted = false
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -77,7 +83,7 @@ struct ReviewView: View {
                     }
                 }
             } header: {
-                ReviewPartHeading(title: "Due for a look", count: due.count,
+                ReviewPartHeading(title: "Due for a look", count: due.count, toDo: due.count,
                                   isOpen: openBinding("due"), part: "due")
             } footer: {
                 if isOpen("due") {
@@ -103,7 +109,7 @@ struct ReviewView: View {
                 }
             } header: {
                 ReviewPartHeading(title: "1. Empty the inbox", count: report.inboxOpenTasks,
-                                  isOpen: openBinding("1"), part: "1")
+                                  toDo: report.inboxOpenTasks, isOpen: openBinding("1"), part: "1")
             }
 
             // **Every numbered step is always drawn, even when it is empty** (build 171).
@@ -126,7 +132,7 @@ struct ReviewView: View {
                 }
             } header: {
                 ReviewPartHeading(title: "2. Reschedule or drop overdue tasks", count: report.overdueTasks.count,
-                                  isOpen: openBinding("2"), part: "2")
+                                  toDo: report.overdueTasks.count, isOpen: openBinding("2"), part: "2")
             }
 
             // **Build 175, both from his test.** He asked for two things here: steps 3 to 5
@@ -148,7 +154,7 @@ struct ReviewView: View {
                 }
             } header: {
                 ReviewPartHeading(title: "3. Read the aspirations again", count: aspirations(report).count,
-                                  isOpen: openBinding("3"), part: "3")
+                                  toDo: toDo("3", report, due.count), isOpen: openBinding("3"), part: "3")
             } footer: {
                 // Build 176: the rule in one line, where the two kinds sit side by side.
                 // A title string and a footer cannot be given together (build 157).
@@ -172,7 +178,7 @@ struct ReviewView: View {
                 }
             } header: {
                 ReviewPartHeading(title: "4. Check the goals with a date are on course", count: datedGoals(report).count,
-                                  isOpen: openBinding("4"), part: "4")
+                                  toDo: toDo("4", report, due.count), isOpen: openBinding("4"), part: "4")
             } footer: {
                 if isOpen("4") {
                     Text(GoalWording.datedGoalRule)
@@ -198,7 +204,7 @@ struct ReviewView: View {
                 // takes what is left (build 138).
                 HStack(spacing: 8) {
                     ReviewPartHeading(title: "5. Give every project a next action", count: report.projects.count,
-                                      isOpen: openBinding("5"), part: "5")
+                                      toDo: toDo("5", report, due.count), isOpen: openBinding("5"), part: "5")
                     // Only while the step is open: it stamps every project in it, and a folded
                     // step has not been looked at yet.
                     if isOpen("5") {
@@ -225,7 +231,7 @@ struct ReviewView: View {
                 }
             } header: {
                 ReviewPartHeading(title: "6. Look over the areas", count: report.areas.count,
-                                  isOpen: openBinding("6"), part: "6")
+                                  toDo: toDo("6", report, due.count), isOpen: openBinding("6"), part: "6")
             }
 
             // **Build 263: the review looks back as well as forward.** Steps 1 to 6 are all
@@ -280,6 +286,38 @@ struct ReviewView: View {
         }
         // For the screen test, which scrolls this list to reach step 7 (build 263).
         .accessibilityIdentifier("review.list")
+        .onAppear { startVisit() }
+    }
+
+    // MARK: What opens by itself (build 312)
+
+    /// Every part in the order drawn, with how many things in it still want doing. **To do, not
+    /// listed**: step 5 lists every project, and what is left to do there is the projects that
+    /// need attention — the same number the orange pills count. Steps 7 and 8 and **Projects
+    /// with no goal** count nothing to do (the last "never counts as needing attention").
+    private func toDoParts(_ report: ReviewReport, due: Int) -> [ReviewOpening.Part] {
+        [.init("due", toDo: due),
+         .init("1", toDo: report.inboxOpenTasks),
+         .init("2", toDo: report.overdueTasks.count),
+         .init("3", toDo: aspirations(report).filter(\.needsAttention).count),
+         .init("4", toDo: datedGoals(report).filter(\.needsAttention).count),
+         .init("5", toDo: report.projectsNeedingAttention.count),
+         .init("6", toDo: report.areas.filter(\.needsAttention).count),
+         .init("7", toDo: nil), .init("8", toDo: nil), .init("noGoal", toDo: nil)]
+    }
+
+    private func toDo(_ part: String, _ report: ReviewReport, _ due: Int) -> Int? {
+        toDoParts(report, due: due).first { $0.id == part }?.toDo
+    }
+
+    /// Once per visit: the first part with something to do is open, the others folded.
+    private func startVisit() {
+        guard !visitStarted else { return }
+        let parts = toDoParts(model.index.review(config: model.config), due: model.dueForReview().count)
+        let open = ReviewOpening.open(parts: parts, byHand: Self.ids(in: openText.wrappedValue),
+                                      visitStarted: false)
+        visitStarted = true
+        openText.wrappedValue = open.sorted().joined(separator: "\n")
     }
 
     // MARK: Folding (build 266)
@@ -346,9 +384,14 @@ struct ReviewPartHeading: View {
     /// "due", "1" … "8", "noGoal" — the id the open set keeps.
     let part: String
 
-    init(title: String, count: Int = 0, isOpen: Binding<Bool>, part: String) {
+    /// How many things in the part still want doing; nil when the part counts none (build
+    /// 312). At zero the heading carries a hand-drawn tick: this part is done.
+    let toDo: Int?
+
+    init(title: String, count: Int = 0, toDo: Int? = nil, isOpen: Binding<Bool>, part: String) {
         self.title = title
         self.count = count
+        self.toDo = toDo
         self._isOpen = isOpen
         self.part = part
     }
@@ -360,14 +403,21 @@ struct ReviewPartHeading: View {
     /// Said aloud and readable by a test, beside the `isSelected` trait `FoldButton` gives an
     /// open box.
     private var state: String { isOpen ? "open" : "folded" }
+    private var ticked: Bool { ReviewOpening.isTicked(toDo: toDo) }
 
     var body: some View {
-        FoldButton(isOpen: $isOpen, accessibilityName: shown) {
-            Text(shown)
-                .font(Txt.sectionTitle)
-                .foregroundStyle(SidebarSection.review.tint.ink)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        FoldButton(isOpen: $isOpen, accessibilityName: ticked ? shown + ", nothing left to do" : shown) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(shown)
+                    .font(Txt.sectionTitle)
+                    .multilineTextAlignment(.leading)
+                if ticked {
+                    MarkImage("checkmark.circle", text: .subheadline)
+                        .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
+                }
+            }
+            .foregroundStyle(SidebarSection.review.tint.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityValue(state)
         .accessibilityIdentifier("review.part.\(part)")
@@ -463,6 +513,25 @@ struct ReviewSummary: View {
         return out
     }
 
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
+
+    /// The capsules. A plain function, so the two layouts below draw the same ones.
+    @ViewBuilder
+    private var stats: some View {
+        if worries.isEmpty {
+            ReviewStat(text: "Nothing needs attention", symbol: "checkmark.circle", tint: ParaKind.project.tint)
+        } else {
+            ForEach(worries) { worry in
+                ReviewStat(text: worry.text, symbol: worry.symbol, tint: Theme.attention)
+            }
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             // The same wording Today uses, so the two screens name a day the same way.
@@ -472,16 +541,17 @@ struct ReviewSummary: View {
                                                 : "\(report.completedLast7Days) tasks finished in the last 7 days")
                 .font(Txt.label)
                 .foregroundStyle(.soft)
-            WrappingHStack(spacing: 6, lineSpacing: 5) {
-                if worries.isEmpty {
-                    ReviewStat(text: "Nothing needs attention", symbol: "checkmark.circle", tint: ParaKind.project.tint)
-                } else {
-                    ForEach(worries) { worry in
-                        ReviewStat(text: worry.text, symbol: worry.symbol, tint: Theme.attention)
-                    }
-                }
+            if isPhone {
+                // Build 312: on the phone the capsules stand one under the other with their
+                // words, as the Mac writes them. Side by side they were squeezed down to the
+                // symbol alone.
+                VStack(alignment: .leading, spacing: 5) { stats }
+                    .lineLimit(1)
+                    .accessibilityIdentifier("review.stats")
+            } else {
+                WrappingHStack(spacing: 6, lineSpacing: 5) { stats }
+                    .lineLimit(1)
             }
-            .lineLimit(1)
         }
         .padding(.vertical, 3)
     }

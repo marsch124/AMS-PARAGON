@@ -40,6 +40,11 @@ struct StartDayView: View {
     /// so folding them on the phone does not fold them on the Mac — the pair Today has had since
     /// build 212 (builds 121 and 161).
     @AppStorage("startDayCalendarFolded") private var deskCalendarFolded = false
+    /// Build 312: how often this sheet has been opened, up to one past `HintRule.timesShown`.
+    /// The instructions show by themselves the first three times, then wait behind the info
+    /// button. Counted once per opening (`onAppear` runs again when a sheet is laid out anew).
+    @AppStorage("startDayHintOpens") private var hintOpens = 0
+    @State private var hintCounted = false
     @AppStorage("startDayCalendarFoldedPhone") private var phoneCalendarFolded = false
 
     /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating task
@@ -118,10 +123,8 @@ struct StartDayView: View {
                     if actions.isEmpty {
                         nothingToPick
                     } else {
-                        Text(instructions)
-                            .font(Txt.label)
-                            .foregroundStyle(.soft)
-                            .fixedSize(horizontal: false, vertical: true)
+                        HintParagraph(text: instructions, opens: hintOpens, tint: tint,
+                                      identifier: "startDay.how")
                         group("Marked first last evening", marked)
                         group("Overdue", overdue)
                         group("Due today", dueToday)
@@ -146,6 +149,11 @@ struct StartDayView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("startDay.screen")
         .onAppear { model.loadFirstPicks() }
+        .onAppear {
+            guard !hintCounted else { return }
+            hintCounted = true
+            hintOpens = HintRule.counting(hintOpens)
+        }
         #if os(macOS)
         // 1.0: the cursor starts in the first field, so the first key pressed types (the sheet
         // used to open with the focus ring on Cancel). Escape still cancels, Return still adds.
@@ -627,6 +635,47 @@ struct PickButton: View {
         } else {
             Capsule().strokeBorder(Color.primary.opacity(0.45),
                                    style: StrokeStyle(lineWidth: 1.2, dash: [3, 3]))
+        }
+    }
+}
+
+/// **An explanation that steps back once it is known** (build 312), for Start the day and
+/// Close the day. The first three times the sheet is opened the paragraph is simply there
+/// (`HintRule`, Core, tested). After that only a small hand-drawn info mark is left; a press
+/// shows the paragraph, another press folds it again.
+struct HintParagraph: View {
+    let text: String
+    /// How often the sheet has been opened, this time included.
+    let opens: Int
+    let tint: Color
+    /// `<identifier>` is the info button, `<identifier>.text` the paragraph.
+    let identifier: String
+    @State private var asked = false
+
+    private var byItself: Bool { HintRule.showsByItself(opens: opens) }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            if !byItself {
+                Button {
+                    asked.toggle()
+                } label: {
+                    MarkImage("info.circle", size: 18)
+                        .foregroundStyle(asked ? tint.ink : Theme.soft)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("How this works")
+                .accessibilityIdentifier(identifier)
+                .help(asked ? "Hide the explanation" : "How this works")
+            }
+            if byItself || asked {
+                Text(text)
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier(identifier + ".text")
+            }
         }
     }
 }
