@@ -10,7 +10,8 @@ The version is shown as 1.0 (304) at the foot of the Mac sidebar and at the foot
 
 **Fixed, the Mac app opens again.**
 - The ring in the menu bar is now drawn once per minute, and its pictures are kept for reuse, so nothing redraws without pause. The app opens normally and the processor stays calm.
-- The iPhone app was fine. A slow first start after a TestFlight update was just the update.
+- Fixed: the iPhone app could hang at launch since build 301, and iOS then closed it — it looked like a crash, and sometimes it got through. The sync ring at the top right kept re-measuring itself without end. It is now laid out in one steady way, and the app opens straight away.
+- Fixed: the filter chips in All actions are measured once instead of trying two layouts over and over (the same kind of trap).
 
 **New, swipe a task to tick it.**
 - In any list, swipe a task from the left edge to tick it done. A full swipe ticks it at once.
