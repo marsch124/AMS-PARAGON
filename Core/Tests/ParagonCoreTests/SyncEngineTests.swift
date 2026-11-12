@@ -292,7 +292,11 @@ final class SyncEngineTests: XCTestCase {
         project.body = "- [ ] Buy milk ^tabc123\n"
         try vault.save(project)
         let report = try await engine.run()
-        XCTAssertEqual(report.remindersCreated, 2)
+        // The copy gets a new id and its reminder at once; the line that came with an id waits
+        // one round for a reminder another device may have made (hardening-10).
+        XCTAssertEqual(report.remindersCreated, 1)
+        let waited = try await engine.run()
+        XCTAssertEqual(waited.remindersCreated, 1)
         let inboxID = try inbox().tasks[0].id
         let projectID = try vault.loadNote(relativePath: "Projects/Shopping.md").tasks[0].id
         XCTAssertNotNil(inboxID)

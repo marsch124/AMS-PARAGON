@@ -4250,7 +4250,10 @@ final class AppModel: ObservableObject {
                 errorMessage = "PARAGON needs full access to Reminders. You can grant it in System Settings › Privacy & Security › Reminders."
                 return
             }
-            let engine = SyncEngine(vault: vault, store: remindersStore, deviceID: deviceID)
+            // The sync works off the main thread, so it gets a vault object of its own (hardening-19);
+            // what the screen shows afterwards comes from `reload()`, on the main actor, from the app's own.
+            let engine = SyncEngine(vault: try Vault(rootURL: vault.rootURL), store: remindersStore,
+                                    deviceID: deviceID, config: vault.config)
             let report: SyncReport
             switch try await engine.sync(allowMassChanges: allowMassChanges) {
             case .finished(let finished):

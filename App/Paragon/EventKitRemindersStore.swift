@@ -17,8 +17,15 @@ final class EventKitRemindersStore: RemindersStore {
         }
     }
 
-    private func calendar(named name: String) -> EKCalendar? {
-        eventStore.calendars(for: .reminder).first { $0.title == name }
+    /// The list with this name. Two lists may share a name: the one with `id` wins when it is
+    /// among them, so a new reminder goes into the list PARAGON is linked to.
+    private func calendar(named name: String, id: String = "") -> EKCalendar? {
+        let named = eventStore.calendars(for: .reminder).filter { $0.title == name }
+        return named.first { $0.calendarIdentifier == id } ?? named.first
+    }
+
+    func lists() async throws -> [ReminderList] {
+        eventStore.calendars(for: .reminder).map { ReminderList(id: $0.calendarIdentifier, name: $0.title) }
     }
 
     func listNames() async throws -> [String] {
@@ -83,7 +90,7 @@ final class EventKitRemindersStore: RemindersStore {
 
     func create(_ draft: ReminderRecord) async throws -> ReminderRecord {
         try await ensureList(named: draft.listName)
-        guard let calendar = calendar(named: draft.listName) else {
+        guard let calendar = calendar(named: draft.listName, id: draft.listID) else {
             throw RemindersStoreError.listNotFound(draft.listName)
         }
         let reminder = EKReminder(eventStore: eventStore)
@@ -99,7 +106,7 @@ final class EventKitRemindersStore: RemindersStore {
         }
         if reminder.calendar?.title != record.listName {
             try await ensureList(named: record.listName)
-            if let calendar = calendar(named: record.listName) {
+            if let calendar = calendar(named: record.listName, id: record.listID) {
                 reminder.calendar = calendar
             }
         }
@@ -147,6 +154,7 @@ final class EventKitRemindersStore: RemindersStore {
     private func record(from reminder: EKReminder) -> ReminderRecord {
         ReminderRecord(identifier: reminder.calendarItemIdentifier,
                        listName: reminder.calendar?.title ?? "",
+                       listID: reminder.calendar?.calendarIdentifier ?? "",
                        title: reminder.title ?? "",
                        isCompleted: reminder.isCompleted,
                        completedAt: reminder.completionDate,
@@ -154,7 +162,8 @@ final class EventKitRemindersStore: RemindersStore {
                        dueTime: reminder.dueDateComponents.flatMap { TimeOfDay(components: $0) },
                        priority: Self.priority(fromEK: reminder.priority),
                        notes: reminder.notes,
-                       lastModified: reminder.lastModifiedDate)
+                       lastModified: reminder.lastModifiedDate,
+                       createdAt: reminder.creationDate)
     }
 
     /// EventKit: 0 none, 1 high … 9 low. Notes: 0 none, 1 `!` … 3 `!!!`.
