@@ -94,7 +94,7 @@ The version is shown as 1.0 (309) at the foot of the Mac sidebar and at the foot
 - On a task with no task time: "time?" → **How long?**
 - Weekly review, on a project or goal: "moved today" → **Changed today**, "moved 3d ago" → "Changed 3d ago". On an aspiration: "something moved today" → "changed today".
 - At the top of a project or an area: "List" → **Reminders list:**.
-- A note nobody has reviewed: "Never looked at" → **Not reviewed yet**.
+- A note nobody has looked at: "Never looked at" → **Not looked at yet**.
 - **Calendar › Week**, the tiles with no date: "To place" → **Not planned yet**.
 - Weekly review, with one line in the Inbox: "1 open items to file…" → "1 open item to file into projects or areas".
 - **Projects**, the **Done** heading: "Done 1 · 1 this year" said the same number twice. When the two numbers are the same, the heading now says "Done · 1 this year". "Done 6 · 4 this year" is unchanged.

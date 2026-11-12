@@ -2211,7 +2211,7 @@ final class ScreenTests: XCTestCase {
         let chip = app.buttons.matching(identifier: "note.lookedAt").firstMatch
         XCTAssertTrue(chip.waitForExistence(timeout: 20),
                       "The goal has no Looked at button. On screen: \(visibleTexts())")
-        XCTAssertTrue(chip.label.contains("Not reviewed yet"),
+        XCTAssertTrue(chip.label.contains("Not looked at yet"),
                       "The test goal has never been looked at, but the button says: \(chip.label)")
         let frame = chip.frame
         guard Self.isOnScreen(frame) else {

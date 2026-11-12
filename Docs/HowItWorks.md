@@ -560,7 +560,7 @@ Where the button is: at the foot of a goal's own note, on the Mac and on the iPh
 
 ### When you last looked at it
 
-At the top of an aspiration, a goal with a date or an area, a grey button with an eye says when you last looked at it: **Looked at 12 days ago**, or **Not reviewed yet**.
+At the top of an aspiration, a goal with a date or an area, a grey button with an eye says when you last looked at it: **Looked at 12 days ago**, or **Not looked at yet**.
 
 - Press it. A small box says how often that kind of note gets a look, and when the next look is due, for example "Goals with a date get a look every 3 months. The next look is due in 78 days."
 - Press **I looked at it today** in the box. PARAGON writes `reviewed:` with today's date into the note's settings block, and the button says **Looked at today**.
@@ -643,9 +643,9 @@ measure**), then **The reason** (see below), then, in order:
 
 **Add a goal…** under the goals makes a new goal that serves the aspiration, and **Add a project…** under a goal with no project yet makes a project for it. You stay on the aspiration.
 
-Each row is one title and one quiet second line, for example "1 goal · Not reviewed yet ·
+Each row is one title and one quiet second line, for example "1 goal · Not looked at yet ·
 Health": how many goals serve it, **when you last looked at it** ("Looked at 12 days ago", or
-"Not reviewed yet"), and an area that serves it. When one of its goals needs attention, a small
+"Not looked at yet"), and an area that serves it. When one of its goals needs attention, a small
 orange capsule sits at the right of the row. An aspiration with nothing under it yet says
 **Nothing serves this yet** in its second line.
 
@@ -1092,7 +1092,7 @@ Each level of the chain is on its own rhythm, because they do not change at the 
 
 All four can be changed under **Settings › Review rhythm**, where each one is a row of named lengths — every week, every month, every 6 months — rather than a count of days. The project one is the same setting the review has always had, so there is one number for it, not two.
 
-Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever looked at says **not reviewed yet**, with **due now** on the right, and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
+Each row says which level the note is, when you last looked at it, and how far past the rhythm it is. A note nobody has ever looked at says **not looked at yet**, with **due now** on the right, and is always at the top — that is not the same as "looked at a very long time ago", and the app does not pretend it is.
 
 Press a row to open the note with the review still beside it. **Right-click a row** (long-press on the phone) for **I looked at it today**, which writes `reviewed:` with today's date into the note and starts that note's rhythm again; the row then leaves the list. The line under the heading says so, so the menu is not something you have to know about. Because it is written into the note, both devices agree and it is in your backups. The same button is at the top of an aspiration, a goal or an area; see **When you last looked at it**.
 

@@ -136,7 +136,7 @@ public enum ReviewWording {
     /// The wording follows `DateOnly.timeLeftText(from:)` so the two never disagree about
     /// where days become months and months become years.
     public static func lookedAt(daysAgo days: Int?) -> String {
-        guard let days, days >= 0 else { return "Not reviewed yet" }
+        guard let days, days >= 0 else { return "Not looked at yet" }
         if days == 0 { return "Looked at today" }
         if days == 1 { return "Looked at yesterday" }
         if days < 31 { return "Looked at \(days) days ago" }
