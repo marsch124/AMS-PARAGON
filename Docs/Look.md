@@ -1,8 +1,8 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8); the sync button's clock ring on the iPhone in build 300 (version 1.0 (300), section 8); the same ring on the Mac and iPad sidebar and the small filter chips in build 301 (version 1.0 (301), sections 8 and 12); the same chips in Search in build 302 (version 1.0 (302), section 12); the sync ring in the Mac menu bar in build 303 (version 1.0 (303), section 8); one date style and plain words in build 309 (version 1.0 (309), sections 16 and 17). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8); the sync button's clock ring on the iPhone in build 300 (version 1.0 (300), section 8); the same ring on the Mac and iPad sidebar and the small filter chips in build 301 (version 1.0 (301), sections 8 and 12); the same chips in Search in build 302 (version 1.0 (302), section 12); the sync ring in the Mac menu bar in build 303 (version 1.0 (303), section 8); one date style and plain words in build 309 (version 1.0 (309), sections 16 and 17); colours you can read by day and by night in build 310 (version 1.0 (310), sections 2, 3, 5, 9 and 15). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
-The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
+The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `MainButtonStyle`, `SoftInk`, `FaintInk`, `BandStyle`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
 ## 1. Text sizes
 
@@ -19,10 +19,10 @@ There is one scale, kept in one place in the code (`Txt` in Look.swift). No scre
 | Label | 12 | regular | soft grey | The small word above a value, footers. (Counts in headings are capsules since build 291.) |
 | List | 13 | regular | black or white | Sidebar rows, menus, pop-ups. |
 | List title | 13 | semibold | black or white | The title of a row. |
-| List second line | 11 | regular | grey | The one second line of a row, numbers, badges. |
-| Button | 13 | semibold | white on the part's colour | The main button. |
+| List second line | 11 | regular | soft grey | The one second line of a row, numbers, badges. |
+| Button | 13 | semibold | white on the part's deep day shade | The main button. |
 | Code | 14 | regular, monospaced | grey | Code, and the settings block. |
-| Capsule | 11 | medium | the part's colour on a 14 % tint | A status, or a count beside a heading (since build 291), that cannot be changed. |
+| Capsule | 11 | medium | the part's colour on a 14 % tint; by day the words are 25 % deeper (section 2) | A status, or a count beside a heading (since build 291), that cannot be changed. |
 
 The Map draws its box titles at 12.5 points and its labels at 11 points at normal zoom, and scales them with its zoom. The widgets use Apple's own text styles (caption, headline, title), never a fixed point size (since build 309; before, fixed sizes of 8 to 10 points), so their text follows the text size set on the device. The share sheet uses Apple's text styles.
 
@@ -56,7 +56,7 @@ The iPhone uses only Apple's own text styles, so the text grows and shrinks with
 
 ## 2. Colour
 
-Every part has one colour. It is the same everywhere the part shows: the icon in the sidebar, the section heading, the main button, the dot in a list, the tint of a panel, and the links in a note of that part. Each colour has a day shade and a night shade, kept in the colour sets of the app. Widgets use the same values.
+Every part has one colour. It is the same everywhere the part shows: the icon in the sidebar, the section heading, the main button, the dot in a list, the tint of a panel, the band, the chosen tab on the iPhone, and the links in a note of that part. Each colour has a day shade and a night shade, kept in the colour sets of the app. Widgets use the same values. This section lists only colours and rules the app really uses (since build 310).
 
 | Part | Colour | Day | Night |
 |------|--------|-----|-------|
@@ -66,7 +66,7 @@ Every part has one colour. It is the same everywhere the part shows: the icon in
 | Archive, Deleted, Work | grey | #6E6E73 | #9A9AA2 |
 | Goals, Map | gold | #8F6E10 (before #A7811A) | #E5BE55 |
 | Aspirations | deeper gold | #8A5A12 | #E0A83E |
-| Inbox, Snippets, Quick capture | amber | #B0631A (before #C2701B) | #E8A053 |
+| Inbox, Snippets, Quick capture | leaf green | #5E7D12 (before build 310 amber #B0631A) | #B4D25A (before #E8A053) |
 | Calendar, Today, Plan, daily and weekly notes | purple | #6B4EA8 | #A98FE0 |
 | Weekly review, Done | teal | #1E7F84 | #5FC2C7 |
 | Blocks in Plan | orange | #C05E0C | #F2A45C |
@@ -74,27 +74,63 @@ Every part has one colour. It is the same everywhere the part shows: the icon in
 | Close the day | dark lilac | #6E3A86 | #C79AE0 |
 | The now-line | slate blue | #4B7F9E | #8FC0DC |
 | Look at this (`Theme.attention`) | orange | #D4640A | #FFA23A |
+| No part: Browse, Settings, a plain link, **Set** (`Theme.fallbackTint`, colour set FallbackTint) | purple | #6B4EA8 | #A98FE0 |
 | Overdue and danger | red | Apple's red | Apple's red |
 
-The three day shades marked "before" were darkened so that 17-point headings read on white.
+The day shades of Goals and Start the day marked "before" were darkened so that 17-point headings read on white. The Inbox moved from amber to leaf green in build 310, because amber was nearly the Plan orange (by day barely different, at night the same). Leaf green is the one hue no other part uses.
+
+Apple's blue is not used anywhere (since build 310). On the iPhone the chosen tab, the links and the buttons wear the colour of their screen; a screen with no part wears the purple of the last row.
 
 Neutral colours (`Theme` in Look.swift):
 
 | Name | Day | Night | Used for |
 |------|-----|-------|----------|
-| Surface | #FFFFFF | #1E2228 | Panels |
-| Soft text | #5C6470 | #A9B1BC | Labels and quiet text |
-| Line | #E2E6EB | #2E333A | The night border round a panel |
+| Canvas (`Theme.canvas`) | #F3F5F8 | #15181C | The page behind the panels and cards, on the Mac and the iPhone |
+| Surface (`Theme.surface`) | #FFFFFF | #1E2228 | Panels, and cards on the iPhone |
+| Soft text (`Theme.soft`, written `.foregroundStyle(.soft)`) | #5C6470 (6.0 to 1 on white) | #A9B1BC | Helper sentences, a row's second line, small labels. About 240 places. Never Apple's `.secondary` (3.4 to 4.0 to 1 by day). |
+| Faint text (`Theme.faint`, written `.foregroundStyle(.faint)`) | #737A86 (4.3 to 1) | #8B93A0 (6.8 to 1) | The quietest words that still say something: the hours beside Plan and Calendar, the project's name in a task chip, "Nothing planned". Never Apple's `.tertiary` (1.7 to 1 by day). |
+| Line (`Theme.line`) | #E2E6EB | #2E333A | The night border round a panel |
+
+On a row that is drawn as chosen, soft and faint text step aside for the row's own word colour, so the words stay readable on the fill.
+
+### The steps of a colour
+
+Since build 310 (review round 4, colours). A part has two shades: a deep one for the day and a bright one for the night. Which shade is drawn where is decided once, for every part, by `ShadeRule` in Core (`Core/Sources/ParagonCore/Model/Shade.swift`). The app reads it through `Color.deep`, `.ink`, `.capsuleWords`, `.waitingWords` and `.bandEnd` in Look.swift (the section "The steps of a part's colour"). No screen chooses its own step. The data test is `ShadeRuleTests`.
+
+| Step | Where it is used | Rule | Example |
+|------|------------------|------|---------|
+| Ground (`deep`) | Everything with white words or a white count on it: the main button, the chosen row in the Mac sidebar, the band at night, the Inbox number on the iPhone tab. Also an icon on a white circle on the band. | The deep day shade, the same by day and at night. A day shade on which white measures under 4 to 1 is drawn 15.5 % deeper. Today that is only the Start the day orange. | Today #6B4EA8; Close the day #6E3A86; Start the day #D4640A → #B35300 (white 5.1 to 1) |
+| Ink (`ink`) | The colour written as words on the page: a heading, a link, the word **Done** at the top of an iPhone sheet, the chosen tab. | By day the day shade, 15.5 % deeper when it measures under 4.5 to 1 on white (Start the day orange, Plan orange, the now-line blue). At night the night shade. | Start the day #B35300 (was #D4640A, 3.7 to 1); Plan orange about #A24F0A; now-line about #3F6B86 |
+| Capsule words (`capsuleWords`) | The small words in a capsule: a status, a count beside a heading. | By day the day shade 25 % deeper, on the unchanged 14 % fill. At night the night shade. 5.1 to 8.8 to 1 by day (before 3.2 to 4.0). | green #2E7D5B → #225E44; orange #D4640A → #9F4B08 |
+| Waiting button (`waitingWords`) | The main button while it cannot act yet. | By day a 40 % fill of the ground with the word in the day shade 30 % deeper. At night a 30 % fill of the night shade with the word in the night shade. | Projects by day: 4.8 to 1 |
+| Night band (`bandEnd`) | The band at night. | From the ground to 80 % of the ground over black, towards the bottom right. | Today #6B4EA8 → #563E86; Projects #2E7D5B → #256449; Goals #8F6E10 → #72580D |
+
+Fills, icons, dots and panel tints use the plain day and night shades of the table above. Only the five steps here differ from them.
+
+### Families
+
+Some parts share one colour on purpose (decided in build 310, finding colours-15). There are 13 colours for about 22 parts.
+
+- Purple: Today, Calendar, Plan (Time Blocks), daily and weekly notes.
+- Blue: Resources, Recent, Templates, Search.
+- Gold: Goals, Map. Aspirations are a deeper gold.
+- Green: Projects, All actions.
+- Teal: Weekly review, Done.
+- Pink: Areas, Tags.
+- Leaf green: Inbox, Snippets, Quick capture.
+- Grey: Archive, Deleted, Work.
+- The Close the day lilac stays. It is one family with the purple of Today; the moon icon tells the two apart.
+
 
 How a colour is worn:
 
 - Sidebar icon: the part's hand-drawn icon, in the part's colour. The word stays black or white.
-- Section heading: 17 points, semibold, in the part's colour.
-- Main button: filled in the part's colour. When it cannot act yet it is the same colour, paler (40 % on `MainButtonStyle`). Never grey.
-- Mark in a list: a filled dot, 8 points, at the left of the row. When the note has its own icon, that icon is shown instead. There is no stripe.
+- Section heading: 17 points, semibold, in the part's colour (the ink step).
+- Main button: the app's own filled button, never Apple's (`MainButtonStyle`, written `.buttonStyle(.main(tint))` for the one wide button of a form and `.buttonStyle(.filled(tint))` for a button as wide as its word; never `.borderedProminent`, which turns grey on the Mac when its window is behind another). This goes for every doing button: Done, Save, Add, Set, Make task. The fill is the ground step with white words, the same by day and at night. When it cannot act yet it is the waiting step: a pale fill with the word in the part's colour. Never grey. A button with no part uses `Theme.fallbackTint`.
+- Mark in a list: a filled dot, 8 points, at the left of the row. When the note has its own icon, that icon is shown instead. In a list that mixes parts, the part's small icon is shown instead of the dot (section 3). There is no stripe.
 - Panel: the surface colour with the part's colour laid over it, 7 % by day and 13 % at night. Corners 10 points round, 12 points of room inside. No border by day. A 1-point line at night.
 - Links and tags in a note: the colour of the part the note is in.
-- Selection in a list is Apple's own.
+- Selection: the chosen row in the Mac sidebar is filled in the ground step of its part, with white words and a white count, by day and at night (section 15). Selection in every other list is Apple's own.
 - The colour wash over the whole note column (`ModeAccent`) is gone. Colour sits on panels, never over the words you read.
 
 ## 3. A row in a list
@@ -105,9 +141,10 @@ How a colour is worn:
 ```
 
 - The height is the height of its words.
+- **Icon, not dot, where parts are mixed (build 310).** In a list that shows rows from different parts (Search, Recent, Done, the Map) the mark is the part's small hand-drawn icon in the part's colour, not the plain 8-point dot. Colour alone does not tell the parts apart for everyone: with red-green colour blindness Projects green, Areas pink and Archive grey look alike, and so do Resources blue and Calendar purple. A list of one part keeps the dot.
 - There is at most one second line, for example "0 of 2 · Due in 12 d". It depends on the kind of note: a project shows its progress and what it needs; a goal shows its progress and its target date or horizon; an area shows its open tasks ("3 open"); a resource shows its links ("4 linked"); a daily note shows its date; any other note shows open tasks and a due date. When there is nothing to show, a project shows its area and another note its goal. Everything else is in the facts panel at the top of the note.
-- A date that has passed turns the row's second line red; "Due after its goal" turns a project's line orange. All else is grey.
-- A status such as Paused, Someday or Ended is a small capsule at the right edge (11 points, the part's colour on a 14 % tint).
+- A date that has passed turns the row's second line red; "Due after its goal" turns a project's line orange. All else is soft grey.
+- A status such as Paused, Someday or Ended is a small capsule at the right edge (11 points, the part's colour on a 14 % tint; by day the words are the capsule step, 25 % deeper).
 - A group heading in a list is the 17-point heading in the colour of what the group is (an aspiration's gold, grey for "No goal"), with the count beside it. No band behind it. In a narrow column (the Projects list is about 280 points) the group's name wraps onto a second line. It is never cut off with "…" (`ProjectGroupHeader`, build 281).
 - Every list uses this row, the **Projects** list included. A project's second line is its progress and what it needs: "0 of 2 · Next: Define the outcome and the first step", "All 3 finished · No next action", "No tasks yet", or for an ended project "Ended 2026-10-20 · 2 tasks finished". Its weekly bars sit at the right of the row when something has been finished; On hold, Done, Missed and Dropped are the status capsule. No card, no frame, no tile, no progress bar and no chips in a row. The goal, the deadline and the tags are in the facts panel. After that, when there is room: its deadline, an overdue count, "Due after its goal" and the goal it serves when the heading does not already name it.
 - The goal rows and the aspiration rows are the same: "0 % · 2027-08-15 · in about 9 months", "1 goal · Not looked at yet · Health". A goal with no aspiration keeps its **Give it an aspiration** button at the right; a warning is an orange capsule there.
@@ -128,21 +165,21 @@ This is for **New**, **Add this note** (from a link), Close the day, Start the d
 
 Mac: a bar at the top with the title (17 points, semibold, in the part's colour) at the left, and **Cancel** and the doing button (**Save** or **Done**; never Create or Make, section 17) side by side at the right, then one thin line, then the form.
 
-- The doing button is filled in the part's colour and has the large control size.
+- The doing button is the app's own filled button (`.buttonStyle(.filled(tint))`, section 2): the part's deep day shade with white words, by day and at night. It keeps its colour when the window is behind another. Start the day's **Done** is #B35300, Close the day's **Done** is #6E3A86.
 - **Escape** is Cancel. **Return** and **⌘S** do the doing button (the second shortcut sits on a hidden button, because one button carries one shortcut).
 - **Tab** moves between text fields as macOS does. The choice chips are buttons, not fields; do not promise that Tab reaches every chip.
 - Quick capture (the **Inbox** button) inside the **New** sheet has no bar of its own; it keeps its one **Save**.
 - The first field has the keyboard focus when the sheet opens on the Mac: Start the day's **Add an action for today**, Close the day's **One line, if you feel like it**. The focus ring never starts on Cancel.
 
-iPhone: a navigation bar with the title small in the middle, **Cancel** on the left and the doing button on the right, in the part's colour and bold. The iPhone's own Quick capture screen keeps its full-width **Save** button; that button is the part's colour, paler when it cannot act.
+iPhone: a navigation bar with the title small in the middle, **Cancel** on the left and the doing button on the right, in the part's colour and bold. The iPhone's own Quick capture screen keeps its full-width **Save** button; that button is the Inbox's leaf green, and while it cannot act it is the waiting step (pale fill, the word in leaf green).
 
-The Date window keeps its field and calendar. **Set** is a filled button.
+The Date window keeps its field and calendar. **Set** is a filled button in the purple of `Theme.fallbackTint`.
 
 ## 6. Empty screens
 
 Since build 291: the part's icon sits in a soft circle of the part's colour, above one calm title (15 points, grey), and, where there was a button, a quiet bordered one in the part's colour. The explaining sentence is gone. "No note open" shows only the icon and the **New…** button (since build 309; before, **New Entry…**). A warning (for example "Still coming from iCloud") keeps its sentence. Before build 291 the icon stood alone at 60 % with a line of small grey explanation under the title (`CalmEmptyView`).
 
-A "nothing here" line inside a list or a panel, such as "No events", "Nothing due today" or "Nothing planned", is always the label size (12 points on the Mac, Footnote on the iPhone), grey (`.secondary`), with no full stop at the end (since build 309; before, some were at the value size and most had a full stop). The one exception is "No project delivers this goal yet", which is orange because it asks for a look.
+A "nothing here" line inside a list or a panel, such as "No events", "Nothing due today" or "Nothing planned", is always the label size (12 points on the Mac, Footnote on the iPhone), soft grey (`.soft`; the faint grey `.faint` for "Nothing planned" in a schedule), with no full stop at the end (since build 309; before, some were at the value size and most had a full stop). The one exception is "No project delivers this goal yet", which is orange because it asks for a look.
 
 Counts beside headings (for example "Calendar 1", "Projects 7") are small capsules in the heading's colour (the capsule size, section 1), not loose grey numbers. A group in a list or on **Today** that can fold shows a chevron by its heading, and the app remembers which are folded. A round button on a row (for example "open in Calendar") is tinted in the row's own colour.
 
@@ -172,15 +209,23 @@ Counts beside headings (for example "Calendar 1", "Projects 7") are small capsul
 
 Browse has a large title that shrinks when you scroll. The long press that reveals Work is on the version line at the foot of Browse (on the Mac it is on the PARA heading in the sidebar). The tab bar icons are the hand-drawn marks. Swipe actions on rows are as before. On the iPad the three columns are used.
 
+Colour on the iPhone (build 310):
+
+- **The chosen tab** wears the colour of its screen (the ink step): Today and Plan purple, Actions green, Inbox leaf green, Browse the purple of `Theme.fallbackTint`. Never Apple's blue.
+- **A screen opened from Browse** wears its own part's colour for its links and buttons; Settings and anything with no part wear `Theme.fallbackTint`.
+- **The number on the Inbox tab** is white on the Inbox's leaf green (the ground step), not Apple's red. Red means overdue or danger.
+- **The page and the cards** follow the Mac's panel rule: the page is the canvas (#F3F5F8 by day, #15181C at night) and a card is the surface with its part's colour over it, 7 % by day and 13 % at night (at night Today #302E40, Projects #263632, Goals #383629). Never white on Apple's grey, and never grey on pure black.
+- **Every list screen opens with the band** (section 15).
+
 The picture opened big marks the words you searched for with tinted boxes (build 298): each box is the tint of the part the picture is in, a soft fill with a thin outline of the same colour, drawn over the words and moving with zoom. With no search there are no boxes.
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (309)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (310)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 
-Each colour in section 2 has a day shade and a night shade. By day a panel is white with a light tint and no border. At night a panel is #1E2228 with a stronger tint (13 %) and a 1-point line. Both were drawn and checked.
+Each colour in section 2 has a day shade and a night shade. By day a panel is white with a light tint and no border. At night a panel is #1E2228 with a stronger tint (13 %) and a 1-point line. Both were drawn and checked. Whatever carries white words (the main button, the chosen sidebar row, the band) uses the deep day shade at night too, never the bright night shade: white on a bright night shade measures about 2 to 1 (section 2, "The steps of a colour").
 
 ## 12. Filters in Search
 
@@ -201,7 +246,9 @@ The When / Mark / Tags filter on All actions (build 301, `FilterBox(chip: true)`
 - The part's colour comes from section 2. No new colour.
 - A panel, a row, an edit window and an empty screen follow sections 3 to 6. A row is one title and one second line, never a card.
 - An edit sheet's first field has the focus when it opens on the Mac (section 5).
-- The main button is in colour.
+- The main button is the app's own filled button (`.main` or `.filled`), in colour, never `.borderedProminent`.
+- Quiet words are `.soft` or `.faint`, never `.secondary` or `.tertiary`. No Apple blue: a screen with no part uses `Theme.fallbackTint`.
+- White words sit only on the ground step; coloured words on the page use the ink step (section 2).
 - Every date, week, month and time is written by `DayWords` (section 16). No screen formats a date itself.
 - The words follow section 17: one name for each thing, the device's own words, and one style for a "nothing here" line.
 - Icons are marks, never stock symbols or emoji.
@@ -209,14 +256,16 @@ The When / Mark / Tags filter on All actions (build 301, `FilterBox(chip: true)`
 
 ## 15. The band
 
-Since build 282 (look A, chosen on 9 November 2026 from `Work/look-1.1/design/premium.png`, column A of `premium.html`). Every screen opens with a band in its part's colour. It is the shared view `Band` in `App/Paragon/Views/Look.swift`, the same on the Mac and the iPhone, by day and by night.
+Since build 282 (look A, chosen on 9 November 2026 from `Work/look-1.1/design/premium.png`, column A of `premium.html`). Every screen opens with a band in its part's colour. It is the shared view `Band` (drawn by `BandStyle`) in `App/Paragon/Views/Look.swift`, the same on the Mac and the iPhone.
 
-- **Fill.** A gradient from the part's colour (section 2, day or night shade) to the same colour 80 % of the way towards the bottom right. No new colour.
+- **Fill by day.** A gradient from the part's day shade to the same colour at 80 % over white, towards the bottom right. Unchanged since build 282.
+- **Fill at night (build 310).** A gradient from the ground step (the deep day shade) to 80 % of itself over black: Today #6B4EA8 → #563E86, Projects #2E7D5B → #256449, Goals #8F6E10 → #72580D. White words measure 4.5 to 10 to 1. Before, it was the bright night shade dimmed with 30 % black, a dusty colour (Today #6F5E94).
+- **iPhone list screens (build 310).** Every list screen (Inbox, Plan, Actions, Goals, Projects, Calendar, Weekly review and the others) opens with Today's slim one-row band in its part's colour, with a count or the date in white. Before, only Today and an open note had the band.
 - **Title.** The page title in white, at the page-title size (section 1).
 - **Small words.** The date or the facts, at the label size (12 points on the Mac), white at 85 % opacity. On **Today** the date is "Thursday 2026-11-12". On the Mac it has a line of its own under the title and the buttons, the whole width of the band, one line, shrinking to 80 % before it is ever cut (since build 309; before, it sat beside the buttons and was cut to "Thursday, 12 No…"). On the iPhone it stays in the one row beside the three buttons. Its identifier is `today.band.date`.
 - **Big number.** One per band: 34 points, bold, white (`Txt.bandNumber`; on the iPhone Apple's large title, bold). Today (since build 291) has no big number, only small round white buttons (build 304: the calendar button for today's note, then Start the day and Close the day). A project, area or resource note: "2 open tasks · 0 of 2 done". A goal's page: "40 %" with "of the way · Target 2027-08-15" under it.
-- **Buttons.** **Start the day** and **Close the day** keep their place, in the band's top row, drawn as white circles. Since build 304 `today.note` is an icon-only `HeaderActionButton` (`markName` "calendar", `onBand`), first in `dayButtons`, before `today.startDay` and `today.closeDay`: three same-size round buttons in one row beside the date. It used to be a worded button on its own second row; the band is one row shorter. Its help text says "Today's note" or "Create today's note".
-- **Sidebar (Mac).** The chosen row is filled in the part's colour, with white words.
+- **Buttons.** **Start the day** and **Close the day** keep their place, in the band's top row, drawn as white circles. The icon on a white circle is always the ground step, by day and at night (build 310): the calendar #6B4EA8, the cup #B35300, the moon #6E3A86. Before, at night they were the bright night shades on white (2.0 to 2.7 to 1). Since build 304 `today.note` is an icon-only `HeaderActionButton` (`markName` "calendar", `onBand`), first in `dayButtons`, before `today.startDay` and `today.closeDay`: three same-size round buttons in one row beside the date. It used to be a worded button on its own second row; the band is one row shorter. Its help text says "Today's note" or "Create today's note".
+- **Sidebar (Mac).** The chosen row is filled in the ground step of its part (the deep day shade: Projects #2E7D5B, Today #6B4EA8, Goals #8F6E10, Weekly review #1E7F84), with white words and a white count, by day and at night (build 310). Before, at night it was the bright night shade with white words (2.2 to 1). The count on a row that is not chosen is soft grey.
 - **Under the band.** Everything is as in builds 280 and 281: tinted panels, 17-point coloured headings, 8-point dots, pop-ups, text sizes, icons. Nothing moves, no function changes, and the part colours are unchanged.
 - **For a new screen.** Open with a `Band`; never draw a title bar of your own and never pick a size or colour for it.
 
@@ -272,5 +321,6 @@ Since build 309 (review round 3). The list of the app's own words is `Docs/Words
 - **No code where plain words will do.** Settings shows no link. The examples in Search start with plain words, with the typed form under them, small and grey. The Snippets list shows each line through `Snippets.plainLook`: no tick box, no {{ }}, a question in round brackets, a filled-in date as a word ("Ask (who) to (what), tomorrow").
 - **A label starts with a capital and says what it is.** "How long?", "Not synced yet", "Changed today", "Not looked at yet", "Not planned yet", "No blocks yet", "Reminders list:".
 - **One and many are both right.** "1 open item", "2 open items". A number is not said twice ("Done · 1 this year").
-- **A "nothing here" line** follows section 6: label size, grey, no full stop.
+- **A "nothing here" line** follows section 6: label size, soft grey, no full stop.
+- **Colour names** are written in plain lower-case words, the same everywhere: green, leaf green, pink, blue, gold, deeper gold, purple, teal, orange, lilac, slate blue, grey, red. The Inbox is "leaf green", never "amber" (build 310).
 - **Every picture button has a spoken name** (`accessibilityLabel`), the same words as its hover text on the Mac.
