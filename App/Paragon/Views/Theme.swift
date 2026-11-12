@@ -145,26 +145,66 @@ struct SyncStatusBar: View {
 
     var body: some View {
         if pressable {
-            // Build 292: the toolbar's sync button is gone, so a press here syncs now; the
-            // rest of that button's menu lives on a right-click (long press on the iPad).
-            Button { Task { await model.syncNow() } } label: { label }
+            // Build 312 (review round 6): a press opens the small menu, **Sync now** first.
+            // Until now a press synced at once and the other choices hid behind a right-click
+            // (long press on the iPad), which nothing hinted at.
+            #if os(macOS)
+            // A popover of plain rows on the Mac: an AppKit menu button draws only words and
+            // a picture as its label, never the ring.
+            Button { showingChoices = true } label: { label }
                 .buttonStyle(.plain)
-                .disabled(model.isSyncing || model.vault == nil)
+                .disabled(model.vault == nil)
                 .help(SyncStatusBar.tip(model.lastReport, every: model.autoSyncMinutes))
-                .contextMenu {
-                    Button("Sync now") { Task { await model.syncNow() } }
-                    Button("Show me what would change…") { Task { await model.previewSync() } }
-                    if model.lastReport != nil {
-                        Button("Last sync report…") { model.showLastReport() }
+                .popover(isPresented: $showingChoices, arrowEdge: .top) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        choice("Sync now", "sync.menu.syncNow") { Task { await model.syncNow() } }
+                            .disabled(model.isSyncing)
+                        choice("Show me what would change…", "sync.menu.preview") { Task { await model.previewSync() } }
+                        if model.lastReport != nil {
+                            choice("Last sync report…", "sync.menu.report") { model.showLastReport() }
+                        }
+                        Divider().padding(.vertical, 4)
+                        choice("Sync settings…", "sync.menu.settings", action: open)
                     }
-                    Divider()
-                    Button("Sync settings…", action: open)
+                    .padding(6)
+                    .frame(minWidth: 230)
                 }
                 .accessibilityIdentifier("sync.status")
+            #else
+            Menu {
+                SyncChoices(settings: open)
+            } label: {
+                label
+            }
+            .buttonStyle(.plain)
+            .disabled(model.vault == nil)
+            .accessibilityIdentifier("sync.status")
+            #endif
         } else {
             label.accessibilityIdentifier("sync.status")
         }
     }
+
+    #if os(macOS)
+    @State private var showingChoices = false
+
+    /// One row of the Mac's sync choices: the words, left, the whole row pressable.
+    private func choice(_ title: String, _ identifier: String, action: @escaping () -> Void) -> some View {
+        Button {
+            showingChoices = false
+            action()
+        } label: {
+            Text(title)
+                .font(Txt.value)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
+    }
+    #endif
 
     /// Build 301 (his ask): the same clock ring as the iPhone's sync button (build 300), so
     /// all three devices look the same — the ring beside its word, centred at the sidebar foot.
@@ -186,6 +226,28 @@ struct SyncStatusBar: View {
         #else
         model.activeSheet = .settings
         #endif
+    }
+}
+
+/// What the sync ring's menu offers, **Sync now** first (build 312). One list for the iPhone's
+/// button and the iPad's sidebar; the Mac draws the same four as rows in a popover.
+struct SyncChoices: View {
+    @EnvironmentObject private var model: AppModel
+    let settings: () -> Void
+
+    var body: some View {
+        Button("Sync now") { Task { await model.syncNow() } }
+            .disabled(model.isSyncing)
+            .accessibilityIdentifier("sync.menu.syncNow")
+        Button("Show me what would change…") { Task { await model.previewSync() } }
+            .accessibilityIdentifier("sync.menu.preview")
+        if model.lastReport != nil {
+            Button("Last sync report…") { model.showLastReport() }
+                .accessibilityIdentifier("sync.menu.report")
+        }
+        Divider()
+        Button("Sync settings…", action: settings)
+            .accessibilityIdentifier("sync.menu.settings")
     }
 }
 
@@ -219,8 +281,9 @@ struct SyncRingMark: View {
                                  conflicts: conflicts, now: now)
         let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                  conflicts: conflicts, now: now)
-        let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
-                                 conflicts: conflicts, now: now)
+        // Build 312: "Not synced" / "Synced 5 min ago" — the words name the sync.
+        let word = SyncRing.caption(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+                                    conflicts: conflicts, now: now)
         let tint = colour(mood)
         let mark = SyncRingGlyph(fill: fill, tint: tint, plain: mood == .none,
                                  syncing: syncing, ring: ring)

@@ -103,6 +103,32 @@ public enum SyncRing {
 }
 
 extension SyncRing {
+    /// **Build 312 (review round 6): the words under the ring say what they are about.**
+    /// "Not yet" had no noun, and a bare clock time did not say it was the sync's. Now:
+    /// "Not synced" before any sync, then "Synced just now", "Synced 5 min ago", "Synced 3 h ago",
+    /// and from a whole day on "Synced" with the date. Syncing, iCloud and conflicts as before.
+    /// The Mac menu bar keeps the short `word`: it has no room for a sentence.
+    public static func caption(syncing: Bool, waiting: Bool, finishedAt: Date?, conflicts: Int,
+                               now: Date = Date(), calendar: Calendar = .current) -> String {
+        if syncing { return "Syncing" }
+        if waiting { return "iCloud" }
+        guard let finishedAt else { return "Not synced" }
+        if conflicts > 0 { return conflicts == 1 ? "1 conflict" : "\(conflicts) conflicts" }
+        return "Synced " + ago(finishedAt, now: now, calendar: calendar)
+    }
+
+    /// How long ago, in the fewest words: just now (under a minute), minutes, hours, and from
+    /// 24 hours on the date in the app's one date style.
+    public static func ago(_ then: Date, now: Date = Date(), calendar: Calendar = .current) -> String {
+        let seconds = max(0, now.timeIntervalSince(then))
+        if seconds < 60 { return "just now" }
+        if seconds < 60 * 60 { return "\(Int(seconds / 60)) min ago" }
+        if seconds < 24 * 60 * 60 { return "\(Int(seconds / 3600)) h ago" }
+        return DayWords.plain(then, calendar: calendar)
+    }
+}
+
+extension SyncRing {
     /// **Build 304 (his yes to my idea): the number of tasks due today beside the Mac menu bar
     /// ring.** Nothing at all when none are due (an empty "0" would be noise), and "99+" past 99
     /// so the menu bar item never grows wide.
