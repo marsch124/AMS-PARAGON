@@ -105,8 +105,8 @@ final class VaultTests: XCTestCase {
         state.links["t1"] = TaskLink(taskID: "t1", reminderID: "r1", notePath: "Inbox.md", listName: "Inbox",
                                      lastTaskFingerprint: "a", lastReminderFingerprint: "b", lastSyncedAt: Date(timeIntervalSince1970: 1_000))
         try vault.save(syncState: state, deviceID: "mac/1")
-        XCTAssertEqual(vault.loadSyncState(deviceID: "mac/1"), state)
-        XCTAssertEqual(vault.loadSyncState(deviceID: "other"), SyncState())
+        XCTAssertEqual(try vault.loadSyncState(deviceID: "mac/1"), state)
+        XCTAssertEqual(try vault.loadSyncState(deviceID: "other"), SyncState())
     }
 }
 

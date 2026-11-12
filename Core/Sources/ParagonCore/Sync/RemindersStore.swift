@@ -53,11 +53,28 @@ public enum RemindersStoreError: Error, LocalizedError {
     }
 }
 
+/// A reminder the engine is looking for: the identifier it had on this device, and the task whose mark it carries.
+public struct ReminderLookup: Equatable, Sendable {
+    public var taskID: String
+    public var identifier: String
+
+    public init(taskID: String, identifier: String) {
+        self.taskID = taskID
+        self.identifier = identifier
+    }
+}
+
 /// Abstraction over Apple Reminders (EventKit in the app, in-memory in tests).
 public protocol RemindersStore: AnyObject {
     func listNames() async throws -> [String]
     func ensureList(named name: String) async throws
+    /// Throws when the list is not there or could not be fetched: an empty answer always means
+    /// "the list is empty", never "the fetch failed".
     func reminders(inList name: String) async throws -> [ReminderRecord]
+    /// Looks in ALL lists, by identifier first and then by the PARAGON mark for the task.
+    /// The answer is keyed by task id; a reminder that exists nowhere is simply not in it.
+    /// A reminder found by identifier that carries another task's mark does not count.
+    func findReminders(_ wanted: [ReminderLookup]) async throws -> [String: ReminderRecord]
     /// Creates a reminder and returns it with its store identifier filled in.
     func create(_ draft: ReminderRecord) async throws -> ReminderRecord
     func update(_ record: ReminderRecord) async throws
@@ -74,6 +91,8 @@ public final class InMemoryRemindersStore: RemindersStore {
     public var beforeFetch: (() throws -> Void)?
     public var failNextCreate = false
     public var failNextUpdate = false
+    /// Simulates Apple Reminders failing to answer: every fetch throws while this is set.
+    public var failFetches = false
 
     public init(lists: [String] = []) {
         self.lists = lists
@@ -94,7 +113,28 @@ public final class InMemoryRemindersStore: RemindersStore {
 
     public func reminders(inList name: String) async throws -> [ReminderRecord] {
         if let beforeFetch { self.beforeFetch = nil; try beforeFetch() }
+        if failFetches { throw RemindersStoreError.underlying("simulated fetch failure") }
         return records.values.filter { $0.listName == name }.sorted { $0.identifier < $1.identifier }
+    }
+
+    public func findReminders(_ wanted: [ReminderLookup]) async throws -> [String: ReminderRecord] {
+        if failFetches { throw RemindersStoreError.underlying("simulated fetch failure") }
+        var found: [String: ReminderRecord] = [:]
+        for lookup in wanted {
+            if let record = records[lookup.identifier],
+               [nil, lookup.taskID].contains(SyncEngine.markerTaskID(in: record.notes)) {
+                found[lookup.taskID] = record
+            } else if let record = record(withMarkerFor: lookup.taskID) {
+                found[lookup.taskID] = record
+            }
+        }
+        return found
+    }
+
+    /// Renames a list as if the user did it in the Reminders app; its reminders stay in it.
+    public func simulateUserRenameList(_ old: String, to new: String) {
+        lists = lists.map { $0 == old ? new : $0 }
+        for (id, record) in records where record.listName == old { records[id]?.listName = new }
     }
 
     public func create(_ draft: ReminderRecord) async throws -> ReminderRecord {
@@ -139,6 +179,6 @@ public final class InMemoryRemindersStore: RemindersStore {
     }
 
     public func record(withMarkerFor taskID: String) -> ReminderRecord? {
-        records.values.first { SyncEngine.markerTaskID(in: $0.notes) == taskID }
+        records.values.sorted { $0.identifier < $1.identifier }.first { SyncEngine.markerTaskID(in: $0.notes) == taskID }
     }
 }

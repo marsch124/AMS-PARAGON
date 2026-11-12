@@ -111,6 +111,20 @@ targets:
         ENABLE_HARDENED_RUNTIME: true
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      # Build 307 (hardening-01): the Mac Debug build is a different app to macOS — its own
+      # bundle id, so its own sandbox container and its own settings. Until then it shared both
+      # with the PARAGON he runs, and the launch check before every upload (-paragon-test-vault)
+      # erased his real Mac settings and pointed the app at the test notes. Signed to run
+      # locally, without the App Group, so it cannot touch his widget either. Release and iOS
+      # are unchanged.
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]: com.schabbauer.AMSPara.dev
+          CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/Paragon/Paragon-macOS-Debug.entitlements
+          CODE_SIGN_STYLE[sdk=macosx*]: Manual
+          CODE_SIGN_IDENTITY[sdk=macosx*]: "-"
+          DEVELOPMENT_TEAM[sdk=macosx*]: ""
+          PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]: ""
 
   ParagonShare:
     type: app-extension
@@ -186,6 +200,15 @@ targets:
         # sandboxed itself, and the App Group must carry the Team ID in front of it — the
         # plain name is an iOS spelling and the Mac App Store refuses it.
         CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/ParagonWidgets/ParagonWidgets-macOS.entitlements
+      # Build 307: inside the Mac Debug app (com.schabbauer.AMSPara.dev) — see the Paragon target.
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]: com.schabbauer.AMSPara.dev.Widgets
+          CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/ParagonWidgets/ParagonWidgets-macOS-Debug.entitlements
+          CODE_SIGN_STYLE[sdk=macosx*]: Manual
+          CODE_SIGN_IDENTITY[sdk=macosx*]: "-"
+          DEVELOPMENT_TEAM[sdk=macosx*]: ""
+          PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]: ""
 
   # The screen tests (build 190). A target of its own and a **scheme of its own**, so the
   # Paragon scheme that TestFlight archives cannot pick any of this up: a Release archive must

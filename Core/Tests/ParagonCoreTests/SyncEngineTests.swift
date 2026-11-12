@@ -246,7 +246,7 @@ final class SyncEngineTests: XCTestCase {
         XCTAssertEqual(report.changeCount, 0)
         let actual8 = try await store.reminders(inList: "Inbox").count
         XCTAssertEqual(actual8, 1)
-        XCTAssertEqual(vault.loadSyncState(deviceID: "second-device").links.count, 1)
+        XCTAssertEqual(try vault.loadSyncState(deviceID: "second-device").links.count, 1)
     }
 
     func testMarkedReminderUnknownToAFreshDeviceIsKept() async throws {

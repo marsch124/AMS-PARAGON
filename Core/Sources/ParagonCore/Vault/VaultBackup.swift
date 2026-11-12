@@ -6,7 +6,7 @@ public struct VaultBackup: Identifiable, Equatable, Sendable {
     public var folderName: String
     public var date: Date
     public var noteCount: Int
-    /// What triggered it: "sync", "daily", "restore" or "manual".
+    /// What triggered it: "sync", "daily", "rename", "before restore" or "manual".
     public var reason: String
 
     public var id: String { folderName }
@@ -20,6 +20,54 @@ public struct VaultBackup: Identifiable, Equatable, Sendable {
         if let date = formatter.date(from: part) { return date }
         guard let space = part.lastIndex(of: " "), Int(part[part.index(after: space)...]) != nil else { return nil }
         return formatter.date(from: String(part[part.startIndex..<space]))
+    }
+
+    /// How many before-sync copies are kept, newest first.
+    public static let keptSyncCopies = 5
+    /// One copy per day is kept for this many days (today included).
+    public static let keptDays = 14
+    /// One copy per week is kept for this many days back.
+    public static let keptWeeksSpan = 61
+
+    /// The copies to clear out (build 307, hardening-06). Until then the ten newest of any kind
+    /// were kept, so with automatic sync a few hours of before-sync copies pushed the daily ones
+    /// out the same day. Kept now: the newest copy of all; the 5 newest before-sync copies; every
+    /// other copy of today and yesterday; the newest copy of each of the last 14 days; the newest copy of each week of the last two
+    /// months; and anything named in `protecting`. Everything else goes.
+    public static func toRemove(from backups: [VaultBackup], now: Date,
+                                calendar: Calendar = .current,
+                                protecting: Set<String> = []) -> [VaultBackup] {
+        let newestFirst = backups.sorted { $0.date > $1.date }
+        var keep = protecting
+        if let newest = newestFirst.first { keep.insert(newest.folderName) }
+        for copy in newestFirst.filter({ $0.reason == "sync" }).prefix(keptSyncCopies) {
+            keep.insert(copy.folderName)
+        }
+        let today = calendar.startOfDay(for: now)
+        let dayLimit = calendar.date(byAdding: .day, value: -(keptDays - 1), to: today) ?? today
+        let weekLimit = calendar.date(byAdding: .day, value: -keptWeeksSpan, to: today) ?? today
+        // Every copy of the last two days that is not a before-sync copy stays: the copy made
+        // before a restore or a rename is the way back, and must not be pushed out by the next
+        // one the same day.
+        let recentLimit = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        for copy in newestFirst where copy.reason != "sync" && copy.date >= recentLimit {
+            keep.insert(copy.folderName)
+        }
+        var seenDays: Set<Date> = []
+        var seenWeeks: Set<String> = []
+        // The day's and the week's copy is one that is not a before-sync copy when there is one:
+        // those have their own five places and must not stand in for the daily copy.
+        let ordered = newestFirst.filter { $0.reason != "sync" } + newestFirst.filter { $0.reason == "sync" }
+        for copy in ordered {
+            let day = calendar.startOfDay(for: copy.date)
+            if day >= dayLimit, seenDays.insert(day).inserted { keep.insert(copy.folderName) }
+            if day >= weekLimit {
+                let parts = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: copy.date)
+                let week = "\(parts.yearForWeekOfYear ?? 0)-\(parts.weekOfYear ?? 0)"
+                if seenWeeks.insert(week).inserted { keep.insert(copy.folderName) }
+            }
+        }
+        return newestFirst.filter { !keep.contains($0.folderName) }
     }
 
     static let formatter: DateFormatter = {
@@ -70,7 +118,10 @@ public extension Vault {
     /// Copies every note and the vault's settings into a new backup folder. Returns nil when
     /// nothing changed since the last backup, so repeated syncs do not pile up copies.
     @discardableResult
-    func makeBackup(reason: String = "manual", keeping limit: Int = 10, now: Date = Date()) throws -> VaultBackup? {
+    ///
+    /// `prune: false` keeps every older copy (a restore clears out old ones only once it is done,
+    /// so the copy being restored can never be the one that makes room — build 307).
+    func makeBackup(reason: String = "manual", prune: Bool = true, now: Date = Date()) throws -> VaultBackup? {
         let fm = FileManager.default
         let signature = try contentSignature()
         let existing = backups()
@@ -128,10 +179,7 @@ public extension Vault {
                                                        atomically: true, encoding: .utf8)
         }
 
-        // Oldest first out.
-        for old in backups().dropFirst(max(limit, 1)) {
-            try? fm.removeItem(at: backupsURL.appendingPathComponent(old.folderName))
-        }
+        if prune { pruneBackups(now: now) }
         return VaultBackup(folderName: name, date: now, noteCount: copied, reason: reason)
     }
 
@@ -142,7 +190,10 @@ public extension Vault {
         let fm = FileManager.default
         let source = backupsURL.appendingPathComponent(backup.folderName, isDirectory: true)
         guard fm.fileExists(atPath: source.path) else { throw VaultError.noteNotFound(backup.folderName) }
-        try makeBackup(reason: "before restore", now: now)
+        // Not cleared out here: with a full list, making room would delete the very copy being
+        // restored before a single file was read from it (build 307, hardening-02).
+        try makeBackup(reason: "before restore", prune: false, now: now)
+        defer { pruneBackups(now: now, protecting: [backup.folderName]) }
 
         var written = 0
         var failed: [String] = []
@@ -189,6 +240,14 @@ public extension Vault {
         }
         reloadConfig()
         return RestoreResult(written: written, failed: failed)
+    }
+
+    /// Clears out the copies `VaultBackup.toRemove` no longer wants. `protecting` names folders
+    /// that stay whatever their age (the copy just restored from).
+    func pruneBackups(now: Date = Date(), protecting: Set<String> = []) {
+        for old in VaultBackup.toRemove(from: backups(), now: now, protecting: protecting) {
+            try? FileManager.default.removeItem(at: backupsURL.appendingPathComponent(old.folderName))
+        }
     }
 
     /// Copies the vault into an empty folder elsewhere, for the sync preview.

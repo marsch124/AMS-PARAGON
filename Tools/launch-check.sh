@@ -71,6 +71,13 @@ if [ "$WHICH" != ios ]; then
     echo "FAIL Mac: the Debug build did not compile (see $DD-mac.log)"; FAILED=1
   else
     BIN="$DD/mac/Build/Products/Debug/PARAGON.app/Contents/MacOS/PARAGON"
+    # Build 307 (hardening-01): only ever start the Mac test copy under its own identity.
+    # With the real bundle id it would share — and erase — the settings of the installed PARAGON.
+    MACID=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$DD/mac/Build/Products/Debug/PARAGON.app/Contents/Info.plist" 2>/dev/null)
+    case "$MACID" in
+      *.dev) ;;
+      *) echo "FAIL Mac: the Debug app is '$MACID', not a .dev identity — refusing to start it"; exit 1 ;;
+    esac
     "$BIN" -paragon-test-vault >/dev/null 2>&1 &
     PID=$!
     sleep "$WAIT"

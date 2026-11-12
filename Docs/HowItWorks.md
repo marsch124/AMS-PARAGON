@@ -101,7 +101,7 @@ A name another note already uses is refused. In Apple Reminders the list follows
 ### Archive and Deleted
 
 - **Archive** moves a project, area, resource or goal to the Archive folder, marks it archived and stops syncing its tasks. Use it for finished work. A note that is **Done**, **Missed** or **Dropped** keeps that word and the day it ended, so an archived project that was done still counts for its goal. Any other note is marked archived.
-- **Delete** (⌘⌫, or right-click the note; long-press on the phone) moves a note to the **Deleted** section in the sidebar. Nothing is lost: each entry has **Put back**, which returns it to the folder it came from (or beside it, if that name has been taken since), and **Delete for good**. **Empty** in the toolbar clears the lot.
+- **Delete** (⌘⌫, or right-click the note; long-press on the phone) moves a note to the **Deleted** section in the sidebar. If the note has open reminders in Apple Reminders, PARAGON asks once (since build 307): remove those reminders too, or keep them. Either way the repeating "missing or unreadable" warnings stop. **Put back** links the reminders to the note again. Nothing is lost: each entry has **Put back**, which returns it to the folder it came from (or beside it, if that name has been taken since), and **Delete for good**. **Empty** in the toolbar clears the lot.
 - Deleted notes are kept for **30 days**, then cleared out on their own. They live in a hidden folder inside the vault, so the phone and the Mac behave the same way and nothing there syncs to Reminders. The Inbox note cannot be deleted.
 - Only whole notes go here. A task you delete from a list is gone from the note straight away. A task deleted in the Inbox has an **Undo** for a short time; see **Undo for one-press changes**.
 
@@ -477,11 +477,13 @@ The sync goes both ways. Press the sync ring at the foot of the sidebar (or **Fi
 - Goals are never synced. They are direction, not to-dos.
 - Completing, renaming, dating or deleting on either side carries over.
 - If the same task changed in both places since the last sync, the note version wins and the sync report says so.
+- **Renaming a list in Reminders** (since build 307) does not cancel its tasks. When a task's reminder is not in its list, PARAGON looks for it in all your lists, by its identity and its PARAGON mark, and follows it to the new list.
+- **The brake for mass changes** (since build 307). If one sync would cancel or delete more than 5 tasks or reminders, or more than a third of one list that has 3 or more tasks, it stops before it changes anything and shows what it would do, with **Do it** and **Cancel**. The timed automatic sync never does this on its own: it waits until you press **Sync now**. A list that fails to load is never read as "everything was deleted".
 
 **In the Mac menu bar.** Since build 303 a second PARAGON item sits beside the quick-capture one: the same clock ring as at the foot of the sidebar (green under an hour, yellow after that or while waiting for iCloud, full red after conflicts, grey and empty before any sync), with the short word beside it ("10:55", "Yesterday", "Syncing…"). Click it for a menu: the sync line (such as "Synced at 10:55"), **Sync now**, **Show me what would change…**, **Last sync report…**, **Sync settings…** and **Show PARAGON**. Since build 304 it also shows the number of tasks due today right beside the ring, for example "3 · 11:20"; nothing is shown when no task is due, and over 99 it says "99+". The ring is drawn once per minute (in build 303 it redrew without pause and the Mac app would not open). To hide it, switch off **Show the sync ring in the menu bar** in Settings › Reminders sync (on by default).
 - Subtasks become separate reminders named "Parent › Child". Tasks with a time get an alarm.
 
-Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both sync the same vault.
+Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both sync the same vault. Since build 307 the device keeps its identity in a second safe place. If its bookkeeping is missing, the first sync takes over the ticks and edits from Reminders and does not undo them. If the bookkeeping file is there but cannot be read, the sync stops with a message and you try again in a moment; it never starts from zero.
 
 ### Seeing what a sync will do
 
@@ -1512,13 +1514,32 @@ Under that, **where it goes** (Inbox, today's note, or one of your projects) and
 
 ## Backups
 
-The app saves a copy of the whole vault before every sync and once a day, keeping the last ten. The day's first copy is made a few seconds after the app opens, on a thread of its own, so the screen does not freeze. So is the clearing of notes deleted more than 30 days ago. They live inside the vault, in a hidden folder called `.ams-para/Backups`, as ordinary folders of markdown files.
+The app saves a copy of the whole vault before every sync and once a day. The day's first copy is made a few seconds after the app opens. Since build 307 the copy before a sync and the copy by **Back up now** are also made in the background, so the screen does not freeze and the sync starts when the copy is done. Clearing notes deleted more than 30 days ago is also done in the background. Backups live inside the vault, in a hidden folder called `.ams-para/Backups`, as ordinary folders of markdown files.
+
+**How many are kept (since build 307).** In tiers, not just the last ten:
+- the last 5 copies made before a sync,
+- one copy per day for 14 days,
+- one copy per week for 2 months.
+Copies made by **Back up now** and before a restore count as daily or weekly, by their date.
 
 - **Settings › Backups › Back up now** saves one immediately. Nothing is saved twice if nothing changed.
 - **Show in Finder** opens the folder, where you can drag a single note back by hand.
-- **Restore a copy** writes a whole backup back into the vault. What you have at that moment is saved as a backup first, and notes you created after the backup are left where they are.
+- **Restore a copy** writes a whole backup back into the vault. What you have at that moment is saved as a backup first, and notes you created after the backup are left where they are. The backup you restore is never deleted by the restore; old backups are cleared only after it is finished. If nothing was put back, the app says so plainly.
 
 Time Machine covers the rest: these backups sit inside the vault folder, so they do not protect against losing that folder itself.
+
+## Exact safety rules (build 307)
+
+The precise rules behind the sync and the backups, for reference.
+
+- **Mass-change brake.** Counted per sync: open tasks that would be cancelled plus open reminders that would be deleted. The brake stops the sync when the count is more than 5, or when it is more than one third of the tasks in one list that has 3 or more tasks. Nothing is changed before you answer. Buttons: **Do it** (the sync runs as planned) and **Cancel** (nothing changes). The timed automatic sync never runs a mass change; it waits for **Sync now**. A list that cannot be loaded counts as "not known", never as "all deleted".
+- **Following a reminder.** A task is cancelled only when its reminder is found in no list. First the reminder is looked up by its own identity, then by its PARAGON mark across all lists. If found in another list, the task follows it.
+- **Backup tiers.** The newest copy of all; the 5 newest before-sync copies; every other copy of today and yesterday; 1 per day for 14 days; 1 per week for 2 months (61 days). The day's and the week's copy is one that is not a before-sync copy when there is one. Clearing runs after a new copy or a restore, never on the copy being restored.
+- **Restore.** The restored backup is protected until the restore is done. The result says how many notes were written; zero is reported as "nothing was put back".
+- **Background copies.** The copy before a sync and **Back up now** run in the background. The sync starts when the copy is finished. The copy before a rename is still made in the foreground.
+- **Sync memory.** Missing: the first sync takes over ticks and edits from Reminders (no note-wins on that first run). Unreadable: the sync stops with a message. The device identity is stored in two places.
+- **Deleting a note with open reminders.** One question, **Remove reminders** or **Keep reminders**. Reminders that are already done always stay. Links are dropped either way, so no "missing or unreadable" warning is repeated. **Put back** links them again by their PARAGON mark.
+- **Test copy of the Mac app.** Own name and own storage. Test mode refuses to run, and never erases settings, where a real notes folder is remembered.
 
 ## On the iPhone
 

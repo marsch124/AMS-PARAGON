@@ -80,10 +80,44 @@ public final class Vault {
         stateFolderURL.appendingPathComponent("sync-state-\(Self.sanitizeFileName(deviceID)).json")
     }
 
-    public func loadSyncState(deviceID: String) -> SyncState {
-        guard let data = try? Data(contentsOf: syncStateURL(deviceID: deviceID)),
-              let state = try? SyncState.decoder.decode(SyncState.self, from: data) else { return SyncState() }
+    /// The device's memory of the last sync. A file that is not there is a first sync and gives
+    /// an empty state. A file that is there but cannot be read (still in iCloud, damaged) throws
+    /// `SyncStateError`: read as empty, every link would be forgotten and the note would win
+    /// over everything done in Reminders since.
+    public func loadSyncState(deviceID: String) throws -> SyncState {
+        let url = syncStateURL(deviceID: deviceID)
+        let placeholder = CloudFiles.placeholderURL(for: url)
+        if fm.fileExists(atPath: placeholder.path) {
+            CloudFiles.startDownload(url)
+            throw SyncStateError.notDownloaded(url.lastPathComponent)
+        }
+        guard fm.fileExists(atPath: url.path) else { return SyncState() }
+        if CloudFiles.presence(of: url) == .away {
+            CloudFiles.startDownload(url)
+            throw SyncStateError.notDownloaded(url.lastPathComponent)
+        }
+        guard let data = try? Data(contentsOf: url) else {
+            throw SyncStateError.unreadable(url.lastPathComponent)
+        }
+        guard let state = try? SyncState.decoder.decode(SyncState.self, from: data) else {
+            throw SyncStateError.unreadable(url.lastPathComponent)
+        }
         return state
+    }
+
+    /// The sync memories of other devices in the state folder, oldest first, so the app can
+    /// offer to tidy the ones no device uses any more. Never lists this device's own file.
+    public func otherSyncStateFiles(currentDeviceID: String) -> [SyncStateFile] {
+        let own = syncStateURL(deviceID: currentDeviceID).lastPathComponent
+        let names = (try? fm.contentsOfDirectory(atPath: stateFolderURL.path)) ?? []
+        return names.compactMap { listed -> SyncStateFile? in
+            let name = CloudFiles.realName(ofPlaceholder: listed) ?? listed
+            guard let device = SyncStateFile.deviceName(fromFileName: name), name != own else { return nil }
+            let url = stateFolderURL.appendingPathComponent(listed)
+            let modified = (try? fm.attributesOfItem(atPath: url.path))?[.modificationDate] as? Date
+            return SyncStateFile(fileName: name, deviceName: device, modifiedAt: modified, url: stateFolderURL.appendingPathComponent(name))
+        }
+        .sorted { ($0.modifiedAt ?? .distantPast, $0.fileName) < ($1.modifiedAt ?? .distantPast, $1.fileName) }
     }
 
     public func save(syncState: SyncState, deviceID: String) throws {

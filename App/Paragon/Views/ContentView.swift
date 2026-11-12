@@ -230,6 +230,8 @@ struct ContentView: View {
         // "What is next for this goal?" (build 271), asked when a project ends and its goal is
         // left with nothing working on it. A modifier of its own, so this chain gets one line.
         .modifier(WhatNextDialog())
+        // Build 307: the brake for mass changes, and "remove its reminders too?".
+        .modifier(SyncSafetyDialogs())
     }
 
     /// The one way a reminder's press is answered (build 267), for the morning and the evening

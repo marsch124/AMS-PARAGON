@@ -31,16 +31,51 @@ enum TestVault {
     /// would decide what the next test sees — which is the very thing that made builds 123 to
     /// 127 so expensive.
     static func resetSettings() {
-        guard let id = Bundle.main.bundleIdentifier else { return }
+        guard let id = Bundle.main.bundleIdentifier, refusal == nil else { return }
         UserDefaults.standard.removePersistentDomain(forName: id)
     }
+
+    /// Why test mode must not run here, or nil when it may (build 307, hardening-01 — the seat
+    /// belt under the separate Mac bundle id). Until build 307 the Mac Debug build shared the
+    /// installed app's container, and the launch check before every upload erased his real
+    /// settings (folder, automatic sync, calendars, device id) and pointed PARAGON at the test
+    /// notes. Test mode now refuses whenever:
+    /// - on a Mac, the app is not the Debug identity `….dev`, or
+    /// - outside the simulator, a remembered notes folder is anything but the test folder.
+    static var refusal: String? {
+        #if os(macOS)
+        guard Bundle.main.bundleIdentifier?.hasSuffix(".dev") == true else {
+            return "Test mode runs only in the Mac Debug build (bundle id ending in .dev)."
+        }
+        #endif
+        #if !targetEnvironment(simulator)
+        let defaults = UserDefaults.standard
+        for key in ["vaultBookmark", "lastVaultBookmark"] {
+            guard let data = defaults.data(forKey: key) else { continue }
+            var stale = false
+            #if os(macOS)
+            let options: URL.BookmarkResolutionOptions = [.withSecurityScope, .withoutUI]
+            #else
+            let options: URL.BookmarkResolutionOptions = [.withoutUI]
+            #endif
+            let url = try? URL(resolvingBookmarkData: data, options: options,
+                               relativeTo: nil, bookmarkDataIsStale: &stale)
+            if url?.lastPathComponent != folderName {
+                return "A real notes folder is remembered here; test mode would erase its settings."
+            }
+        }
+        #endif
+        return nil
+    }
+
+    static let folderName = "PARAGON screen tests"
 
     /// A fresh vault with one of each kind of note, so no list is empty and the chain has
     /// something in it. Deleted and rebuilt on every launch: a test may never depend on what
     /// the test before it left.
     static func make() throws -> URL {
         let root = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-            .appendingPathComponent("PARAGON screen tests", isDirectory: true)
+            .appendingPathComponent(folderName, isDirectory: true)
         let files = FileManager.default
         if files.fileExists(atPath: root.path) { try files.removeItem(at: root) }
         try files.createDirectory(at: root, withIntermediateDirectories: true)

@@ -38,15 +38,47 @@ final class EventKitRemindersStore: RemindersStore {
         try eventStore.saveCalendar(calendar, commit: true)
     }
 
+    /// Every list with this name: two lists may share one, and the reminders may be in either.
+    /// A missing list or a fetch that gives no answer throws, so neither is ever read as
+    /// "the list is empty" and from there as "everything was deleted".
     func reminders(inList name: String) async throws -> [ReminderRecord] {
-        guard let calendar = calendar(named: name) else { return [] }
-        let predicate = eventStore.predicateForReminders(in: [calendar])
-        let items: [EKReminder] = await withCheckedContinuation { continuation in
-            eventStore.fetchReminders(matching: predicate) { reminders in
-                continuation.resume(returning: reminders ?? [])
+        let calendars = eventStore.calendars(for: .reminder).filter { $0.title == name }
+        guard !calendars.isEmpty else { throw RemindersStoreError.listNotFound(name) }
+        return try await fetch(in: calendars, failure: "The Reminders list \"\(name)\" could not be read. Nothing was changed in it.")
+            .map(record(from:))
+    }
+
+    private func fetch(in calendars: [EKCalendar]?, failure: String) async throws -> [EKReminder] {
+        let predicate = eventStore.predicateForReminders(in: calendars)
+        let items: [EKReminder]? = await withCheckedContinuation { continuation in
+            eventStore.fetchReminders(matching: predicate) { continuation.resume(returning: $0) }
+        }
+        guard let items else { throw RemindersStoreError.underlying(failure) }
+        return items
+    }
+
+    func findReminders(_ wanted: [ReminderLookup]) async throws -> [String: ReminderRecord] {
+        var found: [String: ReminderRecord] = [:]
+        var byMark: [ReminderLookup] = []
+        for lookup in wanted {
+            if !lookup.identifier.isEmpty,
+               let reminder = eventStore.calendarItem(withIdentifier: lookup.identifier) as? EKReminder,
+               [nil, lookup.taskID].contains(SyncEngine.markerTaskID(in: reminder.notes)) {
+                found[lookup.taskID] = record(from: reminder)
+            } else {
+                byMark.append(lookup)
             }
         }
-        return items.map(record(from:))
+        guard !byMark.isEmpty else { return found }
+        let all = try await fetch(in: nil, failure: "Apple Reminders could not be read. Nothing was changed.")
+        var marked: [String: EKReminder] = [:]
+        for reminder in all {
+            if let taskID = SyncEngine.markerTaskID(in: reminder.notes), marked[taskID] == nil { marked[taskID] = reminder }
+        }
+        for lookup in byMark {
+            if let reminder = marked[lookup.taskID] { found[lookup.taskID] = record(from: reminder) }
+        }
+        return found
     }
 
     func create(_ draft: ReminderRecord) async throws -> ReminderRecord {

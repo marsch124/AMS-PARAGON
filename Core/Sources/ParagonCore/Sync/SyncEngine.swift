@@ -42,10 +42,26 @@ public final class SyncEngine {
         }
     }
 
+    /// Runs a sync. Throws `SyncEngineError.needsConfirmation` when the run would cancel or
+    /// delete more than a handful and `allowMassChanges` is false; nothing was changed then.
     @discardableResult
-    public func run() async throws -> SyncReport {
+    public func run(allowMassChanges: Bool = false) async throws -> SyncReport {
+        switch try await sync(allowMassChanges: allowMassChanges) {
+        case .finished(let report): return report
+        case .needsConfirmation(let summary): throw SyncEngineError.needsConfirmation(summary)
+        }
+    }
+
+    /// Runs a sync. When it would cancel tasks or delete open reminders beyond
+    /// `MassChangeSummary.needsConfirmation`, it stops before writing anything, to notes or to
+    /// Reminders, and says what it would do. Only a run started by a person who then said yes
+    /// passes `allowMassChanges: true`; a timed sync never does.
+    public func sync(allowMassChanges: Bool = false) async throws -> SyncOutcome {
         var report = SyncReport(startedAt: now())
-        var state = vault.loadSyncState(deviceID: deviceID)
+        var state = try vault.loadSyncState(deviceID: deviceID)
+        // A device with no memory of an earlier sync must not call every difference a conflict
+        // and let the note win: what was ticked or renamed in Reminders is taken over instead.
+        let firstSync = state.links.isEmpty
 
         // 1. Load notes, assign ids to tasks that have none, and give copies of an id a fresh one.
         // Up to `cloudFetchesPerLoad` waits for iCloud, as before build 261. `run()` is
@@ -152,51 +168,130 @@ public final class SyncEngine {
             dirtyPaths = []
         }
 
-        // Ids are written before Reminders is touched, so a failure later cannot leave
-        // reminders carrying ids no note knows about.
-        try persistNotes()
-
         var handledReminderIDs = Set<String>()
         /// Marker writes for imported reminders, done after the notes and state are saved.
         var pendingReminderUpdates: [ReminderRecord] = []
 
-        do {
-            // 2. Fetch reminders for every mapped list, plus lists that linked reminders were last seen in,
-            // so a renamed note finds its reminders instead of treating them as deleted.
-            let listNames = try await store.listNames()
-            let existingLists = Set(listNames)
-            var remindersByID: [String: ReminderRecord] = [:]
-            var remindersByMarker: [String: ReminderRecord] = [:]
-            var fetchedLists = Set<String>()
-            let linkedLists = Set(state.links.values.map(\.listName)).filter { existingLists.contains($0) }
-            for list in Set(pathForList.keys).union(linkedLists).sorted() {
-                if !existingLists.contains(list) {
-                    if config.createMissingLists {
-                        try await store.ensureList(named: list)
-                    } else {
-                        continue
-                    }
-                }
-                fetchedLists.insert(list)
-                for record in try await store.reminders(inList: list) {
-                    remindersByID[record.identifier] = record
-                    if let marker = Self.markerTaskID(in: record.notes), remindersByMarker[marker] == nil {
-                        remindersByMarker[marker] = record
-                    }
+        // 2. Read Reminders; nothing is written yet. Every mapped list that exists, plus lists
+        // that linked reminders were last seen in, so a renamed note finds its reminders.
+        let listNames = try await store.listNames()
+        let existingLists = Set(listNames)
+        var remindersByID: [String: ReminderRecord] = [:]
+        var remindersByMarker: [String: ReminderRecord] = [:]
+        var fetchedLists = Set<String>()
+        func fetch(_ list: String) async throws {
+            guard fetchedLists.insert(list).inserted else { return }
+            for record in try await store.reminders(inList: list) {
+                remindersByID[record.identifier] = record
+                if let marker = Self.markerTaskID(in: record.notes), remindersByMarker[marker] == nil {
+                    remindersByMarker[marker] = record
                 }
             }
+        }
+        let linkedLists = Set(state.links.values.map(\.listName)).filter { existingLists.contains($0) }
+        for list in Set(pathForList.keys).union(linkedLists).sorted() where existingLists.contains(list) {
+            try await fetch(list)
+        }
 
-            // Index tasks by id (rebuilt after reconciliation so later steps see the current lines).
-            var taskLocations: [String: (path: String, task: TaskItem)] = [:]
-            func indexTasks() {
-                taskLocations = [:]
-                for (path, note) in notesByPath {
-                    for task in note.tasks {
-                        if let id = task.id { taskLocations[id] = (path, task) }
-                    }
+        // Index tasks by id (rebuilt after reconciliation so later steps see the current lines).
+        var taskLocations: [String: (path: String, task: TaskItem)] = [:]
+        func indexTasks() {
+            taskLocations = [:]
+            for (path, note) in notesByPath {
+                for task in note.tasks {
+                    if let id = task.id { taskLocations[id] = (path, task) }
                 }
             }
-            indexTasks()
+        }
+        indexTasks()
+
+        // 2b. A linked reminder that is in none of those lists is not yet "deleted": the list may
+        // have been renamed, or two lists share a name. Look for it everywhere, by its identifier
+        // and by its mark, and follow it.
+        let strays = state.links.sorted { $0.key < $1.key }.filter { taskID, link in
+            taskLocations[taskID] != nil && remindersByID[link.reminderID] == nil && remindersByMarker[taskID] == nil
+        }
+        var foundElsewhere: [String: ReminderRecord] = [:]
+        if !strays.isEmpty {
+            foundElsewhere = try await store.findReminders(strays.map { ReminderLookup(taskID: $0.key, identifier: $0.value.reminderID) })
+            for (taskID, record) in foundElsewhere {
+                remindersByID[record.identifier] = record
+                remindersByMarker[taskID] = record
+            }
+        }
+
+        // 2c. Mapped lists that do not exist. When all of a note's reminders now live together in
+        // one other list that no note uses, the list was renamed in Reminders: the note follows it
+        // (`reminders-list:` in its frontmatter) and no empty list is made under the old name.
+        var listsToCreate: [String] = []
+        for list in Set(pathForList.keys).subtracting(existingLists).sorted() {
+            guard let path = pathForList[list] else { continue }
+            let links = state.links.filter { taskLocations[$0.key]?.path == path }
+            let homes = Set(links.keys.compactMap { foundElsewhere[$0]?.listName })
+            if let home = homes.first, homes.count == 1, existingLists.contains(home), pathForList[home] == nil,
+               notesByPath[path] != nil, notesByPath[path]?.kind != .daily,
+               links.values.allSatisfy({ $0.listName == list }) {
+                pathForList[list] = nil
+                pathForList[home] = path
+                listForPath[path] = home
+                for taskID in links.keys { state.links[taskID]?.listName = home }
+                notesByPath[path]?.frontmatter.set("reminders-list", home)
+                dirtyPaths.insert(path)
+                record(path) { $0.frontmatter.set("reminders-list", home); return true }
+                report.warnings.append("\(path): the Reminders list \"\(list)\" is now called \"\(home)\"; the note follows it.")
+                try await fetch(home)
+            } else if config.createMissingLists {
+                listsToCreate.append(list)
+                fetchedLists.insert(list) // made below; a new list is empty
+            }
+        }
+
+        // 2d. The brake: count what this run would cancel or delete, with the same tests as
+        // step 3 uses, and stop before anything is written when that is more than a handful.
+        if !allowMassChanges {
+            var summary = MassChangeSummary()
+            var linkedPerList: [String: Int] = [:]
+            var changesPerList: [String: Int] = [:]
+            var cancelTitles: [String] = []
+            var deleteTitles: [String] = []
+            for (taskID, link) in state.links.sorted(by: { $0.key < $1.key }) {
+                linkedPerList[link.listName, default: 0] += 1
+                let reminder = remindersByID[link.reminderID] ?? remindersByMarker[taskID]
+                if let location = taskLocations[taskID] {
+                    guard reminder == nil, fetchedLists.contains(link.listName), !location.task.isDone else { continue }
+                    summary.tasksToCancel += 1
+                    cancelTitles.append(location.task.title)
+                } else if let reminder {
+                    guard !reminder.isCompleted, !allTaskIDs.contains(taskID), loadedPaths.contains(link.notePath) else { continue }
+                    summary.remindersToDelete += 1
+                    deleteTitles.append(reminder.title)
+                } else {
+                    continue
+                }
+                changesPerList[link.listName, default: 0] += 1
+            }
+            if MassChangeSummary.needsConfirmation(total: summary.total,
+                                                   perList: changesPerList.map { ($0.value, linkedPerList[$0.key] ?? 0) }) {
+                summary.exampleTitles = Array((cancelTitles + deleteTitles).prefix(5))
+                summary.lists = changesPerList.keys.sorted()
+                return .needsConfirmation(summary)
+            }
+        }
+
+        // Ids are written before Reminders is changed, so a failure later cannot leave
+        // reminders carrying ids no note knows about.
+        try persistNotes()
+        indexTasks()
+        /// Paths of notes in Deleted, read once and only when a link points at a missing note.
+        var deletedPaths: Set<String>?
+        func isInDeleted(_ path: String) -> Bool {
+            let paths = deletedPaths ?? Set(vault.deletedNotes().map(\.originalPath))
+            deletedPaths = paths
+            return paths.contains(path)
+        }
+
+        do {
+            for list in listsToCreate { try await store.ensureList(named: list) }
 
             /// `Parent › Child` prefix for subtasks, nil for top-level tasks.
             func parentPrefix(_ path: String, _ task: TaskItem) -> String? {
@@ -225,7 +320,8 @@ public final class SyncEngine {
                     let listName = listForPath[location.path] ?? link.listName
                     let outcome = try await reconcile(task: location.task, at: location.path, listName: listName,
                                                       parentPrefix: parentPrefix(location.path, location.task),
-                                                      reminder: reminder, link: link, report: &report, updateNote: updateNote)
+                                                      reminder: reminder, link: link, firstLink: false,
+                                                      report: &report, updateNote: updateNote)
                     state.links[taskID] = outcome
                 case let (location?, nil):
                     guard fetchedLists.contains(link.listName) else {
@@ -255,6 +351,10 @@ public final class SyncEngine {
                         try await store.delete(identifier: reminder.identifier)
                         report.remindersDeleted += 1
                         state.links[taskID] = nil
+                    } else if isInDeleted(link.notePath) {
+                        // The note is in Deleted: keep the reminder, forget the link, say nothing.
+                        // Putting the note back links it again through the mark on the reminder.
+                        state.links[taskID] = nil
                     } else {
                         // The note itself is missing or unreadable (not downloaded yet, moved away):
                         // keep the reminder and the link until the note is seen again.
@@ -276,7 +376,8 @@ public final class SyncEngine {
                                                lastTaskFingerprint: "", lastReminderFingerprint: "", lastSyncedAt: now())
                     state.links[taskID] = try await reconcile(task: location.task, at: location.path, listName: listName,
                                                               parentPrefix: parentPrefix(location.path, location.task),
-                                                              reminder: reminder, link: provisional, report: &report, updateNote: updateNote)
+                                                              reminder: reminder, link: provisional, firstLink: firstSync,
+                                                              report: &report, updateNote: updateNote)
                     continue
                 }
                 guard !location.task.isDone else { continue }
@@ -354,13 +455,59 @@ public final class SyncEngine {
             }
         }
         report.finishedAt = now()
-        return report
+        return .finished(report)
+    }
+
+    // MARK: Notes that go to Deleted
+
+    /// The open reminders that belong to a note, wherever they are in Reminders: the ones this
+    /// device linked to it and the ones that carry the mark of one of its tasks. For asking
+    /// "delete its reminders too?" only when there is something to delete.
+    public func openLinkedReminders(of note: Note) async throws -> [ReminderRecord] {
+        let state = try vault.loadSyncState(deviceID: deviceID)
+        return try await linkedReminders(of: note, in: state).filter { !$0.isCompleted }
+    }
+
+    /// Call when a note goes to Deleted. Deletes its open reminders or keeps them, and in both
+    /// cases forgets its links, so later syncs have nothing to warn about. Completed reminders
+    /// always stay. A note put back links again through the mark on the reminders that were kept;
+    /// its open tasks get new reminders when the old ones were deleted.
+    /// Returns how many reminders were deleted.
+    @discardableResult
+    public func releaseReminders(of note: Note, _ choice: LinkedReminderChoice) async throws -> Int {
+        var state = try vault.loadSyncState(deviceID: deviceID)
+        var deleted = 0
+        if choice == .delete {
+            for reminder in try await linkedReminders(of: note, in: state) where !reminder.isCompleted {
+                try await store.delete(identifier: reminder.identifier)
+                deleted += 1
+            }
+        }
+        let taskIDs = Set(note.tasks.compactMap(\.id))
+        let before = state.links.count
+        state.links = state.links.filter { $0.value.notePath != note.relativePath && !taskIDs.contains($0.key) }
+        if state.links.count != before { try vault.save(syncState: state, deviceID: deviceID) }
+        return deleted
+    }
+
+    private func linkedReminders(of note: Note, in state: SyncState) async throws -> [ReminderRecord] {
+        var wanted: [String: ReminderLookup] = [:]
+        for (taskID, link) in state.links where link.notePath == note.relativePath {
+            wanted[taskID] = ReminderLookup(taskID: taskID, identifier: link.reminderID)
+        }
+        for taskID in note.tasks.compactMap(\.id) where wanted[taskID] == nil {
+            wanted[taskID] = ReminderLookup(taskID: taskID, identifier: state.links[taskID]?.reminderID ?? "")
+        }
+        guard !wanted.isEmpty else { return [] }
+        let found = try await store.findReminders(wanted.values.sorted { $0.taskID < $1.taskID })
+        var seen = Set<String>()
+        return found.values.filter { seen.insert($0.identifier).inserted }.sorted { $0.identifier < $1.identifier }
     }
 
     // MARK: Reconciliation
 
     private func reconcile(task: TaskItem, at path: String, listName: String, parentPrefix: String?,
-                           reminder: ReminderRecord, link: TaskLink,
+                           reminder: ReminderRecord, link: TaskLink, firstLink: Bool,
                            report: inout SyncReport, updateNote: (String, @escaping (inout Note) -> Bool) -> Void) async throws -> TaskLink {
         let taskFP = Self.fingerprint(task, parentPrefix: parentPrefix)
         let reminderFP = Self.fingerprint(reminder)
@@ -377,7 +524,12 @@ public final class SyncEngine {
         }
 
         let noteWins: Bool
-        if taskChanged && reminderChanged && taskFP != reminderFP {
+        if firstLink && taskFP != reminderFP {
+            // This device's first sync, linked through the mark: there is no "last time" to
+            // compare with. Take over what Reminders has (a tick, a new title) and call nothing
+            // a conflict. Only a task already finished in the note stays finished.
+            noteWins = task.isDone && !reminder.isCompleted
+        } else if taskChanged && reminderChanged && taskFP != reminderFP {
             noteWins = config.conflictPolicy == .noteWins
             report.conflicts.append("\(path): \"\(task.title)\" changed in both places; kept the \(noteWins ? "note" : "reminder") version.")
         } else if taskFP == reminderFP {

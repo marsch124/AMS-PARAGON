@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import Security
 import ParagonCore
 #if canImport(WidgetKit)
 import WidgetKit
@@ -127,7 +128,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 306
+    static let number = 307
 }
 
 @MainActor
@@ -351,7 +352,13 @@ final class AppModel: ObservableObject {
         // The screen tests CI runs have nobody to choose a folder, so they ask for one to be
         // made (build 190). Everything after this is the ordinary path: `openVault(at:)` is
         // what a folder he picks himself goes through too.
-        if TestVault.isWanted {
+        if TestVault.isWanted, let refusal = TestVault.refusal {
+            // Build 307: never wipe or replace the settings of a real PARAGON. Leaves at once,
+            // so a launch check fails loudly instead of quietly running in the wrong app.
+            log("test vault refused: \(refusal)")
+            FileHandle.standardError.write(Data("PARAGON test vault refused: \(refusal)\n".utf8))
+            exit(3)
+        } else if TestVault.isWanted {
             TestVault.resetSettings()
             if let url = try? TestVault.make() {
                 openVault(at: url)
@@ -441,10 +448,20 @@ final class AppModel: ObservableObject {
     var vaultPath: String? { vault?.rootURL.path }
 
     /// Stable per-device id; EventKit reminder identifiers are local to a device, so sync state is too.
+    /// This device's name in the sync memory (`.ams-para/sync-state-<id>.json`).
+    ///
+    /// **Kept twice since build 307 (hardening-11)**: in the settings and in this device's
+    /// keychain, which a settings wipe does not touch. A lost id made the next sync start from
+    /// nothing — every task looked like a conflict, the note won, and ticks made on the phone
+    /// were undone. The keychain copy is never synced to other devices: each has its own id.
     var deviceID: String {
-        if let id = defaults.string(forKey: deviceIDKey) { return id }
-        let id = UUID().uuidString
+        if let id = defaults.string(forKey: deviceIDKey) {
+            if DeviceIDKeychain.read() == nil { DeviceIDKeychain.write(id) }
+            return id
+        }
+        let id = DeviceIDKeychain.read() ?? UUID().uuidString
         defaults.set(id, forKey: deviceIDKey)
+        DeviceIDKeychain.write(id)
         return id
     }
 
@@ -1330,7 +1347,11 @@ final class AppModel: ObservableObject {
     }
 
     static var widgetContainerURL: URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
+        #if DEBUG
+        // Build 307: a test run never writes into the widget's shared folder.
+        if TestVault.isWanted { return nil }
+        #endif
+        return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
     }
 
     /// The summary most recently written for the widgets, so a change that does not alter what
@@ -1681,6 +1702,9 @@ final class AppModel: ObservableObject {
             if selectedNotePath == note.relativePath { selectedNotePath = nil }
             reload()
             flash("\u{201C}\(note.displayTitle)\u{201D} is in Deleted")
+            // Build 307 (hardening-12): its reminders used to stay for ever, with a warning
+            // line on every sync. `note` is the note as it was before it moved.
+            settleReminders(ofDeleted: note)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -4000,10 +4024,44 @@ final class AppModel: ObservableObject {
     }
 
     func backUpNow() {
-        if let made = backUp(reason: "manual") {
-            flash("Backup saved: \(made.noteCount) note\(made.noteCount == 1 ? "" : "s")")
-        } else {
-            flash("Nothing changed since the last backup")
+        Task { [weak self] in
+            guard let self else { return }
+            switch await self.backUpOffMain(reason: "manual") {
+            case .made(let made):
+                self.flash("Backup saved: \(made.noteCount) note\(made.noteCount == 1 ? "" : "s")")
+            case .unchanged:
+                self.flash("Nothing changed since the last backup")
+            case .failed:
+                break
+            }
+        }
+    }
+
+    enum BackupOutcome { case made(VaultBackup), unchanged, failed }
+
+    /// The same copy as `backUp(reason:)`, made on a thread of its own (build 307, hardening-08):
+    /// the before-sync copy ran on the main thread and froze the app for seconds while every
+    /// note was copied — the daily copy had been moved off it in build 281, this one was left.
+    /// Like `backUpDaily`, a `Vault` of its own is made from the plain folder URL.
+    func backUpOffMain(reason: String) async -> BackupOutcome {
+        guard let vault else { return .failed }
+        flushPendingEdits()
+        fetchCloudFiles()
+        let root: URL = vault.rootURL
+        let outcome: Result<VaultBackup?, Error> = await AppModel.offMain {
+            Result { try Vault(rootURL: root).makeBackup(reason: reason) }
+        }
+        guard self.vault?.rootURL == root else { return .failed }
+        switch outcome {
+        case .success(let made):
+            refreshBackups()
+            guard let made else { return .unchanged }
+            log("backup saved: \(made.folderName)")
+            return .made(made)
+        case .failure(let error):
+            log("backup failed: \(error.localizedDescription)")
+            errorMessage = "The backup could not be saved: \(error.localizedDescription)"
+            return .failed
         }
     }
 
@@ -4074,7 +4132,10 @@ final class AppModel: ObservableObject {
             selectedNotePath = nil
             reload()
             refreshBackups()
-            if result.isComplete {
+            if result.isComplete, result.written == 0 {
+                // Build 307 (hardening-02): "Restored 0 files" read like success.
+                errorMessage = "Nothing was put back: the copy \(backup.folderName) held no files that could be restored. Your notes are as they were."
+            } else if result.isComplete {
                 flash("Restored \(result.written) file\(result.written == 1 ? "" : "s") from \(backup.folderName)")
             } else {
                 // The rest of the vault is restored; these files are still as they were.
@@ -4126,7 +4187,8 @@ final class AppModel: ObservableObject {
             for list in lists { records += try await remindersStore.reminders(inList: list) }
             store.seed(lists: lists, records: records)
             let engine = SyncEngine(vault: rehearsal, store: store, deviceID: deviceID, config: vault.config)
-            let report = try await engine.run()
+            // A rehearsal on copies: it shows a mass change, it never needs a yes for one.
+            let report = try await engine.run(allowMassChanges: true)
             reportToShow = report
             reportIsPreview = true
             activeSheet = .syncReport
@@ -4151,7 +4213,13 @@ final class AppModel: ObservableObject {
     /// Build 300: the iPhone sync button's "Sync settings…" asks the tab in front to push Settings.
     @Published var phoneSyncSettingsRequests = 0
 
-    func syncNow(force: Bool = false, quietly: Bool = false) async {
+    /// Build 307 (hardening-05): a sync that would cancel or delete a lot stopped before changing
+    /// anything, and this is what it would do. Shown as a question with **Do it** and **Cancel**.
+    @Published var massChangeQuestion: MassChangeSummary?
+    /// Build 307 (hardening-12): a note went to Deleted and still has open reminders.
+    @Published var reminderQuestion: ReminderQuestion?
+
+    func syncNow(force: Bool = false, quietly: Bool = false, allowMassChanges: Bool = false) async {
         guard let vault, !isSyncing else { return }
         // Never sync half a vault. A note that has not arrived from iCloud has no tasks as far
         // as this device can see, and while the engine is careful never to delete a reminder
@@ -4171,16 +4239,34 @@ final class AppModel: ObservableObject {
         }
         syncWaitsForCloud = false
         flushPendingEdits()
-        if backsUpBeforeSync { backUp(reason: "sync") }
+        // Marked before the copy, which now runs on its own thread (build 307): a second tap
+        // while it is being made must not start a second sync.
         isSyncing = true
         defer { isSyncing = false }
+        if backsUpBeforeSync { _ = await backUpOffMain(reason: "sync") }
+        guard self.vault === vault else { return }
         do {
             guard try await remindersStore.requestAccess() else {
                 errorMessage = "PARAGON needs full access to Reminders. You can grant it in System Settings › Privacy & Security › Reminders."
                 return
             }
             let engine = SyncEngine(vault: vault, store: remindersStore, deviceID: deviceID)
-            let report = try await engine.run()
+            let report: SyncReport
+            switch try await engine.sync(allowMassChanges: allowMassChanges) {
+            case .finished(let finished):
+                report = finished
+            case .needsConfirmation(let summary):
+                // The brake (build 307): nothing was changed. A sync he started asks at once;
+                // the timed one never does it by itself — it says so and waits for **Sync now**.
+                guard self.vault === vault else { return }
+                log("sync stopped: \(summary.message)")
+                if quietly {
+                    flash("Sync stopped: it would change \(summary.total) tasks. Press Sync now to look.")
+                } else {
+                    afterUpdate { self.massChangeQuestion = summary }
+                }
+                return
+            }
             guard self.vault === vault else { return }
             lastReport = report
             for warning in report.warnings { log("sync: \(warning)") }
@@ -4222,3 +4308,35 @@ extension NSHostingView: IntrinsicSizingResettable {
     }
 }
 #endif
+
+
+/// The device id's second home (build 307). A plain generic-password item, this device only.
+enum DeviceIDKeychain {
+    /// Named by bundle id, so the Mac Debug build (….dev) never picks up the real app's id.
+    private static var service: String { "PARAGON device id \(Bundle.main.bundleIdentifier ?? "")" }
+
+    private static var query: [String: Any] {
+        [kSecClass as String: kSecClassGenericPassword,
+         kSecAttrService as String: service,
+         kSecAttrAccount as String: "deviceID",
+         kSecAttrSynchronizable as String: false]
+    }
+
+    static func read() -> String? {
+        var q = query
+        q[kSecReturnData as String] = true
+        q[kSecMatchLimit as String] = kSecMatchLimitOne
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(q as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data, let id = String(data: data, encoding: .utf8), !id.isEmpty else { return nil }
+        return id
+    }
+
+    static func write(_ id: String) {
+        SecItemDelete(query as CFDictionary)
+        var q = query
+        q[kSecValueData as String] = Data(id.utf8)
+        q[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        SecItemAdd(q as CFDictionary, nil)
+    }
+}

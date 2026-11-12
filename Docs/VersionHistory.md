@@ -1,6 +1,68 @@
 # Version history
 
-The version is shown as 1.0 (306) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (307) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 307 · 12 November 2026
+
+**Safety first: eight changes so that PARAGON never loses your notes, tasks or settings by accident.** This is round 1 of the premium review.
+
+**Before (build 306).**
+- The check that runs before each upload started a test copy of PARAGON on the Mac that shared its storage with your real app. It erased your Mac settings (about 45 of them).
+- Restoring the oldest backup deleted that backup first, and the app still said "Restored 0 files".
+- Renaming a list in Reminders made the next sync cancel all the tasks of that note.
+- One sync could cancel or delete any number of tasks and reminders without asking.
+- Only the 10 newest backups were kept, so ten backups could cover only a few hours.
+- The copy before each sync froze the app while it was made.
+- A device that lost its sync memory undid ticks and edits you had made in Reminders.
+- Deleting a note left its open reminders in Reminders, and every sync added a warning line for each one.
+
+**1. Your Mac settings are no longer erased by the upload check.**
+- The test copy of PARAGON that runs before each upload now has its own name and its own storage. It can no longer touch the app you installed.
+- As a second safety, test mode refuses to start on a Mac where a real notes folder is remembered. It then does not erase anything and does not open anything.
+- What you will notice: after a release, your folder, automatic sync, calendar choices and a running focus clock are still there.
+
+**2. Restoring a backup never deletes that backup.**
+- When you press **Restore a copy** (Settings › Backups), PARAGON first saves what you have now. Before, this could push the backup you wanted out of the list and delete it.
+- Now old backups are cleared only after the restore is finished.
+- If nothing was put back, the app says so plainly. It no longer says "Restored 0 files" as if it had worked.
+
+**3. Renaming a list in Reminders no longer cancels its tasks.**
+- Before, a new empty list with the old name was made, and every open task of the note was marked cancelled.
+- Now, when a task's reminder is not in its list, PARAGON looks for it in all your Reminders lists, by its own identity and by its PARAGON mark. If it finds the reminder in the new list, it follows it. The task is not cancelled.
+
+**4. A brake for mass changes.**
+- If one sync would cancel or delete more than 5 tasks or reminders, it stops before it changes anything.
+- The same happens when it would cancel or delete more than a third of one list that has 3 or more tasks.
+- A message shows what the sync would do, with two buttons: **Do it** and **Cancel**. **Cancel** changes nothing.
+- The message is titled **Sync stopped to ask you**. The timed automatic sync shows a short line instead ("Sync stopped: it would change 8 tasks. Press Sync now to look.") and waits.
+- The timed automatic sync never does a mass change. It waits until you press **Sync now** and agree.
+- A list that fails to load (Apple's side is busy or the account is still loading) is never read as "everything was deleted".
+
+**5. Backups are kept in tiers.**
+- The last 5 copies made before a sync.
+- One copy per day for 14 days.
+- Every other copy from today and yesterday (the copy before a restore, before a rename, and your own **Back up now** copies), so the way back is never pushed out the same day.
+- One copy per week for 2 months.
+- Copies made by **Back up now** and before a restore count as daily or weekly, by their date.
+- Before, only the 10 newest were kept, and the daily ones were pushed out the same day.
+
+**6. The copy before a sync no longer freezes the app.**
+- The copy before a sync and the copy made by **Back up now** are made in the background. You can keep typing. The sync starts when the copy is done.
+- Not changed yet: the copy before a rename is still made the old way. A rename is rare, and it must not start before its copy is finished.
+
+**7. The device identity is kept safely, and a missing sync memory is handled with care.**
+- Each device now keeps its identity in a second safe place and reuses it.
+- If a device's sync memory is missing, the first sync takes over the ticks and edits from Reminders. Before, it undid them (ticked reminders were un-ticked and renamed ones were changed back).
+- If the memory file exists but cannot be read, the sync stops and shows a message. It no longer starts again from zero. Try again in a moment.
+
+**8. Deleting a note asks about its reminders.**
+- When you delete a note, PARAGON asks once: remove its open reminders from Reminders too, or keep them. The buttons are **Remove reminders** and **Keep reminders**. A note with no open reminders asks nothing.
+- Either way, the repeating warning lines ("missing or unreadable") stop.
+- If you press **Put back** in **Deleted**, the note and its reminders are linked again.
+
+**What did not change.** Syncing in both directions, the note version winning when both sides changed the same task, the daily copy, **Show in Finder**, and the 30 days that deleted notes are kept.
+
+**The version.** It shows as "PARAGON 1.0 (307)".
 
 ## Build 306 · 12 November 2026
 

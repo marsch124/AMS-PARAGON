@@ -39,16 +39,45 @@ final class VaultBackupTests: XCTestCase {
         XCTAssertEqual(vault.backups().first?.reason, "sync", "newest first")
     }
 
-    func testOnlyTheNewestBackupsAreKept() throws {
-        for i in 0..<5 {
-            var note = try vault.loadNote(relativePath: "Inbox.md")
-            note.body = "- [ ] Step \(i)\n"
+    /// Build 307 (hardening-06): kept in tiers, not the ten newest of any kind.
+    func testBackupsAreKeptInTiers() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        func copy(_ hoursAgo: Double, _ reason: String) -> VaultBackup {
+            VaultBackup(folderName: "\(hoursAgo)~\(reason)", date: now.addingTimeInterval(-hoursAgo * 3600),
+                        noteCount: 1, reason: reason)
+        }
+        // Twelve before-sync copies in the last 12 hours, one daily copy a day for 90 days.
+        let syncs = (0..<12).map { copy(Double($0) * 0.5 + 0.1, "sync") }
+        let dailies = (1...90).map { copy(Double($0) * 24, "daily") }
+        let removed = Set(VaultBackup.toRemove(from: syncs + dailies, now: now, calendar: calendar).map(\.folderName))
+        let kept = (syncs + dailies).filter { !removed.contains($0.folderName) }
+        XCTAssertEqual(kept.filter { $0.reason == "sync" }.count, 5, "the 5 newest before-sync copies")
+        XCTAssertTrue(kept.contains { $0.folderName == dailies[0].folderName }, "yesterday's daily copy survives a busy day")
+        XCTAssertTrue(dailies.prefix(13).allSatisfy { d in kept.contains { $0.folderName == d.folderName } },
+                      "one per day for 14 days")
+        XCTAssertTrue(kept.contains { $0.date < now.addingTimeInterval(-40 * 86400) }, "weekly copies reach back")
+        XCTAssertFalse(kept.contains { $0.date < now.addingTimeInterval(-63 * 86400) }, "nothing older than two months")
+    }
+
+    /// Build 307 (hardening-02): restoring the oldest copy of a full list must not delete it first.
+    func testRestoringTheOldestBackupKeepsIt() throws {
+        var note = try vault.createNote(kind: .project, title: "Oldest")
+        note.body = "first version"
+        try vault.save(note)
+        let start = Date().addingTimeInterval(-30 * 86400)
+        let oldest = try XCTUnwrap(try vault.makeBackup(reason: "daily", now: start))
+        for i in 1...12 {
+            note.body = "version \(i)"
             note.modifiedAt = nil
             try vault.save(note)
-            let made = try vault.makeBackup(reason: "daily", keeping: 3, now: Date().addingTimeInterval(Double(i) * 120))
-            XCTAssertNotNil(made, "the vault changed in round \(i), so a copy is due")
+            _ = try vault.makeBackup(reason: "sync", now: Date().addingTimeInterval(Double(i) * 60 - 3600))
         }
-        XCTAssertEqual(vault.backups().count, 3)
+        let result = try vault.restore(oldest)
+        XCTAssertGreaterThan(result.written, 0)
+        XCTAssertTrue(try vault.loadNote(relativePath: note.relativePath).body.contains("first version"))
+        XCTAssertTrue(vault.backups().contains { $0.folderName == oldest.folderName }, "the restored copy is still there")
     }
 
     func testRestorePutsTheOldNoteBackAndKeepsNewerOnes() throws {
