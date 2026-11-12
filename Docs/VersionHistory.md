@@ -4,7 +4,7 @@ The version is shown as 1.0 (312) at the foot of the Mac sidebar and at the foot
 
 ## Build 312 · 12 November 2026
 
-**Fewer taps on the iPhone: the things you do every day are closer, and the small picture buttons have words.** This is round 6 of the premium review. Round 1 was build 307, round 2 was build 308, round 3 was build 309, round 4 was build 310, round 5 was build 311. This round is about the way through the app, mostly on the iPhone. Unlike rounds 3 to 5, some things work differently now. Each one is listed here.
+**Fewer taps on the iPhone: the things you do every day are closer, and the small picture buttons have words.** This is round 6 of the premium review. Round 1 was build 307, round 2 was build 308, round 3 was build 309, round 4 was build 310, round 5 was build 311. This round is about the way through the app, mostly on the iPhone. Unlike rounds 3 to 5, some things work differently now. Each one is listed here, and where a change costs you something, it says so.
 
 "Taps" means how many times you touch the screen to get something done. Fewer is better.
 
@@ -12,127 +12,149 @@ The version is shown as 1.0 (312) at the foot of the Mac sidebar and at the foot
 - On the iPhone, **Week** in **Plan** moved you to **Browse › Calendar**. The **Browse** tab lit up, and the back arrow led to **Browse**, not to your plan.
 - On the iPhone, the only way to put an action on an hour in **Plan** was to hold it and drag it.
 - On the iPhone, the **+** for a new thought was a small circle at the top left, the place that is hardest to reach with one hand.
-- The capture screen had two **Cancel** buttons, and **Save** was in the middle of the screen.
+- On the iPhone, the capture screen had two **Cancel** buttons, and a wide **Save** at the foot.
 - On the iPhone, finding a note took 3 taps and a scroll: **Browse**, scroll down, **Search**, then the field.
 - On the iPhone, a note you used lately took 3 taps: **Browse**, **Recent**, the note.
-- On the iPhone, **Settings and Help** was the last row of **Browse**, under 16 other rows.
+- On the iPhone, **Settings and Help** was only the last row of **Browse**, under 16 other rows.
 - On the iPhone, filing an Inbox line took 4 taps: the line, **File it**, **Move to**, the project.
 - In **All actions**, the **Waiting for** list was behind a small hourglass with no name, beside a filter picture with no name.
 - The three round buttons at the top of **Today** were pictures only: a calendar, a cup and a moon.
 - **Move to Archive** in the Mac note toolbar was a picture only.
-- The **Weekly review** opened with all nine parts folded.
+- The **Weekly review** opened with every part folded the first time, and later with the parts you had opened the time before.
 - **Start the day** and **Close the day** showed the same paragraph of explanation every day.
-- A tap on the sync ring synced at once. Its menu opened only when you held it, and nothing said so.
+- A tap on the sync ring synced at once. Its other choices opened only when you held it, and nothing said so.
 - Every task with no time showed the dashed **How long?** button, in every list.
 - A project, a goal, an area and a resource opened with the grey settings block showing. On the iPhone it took about half the screen.
 
 ### Plan
 
 **1. iPhone: the week opens inside Plan.**
-- Before: **Week** moved you to **Browse › Calendar**. The title said **Calendar**, the **Browse** tab lit up, and the back arrow led to **Browse**.
-- Now: the week opens inside the **Plan** tab. The title says **Plan the week** [CHECK]. The **Plan** tab stays lit. The back arrow at the top left returns to your day.
-- The week itself is the same as **Calendar › Week**: the goal for the week, **Not planned yet** and the seven days.
-- On the Mac nothing changed here.
+- Before: **Week** moved you to **Browse › Calendar**. The **Browse** tab lit up, and the back arrow led to **Browse**.
+- Now: the week slides in inside the **Plan** tab. The title says **Plan the week**. The **Plan** tab stays lit. The back arrow returns to your day.
+- The Mac, the iPad and **Browse › Calendar** are unchanged.
 
 **2. iPhone: tap an action in Plan to give it a time.**
-- Before: you held a tile under **Actions** and dragged it onto an hour. The hours scrolled under your finger while you did it.
-- Now: tap the tile [CHECK]. A small menu opens with two choices: **Next free time** and **Pick a time…**.
-- **Next free time** makes a block in the first free time left today. The block is as long as the task's own time, or one hour when it has none [CHECK].
-- **Pick a time…** lets you choose the hour yourself [CHECK].
-- That is 2 taps. Dragging still works as before.
-- [CHECK: the **calendar** button in the row at the top of **Plan** had no name. Does it have a word now, or is it in a **⋯** menu?]
+- Before: you held a tile under **Actions** and dragged it onto an hour. The hint said "Hold one, then drag it onto an hour under Time blocks."
+- Now: tap the tile. A small menu opens with the action's name as its title, and three choices: **Next free time**, **Pick a time…** and **Cancel**. That is 2 taps.
+- **Next free time** adds a block and says "Added to your plan at 14:15." (with the real time). The block is as long as the task's own time, or 60 minutes when it has none. It starts at the time it is now, rounded up to the quarter hour, or at 06:00 on another day. It never lies on a block, a calendar event or a task with a time of day. It looks for room until midnight.
+- When there is no room, nothing is placed, and it says "No free time left on this day. Pick a time instead."
+- **Pick a time…** opens the **New block** sheet, the same one as **+ Block**. The action's name, its length and the next free start are already filled in.
+- The hint now says "Tap one for a time, or hold and drag it onto an hour." Dragging still works as before.
+
+**3. iPhone and iPad: the last button in the Plan row has a menu.**
+- Before: the last button in the row at the top of **Plan** was a calendar picture with no name.
+- Now: it is the three small rings that mean "more". It opens a menu with one line, **Blocks in Apple Calendar**.
+- The day arrows, **Today**, **+ Block** and **Week** are unchanged. The Mac toolbar is unchanged.
 
 ### Capture
 
-**3. iPhone: a round + button near your thumb.**
+**4. iPhone: a round + button near your thumb.**
 - Before: a small **+** in a circle at the top left of the screen.
-- Now: a round **+** button in full colour at the bottom right, just above the tab bar. It floats over the list. It is on **Today**, **Actions** and **Inbox** [CHECK: which tabs, and its colour and size].
-- It opens the same **New** screen as before [CHECK]. On **Today** it starts on **Inbox**, for a quick line.
-- The **+** at the top left is gone [CHECK].
-- The number of taps is the same, 2 to a saved thought. They are now where your thumb is.
+- Now: a round **+** button, 54 points wide, at the bottom right, just above the tab bar. It is a white hand-drawn plus on the leaf green of the **Inbox**, with a soft shadow.
+- It is on **Today**, **Actions** and **Inbox**. It is not on **Plan** or **Browse**. **Plan** keeps its own small **+**.
+- It opens the same **New** screen, with **Inbox** already chosen.
+- On those three tabs the small **+** at the top left is gone.
+- It hides while the keyboard is up. A list scrolls its last row clear of it. It is only on the first page of each tab, never over an open note.
+- The number of taps is the same. They are now where your thumb is.
 
-**4. iPhone: the capture screen has one Cancel and one Save.**
-- Before: two **Cancel** buttons, one at the top and one beside **Save**. **Save** was in the middle of the screen.
-- Now: one **Cancel** at the top left and one **Save** at the top right [CHECK]. This is the same place as on every other edit screen.
+**5. iPhone: the capture screen has one Cancel and one Save.**
+- Before: two **Cancel** buttons, one at the top and one at the foot, and a wide **Save** at the foot.
+- Now: one **Cancel** at the top left and one **Save** at the top right, in the full leaf green of the **Inbox**.
+- **Save** is never grey. If you press it with nothing written, the screen says "Write something first" at the top for 2.5 seconds.
+- The Mac and the iPad are unchanged.
 
 ### Browse
 
-**5. iPhone: search is at the top of Browse.**
-- Before: **Browse**, scroll down to the 13th row, **Search**, then tap the field. That is 3 taps and a scroll. A second, different search field showed only when you pulled down inside **Projects** or **Archive**.
-- Now: **Browse** opens with a search field at the very top, **Search notes** [CHECK]. That is 2 taps: **Browse**, then the field.
-- The **Search** row lower down in **Browse** is gone [CHECK]. Nothing was taken away: the field opens the same search [CHECK].
-- On the Mac nothing changed here. The Mac part of this waits for the next round.
+**6. iPhone: search is at the top of Browse.**
+- Before: **Browse**, scroll down, **Search**, then the field. That is 3 taps and a scroll.
+- Now: the first thing on **Browse**, above "Goals and PARA", is a search field with a magnifier and the words **Search notes**. Tap it and the **Search** screen opens with the keyboard up. That is 2 taps.
+- There is one search now. The **Search** row lower down in **Browse** is gone.
+- What this costs: on the iPhone the **Search notes** field that showed when you pulled a list down is gone from all note lists (**Projects**, **Archive**, **Areas**, **Resources**, **Inbox**, **Actions**, **Done**, **Deleted** and the others). To search only in the **Archive**, tick **Archive** in **Search**.
+- **Search the daily notes** in the **Calendar** and **Find a tag** in **Tags** are unchanged. The Mac and the iPad keep the field in their lists.
 
-**6. iPhone: the notes you used last are at the top of Browse.**
+**7. iPhone: the notes you used last are at the top of Browse.**
 - Before: **Browse**, **Recent**, then the note. That is 3 taps.
-- Now: a short row under the search field shows the notes you opened last [CHECK: how many, 3 to 5, and the heading]. That is 2 taps: **Browse**, then the note.
-- The **Recent** row lower down is gone [CHECK].
+- Now: under the search field is one line with up to 5 small capsules: the notes you opened last, newest first. The line slides sideways. Each capsule has the icon and the colour of its part and the note's name. A daily note shows its date. That is 2 taps: **Browse**, then the capsule.
+- When you have opened nothing yet, the line is not shown.
+- What this costs: the **Recent** row is gone on the iPhone. The full list of 40 notes and its **Clear** button are on the Mac only now.
+- The group that held **Search** and **Recent** now has 5 rows: **Calendar**, **Weekly review**, **Map**, **Done** and **Deleted**. Before it had 7.
 
-**7. iPhone: a gear for Settings, and Help first.**
-- Before: **Settings and Help** was the last row of **Browse**, under 16 other rows. To read **How it works** you scrolled twice.
-- Now: a small gear at the top right of **Browse** opens **Settings** [CHECK]. No scrolling.
-- In **Settings** the **Help** group is now first: **How it works**, **Words** and **Version history** [CHECK].
-- The **Settings and Help** row at the foot of **Browse** is gone [CHECK].
+**8. iPhone: a gear for Settings, and Help first.**
+- Before: the only way to **Settings** was **Settings and Help**, the last row of **Browse**, under 16 other rows.
+- Now: a gear at the top right of **Browse** opens **Settings**. No scrolling. The **Settings and Help** row at the foot of **Browse** is still there too.
+- On the iPhone **Settings** now opens with **Help** first: **How it works**, **Words in PARAGON** and **Version history**. Then **Vault** and the rest, as before. The order on the Mac and the iPad is unchanged.
 
 ### Inbox and Actions
 
-**8. iPhone: File it opens your projects at once.**
+**9. iPhone: File it opens your projects at once.**
 - Before: 4 taps. The line, **File it**, **Move to**, the project.
-- Now: 3 taps. The line, **File it**, the project. **File it** opens the list of your projects and areas straight away.
-- The other choices are in the menu that opens when you hold the line: turn it into a note, **Rename…** and **Delete** [CHECK]. They were there before too.
-- On the Mac nothing changed here: the right-hand column files a line in 2 clicks.
+- Now: 3 taps. The line, **File it**, the project. **File it** lists your projects, then your areas. With none it says "No project or area yet".
+- Hold the line for everything else, as before: **Move to**, **Turn into a note**, **Block time for this…**, **Remove the date**, **Rename…** and **Delete**.
+- The Mac is unchanged.
 
-**9. iPhone and Mac: Actions | Waiting for.**
-- Before: the **Waiting for** list was behind a small hourglass button with no name. Beside it was a filter picture with no name. The screen said its name three times: "All actions", "Actions 3" and "Every open action".
-- Now: a switch with two halves, **Actions | Waiting for**, is under the title, in the green of **Actions** [CHECK]. One tap shows either list, and both have their name.
-- The filter is a button with the word **Filter** [CHECK]. It shows and folds away the boxes **When**, **Mark** and **Tags**, as the picture did.
-- The line "Every open action" is gone.
+**10. iPhone and Mac: Actions | Waiting for.**
+- Before: the **Waiting for** list was behind a small hourglass button with no name. Beside it was a filter picture with no name. Under the title was the line "Every open action".
+- Now: one row with a switch of two halves and a button. The switch reads, for example, **Actions 3 | Waiting for**: the number of open actions is inside it. When lines are waiting it reads **Waiting for 2**.
+- The button says **Filter**. It shows the boxes **When**, **Mark** and **Tags**, and folds them away. It is there only on the **Actions** half.
+- Only while a box is ticked, a second line shows the ticked boxes, a count such as "2 of 5", and **Clear**.
+- The hourglass, the filter picture and the line "Every open action" are gone.
+- On the iPhone the words of the chosen half are in the green of **Actions**.
 
-### Words under the picture buttons
+### Words on the picture buttons
 
-**10. iPhone and Mac: the three buttons on Today have a word.**
+**11. iPhone and Mac: the three buttons on Today have a word.**
 - Before: three round white buttons with a picture only: a calendar, a cup and a moon.
-- Now: each has one small word under it: **Note**, **Start** and **Close** [CHECK].
-- The pictures, the colours and the places are unchanged. They do the same as before: today's note, **Start the day** and **Close the day**.
+- Now: each has one tiny word under it: **Note**, **Start** and **Close**.
+- The pictures and the places are unchanged. The band is about 13 points taller.
 
-**11. Mac: Move to Archive has a word.**
-- Before: **Move to Archive** in the note toolbar was a picture only, the archive box with a small arrow.
-- Now: the small word **Archive** is under it [CHECK]. The drawing is unchanged.
+**12. Mac: Move to Archive has a word.**
+- Before: **Move to Archive** in the note toolbar was a picture only, the archive box with an arrow.
+- Now: the word **Archive** is beside the picture. The drawing is unchanged.
+- The iPad keeps the picture alone.
 
 ### The daily and weekly steps
 
-**12. The Weekly review opens where there is something to do.**
-- Before: all nine parts were folded. You pressed **Open all** or each heading.
-- Now: the first part that still has something to do is open when you come in [CHECK]. The other parts stay folded.
-- A part with nothing left in it has a tick in its heading [CHECK].
-- On the iPhone the orange capsules at the top now have their words, such as "1 project needs attention", one under the other [CHECK]. Before, the iPhone showed a picture and a number only. The Mac already had the words.
+**13. iPhone and Mac: the Weekly review opens where there is something to do.**
+- Before: every part was folded the first time. After that PARAGON opened the parts you had opened the time before.
+- Now: each time you come in, only the first part that has something to do is open. When nothing is left, no part is open.
+- While you are there, the parts you open and fold stay as you leave them.
+- A part with nothing left has a hand-drawn tick after its heading.
+- Steps 7 and 8 and **Projects with no goal** never get a tick and never open by themselves. For steps 3 to 6, "something to do" means the goals, projects or areas that need attention. They are the numbers in the orange capsules.
+- What this costs: the review no longer remembers which parts were open the last time.
+- On the iPhone the three orange capsules at the top are now one under the other, with words, as on the Mac: "1 project needs attention". Before, the iPhone showed a picture and a number only.
 
-**13. Start the day and Close the day explain themselves three times, then stop.**
-- Before: **Start the day** showed five lines of explanation every morning ("Press Pick on the left of what matters today…"). **Close the day** did the same under **To do tomorrow**. They pushed your tasks down the screen.
-- Now: the explanation is shown the first three times [CHECK]. After that it is folded away behind a small **(i)** button [CHECK]. Tap the button to read it again.
-- The one-line hint under the field stays.
+**14. iPhone and Mac: Start the day and Close the day explain themselves 3 times, then stop.**
+- Before: both screens showed a paragraph of explanation every day. It pushed your tasks down the screen.
+- Now: the paragraph is shown the first 3 times you open the screen. Each screen counts for itself.
+- From the 4th time there is only a small hand-drawn info mark, called **How this works**. Tap it to show the paragraph, and again to hide it.
+- The one-line hints under the fields are unchanged.
 
 ### Calmer lists
 
-**14. The sync ring says what it means, and one tap opens its menu.**
-- Before: the words under the ring were a time, such as "10:05", or "Not synced yet". A tap synced at once. The menu opened only when you held the ring (a right-click on the Mac).
-- Now: the words say "Not synced", or how long ago, such as "Synced 5 min ago" [CHECK].
-- Now: one tap (one click on the Mac) opens the small menu. **Sync now** is first in it, then **Show me what would change…**, **Last sync report…** and **Sync settings…** [CHECK].
-- A sync is now 2 taps; before it was 1. The other three choices are 2 taps too; before they needed a hold that nothing told you about.
+**15. iPhone, iPad and Mac: the sync ring says what it means, and one tap opens its choices.**
+- Before: the words at the ring were a time, such as "10:05", or "Not synced yet".
+- Now: "Not synced" before any sync. After a sync: "Synced just now" (under 1 minute), "Synced 5 min ago", "Synced 3 h ago" (under 24 hours), then the date, "Synced 2026-11-09".
+- "Syncing", "iCloud" and "1 conflict" or "2 conflicts" are unchanged.
+- Before: a tap synced at once. The other choices opened only when you held the ring (a right-click on the Mac).
+- Now: one tap opens a menu. On the Mac, one click on the ring at the foot of the sidebar opens a small panel. Both show **Sync now**, **Show me what would change…**, **Last sync report…** (only when there is a report), a line, and **Sync settings…**.
+- What this costs: **Sync now** is 2 taps now. Before it was 1.
+- The ring in the Mac menu bar keeps its short words.
 
-**15. "How long?" is asked only where time matters.**
-- Before: every task with no time showed the dashed **How long?** button: on **Today**, in **All actions**, on a project's page, in **Start the day** and in **Close the day**.
-- Now: the button is shown only in **Start the day** and in **Plan** [CHECK].
-- In every other list a task shows its time only when it has one, such as **45 min**. To give it one there, hold the task (right-click on the Mac) and choose the time in its menu [CHECK].
-- **Settings › Tasks › Use task times** still turns all of it off.
+**16. iPhone and Mac: "How long?" is asked only where time matters.**
+- Before: every task with no time showed the dashed **How long?** button, in every list.
+- Now: it is shown only in **Start the day** and in the **Actions** column of **Plan**.
+- Everywhere else (**Today**, **Actions**, the pages of projects and notes, **Close the day**, **Inbox**, **Weekly review**) a task shows its time only when it has one.
+- To give a task a time in those places: hold the task (right-click on the Mac) and choose **How long**.
+- What this costs: **Focus on this** was in the list under the **How long?** button. For a task with no time, outside **Start the day** and **Plan**, it is now only in the menu that opens when you hold the task (right-click on the Mac). It is the first line there.
+- With **Use task times** off in **Settings**, no time is shown anywhere, as before.
 
-**16. The settings block is folded away.**
-- Before: a project, a goal, an area and a resource opened with the grey block of lines such as `type:` and `status:` showing. On the iPhone it took about half the screen. Everything in it is already shown by the buttons above it.
-- Now: the block is folded away when you open a note, on the iPhone and on the Mac. One quiet line, **Settings block hidden**, shows it again.
-- Build 312 folds it once for everybody [CHECK]. After that PARAGON remembers your choice, as before.
+**17. iPhone and Mac: the settings block is folded away.**
+- Before: a project, a goal, an area and a resource opened with the grey block of lines such as `type:` and `status:` showing. On the iPhone it took about half the screen.
+- Now: the block is folded on every note. One line, **Settings block hidden**, opens it.
+- Build 312 folds it once, the first time it starts. If you open the block after that, it stays open.
 - Nothing was taken away. The block is still in the file, and the buttons at the top of the note still write into it.
 
-**Not in this build.** Two findings of this round are for the Mac only and wait for the next round: lists that use the whole width of the Mac window, and a shorter Mac sidebar in the same order as the iPhone. The Mac part of search (one search field in the toolbar on every screen) waits too.
+**Not in this build.** Two findings of this round are for the Mac only and wait for round 7: lists that use the whole width of the Mac window, and a shorter Mac sidebar in the same order as the iPhone. The Mac part of search (the search field in the toolbar on every screen) waits for round 7 too. Pulling down on **Today** to search was not built.
 
 **What did not change.** Your notes, tasks, backups and sync. The colours of build 310 and the icons of build 311. Dragging an action onto an hour in **Plan**. Everything on the Mac that is not named above.
 
