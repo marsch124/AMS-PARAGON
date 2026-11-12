@@ -170,7 +170,7 @@ struct AspirationsListView: View {
             HStack(spacing: 6) {
                 MarkImage(isOpen ? "chevron.down" : "chevron.right")
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .frame(width: 14)
                 AspirationRow(chain: chain)
             }
@@ -582,7 +582,7 @@ struct AspirationRow: View {
                 // looked at it, the area that holds it, and the measure (build 163).
                 Text(secondLine)
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(1)
             }
         }
@@ -757,7 +757,7 @@ struct AspirationChainBody: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Nothing works towards this yet")
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                         AddServingNoteButton(model: model, parent: chain.note)
                     }
                 }
@@ -811,7 +811,7 @@ struct AspirationChainBody: View {
             if chain.isBare {
                 Text("Nothing works towards this yet")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             ForEach(chain.goals) { goal in
                 ChainGoalBlock(goal: goal, lead: false, under: chain.note.title)
@@ -842,12 +842,12 @@ struct AspirationChainBody: View {
                 endedMark(goal.note)
                 Text(goal.note.title)
                     .strikethrough()
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(1)
                 if let target = goal.note.targetDate {
                     Text(target.description)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 Spacer(minLength: 0)
             }
@@ -867,7 +867,7 @@ struct AspirationChainBody: View {
         } else {
             MarkImage(ChainSymbol.datedGoal)
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
     }
 
@@ -1113,16 +1113,16 @@ struct ChainProjectRow: View {
                     // column of their own that read as a separate list.
                     if project.note.isEnded {
                         Text(project.note.noteStatus.label.lowercased())
-                            .font(Txt.listSecond).foregroundStyle(.secondary)
+                            .font(Txt.listSecond).foregroundStyle(.soft)
                     } else if project.openTaskCount > 0 {
-                        Text("\(project.openTaskCount) open").font(Txt.listSecond).foregroundStyle(.secondary)
+                        Text("\(project.openTaskCount) open").font(Txt.listSecond).foregroundStyle(.soft)
                     }
                     Spacer(minLength: 0)
                 }
                 if let next = project.nextAction {
                     MarkLabel("Next: \(next.title)", ChainSymbol.task)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(2)
                 } else if project.hasNothingToDo {
                     Text("No next action")
@@ -1134,7 +1134,7 @@ struct ChainProjectRow: View {
                     // list (build 168), never the orange of a project nobody can act on.
                     MarkLabel(ProjectLine.waitingText(count: project.waitingCount), WaitingShowing.symbol)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(2)
                 }
             }
@@ -1492,7 +1492,7 @@ struct AddServingNoteBox: View {
                 .accessibilityIdentifier("addNote.field")
             Text(plan.sentence)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             if let notice {
                 Text(notice)
@@ -1678,14 +1678,14 @@ struct LookedAtChip: View {
                                            style: StrokeStyle(lineWidth: 1,
                                                               dash: due.daysSinceReview == nil ? [3, 2] : []))
                 )
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         } else {
             // A wrapping row measures each item at its natural width (build 250), so the words
             // are capped like the other chips in the header.
             MarkLabel(due.lookedAtText, "eye")
                 .lineLimit(1)
                 .frame(maxWidth: 260, alignment: .leading)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
     }
 }
@@ -1707,11 +1707,11 @@ struct LookedAtBox: View {
                 .font(Txt.label.weight(.semibold))
             Text(due.rhythmText + " " + due.nextText)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             Text("How often is set in **Settings \u{203A} Review rhythm**.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 Spacer()

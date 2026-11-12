@@ -107,7 +107,7 @@ struct EmptyStateView: View {
             if !title.isEmpty {
                 Text(title)
                     .font(Txt.value)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             if warns || tint == .orange {
                 Text(message)
@@ -537,7 +537,7 @@ struct DateTimeChoiceView: View {
                     Button("Cancel", action: cancel)
                         .accessibilityIdentifier("date.cancel")
                 }
-                Button("Set", action: set).buttonStyle(.borderedProminent)
+                Button("Set", action: set).buttonStyle(.filled(Theme.fallbackTint))
                     .keyboardShortcut(.defaultAction)
                     .disabled(!canSet)
                     .accessibilityIdentifier("date.set")
@@ -559,7 +559,7 @@ struct DateTimeChoiceView: View {
             if offersTime {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("Set", action: set).buttonStyle(.borderedProminent)
+                    Button("Set", action: set).buttonStyle(.filled(Theme.fallbackTint))
                         .disabled(!canSet)
                 }
             }
@@ -731,7 +731,7 @@ struct SheetFooter: View {
             Button(action: cancel) {
                 Text("Cancel")
                     .font(Txt.listTitle)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 18)
                     .contentShape(Rectangle())
@@ -761,8 +761,7 @@ struct SheetFooter: View {
                 .accessibilityIdentifier("sheet.cancel")
             Button(actionTitle, action: act)
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
-                .tint(tint)
+                .buttonStyle(.filled(tint))
                 .disabled(!canAct)
                 .accessibilityIdentifier("sheet.action")
         }
@@ -788,7 +787,7 @@ struct GoalProgressBar: View {
                     .foregroundStyle(tint)
                 if showsCounts {
                     Text(counts)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
             .font(Txt.label)
@@ -908,7 +907,7 @@ struct FoldButton<Label: View>: View {
             HStack(spacing: 6) {
                 MarkImage("chevron.right")
                     .font(Txt.list.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .rotationEffect(.degrees(isOpen ? 90 : 0))
                 label()
             }
@@ -1101,13 +1100,13 @@ struct TaskTray: View {
                         if items.count > shown {
                             Text("\(items.count - shown) more not shown")
                                 .font(Txt.listSecond)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(.faint)
                         }
                     }
                     if let caption {
                         Text(caption)
                             .font(Txt.listSecond)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     WrappingHStack(spacing: 6, lineSpacing: 6) {
@@ -1131,7 +1130,7 @@ struct TaskTray: View {
                 .lineLimit(1)
             Text(ref.noteTitle)
                 .font(Txt.listSecond)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.faint)
                 .lineLimit(1)
         }
         .font(Txt.label)

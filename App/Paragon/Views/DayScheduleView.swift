@@ -231,7 +231,7 @@ struct DayScheduleView: View {
                 HStack(alignment: .top, spacing: 0) {
                     Text(hourText(hour))
                         .font(Txt.listSecond)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.faint)
                         .frame(width: Self.gutter - 6, alignment: .trailing)
                         .padding(.trailing, 6)
                         .offset(y: -5)
@@ -434,7 +434,7 @@ struct ScheduleItemView: View {
                     .lineLimit(2)
                 Text(item.subtitle)
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)

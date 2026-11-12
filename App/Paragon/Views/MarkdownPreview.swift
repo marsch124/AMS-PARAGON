@@ -182,7 +182,7 @@ struct MarkdownPreview: View {
         case .quote(let text):
             HStack(spacing: 8) {
                 Rectangle().fill(Color.secondary.opacity(0.4)).frame(width: 3)
-                inline(text).foregroundStyle(.secondary)
+                inline(text).foregroundStyle(.soft)
             }
         case .code(let lines):
             Text(lines.joined(separator: "\n"))

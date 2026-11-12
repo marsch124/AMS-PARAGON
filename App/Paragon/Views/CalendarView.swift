@@ -92,7 +92,7 @@ struct DayCalendarView: View {
                     .lineLimit(2)
                 Text(summary(day: day, overview: overview))
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(2)
             }
             Spacer(minLength: 6)
@@ -134,7 +134,7 @@ struct DayCalendarView: View {
                 if overview.due.isEmpty {
                     Text("Nothing due")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 ForEach(overview.due) { ref in
                     TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
@@ -220,7 +220,7 @@ struct MonthGrid: View {
                     ForEach(Array(Self.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
                             .font(Txt.listSecond)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -228,7 +228,7 @@ struct MonthGrid: View {
                     GridRow {
                         Text(weekNumber(of: rows[row]))
                             .font(Txt.listSecond)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.faint)
                             .frame(width: 22)
                         ForEach(0..<7, id: \.self) { column in
                             if let date = rows[row][column] {
@@ -380,11 +380,11 @@ struct DailyNoteRow: View {
             let total = note.tasks.count
             Text(total == 0 ? "No tasks" : "\(open) open of \(total)")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             if preview, let firstLine {
                 Text(firstLine)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(2)
             }
             }
@@ -424,7 +424,7 @@ private struct WeekStrip: View {
         return VStack(spacing: 2) {
             Text(name(day.date))
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(1)
             // A dash, never a 0: an empty day is a day with room in it, not a score
             // (build 141's rule about a number that reads as an answer).
@@ -441,7 +441,7 @@ private struct WeekStrip: View {
             // for the working day. Nothing at all when no time is written, never "0 min".
             Text(day.plannedMinutes > 0 ? TaskTime.label(day.plannedMinutes) : " ")
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .monospacedDigit()
@@ -497,7 +497,7 @@ struct WeekOverviewView: View {
                 Spacer()
                 Text("\(overview.dueCount) due · \(overview.completedCount) done")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             .buttonStyle(.borderless)
             .padding(.horizontal, 12)
@@ -533,7 +533,7 @@ struct WeekOverviewView: View {
                         if day.due.isEmpty && day.undated.isEmpty && day.completed.isEmpty {
                             Text("Nothing planned")
                                 .font(Txt.label)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.soft)
                         }
                         ForEach(day.due + day.undated) { ref in
                             TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
@@ -542,7 +542,7 @@ struct WeekOverviewView: View {
                         if !day.completed.isEmpty {
                             Text("\(day.completed.count) done: " + day.completed.map(\.task.title).joined(separator: ", "))
                                 .font(Txt.label)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.soft)
                                 .lineLimit(2)
                         }
                     } header: {
@@ -601,7 +601,7 @@ struct MonthOverviewView: View {
                     ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
                             .font(Txt.listSecond)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     }
                     ForEach(0..<leading, id: \.self) { _ in Color.clear.frame(height: 44) }
                     ForEach(overview.days) { day in
@@ -613,7 +613,7 @@ struct MonthOverviewView: View {
                 .padding(8)
                 Text("\(overview.dueCount) tasks due this month, \(overview.completedCount) completed")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .padding(.bottom, 8)
             }
         }
@@ -639,7 +639,7 @@ struct MonthDayCell: View {
                 if !day.completed.isEmpty {
                     Text("✓\(day.completed.count)")
                         .font(Txt.listSecond)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 if day.dailyNotePath != nil && day.due.isEmpty && day.completed.isEmpty {
                     Circle().fill(ParaKind.daily.tint).frame(width: 4, height: 4)

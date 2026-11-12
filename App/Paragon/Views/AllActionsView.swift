@@ -179,7 +179,7 @@ struct AllActionsView: View {
             if !model.actionFilter.isEmpty {
                 Text("of \(total)")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize()
                 Button("Clear") { model.actionFilter = ActionFilter() }
                     .buttonStyle(.borderless)
@@ -208,7 +208,7 @@ struct AllActionsView: View {
     private var foldedLine: some View {
         Text(model.actionFilter.summary)
             .font(Txt.label)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
             .lineLimit(2)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
@@ -253,7 +253,7 @@ struct AllActionsView: View {
             Text(title.uppercased())
                 .font(Txt.pill.weight(.semibold))
                 .tracking(0.6)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             WrappingHStack(spacing: 5, lineSpacing: 5) {
                 ForEach(choices) { choice in
                     FilterBox(title: choice.title, isOn: choice.isOn, tint: tint, chip: true, action: choice.action)

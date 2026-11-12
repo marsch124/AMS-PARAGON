@@ -32,6 +32,96 @@ extension Color {
     }
 }
 
+// MARK: - The steps of a part's colour (build 310)
+
+/// A part's colour has a deep day shade and a bright night shade. These are the few steps of
+/// it the app draws; which step goes where is decided once, in Core's `ShadeRule`, and read
+/// here. No screen mixes its own.
+extension Color {
+    private static let stepLock = NSLock()
+    private static var stepCache: [Color: (day: Shade, night: Shade)] = [:]
+
+    /// The colour's two shades as numbers, read from its colour set (or whatever it is made of).
+    var shades: (day: Shade, night: Shade) {
+        Color.stepLock.lock()
+        defer { Color.stepLock.unlock() }
+        if let known = Color.stepCache[self] { return known }
+        func shade(_ scheme: ColorScheme) -> Shade {
+            var environment = EnvironmentValues()
+            environment.colorScheme = scheme
+            let c = resolve(in: environment)
+            return Shade(red: Double(c.red), green: Double(c.green), blue: Double(c.blue))
+        }
+        let both = (day: shade(.light), night: shade(.dark))
+        Color.stepCache[self] = both
+        return both
+    }
+
+    init(_ shade: Shade) {
+        self.init(.sRGB, red: shade.red, green: shade.green, blue: shade.blue, opacity: 1)
+    }
+
+    init(day: Shade, night: Shade) {
+        self.init(day: day.hex, night: night.hex)
+    }
+
+    /// **The ground for white words**: a full-colour button, the chosen sidebar row, the band
+    /// at night, an icon on a white circle. The deep day shade, the same by day and by night.
+    var deep: Color { Color(ShadeRule.ground(day: shades.day)) }
+
+    /// **The colour as words on the page**: a heading, a link, the word Done on a sheet. By
+    /// day one step deeper where the day shade is weak on white; the night shade at night.
+    var ink: Color {
+        let s = shades
+        return Color(day: ShadeRule.ink(day: s.day), night: s.night)
+    }
+
+    /// **Small words in a capsule**: a quarter deeper by day, the night shade at night.
+    var capsuleWords: Color {
+        let s = shades
+        return Color(day: ShadeRule.capsuleWords(day: s.day), night: s.night)
+    }
+
+    /// **The word on a main button that cannot act yet.**
+    var waitingWords: Color {
+        let s = shades
+        return Color(day: ShadeRule.waitingWords(day: s.day), night: s.night)
+    }
+
+    /// **The far end of the night band.**
+    var bandEnd: Color { Color(ShadeRule.bandEnd(ground: ShadeRule.ground(day: shades.day))) }
+}
+
+/// **Quiet words** (build 310): helper sentences, a row's second line, small labels. The
+/// app's own soft grey — #5C6470 by day, #A9B1BC at night — instead of Apple's, which is too
+/// pale by day. On a row drawn as the chosen one it steps aside for the row's own ink, as
+/// Apple's grey did, so the words stay readable on the selection's fill.
+struct SoftInk: ShapeStyle {
+    func resolve(in environment: EnvironmentValues) -> some ShapeStyle {
+        environment.backgroundProminence == .increased
+            ? AnyShapeStyle(HierarchicalShapeStyle.secondary)
+            : AnyShapeStyle(Theme.soft)
+    }
+}
+
+/// **The quietest words that still carry information**: the hours down the side of Plan, the
+/// project's name in a task chip, "Nothing planned". #737A86 by day, #8B93A0 at night.
+struct FaintInk: ShapeStyle {
+    func resolve(in environment: EnvironmentValues) -> some ShapeStyle {
+        environment.backgroundProminence == .increased
+            ? AnyShapeStyle(HierarchicalShapeStyle.tertiary)
+            : AnyShapeStyle(Theme.faint)
+    }
+}
+
+extension ShapeStyle where Self == SoftInk {
+    static var soft: SoftInk { SoftInk() }
+}
+
+extension ShapeStyle where Self == FaintInk {
+    static var faint: FaintInk { FaintInk() }
+}
+
 /// **The one type scale.** Every `.font(…)` in the app reads one of these; no screen chooses
 /// its own size (a test in Core reads the sources and fails on one that does).
 ///
@@ -131,10 +221,13 @@ extension Theme {
     static let canvas = Color(day: 0xF3F5F8, night: 0x15181C)
     /// Text that is quieter than the main text and still easy to read.
     static let soft = Color(day: 0x5C6470, night: 0xA9B1BC)
+    /// The quietest words that still carry information (build 310).
+    static let faint = Color(day: 0x737A86, night: 0x8B93A0)
+    /// The colour of anything that belongs to no part: Browse, Settings, a plain link. Purple,
+    /// Today's colour — the home screen's. Its own colour set, FallbackTint.
+    static let fallbackTint = Color("FallbackTint")
     /// Hairlines and the night border round a panel.
     static let line = Color(day: 0xE2E6EB, night: 0x2E333A)
-    /// Words on a full-colour button: white, except on the bright night golds and oranges.
-    static let onDark = Color(day: 0xFFFFFF, night: 0x2B2200)
     /// "Look at this" — orange, never red (build 182's rule).
     static let attention = Color(day: 0xD4640A, night: 0xFFA23A)
 
@@ -162,13 +255,14 @@ struct Heading: View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(text)
                 .font(Txt.sectionTitle)
-                .foregroundStyle(color)
+                .foregroundStyle(color.ink)
             // Build 291: the count is a small capsule in the heading's own colour, not a
             // loose grey number beside it.
             if let count, count > 0 {
                 Text("\(count)")
                     .font(Txt.pill.monospacedDigit())
-                    .foregroundStyle(color)
+                    // Build 310: the smallest words, a quarter deeper by day.
+                    .foregroundStyle(color.capsuleWords)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 1)
                     .background(color.opacity(0.14), in: Capsule())
@@ -187,7 +281,7 @@ struct Pill: View {
     var body: some View {
         Text(text)
             .font(Txt.pill)
-            .foregroundStyle(color)
+            .foregroundStyle(color.capsuleWords)
             .padding(.horizontal, 6)
             .padding(.vertical, 1)
             .background(color.opacity(0.14), in: Capsule())
@@ -195,22 +289,44 @@ struct Pill: View {
     }
 }
 
-/// The main button of a screen: always full colour, never grey. When it cannot act it is the
-/// same colour at 40 %.
+/// The main button of a screen: always full colour, never grey — also on the Mac when its
+/// window is behind another, where Apple's own filled button drains to grey (build 310).
+///
+/// The fill is the part's deep shade with white words, the same by day and by night. While it
+/// cannot act yet the fill is pale (40 % by day, 30 % at night) and the word is written in
+/// the part's colour, so it can still be read.
 struct MainButtonStyle: ButtonStyle {
     let color: Color
-    var text: Color = .white
+    /// True for the one wide button at the foot of a form; false for a button that is as
+    /// wide as its word (Save beside Cancel, Set, Add).
+    var wide = true
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.controlSize) private var controlSize
 
     func makeBody(configuration: Configuration) -> some View {
+        let waiting = scheme == .dark ? ShadeRule.waitingFillNight : ShadeRule.waitingFillDay
         configuration.label
             .font(Txt.button)
-            .foregroundStyle(text)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 9)
-            .background(color.opacity(!isEnabled ? 0.4 : configuration.isPressed ? 0.8 : 1),
-                        in: RoundedRectangle(cornerRadius: Theme.radius))
+            .lineLimit(1)
+            .foregroundStyle(isEnabled ? Color.white : color.waitingWords)
+            .frame(maxWidth: wide ? .infinity : nil)
+            .padding(.horizontal, wide ? 0 : small ? 10 : 14)
+            .padding(.vertical, wide ? 9 : small ? 3 : 6)
+            .background(isEnabled ? color.deep.opacity(configuration.isPressed ? 0.8 : 1)
+                                  : (scheme == .dark ? color : color.deep).opacity(waiting),
+                        in: RoundedRectangle(cornerRadius: wide ? Theme.radius : 7))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.radius))
     }
+
+    private var small: Bool { controlSize == .small || controlSize == .mini }
+}
+
+extension ButtonStyle where Self == MainButtonStyle {
+    /// A full-colour button as wide as its word: `.buttonStyle(.filled(tint))`.
+    static func filled(_ color: Color) -> MainButtonStyle { MainButtonStyle(color: color, wide: false) }
+    /// The one wide main button of a form.
+    static func main(_ color: Color) -> MainButtonStyle { MainButtonStyle(color: color) }
 }
 
 /// A panel that wears its part's colour: the surface with a whisper of tint laid over it,
@@ -270,7 +386,7 @@ struct CalmEmptyView: View {
             }
             Text(text)
                 .font(Txt.value)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .multilineTextAlignment(.center)
         }
         .padding(28)
@@ -300,7 +416,7 @@ struct SheetBar: View {
         HStack(spacing: 10) {
             Text(title)
                 .font(Txt.sectionTitle)
-                .foregroundStyle(tint)
+                .foregroundStyle(tint.ink)
                 .lineLimit(1)
             Spacer(minLength: 12)
             Button("Cancel", action: cancel)
@@ -310,9 +426,9 @@ struct SheetBar: View {
             if showsAction {
                 Button(actionTitle, action: act)
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .tint(tint)
-                    .controlSize(.large)
+                    // Build 310: the app's own filled button. Apple's turns grey whenever
+                    // the window is not the front one.
+                    .buttonStyle(.filled(tint))
                     .disabled(!canAct)
                     .accessibilityIdentifier(actionIdentifier)
                 // ⌘S saves too. A button carries one shortcut, so the second lives on a button
@@ -365,7 +481,7 @@ struct SheetChrome: ViewModifier {
                         ToolbarItem(placement: .confirmationAction) {
                             Button(actionTitle, action: act)
                                 .fontWeight(.semibold)
-                                .tint(tint)
+                                .tint(tint.ink)
                                 .disabled(!canAct)
                                 .accessibilityIdentifier(actionIdentifier)
                         }
@@ -436,11 +552,17 @@ struct BandStyle: ViewModifier {
             .padding(.vertical, vertical)
             .background {
                 ZStack {
-                    // The night shades are bright, and white words need a darker ground.
-                    scheme == .dark ? Color.black : Color.white
-                    LinearGradient(colors: [color, color.opacity(0.8)],
-                                   startPoint: .topLeading, endPoint: .bottomTrailing)
-                    if scheme == .dark { Color.black.opacity(0.3) }
+                    if scheme == .dark {
+                        // Build 310: at night the band is the deep day shade, running to
+                        // 80 % of itself over black — rich, and white words read on it. It
+                        // used to be the bright night shade dimmed with black: dusty.
+                        LinearGradient(colors: [color.deep, color.bandEnd],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing)
+                    } else {
+                        Color.white
+                        LinearGradient(colors: [color, color.opacity(0.8)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing)
+                    }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: radius))
             }

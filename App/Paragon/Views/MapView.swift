@@ -658,7 +658,7 @@ struct MapNodeView: View {
                     .lineLimit(1)
                 Text(subtitle(for: note))
                     .font(Txt.mapLabel(zoom))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
@@ -680,7 +680,7 @@ struct MapNodeView: View {
                     .lineLimit(2)
                 Text("\(node.children.count) note\(node.children.count == 1 ? "" : "s")")
                     .font(Txt.mapLabel(zoom))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             Spacer(minLength: 0)
         }
@@ -702,7 +702,7 @@ struct MapNodeView: View {
             if let detail {
                 Text(detail)
                     .font(Txt.mapLabel(zoom))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .padding(.horizontal, 7 * zoom)
@@ -787,7 +787,7 @@ struct MapFooter: View {
                 symbolLegend(SidebarSection.kind(.resource).markName, "Resources", ParaKind.resource.tint)
                 symbolLegend("archivebox", "Archive", ParaKind.archive.tint)
                 Text("Solid line: sits under.  Dashed: also serves.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             .font(Txt.label)
             .lineLimit(1)
@@ -804,12 +804,12 @@ struct MapFooter: View {
                         Text("Served by: " + (down.isEmpty ? "nothing yet" : down.joined(separator: ", ")))
                     }
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 }
             } else {
                 Text(boxHint)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

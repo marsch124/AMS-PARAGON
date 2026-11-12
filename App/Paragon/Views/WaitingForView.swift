@@ -120,7 +120,7 @@ struct WaitingWhoView: View {
             if !offered.isEmpty {
                 Text("Already waiting for")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 WrappingHStack(spacing: 6, lineSpacing: 6) {
                     ForEach(offered, id: \.self) { name in
                         PickChip(title: name, isOn: isChosen(name), tint: tint) { person = name }
@@ -131,7 +131,7 @@ struct WaitingWhoView: View {
             if let writes {
                 Text(writes)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("waiting.who.writes")
             }
@@ -177,7 +177,7 @@ struct WaitingForList: View {
             if !list.isEmpty {
                 Text(list.summary)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
                     .padding(.bottom, 8)
@@ -244,7 +244,7 @@ struct WaitingForList: View {
             if let note = group.note {
                 Text(note)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .textCase(nil)

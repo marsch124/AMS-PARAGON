@@ -16,7 +16,7 @@ struct SyncReportView: View {
                 Spacer()
                 if let finished = report?.finishedAt {
                     Text(DayWords.time(finished))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
             .padding(14)
@@ -26,7 +26,7 @@ struct SyncReportView: View {
                     if let report {
                         if report.changeCount == 0 {
                             MarkLabel("Nothing to change. Notes and Reminders already match.", "checkmark.circle")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.soft)
                         } else {
                             rows(report)
                         }
@@ -38,11 +38,11 @@ struct SyncReportView: View {
                         }
                         Text("\(report.notesSynced) note\(report.notesSynced == 1 ? "" : "s") take part in the sync. Goals and archived notes never do.")
                             .font(Txt.label)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.faint)
                     } else {
                         Text("No sync has run yet")
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     }
                 }
                 .padding(14)
@@ -52,7 +52,7 @@ struct SyncReportView: View {
                 if preview {
                     Text("Nothing was changed. This was a rehearsal on a copy.")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 Spacer()
                 if preview {
@@ -103,7 +103,7 @@ struct SyncReportView: View {
             ForEach(lines, id: \.self) { line in
                 Text(line)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

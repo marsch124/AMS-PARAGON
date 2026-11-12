@@ -68,7 +68,9 @@ struct PhoneRootView: View {
                 page(for: item)
                     // 1.0: colour with meaning — the bar items and buttons of a tab wear the
                     // tab's colour, not the system blue.
-                    .tint(item.section?.tint ?? Color.accentColor)
+                    // Build 310: Browse and anything with no part of its own wear the app's
+                    // own purple, never Apple's blue.
+                    .tint((item.section?.tint ?? Theme.fallbackTint).ink)
                     // The focus timer's bar, above the tabs on every page (build 256). Nothing
                     // while no timer runs.
                     .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -80,6 +82,9 @@ struct PhoneRootView: View {
                     .tag(item)
             }
         }
+        // Build 310: the chosen tab wears its part's colour (it was Apple's blue on every tab).
+        .tint((tab.section?.tint ?? Theme.fallbackTint).ink)
+        .onAppear(perform: PhoneRootView.colourTheInboxCount)
         // A section asked for from another tab — the **Week** button on **Plan** is the first
         // (build 225). Browse is the tab that can hold any section, so the request chooses it
         // here and `PhoneStack` pushes the screen in the same turn.
@@ -87,6 +92,16 @@ struct PhoneRootView: View {
             guard request.count > 0, tab != .browse else { return }
             tab = .browse
         }
+    }
+
+    /// Build 310: the number on the Inbox tab is white on the Inbox's own colour. Apple's red
+    /// badge said "trouble", and red here means overdue or danger (build 182's rule). Only the
+    /// Inbox tab ever shows a number, so the one colour is right for every badge there is.
+    static func colourTheInboxCount() {
+        let shades = SidebarSection.inbox.tint.shades
+        let ground = ShadeRule.ground(day: shades.day)
+        UITabBarItem.appearance().badgeColor =
+            UIColor(red: ground.red, green: ground.green, blue: ground.blue, alpha: 1)
     }
 
     /// One page. A `switch` inside a `@ViewBuilder` is fine; a `var` would not be (build 58).
@@ -233,7 +248,9 @@ struct PhoneStack<Content: View>: View {
                             .id(notePath)
                             .navigationBarTitleDisplayMode(.inline)
                     case .section(let section):
+                        // Build 310: a screen opened from Browse wears its own part's colour.
                         PhoneSectionScreen(section: section)
+                            .tint(section.tint.ink)
                     case .template(let name):
                         TemplateEditorView(name: name)
                             .id(name)
@@ -241,6 +258,7 @@ struct PhoneStack<Content: View>: View {
                     case .settings:
                         SettingsView()
                             .navigationTitle("Settings")
+                            .tint(Theme.fallbackTint.ink)
                     }
                 }
         }
@@ -341,7 +359,7 @@ struct PhoneBrowseView: View {
                                     Spacer()
                                     let count = model.count(for: section)
                                     if count > 0 {
-                                        Text("\(count)").foregroundStyle(.secondary)
+                                        Text("\(count)").foregroundStyle(.soft)
                                     }
                                 }
                             } icon: {
@@ -363,7 +381,7 @@ struct PhoneBrowseView: View {
                 // The title in the navigation bar is small and easy to miss (build 117).
                 Text("PARAGON \(AppVersion.text)")
                     .font(Txt.label)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.faint)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                     .onLongPressGesture(minimumDuration: 1.2) { model.revealWork() }
@@ -377,7 +395,7 @@ struct PhoneBrowseView: View {
                             HStack {
                                 Text(SidebarSection.work.title)
                                 Spacer()
-                                Text("\(model.workNotes.count)").foregroundStyle(.secondary)
+                                Text("\(model.workNotes.count)").foregroundStyle(.soft)
                             }
                         } icon: {
                             MarkImage(SidebarSection.work.markName)

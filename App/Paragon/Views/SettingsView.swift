@@ -21,7 +21,7 @@ struct SettingsView: View {
             Section("Vault") {
                 LabeledContent("Folder") {
                     Text(model.vaultPath ?? "No vault selected")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(2)
                         .truncationMode(.middle)
                 }
@@ -40,14 +40,14 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings.useTaskTimes")
                 Text("Each task can say how long it takes, for example 45 minutes. Off, no task shows a time and nothing asks for one. Times already written in your notes stay there.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 if useTaskTimes {
                     WorkdayEndRow()
                 }
                 Toggle("Hide finished tasks in notes", isOn: $hideFinishedTasks)
                 Text("Done and cancelled tasks stay in the file and in the editor; this only hides them from the checklist. A finished task with open subtasks is always shown.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
 
             Section("Reminders sync") {
@@ -95,10 +95,10 @@ struct SettingsView: View {
                     set: { var c = model.config; c.syncDailyNotes = $0; model.config = c }
                 ))
                 LabeledContent("Inbox list") {
-                    Text(model.config.inboxListName).foregroundStyle(.secondary)
+                    Text(model.config.inboxListName).foregroundStyle(.soft)
                 }
                 LabeledContent("Daily notes list") {
-                    Text(model.config.dailyNotesListName).foregroundStyle(.secondary)
+                    Text(model.config.dailyNotesListName).foregroundStyle(.soft)
                 }
             }
             .id("settings.sync")
@@ -119,7 +119,7 @@ struct SettingsView: View {
                 if model.backups.isEmpty {
                     Text("No backups yet. One is saved automatically each day and before each sync. Older ones are thinned out: one a day for two weeks, one a week for two months.")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 } else {
                     DisclosureGroup("Restore a copy (\(model.backups.count))") {
                         ForEach(model.backups) { backup in
@@ -128,7 +128,7 @@ struct SettingsView: View {
                                     Text(DayWords.plainWithTime(backup.date))
                                     Text("\(backup.noteCount) notes · \(backup.reason)")
                                         .font(Txt.label)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(.soft)
                                 }
                                 Spacer()
                                 Button("Restore…") { backupToRestore = backup }
@@ -137,7 +137,7 @@ struct SettingsView: View {
                     }
                     Text("Restoring puts those notes back and saves what you have now as another backup first. Notes you made since then are left alone.")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
             .disabled(model.vault == nil)
@@ -147,7 +147,7 @@ struct SettingsView: View {
             Section("Second copy, outside the vault") {
                 LabeledContent("Kept") {
                     Text(model.outsideBackupFolderName.map { "in the folder \u{201C}\($0)\u{201D}" } ?? "on \(AppModel.thisDevice)")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -155,7 +155,7 @@ struct SettingsView: View {
                 LabeledContent("Last made") {
                     Text(model.lastOutsideBackup.map { DayWords.plainWithTime($0) }
                          ?? (model.outsideBackupRunning ? "Being made now\u{2026}" : "Not yet"))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 .accessibilityIdentifier("settings.outsideBackup.last")
                 if let problem = model.outsideBackupProblem {
@@ -182,7 +182,7 @@ struct SettingsView: View {
                 }
                 Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside the vault, so they are still there if the vault folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             .disabled(model.vault == nil)
 
@@ -204,7 +204,7 @@ struct SettingsView: View {
                                 set: { model.setCalendar(calendar.id, visible: $0) }
                             )) {
                                 Label {
-                                    Text(calendar.title) + Text("  \(calendar.sourceTitle)").foregroundStyle(.secondary)
+                                    Text(calendar.title) + Text("  \(calendar.sourceTitle)").foregroundStyle(.soft)
                                 } icon: {
                                     MarkImage("circle.fill").foregroundStyle(calendar.color)
                                 }
@@ -226,7 +226,7 @@ struct SettingsView: View {
                 }
                 Text("Events are only read. The one thing written to your calendar is the time blocks you add in Plan.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
 
             Section("Help") {
@@ -254,11 +254,11 @@ struct SettingsView: View {
                 #if os(macOS)
                 Text("⇧⌘N opens quick capture. A Shortcut can add to the Inbox from other apps: see How it works.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 #else
                 Text("Use Share › PARAGON from any app")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 #endif
             }
 
@@ -289,9 +289,9 @@ struct SettingsView: View {
                 if let report = model.lastReport {
                     Text(report.summary)
                     ForEach(report.conflicts, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.orange) }
-                    ForEach(report.warnings, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.secondary) }
+                    ForEach(report.warnings, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.soft) }
                 } else {
-                    Text("Not synced yet in this session").foregroundStyle(.secondary)
+                    Text("Not synced yet in this session").foregroundStyle(.soft)
                 }
             }
 
@@ -303,7 +303,7 @@ struct SettingsView: View {
                 LabeledContent("Device id", value: model.deviceID)
                 Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .formStyle(.grouped)
@@ -403,7 +403,7 @@ struct ReviewRhythmStepper: View {
             .lineLimit(1)
             Text(level.reason)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 2)
@@ -534,11 +534,11 @@ struct DayReminderSection: View {
             } else if isOn {
                 Text(nextText)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             Text(kind.explanation)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             Button("Try it now") { reminder.sendTest(kind) }
                 .disabled(reminder.isTesting(kind))
                 .accessibilityIdentifier(kind.testButtonIdentifier)
@@ -649,7 +649,7 @@ struct WorkdayEndRow: View {
             .accessibilityIdentifier("settings.workdayEnds")
         Text("Start the day says whether what you pick fits before this time. Tasks can still be planned after it.")
             .font(Txt.label)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
     }
 
     /// Clock parts both ways, never seconds since midnight (build 238): on the day the clocks

@@ -81,7 +81,7 @@ struct TemplatesView: View {
                         Section {
                             ForEach(model.templatesFromCloud, id: \.self) { name in
                                 MarkLabel("\(name) \u{2014} coming from iCloud", "icloud.and.arrow.down")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.soft)
                             }
                         }
                     }
@@ -173,7 +173,7 @@ struct TemplateRow: View {
                 Text(file.name).font(Txt.listTitle)
                 Text(detail)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(2)
             }
         }
@@ -211,7 +211,7 @@ struct TemplateEditorView: View {
                 } else {
                     Text("Saved")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
         }
@@ -232,7 +232,7 @@ struct TemplateEditorView: View {
                 .font(Txt.value)
             Text("`{{title}}` becomes the note's name and `{{date}}` today's date. In snippets, `{{tomorrow}}` and `{{week}}` work too, and anything else in braces is asked for when you use it.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -291,12 +291,12 @@ struct SnippetSheet: View {
                 .font(Txt.sectionTitle.bold())
             Text("Fill these in and the block is added to the note's tasks. Dates are worked out for you.")
                 .font(Txt.value)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             ForEach(snippet.questions, id: \.self) { question in
                 VStack(alignment: .leading, spacing: 3) {
                     Text(question.capitalized)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                     TextField(question, text: binding(for: question))
                         .textFieldStyle(.roundedBorder)
                 }
@@ -336,16 +336,16 @@ struct NewTemplateSheet: View {
                 .font(Txt.sectionTitle.bold())
             Text("A template is how a note starts. You can have as many as you like for the same kind of note — a plain project and a client project, say — and pick between them when you make one.")
                 .font(Txt.value)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Name").font(Txt.label).foregroundStyle(.secondary)
+                Text("Name").font(Txt.label).foregroundStyle(.soft)
                 TextField("Client project", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("Makes a").font(Txt.label).foregroundStyle(.secondary)
+                Text("Makes a").font(Txt.label).foregroundStyle(.soft)
                 Picker("Makes a", selection: $kind) {
                     ForEach([ParaKind.goal, .project, .area, .resource], id: \.self) { kind in
                         Text(kind.displayName).tag(kind)
@@ -356,7 +356,7 @@ struct NewTemplateSheet: View {
             }
             Text("It starts as a copy of the \(kind.displayName.lowercased()) template you use now. Change it afterwards to whatever you want.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack {

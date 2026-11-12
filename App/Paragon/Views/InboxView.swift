@@ -209,8 +209,7 @@ struct InboxTriageView: View {
                 .focused($captureFocused)
                 .onSubmit(capture)
             Button("Add", action: capture)
-                .buttonStyle(.borderedProminent)
-                .tint(SidebarSection.inbox.tint)
+                .buttonStyle(.filled(SidebarSection.inbox.tint))
                 .disabled(newItem.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         .padding(.horizontal, 12)
@@ -227,7 +226,7 @@ struct InboxTriageView: View {
             // The keys exist on the Mac only; on the phone the line only wrapped beside the heading.
             Text("T today · M tomorrow · D done · ⌫ delete")
                 .font(Txt.listSecond)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.faint)
             #endif
         }
         .padding(.horizontal, 12)
@@ -537,7 +536,7 @@ struct InboxFileItView: View {
             if destinations.isEmpty {
                 Text("You have no active projects or areas yet. Make one from a line with the button below.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .padding(.horizontal, 16)
                     .padding(.top, 6)
             }
@@ -613,7 +612,7 @@ struct InboxFileItView: View {
         } else {
             Text(DeviceWords.holds ? "Pick a line, then tap where it should go." : "Pick a line on the left, then click where it should go.")
                 .font(Txt.value)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
                 .background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
@@ -672,7 +671,7 @@ struct AreaDestinationGroup: View {
                     Button(action: toggle) {
                         MarkImage(isFolded ? "chevron.right" : "chevron.down")
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .frame(width: 16)
                     }
                     .buttonStyle(.plain)
@@ -720,7 +719,7 @@ struct DestinationRow: View {
                         .lineLimit(1)
                     Text(subtitle)
                         .font(Txt.listSecond)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 Spacer(minLength: 0)
             }
@@ -769,8 +768,7 @@ struct InboxNoteRow: View {
                 .font(Txt.list)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button("Make task", action: makeTask)
-                .buttonStyle(.borderedProminent)
-                .tint(SidebarSection.inbox.tint)
+                .buttonStyle(.filled(SidebarSection.inbox.tint))
                 .controlSize(.small)
                 .accessibilityIdentifier("inbox.note.makeTask")
             Button(action: delete) {
@@ -778,7 +776,7 @@ struct InboxNoteRow: View {
             }
             .accessibilityLabel("Delete")
             .buttonStyle(.borderless)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
             .help("Delete this note")
             .accessibilityIdentifier("inbox.note.delete")
         }

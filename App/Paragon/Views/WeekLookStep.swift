@@ -73,7 +73,7 @@ struct WeekLookStep: View {
         if eveningLines(look).isEmpty {
             Text("No evening lines \(weekWords). **Close the day** writes them.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         } else {
             ForEach(eveningLines(look)) { line in
                 EveningLineRow(line: line)
@@ -99,7 +99,7 @@ struct WeekLookStep: View {
                 if let more = servedMore(look) {
                     Text(more)
                         .font(Txt.value)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
         }
@@ -192,7 +192,7 @@ struct WeekLookStep: View {
         } else {
             Text("No task was ticked off \(weekWords)")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
     }
 
@@ -396,7 +396,7 @@ struct WeekLineBox: View {
                 .accessibilityIdentifier("review.weekLine.field")
             Text("Goes into the note for \(weekName), under **Looking back**.")
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             if let problem {
                 Text(problem)
@@ -482,7 +482,7 @@ private struct EveningLineRow: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(dayName)
                     .font(Txt.label.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .frame(width: 36, alignment: .leading)
                 if line.waiting {
                     MarkLabel(line.text, "icloud")
@@ -526,7 +526,7 @@ private struct EndedProjectRow: View {
                     .foregroundStyle(project.status.tint(onNote: ParaKind.project.tint))
                     .frame(width: 18)
                 Text("Ended \(weekWords):")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 Text(project.title)
                     .fontWeight(.medium)
                     .lineLimit(2)
@@ -583,7 +583,7 @@ private struct WeekDayBars: View {
                 .frame(height: barArea, alignment: .bottom)
             Text(dayName(record.day))
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }

@@ -15,13 +15,13 @@ struct CalendarEventRows: View {
         if model.calendarAccessGranted == false {
             Text("Calendar access is off. Allow it in \(DeviceWords.systemSettings) › Privacy & Security › Calendars, or turn events off in Settings.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         } else {
             let events = model.events(on: date)
             if events.isEmpty {
                 Text(model.calendarAccessGranted == nil ? "Loading events…" : "No events")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             } else if compact {
                 // **One list row holding every event, not one row each** (build 213). A `List`
                 // gives every row a minimum height — about 44pt on the iPhone, the size Apple
@@ -59,7 +59,7 @@ struct CalendarEventRow: View {
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 3 }
             Text(event.timeLabel(on: date))
                 .font(compact ? .caption.monospacedDigit() : .callout.monospacedDigit())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .frame(minWidth: compact ? 74 : 96, alignment: .leading)
             // **Compact puts the place on the same line as the name**, after a middle dot,
             // rather than under it: a second line is what made this section twice as tall as
@@ -73,7 +73,7 @@ struct CalendarEventRow: View {
                     if let location = event.location, compact {
                         Text("· \(location)")
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .lineLimit(1)
                             .layoutPriority(-1)
                     }
@@ -88,7 +88,7 @@ struct CalendarEventRow: View {
                 if let location = event.location, !compact {
                     Text(location)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(1)
                 }
             }

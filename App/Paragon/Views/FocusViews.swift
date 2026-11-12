@@ -203,7 +203,7 @@ struct FocusStopView: View {
             Text(headline)
                 .font(Txt.sectionTitle.weight(.bold))
             Text(Self.sentence(session))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             if let problem = model.focusProblem {
                 // Why the last answer could not be written, here in the sheet rather than in an
@@ -241,7 +241,7 @@ struct FocusStopView: View {
             .accessibilityIdentifier("focus.notDone")
             Text("Either way, \(range) goes into \(whereTo) under Worked.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             if forgotten {
                 // A clock left running overnight would write whole days of 00:00–24:00 lines.
@@ -257,7 +257,7 @@ struct FocusStopView: View {
             } label: {
                 Text("Don\u{2019}t save the time")
                     .font(Txt.value)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)
                     .contentShape(Rectangle())

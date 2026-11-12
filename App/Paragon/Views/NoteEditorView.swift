@@ -443,7 +443,7 @@ struct NoteEditorView: View {
                             // rather than part of the button.
                             Text("\(finished) finished")
                                 .font(Txt.label)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.soft)
                             StateToggle(markName: "eye.slash", title: "Hide finished",
                                         isOn: hideFinishedTasks, tint: note.tint) {
                                 hideFinishedTasks.toggle()
@@ -529,7 +529,7 @@ struct NoteEditorView: View {
             FoldButton(isOpen: frontmatterOpen, accessibilityName: "Settings block at the top of the note") {
                 Text(frontmatterFolded ? "Settings block hidden" : "Settings block")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .accessibilityIdentifier("note.frontmatter")
@@ -837,8 +837,7 @@ struct NoteEditorView: View {
                 .accessibilityLabel("Add")
             } else {
                 Button("Add", action: addTask)
-                    .buttonStyle(.borderedProminent)
-                    .tint(ParaKind.project.tint)
+                    .buttonStyle(.filled(ParaKind.project.tint))
                     .disabled(!canAdd)
                 snippetMenu(iconOnly: false)
             }
@@ -1197,7 +1196,7 @@ struct GoalMeasureEditor: View {
                 .font(Txt.label.weight(.semibold))
             Text("One line that says how you will know this goal is reached.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("All 440 km in 30 days", text: $typed)
                 .textFieldStyle(.roundedBorder)
@@ -1318,14 +1317,14 @@ struct ProjectEndedLine: View {
                 MarkImage(status.markName)
                     .foregroundStyle(status.tint(onNote: live.tint))
                 Text(words)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .font(Txt.label)
         } else {
             MarkLabel("Set the day it ended\u{2026}", status.markName)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
                 .overlay(Capsule().strokeBorder(Color.secondary,
@@ -1748,7 +1747,7 @@ struct TaskRow: View {
                     }
                 }
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             }
             // **Who?** hangs off the title, not off the row: the row already carries the date
             // popover, and a second presentation on one view is not reliable on the phone
@@ -1765,7 +1764,7 @@ struct TaskRow: View {
                 } else if let minutes = ref.task.minutes {
                     Text(TaskTime.label(minutes))
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
         }
@@ -1879,7 +1878,7 @@ struct MissingLinksList: View {
                         MarkImage("plus.circle")
                         Text(title)
                     }
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 }
                 .buttonStyle(.plain)
                 .help("No note is called this yet \u{2014} click to make it")
@@ -1920,7 +1919,7 @@ struct DayAgendaView: View {
             if refs.isEmpty {
                 Text("Nothing from other notes is due on this day")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             } else {
                 ForEach(refs) { ref in
                     TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
@@ -1953,7 +1952,7 @@ struct WeekAgendaView: View {
             .buttonStyle(.borderless)
             Text("Drag a task onto a day to plan it there. Tick it here when it is done.")
                 .font(Txt.listSecond)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.faint)
             ForEach(overview.days) { day in
                 HStack {
                     Text(DayWords.withWeekday(day.date))
@@ -1962,12 +1961,12 @@ struct WeekAgendaView: View {
                     if !day.due.isEmpty {
                         Text("\(day.due.count)")
                             .font(Txt.listSecond)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     }
                     if !day.completed.isEmpty {
                         Text("✓ \(day.completed.count)")
                             .font(Txt.listSecond)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     }
                 }
                 .foregroundStyle(day.date == .today() ? ParaKind.daily.tint : .secondary)
@@ -2029,7 +2028,7 @@ struct GoalDashboardView: View {
                 // settings block. The button under it makes the note that serves this one.
                 Text(emptyText)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             } else {
                 ForEach(serving) { note in
                     Button {
@@ -2044,11 +2043,11 @@ struct GoalDashboardView: View {
                             if note.isFinishedProject {
                                 Text("done")
                                     .font(Txt.label)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.soft)
                             } else if open > 0 {
                                 Text("\(open) open")
                                     .font(Txt.label)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.soft)
                             }
                         }
                     }
@@ -2071,7 +2070,7 @@ struct GoalDashboardView: View {
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(value).font(Txt.listTitle).foregroundStyle(goal.tint)
-            Text(label).font(Txt.listSecond).foregroundStyle(.secondary)
+            Text(label).font(Txt.listSecond).foregroundStyle(.soft)
         }
     }
 
@@ -2138,7 +2137,7 @@ struct TaskSyntaxButton: View {
         } label: {
             MarkImage("info.circle")
                 .font(Txt.list)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .frame(width: 22, height: 22)
                 .contentShape(Rectangle())
         }
@@ -2182,14 +2181,14 @@ private struct TaskSyntaxHelp: View {
                             .foregroundStyle(ParaKind.project.tint)
                         Text(row.meaning)
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
             Text("Write them in any order, after the task's own words. What you add here becomes a task in this note and a reminder in Apple Reminders.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
@@ -2236,7 +2235,7 @@ struct NoteGallery: View {
                 let shown = Pictures.filtered(paths, by: search, pictureText: model.pictureText)
                 if shown.isEmpty {
                     Text("No picture has these words")
-                        .font(Txt.label).foregroundStyle(.secondary)
+                        .font(Txt.label).foregroundStyle(.soft)
                         .accessibilityIdentifier("gallery.none")
                 }
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -2308,7 +2307,7 @@ struct SketchThumb: View {
             } else {
                 Text("On its way from iCloud")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .padding(8)
             }
         }
@@ -2506,8 +2505,7 @@ struct SketchSheet: View {
                 }
                 Button("Done") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                    .buttonStyle(.borderedProminent)
-                    .tint(tint)
+                    .buttonStyle(.filled(tint))
             }
             if let picture = request.picturePath {
                 PictureZoom(path: picture, tint: tint)
@@ -2517,7 +2515,7 @@ struct SketchSheet: View {
             }
             if request.picturePath.map(Pictures.isSketch) ?? false {
                 Text("Sketches are drawn on the iPhone or iPad.")
-                    .font(Txt.label).foregroundStyle(.secondary)
+                    .font(Txt.label).foregroundStyle(.soft)
             }
         }
         .padding(16)
@@ -2580,7 +2578,7 @@ struct PictureZoom: View {
                     if let image {
                         image.resizable().scaledToFit()
                     } else {
-                        Text("On its way from iCloud").font(Txt.label).foregroundStyle(.secondary)
+                        Text("On its way from iCloud").font(Txt.label).foregroundStyle(.soft)
                     }
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
@@ -2637,17 +2635,16 @@ struct PictureZoom: View {
     private var selectBar: some View {
         HStack(spacing: 8) {
             if let said {
-                Text(said).font(Txt.label).foregroundStyle(.secondary)
+                Text(said).font(Txt.label).foregroundStyle(.soft)
             } else if selecting {
-                Text("Drag over the words to copy").font(Txt.label).foregroundStyle(.secondary)
+                Text("Drag over the words to copy").font(Txt.label).foregroundStyle(.soft)
             }
             Button(selecting ? "Stop selecting" : "Select part") {
                 selecting.toggle()
                 box = nil
                 if selecting { withAnimation(.easeOut(duration: 0.2)) { reset() } }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(tint)
+            .buttonStyle(.filled(tint))
             .controlSize(.small)
             .accessibilityIdentifier("picture.selectPart")
         }

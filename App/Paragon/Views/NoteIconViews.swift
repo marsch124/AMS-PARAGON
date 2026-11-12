@@ -157,7 +157,7 @@ struct NoteIconChip: View {
         case .emoji(let emoji):
             framed(Text(emoji), isSet: true)
         case .unset:
-            framed(MarkLabel("Icon\u{2026}", "paintpalette").foregroundStyle(.secondary), isSet: false)
+            framed(MarkLabel("Icon\u{2026}", "paintpalette").foregroundStyle(.soft), isSet: false)
         }
     }
 

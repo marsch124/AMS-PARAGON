@@ -193,7 +193,7 @@ struct PlannerDayView: View {
                 .lineLimit(1)
             Text(summary)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(1)
         }
     }
@@ -310,7 +310,7 @@ struct PlannerDayView: View {
             ForEach(firstHour...lastHour, id: \.self) { hour in
                 Text(String(format: "%02d", hour))
                     .font(Txt.listSecond.monospacedDigit())
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.faint)
                     .frame(height: hourHeight, alignment: .top)
                     .padding(.trailing, 6)
             }
@@ -641,7 +641,7 @@ struct PlannerDayView: View {
             // saying what that adds up to — so the answer is visible without opening anything.
             HStack(spacing: 10) {
                 Text("Starts")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 DatePicker("", selection: startTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
                 Button {
@@ -659,7 +659,7 @@ struct PlannerDayView: View {
             .buttonStyle(.borderless)
             VStack(alignment: .leading, spacing: 6) {
                 Text("For how long")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 WrappingHStack(spacing: 6, lineSpacing: 6) {
                     ForEach(lengthChoices, id: \.self) { minutes in
                         LengthChip(title: PlannerDayView.durationLabel(minutes),
@@ -676,7 +676,7 @@ struct PlannerDayView: View {
                  ? "An event is written to the calendar under Settings \u{203a} Apple Calendar \u{203a} Time blocks go to. Change the block here and the event follows it; remove the block, or take the tick off, and the event goes."
                  : "A block is only for you. It is a line in this day's note under Plan, it never becomes a task, and nothing outside PARAGON sees it.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 if let editing {
@@ -922,10 +922,10 @@ private struct PlanTaskCard: View {
             HStack(spacing: 4) {
                 MarkImage("circle")
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 Text(startTime)
                     .font(Txt.listSecond.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize()
                 Text(title)
                     .font(Txt.label)
@@ -937,10 +937,10 @@ private struct PlanTaskCard: View {
                 HStack(spacing: 3) {
                     MarkImage("circle")
                         .font(Txt.listSecond)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                     Text(time)
                         .font(Txt.listSecond.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                     Spacer(minLength: 0)
                 }
                 Text(title)
@@ -1214,14 +1214,14 @@ struct PlannerActionsView: View {
                 .frame(height: 26, alignment: .bottom)
             Text("Due today or earlier, then your next actions.")
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .padding(.horizontal, 10)
                 .padding(.bottom, 6)
             Divider()
             if actions.isEmpty {
                 Text("Nothing due today and no next actions. Give a task a date, or mark one as the next action.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(12)
             }

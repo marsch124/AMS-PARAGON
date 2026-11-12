@@ -90,7 +90,7 @@ struct HelpDocument: View {
                 }
                 if sections.isEmpty {
                     Text("Nothing in this page matches \u{201C}\(query)\u{201D}.")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .padding(.top, 8)
                 }
                 ForEach(sections) { section in
@@ -116,7 +116,7 @@ struct HelpDocument: View {
         .safeAreaInset(edge: .top) {
             HStack(spacing: 8) {
                 MarkImage("magnifyingglass")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 TextField("Search this page", text: $search)
                     .textFieldStyle(.roundedBorder)
                 if !query.isEmpty {
@@ -149,7 +149,7 @@ struct HelpDocument: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text("•").foregroundStyle(.secondary)
+                        Text("•").foregroundStyle(.soft)
                         Text(Self.inline(item))
                     }
                 }

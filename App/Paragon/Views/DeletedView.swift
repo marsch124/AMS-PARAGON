@@ -68,7 +68,7 @@ struct DeletedRow: View {
                     .lineLimit(1)
                 Text("\(deleted.kind.displayName) · \(when)")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             Spacer(minLength: 6)
             Button("Put back") { model.putBack(deleted) }

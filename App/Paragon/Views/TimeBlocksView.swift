@@ -112,7 +112,7 @@ struct TimeBlocksView: View {
                 Text(model.calendarAccessGranted == false
                      ? "Time blocks need Calendar access."
                      : "No time blocks yet. Add one above; it becomes an event in Apple Calendar.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             ForEach(days, id: \.self) { day in
                 Section(Self.dayLabel(day)) {
@@ -132,7 +132,7 @@ struct TimeBlocksView: View {
                 .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 3 }
             Text("\(DayWords.time(block.start)) – \(DayWords.time(block.end))")
                 .font(Txt.value.monospacedDigit())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .frame(minWidth: 110, alignment: .leading)
             VStack(alignment: .leading, spacing: 1) {
                 Text(block.title)
@@ -141,14 +141,14 @@ struct TimeBlocksView: View {
                 if !block.notes.isEmpty {
                     Text(block.notes)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(1)
                 }
             }
             Spacer(minLength: 0)
             Text(block.calendarTitle)
                 .font(Txt.listSecond)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.faint)
         }
         .contentShape(Rectangle())
         .onTapGesture { edit(block) }

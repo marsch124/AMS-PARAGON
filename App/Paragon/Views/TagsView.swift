@@ -110,7 +110,7 @@ struct TagsView: View {
             HStack(spacing: 8) {
                 MarkImage(isOpen ? "chevron.down" : "chevron.right")
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .frame(width: 12)
                 Text("#\(use.tag)")
                     .font(Txt.listTitle)
@@ -118,7 +118,7 @@ struct TagsView: View {
                 Spacer(minLength: 6)
                 Text(summary(of: use))
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(1)
                     .fixedSize()
             }
@@ -157,7 +157,7 @@ struct TagsView: View {
         if notes.isEmpty && tasks.isEmpty {
             Text("Nothing carries this tag any more")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
         ForEach(notes) { note in
             Button {
@@ -213,7 +213,7 @@ struct SnippetsView: View {
                                     .font(Txt.listTitle)
                                 Text(firstLines(of: snippet))
                                     .font(Txt.label)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.soft)
                                     .lineLimit(2)
                             }
                             .padding(.vertical, 2)
@@ -318,7 +318,7 @@ struct TagChoices: View {
             choices
             Text(hint)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
@@ -340,7 +340,7 @@ struct TagChoices: View {
         if tags.isEmpty {
             Text("No tags anywhere yet. Write the first one above.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
@@ -365,7 +365,7 @@ struct TagChoices: View {
                 Spacer(minLength: 6)
                 Text(countText(for: tag))
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             .contentShape(Rectangle())
         }

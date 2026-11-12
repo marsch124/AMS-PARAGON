@@ -211,7 +211,7 @@ struct TodayView: View {
                         // Build 291: a few calm words, no instructions.
                         Text("Nothing due today")
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         rows(dueToday)
                     }
@@ -348,7 +348,7 @@ private struct NowAndNextLines: View {
                     .fixedSize()
                 Text(block.timeText)
                     .monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize()
                 Text(block.title)
                     .lineLimit(1)
@@ -377,7 +377,7 @@ private struct NowAndNextLines: View {
                 .layoutPriority(-1)
         }
         .font(Txt.label)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.soft)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Self.thenWords(block))
         .accessibilityIdentifier("today.next")
@@ -459,7 +459,9 @@ private struct HeaderActionButton: View {
             label
                 .font(Txt.label.weight(strong ? .bold : .semibold))
                 .lineLimit(1)
-                .foregroundStyle(tint)
+                // Build 310: on the band's white circle the mark is always the deep day
+                // shade; the bright night shade on white nearly vanished (2 to 1).
+                .foregroundStyle(onBand ? tint.deep : tint.ink)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
                 .background(onBand ? Color.white : Color.clear, in: Capsule())

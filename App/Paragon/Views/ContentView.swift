@@ -352,15 +352,15 @@ struct WelcomeView: View {
             // ten, and choosing a folder by hand is the fallback, not the first offer.
             if model.canReopenLastVault {
                 Button(backTitle) { model.reopenLastVault() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.filled(Theme.fallbackTint))
                 Button("Choose a different folder…") { showingImporter = true }
             } else {
                 Button("Choose a vault folder…") { showingImporter = true }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.filled(Theme.fallbackTint))
             }
             Text("Pick your vault folder, an empty folder or an existing NotePlan style folder. PARAGON shows what it found first and writes nothing until you say so.")
                 .font(Txt.label)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.faint)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
         }
@@ -447,7 +447,7 @@ struct SidebarView: View {
             Section {
                 Text("PARAGON \(AppVersion.text)")
                     .font(Txt.listSecond)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.faint)
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
                     .selectionDisabled()
@@ -475,6 +475,7 @@ struct SidebarView: View {
     private func row(_ section: SidebarSection) -> some View {
         // Build 282: the chosen row is filled in its part's colour, with white words.
         let chosen = model.section == section
+        let count = model.count(for: section)
         return Label {
             Text(section.title)
                 .foregroundStyle(chosen ? Color.white : Color.primary)
@@ -482,9 +483,12 @@ struct SidebarView: View {
             MarkImage(section.markName)
                 .rowTint(chosen ? Color.white : section.tint)
         }
-        .badge(model.count(for: section))
+        // Build 310: on the chosen row the count is white, like the words beside it.
+        .badge(count > 0 ? Text("\(count)").foregroundStyle(chosen ? Color.white : Theme.soft) : nil)
         .tag(section)
-        .listRowBackground(chosen ? RoundedRectangle(cornerRadius: 6).fill(section.tint).padding(.horizontal, 8) : nil)
+        // Build 310: the fill is the deep day shade by day and by night. At night it was the
+        // bright night shade, and the white words on it could not be read (2.2 to 1).
+        .listRowBackground(chosen ? RoundedRectangle(cornerRadius: 6).fill(section.tint.deep).padding(.horizontal, 8) : nil)
         // "sidebar.Inbox", "sidebar.Projects" and so on: what the Mac screen tests click
         // (build 195). Accessibility only; nothing here takes the row's click (builds 71-74).
         .accessibilityIdentifier("sidebar.\(section.key)")
@@ -592,7 +596,7 @@ struct NoteListView: View {
                 } label: {
                     MarkImage(foldedAreas.contains(note.relativePath) ? "chevron.right" : "chevron.down")
                         .font(Txt.listSecond)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .frame(width: 14)
                 }
                 .buttonStyle(.plain)
@@ -1404,7 +1408,7 @@ struct FolderChoiceView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(model.folderChoice?.name ?? "")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(1)
                 .truncationMode(.middle)
             HStack(spacing: 8) {
@@ -1416,7 +1420,7 @@ struct FolderChoiceView: View {
             ForEach(words.details, id: \.self) { line in
                 Text(line)
                     .font(Txt.list)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack {
@@ -1426,7 +1430,7 @@ struct FolderChoiceView: View {
                     .accessibilityIdentifier("folderChoice.cancel")
                 if let action = words.action {
                     Button(action) { model.confirmFolderChoice() }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.filled(Theme.fallbackTint))
                         .keyboardShortcut(.defaultAction)
                         .accessibilityIdentifier("folderChoice.confirm")
                 }

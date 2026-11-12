@@ -204,7 +204,7 @@ struct SearchView: View {
                 } label: {
                     MarkLabel("Saved searches", savedFolded ? "chevron.right" : "chevron.down")
                         .font(Txt.label.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 .buttonStyle(.plain)
                 if !savedFolded {
@@ -238,7 +238,7 @@ struct SearchView: View {
     private func foldedLine(_ query: SearchQuery) -> some View {
         Text(query.summary)
             .font(Txt.label)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
             .lineLimit(2)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
@@ -313,7 +313,7 @@ struct SearchView: View {
         Text(title.uppercased())
             .font(Txt.pill.weight(.semibold))
             .tracking(0.6)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
     }
 
     private func group<Content: View>(_ title: String, tint: Color, note: String?,
@@ -341,7 +341,7 @@ struct SearchView: View {
             if let note {
                 Text(note)
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !isPhone {
@@ -543,13 +543,13 @@ struct SearchHitRow: View {
             ForEach(hit.snippets.prefix(2), id: \.self) { snippet in
                 Text(snippet)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(1)
             }
             if !hit.tasks.isEmpty && hit.snippets.isEmpty {
                 Text("\(hit.tasks.count) matching task\(hit.tasks.count == 1 ? "" : "s")")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .padding(.vertical, 2)
@@ -572,7 +572,7 @@ struct SearchHelpView: View {
             Section {
                 Text("Write a word above, or tick any of the boxes. Ticking two boxes in the same row means either of them; boxes in different rows are added together.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
             // `Section(_:content:footer:)` does not exist — a title string and a footer cannot
@@ -584,7 +584,7 @@ struct SearchHelpView: View {
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(example.1).font(Txt.list)
-                            Text(example.0).font(Txt.listSecond).foregroundStyle(.secondary)
+                            Text(example.0).font(Txt.listSecond).foregroundStyle(.soft)
                         }
                     }
                     .buttonStyle(.plain)

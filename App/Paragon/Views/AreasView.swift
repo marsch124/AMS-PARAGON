@@ -87,7 +87,7 @@ struct AreaDashboardView: View {
                 Text(head)
                     .fontWeight(.semibold)
                 Text("\u{00B7} " + weekly.bandWeek)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             .font(Txt.label)
             .lineLimit(1)
@@ -96,7 +96,7 @@ struct AreaDashboardView: View {
         } else if let caption = weekly.caption(today: .today()) {
             Text(caption)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("area.weekly")
         }
@@ -152,7 +152,7 @@ struct AreaDashboardView: View {
                 if !stillComing {
                     Text(overview.emptyText)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .accessibilityIdentifier("area.noProjects")
                 }
             } else {
@@ -163,7 +163,7 @@ struct AreaDashboardView: View {
             if let over = overview.overText {
                 Text(over)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !overview.subAreas.isEmpty {
@@ -332,7 +332,7 @@ struct SubAreaRow: View {
                     .multilineTextAlignment(.leading)
                 Text("\u{00B7} " + line.factsText)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize()
                 // At the end, so the facts follow the name instead of standing at the far
                 // edge of the column (build 169).

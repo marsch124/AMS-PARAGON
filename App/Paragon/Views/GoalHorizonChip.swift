@@ -86,7 +86,7 @@ struct GoalHorizonChip: View {
                     Text(option.label)
                     Text(Self.explanation(option))
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)

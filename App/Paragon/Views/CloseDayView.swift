@@ -130,7 +130,7 @@ struct CloseDayView: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text(DayWords.withWeekday(day))
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
         .padding(.horizontal, isPhone ? 14 : 20)
         .padding(.vertical, 12)
@@ -152,7 +152,7 @@ struct CloseDayView: View {
             if finished.isEmpty {
                 Text("No task was ticked off today")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             } else {
                 ForEach(model.index.servedCounts(of: finished)) { served in
                     ServedRow(served: served)
@@ -179,11 +179,11 @@ struct CloseDayView: View {
             if tomorrowShown.isEmpty {
                 Text("Nothing is planned for tomorrow yet")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             } else {
                 Text("Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
                 ForEach(tomorrowShown) { ref in
                     // **First** in front of the row, larger (build 240): the tick circle came
@@ -200,7 +200,7 @@ struct CloseDayView: View {
                 if tomorrowHidden > 0 {
                     Text(tomorrowHidden == 1 ? "…and 1 more next action." : "…and \(tomorrowHidden) more next actions.")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
             }
         }
@@ -242,7 +242,7 @@ struct CloseDayView: View {
                 .font(Txt.value.weight(.semibold))
             Text("Everything with a date for today or earlier is done or dropped.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -280,7 +280,7 @@ struct CloseDayView: View {
                 .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
             Text("Goes into today's daily note, under **Looking back**.")
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             if let saveProblem {
                 Text(saveProblem)
                     .font(Txt.label)
@@ -360,19 +360,19 @@ private struct PlannedWorkedSection: View {
             if table.isEmpty {
                 Text(emptyMessage)
                     .font(Txt.value)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 grid
                 Text(caption)
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let clockOn {
                 Text("The focus timer on \u{201C}\(clockOn)\u{201D} is not stopped yet. Its time is added here when you stop it.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -439,7 +439,7 @@ private struct PlannedWorkedSection: View {
         Text(title.uppercased())
             .font(Txt.label.weight(.semibold))
             .tracking(0.6)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
     }
 
     /// "45 min", "1 h 30" — the task's own time button's words (`TaskTime.label`). Returns a
@@ -499,7 +499,7 @@ struct ServedRow: View {
                 .frame(maxWidth: 120, alignment: .leading)
             Text("\(served.count)")
                 .monospacedDigit()
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
         .font(Txt.label.weight(.medium))
         .foregroundStyle(tint)
@@ -520,7 +520,7 @@ struct ServedRow: View {
                 .lineLimit(2)
             Text(served.count == 1 ? "1 task" : "\(served.count) tasks")
                 .font(Txt.value)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             Spacer(minLength: 0)
         }
     }

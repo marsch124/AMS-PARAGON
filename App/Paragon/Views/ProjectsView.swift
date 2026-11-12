@@ -54,13 +54,13 @@ struct ProjectsListView: View {
                     Text(head)
                         .fontWeight(.semibold)
                     Text("\u{00B7} " + weekly.bandWeek)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 } else if let caption = weekly.caption(today: DateOnly.today()) {
                     // Every dated finish is older than eight weeks: bars of nothing and
                     // "0 tasks finished" would say more than the notes do (build 270, the same
                     // fault the area page's review found; the box beside it has long said this).
                     Text(caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                 }
                 if look > 0 {
                     MarkLabel(WeeklyFinished.lookText(look), "exclamationmark.triangle.fill")
@@ -96,7 +96,7 @@ struct ProjectsListView: View {
                     if isOpen(group), let text = footerText(for: group) {
                         Text(text)
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -223,7 +223,7 @@ struct ProjectGroupHeader: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 MarkImage("chevron.right")
                     .font(Txt.listSecond.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .rotationEffect(.degrees(open ? 90 : 0))
                 badge
                 Text(group.title)
@@ -310,7 +310,7 @@ struct ProjectGroupHeader: View {
             // Dashed and grey: not connected, as on the Map (build 82).
             MarkImage(ChainSymbol.datedGoal)
                 .font(Txt.listSecond.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .frame(width: 20, height: 20)
                 .overlay(Circle().strokeBorder(Color.secondary.opacity(0.7),
                                                style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
@@ -392,7 +392,7 @@ struct ProjectRow: View {
         if isOver {
             Text(second.text)
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(1)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(endedSpoken)
@@ -587,7 +587,7 @@ struct ProjectProgress: View {
             .frame(width: 40, height: 5)
             Text(ProjectLine.progressText(done: done, total: total))
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
     }
 }

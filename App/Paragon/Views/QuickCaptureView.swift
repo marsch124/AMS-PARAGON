@@ -85,7 +85,7 @@ struct QuickCaptureView: View {
             ZStack(alignment: .topLeading) {
                 if text.isEmpty {
                     Text(greeting)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 8)
                         .allowsHitTesting(false)
@@ -154,8 +154,7 @@ struct QuickCaptureView: View {
                     // one Save, where it always was.
                     Button("Save", action: save)
                         .keyboardShortcut(.defaultAction)
-                        .buttonStyle(.borderedProminent)
-                        .tint(SidebarSection.inbox.tint)
+                        .buttonStyle(.filled(SidebarSection.inbox.tint))
                         .disabled(!canSave)
                         .accessibilityIdentifier("capture.save")
                 }
@@ -164,7 +163,7 @@ struct QuickCaptureView: View {
             if model.vault == nil {
                 Text("No vault is open. Captures are kept and filed the next time the app opens a vault.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .padding(embedded ? 0 : (compact ? 12 : 20))
@@ -292,7 +291,7 @@ struct QuickCaptureView: View {
         if model.caughtToday > 0 {
             Text(model.caughtToday == 1 ? "1 saved today." : "\(model.caughtToday) saved today.")
                 .font(Txt.listSecond)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
     }
 
@@ -301,7 +300,7 @@ struct QuickCaptureView: View {
             if !compact {
                 Button("Cancel") { dismiss() }
                     .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
             Button(action: save) {
                 Text("Save")
@@ -411,7 +410,7 @@ struct CaptureTagsChip: View {
         } label: {
             Text("#tag\u{2026}")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
                 .background(Color.secondary.opacity(0.12), in: Capsule())
@@ -437,7 +436,7 @@ struct AddChip: View {
         Button(action: action) {
             Text(title)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
                 .background(Color.secondary.opacity(0.12), in: Capsule())
@@ -489,7 +488,7 @@ struct CaptureSyntaxHelp: View {
             }
             Text("The chips under the field show what the app read, so you can see it went in right. The buttons write these for you.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
@@ -503,7 +502,7 @@ struct CaptureSyntaxHelp: View {
                 .font(Txt.mono)
             Text(what)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             Spacer(minLength: 0)
         }
     }

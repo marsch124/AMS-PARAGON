@@ -222,7 +222,7 @@ struct NewNoteSheet: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Name")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                 TextField("What is it called?", text: $title)
                     .textFieldStyle(.roundedBorder)
                     .focused($nameFocused)
@@ -232,7 +232,7 @@ struct NewNoteSheet: View {
 
             Text(hint)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
 
             // No fold. He tried build 119's "More" toggle and asked for everything to be
@@ -817,7 +817,7 @@ private struct PickerChip: View {
                 if let hint = make.hint {
                     Text(hint)
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // **Why nothing was made (build 272).** Orange is what this app means by "look
@@ -840,7 +840,7 @@ private struct PickerChip: View {
                         if let name = group.name {
                             Text(name.uppercased())
                                 .font(Txt.listSecond.weight(.semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.soft)
                                 .padding(.top, 6)
                         }
                         ForEach(group.options) { option in
@@ -1014,7 +1014,7 @@ struct NoteFromLinkSheet: View {
             if model.linkToCreate?.isWork == true {
                 Text("A work note, kept with the rest of your work notes.")
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             } else {
                 Picker("Type", selection: $kind) {
                     Text("Goal").tag(ParaKind.goal)
@@ -1026,7 +1026,7 @@ struct NoteFromLinkSheet: View {
             }
             Text("The link becomes a real link as soon as the note is there.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
         .padding(isPhone ? 14 : 20)
         .frame(minWidth: sheetMinWidth)

@@ -80,7 +80,7 @@ struct DoneView: View {
                         // "Still coming from iCloud", build 261).
                         if model.notesWaitingForCloud.isEmpty {
                             Text("Nothing in the last \(DoneDiary.weeks) weeks. A task you tick off shows up here on the day you did it. So does a day you wrote about in **Close the day**, or worked on with the focus timer.")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.soft)
                         } else {
                             MarkLabel("Some notes are still coming from iCloud, so days may be missing here. They appear as the notes arrive.", "icloud")
                                 .foregroundStyle(.orange)
@@ -161,7 +161,7 @@ private struct DoneDayCard: View {
             // On its own line, never squeezed beside the name in a narrow column (build 138).
             Text(day.factsText)
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             if let evening = day.eveningLine {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     MarkImage(CloseDayView.symbol)
@@ -289,7 +289,7 @@ struct DoneSquaresView: View {
                 .accessibilityIdentifier("done.squares")
                 Text(caption(weeks))
                     .font(Txt.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -325,7 +325,7 @@ struct DoneSquaresView: View {
                 ForEach(marks) { mark in
                     Text(monthName(mark.firstDay))
                         .font(Txt.listSecond)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(1)
                         .fixedSize()
                         .offset(x: CGFloat(mark.column) * step)

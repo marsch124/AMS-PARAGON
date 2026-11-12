@@ -120,7 +120,7 @@ struct StartDayView: View {
                     } else {
                         Text(instructions)
                             .font(Txt.label)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                             .fixedSize(horizontal: false, vertical: true)
                         group("Marked first last evening", marked)
                         group("Overdue", overdue)
@@ -197,7 +197,7 @@ struct StartDayView: View {
             if untimed > 0 {
                 Text(untimed == 1 ? "One pick has no time and counts as 1 h." : "\(untimed) picks have no time and count as 1 h each.")
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
         .font(Txt.label)
@@ -246,7 +246,7 @@ struct StartDayView: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Text(DayWords.withWeekday(day))
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
         }
         .padding(.horizontal, isPhone ? 14 : 20)
         .padding(.vertical, 12)
@@ -281,7 +281,7 @@ struct StartDayView: View {
                 SectionLabel(title: "Last evening you wrote", tint: Theme.morningTint)
                 Text(lastEveningText)
                     .font(Txt.value)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
                     .lineLimit(4)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -418,7 +418,7 @@ struct StartDayView: View {
             } else {
                 Text("Goes to the Inbox, dated today, and is picked for your plan.")
                     .font(Txt.listSecond)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.soft)
             }
         }
     }
@@ -457,7 +457,7 @@ struct StartDayView: View {
                 .font(Txt.value.weight(.semibold))
             Text("No task is due today or overdue, and no note has a next action. Add one above with +.")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -494,7 +494,7 @@ struct StartDayView: View {
                     Text(PlanBlock.clock(start))
                         .font(Txt.label.monospacedDigit())
                 }
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .frame(width: PickButton.largeWidth)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("In the plan at \(PlanBlock.clock(start))")

@@ -68,7 +68,7 @@ struct ReviewView: View {
                 if isOpen("due") {
                     if due.isEmpty {
                         MarkLabel("Everything has been looked at recently", "checkmark.circle")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         ForEach(due) { item in
                             ReviewDueRow(item: item)
@@ -91,7 +91,7 @@ struct ReviewView: View {
                 if isOpen("1") {
                     if report.inboxOpenTasks == 0 {
                         MarkLabel("Inbox is empty", "checkmark.circle")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         Button {
                             model.show(section: .inbox, notePath: model.vault?.config.inboxFile)
@@ -115,7 +115,7 @@ struct ReviewView: View {
                 if isOpen("2") {
                     if report.overdueTasks.isEmpty {
                         MarkLabel("Nothing is overdue", "checkmark.circle")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         ForEach(report.overdueTasks) { ref in
                             TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
@@ -137,7 +137,7 @@ struct ReviewView: View {
                 if isOpen("3") {
                     if aspirations(report).isEmpty {
                         MarkLabel("No aspirations yet", ChainSymbol.aspiration)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         ForEach(aspirations(report)) { health in
                             GoalHealthRow(health: health)
@@ -161,7 +161,7 @@ struct ReviewView: View {
                 if isOpen("4") {
                     if datedGoals(report).isEmpty {
                         MarkLabel("No goals with a date yet", ChainSymbol.datedGoal)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         ForEach(datedGoals(report)) { health in
                             GoalHealthRow(health: health)
@@ -187,7 +187,7 @@ struct ReviewView: View {
                     }
                     if report.projects.isEmpty {
                         MarkLabel("No active projects", SidebarSection.kind(.project).markName)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     }
                 }
             } header: {
@@ -212,7 +212,7 @@ struct ReviewView: View {
                 if isOpen("6") {
                     if report.areas.isEmpty {
                         MarkLabel("No areas yet", SidebarSection.kind(.area).markName)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.soft)
                     } else {
                         ForEach(report.areas) { health in
                             // Build 271: an area shows its Standard under its name, so it
@@ -467,7 +467,7 @@ struct ReviewSummary: View {
             Text(report.completedLast7Days == 1 ? "1 task finished in the last 7 days"
                                                 : "\(report.completedLast7Days) tasks finished in the last 7 days")
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
             WrappingHStack(spacing: 6, lineSpacing: 5) {
                 if worries.isEmpty {
                     ReviewStat(text: "Nothing needs attention", symbol: "checkmark.circle", tint: ParaKind.project.tint)
@@ -546,7 +546,7 @@ struct HealthRow: View {
                 }
             }
             .font(Txt.label)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
             .lineLimit(1)
             if !health.flags.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 3) {
@@ -589,7 +589,7 @@ struct HealthRow: View {
         if let standard = model.standard(of: health.note) {
             Text("Standard: " + AreaStandard.firstSentence(of: standard))
                 .font(Txt.label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.soft)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
@@ -632,7 +632,7 @@ struct GoalHealthRow: View {
                 if let days = health.daysSinceActivity {
                     Text(days == 0 ? "Changed today" : "Changed \(days)d ago")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(1)
                         .fixedSize()
                 }
@@ -654,7 +654,7 @@ struct GoalHealthRow: View {
                 }
             }
             .font(Txt.label)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.soft)
             .lineLimit(1)
             if !health.flags.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 3) {
@@ -734,7 +734,7 @@ struct ReviewDueRow: View {
                         .lineLimit(2)
                     Text("\(item.level.label) \u{00B7} \(item.lastText)")
                         .font(Txt.label)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.soft)
                         .lineLimit(1)
                 }
                 Spacer(minLength: 6)
