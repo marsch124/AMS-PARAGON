@@ -1,6 +1,6 @@
 # The look of PARAGON
 
-Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8); the sync button's clock ring on the iPhone in build 300 (version 1.0 (300), section 8); the same ring on the Mac and iPad sidebar and the small filter chips in build 301 (version 1.0 (301), sections 8 and 12); the same chips in Search in build 302 (version 1.0 (302), section 12); the sync ring in the Mac menu bar in build 303 (version 1.0 (303), section 8); one date style and plain words in build 309 (version 1.0 (309), sections 16 and 17); colours you can read by day and by night in build 310 (version 1.0 (310), sections 2, 3, 5, 9 and 15). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
+Decided on 6 November 2026 with look B, "coloured panels with meaning". Built in build 280 (version 1.0 (280)); small changes in build 281 (version 1.0 (281)); the colour band at the top of every screen in build 282 (version 1.0 (291), look A, section 15); calmer screens in build 291 (version 1.0 (291), sections 6 and 10); the quiet sync pill in build 292 (version 1.0 (292), section 8); the sync button's clock ring on the iPhone in build 300 (version 1.0 (300), section 8); the same ring on the Mac and iPad sidebar and the small filter chips in build 301 (version 1.0 (301), sections 8 and 12); the same chips in Search in build 302 (version 1.0 (302), section 12); the sync ring in the Mac menu bar in build 303 (version 1.0 (303), section 8); one date style and plain words in build 309 (version 1.0 (309), sections 16 and 17); colours you can read by day and by night in build 310 (version 1.0 (310), sections 2, 3, 5, 9 and 15); icons you can tell apart in build 311 (version 1.0 (311), sections 5, 7, 9 and 13). Every function stays as it is; this document is only about how PARAGON looks and feels. Read it before you change any screen.
 
 The look follows the one in the Subscriptions app (version 1.0): one place for text sizes, one place for part colours, one heading, one main button, one panel. The code is in `App/Paragon/Views/Look.swift` (the scale `Txt`, `Heading`, `Pill`, `MainButtonStyle`, `SoftInk`, `FaintInk`, `BandStyle`, `PanelStyle`, `SheetChrome`, `AppVersion`) and `Marks.swift` (the icons).
 
@@ -166,6 +166,7 @@ This is for **New**, **Add this note** (from a link), Close the day, Start the d
 Mac: a bar at the top with the title (17 points, semibold, in the part's colour) at the left, and **Cancel** and the doing button (**Save** or **Done**; never Create or Make, section 17) side by side at the right, then one thin line, then the form.
 
 - The doing button is the app's own filled button (`.buttonStyle(.filled(tint))`, section 2): the part's deep day shade with white words, by day and at night. It keeps its colour when the window is behind another. Start the day's **Done** is #B35300, Close the day's **Done** is #6E3A86.
+- **The kinds on New (build 311).** The chosen kind has the filled disc and the frame. The kinds not chosen (Aspiration, Goal, Project, Area, Resource) show their icon in the full line colour on a clear ground. Before, they were pale icons on pale discs, at under half strength.
 - **Escape** is Cancel. **Return** and **⌘S** do the doing button (the second shortcut sits on a hidden button, because one button carries one shortcut).
 - **Tab** moves between text fields as macOS does. The choice chips are buttons, not fields; do not promise that Tab reaches every chip.
 - Quick capture (the **Inbox** button) inside the **New** sheet has no bar of its own; it keeps its one **Save**.
@@ -185,10 +186,78 @@ Counts beside headings (for example "Calendar 1", "Projects 7") are small capsul
 
 ## 7. Icons
 
+Reworked in build 311 (review round 5). Before, every icon was 16 points whatever stood beside it, a small icon's line went down to 0.7 points, and several marks stood for two things.
+
+### The line
+
 - Every icon in the app, the widgets and the share sheet is a hand-drawn mark from the AMS-Icons package, drawn on a grid of 24 points with one line of 1.9 points, round ends and no fill. `Marks.swift` turns a name into a mark (the app); `WidgetMarks.swift` does it for the widgets.
+- At 16 points and above the line scales with the icon: 1.9 on the 24 grid.
+- **Never thinner than 1.3 points on the screen.** An icon smaller than 16 points keeps a line of 1.3 points. Before build 311 the line shrank with the icon: 0.7 on the small tick in Search, 0.8 to 0.95 in the Calendar, 1.0 in the widgets, 1.1 in the sync ring.
+- A dot inside a mark is a point of the line, never a filled blob (the four colour dots on the palette of the **Icon…** chip, the three rings of More).
+- No typed character stands in for an icon. The five typed "✓" (the task time menu, the repeat menu, the done count in the Calendar, one in the note editor) are the hand-drawn tick since build 311.
+
+### The size
+
+An icon takes its size from the text beside it. No screen picks its own icon size.
+
+| Text beside the icon | Icon, in points |
+|----------------------|-----------------|
+| Page title (26) | 26 |
+| Normal text: value, list row, button | 16 |
+| Small grey text: label, second line, capsule | 12 |
+
+- The other steps of the text scale (section 1) follow the same rule: the icon is the size that sits level with its text.
+- Beside normal text an icon is 16 points, as before build 311. Before, about 32 places asked for another size and still got 16.
+- On the iPhone the icon grows with its text when the text size is made larger in the iPhone's settings.
+- A rule test checks the size and the line weight of an icon.
+
+### Which mark means what
+
+One mark, one meaning. Before build 311 the ring, the four squares, the hourglass, the stopwatch, the bare dash and the bare cross each stood for more than one thing.
+
+| Mark | Means | Before build 311 |
+|------|-------|------------------|
+| Ring | One open task. Nothing else. | Also All actions and Active |
+| Ticked list | Actions (iPhone tab), All actions (Mac sidebar), a list of open tasks ("3 open", the Tasks heading in a note) | The ring |
+| Four squares | Areas | Also the Browse tab |
+| Folder | Browse (iPhone tab) | Four squares |
+| Upright day line with two blocks | Plan and Time blocks | A calendar page with a tiny clock, which looked like Calendar |
+| Round arrows with a tick | Weekly review | A tick with lines, which looked like Snippets |
+| Two pages, one behind the other | Templates | A page with a tiny gear, a blob at list size |
+| Three small rings | More (the … on a note) | Three specks; now about twice as visible |
+| Arrow into a tray | Move to Archive (Mac note toolbar) | Two icons stacked, an arrow on a box, twice as tall as its neighbours |
+| Person in a ring | Waiting for a person | An hourglass |
+| Question mark in a ring | "who?" | — |
+| Plain clock face | A time of day | The stopwatch |
+| Dash in a ring | Remove | A bare dash |
+| Cross in a ring | Missed, cancelled | A bare cross |
+| Star | An aspiration. Nothing else. | Unchanged |
+| Target | A goal with a date | Unchanged |
+| Flag | A project | Unchanged |
+| Books | A resource | Unchanged |
+| Sun | Today. The same drawing as the library's sun. | Its own drawing |
+
+### The app icon
+
+- Flat dark slate, no gradient and no transparency, with one white line drawing: a tick and three squares. They are the four PARA boxes, and the first one is done.
+- Before build 311: a gradient with four coloured tiles, a gold frame, a white frame and a filled star.
+
+### The icon picker
+
+- **Icon…** on a project, an area, a goal, an aspiration or a resource offers only the 132 hand-drawn icons. Before build 311 it also offered about 305 of Apple's symbols.
+- A note that already has an Apple symbol keeps it until it is changed. That is the one place a stock symbol is still drawn.
+- The clear cross in the picker's search box is a hand-drawn mark.
+
+### Left as it is
+
+Apple's own back arrow, the small arrows at the end of a row, the fold triangles, the search field and the sidebar button stay Apple's. They belong to the system frame, not to PARAGON.
+
+### Where the icons come from
+
+- The shared icon package holds 219 drawings: 132 hand-drawn icons, 69 app marks and 18 control marks. Build 311 added 3 app marks (folder, person, clock) and 2 control marks.
+- The central AMS Icon Library folder is built from that package and holds all 219, with the Day / Night sheet. Before build 311 it held 50. The Today sun and the parcel box are the very same drawings as the library's sun and box.
 - A new icon is drawn in the same style in the AMS Icon Library (source `TemplateIcons.swift`), and the library is built again.
 - No stock icons and no emoji. `LookRulesTests` fails on `systemImage:`, `Image(systemName:)` or an emoji in the source.
-- The one exception is a user's own note icon chosen from Apple's symbols in the icon picker. That is his choice, not the app's icon.
 
 ## 8. Reading width and the window
 
@@ -207,7 +276,7 @@ Counts beside headings (for example "Calendar 1", "Projects 7") are small capsul
 
 ## 9. iPhone
 
-Browse has a large title that shrinks when you scroll. The long press that reveals Work is on the version line at the foot of Browse (on the Mac it is on the PARA heading in the sidebar). The tab bar icons are the hand-drawn marks. Swipe actions on rows are as before. On the iPad the three columns are used.
+Browse has a large title that shrinks when you scroll. The long press that reveals Work is on the version line at the foot of Browse (on the Mac it is on the PARA heading in the sidebar). The tab bar icons are the hand-drawn marks: Today the sun, Plan the day line with two blocks, Actions the ticked list, Browse the folder (section 7; before build 311 Actions was the ring, Browse the four squares and Plan a calendar page with a tiny clock). Swipe actions on rows are as before. On the iPad the three columns are used.
 
 Colour on the iPhone (build 310):
 
@@ -221,7 +290,7 @@ The picture opened big marks the words you searched for with tinted boxes (build
 
 ## 10. The version
 
-The version shows as "PARAGON 1.0 (310)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
+The version shows as "PARAGON 1.0 (311)" at the foot of the Mac sidebar and at the foot of Browse on the iPhone. It is not in Settings. `AppVersion.text` builds it.
 
 ## 11. Day and night
 
@@ -251,7 +320,7 @@ The When / Mark / Tags filter on All actions (build 301, `FilterBox(chip: true)`
 - White words sit only on the ground step; coloured words on the page use the ink step (section 2).
 - Every date, week, month and time is written by `DayWords` (section 16). No screen formats a date itself.
 - The words follow section 17: one name for each thing, the device's own words, and one style for a "nothing here" line.
-- Icons are marks, never stock symbols or emoji.
+- Icons are marks, never stock symbols or emoji. An icon takes its size from the text beside it and its line is never thinner than 1.3 points on the screen (section 7). A new meaning gets its own mark; no mark is used for two things.
 - The screen looks right on the iPhone and the Mac, by day and by night, at a normal iPhone size.
 
 ## 15. The band

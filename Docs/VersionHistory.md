@@ -1,6 +1,120 @@
 # Version history
 
-The version is shown as 1.0 (310) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (311) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 311 · 12 November 2026
+
+**Icons you can tell apart: every icon in PARAGON was looked at, and the ones that looked alike, were too thin or were too small were drawn again.** This is round 5 of the premium review. Round 1 was build 307, round 2 was build 308, round 3 was build 309, round 4 was build 310. Nothing works differently. Only the icons changed, and the choices in the icon picker.
+
+The numbers such as "1.3 points" say how thick the line of an icon is on the screen. A thicker line is easier to see.
+
+**Before (build 310).**
+- **Move to Archive** in the Mac note toolbar was two icons, one on top of the other: an arrow on top of a box. It was twice as tall as the buttons beside it.
+- The **Actions** tab on the iPhone and **All actions** in the Mac sidebar showed an empty ring. The same ring also meant an open task, and **Active**.
+- The **Browse** tab on the iPhone showed four squares. **Areas** shows four squares too.
+- **Plan** and **Time blocks** showed a calendar page with a tiny clock. It looked like **Calendar**.
+- The app icon was a gradient with four coloured tiles, a gold frame, a white frame and a filled star.
+- Every icon was 16 points, whatever stood beside it: a 26-point title, normal text or small grey words. About 32 places asked for another size and did not get it.
+- Small icons had thin lines: 0.7 points on the small tick in **Search**, 0.8 to 0.95 in the **Calendar**, 1.0 in the widgets and 1.1 in the sync ring.
+- The icon picker offered 132 hand-drawn icons and about 305 of Apple's symbols.
+- **Templates** showed a page with a tiny gear. At the size of a list row the gear was a blob.
+- **More** (the **…** on a note) was three specks.
+- **Weekly review** showed a tick with lines. It looked like **Snippets**.
+- The four colour dots on the palette of the **Icon…** chip were filled blobs.
+- One icon stood for different things: the hourglass, the stopwatch, a bare dash and a bare cross each had more than one meaning.
+- Five ticks were typed "✓" characters, not drawn icons.
+- On the **New** screen the kinds you had not picked were pale icons on pale discs, at under half strength.
+- The central AMS Icon Library folder held 50 icons.
+
+**1. Move to Archive is one drawing.**
+- Before: two icons stacked, an arrow on top of a box, twice as tall as its neighbours in the Mac note toolbar.
+- Now: one drawing, an arrow going into a tray. It is as tall as the buttons beside it.
+
+**2. Actions is a ticked list. The ring means an open task only.**
+- Before: the **Actions** tab on the iPhone and **All actions** in the Mac sidebar showed an empty ring, the same ring as an open task and **Active**.
+- Now: both show a ticked list.
+- The ring now means one thing: an open task.
+- Lists of open tasks show the ticked list too: "3 open", and the **Tasks** heading in a note.
+
+**3. Browse is a folder.**
+- Before: the **Browse** tab on the iPhone showed four squares, the same as **Areas**.
+- Now: a folder.
+- **Areas** keeps the four squares.
+
+**4. Plan and Time blocks show a day line with two blocks.**
+- Before: a calendar page with a tiny clock. It looked like **Calendar**.
+- Now: an upright day line with two blocks on it.
+
+**5. A new app icon.**
+- Before: a gradient with four coloured tiles, a gold frame, a white frame and a filled star.
+- Now: flat dark slate with one white line drawing: a tick and three squares. They are the four PARA boxes, and the first one is done.
+
+**6. Icons take their size from the text beside them.**
+- Before: every icon was 16 points, whatever stood beside it. About 32 places asked for another size in vain.
+- Now: an icon beside a title is 26 points, beside normal text 16 points, beside small grey text 12 points, and so on.
+- Beside normal text an icon is 16 points, as before.
+- When you make text larger in the iPhone's settings, the icons grow with it. Before, they stayed the same.
+
+**7. One line weight, and never thinner than 1.3 points.**
+- An icon of 16 points or more is drawn as before: one line of 1.9 on a grid of 24.
+- An icon smaller than 16 points now keeps a line of 1.3 points on the screen. It never gets thinner.
+- Before, the line got thinner with the icon: 0.7 points on the small tick in **Search**, 0.8 to 0.95 in the **Calendar**, 1.0 in the widgets, 1.1 in the sync ring.
+
+**8. The icon picker shows only hand-drawn icons.**
+- This is **Icon…** on a project, an area, a goal or a resource.
+- Before: 132 hand-drawn icons and about 305 of Apple's symbols.
+- Now: only the 132 hand-drawn icons. Apple's symbols are no longer offered.
+- A note that already has an Apple symbol keeps it until you change it.
+- The clear cross in the picker's search box is hand-drawn too.
+
+**9. Templates is two pages.**
+- Before: a page with a tiny gear. At the size of a list row the gear was a blob.
+- Now: two pages, one behind the other.
+
+**10. More is three small rings.**
+- This is the **…** on a note.
+- Before: three specks.
+- Now: three small rings, about twice as easy to see.
+
+**11. Weekly review is round arrows with a tick.**
+- Before: a tick with lines. It looked like **Snippets**.
+- Now: round arrows with a tick.
+
+**12. The palette on the Icon… chip.**
+- Before: its four colour dots were filled blobs.
+- Now: the four dots are points of the line, like every other icon.
+
+**13. One icon, one meaning.**
+- **Waiting for** a person: a person in a ring. Before: an hourglass.
+- "who?": a question mark in a ring.
+- A time of day: a plain clock face. Before: the stopwatch.
+- **Remove**: a dash in a ring. Before: a bare dash.
+- **Missed** and cancelled: a cross in a ring. Before: a bare cross.
+
+**14. Typed ticks are drawn ticks.**
+- Before: five ticks were the typed character "✓": in the task time menu, in the repeat menu, the done count in the **Calendar**, and one in the note editor.
+- Now: all five are the hand-drawn tick.
+
+**15. New: the kinds you have not picked are clear.**
+- This is the row of kinds on the **New** screen: **Aspiration**, **Goal**, **Project**, **Area** and **Resource**.
+- Before: the kinds you had not picked were pale icons on pale discs, at under half strength.
+- Now: they are drawn in the full line colour on a clear ground.
+- Only the kind you chose has the filled disc and the frame.
+
+**16. The AMS Icon Library folder is complete.**
+- Before: the central AMS Icon Library folder held 50 icons.
+- Now: it holds all 219 drawings: 132 hand-drawn icons, 69 app marks and 18 control marks, with the Day / Night sheet. It was built again from the shared icon package.
+- The sun of **Today** and the parcel box are now the very same drawings as the library's sun and box.
+
+**Left as it is.** Apple's own back arrow, the small arrows at the end of a row, the fold triangles, the search field and the sidebar button stay Apple's. They belong to the frame the iPhone and the Mac draw, not to PARAGON.
+
+**Under the hood.**
+- The shared icon package has 3 new app marks (folder, person, clock) and 2 new control marks.
+- One new rule with a small test: the size of an icon and the weight of its line.
+
+**What did not change.** Your notes, tasks, backups and sync. Every button is in the same place and does the same thing. The colours of build 310. The words. An icon you chose for a note.
+
+**The version.** It shows as "PARAGON 1.0 (311)".
 
 ## Build 310 · 12 November 2026
 
