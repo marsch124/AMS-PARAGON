@@ -95,13 +95,27 @@ public struct RestoreResult: Equatable, Sendable {
 public extension Vault {
     var backupsURL: URL { stateFolderURL.appendingPathComponent("Backups", isDirectory: true) }
 
-    /// Saved copies, newest first.
-    func backups() -> [VaultBackup] {
+    /// The folder inside a place the user chose (or the device's own storage) that holds the
+    /// outside copies. A folder of its own, so clearing out old copies can never touch anything
+    /// else he keeps in the place he chose.
+    static let outsideFolderName = "PARAGON Backups"
+
+    /// Where the outside copies of this vault go inside `place` (build 308, hardening-13).
+    static func outsideBackupsURL(in place: URL) -> URL {
+        place.appendingPathComponent(outsideFolderName, isDirectory: true)
+    }
+
+    /// Saved copies, newest first. `folder` is where to look: the vault's own Backups folder
+    /// when nil, otherwise a folder of outside copies — and there only a folder that holds a
+    /// finished copy's `signature.txt` counts, so nothing else in it is ever listed or cleared.
+    func backups(in folder: URL? = nil) -> [VaultBackup] {
         let fm = FileManager.default
-        guard let entries = try? fm.contentsOfDirectory(at: backupsURL, includingPropertiesForKeys: nil) else { return [] }
+        let home = folder ?? backupsURL
+        guard let entries = try? fm.contentsOfDirectory(at: home, includingPropertiesForKeys: nil) else { return [] }
         return entries.compactMap { url -> VaultBackup? in
             var isDir: ObjCBool = false
             guard fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue else { return nil }
+            if folder != nil, !fm.fileExists(atPath: url.appendingPathComponent("signature.txt").path) { return nil }
             let name = url.lastPathComponent
             let parts = name.split(separator: "~", maxSplits: 1).map(String.init)
             guard let date = VaultBackup.date(fromFolderPart: parts[0]) else { return nil }
@@ -122,30 +136,67 @@ public extension Vault {
     /// `prune: false` keeps every older copy (a restore clears out old ones only once it is done,
     /// so the copy being restored can never be the one that makes room — build 307).
     func makeBackup(reason: String = "manual", prune: Bool = true, now: Date = Date()) throws -> VaultBackup? {
+        try makeCopy(in: nil, reason: reason, prune: prune, now: now)
+    }
+
+    /// A second copy **outside the vault** (build 308, hardening-13): in `place` — a folder the
+    /// user chose once, or the device's own storage — under "PARAGON Backups". Until then every
+    /// copy sat in `.ams-para/Backups` inside the vault, so losing the vault folder (deleted,
+    /// an iCloud mishap) lost the notes and every backup of them together.
+    ///
+    /// Unlike the copies inside the vault, these hold the **pictures and sketches** too. A
+    /// picture that has not changed since the last outside copy is taken from that copy, which
+    /// on an Apple disk costs no extra room; the same tiers decide which copies are kept.
+    /// Returns nil when nothing changed since the last outside copy.
+    @discardableResult
+    func makeOutsideCopy(in place: URL, reason: String = "daily", now: Date = Date()) throws -> VaultBackup? {
+        try makeCopy(in: Self.outsideBackupsURL(in: place), reason: reason, prune: true, now: now)
+    }
+
+    /// The outside copies in `place`, newest first.
+    func outsideCopies(in place: URL) -> [VaultBackup] {
+        backups(in: Self.outsideBackupsURL(in: place))
+    }
+
+    /// One copy, inside the vault (`folder` nil: notes and settings) or outside it (`folder`
+    /// given: pictures and sketches as well).
+    private func makeCopy(in folder: URL?, reason: String, prune: Bool, now: Date) throws -> VaultBackup? {
         let fm = FileManager.default
-        let signature = try contentSignature()
-        let existing = backups()
+        let home = folder ?? backupsURL
+        let withPictures = folder != nil
+        let signature = try contentSignature(withPictures: withPictures)
+        let existing = backups(in: folder)
         if let last = existing.first,
-           let lastSignature = try? String(contentsOf: backupsURL.appendingPathComponent(last.folderName).appendingPathComponent("signature.txt"), encoding: .utf8),
+           let lastSignature = try? String(contentsOf: home.appendingPathComponent(last.folderName).appendingPathComponent("signature.txt"), encoding: .utf8),
            lastSignature == signature {
             return nil
         }
+        // The last copy's folder, to take unchanged pictures from (outside copies only).
+        let previous = withPictures ? existing.first.map { home.appendingPathComponent($0.folderName, isDirectory: true) } : nil
 
         var name = "\(VaultBackup.formatter.string(from: now))~\(reason)"
-        var target = backupsURL.appendingPathComponent(name, isDirectory: true)
+        var target = home.appendingPathComponent(name, isDirectory: true)
         var n = 2
         while fm.fileExists(atPath: target.path) {
             name = "\(VaultBackup.formatter.string(from: now)) \(n)~\(reason)"
-            target = backupsURL.appendingPathComponent(name, isDirectory: true)
+            target = home.appendingPathComponent(name, isDirectory: true)
             n += 1
         }
         try fm.createDirectory(at: target, withIntermediateDirectories: true)
 
         var copied = 0
         var skipped: [String] = []
-        let wanted = try backedUpPaths()
+        let wanted = try backedUpPaths(withPictures: withPictures)
         for relativePath in wanted {
             let source = url(for: relativePath)
+            // A picture the last outside copy already holds unchanged (same size, same date) is
+            // taken from there: no wait for iCloud, and no second helping of disk room.
+            if let previous, Self.isPicture(relativePath),
+               Self.sameFile(source, previous.appendingPathComponent(relativePath)) {
+                let destination = target.appendingPathComponent(relativePath)
+                try? fm.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+                if (try? fm.copyItem(at: previous.appendingPathComponent(relativePath), to: destination)) != nil { continue }
+            }
             // Never waits for iCloud (build 261): copying a file whose contents are not on this
             // device would wait until they came, on the main thread. It is left out and named in
             // skipped.txt; the signature marks it, so the next backup runs once it has arrived.
@@ -179,7 +230,7 @@ public extension Vault {
                                                        atomically: true, encoding: .utf8)
         }
 
-        if prune { pruneBackups(now: now) }
+        if prune { pruneBackups(in: folder, now: now) }
         return VaultBackup(folderName: name, date: now, noteCount: copied, reason: reason)
     }
 
@@ -244,10 +295,27 @@ public extension Vault {
 
     /// Clears out the copies `VaultBackup.toRemove` no longer wants. `protecting` names folders
     /// that stay whatever their age (the copy just restored from).
-    func pruneBackups(now: Date = Date(), protecting: Set<String> = []) {
-        for old in VaultBackup.toRemove(from: backups(), now: now, protecting: protecting) {
-            try? FileManager.default.removeItem(at: backupsURL.appendingPathComponent(old.folderName))
+    func pruneBackups(in folder: URL? = nil, now: Date = Date(), protecting: Set<String> = []) {
+        let home = folder ?? backupsURL
+        for old in VaultBackup.toRemove(from: backups(in: folder), now: now, protecting: protecting) {
+            try? FileManager.default.removeItem(at: home.appendingPathComponent(old.folderName))
         }
+    }
+
+    /// Pictures and sketches: what an outside copy holds on top of the notes.
+    static let pictureExtensions: Set<String> = Pictures.extensions.union(["drawing"])
+
+    static func isPicture(_ relativePath: String) -> Bool {
+        pictureExtensions.contains((relativePath as NSString).pathExtension.lowercased())
+    }
+
+    /// Same size and same modification date: the copy already holds this file as it is now.
+    private static func sameFile(_ a: URL, _ b: URL) -> Bool {
+        guard let va = try? a.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey]),
+              let vb = try? b.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey]),
+              let da = va.contentModificationDate, let db = vb.contentModificationDate,
+              let sa = va.fileSize, let sb = vb.fileSize else { return false }
+        return sa == sb && abs(da.timeIntervalSince(db)) < 1
     }
 
     /// Copies the vault into an empty folder elsewhere, for the sync preview.
@@ -273,7 +341,8 @@ public extension Vault {
     }
 
     /// Every file worth copying: the notes, the config and the sync state. Backups are skipped.
-    private func backedUpPaths() throws -> [String] {
+    /// `withPictures` adds the pictures and sketches (outside copies).
+    private func backedUpPaths(withPictures: Bool = false) throws -> [String] {
         let fm = FileManager.default
         var paths: [String] = []
         guard let walker = fm.enumerator(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsPackageDescendants]) else { return [] }
@@ -286,7 +355,8 @@ public extension Vault {
             guard (try? fileURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
                   let relative = relativePath(for: fileURL) else { continue }
             let ext = fileURL.pathExtension.lowercased()
-            guard ext == "md" || ext == "json" || ext == "txt" else { continue }
+            guard ext == "md" || ext == "json" || ext == "txt"
+                    || (withPictures && Self.pictureExtensions.contains(ext)) else { continue }
             paths.append(relative)
         }
         return paths.sorted()
@@ -297,8 +367,8 @@ public extension Vault {
     /// A file whose contents are not on this device is marked (build 261): it is left out of the
     /// backup, and bringing it down leaves its date alone (build 102), so without the mark the
     /// next backup would match this one and never be made.
-    private func contentSignature() throws -> String {
-        try backedUpPaths().map { path in
+    private func contentSignature(withPictures: Bool = false) throws -> String {
+        try backedUpPaths(withPictures: withPictures).map { path in
             let source = url(for: path)
             let values = try? source.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
             let stamp = values?.contentModificationDate?.timeIntervalSince1970 ?? 0

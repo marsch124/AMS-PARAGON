@@ -304,6 +304,14 @@ final class AppModel: ObservableObject {
     @Published var actionFilter = ActionFilter()
     /// Saved copies of the vault, newest first.
     @Published private(set) var backups: [VaultBackup] = []
+    /// The second copy, outside the vault (build 308): when it was last made, the folder he
+    /// chose for it (nil: this device's own storage), and what went wrong with it, if anything.
+    @Published private(set) var lastOutsideBackup: Date?
+    @Published private(set) var outsideBackupFolderName: String?
+    @Published private(set) var outsideBackupProblem: String?
+    /// A folder he has just picked as his vault, being looked at before anything is written
+    /// into it (build 308, hardening-16). Nil when no choice is waiting for his answer.
+    @Published private(set) var folderChoice: FolderChoice?
     /// The report shown in the sync sheet, and whether it was a rehearsal.
     @Published private(set) var reportToShow: SyncReport?
     @Published private(set) var reportIsPreview = false
@@ -328,6 +336,10 @@ final class AppModel: ObservableObject {
     private let timeBlockCalendarKey = "timeBlockCalendarID"
     private let backupBeforeSyncKey = "backUpBeforeSync"
     private let lastBackupDayKey = "lastBackupDay"
+    private let outsideBackupBookmarkKey = "outsideBackupBookmark"
+    private let outsideBackupNameKey = "outsideBackupFolderName"
+    private let lastOutsideBackupKey = "lastOutsideBackupAt"
+    private let lastOutsideBackupDayKey = "lastOutsideBackupDay"
     private var securityScopedURL: URL?
     private var autoSyncTask: Task<Void, Never>?
 
@@ -867,6 +879,70 @@ final class AppModel: ObservableObject {
     }
 
     // MARK: Vault lifecycle
+
+    /// A folder picked as the vault, and what a look at it found. `finding` is nil while the
+    /// first look is still under way.
+    struct FolderChoice: Equatable {
+        var url: URL
+        var name: String
+        var finding: FolderLook.Finding?
+        /// The folder is in iCloud and looked empty (or part of it never got listed) even after
+        /// waiting: the offer is made, with a word of caution.
+        var mayBeIncomplete = false
+    }
+
+    private var folderLookTask: Task<Void, Never>?
+
+    /// Looks at a folder he picked **before anything is written into it** (build 308,
+    /// hardening-16). Until then the picker went straight to `openVault(at:)`, whose
+    /// `bootstrap()` wrote six folders, templates, an Inbox note and a settings file into
+    /// whatever was chosen. The look runs on a thread of its own and is repeated every two
+    /// seconds while iCloud is still listing the folder; the sheet says which it is.
+    func lookAtFolder(_ url: URL) {
+        folderLookTask?.cancel()
+        folderChoice = FolderChoice(url: url, name: url.lastPathComponent)
+        folderLookTask = Task { [weak self] in
+            var looks = 0
+            while !Task.isCancelled {
+                let look: FolderLook = await AppModel.offMain {
+                    let scoped = url.startAccessingSecurityScopedResource()
+                    defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                    return FolderLook.look(at: url)
+                }
+                guard let self, !Task.isCancelled, self.folderChoice?.url == url else { return }
+                looks += 1
+                // Three looks (six seconds) for a folder that only looks empty; longer for one
+                // iCloud says it has not listed. After that he decides, with a caution.
+                let settled = looks >= (look.foldersNotListed > 0 ? 10 : 3)
+                let finding = look.finding(settled: settled)
+                self.folderChoice?.finding = finding
+                self.folderChoice?.mayBeIncomplete = look.inCloud && (look.isEmpty || look.foldersNotListed > 0)
+                if finding != .stillListing {
+                    self.log("folder looked at: \(finding)")
+                    return
+                }
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
+    }
+
+    /// His yes: open the folder (and, for one that is not a vault yet, set it up).
+    func confirmFolderChoice() {
+        guard let choice = folderChoice else { return }
+        switch choice.finding {
+        case .vault, .notAVault: break
+        default: return
+        }
+        folderLookTask?.cancel()
+        folderChoice = nil
+        openVault(at: choice.url)
+    }
+
+    /// His no: nothing was written, and nothing is.
+    func cancelFolderChoice() {
+        folderLookTask?.cancel()
+        folderChoice = nil
+    }
 
     func openVault(at url: URL) {
         guard !isSyncing else {
@@ -4016,6 +4092,140 @@ final class AppModel: ObservableObject {
 
     func refreshBackups() {
         backups = vault?.backups() ?? []
+        let stamp = defaults.double(forKey: lastOutsideBackupKey)
+        lastOutsideBackup = stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil
+        outsideBackupFolderName = defaults.data(forKey: outsideBackupBookmarkKey) == nil
+            ? nil : defaults.string(forKey: outsideBackupNameKey)
+    }
+
+    // MARK: The second copy, outside the vault (build 308, hardening-13)
+
+    /// What this device is called in the Settings line about the second copy.
+    static var thisDevice: String {
+        #if os(macOS)
+        return "this Mac"
+        #else
+        return UIDevice.current.userInterfaceIdiom == .pad ? "this iPad" : "this iPhone"
+        #endif
+    }
+
+    /// The device's own storage for the second copy: the app's Application Support folder,
+    /// which is not in iCloud Drive and not inside the vault.
+    private var deviceBackupPlace: URL? {
+        try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+                                     appropriateFor: nil, create: true)
+    }
+
+    /// The folder he chose for the second copy, or nil when none is chosen or it cannot be
+    /// reached. Not `resolveBookmark`: that one re-stores a stale bookmark as the **vault's**.
+    private func chosenBackupPlace() -> URL? {
+        guard let data = defaults.data(forKey: outsideBackupBookmarkKey) else { return nil }
+        var stale = false
+        #if os(macOS)
+        let options: URL.BookmarkResolutionOptions = [.withSecurityScope]
+        #else
+        let options: URL.BookmarkResolutionOptions = []
+        #endif
+        return try? URL(resolvingBookmarkData: data, options: options, relativeTo: nil, bookmarkDataIsStale: &stale)
+    }
+
+    /// He picked a folder (say, one in Dropbox) for the second copy. Remembered once; a copy
+    /// is made there straight away, so he sees at once that it works.
+    func chooseOutsideBackupFolder(_ url: URL) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        let chosen = url.standardizedFileURL.resolvingSymlinksInPath().path
+        if let vault, chosen == vault.rootURL.path || chosen.hasPrefix(vault.rootURL.path + "/") {
+            errorMessage = "Choose a folder outside your vault. A copy kept inside it would be lost together with it."
+            return
+        }
+        #if os(macOS)
+        let data = try? url.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+        #else
+        let data = try? url.bookmarkData(options: [.minimalBookmark], includingResourceValuesForKeys: nil, relativeTo: nil)
+        #endif
+        guard let data else {
+            errorMessage = "PARAGON could not remember that folder. Choose another one."
+            return
+        }
+        defaults.set(data, forKey: outsideBackupBookmarkKey)
+        defaults.set(url.lastPathComponent, forKey: outsideBackupNameKey)
+        outsideBackupProblem = nil
+        refreshBackups()
+        backUpOutside(reason: "manual", force: true)
+    }
+
+    /// Back to keeping the second copy on this device.
+    func keepOutsideBackupOnDevice() {
+        defaults.removeObject(forKey: outsideBackupBookmarkKey)
+        defaults.removeObject(forKey: outsideBackupNameKey)
+        outsideBackupProblem = nil
+        refreshBackups()
+        backUpOutside(reason: "manual", force: true)
+    }
+
+    private var outsideBackupRunning = false
+
+    /// Makes the second copy — notes, settings, pictures and sketches — outside the vault, on a
+    /// thread of its own like the daily copy (never the main thread: with pictures this is the
+    /// biggest copy the app makes). Once a day, after the daily copy; `force` for "Back up now"
+    /// and for a folder just chosen. A chosen folder that cannot be reached is said in
+    /// Settings, and the copy goes to this device meanwhile rather than nowhere.
+    private func backUpOutside(reason: String, force: Bool = false) {
+        guard let vault else { return }
+        #if DEBUG
+        if TestVault.isWanted { return }
+        #endif
+        let today = DateOnly.today().description
+        guard force || defaults.string(forKey: lastOutsideBackupDayKey) != today else { return }
+        if notes.isEmpty, !notesWaitingForCloud.isEmpty { return }
+        guard !outsideBackupRunning else { return }
+        let chosen = chosenBackupPlace()
+        let wantedChosen = defaults.data(forKey: outsideBackupBookmarkKey) != nil
+        guard let place = chosen ?? deviceBackupPlace else { return }
+        outsideBackupRunning = true
+        let root: URL = vault.rootURL
+        Task { [weak self] in
+            let outcome: Result<VaultBackup?, Error> = await AppModel.offMain {
+                let scoped = chosen?.startAccessingSecurityScopedResource() ?? false
+                defer { if scoped { chosen?.stopAccessingSecurityScopedResource() } }
+                return Result { try Vault(rootURL: root).makeOutsideCopy(in: place, reason: reason) }
+            }
+            guard let self else { return }
+            self.outsideBackupRunning = false
+            guard self.vault?.rootURL == root else { return }
+            switch outcome {
+            case .success(let made):
+                self.defaults.set(today, forKey: self.lastOutsideBackupDayKey)
+                // Nothing changed since the last one: that copy is still the whole vault, so
+                // the date shown stays the day it was made.
+                if let made {
+                    self.defaults.set(made.date.timeIntervalSince1970, forKey: self.lastOutsideBackupKey)
+                    self.log("second copy saved: \(made.folderName)")
+                } else if self.defaults.double(forKey: self.lastOutsideBackupKey) == 0 || force {
+                    self.defaults.set(Date().timeIntervalSince1970, forKey: self.lastOutsideBackupKey)
+                }
+                self.outsideBackupProblem = (wantedChosen && chosen == nil)
+                    ? "The folder you chose could not be reached, so this copy was kept on \(AppModel.thisDevice). Choose the folder again."
+                    : nil
+            case .failure(let error):
+                self.log("second copy failed: \(error.localizedDescription)")
+                self.outsideBackupProblem = "The second copy could not be made: \(error.localizedDescription)"
+            }
+            self.refreshBackups()
+        }
+    }
+
+    /// Shows the second copies in Finder (Mac).
+    func showOutsideBackupsInFinder() {
+        #if os(macOS)
+        guard let place = chosenBackupPlace() ?? deviceBackupPlace else { return }
+        let scoped = place.startAccessingSecurityScopedResource()
+        defer { if scoped { place.stopAccessingSecurityScopedResource() } }
+        let folder = Vault.outsideBackupsURL(in: place)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        NSWorkspace.shared.activateFileViewerSelecting([folder])
+        #endif
     }
 
     /// Saves a copy unless the vault is unchanged since the last one. Returns what was saved.
@@ -4049,6 +4259,7 @@ final class AppModel: ObservableObject {
             case .failed:
                 break
             }
+            self.backUpOutside(reason: "manual", force: true)
         }
     }
 
@@ -4095,6 +4306,7 @@ final class AppModel: ObservableObject {
         let today = DateOnly.today().description
         guard defaults.string(forKey: lastBackupDayKey) != today else {
             refreshBackups()
+            backUpOutside(reason: "daily")
             return
         }
         // Not while nothing but notes still coming from iCloud is here (build 261): the copy
@@ -4124,6 +4336,7 @@ final class AppModel: ObservableObject {
                 self.log("backup failed: \(error.localizedDescription)")
                 self.errorMessage = "The backup could not be saved: \(error.localizedDescription)"
             }
+            self.backUpOutside(reason: "daily")
         }
     }
 
