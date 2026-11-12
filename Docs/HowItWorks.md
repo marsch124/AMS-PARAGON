@@ -311,6 +311,10 @@ While you type, the editor shows what the markdown means: headings grow, task bo
 
 Since build 304, swipe a task from the left edge, in any list, to tick it done (Today, All actions, Search, Inbox and the others). A full swipe ticks it at once. On the iPhone and iPad you feel the same gentle tap as when you tap the circle. On a task that is already ticked the swipe says **Not done** and opens it again. Cancelled tasks have no swipe. On the Mac it works with two fingers on the trackpad.
 
+### Swiping a task to tomorrow
+
+Since build 305, on the iPhone and iPad, swipe a task from the right edge to the left, in any task list, to move it to tomorrow. A full swipe moves it at once, and a message "Moved to tomorrow." appears. The task keeps its time of day (a call at 14:00 becomes a call at 14:00 tomorrow) and its repeat rule. Finished and cancelled tasks do not offer it. Swiping from the left still ticks a task done. On the Mac the right-click menu's date options are as before.
+
 ### Ticking a task in the note's text
 
 In Edit, the box of every task line can be pressed: tap it on the iPhone and iPad, click it on the Mac. It works exactly like ticking the task in a task list. The box becomes `[x]` and the line gets the done date, so Reminders sync and the Done list see it. A repeating task gets its next copy on the line below. Pressing a ticked or cancelled box opens the task again. Pressing anywhere else in the line only puts the cursor there. The box is drawn a little bolder, in the note's colour, so you can see it is a button.
@@ -1675,6 +1679,10 @@ lives in your Applications folder like any other app.
 - ⌘⌫ delete the open note (it waits in Deleted)
 - ⌃⌘D copy diagnostics, a log you can paste when reporting a problem
 - The sync ring's right-click menu holds the sync preview and the last report
+
+## The launch check
+
+Since build 305, before every upload to TestFlight, the iPhone app (in the simulator) and the Mac app are started with a test vault and watched for 20 seconds. If either one is still busy (the processor working hard) or has stopped, the upload is stopped, so a build that hangs at start does not reach you. A screen test does the same check on the automatic test runs. You do not see it in the app.
 
 ## When something looks wrong
 

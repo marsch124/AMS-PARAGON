@@ -1763,6 +1763,25 @@ struct TaskRow: View {
                 .accessibilityIdentifier("task.swipeDone.\(ref.task.title)")
             }
         }
+        // **Build 305 (his ask): swipe from the right to move a task to tomorrow.** The same
+        // `setDueDate` the date window uses, so the time of day and the repeat rule stay. Only
+        // for a task still open: a ticked or cancelled line has nothing to put off.
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            if !ref.task.isDone && ref.task.status != .cancelled {
+                Button {
+                    model.setDueDate(ref, DateOnly.today().adding(days: 1))
+                    model.flash("Moved to tomorrow.")
+                } label: {
+                    Label {
+                        Text("Tomorrow")
+                    } icon: {
+                        Marks.templateImage("sunrise", size: 20)
+                    }
+                }
+                .tint(Theme.eveningTint)
+                .accessibilityIdentifier("task.swipeTomorrow.\(ref.task.title)")
+            }
+        }
         .draggable(TaskTransfer(ref))
         .contextMenu {
             TaskContextMenu(ref: ref, showNote: showNote, pickingDate: $pickingDate,

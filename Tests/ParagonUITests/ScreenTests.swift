@@ -463,6 +463,37 @@ final class ScreenTests: XCTestCase {
                       "Clear was pressed and the action did not come back. On screen: \(visibleTexts())")
     }
 
+    /// **Build 305, the launch check.** Builds 301 to 303 hung at start — the iPhone app was
+    /// killed by the watchdog, the Mac app sat at full speed with no window — and nothing
+    /// noticed. A layout that never settles keeps the app from ever going idle, so after the
+    /// home appears this waits ten seconds and asks again: still running, home still there.
+    func testTheAppSettlesAfterLaunch() {
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
+                      "\(Self.home) never appeared: the app may be hanging at start. On screen: \(visibleTexts())")
+        Thread.sleep(forTimeInterval: 10)
+        XCTAssertEqual(app.state, .runningForeground,
+                       "The app stopped within ten seconds of opening.")
+        XCTAssertTrue(element(Self.home).waitForExistence(timeout: 20),
+                      "Ten seconds after opening the home is gone or the app no longer answers.")
+    }
+
+    #if os(iOS)
+    /// **Build 305 (his ask): swipe from the right moves a task to tomorrow.**
+    func testSwipingATaskLeftMovesItToTomorrow() {
+        go(to: .allActions)
+        let action = element("task.Book the night train")
+        XCTAssertTrue(action.waitForExistence(timeout: 20),
+                      "All actions does not list the test project's action. On screen: \(visibleTexts())")
+        action.swipeLeft()
+        let tomorrow = element("task.swipeTomorrow.Book the night train")
+        XCTAssertTrue(tomorrow.waitForExistence(timeout: 10),
+                      "A swipe from the right showed no Tomorrow button. On screen: \(visibleTexts())")
+        tomorrow.tap()
+        XCTAssertTrue(app.staticTexts["Moved to tomorrow."].waitForExistence(timeout: 10),
+                      "Tomorrow was pressed and no message said so. On screen: \(visibleTexts())")
+    }
+    #endif
+
     /// The boxes start folded on the phone and open on the Mac, so this asks the screen rather
     /// than assuming. Pressing the fold button blind would close them on the Mac.
     private func openTheBoxes() {

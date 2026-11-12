@@ -1,6 +1,30 @@
 # Version history
 
-The version is shown as 1.0 (304) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (305) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 305 · 12 November 2026
+
+**Swipe a task to tomorrow, and a check that the apps really open before every upload.**
+
+**Before (build 304).** Moving a task to tomorrow meant opening the task or using the date options. Swiping a task from the left edge ticked it, but the other edge did nothing. Builds 301 to 303 hung at start (the iPhone app crashed at launch, the Mac app froze with no window) and nothing noticed it before the upload.
+
+**New, swipe a task to tomorrow.**
+- In any task list on the iPhone and iPad, swipe a task from the right edge to the left to move it to tomorrow. A full swipe moves it at once.
+- The task keeps its time of day (a call at 14:00 becomes a call at 14:00 tomorrow) and its repeat rule.
+- A message "Moved to tomorrow." appears.
+- Finished and cancelled tasks do not offer it.
+- Swiping from the left edge still ticks a task done (since build 304).
+- On the Mac the right-click menu's date options are unchanged.
+
+**New, behind the scenes: a launch check before every upload.**
+- Before each upload to TestFlight, the iPhone app (in the simulator) and the Mac app are started with a test vault and watched for 20 seconds. If either one is still busy (the processor working hard) or has stopped, the upload is stopped.
+- A screen test does the same kind of check on the test runs: it opens the app, waits for the Today screen and checks the app is still running 10 seconds later.
+- Why: builds 301 to 303 hung at start and nothing noticed.
+- You do not see this in the app. It only makes a hanging build much less likely to reach you.
+
+**What did not change.** Swipe to tick, the Mac right-click date options, what the date of a task means, and everything else in the lists.
+
+**The version.** It shows as "PARAGON 1.0 (305)".
 
 ## Build 304 · 12 November 2026
 
