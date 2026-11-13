@@ -192,7 +192,7 @@ struct ProjectAreaChip: View {
     /// every other "still coming" line is; grey otherwise.
     private var tint: Color {
         if current != nil { return ParaKind.area.tint }
-        if live.area != nil, archived == nil, stillComing { return Color.orange }
+        if live.area != nil, archived == nil, stillComing { return Theme.attention.ink }
         return Color.secondary
     }
 

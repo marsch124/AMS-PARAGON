@@ -230,7 +230,7 @@ struct StartDayView: View {
         switch verdict {
         case .fitsWorkday: return .green
         case .runsIntoEvening: return .secondary
-        case .tooMuch: return .orange
+        case .tooMuch: return Theme.attention.ink
         }
     }
 
@@ -302,7 +302,7 @@ struct StartDayView: View {
         } else if model.dailyNoteIsWaitingForCloud(yesterday) {
             MarkLabel("Last evening's note is still coming from iCloud.", "icloud", text: .footnote)
                 .font(Txt.label)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Theme.attention.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("startDay.lastEvening")
         }
@@ -319,7 +319,7 @@ struct StartDayView: View {
         } else if model.weeklyNoteIsWaitingForCloud(.current()) {
             MarkLabel("This week's note is still coming from iCloud.", "icloud", text: .footnote)
                 .font(Txt.label)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Theme.attention.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("startDay.weekGoal")
         }
@@ -420,7 +420,7 @@ struct StartDayView: View {
             if let addNote {
                 Text(addNote)
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("Goes to the Inbox, dated today, and is picked for your plan.")

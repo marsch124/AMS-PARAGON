@@ -140,7 +140,7 @@ struct AreaDashboardView: View {
     private var comingLine: some View {
         MarkLabel("Some notes are still coming from iCloud. More projects may appear here.", "icloud", text: .footnote)
             .font(Txt.label)
-            .foregroundStyle(Color.orange)
+            .foregroundStyle(Theme.attention.ink)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("area.stillComing")
     }

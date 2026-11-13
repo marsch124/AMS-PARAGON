@@ -109,7 +109,7 @@ struct WeekLookStep: View {
         if !model.notesWaitingForCloud.isEmpty {
             MarkLabel(cloudText, "icloud", text: .body)
                 .font(Txt.value)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Theme.attention.ink)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -172,7 +172,7 @@ struct WeekLookStep: View {
                 .foregroundStyle(goal == nil ? Color.secondary : tint.ink)
             Text(goal ?? missing)
                 .font(goal == nil ? .callout : .callout.weight(.semibold))
-                .foregroundStyle(goal != nil ? Color.primary : (waiting ? Color.orange : Color.secondary))
+                .foregroundStyle(goal != nil ? Color.primary : (waiting ? Theme.attention.ink : Color.secondary))
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -340,7 +340,7 @@ struct WeekLineBox: View {
                     .foregroundStyle(hasLine ? tint.ink : Color.secondary)
                 Text(restingText)
                     .font(hasLine ? .callout.weight(.semibold) : .callout)
-                    .foregroundStyle(hasLine ? Color.primary : (waiting ? Color.orange : Color.secondary))
+                    .foregroundStyle(hasLine ? Color.primary : (waiting ? Theme.attention.ink : Color.secondary))
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -355,7 +355,8 @@ struct WeekLineBox: View {
         .disabled(waiting)
         .accessibilityLabel(spoken)
         .accessibilityIdentifier("review.weekLine")
-        .help("Press to write a line about the week")
+        // Round 9 (build 316): no hover tip while the box is empty; its own words say the same.
+        .help(hasLine ? "Press to change the line about the week" : "")
     }
 
     /// **Cancel and Done sit above the field, in the heading's own line**, not below it: with
@@ -401,7 +402,7 @@ struct WeekLineBox: View {
             if let problem {
                 Text(problem)
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -487,7 +488,7 @@ private struct EveningLineRow: View {
                 if line.waiting {
                     MarkLabel(line.text, "icloud", text: .body)
                         .font(Txt.value)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                 } else {
                     Text(line.text)
                         .font(Txt.value)
@@ -570,7 +571,7 @@ private struct WeekDayBars: View {
             HStack(spacing: 1) {
                 if waiting {
                     MarkImage("icloud")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                 }
                 Text(countText(count, future: future, waiting: waiting))
                     .monospacedDigit()

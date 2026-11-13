@@ -103,6 +103,11 @@ extension Color {
 
     /// **The far end of the night band.**
     var bandEnd: Color { step(4) { Color(ShadeRule.bandEnd(ground: ShadeRule.ground(day: $0.day))) } }
+
+    /// **The day band, start and far end** (round 9, build 316): white words read 4.5 to 1 or
+    /// better along the whole band.
+    var bandDayStart: Color { step(5) { Color(ShadeRule.bandDayStart(day: $0.day)) } }
+    var bandDayEnd: Color { step(6) { Color(ShadeRule.bandDayEnd(day: $0.day)) } }
 }
 
 /// **Quiet words** (build 310): helper sentences, a row's second line, small labels. The
@@ -357,6 +362,7 @@ extension ButtonStyle where Self == MainButtonStyle {
 struct PanelStyle: ViewModifier {
     let tint: Color?
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.phoneLook) private var phoneLook
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: Theme.panelRadius)
@@ -366,7 +372,7 @@ struct PanelStyle: ViewModifier {
                 ZStack {
                     shape.fill(Theme.surface)
                     if let tint {
-                        shape.fill(tint.opacity(Theme.tintShare(scheme)))
+                        shape.fill(tint.opacity(Theme.tintShare(scheme, phone: phoneLook)))
                     }
                     if scheme == .dark {
                         shape.strokeBorder(Theme.line, lineWidth: 1)
@@ -502,19 +508,46 @@ struct SheetChrome: ViewModifier {
                             .accessibilityIdentifier("sheet.cancel")
                     }
                     if showsAction {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button(actionTitle, action: act)
-                                .fontWeight(.semibold)
-                                .tint(tint.ink)
-                                .disabled(!canAct)
-                                .accessibilityIdentifier(actionIdentifier)
-                        }
+                        // Round 9 (build 316): the app's filled button, as on the capture
+                        // sheet. It was a coloured word that went grey while it could not act.
+                        SheetActionItem(title: actionTitle, tint: tint, canAct: canAct,
+                                        identifier: actionIdentifier, act: act)
                     }
                 }
         }
         #endif
     }
 }
+
+#if os(iOS)
+/// The doing button in the bar of an iPhone or iPad edit sheet (round 9, build 316): the
+/// app's own filled button in the part's colour, whole, without the round glass iOS 26 draws
+/// behind a bar button. The same shape as **Set** on the date sheet (`DateSetItem`).
+struct SheetActionItem: ToolbarContent {
+    let title: String
+    let tint: Color
+    let canAct: Bool
+    let identifier: String
+    let act: () -> Void
+
+    var body: some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: .confirmationAction) { button }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .confirmationAction) { button }
+        }
+    }
+
+    private var button: some View {
+        Button(title, action: act)
+            .buttonStyle(.filled(tint))
+            .fixedSize()
+            .disabled(!canAct)
+            .accessibilityIdentifier(identifier)
+    }
+}
+#endif
 
 extension View {
     /// Gives an edit sheet its Cancel and doing button, the keys that drive them, and its title.
@@ -583,8 +616,9 @@ struct BandStyle: ViewModifier {
                         LinearGradient(colors: [color.deep, color.bandEnd],
                                        startPoint: .topLeading, endPoint: .bottomTrailing)
                     } else {
-                        Color.white
-                        LinearGradient(colors: [color, color.opacity(0.8)],
+                        // Round 9 (build 316): by day the band runs to a darker end. It
+                        // used to fade to 80 % over white, too pale for the white words.
+                        LinearGradient(colors: [color.bandDayStart, color.bandDayEnd],
                                        startPoint: .topLeading, endPoint: .bottomTrailing)
                     }
                 }
@@ -614,7 +648,8 @@ struct BandNumber: View {
                 .foregroundStyle(.white)
             Text(words)
                 .font(Txt.label)
-                .foregroundStyle(.white.opacity(0.85))
+                // Round 9 (build 316): full white; at 85 % the small words were under 4.5 to 1.
+                .foregroundStyle(.white)
         }
         .lineLimit(1)
         .minimumScaleFactor(0.7)
@@ -627,7 +662,10 @@ struct BandNumber: View {
 
 extension Theme {
     /// How much of a part's colour lies over a panel or a card: 7 % by day, 13 % at night.
-    static func tintShare(_ scheme: ColorScheme) -> Double { scheme == .dark ? 0.13 : 0.07 }
+    /// On the iPhone 12 % by day since round 9 (build 316): Core's `ShadeRule.tintShare`.
+    static func tintShare(_ scheme: ColorScheme, phone: Bool = false) -> Double {
+        ShadeRule.tintShare(night: scheme == .dark, phone: phone)
+    }
 }
 
 private struct PhoneLookKey: EnvironmentKey {
@@ -657,7 +695,8 @@ struct PhoneCardFill: View {
         if phoneLook {
             ZStack {
                 Theme.surface
-                if let tint { tint.opacity(Theme.tintShare(scheme)) }
+                // Only drawn inside the iPhone layout, so the iPhone's share.
+                if let tint { tint.opacity(Theme.tintShare(scheme, phone: true)) }
             }
         } else {
             Color(UIColor.secondarySystemGroupedBackground)

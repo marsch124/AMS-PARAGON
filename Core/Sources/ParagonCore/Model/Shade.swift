@@ -98,4 +98,29 @@ public enum ShadeRule {
 
     /// **The far end of the band at night**: the ground at 80 % of itself over black.
     public static func bandEnd(ground: Shade) -> Shade { ground.over(.black, strength: 0.8) }
+
+    /// **Where the day band starts** (round 9, build 316): the day shade, made 5 % deeper at a
+    /// time until white words measure 4.5 to 1 on it. 10 of the 13 parts keep their own shade;
+    /// Plan, the now-line blue and the morning orange go one or three steps deeper.
+    public static func bandDayStart(day: Shade) -> Shade {
+        var shade = day
+        var steps = 0
+        while shade.contrast(with: .white) < 4.5, steps < 20 {
+            shade = shade.deeper(0.05)
+            steps += 1
+        }
+        return shade
+    }
+
+    /// **The far end of the day band**: the start 18 % deeper. The band used to fade to 80 %
+    /// of the colour over white, where white words measured 2.9 to 3.5 to 1; it now runs to
+    /// a darker end, where they measure 6.4 to 1 or more.
+    public static func bandDayEnd(day: Shade) -> Shade { bandDayStart(day: day).deeper(0.18) }
+
+    /// **How much of a part's colour lies over a card or a panel.** 7 % by day and 13 % at
+    /// night; on the iPhone 12 % by day (round 9, build 316), because a 7 % card on the
+    /// iPhone's page (#F3F5F8) could hardly be told from it.
+    public static func tintShare(night: Bool, phone: Bool) -> Double {
+        night ? 0.13 : (phone ? 0.12 : 0.07)
+    }
 }

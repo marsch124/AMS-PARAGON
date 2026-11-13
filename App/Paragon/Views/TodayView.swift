@@ -281,7 +281,7 @@ struct TodayView: View {
     private var bandDate: some View {
         Text(DayWords.withWeekday(DateOnly.today()))
             .font(Txt.label)
-            .foregroundStyle(.white.opacity(0.85))
+            .foregroundStyle(.white)
             .accessibilityIdentifier("today.band.date")
     }
 
@@ -500,7 +500,7 @@ private struct HeaderActionButton: View {
                     pill
                     Text(caption)
                         .font(Txt.tiny)
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(.white)
                         .lineLimit(1)
                         .fixedSize()
                 }

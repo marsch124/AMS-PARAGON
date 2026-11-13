@@ -258,6 +258,14 @@ struct PhoneStack<Content: View>: View {
     /// before the app was on screen is pushed once when Browse appears, and never again.
     @State private var requestsSeen = 0
 
+    /// This stack's name among the tabs' stacks (round 9, build 316).
+    private var stackKey: String { section?.key ?? "browse" }
+    /// The note on top of this stack, or nil when its top screen is not a note.
+    private var shownNote: String? {
+        if case .note(let notePath)? = path.last { return notePath }
+        return nil
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             content()
@@ -298,7 +306,21 @@ struct PhoneStack<Content: View>: View {
         }
         .onChange(of: isActive) { _, active in
             if active, let section, model.section != section { model.section = section }
-            if active, let selected = model.selectedNotePath, path.last != .note(selected) { path.append(.note(selected)) }
+            guard active else { return }
+            // Round 9 (build 316): a note that is open on another tab stays on that tab.
+            // Before, the tab that came to the front pushed whatever note was open, so
+            // Today could show a note that had been opened in Browse.
+            let mine = shownNote
+            if let selected = model.selectedNotePath, selected != mine {
+                if PhoneStackNotes.isShown(selected, besides: stackKey) {
+                    model.afterUpdate { model.selectedNotePath = mine }
+                } else if path.last != .note(selected) {
+                    path.append(.note(selected))
+                }
+            } else if model.selectedNotePath == nil, let mine {
+                // Back on a tab that has a note open: the model follows what is on screen.
+                model.afterUpdate { model.selectedNotePath = mine }
+            }
         }
         // A template opens the same way a note does: the middle column picks one, this pushes it.
         .onChange(of: model.templateSelection) { _, selected in
@@ -360,6 +382,7 @@ struct PhoneStack<Content: View>: View {
             }
         }
         .onChange(of: path) { _, newPath in
+            PhoneStackNotes.shown[stackKey] = shownNote
             guard isActive else { return }
             let showsNote = newPath.contains { if case .note = $0 { return true } else { return false } }
             if !showsNote, model.selectedNotePath != nil { model.selectedNotePath = nil }
@@ -404,7 +427,11 @@ extension AppModel {
         case .inbox: return count == 0 ? "Nothing waiting" : "\(count) waiting"
         case .allActions: return count == 0 ? "Nothing open" : "\(count) open"
         case .timeBlocks:
-            return count == 0 ? "No time blocks today" : count == 1 ? "1 time block today" : "\(count) time blocks today"
+            // Round 9 (build 316): the blocks of today's plan, the ones the Plan tab draws
+            // and a tap adds. It counted the blocks in Apple Calendar, so it still said
+            // "No time blocks today" right after a block was added.
+            let blocks = planBlocks(for: .today()).count
+            return blocks == 0 ? "No time blocks today" : blocks == 1 ? "1 time block today" : "\(blocks) time blocks today"
         case .done: return count == 0 ? "Nothing ticked today" : "\(count) ticked today"
         case .review:
             return count == 0 ? DayWords.weekAndYear(.current())
@@ -421,6 +448,18 @@ extension AppModel {
         case .today, .map, .search: return DayWords.withWeekday(DateOnly.today())
         case .recent, .snippets, .tags, .work, .aspirations, .kind: return inAll()
         }
+    }
+}
+
+/// Which note each tab's stack has on top (round 9, build 316), so a tab coming to the front
+/// can tell a note opened on another tab from one it is asked to open itself. Only what is on
+/// screen now; nothing is kept between starts of the app.
+@MainActor
+enum PhoneStackNotes {
+    static var shown: [String: String] = [:]
+
+    static func isShown(_ notePath: String, besides stack: String) -> Bool {
+        shown.contains { $0.key != stack && $0.value == notePath }
     }
 }
 

@@ -199,7 +199,10 @@ struct NoteEditorView: View {
                 model.insert(snippet, answers: answers, into: path)
             }
         }
-        .navigationTitle(note?.displayTitle ?? path)
+        // Round 9 (build 316): a daily note's date is not written in the iPhone's top bar
+        // any more. The band right under the bar says it in large letters, so the bar only
+        // said it a second time. The Mac and the iPad keep it: there it names the window.
+        .navigationTitle(isPhone && note?.kind == .daily && note?.dailyDate != nil ? "" : (note?.displayTitle ?? path))
         // Round 8 (build 315): ⌘F from the Mac's Edit menu.
         // Every open editor hears the count; only the one in the window in front acts.
         .onChange(of: model.findInNoteRequests) { _, _ in
@@ -494,6 +497,10 @@ struct NoteEditorView: View {
         #if os(iOS)
         // The tabs step aside too: with no keys on screen the find bar sits at the very foot.
         .toolbar(findBarUp ? .hidden : .automatic, for: .tabBar)
+        // Round 9 (build 316): while the find bar is up the top bar is solid. Stepping to a
+        // match scrolls the page from code, and the bar stayed see-through, so the note's
+        // title in it sat on top of the scrolled text.
+        .toolbarBackground(findBarUp ? .visible : .automatic, for: .navigationBar)
         .task(id: findBarUp) {
             // The find bar is Apple's and closes by itself (its tick, or the keyboard going
             // away); asking it is the one sure way to know. Only while it is up.
@@ -957,8 +964,10 @@ struct NoteEditorView: View {
             // Three words, not eighty-four characters. What can be typed here moved behind
             // the ⓘ: the old placeholder was cut off after "for a" on the phone, and it
             // vanished the moment he started typing anyway.
+            // Round 9 (build 316): on the iPhone the app's own field (surface and hairline);
+            // Apple's rounded field was a pure black box at night.
             TextField("Add a task…", text: $newTask)
-                .textFieldStyle(.roundedBorder)
+                .modifier(DateFieldLook(isPhone: isPhone))
                 .onSubmit(addTask)
             TaskSyntaxButton()
             if isPhone {
@@ -1221,7 +1230,7 @@ struct GoalTargetChip: View {
     /// running, the goal's gold otherwise.
     static func color(for target: DateOnly?, ended: Bool) -> Color {
         guard let target else { return Color.secondary }
-        if !ended && target < DateOnly.today() { return Color.orange }
+        if !ended && target < DateOnly.today() { return Theme.attention.ink }
         return ChainTint.datedGoal
     }
 }
@@ -1344,7 +1353,7 @@ struct GoalMeasureEditor: View {
             if let notice {
                 Text(notice)
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("measure.notice")
             }
@@ -1621,7 +1630,7 @@ struct NoteHeader: View {
             // something new — how far a daily note's day is from today.
             Text(note.dailyDate.map { DayDistance.words(from: $0, to: .today()) } ?? "No tasks yet")
                 .font(Txt.label)
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.white)
                 .accessibilityIdentifier("note.band")
         }
     }
@@ -1882,7 +1891,7 @@ struct TaskRow: View {
                 HStack(spacing: 8) {
                     if ref.task.priority > 0 {
                         Text(String(repeating: "!", count: ref.task.priority))
-                            .rowTint(.orange)
+                            .rowTint(Theme.attention.ink)
                     }
                     if let due = ref.task.dueDate {
                         // The date and, since build 277 when the **At** line can write one, the
@@ -2223,7 +2232,7 @@ struct GoalDashboardView: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? goal.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
-                            .foregroundStyle(flag == .achieved ? goal.tint.capsuleWords : Color.orange.capsuleWords)
+                            .foregroundStyle(flag == .achieved ? goal.tint.capsuleWords : Theme.attention.capsuleWords)
                     }
                 }
             }

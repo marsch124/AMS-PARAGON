@@ -96,7 +96,7 @@ struct TimeBlocksView: View {
             if model.calendarAccessGranted == false {
                 Text("Calendar access is off. Allow it in \(DeviceWords.systemSettings) › Privacy & Security › Calendars.")
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
             }
         }
         .padding(12)

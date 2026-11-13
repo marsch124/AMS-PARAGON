@@ -84,7 +84,7 @@ struct DoneView: View {
                                 .foregroundStyle(.soft)
                         } else {
                             MarkLabel("Some notes are still coming from iCloud, so days may be missing here. They appear as the notes arrive.", "icloud")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Theme.attention.ink)
                         }
                     }
                     ForEach(diary?.days ?? []) { day in
@@ -180,7 +180,7 @@ private struct DoneDayCard: View {
             } else if waiting {
                 MarkLabel("Still coming from iCloud", "icloud", text: .footnote)
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
             }
             if !day.served.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 6) {

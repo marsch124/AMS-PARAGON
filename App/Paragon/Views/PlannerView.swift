@@ -121,6 +121,7 @@ struct PlannerDayView: View {
     /// The action the phone's tray asked a time for (**Pick a time…**, build 312). Taken once,
     /// then set back to nil. Nothing on the Mac sets it.
     var picking: Binding<TaskRef?> = .constant(nil)
+    @Environment(\.phoneLook) private var phoneLook
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -238,10 +239,12 @@ struct PlannerDayView: View {
             Text(dayTitle)
                 .font(Txt.listTitle)
                 .lineLimit(1)
-            Text(summary)
-                .font(Txt.label)
-                .foregroundStyle(.soft)
-                .lineLimit(1)
+            if !summary.isEmpty {
+                Text(summary)
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                    .lineLimit(1)
+            }
         }
     }
 
@@ -354,7 +357,11 @@ struct PlannerDayView: View {
     /// Plain text, built outside the ViewBuilder.
     private var summary: String {
         var parts: [String] = []
-        parts.append(blocks.isEmpty ? "No blocks yet" : (blocks.count == 1 ? "1 block" : "\(blocks.count) blocks"))
+        // Round 9 (build 316): on the iPhone, for today, the band above already counts the
+        // blocks ("No time blocks today"), so this line does not say it again ("No blocks yet").
+        if !(phoneLook && day == DateOnly.today()) {
+            parts.append(blocks.isEmpty ? "No blocks yet" : (blocks.count == 1 ? "1 block" : "\(blocks.count) blocks"))
+        }
         let events = model.events(on: day).filter { !$0.isAllDay }.count
         if events > 0 { parts.append(events == 1 ? "1 event" : "\(events) events") }
         return parts.joined(separator: " \u{00b7} ")
