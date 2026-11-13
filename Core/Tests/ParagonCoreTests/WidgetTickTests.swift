@@ -108,6 +108,9 @@ final class WidgetTickTests: XCTestCase {
         XCTAssertEqual(LockGlance.inline(snapshot(due: 0, over: 2), on: today), "2 overdue")
         XCTAssertEqual(LockGlance.inline(snapshot(due: 0, over: 0), on: today), "Nothing due today")
         XCTAssertEqual(LockGlance.count(snapshot(due: 3, over: 1), on: today), 4)
+        // The wide widget's heading is the short form when both numbers are there.
+        XCTAssertEqual(LockGlance.heading(snapshot(due: 3, over: 1), on: today), "3 due, 1 overdue")
+        XCTAssertEqual(LockGlance.heading(snapshot(due: 3, over: 0), on: today), "3 due today")
         XCTAssertEqual(LockGlance.lines(snapshot(due: 3, over: 0, titles: ["A", "B", "C"]), on: today), ["A", "B"])
         XCTAssertEqual(LockGlance.emptyText(snapshot(due: 0, over: 0), on: today), "Nothing due, nothing waiting")
         // No file, or yesterday's file: never an old number beside today's clock.
@@ -148,5 +151,14 @@ final class WidgetTickTests: XCTestCase {
         XCTAssertNil(free.note)
         XCTAssertNil(free.plannedEnd)
         XCTAssertNil(free.fraction)
+    }
+
+    /// Build 317: the medium widget never draws more than its height holds.
+    func testTheMediumWidgetDrawsWhatFits() {
+        XCTAssertEqual(WidgetRows.plan(size: .medium, count: 2), .init(rows: 2, showsServes: true, more: 0))
+        XCTAssertEqual(WidgetRows.plan(size: .medium, count: 3), .init(rows: 3, showsServes: false, more: 0))
+        XCTAssertEqual(WidgetRows.plan(size: .medium, count: 6), .init(rows: 4, showsServes: false, more: 2))
+        XCTAssertEqual(WidgetRows.plan(size: .small, count: 5), .init(rows: 3, showsServes: false, more: 2))
+        XCTAssertEqual(WidgetRows.plan(size: .large, count: 9), .init(rows: 7, showsServes: true, more: 2))
     }
 }

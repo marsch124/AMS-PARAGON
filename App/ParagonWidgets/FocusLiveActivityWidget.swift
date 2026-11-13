@@ -156,14 +156,17 @@ struct FocusClock: View {
     }
 
     var body: some View {
-        if state.isPaused {
-            Text(state.clock)
-                .lineLimit(1)
-        } else {
-            Text(template)
-                .lineLimit(1)
-                .hidden()
-                .overlay(alignment: trailing ? .trailing : .leading) {
+        // Paused, the fixed figure sits in the same box as the counting one, so the words
+        // after it ("of 50 min") do not jump sideways on Pause and Go on (designer, 317).
+        Text(template)
+            .lineLimit(1)
+            .hidden()
+            .overlay(alignment: trailing ? .trailing : .leading) {
+                if state.isPaused {
+                    Text(state.clock)
+                        .lineLimit(1)
+                        .fixedSize()
+                } else {
                     // A day is far more than a clock ever runs: the app asks about one left
                     // running for over twelve hours.
                     Text(timerInterval: state.countsFrom...state.countsFrom.addingTimeInterval(24 * 3600),
@@ -172,7 +175,7 @@ struct FocusClock: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                 }
-        }
+            }
     }
 }
 

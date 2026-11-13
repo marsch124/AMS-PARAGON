@@ -1992,6 +1992,8 @@ The precise rules and names behind round 9 of the premium review, for reference.
 
 ## Exact details (build 317)
 
+- **After the designer's look (build 317).** `Marks.byName` has `play.fill`, `pause.fill` and `stop.fill` (the stop square `M7 7h10v10h-10Z`), 16 points in a 28-point round button on the focus bar. **Today's actions**, medium: `WidgetRows.plan(size:count:)` — 1 or 2 tasks with their second row, 3 or 4 tasks with one row each, "and N more" at the right end of the foot; small (3 lines) and large (7 lines, two rows each) as before. The medium and large heading has Today's sun, 15 points. Lock Screen wide shape: `LockGlance.heading` says "3 due, 1 overdue" when both numbers are there; the two task lines are one text step smaller. **Settings › Siri and Shortcuts**: the names are **Add to Inbox**, **Due Today**, **Open Today**, **Start the Day**, **Close the Day**, **Start Focus**; on the iPhone the phrase stands under the action. Tests: `WidgetTickTests`.
+
 The precise rules and names behind build 317, for reference. The words in `code letters` are names in the app's code, in its files and in its tests. You do not need them to use PARAGON.
 
 **Siri and Shortcuts**

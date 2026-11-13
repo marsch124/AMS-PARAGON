@@ -119,6 +119,11 @@ enum Marks {
         "square.grid.2x2": .init(kind: .app(.area)),
         "questionmark.folder": .init(kind: .app(.question)),
         "pause.circle": .init(kind: .control(.pause)),
+        // Build 317: the focus bar's Pause, Go on and Stop. Play and pause are the library's
+        // drawings; it has no stop mark, so the square is drawn here in the same line.
+        "play.fill": .init(kind: .control(.play)),
+        "pause.fill": .init(kind: .control(.pause)),
+        "stop.fill": .init(kind: .drawn(Marks.stopPath)),
         // Control marks the package already had
         "plus": .init(kind: .control(.add)),
         "plus.circle": .init(kind: .control(.addCircle)),
@@ -141,6 +146,9 @@ enum Marks {
 
     /// The deadline's mark: a pole, a three-cornered pennant and the finish line under it.
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
+
+    /// Stop: a square with round corners, the same drawing as on the Lock Screen banner.
+    static let stopPath = "M7 7h10v10h-10Z"
 
     /// The mark for a name. A name nobody mapped draws the dot, and says so in a debug build,
     /// so a missing drawing is noticed on the first screen and never ships as a blank.

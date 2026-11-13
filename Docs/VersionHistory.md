@@ -277,7 +277,7 @@ The 6 actions and the phrases to say:
 
 **New in Settings: Siri and Shortcuts.**
 - **Settings** has a new part **Siri and Shortcuts**, after **Quick capture**.
-- It has 6 rows. Each row names an action and the first phrase to say: **Add to Inbox**, **Due today**, **Open Today**, **Start the day**, **Close the day**, **Start focus**.
+- It has 6 rows. Each row names an action and the first phrase to say: **Add to Inbox**, **Due Today**, **Open Today**, **Start the Day**, **Close the Day**, **Start Focus**, spelled like their tiles in the Shortcuts app. On the iPhone each row has the action with its phrase under it in small grey.
 - Under the rows is a button that opens the **Shortcuts** app. On the iPhone and the iPad it is Apple's own **Shortcuts** button. On the Mac it is **Open Shortcuts**.
 - One grey line says: "Say one of these to Siri, or find the same six actions in the Shortcuts app and in the system search. Add to Inbox and What is due today answer without opening PARAGON."
 - The tiles in the **Shortcuts** app are purple. Their pictures are Apple's own symbols. Apple allows no other picture on a tile, so the hand-drawn marks cannot be used there.
@@ -392,7 +392,13 @@ These things cannot be shown by a test on the Mac or by a simulated iPhone. Plea
 - **Pause, Go on and Stop on the Lock Screen when the iPhone has closed PARAGON completely.**
 - **Apple's question "Allow Live Activities from PARAGON?"** on the Lock Screen.
 
-One thing was seen on the way and not changed: in the dark bar of the focus timer inside the app, the **Pause** and **Stop** buttons are drawn as 2 small dots. It is noted for a later build.
+**After the designer's look.** A strict designer looked at the new screens on the iPhone and fixed these before the upload:
+- The focus timer's bar inside the app: **Pause**, **Go on** and **Stop** are now drawn marks. Before, they showed as 2 small dots.
+- **Today's actions**, medium size: with 3 or more tasks the heading and the foot were cut off. Now 1 or 2 tasks keep their second row, and 3 or 4 tasks have one row each. "and N more" stands at the end of the foot line.
+- The widget's tick circle sits on the middle of its line (it was 3 points too high). The heading of the medium and large size has Today's sun, not a circle that looked like one more tick.
+- Lock Screen widget **Due today**, wide shape: the heading was cut ("3 due today, 1 ove…"). With both numbers it now says "3 due, 1 overdue", and both task lines show whole.
+- Focus timer on the Lock Screen: "of 45 min" no longer jumps sideways on **Pause**.
+- No shortcut could be run on the test phone, so the **Due Today** answer card has not been seen by anyone yet. Please press **Due Today** once and tell me how it looks.
 
 ## Build 316 · 13 November 2026
 

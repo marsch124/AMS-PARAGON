@@ -51,6 +51,8 @@ struct TickWidgetTaskIntent: AppIntent {
 struct ActionLine: View {
     let item: WidgetSnapshot.Item
     var small: Bool
+    /// False where the size has room for one row a line only (`WidgetRows`).
+    var showsServes = true
     var ticked: Bool
 
     var body: some View {
@@ -68,11 +70,14 @@ struct ActionLine: View {
                         .padding(5)
                         .contentShape(Rectangle())
                         .padding(-5)
+                        // The circle's middle on the middle of the first row of words (it
+                        // stood on the baseline and so sat 3 points too high; designer, 317).
+                        .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(ticked ? "Take the tick off \(item.title)" : "Tick \(item.title)")
                 WidgetLink(to: item.url) {
-                    ActionRow(item: item, showsKind: false, ticked: ticked)
+                    ActionRow(item: item, compact: !showsServes, showsKind: false, ticked: ticked)
                 }
             }
         }

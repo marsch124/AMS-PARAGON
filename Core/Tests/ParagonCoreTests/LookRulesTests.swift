@@ -25,6 +25,11 @@ final class LookRulesTests: XCTestCase {
     /// The widgets are their own target with Apple's small widget styles; they keep theirs.
     private let filesThatMayNameASize: Set<String> = ["Look.swift", "MarkdownSyntaxEditor.swift", "MarkdownPreview.swift",
                                                        "ParagonWidgets.swift", "TodayPlanWidget.swift", "OneListWidget.swift", "WidgetMarks.swift",
+                                                       // Build 317: the Lock Screen widgets and the focus timer's Live Activity.
+                                                       "LockScreenWidgets.swift", "FocusLiveActivityWidget.swift",
+                                                       // Build 317: the "What is due today?" card is drawn by the system, outside
+                                                       // the app's windows, like a widget; it keeps Apple's small card styles.
+                                                       "ParagonIntents.swift",
                                                        // The share sheet is iPhone-only and uses Apple's text styles, as his brief asks there.
                                                        "ShareViewController.swift"]
 

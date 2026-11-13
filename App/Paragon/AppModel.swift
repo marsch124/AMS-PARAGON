@@ -1740,7 +1740,17 @@ final class AppModel: ObservableObject {
     static var widgetContainerURL: URL? {
         #if DEBUG
         // Build 307: a test run never writes into the widget's shared folder.
-        if TestVault.isWanted { return nil }
+        // Build 317: except on a simulator when asked (`PARAGON_WIDGET_TEST=1`), so the
+        // widgets can be looked at with the test notes. A simulator has its own shared
+        // folder; his real widgets are on another device and cannot be reached from it.
+        if TestVault.isWanted {
+            #if targetEnvironment(simulator)
+            if ProcessInfo.processInfo.environment["PARAGON_WIDGET_TEST"] == "1" {
+                return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
+            }
+            #endif
+            return nil
+        }
         #endif
         return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
     }

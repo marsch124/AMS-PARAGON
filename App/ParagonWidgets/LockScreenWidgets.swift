@@ -83,7 +83,7 @@ struct LockWidgetView: View {
         return VStack(alignment: .leading, spacing: 1) {
             HStack(spacing: 4) {
                 WidgetMark(name: "sun.max", size: 13)
-                Text(LockGlance.inline(snapshot, on: today))
+                Text(LockGlance.heading(snapshot, on: today))
                     .font(.headline)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -101,8 +101,10 @@ struct LockWidgetView: View {
                 ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
                     HStack(spacing: 4) {
                         WidgetMark(name: "circle", size: 11)
+                        // One step under the heading, so "Book the night train" fits whole
+                        // and the heading stays the largest line (designer, build 317).
                         Text(line)
-                            .font(.subheadline)
+                            .font(.footnote)
                             .lineLimit(1)
                     }
                 }
