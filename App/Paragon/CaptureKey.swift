@@ -30,7 +30,7 @@ final class CaptureKey {
         self.model = model
         if let hotKey { UnregisterEventHotKey(hotKey) }
         hotKey = nil
-        // Build 316: his own recorded key. One that is not allowed (no ⌘, ⌃ or ⌥) is never
+        // Build 316: his own recorded key. One that is not allowed (no ⌘ or ⌃, or a key every app uses) is never
         // asked for, whatever is stored.
         let own = choice == .custom
             ? RecordedKey(stored: UserDefaults.standard.string(forKey: RecordedKey.storageKey)).flatMap { $0.isAllowed ? $0 : nil }

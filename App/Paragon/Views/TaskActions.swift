@@ -213,7 +213,7 @@ struct TaskContextMenu: View {
 
     /// Opens the task's date window on one of its pages (build 316).
     private func openWindow(_ tab: TaskWindowTab) {
-        TaskWindowStart.tab = tab
+        TaskWindowStart.ask(for: tab, of: ref)
         pickingDate = true
     }
 
@@ -276,13 +276,13 @@ struct TaskDatePicker: View {
     init(ref: TaskRef, isPresented: Binding<Bool>) {
         self.ref = ref
         self._isPresented = isPresented
-        self._tab = State(initialValue: TaskWindowStart.tab)
+        self._tab = State(initialValue: TaskWindowStart.tab(for: ref))
     }
 
     var body: some View {
         page
-            .onAppear { TaskWindowStart.tab = .day }
-            .onDisappear { TaskWindowStart.tab = .day }
+            .onAppear { TaskWindowStart.forget() }
+            .onDisappear { TaskWindowStart.forget() }
     }
 
     @ViewBuilder

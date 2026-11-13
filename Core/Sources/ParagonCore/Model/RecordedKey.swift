@@ -46,19 +46,28 @@ public struct RecordedKey: Equatable, Sendable {
         return text + keyName
     }
 
-    /// **The rule: a key without ⌘, ⌃ or ⌥ is refused.** A bare letter, or Shift and a letter,
-    /// is typing; as a key that works in every app it would take that letter away everywhere.
-    public var isAllowed: Bool {
-        modifiers & (Self.command | Self.option | Self.control) != 0
+    /// **The rule: a key needs ⌘ or ⌃, and a key every app uses is refused.**
+    /// A bare letter, or Shift and a letter, is typing. So is ⌥ and a key, with or without
+    /// Shift: on a Swedish keyboard ⌥2 is "@" and ⌥8 and ⌥9 are "[" and "]". As a key that
+    /// works in every app it would take that letter or sign away everywhere. And ⌘C, ⌘V, ⌘Q,
+    /// ⌘Tab and the like (`everyAppKeys`) would stop copying, pasting, quitting and switching
+    /// apps on the whole Mac.
+    public var isAllowed: Bool { refusalLine == nil }
+
+    /// Why this key cannot be the capture key, in plain words, or nil when it can.
+    public var refusalLine: String? {
+        if modifiers & (Self.command | Self.control) == 0 { return Self.refusedLine }
+        if Self.everyAppKeys.contains(label) {
+            return "\(label) is used in almost every app, for things like copy, paste, save, quit or switching apps. As your capture key it would stop doing that everywhere. Choose another key, for example \u{2325}\u{2318}K."
+        }
+        return nil
     }
 
-    public static let refusedLine = "Hold \u{2318}, \u{2303} or \u{2325} together with the key. A key by itself would stop you typing it in every app."
+    public static let refusedLine = "Hold \u{2318} or \u{2303} together with the key. A key by itself, or with only \u{2325} or \u{21E7}, types a letter or a sign such as @ or [, and you could not type that any more in any app."
 
-    /// What macOS or nearly every app already does with this key, or nil. A warning, not a
-    /// refusal: he may have turned that shortcut off, and macOS has the last word anyway.
-    public var knownUse: String? {
-        Self.knownUses[label] ?? (Self.everyAppKeys.contains(label) ? "a command in almost every app" : nil)
-    }
+    /// What macOS already does with this key, or nil. A warning, not a refusal: he may have
+    /// turned that shortcut off, and macOS has the last word anyway.
+    public var knownUse: String? { Self.knownUses[label] }
 
     /// The warning's words, or nil.
     public var warningLine: String? {
@@ -66,13 +75,10 @@ public struct RecordedKey: Equatable, Sendable {
     }
 
     static let knownUses: [String: String] = [
-        "\u{2318}Space": "Spotlight on most Macs",
         "\u{2325}\u{2318}Space": "the Finder search window",
         "\u{2303}Space": "macOS's key for the previous input source",
         "\u{2303}\u{2325}Space": "macOS's key for the next input source",
         "\u{2303}\u{2318}Space": "the emoji and symbols window",
-        "\u{2318}Tab": "macOS's key for switching apps",
-        "\u{21E7}\u{2318}Tab": "macOS's key for switching apps",
         "\u{2325}\u{2318}Esc": "Force Quit",
         "\u{2325}\u{2318}D": "macOS's key for hiding the Dock",
         "\u{2303}\u{2318}Q": "macOS's key for locking the screen",
@@ -87,8 +93,11 @@ public struct RecordedKey: Equatable, Sendable {
         "\u{21E7}\u{2318}N": "PARAGON's own quick capture",
     ]
 
+    /// Keys that mean the same in nearly every app, or that macOS itself needs: refused.
     static let everyAppKeys: Set<String> = Set(
-        ["Q", "W", "H", "M", "C", "V", "X", "Z", "A", "S", "N", "O", "P", "F", "T", ","].map { "\u{2318}\($0)" }
+        ["Q", "W", "H", "M", "C", "V", "X", "Z", "A", "S", "N", "O", "P", "F", "T", ",", "Tab", "Space", "Return", "Delete", "Esc"]
+            .map { "\u{2318}\($0)" }
+        + ["\u{21E7}\u{2318}Z", "\u{21E7}\u{2318}Tab", "\u{2303}C", "\u{2325}\u{2318}Esc"]
     )
 
     /// The name of a key that has no letter of its own, by its number; nil for the others,

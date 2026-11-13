@@ -24,7 +24,14 @@ public struct TaskItem: Equatable, Sendable {
     /// Tags found in the title, without `#`.
     public var tags: [String]
     /// `@repeat(weekly)`: when the task is completed, a new open copy is created for the next date.
-    public var repeatRule: RepeatRule?
+    public var repeatRule: RepeatRule? {
+        didSet { unreadRepeat = nil }
+    }
+    /// The words inside an `@repeat(…)` this build cannot read (a rule a newer build wrote).
+    /// They are written back exactly as they were, so an older build never drops a newer
+    /// build's repeat when it rewrites the line (build 316). Choosing a repeat, or
+    /// **Does not repeat**, replaces them.
+    public private(set) var unreadRepeat: String?
     /// `~45m`: how long the task takes, in minutes (build 248). Nil when no time is written.
     public var minutes: Int?
     /// `@since(2026-11-01)`: the day a waiting line started waiting (build 279). Nil when none is
@@ -32,7 +39,8 @@ public struct TaskItem: Equatable, Sendable {
     /// days", and a guess would be a lie.
     public var since: DateOnly?
     /// `@deadline(2026-11-20)`: the day it must be finished by, besides the day he plans to do
-    /// it (`dueDate`) (build 316). Moving the do-day never moves it. Not sent to Reminders.
+    /// it (`dueDate`) (build 316). Moving the do-day never moves it. Not sent to Reminders; a mark a
+    /// build 315 device left in a reminder's title is kept there (`SyncEngine.apply(task:to:)`).
     public var deadline: DateOnly?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
@@ -156,7 +164,11 @@ public struct TaskItem: Equatable, Sendable {
         if priority > 0 { parts.append(String(repeating: "!", count: priority)) }
         if let minutes, let token = TaskTime.token(minutes) { parts.append(token) }
         if let dueDate { parts.append(">\(dueDate)" + (dueTime.map { "T\($0)" } ?? "")) }
-        if let repeatRule { parts.append("@repeat(\(repeatRule))") }
+        if let repeatRule {
+            parts.append("@repeat(\(repeatRule))")
+        } else if let unreadRepeat {
+            parts.append("@repeat(\(unreadRepeat))")
+        }
         if let since { parts.append("@since(\(since))") }
         if let deadline { parts.append("@deadline(\(deadline))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
@@ -169,6 +181,30 @@ public struct TaskItem: Equatable, Sendable {
         var out = "t"
         for _ in 0..<6 { out.append(hex.randomElement()!) }
         return out
+    }
+
+    /// This task with the words of a repeat this build cannot read, kept for writing back.
+    func keepingUnreadRepeat(_ words: String?) -> TaskItem {
+        var copy = self
+        copy.unreadRepeat = words.flatMap { $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0 }
+        return copy
+    }
+
+    /// **A task with a repeat that build 315 cannot read gets its `^id` at once** (build 316).
+    ///
+    /// A device still on 315 reads `@repeat(mon,wed,fri)`, `weekdays`, `monthend` and
+    /// `… after done` as no repeat. Its sync gives every task without an id one, and rewrites
+    /// the line to do so — without the repeat. A line that already carries an id is not
+    /// rewritten by that step, so the id is written together with the repeat.
+    /// `taken` are the ids already in use, so the new one is no copy of another.
+    public func withIDForNewRepeat(avoiding taken: @autoclosure () -> Set<String> = []) -> TaskItem {
+        guard id == nil, let rule = repeatRule, rule.isNewInBuild316 else { return self }
+        let used = taken()
+        var copy = self
+        var fresh = TaskItem.makeID()
+        while used.contains(fresh) { fresh = TaskItem.makeID() }
+        copy.id = fresh
+        return copy
     }
 }
 
@@ -225,6 +261,10 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
     /// Monday to Friday.
     public static var workingDays: RepeatRule { RepeatRule(weekdays: [1, 2, 3, 4, 5])! }
 
+    /// True for the rules build 315 reads as "no repeat": chosen weekdays, the month's last
+    /// day, and counting from the day of finishing.
+    public var isNewInBuild316: Bool { !weekdays.isEmpty || monthEnd || afterDone }
+
     /// True for the every-N rules, the only ones that can count from the day of finishing.
     public var canCountFromDone: Bool { weekdays.isEmpty && !monthEnd }
 
@@ -239,7 +279,8 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
 
     /// Accepts `daily`, `weekly`, `monthly`, `yearly`, `2w`, `3 months`, `every 2 weeks` (as
     /// always), and `mon,wed,fri`, `weekdays`, `monthend`, each every-N form followed by
-    /// ` after done`.
+    /// ` after done`. Typed after weekdays or `monthend`, ` after done` means nothing and is
+    /// left out; the rule itself is kept.
     public init?(_ text: String) {
         var t = text.lowercased().trimmingCharacters(in: .whitespaces)
         if t.hasPrefix("every ") { t = String(t.dropFirst(6)) }
@@ -255,19 +296,17 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
         case "yearly", "annually", "year", "years": self.init(unit: .year, afterDone: afterDone); return
         default: break
         }
-        if !afterDone {
-            switch t {
-            case "weekdays", "workdays", "working days":
-                self = .workingDays; return
-            case "monthend", "month-end", "month end", "last day of month", "last day of the month", "eom":
-                self = .lastDayOfMonth; return
-            default: break
-            }
-            let words = t.split(whereSeparator: { $0 == "," || $0 == " " || $0 == "+" }).map(String.init)
-            let days = words.compactMap { Self.dayWords[$0] }
-            if !words.isEmpty, days.count == words.count, let rule = RepeatRule(weekdays: days) {
-                self = rule; return
-            }
+        switch t {
+        case "weekdays", "workdays", "working days":
+            self = .workingDays; return
+        case "monthend", "month-end", "month end", "last day of month", "last day of the month", "eom":
+            self = .lastDayOfMonth; return
+        default: break
+        }
+        let words = t.split(whereSeparator: { $0 == "," || $0 == " " || $0 == "+" }).map(String.init)
+        let days = words.compactMap { Self.dayWords[$0] }
+        if !words.isEmpty, days.count == words.count, let rule = RepeatRule(weekdays: days) {
+            self = rule; return
         }
         let digits = t.prefix { $0.isNumber }
         let rest = t.dropFirst(digits.count).trimmingCharacters(in: .whitespaces)
@@ -429,13 +468,18 @@ public enum TaskParser {
         var dueTime: TimeOfDay?
         var priority = 0
         var repeatRule: RepeatRule?
+        var unreadRepeat: String?
         var minutes: Int?
         var since: DateOnly?
         var deadline: DateOnly?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
-        rest = extract(repeatRegex, from: rest) { repeatRule = RepeatRule($0) }
+        // The first one written counts. Words this build cannot read are kept as they are.
+        rest = extract(repeatRegex, from: rest) {
+            repeatRule = RepeatRule($0)
+            unreadRepeat = repeatRule == nil ? $0 : nil
+        }
         rest = extract(sinceRegex, from: rest) { since = DateOnly($0) }
         rest = extract(deadlineRegex, from: rest) { deadline = DateOnly($0) ?? deadline }
         let restNS = rest as NSString
@@ -454,6 +498,7 @@ public enum TaskParser {
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
                         indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline)
+            .keepingUnreadRepeat(unreadRepeat)
     }
 
     /// Parses every task line in a body, ignoring fenced code blocks. Indented tasks below another

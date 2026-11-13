@@ -2440,7 +2440,10 @@ final class AppModel: ObservableObject {
         guard var note = note(at: ref.notePath) else { return }
         var task = ref.task
         task.repeatRule = rule
-        guard note.replace(task: task) else { return }
+        // Build 316: a repeat that build 315 cannot read is written together with the task's
+        // id, so a device still on 315 has no reason to rewrite the line and drop the repeat.
+        let taken = Set(notes.flatMap { $0.tasks.compactMap(\.id) })
+        guard note.replace(task: task.withIDForNewRepeat(avoiding: taken)) else { return }
         save(note)
     }
 
