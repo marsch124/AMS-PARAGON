@@ -257,7 +257,7 @@ struct ContentView: View {
                     // Above the focus timer's bar while a clock runs, never over its buttons
                     // (build 256): on the phone the bar sits on top of the tab bar, so higher.
                     .padding(.bottom, flashBottom)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(Motion.rise)
                     // Keyed to the words **and the offer's number**, so a message that replaces
                     // or extends another gets its own full time on screen (build 257's review),
                     // and so does a second Undo offered under the same words. A new message
@@ -268,7 +268,7 @@ struct ContentView: View {
                     }
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: model.lastCaptureMessage)
+        .animation(Motion.toast, value: model.lastCaptureMessage)
         .alert("Something went wrong", isPresented: model.errorPresented) {
             Button("OK") { model.errorMessage = nil }
         } message: {

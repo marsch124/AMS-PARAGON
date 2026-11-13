@@ -41,8 +41,14 @@ public struct CaptureItem: Codable, Equatable, Identifiable, Sendable {
     /// true: `- [ ] text` under Tasks. false: `- text` under Notes.
     public var asTask: Bool
     public var createdAt: Date
+    /// Build 318: pictures and PDFs shared along, waiting beside the outbox — each a path from
+    /// the `capture-files` folder (`SharedFiles`). Nil for every capture without files, and
+    /// absent from the lines older builds wrote.
+    public var files: [String]?
 
-    public init(id: UUID = UUID(), text: String, url: URL? = nil, target: CaptureTarget = .inbox, asTask: Bool = true, createdAt: Date = Date()) {
+    public init(id: UUID = UUID(), text: String, url: URL? = nil, target: CaptureTarget = .inbox, asTask: Bool = true, createdAt: Date = Date(),
+                files: [String]? = nil) {
+        self.files = files
         self.id = id
         self.text = text
         self.url = url
@@ -148,12 +154,64 @@ public struct CaptureOutbox: Sendable {
     public func requeue(_ items: [CaptureItem]) {
         for item in items { try? append(item) }
     }
+
+    /// Build 318 (review): files every waiting item through `file`, one at a time, and **never
+    /// loses one when the app is stopped half-way**. `drain()` empties the outbox before a
+    /// single item is filed, so an app that was closed while filing lost every line it had
+    /// taken — and, for a share with pictures, left their waiting copies to be cleared away a
+    /// day later.
+    ///
+    /// Here the taken lines stay in their own file (`capture-outbox.<id>.jsonl`) until each is
+    /// dealt with: a filed item is struck from it, an item `file` throws for goes back into the
+    /// outbox and is struck then. A file like that left by a run that was stopped is picked up
+    /// first by the next run. At worst the one item being filed at that moment is filed twice;
+    /// none is lost.
+    @discardableResult
+    public func drain(filing file: (CaptureItem) throws -> Void) -> (filed: Int, kept: [CaptureItem]) {
+        let fm = FileManager.default
+        let folder = fileURL.deletingLastPathComponent()
+        var batches = ((try? fm.contentsOfDirectory(atPath: folder.path)) ?? [])
+            .filter { Self.isTakenFile($0) }.sorted()
+            .map { folder.appendingPathComponent($0) }
+        let taken = folder.appendingPathComponent("capture-outbox.\(UUID().uuidString).jsonl")
+        if (try? fm.moveItem(at: fileURL, to: taken)) != nil { batches.append(taken) }
+        var filed = 0
+        var kept: [CaptureItem] = []
+        for batch in batches {
+            guard let data = try? Data(contentsOf: batch) else { continue }
+            var waiting = data.split(separator: 0x0A).compactMap { try? Self.decoder.decode(CaptureItem.self, from: $0) }
+                .sorted { $0.createdAt < $1.createdAt }
+            // Could neither be filed nor put back into the outbox: they stay in this file.
+            var stuck: [CaptureItem] = []
+            while let item = waiting.first {
+                do {
+                    try file(item)
+                    filed += 1
+                } catch {
+                    kept.append(item)
+                    if (try? append(item)) == nil { stuck.append(item) }
+                }
+                waiting.removeFirst()
+                let left = (stuck + waiting).compactMap { try? Self.encoder.encode($0) }
+                var text = Data()
+                for line in left { text.append(line); text.append(0x0A) }
+                try? text.write(to: batch, options: .atomic)
+            }
+            if stuck.isEmpty { try? fm.removeItem(at: batch) }
+        }
+        return (filed, kept)
+    }
+
+    /// `capture-outbox.<id>.jsonl`: lines a run took out of the outbox and has not finished.
+    static func isTakenFile(_ name: String) -> Bool {
+        name.hasPrefix("capture-outbox.") && name.hasSuffix(".jsonl") && name != "capture-outbox.jsonl"
+    }
 }
 
 public extension Vault {
     /// Appends a capture to its target note (falling back to the Inbox) and saves it.
     @discardableResult
-    func capture(_ item: CaptureItem, today: DateOnly = .today()) throws -> Note {
+    func capture(_ item: CaptureItem, today: DateOnly = .today(), filesRoot: URL? = nil) throws -> Note {
         var note: Note
         switch item.target {
         case .inbox:
@@ -177,6 +235,10 @@ public extension Vault {
             } else {
                 note = try inboxNote()
             }
+        }
+        // Build 318: a share with pictures or PDFs (`SharedFiles`).
+        if let files = item.files, !files.isEmpty {
+            return try fileShared(item, into: note, filesRoot: filesRoot)
         }
         if item.asTask {
             note.append(task: TaskParser.normalized(TaskItem(title: item.lineText)))

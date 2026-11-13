@@ -190,6 +190,7 @@ struct NoteEditorView: View {
         } message: {
             Text("The file is renamed too, and every note that links to it is pointed at the new name.")
         }
+        .attachmentPreview($openedFile)
         .sheet(item: $sketch) { request in
             SketchSheet(request: request, tint: note?.tint ?? Theme.fallbackTint) { png, drawing in
                 saveSketch(request, png: png, drawing: drawing)
@@ -582,7 +583,7 @@ struct NoteEditorView: View {
                                 .foregroundStyle(.soft)
                             StateToggle(markName: "eye.slash", title: "Hide finished",
                                         isOn: hideFinishedTasks, tint: note.tint) {
-                                hideFinishedTasks.toggle()
+                                withAnimation(Motion.settle) { hideFinishedTasks.toggle() }
                             }
                         }
                     }
@@ -689,7 +690,11 @@ struct NoteEditorView: View {
                                 photoOffset = offset
                                 if camera { takingPhoto = true } else { choosingPhoto = true }
                             },
-                            open: { picture in sketch = SketchRequest(offset: nil, picturePath: picture) },
+                            open: { picture in
+                                // Build 318: a PDF opens in Quick Look; a picture as before.
+                                if SharedFiles.isPDF(picture) { openedFile = picture }
+                                else { sketch = SketchRequest(offset: nil, picturePath: picture) }
+                            },
                             caption: { offset, link in
                                 captionEdit = CaptionEdit(offset: offset, link: link)
                                 captionDraft = Pictures.caption(ofLink: link) ?? ""
@@ -716,30 +721,37 @@ struct NoteEditorView: View {
         text = ns.replacingCharacters(in: range, with: Pictures.settingCaption(captionDraft, inLink: edit.link))
     }
 
+    /// Build 318: the PDF opened in Quick Look, from the vault's root.
+    @State private var openedFile: String?
+
     /// Build 290 (Mac): pictures dragged in from Finder, copied into the Pictures folder, each
     /// on its own line where they were dropped. The originals stay where they were.
+    /// Build 318: PDFs too, into the Attachments folder. Copied by file, under a name that is
+    /// safe inside a link and that nothing in the folder has.
     private func dropPictures(_ urls: [URL], at offset: Int) {
         guard let vault = model.vault else { return }
-        let folder = vault.rootURL.appendingPathComponent(Pictures.droppedFolder)
-        var taken = Set((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? [])
+        let fm = FileManager.default
+        var taken: [String: Set<String>] = [:]
         var at = min(offset, (text as NSString).length)
         var result = text
         for url in urls {
             let reading = url.startAccessingSecurityScopedResource()
             defer { if reading { url.stopAccessingSecurityScopedResource() } }
-            guard let data = try? Data(contentsOf: url) else {
-                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be read."
-                continue
-            }
-            let name = Pictures.freeName(for: url.lastPathComponent, taken: taken)
+            let folder = SharedFiles.folder(for: url.lastPathComponent)
+            let folderURL = vault.rootURL.appendingPathComponent(folder, isDirectory: true)
+            var names = taken[folder] ?? SharedFiles.takenNames(in: (try? fm.contentsOfDirectory(atPath: folderURL.path)) ?? [])
+            let name = SharedFiles.freeName(for: SharedFiles.safeName(url.lastPathComponent), taken: names)
             do {
-                try vault.writeFile(data, at: Pictures.droppedFolder + "/" + name)
+                try fm.createDirectory(at: folderURL, withIntermediateDirectories: true)
+                // `copyItem` never writes over a file that is there.
+                try fm.copyItem(at: url, to: folderURL.appendingPathComponent(name))
             } catch {
-                model.errorMessage = "The picture could not be saved: \(error.localizedDescription)"
+                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be saved: \(error.localizedDescription)"
                 continue
             }
-            taken.insert(name)
-            let link = Sketches.link(toFile: name, fromNote: path, folder: Pictures.droppedFolder, alt: "Picture")
+            names.insert(name)
+            taken[folder] = names
+            let link = SharedFiles.link(toFile: name, fromNote: path)
             let put = Sketches.inserting(link: link, into: result, at: at)
             result = put.text
             at = put.cursor
@@ -885,7 +897,7 @@ struct NoteEditorView: View {
                     .onChange(of: linkDraft) { _, _ in linkChoice = 0 }
             }
             if mode != .edit, let note {
-                MarkdownPreview(note: note, beforeToggle: flushSave)
+                MarkdownPreview(note: note, beforeToggle: flushSave, root: model.vault?.rootURL)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
@@ -1745,6 +1757,10 @@ struct NoteHeader: View {
             if note.kind == .goal {
                 GoalMeasureChip(model: model, note: note)
             }
+            if isDatedGoal(note) {
+                // Build 318: a number to track, beside the measure's words.
+                GoalNumberChip(model: model, note: note)
+            }
             if note.kind == .goal || note.kind == .area {
                 LookedAtChip(model: model, note: note)
             }
@@ -1803,6 +1819,8 @@ struct TaskChecklist: View {
                 .padding(.leading, CGFloat(task.indentLevel) * 14)
             }
         }
+        // Build 318: Hide finished is kept in the settings; the rows leave and come back in 0.25 s.
+        .animation(Motion.settle, value: hideFinishedTasks)
         .padding(.top, 4)
         .alert("New subtask", isPresented: Binding(get: { subtaskParent != nil }, set: { if !$0 { subtaskParent = nil } })) {
             TextField("Subtask", text: $subtaskTitle)
@@ -1886,7 +1904,8 @@ struct TaskRow: View {
                 // 1.0: the circle is the size of the text (15) and sits in a 22-point box that
                 // takes the press anywhere inside it — a stroked ring alone only took a press on
                 // its line, which is what the first Mac run of build 280 found.
-                MarkImage(ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"), size: 15)
+                // Build 318: the circle fills over 0.2 s when the task is ticked (`TickMark`).
+                TickMark(isDone: ref.task.isDone, isCancelled: ref.task.status == .cancelled)
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
                     .frame(width: 22, height: 22)
                     .contentShape(Rectangle())
@@ -1908,6 +1927,7 @@ struct TaskRow: View {
                         Text(isNext ? Note.removingTag(Note.nextActionTag, from: ref.task.title) : ref.task.title)
                             .strikethrough(ref.task.isDone)
                             .foregroundStyle(ref.task.isDone ? .secondary : .primary)
+                            .animation(Motion.tick, value: ref.task.isDone)
                         if isNext && !ref.task.isDone {
                             Text("next")
                                 .font(Txt.listSecond.weight(.semibold))
@@ -2254,6 +2274,8 @@ struct GoalDashboardView: View {
             // never finish one, so a per cent on it promises something the idea does not.
             if !GoalWording.isAspiration(goal) {
                 GoalProgressBar(progress: health.progress, width: 160, tint: ChainTint.forGoal(goal))
+                // Build 318: the goal's own number, as a second bar with its curve.
+                GoalNumberPanel(model: model, note: goal)
             }
             HStack(spacing: 14) {
                 stat("\(health.projects.count)", "projects")
@@ -2520,6 +2542,8 @@ struct NoteGallery: View {
                 }
             }
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: folded)
         .accessibilityIdentifier("note.gallery")
     }
 }
@@ -2868,7 +2892,7 @@ struct PictureZoom: View {
             .simultaneousGesture(dragGesture(geo.size))
             .onTapGesture(count: 2) {
                 guard !selecting else { return }
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(Motion.page) {
                     if scale > 1 { reset() } else { scale = Pictures.doubleTapZoom; lastScale = scale }
                 }
             }
@@ -2901,7 +2925,7 @@ struct PictureZoom: View {
             Button(selecting ? "Stop selecting" : "Select part") {
                 selecting.toggle()
                 box = nil
-                if selecting { withAnimation(.easeOut(duration: 0.2)) { reset() } }
+                if selecting { withAnimation(Motion.page) { reset() } }
             }
             .buttonStyle(.filled(tint))
             .controlSize(.small)
@@ -2917,7 +2941,7 @@ struct PictureZoom: View {
             .onChanged { value in scale = Pictures.zoom(lastScale * value.magnification) }
             .onEnded { _ in
                 lastScale = scale
-                if scale <= 1 { withAnimation(.easeOut(duration: 0.2)) { reset() } }
+                if scale <= 1 { withAnimation(Motion.page) { reset() } }
                 else { offset = clamped(offset, in: size); lastOffset = offset }
             }
     }

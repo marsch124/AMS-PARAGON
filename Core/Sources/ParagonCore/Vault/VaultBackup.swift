@@ -681,8 +681,9 @@ public extension Vault {
         }
     }
 
-    /// Pictures and sketches: what an outside copy holds on top of the notes.
-    static let pictureExtensions: Set<String> = Pictures.extensions.union(["drawing"])
+    /// Pictures and sketches: what an outside copy holds on top of the notes. Build 318: PDFs
+    /// too (the `Attachments` folder), kept the same way.
+    static let pictureExtensions: Set<String> = Pictures.extensions.union(["drawing", "pdf"])
 
     static func isPicture(_ relativePath: String) -> Bool {
         pictureExtensions.contains((relativePath as NSString).pathExtension.lowercased())

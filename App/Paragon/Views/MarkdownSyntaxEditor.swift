@@ -119,6 +119,8 @@ struct PictureHooks {
 final class PictureAttachment: NSTextAttachment {
     var link = ""
     var path = ""
+    /// Build 318: a PDF, drawn as a row. It opens in Quick Look and has no picture menu.
+    var isFile = false
 }
 
 /// Build 289: the markdown ⇄ what the editor shows. The editor holds one U+FFFC per picture
@@ -133,7 +135,12 @@ enum PictureText {
     static func display(_ markdown: String, hooks: PictureHooks?, width: CGFloat,
                         cache: inout [String: PlatformImage]) -> (text: String, pictures: [(Int, PictureAttachment)]) {
         guard let hooks else { return (markdown, []) }
-        let matches = Pictures.matches(in: markdown, notePath: hooks.notePath)
+        // Build 318: PDFs ride the same way as pictures, each drawn as a row.
+        let files = SharedFiles.pdfMatches(in: markdown, notePath: hooks.notePath)
+        let fileLabels = Dictionary(files.map { ($0.range.location, $0.label) }, uniquingKeysWith: { a, _ in a })
+        let matches = (Pictures.matches(in: markdown, notePath: hooks.notePath)
+            + files.map { Pictures.Match(range: $0.range, path: $0.path) })
+            .sorted { $0.range.location < $1.range.location }
         guard !matches.isEmpty else { return (markdown, []) }
         let ns = markdown as NSString
         var out = ""
@@ -144,19 +151,24 @@ enum PictureText {
             let attachment = PictureAttachment()
             attachment.link = ns.substring(with: match.range)
             attachment.path = match.path
-            var image = cache[match.path]
+            let fileLabel = fileLabels[match.range.location]
+            attachment.isFile = fileLabel != nil
+            let cacheKey = fileLabel.map { "pdf:" + match.path + "\n" + $0 } ?? match.path
+            var image = cache[cacheKey]
             if image == nil {
-                let loaded = picture(at: match.path, root: hooks.root, width: width)
+                let loaded = fileLabel.map { AttachmentFiles.rowImage(path: match.path, label: $0, root: hooks.root, width: width) }
+                    ?? picture(at: match.path, root: hooks.root, width: width)
                 image = loaded.image
-                if loaded.real { cache[match.path] = loaded.image }
+                if loaded.real { cache[cacheKey] = loaded.image }
             }
             if var image {
                 // Build 290: the caption, small and grey under the picture.
-                if let caption = Pictures.caption(ofLink: attachment.link) {
+                if !attachment.isFile, let caption = Pictures.caption(ofLink: attachment.link) {
                     image = captioned(image, caption)
                 }
                 attachment.image = image
-                attachment.bounds = CGRect(origin: .zero, size: image.size)
+                // A PDF's row is always its own size in points, whatever scale the image says.
+                attachment.bounds = CGRect(origin: .zero, size: attachment.isFile ? AttachmentFiles.rowSize(width: width) : image.size)
             }
             placed.append(((out as NSString).length, attachment))
             out += mark
@@ -541,7 +553,7 @@ final class LinkingTextView: NSTextView {
     /// Picture files copied in Finder.
     private func pastedPictureFiles(_ pb: NSPasteboard) -> [URL] {
         let urls = pb.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
-        return urls.filter { Pictures.isPicture($0.path) }
+        return urls.filter { SharedFiles.accepts($0.path) }
     }
 
     /// A copied picture (a screenshot, an image from Safari or Preview) as PNG — only when
@@ -590,7 +602,7 @@ final class LinkingTextView: NSTextView {
     private func droppedPictures(_ sender: NSDraggingInfo) -> [URL] {
         let urls = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self],
                                                          options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
-        return urls.filter { Pictures.isPicture($0.path) }
+        return urls.filter { SharedFiles.accepts($0.path) }
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
@@ -663,7 +675,8 @@ final class LinkingTextView: NSTextView {
     override func menu(for event: NSEvent) -> NSMenu? {
         let menu = super.menu(for: event) ?? NSMenu()
         let point = convert(event.locationInWindow, from: nil)
-        if let index = pictureIndex(at: point), onPictureCaption != nil {
+        if let index = pictureIndex(at: point), onPictureCaption != nil,
+           (textStorage?.attribute(.attachment, at: index, effectiveRange: nil) as? PictureAttachment)?.isFile != true {
             let caption = NSMenuItem(title: "Caption\u{2026}", action: #selector(captionChosen(_:)), keyEquivalent: "")
             caption.representedObject = index
             caption.target = self
@@ -1361,9 +1374,17 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         var replaced = false
         let versionChanged = context.coordinator.shownVersion != pictures?.version
         if versionChanged { context.coordinator.cache = [:]; context.coordinator.shownVersion = pictures?.version }
-        if versionChanged || context.coordinator.markdown() != text {
+        // Build 318: captions and PDF rows are drawn as pictures in the day's or the night's
+        // ink. When the phone goes from day to night with the note open they are drawn again
+        // (they stayed white on light, or dark on dark, until the note was opened again).
+        let scheme = context.environment.colorScheme
+        let schemeChanged = context.coordinator.styledScheme != nil && context.coordinator.styledScheme != scheme
+        if schemeChanged { context.coordinator.cache = [:] }
+        if versionChanged || schemeChanged || context.coordinator.markdown() != text {
             let selected = textView.selectedRange
-            context.coordinator.show(text)
+            UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light).performAsCurrent {
+                context.coordinator.show(text)
+            }
             let length = (textView.text as NSString).length
             textView.selectedRange = NSRange(location: min(selected.location, length), length: 0)
             replaced = true
@@ -1371,7 +1392,6 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         // Restyled only when something it depends on changed, as on the Mac (build 252). This
         // runs after every key — the text is a binding — and restyling the whole note here
         // each time undid the point of restyling only the typed line (hardening-20).
-        let scheme = context.environment.colorScheme
         if replaced || context.coordinator.styledTint != tint || context.coordinator.styledScheme != scheme {
             context.coordinator.styledTint = tint
             context.coordinator.styledScheme = scheme
@@ -1609,6 +1629,8 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             guard recognizer.state == .began, let textView, let boxMenu else { return }
             let point = recognizer.location(in: textView)
             if let hit = pictureHit(at: point) {
+                // Build 318: a PDF row has no picture menu (Caption, Copy words …).
+                if hit.1.isFile { return }
                 menuPicture = hit
                 boxMenu.presentEditMenu(with: UIEditMenuConfiguration(identifier: "picture", sourcePoint: point))
                 return

@@ -286,6 +286,8 @@ struct ReviewView: View {
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.review.tint)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: openText.wrappedValue)
         #if os(iOS)
         // Round 9 (build 316): the folded steps sit closer together on the iPhone (they were
         // about 66 points apart). Apple's compact spacing between the parts of a list.
@@ -778,6 +780,10 @@ struct GoalHealthRow: View {
                 // One item, so the bar and its per cent always move to a new line together.
                 GoalProgressBar(progress: health.progress, width: 54, showsCounts: false,
                                 tint: ChainTint.forGoal(health.note))
+                if let number = health.note.goalNumber {
+                    // Build 318: the goal's own number, one item so bar and words wrap together.
+                    GoalNumberLine(number: number, tint: ChainTint.forGoal(health.note))
+                }
                 if health.progress.projectsTotal > 0 {
                     MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag", text: .footnote)
                 } else {
@@ -793,6 +799,9 @@ struct GoalHealthRow: View {
             .font(Txt.label)
             .foregroundStyle(.soft)
             .lineLimit(1)
+            // Build 318: mark and words, always. In the phone's list the marks stood alone
+            // ("flag, squares, circle, tick") because a list row may drop a label's words.
+            .labelStyle(.titleAndIcon)
             if !health.flags.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 3) {
                     ForEach(health.flags, id: \.self) { flag in

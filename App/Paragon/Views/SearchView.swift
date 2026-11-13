@@ -81,6 +81,9 @@ struct SearchView: View {
                 // view below, so the two result lists and the help text all have it.
                 .scrollDismissesKeyboard(.immediately)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: filtersFolded)
+        .animation(Motion.fold, value: savedFolded)
         .onAppear {
             fieldText = SearchQuery.words(in: model.queryText)
             // On the phone the keyboard is what squeezes the results, so it only comes up on
@@ -167,7 +170,7 @@ struct SearchView: View {
                     }
                 #endif
                 Button {
-                    if isPhone { phoneFiltersFolded.toggle() } else { deskFiltersFolded.toggle() }
+                    withAnimation(Motion.fold) { if isPhone { phoneFiltersFolded.toggle() } else { deskFiltersFolded.toggle() } }
                 } label: {
                     MarkLabel(filtersFolded ? "Show the boxes" : "Hide the boxes", filtersFolded ? "chevron.down" : "chevron.up")
                         .labelStyle(.iconOnly)
@@ -218,7 +221,7 @@ struct SearchView: View {
         if !model.savedSearches.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 Button {
-                    savedFolded.toggle()
+                    withAnimation(Motion.fold) { savedFolded.toggle() }
                 } label: {
                     MarkLabel("Saved searches", savedFolded ? "chevron.right" : "chevron.down", text: .footnote)
                         .font(Txt.label.weight(.semibold))
@@ -488,7 +491,7 @@ struct FilterBox: View {
                 if isOn {
                     MarkImage("checkmark", size: 9)
                         .fontWeight(.bold)
-                        .transition(.scale.combined(with: .opacity))
+                        .transition(Motion.grow)
                 }
                 Text(title)
                     .font(Txt.pill)
@@ -502,7 +505,7 @@ struct FilterBox: View {
             .overlay(Capsule().strokeBorder(isOn ? Color.clear : Color.primary.opacity(0.08), lineWidth: 0.5))
             .shadow(color: isOn ? tint.opacity(0.28) : .clear, radius: 3, y: 1)
             .contentShape(Capsule())
-            .animation(.snappy(duration: 0.18), value: isOn)
+            .animation(Motion.press, value: isOn)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isOn ? "\(title), ticked" : "\(title), not ticked")

@@ -651,8 +651,8 @@ struct MapNodeView: View {
                 .strokeBorder(Color.accentColor, lineWidth: targeted ? 2.5 : 0)
         }
         .help(node.title)
-        .animation(.easeInOut(duration: 0.15), value: dimmed)
-        .animation(.easeInOut(duration: 0.12), value: targeted)
+        .animation(Motion.press, value: dimmed)
+        .animation(Motion.press, value: targeted)
     }
 
     /// The badge's colour for a goal note, nil for everything else so the kind decides. A

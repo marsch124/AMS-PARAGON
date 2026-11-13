@@ -263,27 +263,34 @@ struct ActionsWidgetView: View {
     @Environment(\.widgetFamily) private var family
     var entry: ParagonEntry
 
-    private var rowLimit: Int {
+    /// How many lines, and whether each has its second row — what the size can hold
+    /// (`WidgetRows`, build 317: four two-row lines pushed the heading and the foot off the
+    /// medium widget).
+    private func rows(for count: Int) -> WidgetRows.Plan {
         switch family {
-        case .systemSmall: return 3
-        case .systemMedium: return 4
-        default: return 7
+        case .systemSmall: return WidgetRows.plan(size: .small, count: count)
+        case .systemMedium: return WidgetRows.plan(size: .medium, count: count)
+        default: return WidgetRows.plan(size: .large, count: count)
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let plan = rows(for: entry.snapshot?.items.count ?? 0)
+        // On the medium size "and 2 more" stands at the end of the foot: no row is left for it.
+        let moreInFoot = family == .systemMedium
+        return VStack(alignment: .leading, spacing: 6) {
             header
             if let snapshot = entry.snapshot, !snapshot.items.isEmpty {
                 let ticked = snapshot.tickedIDs(entry.ticks)
-                ForEach(snapshot.items.prefix(rowLimit)) { item in
+                ForEach(snapshot.items.prefix(plan.rows)) { item in
                     // Round 8 (build 315): each line opens its own note. The small size can
                     // open one place only (Apple's rule), so there the whole widget opens Today.
                     // Build 317: on the medium and large sizes a tick circle comes first.
-                    ActionLine(item: item, small: family == .systemSmall, ticked: ticked.contains(item.id))
+                    ActionLine(item: item, small: family == .systemSmall,
+                               showsServes: plan.showsServes, ticked: ticked.contains(item.id))
                 }
-                if snapshot.items.count > rowLimit {
-                    Text("and \(snapshot.items.count - rowLimit) more")
+                if plan.more > 0, !moreInFoot {
+                    Text("and \(plan.more) more")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -291,7 +298,17 @@ struct ActionsWidgetView: View {
                 emptyLine
             }
             Spacer(minLength: 0)
-            WidgetFoot(entry: entry)
+            HStack(spacing: 6) {
+                WidgetFoot(entry: entry)
+                if plan.more > 0, moreInFoot {
+                    Spacer(minLength: 0)
+                    Text("and \(plan.more) more")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .layoutPriority(2)
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // Anywhere that is not a line: Today, where these actions are.
@@ -300,9 +317,17 @@ struct ActionsWidgetView: View {
 
     private var header: some View {
         HStack(spacing: 5) {
-            WidgetMark(name: "circle")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(WidgetLook.project)
+            // Build 317: where the lines begin with a tick circle, the heading has Today's
+            // sun in Today's colour — a circle here looked like one more thing to tick.
+            if family == .systemSmall {
+                WidgetMark(name: "circle")
+                    .foregroundStyle(WidgetLook.project)
+            } else {
+                // 15 points, the size of the tick circles under it, so the words line up.
+                WidgetMark(name: "sun.max", size: 15)
+                    .foregroundStyle(WidgetLook.calendar)
+                    .widgetAccentable()
+            }
             Text(family == .systemSmall ? "Actions" : "Today's actions")
                 .font(.caption.weight(.semibold))
             Spacer(minLength: 0)

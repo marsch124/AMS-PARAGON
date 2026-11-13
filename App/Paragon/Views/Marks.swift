@@ -97,6 +97,9 @@ enum Marks {
         "hand.draw": .init(kind: .app(.hand)),
         "paintpalette": .init(kind: .app(.palette)),
         "ruler": .init(kind: .app(.ruler)),
+        // Build 318: a goal's number has a mark of its own — a rising line on two axes — so
+        // **Set a number…** does not wear the measure's ruler beside it.
+        "chart.line": .init(kind: .drawn(Marks.chartPath)),
         "repeat": .init(kind: .app(.`repeat`)),
         "questionmark.circle": .init(kind: .app(.question)),
         "arrow.up.right": .init(kind: .app(.openLink)),
@@ -119,6 +122,11 @@ enum Marks {
         "square.grid.2x2": .init(kind: .app(.area)),
         "questionmark.folder": .init(kind: .app(.question)),
         "pause.circle": .init(kind: .control(.pause)),
+        // Build 317: the focus bar's Pause, Go on and Stop. Play and pause are the library's
+        // drawings; it has no stop mark, so the square is drawn here in the same line.
+        "play.fill": .init(kind: .control(.play)),
+        "pause.fill": .init(kind: .control(.pause)),
+        "stop.fill": .init(kind: .drawn(Marks.stopPath)),
         // Control marks the package already had
         "plus": .init(kind: .control(.add)),
         "plus.circle": .init(kind: .control(.addCircle)),
@@ -141,6 +149,12 @@ enum Marks {
 
     /// The deadline's mark: a pole, a three-cornered pennant and the finish line under it.
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
+
+    /// A goal's number: two axes and a line that climbs.
+    static let chartPath = "M4.5 4.5V19.5H20 M8 15.5L11.5 11.5L14.5 13.5L19.5 7.5"
+
+    /// Stop: a square with round corners, the same drawing as on the Lock Screen banner.
+    static let stopPath = "M7 7h10v10h-10Z"
 
     /// The mark for a name. A name nobody mapped draws the dot, and says so in a debug build,
     /// so a missing drawing is noticed on the first screen and never ships as a blank.

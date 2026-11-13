@@ -222,6 +222,16 @@ public enum LockGlance {
         }
     }
 
+    /// The heading of the wide widget. The same as the line above the clock, but with both
+    /// numbers it says "3 due, 1 overdue": the wide widget is about 16 letters wide, and
+    /// "3 due today, 1 overdue" was cut to "3 due today, 1 ove…" (designer, build 317).
+    public static func heading(_ snapshot: WidgetSnapshot?, on today: DateOnly) -> String {
+        guard let s = fresh(snapshot, on: today), s.dueToday > 0, s.overdue > 0 else {
+            return inline(snapshot, on: today)
+        }
+        return "\(s.dueToday) due, \(s.overdue) overdue"
+    }
+
     /// The lines of the wide widget: the next two actions, in the order of **Today's actions**.
     /// Empty when nothing is due and nothing is next.
     public static func lines(_ snapshot: WidgetSnapshot?, on today: DateOnly, limit: Int = 2) -> [String] {
@@ -232,5 +242,39 @@ public enum LockGlance {
     /// What the wide widget says in place of lines.
     public static func emptyText(_ snapshot: WidgetSnapshot?, on today: DateOnly) -> String {
         fresh(snapshot, on: today) == nil ? openText : "Nothing due, nothing waiting"
+    }
+}
+
+/// How many lines the **Today's actions** widget draws, and how tall each is (build 317).
+///
+/// The medium size holds the heading, the foot and about 85 points between them: four lines of
+/// one row each, or two lines with what they serve under them. Before, it drew up to four
+/// two-row lines, which was more than its height, and the heading and the foot were cut off.
+public enum WidgetRows {
+    public enum Size: Sendable { case small, medium, large }
+
+    public struct Plan: Equatable, Sendable {
+        /// How many of the actions are drawn.
+        public var rows: Int
+        /// Whether each line has its second row: the goal or area it serves.
+        public var showsServes: Bool
+        /// How many actions are left out ("and 2 more").
+        public var more: Int
+    }
+
+    public static func plan(size: Size, count: Int) -> Plan {
+        let count = max(0, count)
+        switch size {
+        case .small:
+            let rows = min(count, 3)
+            return Plan(rows: rows, showsServes: false, more: count - rows)
+        case .medium:
+            if count <= 2 { return Plan(rows: count, showsServes: true, more: 0) }
+            let rows = min(count, 4)
+            return Plan(rows: rows, showsServes: false, more: count - rows)
+        case .large:
+            let rows = min(count, 7)
+            return Plan(rows: rows, showsServes: true, more: count - rows)
+        }
     }
 }

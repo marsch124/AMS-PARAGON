@@ -66,7 +66,7 @@ struct DoneView: View {
                     // that carries a day (build 141).
                     if diary.showsSquares {
                         DoneSquaresView(diary: diary) { day in
-                            withAnimation { proxy.scrollTo(day, anchor: .top) }
+                            withAnimation(Motion.scroll) { proxy.scrollTo(day, anchor: .top) }
                         }
                         .padding(.horizontal, 12)
                         .padding(.bottom, 8)
@@ -296,6 +296,8 @@ struct DoneSquaresView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: folded.wrappedValue)
     }
 
     /// "Press a day" only when some square can be pressed.

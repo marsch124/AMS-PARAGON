@@ -401,7 +401,7 @@ struct SettingsView: View {
                 // Round 9, the designer's list: a fold of the app's own, so what is inside
                 // starts where "Version" starts (Apple's fold set it in 20 points more).
                 Button {
-                    aboutDetailsOpen.toggle()
+                    withAnimation(Motion.fold) { aboutDetailsOpen.toggle() }
                 } label: {
                     HStack {
                         Text("Details")
@@ -477,7 +477,7 @@ struct SettingsView: View {
         guard model.settingsJumpToSync else { return }
         // After the page has laid itself out, or the scroll lands nowhere.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            withAnimation { proxy.scrollTo("settings.sync", anchor: .top) }
+            withAnimation(Motion.scroll) { proxy.scrollTo("settings.sync", anchor: .top) }
             model.settingsJumpToSync = false
         }
     }

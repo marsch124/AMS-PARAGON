@@ -110,7 +110,7 @@ struct TagsView: View {
     private func header(for use: TagUse) -> some View {
         let isOpen = opened.contains(use.tag.lowercased())
         return Button {
-            toggle(use.tag)
+            withAnimation(Motion.fold) { toggle(use.tag) }
         } label: {
             HStack(spacing: 8) {
                 MarkImage(isOpen ? "chevron.down" : "chevron.right", text: .footnote)

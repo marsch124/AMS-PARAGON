@@ -145,4 +145,20 @@ final class SubtaskNoteTests: XCTestCase {
         XCTAssertEqual(note.progress.done, 1)
         XCTAssertEqual(note.progress.total, 3)
     }
+
+    /// Build 318 (review): a ticked task is known as ticked from the stale copy a fading row
+    /// still holds, so a second press does not write a second next time.
+    func testATickedTaskIsKnownFromAStaleCopy() {
+        var note = Note(relativePath: "Projects/P.md", kind: .project,
+                        text: "## Tasks\n\n- [ ] Water plants @repeat(weekly) >2026-09-07 ^t111111\n- [ ] Plain\n")
+        let stale = note.tasks[0], plain = note.tasks[1]
+        XCTAssertFalse(note.holdsDone(stale))
+        XCTAssertNotNil(note.complete(task: stale))
+        XCTAssertTrue(note.holdsDone(stale))
+        XCTAssertFalse(note.holdsDone(plain))
+        // The next time is a task of its own, open, and can be ticked.
+        let next = note.tasks.first { !$0.isDone && $0.title.contains("Water") }
+        XCTAssertNotNil(next)
+        XCTAssertFalse(next.map(note.holdsDone) ?? true)
+    }
 }

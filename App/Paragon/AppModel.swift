@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 317
+    static let number = 318
 }
 
 @MainActor
@@ -1830,7 +1830,17 @@ final class AppModel: ObservableObject {
     static var widgetContainerURL: URL? {
         #if DEBUG
         // Build 307: a test run never writes into the widget's shared folder.
-        if TestVault.isWanted { return nil }
+        // Build 317: except on a simulator when asked (`PARAGON_WIDGET_TEST=1`), so the
+        // widgets can be looked at with the test notes. A simulator has its own shared
+        // folder; his real widgets are on another device and cannot be reached from it.
+        if TestVault.isWanted {
+            #if targetEnvironment(simulator)
+            if ProcessInfo.processInfo.environment["PARAGON_WIDGET_TEST"] == "1" {
+                return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
+            }
+            #endif
+            return nil
+        }
         #endif
         return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: widgetGroupID)
     }
@@ -2379,6 +2389,22 @@ final class AppModel: ObservableObject {
         vault?.isWorkPath(note.relativePath) ?? false
     }
 
+    /// **Build 318: a save the eye can follow** (`Motion.settle`, 0.25 s). The note is written
+    /// at once, exactly as `save` writes it; only the lists that show the change draw it as a
+    /// movement — a ticked row fades and the list closes up, a new line gets its room. Nothing
+    /// is held back for the movement, and with Reduce Motion there is none.
+    @discardableResult
+    private func saveSettling(_ note: Note) -> Bool {
+        var saved = false
+        withAnimation(Motion.settle) { saved = save(note) }
+        return saved
+    }
+
+    /// The same for a change that reads the notes again (several notes written in one go).
+    private func reloadSettling() {
+        withAnimation(Motion.settle) { reload() }
+    }
+
     func toggle(_ ref: TaskRef) {
         flushPendingEdits()
         guard var note = note(at: ref.notePath) else { return }
@@ -2387,6 +2413,9 @@ final class AppModel: ObservableObject {
             task.markOpen()
             note.replace(task: task)
         } else {
+            // Build 318 (review): a second press on a row that is still fading away finds the
+            // task ticked already and does nothing — no second "next time" for a repeat.
+            guard !note.holdsDone(ref.task) else { return }
             // Build 303: a gentle tap you can feel (iPhone and iPad only).
             Haptics.done()
             if let next = note.complete(task: ref.task) {
@@ -2394,7 +2423,7 @@ final class AppModel: ObservableObject {
                 flash("Done. Next time: \((next.dueDate ?? next.deadline)?.description ?? "")")
             }
         }
-        save(note)
+        saveSettling(note)
     }
 
     /// Finds a dragged task again in its note (by line, then by title).
@@ -2415,7 +2444,7 @@ final class AppModel: ObservableObject {
         guard var note = note(at: ref.notePath) else { return }
         let task = ref.task.settingDueDate(date)
         guard note.replace(task: task) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     /// Sets a task's date **and** its time of day together — the **Set** button in the date
@@ -2433,7 +2462,7 @@ final class AppModel: ObservableObject {
         let current = liveTask(for: ref, in: note)
         let changed = current.settingDue(date: date, time: time)
         guard changed != current, note.replace(task: changed) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     /// The task a row stands for, read out of the note as it is now: by its `^t` id, else by line
@@ -2498,7 +2527,7 @@ final class AppModel: ObservableObject {
             movedByNote[note.relativePath] = moved
             return changed ? updated : nil
         }
-        reload()
+        reloadSettling()
         if result.isComplete {
             let moved = refs.filter { result.saved.contains($0.notePath) }.count
             let message = custom ?? (moved == 1 ? "1 task moved." : "\(moved) tasks moved.")
@@ -2558,7 +2587,7 @@ final class AppModel: ObservableObject {
     func makeNextAction(_ ref: TaskRef) {
         flushPendingEdits()
         guard var note = note(at: ref.notePath), note.setNextAction(ref.task) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     func clearNextAction(_ ref: TaskRef) {
@@ -2567,7 +2596,7 @@ final class AppModel: ObservableObject {
         var task = ref.task
         task.title = Note.removingTag(Note.nextActionTag, from: task.title)
         guard note.replace(task: task) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     /// Moves a task (with its subtasks) to another note. Its id travels with it, so the
@@ -2580,7 +2609,7 @@ final class AppModel: ObservableObject {
             // The target is written first, so a failure can leave the task in two places but
             // never in none. See Vault.move.
             let move = try vault.move(task: ref.task, from: source, to: target)
-            reload()
+            reloadSettling()
             log("moved task \"\(ref.task.title)\" \(ref.notePath) -> \(path)")
             if move.leftInSource {
                 errorMessage = "\u{201C}\(ref.task.title)\u{201D} was added to \(move.target.displayTitle), but "
@@ -2609,7 +2638,7 @@ final class AppModel: ObservableObject {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, var note = note(at: path) else { return }
         note.append(task: TaskParser.normalized(TaskItem(title: trimmed)))
-        save(note)
+        saveSettling(note)
     }
 
     func addSubtask(_ title: String, to parent: TaskRef) {
@@ -2617,7 +2646,7 @@ final class AppModel: ObservableObject {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, var note = note(at: parent.notePath) else { return }
         note.appendSubtask(TaskParser.normalized(TaskItem(title: trimmed)), to: parent.task)
-        save(note)
+        saveSettling(note)
     }
 
     /// Renames a task in place, keeping its id, date, tags and subtasks.
@@ -2645,7 +2674,7 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         guard let current = note(at: ref.notePath),
               let removal = current.removingTaskBlock(for: ref.task) else { return }
-        if save(removal.note) {
+        if saveSettling(removal.note) {
             log("deleted task \"\(ref.task.title)\" from \(ref.notePath)")
             flash("Deleted \u{201C}\(ref.task.title)\u{201D}", offering: .deletion(removal.record))
         }
@@ -4320,7 +4349,7 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         do {
             let note = try vault.capture(item)
-            reload()
+            reloadSettling()
             lastCaptureMessage = "Saved to \(note.displayTitle)"
         } catch VaultError.notDownloadedYet {
             // Not a failure to report as one (build 261): the note it belongs in is still coming
@@ -4371,33 +4400,57 @@ final class AppModel: ObservableObject {
             ? defaults.integer(forKey: caughtCountKey) : 0
     }
 
+    /// Build 318: every outbox the app empties. The Mac's Share › PARAGON is a sandboxed
+    /// extension and can only reach the App Group folder the Mac widget already uses, so on the
+    /// Mac that folder holds a second outbox. `outboxURL` itself stays where it was.
+    static var outboxURLs: [URL] {
+        var urls = [outboxURL]
+        #if os(macOS)
+        if let group = widgetContainerURL {
+            let shared = group.appendingPathComponent("capture-outbox.jsonl")
+            if shared.standardizedFileURL != outboxURL.standardizedFileURL { urls.append(shared) }
+        }
+        #endif
+        return urls
+    }
+
     /// Files everything the share extension left in the outbox. Returns how many items were filed.
     @discardableResult
     func drainOutbox() -> Int {
         guard let vault else { return 0 }
-        let outbox = CaptureOutbox(fileURL: Self.outboxURL)
-        let items = outbox.drain()
-        guard !items.isEmpty else { return 0 }
-        flushPendingEdits()
         var filed = 0
-        var failed: [CaptureItem] = []
-        for item in items {
-            do {
-                // On the day it was captured, not the day it is filed: a line kept for a note
-                // still coming from iCloud may be filed after midnight (build 261).
-                try vault.capture(item, today: DateOnly(item.createdAt))
-                filed += 1
-            } catch {
-                log("capture kept for later: \(error.localizedDescription)")
-                failed.append(item)
+        var kept = 0
+        var flushed = false
+        for url in Self.outboxURLs {
+            let outbox = CaptureOutbox(fileURL: url)
+            // Build 318 (review): one item at a time, each struck from the waiting file only
+            // when it is filed or back in the outbox — an app closed half-way loses nothing
+            // (`CaptureOutbox.drain(filing:)`). Anything that could not be filed (folder not
+            // downloaded yet, no permission) goes back, and its files keep waiting with it.
+            let result = outbox.drain { item in
+                if !flushed { flushPendingEdits(); flushed = true }
+                do {
+                    // On the day it was captured, not the day it is filed: a line kept for a note
+                    // still coming from iCloud may be filed after midnight (build 261).
+                    // Build 318: shared pictures and PDFs wait beside the outbox (`filesURL`).
+                    try vault.capture(item, today: DateOnly(item.createdAt), filesRoot: outbox.filesURL)
+                } catch {
+                    log("capture kept for later: \(error.localizedDescription)")
+                    throw error
+                }
+            }
+            filed += result.filed
+            kept += result.kept.count
+            // Build 318: files of a share that was closed half-way, once they are a day old.
+            if FileManager.default.fileExists(atPath: outbox.filesURL.path) {
+                SharedFiles.sweep(root: outbox.filesURL, keeping: Set(outbox.peek().map(\.id)).union(result.kept.map(\.id)))
             }
         }
-        // Anything that could not be filed (folder not downloaded yet, no permission) goes back.
-        outbox.requeue(failed)
+        guard filed + kept > 0 else { return 0 }
         reload()
-        lastCaptureMessage = failed.isEmpty
+        lastCaptureMessage = kept == 0
             ? "\(filed) captured item\(filed == 1 ? "" : "s") filed"
-            : "\(filed) filed, \(failed.count) kept for later"
+            : "\(filed) filed, \(kept) kept for later"
         return filed
     }
 

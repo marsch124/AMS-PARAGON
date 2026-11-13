@@ -49,6 +49,22 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 
 **Colours by day (since build 316).** Three things were made easier to read by day. Warning words in orange are a darker orange, #B35300 (before, Apple's orange #FF9500, which was too pale on white); at night they are #FFA23A, as bright as before. The small words on a band are full white. On the iPhone, a card carries 12 % of its part's colour by day (before 7 %), so you can tell a card from the page; in **Settings** and **Today** a card is #EDEAF5 on the page #F3F5F8. The night colours, and the cards on the Mac and the iPad, are unchanged. The exact values are in **Exact details (build 316)**.
 
+## Movement
+
+Since build 318. PARAGON moves only to show what changed: a ticked task fades and the list closes up, a group folds under its heading, a bar fills. Nothing bounces, glows or celebrates. Every movement takes between 0.15 and 0.35 seconds. The note is always written first, at once; the movement only draws what has already happened.
+
+- **Ticking a task.** The row fades out and the list closes up in 0.25 seconds. Where a ticked task stays on the screen (a note's **Tasks** box, **Done**), the circle fills in 0.2 seconds and the words go grey in 0.2 seconds. A second press on a row that is fading away does nothing.
+- **A row that leaves or moves** (a task moved to another day or another note, a deleted Inbox line, **Next action** on and off): it fades out where it was and the list closes up, in 0.25 seconds. If it moves to another group on the same screen, it fades in there.
+- **A new line** (**Quick capture**, **Add to Inbox**, a new task or sub-task in a note): the list makes room and the line fades in, in 0.25 seconds.
+- **Folding a group.** A group opens and closes in 0.2 seconds, and its small arrow turns with it.
+- **The pages of a window** (**Date · Deadline · Repeat**, **Day · Week · Month · Notes**, **Actions | Waiting for**, **How it works | What's new** on the Mac) fade into each other in 0.2 seconds.
+- **The focus timer's bar** comes up from the foot of the screen in 0.25 seconds and goes back down in 0.25 seconds.
+- **Progress bars and the sync ring** fill to the new value in 0.35 seconds. While a sync runs the ring turns once a second.
+- **Small controls** (buttons with 2 states, filter chips in **Search**, cards on the **Map**) change in 0.15 seconds.
+- **The message at the foot of the screen** slides up in 0.2 seconds.
+- **Reduce Motion.** When **Reduce Motion** is on in the device's Accessibility settings, nothing slides, grows or turns anywhere in PARAGON, and the sync ring does not turn. The screen changes at once. Only the message at the foot of the screen still fades in and out. On the iPhone and the iPad the switch is in **Settings › Accessibility › Motion**. On the Mac it is in **System Settings › Accessibility**.
+- **Not animated, on purpose.** The Mac's sidebar, the groups of the **Projects** list and the **Templates** list. Showing and hiding the note with the **Note** button. Text while you type. The line through a ticked task appears at once; only the colour fades. There are no new taps you can feel.
+
 ## Your vault
 
 The vault is one folder. Pick it once under Settings › Vault. Inside it the app keeps:
@@ -408,7 +424,7 @@ On the Mac the Format menu has Bold (Command-B), Italic (Command-I), Strikethrou
 
 **Words marked on a picture.** After you have searched for words (in **Search**), open a picture big (tap it in a note or in the **Pictures** gallery). The places on the picture where those words are get soft tinted boxes. The boxes stay on the words while you pinch to zoom and move the picture. If you have not searched, there are no boxes.
 
-**Pictures from Finder (Mac).** Drag picture files (`.png`, `.jpg`, `.jpeg`, `.heic`, `.gif`) from Finder into a note. Each is copied into a **Pictures** folder in your notes folder (new, made when needed), with the same file name, or "name 2.jpg" if that name is taken. Its line goes where you dropped it. The original file stays where it was.
+**Pictures from Finder (Mac).** Drag picture files (`.png`, `.jpg`, `.jpeg`, `.heic`, `.gif`) from Finder into a note. Each is copied into a **Pictures** folder in your notes folder (new, made when needed), with the same file name, or "name 2.jpg" if that name is taken. Its line goes where you dropped it. The original file stays where it was. Since build 318 the file name is made safe first (a name like `Scan (1).png` used to break the link), and a PDF can be dragged in the same way: it goes into the **Attachments** folder and shows as a row. See **Pictures and PDFs in a note**.
 
 **Pasting a picture (Mac).** Copy a picture (a screenshot, or an image copied from Safari, Preview or Photos), put the cursor in a note's text and press Command-V (or **Edit › Paste**). The picture is saved as a PNG in the **Pictures** folder of your notes folder, named like `Pasted 2026-11-11 15.42.07.png` (a number is added if that name is taken), and its picture line goes where the cursor is. It shows at once, like any other picture. If you copied picture files in Finder, pasting copies them into **Pictures** too, like dragging them (see above). If the clipboard holds text, the text is pasted as text: text wins.
 
@@ -591,7 +607,7 @@ There are **two rows in the sidebar**, because there are two different things.
 
 **Aspirations** says what you are becoming. An aspiration has no date, because you never tick one off. It is the A in PARAGON. Press **Aspiration** at the top of the **New** screen to make one.
 
-**Goals** says what you will have done, and by when. A goal has a target date, a measure of what success looks like, and the aspiration it serves, chosen in the **Serves aspiration** box. Press **Goal** at the top of the **New** screen.
+**Goals** says what you will have done, and by when. A goal has a target date, a measure of what success looks like, since build 318 a number to follow if you want one (see **A goal with a number**), and the aspiration it serves, chosen in the **Serves aspiration** box. Press **Goal** at the top of the **New** screen.
 
 A project or an area serves a goal with the `goal:` line. Press **Serves…** at the top of the project or area to choose the goal, or press **Add a project…** on the goal itself (see below). A goal note shows how many projects and areas serve it, open tasks, activity in the last 30 days, and flags such as "No project or area serves this", "Past its target date" or "Done".
 
@@ -613,6 +629,32 @@ If the measure was changed on your other device while the box was open, **Set** 
 A new date changes the weekly review at once: "Past its target date" and "Due after its goal" are worked out from it.
 
 On the Mac and the iPad, the goal's page in **Goals** has the same band (the title, "40 %" large and "of the way · Target 2027-08-15" under it) and the same facts panel as the note itself: the heading **Goal with a date** with **Icon…** beside it, then **Status**, **Serves**, **Horizon**, **Target**, **Progress** (the per cent), **Measure**, **Looked at**, **Tags** and **Reminders list:**, each a small grey label with its value under it, and a bordered pop-up or button where you can change it. **Horizon** is a labelled pop-up with **This year** and **Long term**. A notice such as **Target date passed** is a small orange capsule in the panel. An aspiration's page in **Aspirations** has the same panel, headed **Aspiration**; only the facts that fit are shown, so it has no **Target**, no **Horizon** and no **Progress**. On the iPhone, **Set a measure…** is also under an aspiration when you open it in **Aspirations**.
+
+### A goal with a number
+
+Since build 318. A goal with a date can carry a number beside its measure: where you started, where you want to be, and where you are now. An aspiration gets no number, because you never finish an aspiration. A goal without a number looks exactly as before.
+
+- **Set a number…** is in the goal's header, beside **Set a measure…**. It opens a small window with 4 fields: **Start**, **Target**, **Now** and **Unit**. The unit is your own word (km, kg, kr, pages), 16 characters at most. The buttons are **Cancel** and **Save**; on the Mac, Return is **Save** and Escape is **Cancel**.
+- An empty **Start** means 0. An empty **Now** means the same as **Start**. **Save** is off while **Target** is empty or a field does not hold a number.
+- When the goal has a number, the button says **Edit number…**, and the window also has **Remove**. **Remove** asks first; the button to confirm says **Remove the number and its history**. It takes the number out of the note and nothing else.
+- **The bar.** On the goal's page, under the header, a bar in the goal's colour shows the number, with words like "86.5 of 82 kg" and the per cent.
+- **Update…** is the full-colour button at the right end of that line. It opens a small window with 1 number field, the unit beside it, **Cancel** and **Save**. The new value is saved with today's date. A second update on the same day replaces that day's value. On the iPhone the field opens the number pad.
+- **Typing a number.** A comma and a dot both work ("86,5" and "86.5"). Spaces between thousands work ("100 000"). A minus sign works.
+- **The per cent** says how far **Now** has come from **Start** to **Target**. Start 90, target 82, now 86 is 50 %. It never says "100 %" before the target is met (it says "99 %"), and never "0 %" when the number has moved the right way (it says "1 %").
+- **Reached.** When the target is met or passed, the bar is full, the per cent says the real number (for example "113 %") and a small mark **Reached** stands beside it.
+- **A target that goes down** works the same way: start 90 kg, target 82 kg. Moving the wrong way (92 kg) shows 0 % and an empty bar, never a minus number.
+- **The curve.** Under the bar a small hand-drawn curve shows every update, the oldest on the left, one point for each update. The newest value has a dot and the target is a dashed line. Under it 1 quiet line says, for example, "From 90 kg · last update 2026-11-13 · 3 updates". With fewer than 2 values there is no curve, and the line ends with "press Update… when the number changes". The curve keeps up to 120 days of updates; over that the oldest go, but the very first value stays.
+- **Where else it shows.** In the **Goals** list a goal's row gets a third line with the bar only and the value now ("86.5 kg"). In the **Weekly review**, the goals step shows the number's bar with "86.5 of 82 kg" and the per cent, beside the bar for the projects. It is not on the **Map** and not in the chain under an aspiration.
+- **In the file.** The number is 5 plain lines in the goal note's settings block. You can change them by hand, in PARAGON or in Obsidian:
+
+      number_start: 90
+      number_target: 82
+      number_current: 86.5
+      number_unit: kg
+      number_history: [2026-10-01 90, 2026-11-01 88, 2026-11-13 86.5]
+
+- In the file a number has a dot for decimals and no spaces. On screen PARAGON uses your device's own way ("86,5" and "100 000" on a Swedish device).
+- The per cent from the ticked tasks of the goal's projects is unchanged; the number has its own bar. Goals still never go to Reminders.
 
 ### Adding a project from its goal
 
@@ -1633,7 +1675,7 @@ Open **Templates** in the sidebar, pick a file and edit it. It saves itself a mo
 - **New** (⌘N) has **Inbox** as its last button, which gives the same screen.
 - On the iPhone, since build 312, it is the round **+** button at the bottom right, just above the tab bar, on **Today**, **Actions** and **Inbox**: a white plus on the leaf green of the **Inbox**, 54 points wide. Your thumb reaches it with one hand. It opens the **New** screen with **Inbox** already chosen. It hides while the keyboard is up, and it is only on the first page of each tab, never over an open note. Before, the **+** was a small circle at the top left; on those three tabs that one is gone. **Plan** keeps its own small **+**, and **Browse** has none.
 - On the iPhone the capture screen has one **Cancel**, at the top left, and one **Save**, at the top right, in the full leaf green (since build 312). **Save** is never grey: pressed with nothing written, the screen says "Write something first" at the top for 2.5 seconds. Before, there was a second **Cancel** and a wide **Save** at the foot. The Mac and the iPad are unchanged.
-- On the iPhone, Share › PARAGON sends text or a link.
+- On the iPhone and the iPad, Share › PARAGON sends text or a link. Since build 318 it also takes up to 20 pictures and PDFs, and the Mac has PARAGON in its Share menu. See **Sharing into PARAGON**.
 - **With Siri or the Shortcuts app (since build 317).** Say "Add to PARAGON" to Siri, or use the action **Add to Inbox** in the **Shortcuts** app. It adds 1 task to the Inbox without opening PARAGON. See **Siri and Shortcuts**.
 - **From other apps, with a link.** This is the older way and it still works. In the Shortcuts app, use the action **Open URL** with this link: `amspara://capture?text=Call%20the%20bank&target=inbox`. Put your own words after `text=`; a space is written `%20`. `target=inbox` sends the line to the Inbox. Since build 309 this link is only here, and no longer in Settings.
 - **Settings › Quick capture** says it in plain words. On the iPhone: "Use Share › PARAGON from any app". On the Mac (since build 315): "⇧⌘N opens quick capture in PARAGON; the key above opens it from any app. A Shortcut can add to the Inbox too: see How it works."
@@ -1682,6 +1724,38 @@ Since build 316 you can write the date in English words, and PARAGON reads it. B
 - English words only. Not read: the **+** in **Start the day**, the share sheet, a capture by link, and a line typed directly into a note's text.
 
 The full list of words is in **Exact details (build 316)**.
+
+## Sharing into PARAGON
+
+Other apps can send things to PARAGON with their **Share** button. Text and links have worked on the iPhone and the iPad for a long time. Since build 318 pictures and PDFs work too, and the Mac has PARAGON in its Share menu.
+
+- **On the iPhone and the iPad.** Press **Share** in Photos, Files, Mail, Safari or on a screenshot, and choose PARAGON. You can share up to 20 pictures and PDFs at a time.
+- **On the Mac.** Choose **Share** in Safari, Finder, Preview or Photos, and choose PARAGON. It takes text, links, pictures and PDFs. If PARAGON is not in the Share menu, open **System Settings**, go to **General**, then **Login Items & Extensions**, and tick PARAGON under the **Sharing** extensions. The words can differ a little between macOS versions.
+- **The sheet.** For text it is as before: the field **Text**, **Save to** (**Inbox** or **Today's note**), the switch **As note, not task**, **Cancel** and **Save**. With files it shows each file with a small picture, its name, and "Picture" or "PDF" with its size; the field is called **A few words (optional)**, and the switch **As note, not task** is hidden. On the Mac, Escape is **Cancel** and Return is **Save**.
+- **What PARAGON keeps.** Pictures of the kinds `png`, `jpg`, `jpeg`, `heic` and `gif`, and `pdf` files. A picture of another kind (WebP, TIFF and others) is kept as a JPEG, its longest side 3000 pixels at most. Any other kind of file is left out, and the sheet says so in red. More than 20 files: the first 20 are taken and the sheet says how many were left out.
+- **Where the files go.** Pictures go into the folder `Pictures/` in your vault. PDFs go into the folder `Attachments/`.
+- **The line.** PARAGON writes 1 line for each file under the heading **Notes** in the **Inbox** (or in today's note). A picture: `- ![Picture](Pictures/IMG_0412.heic)`. A PDF: `- [Invoice.pdf](Attachments/Invoice.pdf)`. Your words replace "Picture" or the file name, on the first file only. A share with files is always lines under **Notes**, never a task.
+- **Nothing is written over.** If a file with that name is already in the folder, the new one gets ` 2`, then ` 3`: `IMG_0412 2.heic`.
+- **When it is filed.** The share sheet never writes into your vault. It keeps a copy of each file in a waiting place on the device. PARAGON files them the next time it comes to the front, or when it starts. If PARAGON is not open, the files wait as long as needed.
+- **When iCloud is slow.** If the **Inbox** (or today's note) is still coming from iCloud, nothing is copied. The share keeps waiting and PARAGON tries again the next time it comes to the front. The message says, for example, "2 filed, 1 kept for later".
+- **Nothing is lost when PARAGON is closed half-way.** Waiting shares are filed 1 at a time, and each is struck from the waiting list only when it is in its note. The waiting copies of the files are removed only after the note is saved.
+- **Cancel** removes the copies made for that share.
+- **In the Inbox.** A shared picture shows as a small square picture; a shared PDF shows its first page, its name and its number of pages. A press opens it large. The row has the bin but no **Make task** button. The bin removes the line only; the file stays in its folder.
+
+## Pictures and PDFs in a note
+
+Since build 318 a note shows pictures in **Read** too, and shows a PDF as a row. For pictures in **Edit**, captions, **Copy words** and the **Pictures** gallery, see **Tasks**, the part **Pictures in the text**.
+
+- **A picture in Read.** A line that is 1 picture shows the picture, at most 420 points wide and 260 points high, with its caption small under it. A press opens it large in Apple's Quick Look.
+- **A PDF in Read.** A line that is 1 link to a PDF in your vault shows a row: the first page small, the name, and "PDF · 1 page" or "PDF · 3 pages". A press opens it in Quick Look.
+- **A PDF in Edit.** The link `[words](Attachments/x.pdf)` is drawn as the same row inside the text, 52 points high and up to 340 points wide. A press opens it in Quick Look.
+- **The name on the row** is the link's words, or the file name without `.pdf`. When the words are your own, the file name follows on the second line.
+- **Not on this device yet.** The row says **On its way from iCloud**, and PARAGON asks iCloud for the file. When the file is gone, the row says **This file is not in the vault**.
+- **Quick Look gets a copy.** Nothing you do in Quick Look can change the file in your vault.
+- **Drag a PDF onto a note (Mac).** Drag a PDF from Finder onto a note, or paste it as a file. It is copied into `Attachments/` and the link is written where you dropped it. The file in Finder stays where it was.
+- A PDF row has no picture menu: **Caption…**, **Copy words**, **Show words** and **Make tasks** are for pictures only.
+- On paper and in **Share… › As PDF**, a picture line or a PDF line prints as its words and its file name, without the image.
+- **Backups.** The second copy outside the vault holds your pictures and, since build 318, your PDFs. The backups inside the vault hold notes only, no pictures and no PDFs. See **Backups**.
 
 ## Siri and Shortcuts
 
@@ -1770,7 +1844,7 @@ Copies made by **Back up now** and before a restore count as daily or weekly, by
 - **Show in Finder** opens the folder, where you can drag a single note back by hand.
 - **Restore a copy** writes a whole backup back into the vault. What you have at that moment is saved as a backup first, and notes you created after the backup are left where they are. The backup you restore is never deleted by the restore; old backups are cleared only after it is finished. If nothing was put back, the app says so plainly.
 
-**A second copy outside the vault (since build 308).** The backups above sit inside the vault folder, so they do not protect against losing that folder itself. For that, PARAGON keeps a second copy outside it, set in the Settings section **Second copy, outside the vault**. Without any choice from you it is kept on this Mac (on the iPhone: on this iPhone), in the app's own storage. **Choose a folder…** puts it in a folder of your own instead (for example in Dropbox); the button is then called **Change folder…**, and **Keep it on this Mac** goes back. A folder inside the vault is refused. On the Mac, **Show in Finder** opens the place. The copy is made once a day, after the daily copy, and with **Back up now**, and old ones are thinned out by the same rules as above. It holds the notes, the settings and also the pictures and sketches; the copies inside the vault have no pictures, on purpose. The section shows **Kept** ("on this Mac" or "in the folder “Dropbox”") and **Last made** (the date and time, like "2026-11-12 14:30", "Being made now…" while the first one is being made, or "Not yet"). A second copy that has never been made is made as soon as the vault is open, in the background; the first one copies every picture and can take a while. If the folder you chose cannot be reached, the copy is kept on this device instead and the section says "The folder you chose could not be reached, so this copy was kept on this Mac. Choose the folder again."; the backups inside the vault are made as always. There is no restore from the outside copy inside the app yet: take notes back from it by hand.
+**A second copy outside the vault (since build 308).** The backups above sit inside the vault folder, so they do not protect against losing that folder itself. For that, PARAGON keeps a second copy outside it, set in the Settings section **Second copy, outside the vault**. Without any choice from you it is kept on this Mac (on the iPhone: on this iPhone), in the app's own storage. **Choose a folder…** puts it in a folder of your own instead (for example in Dropbox); the button is then called **Change folder…**, and **Keep it on this Mac** goes back. A folder inside the vault is refused. On the Mac, **Show in Finder** opens the place. The copy is made once a day, after the daily copy, and with **Back up now**, and old ones are thinned out by the same rules as above. It holds the notes, the settings and also the pictures and sketches, and since build 318 the PDFs in **Attachments** too; the copies inside the vault have no pictures and no PDFs, on purpose. The section shows **Kept** ("on this Mac" or "in the folder “Dropbox”") and **Last made** (the date and time, like "2026-11-12 14:30", "Being made now…" while the first one is being made, or "Not yet"). A second copy that has never been made is made as soon as the vault is open, in the background; the first one copies every picture and can take a while. If the folder you chose cannot be reached, the copy is kept on this device instead and the section says "The folder you chose could not be reached, so this copy was kept on this Mac. Choose the folder again."; the backups inside the vault are made as always. There is no restore from the outside copy inside the app yet: take notes back from it by hand.
 
 **Putting the outside copy back (since build 315).** Press **Restore from the outside copy…** in **Settings › Second copy, outside the vault**. PARAGON names the vault and shows the newest copy: when it was made, like 2026-11-13 14:05, where it is kept, and how many notes it holds. With more than 1 copy it lists them, newest first, each with its date, its number of notes, and "made just before a restore" for a copy a restore saved; the newest is chosen, and a press on another row chooses that one. Only copies of this vault are offered: each new outside copy says which vault it is of. A copy made before build 315 does not say it; it is shown with the words "made before build 315" and the names of its folders. The buttons are **Cancel** and **Restore**; on the Mac, Escape is **Cancel**. **Restore** puts its notes, pictures and sketches back into the vault, over the versions you have now. Before that, what you have now is saved twice: as a backup inside the vault, named "before restore", and as a fresh outside copy that holds your pictures. If these cannot be saved, nothing is restored. Nothing is ever deleted: what you made after the copy stays, and so does the copy. A note that is still coming from iCloud is never written over, and while notes are still coming from iCloud the restore does not start. A file of the copy that is not on this device is not put back and is named; the note in the vault stays as it was. No sync runs during a restore, and a restore does not start during a sync. With no outside copy yet, the question says "There is no outside copy yet." and has only **Cancel**. To undo a restore, use **Restore a copy** and choose the one marked "before restore". Before build 315 the outside copy could only be put back by hand, in Finder.
 
@@ -1918,6 +1992,8 @@ The precise rules and names behind round 9 of the premium review, for reference.
 
 ## Exact details (build 317)
 
+- **After the designer's look (build 317).** `Marks.byName` has `play.fill`, `pause.fill` and `stop.fill` (the stop square `M7 7h10v10h-10Z`), 16 points in a 28-point round button on the focus bar. **Today's actions**, medium: `WidgetRows.plan(size:count:)` — 1 or 2 tasks with their second row, 3 or 4 tasks with one row each, "and N more" at the right end of the foot; small (3 lines) and large (7 lines, two rows each) as before. The medium and large heading has Today's sun, 15 points. Lock Screen wide shape: `LockGlance.heading` says "3 due, 1 overdue" when both numbers are there; the two task lines are one text step smaller. **Settings › Siri and Shortcuts**: the names are **Add to Inbox**, **Due Today**, **Open Today**, **Start the Day**, **Close the Day**, **Start Focus**; on the iPhone the phrase stands under the action. Tests: `WidgetTickTests`.
+
 The precise rules and names behind build 317, for reference. The words in `code letters` are names in the app's code, in its files and in its tests. You do not need them to use PARAGON.
 
 **Siri and Shortcuts**
@@ -2008,6 +2084,91 @@ The precise rules and names behind build 317, for reference. The words in `code 
 - **The look.** White words on black at 62 %; the plan's orange for the dot, the bar and the main button; hand-drawn play and pause marks; the stop square is drawn in the same line.
 
 **The build number.** `BuildStamp.number` is 317; **Settings › About** says 1.0 (317).
+
+## Exact details (build 318)
+
+- **After the designer's look (build 318).** `GoalProgressBar` is one drawn bar everywhere and fills in 0.35 seconds; per cent is written "65 %". On the iPhone the number words stand on their own line above the bar and are never cut; **Update…** is 32 points high. The number window's hint: "The target may be lower than the start."; its button mark is `chart.line`. A PDF row in a note being edited is 52 points high. Identifiers: `goal.number.line`, `goal.number.update`.
+
+The precise rules and names behind build 318, for reference. The words in `code letters` are names in the app's code, in its files and in its tests. You do not need them to use PARAGON.
+
+**Sharing pictures and PDFs in**
+
+- **Where the code is.** `Core/Sources/ParagonCore/Vault/SharedFiles.swift` (names, folders, link lines, filing), `Core/Sources/ParagonCore/Vault/Capture.swift` (the outbox), `App/ParagonShare/ShareViewController.swift` (the share sheet, iPhone, iPad and Mac), `App/Paragon/Views/Attachments.swift` (how a picture or a PDF is shown).
+- **Kinds kept.** Pictures `png`, `jpg`, `jpeg`, `heic`, `gif`, and `pdf` (`SharedFiles.accepts`). Another picture kind is kept as a JPEG: longest side 3000 pixels, quality 0.9, made 1 at a time (`jpegLock`). Any other file is left out, with the red line "“name” was left out: PARAGON keeps pictures and PDFs."
+- **Limit.** 20 files in 1 share (`SharedFiles.maxItems`). More are left out, with the line "PARAGON takes 20 files at a time. N more were left out."
+- **Share sheet: when PARAGON is offered.** In `App/Config/ParagonShare/Info.plist`: `NSExtensionActivationSupportsImageWithMaxCount` 20 and `NSExtensionActivationSupportsFileWithMaxCount` 20; text, web address and web page as before.
+- **Share sheet: on screen.** Field **Text**, or **A few words (optional)** when files are shared (`share.words`). **Save to**: **Inbox** (the default) or **Today's note** (`share.target`). Each file row (`share.file`): a small picture, the name, "Picture · size" or "PDF · size". The switch **As note, not task** is hidden with files. **Cancel** and **Save**; on the Mac Escape and Return.
+- **Folders.** Pictures into `Pictures/`. PDFs into `Attachments/` (`SharedFiles.attachmentsFolder`), new in build 318, made when needed.
+- **File names.** `SharedFiles.safeName`: the last part of the name the other app gives. Taken out: `/ \ : * ? " < > | [ ] ( ) # ^ %`, control characters and line breaks. No dot and no space at either end. At most 80 characters before the ending. The ending in small letters. A file with no usable name, or with only a random identifier as name, is called `Shared 2026-11-13 101500.png` (date and time of the share).
+- **Never over an existing file.** `SharedFiles.freeName`: a taken name gets ` 2`, ` 3` and so on (`IMG_0412 2.heic`). Capital and small letters count as the same name. A file that iCloud has not sent yet (`.Name.icloud`) counts as taken (`SharedFiles.takenNames`). The copy itself refuses to write over a file and then tries the next name, 5 tries.
+- **The line in the note.** `SharedFiles.link(toFile:fromNote:words:)`. Picture: `- ![Picture](Pictures/IMG_0412.heic)`; with words `- ![Receipt Clas Ohlson](Pictures/IMG_0412.heic)`. PDF: `- [Invoice.pdf](Attachments/Invoice.pdf)`; with words `- [Pay before Friday](Attachments/Invoice.pdf)`. The path is as seen from the note; in a note inside a folder it starts with `../`. A space is written `%20`.
+- **The words.** On the first file only. `[`, `]` and line breaks are taken out of them. When a web link was shared with the files, the words and the link are a line of their own first, and the file lines carry no words.
+- **Where the lines go.** Under the note's `## Notes` heading, made when missing. A share with files is always note lines, never a task.
+- **How a share travels.** The share sheet never writes into the vault. It copies each file, by file and never through memory, into the App Group folder: `capture-files/<item id>/<n>/<name>` (`SharedFiles.stagingFolder`, `SharedFiles.stage`). It adds 1 line to `capture-outbox.jsonl` with the new, optional field `files`. Old lines without `files` still read.
+- **Filing.** `Vault.fileShared(_:into:filesRoot:)`, when PARAGON comes to the front and at start: copy into the vault, write the lines, save the note, and only then remove the waiting copies. If the note cannot be saved, the copies just made are removed and the item stays whole in the outbox.
+- **iCloud is slow.** If the Inbox or today's note is still coming from iCloud, nothing is copied and the item keeps waiting. Message: "N filed, M kept for later".
+- **Nothing lost when the app stops.** `CaptureOutbox.drain(filing:)`: the taken lines stay in `capture-outbox.<id>.jsonl` beside the outbox. After each item that file is written again without it; it is removed when empty. A file of that name left by a stopped run is read first by the next run. At worst the 1 item being filed at the moment of the stop is filed twice. `AppModel.drainOutbox` uses it for each outbox.
+- **Never filed twice.** The waiting folder `capture-files/<item id>` is made before the outbox line and removed only after the note is saved. An item with `files` whose folder is gone was filed already and is skipped. **Save** in the sheet writes 1 line only (`ShareModel.saved`); **Cancel** after a **Save** removes nothing.
+- **Clearing up.** **Cancel** removes that share's copies. `SharedFiles.sweep`: copies that no outbox line names are removed when they are 1 day old (`SharedFiles.orphanAge`, 24 hours). The files of every item kept in this run are never cleared.
+- **Shared folder missing.** "PARAGON’s shared folder is not available. Open PARAGON once and try again." **Save** is off.
+- **Inbox rows.** `InboxNoteWords`: a picture as a small square, a PDF with first page, name and page count. No **Make task** (`inbox.note.makeTask`) on such a row. The bin removes the line; the file stays.
+
+**Share on the Mac**
+
+- **One target, not two.** `ParagonShare` builds for iPhone, iPad and Mac (`project.yml`: `supportedDestinations: [iOS, macOS]`). Same bundle identifier `com.schabbauer.AMSPara.Share`, same `Info.plist`. `Tools/ship.sh` is unchanged.
+- **Entitlements.** `App/Config/ParagonShare/ParagonShare-macOS.entitlements`: app sandbox, App Group `D24ENP83QQ.group.com.schabbauer.amspara`, `files.user-selected.read-only`. `ParagonShare-macOS-Debug.entitlements` has no App Group, so a Debug build on the Mac says the shared folder is not available. Only the TestFlight build can share on the Mac.
+- **Two outboxes on the Mac.** `AppModel.outboxURLs`: the old one in Application Support, and `capture-outbox.jsonl` in the App Group folder. Both are emptied the same way.
+
+**Pictures and PDFs in a note**
+
+- **Read.** `MarkdownPreview`: a line that is 1 picture or 1 PDF of the vault (`SharedFiles.attachment(inLine:notePath:)`) is drawn by `AttachmentBlock`. Picture: at most 420 × 260 points, caption under it (`attachment.picture`). PDF: a row with the first page, the name and the pages (`attachment.pdf`).
+- **Edit.** `SharedFiles.pdfMatches`: `[words](Attachments/x.pdf)` and `![…](x.pdf)` are drawn as a row, 52 points high, 200 to 340 points wide. Pictures in Edit are unchanged.
+- **Row words.** Title: the link's words, or the file name without `.pdf`. Second line: "PDF · 1 page", "PDF · N pages", or "PDF" when the count cannot be read (`SharedFiles.pagesWords`); then " · file name" when the title is your own words.
+- **Not here.** "On its way from iCloud" (the download is asked for); a press says "“name” is still on its way from iCloud. Try again in a moment." Missing: "This file is not in the vault"; a press says "“name” is not in the vault any more."
+- **Quick Look.** It opens a copy in the temporary folder `AttachmentPreview`, emptied at each open.
+- **Mac drop and paste.** A PDF file dropped on a note or pasted as a file is copied into `Attachments/` under its safe, free name; the link is written at that place. Dropped pictures use `SharedFiles.safeName` too.
+- **Not built.** Printing and **As PDF** show a picture or PDF line as words and file name. A PDF row has no picture menu.
+- **Backups.** `VaultBackup.pictureExtensions` gained `pdf`: the outside copy holds PDFs, and reuses an unchanged PDF from the last copy. The backups inside the vault hold notes only.
+
+**A goal with a number**
+
+- **Where the code is.** `Core/Sources/ParagonCore/Model/GoalNumber.swift`, `App/Paragon/Views/GoalNumberViews.swift`.
+- **Keys.** `number_start`, `number_target`, `number_current`, `number_unit`, `number_history`, in the goal note's settings block. All optional.
+- **When a goal has a number.** When `number_target` reads as a number. Missing start: the first history value, else 0. Missing current: the newest history value, else the start.
+- **Per cent.** (current − start) ÷ (target − start), for targets that go up and that go down. Below 0: shown as 0 %. Above 100: shown as it is (113 %); the bar stays full. Never 100 % before the target is met (99 %). Never 0 % once it moved the right way (1 %). Start = target: no per cent, unless current = target (100 %). Held at 1 000 000 000 % at most.
+- **Reached.** Current ≥ target for a target that goes up; current ≤ target for one that goes down. The mark says **Reached**.
+- **History.** 1 settings line, a list of `YYYY-MM-DD value`, oldest first, 1 value for each day (the same day replaces). At most 120 days (`GoalNumber.historyLimit`); over that the oldest go and the very first entry stays. Items that do not read as "date value" are left out of the curve. A history written by another editor as a list over several lines reads the same; PARAGON writes it back as 1 line.
+- **Set a number….** Writes all lines and the first history entry (today's date, the value of **Now**). Empty **Start** = 0; empty **Now** = the start. **Save** is off while **Target** is empty or a field is not a number.
+- **Edit number….** Keeps the history. A changed **Now** is added with today's date. Changing only start, target or unit adds nothing to the history. The fields are filled by `GoalNumber.typed(_:locale:)`: no sign between thousands, the device's decimal sign ("100000", "86,5").
+- **Update….** `GoalNumber.updating(_:on:day:)`: the value with today's date; the same value on the same day writes nothing.
+- **Remove.** Takes out the 5 lines and nothing else. Question: "Remove the number from this goal?"; button **Remove the number and its history**.
+- **Numbers in the file.** A dot for decimals, no spaces, at most 2 decimals, no zeros at the end (`86.5`, `100000`). No dot at the end of a very long number.
+- **Numbers on screen.** The device's own format ("100 000", "86,5" in Sweden).
+- **Numbers typed.** `GoalNumber.parse`: comma or dot, spaces or `'` between thousands, a minus sign. "1.250,75" and "1,250.75" both read as 1250.75. On the iPhone the number pad; the keyboard with a minus sign when a value is below 0.
+- **Unit.** 1 line, at most 16 characters. An empty unit removes the `number_unit` line.
+- **Saving.** An edit still waiting in the note editor is saved first; then the number is written to the note as it is on file.
+- **Older builds.** Build 317 and before do not know the 5 keys and keep them, unchanged and in place, when they rewrite the note (test `testAnOlderBuildKeepsTheNumberLinesWhenItRewritesTheNote`).
+- **The curve.** `GoalNumber.curve`: 1 point for each update, spaced evenly, not by calendar distance. The start is drawn first when the history does not begin there. A `number_current` changed by hand is drawn as the last point. Fewer than 2 points: no curve.
+- **Where it shows.** Goal header: `GoalNumberChip` (**Set a number…** / **Edit number…**). Goal page: `GoalNumberPanel` (bar 160 points wide, words, per cent, **Reached**, **Update…**, curve, the line under it). **Goals** list row: the bar only, 72 points wide, and the value. **Weekly review**, goals step: `GoalNumberLine`. Not on the **Map**, not in a chain, not for an aspiration.
+- **Identifiers.** `goal.number` (header button), `goal.number.panel`, `goal.number.line`, `goal.number.update`, `number.field`, `number.start`, `number.target`, `number.now`, `number.unit`, `number.save`, `number.cancel`, `number.remove`.
+- **Not built.** No "on course" or "behind" against the target date.
+
+**Movement**
+
+- **Seconds.** `MotionTiming` in `Core/Sources/ParagonCore/Model/MotionTiming.swift`: `tick` 0.20, `settle` 0.25, `fold` 0.20, `arrive` 0.25, `page` 0.20, `toast` 0.20, `fill` 0.35, `press` 0.15, `fade` 0.15. Limits: `shortest` 0.15, `longest` 0.35. `spin` 1.0 is one turn of the sync ring, the one number outside the limits.
+- **Names.** `Motion` in `App/Paragon/Views/Motion.swift`. `tick`, `fold`, `arrive`, `page`, `fill`, `scroll`: ease-out. `settle`: a spring without bounce. `press`: snappy. `spin`: linear, repeating. `toast` and `fade`: ease-out, and kept with Reduce Motion.
+- **Transitions.** `Motion.rise` (up from the foot, with a fade) and `Motion.grow` (from 60 % to 100 % size, with a fade). Both are a plain fade with Reduce Motion.
+- **Reduce Motion.** Read in 1 place, `Motion.isReduced` (`UIAccessibility.isReduceMotionEnabled` on the iPhone and the iPad, `NSWorkspace.accessibilityDisplayShouldReduceMotion` on the Mac). Every moving name is then nothing, so the screen changes at once.
+- **The tick.** `TickMark` in `Motion.swift`: the open ring and the filled circle lie over each other and fade across; the filled one grows from 60 % to 100 %. Same 15-point drawing, same 22-point press area, same identifier `task.tick.<title>`.
+- **Rows.** `AppModel.saveSettling(_:)` and `reloadSettling()` put the ordinary save and reload inside `Motion.settle`. Used by `toggle`, `setDueDate`, `setDue`, `makeNextAction`, `clearNextAction`, `addTask`, `addSubtask`, `deleteTask`, `moveTasks`, `moveTask`, `capture`. The write comes first and is not delayed.
+- **A second press.** `Note.holdsDone(_:)`: by the task's `^t` identifier, else by line and title. `AppModel.toggle` asks it before ticking, so a row that is fading away cannot be ticked again. Un-ticking is unchanged.
+- **Folds.** `FoldButton` puts its change inside `Motion.fold`. A fold remembered in the settings (Today's groups, the Inbox's groups, an area's projects, **Last 12 weeks**, the Weekly review's steps, Search's boxes, **Filter**, the ended goals, the month grid, **Pictures**, **Hide finished**) also carries `.animation(Motion.fold, value:)` on its list.
+- **Not animated.** The Mac sidebar, the groups of the **Projects** list, **Templates**, the **Note** button's editor, text while typing, the line through a ticked task.
+- **The test of the rule.** `MotionRulesTests`: every duration in `MotionTiming.bounded` is within 0.15 to 0.35 seconds and `fold` is 0.2; and in `App/**/*.swift` every line with `withAnimation` or `.animation(` names `Motion.`, and no file but `Motion.swift` names a curve.
+
+**Tests.** `SharedFilesTests` (5), `GoalNumberTests` (7), `MotionRulesTests` (2), and `testATickedTaskIsKnownFromAStaleCopy` in `NoteTests.swift`.
+
+**The build number.** `BuildStamp.number` is 318; **Settings › About** says 1.0 (318).
 
 ## On the iPhone
 

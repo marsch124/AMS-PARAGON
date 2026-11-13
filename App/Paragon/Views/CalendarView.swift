@@ -23,6 +23,8 @@ struct CalendarView: View {
             case .notes: DailyNotesListView()
             }
         }
+        // Build 318: Day, Week, Month and Notes fade into each other (0.2 s).
+        .animation(Motion.page, value: model.calendarMode)
     }
 }
 
@@ -52,6 +54,8 @@ struct DayCalendarView: View {
             }
             dayContents(day: day, overview: overview)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: showsMonthGrid)
         .focusable()
         .focusEffectDisabled()   // the same ring as the Inbox's, build 197
         .onKeyPress(.leftArrow) { move(days: -1); return .handled }
@@ -103,7 +107,7 @@ struct DayCalendarView: View {
             // shows the month or it does not, and the button says which.
             StateToggle(markName: "calendar", title: "Month", isOn: showsMonthGrid,
                         tint: SidebarSection.calendar.tint) {
-                showsMonthGrid.toggle()
+                withAnimation(Motion.fold) { showsMonthGrid.toggle() }
             }
             HStack(spacing: 2) {
                 Button { move(days: -1) } label: { MarkImage("chevron.left") }
