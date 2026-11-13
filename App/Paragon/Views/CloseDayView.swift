@@ -586,8 +586,7 @@ private struct LeftoverRow: View {
                         model.setDue(ref, date: chosen, time: at)
                     }
                 }
-                .padding()
-                .frame(minWidth: 280)
+                .datePopoverRoom()
             }
         }
     }

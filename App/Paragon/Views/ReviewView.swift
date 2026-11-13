@@ -427,7 +427,8 @@ struct ReviewPartHeading: View {
 }
 
 /// **Review done**, the end of the walk (round 8, build 315). One filled button in the review's
-/// colour and one quiet line saying when the review was last done. The press writes today into
+/// colour and one quiet line saying when the review was last done; once pressed today, a tick
+/// and **Review done today** in the review's colour instead of the button. The press writes today into
 /// this week's note (`AppModel.markWeeklyReviewDone`); **Today** stops saying the review is late.
 /// Never folded: it is one row, and it is the thing the walk leads to.
 struct ReviewDoneStep: View {
@@ -440,14 +441,26 @@ struct ReviewDoneStep: View {
         let last = model.lastWeeklyReview
         Section {
             HStack(spacing: 10) {
-                Button("Review done") { model.markWeeklyReviewDone() }
-                    .buttonStyle(.filled(tint))
-                    .disabled(last == today)
-                    .accessibilityIdentifier("review.done")
-                Text(Self.words(last: last, today: today))
-                    .font(Txt.label)
-                    .foregroundStyle(.soft)
-                    .accessibilityIdentifier("review.done.last")
+                if let last, last >= today {
+                    // Build 315 polish: once pressed there is no pale button left over. A
+                    // hand-drawn tick and the words, in the review's colour, until tomorrow.
+                    HStack(spacing: 6) {
+                        MarkImage("checkmark", text: .body)
+                            .accessibilityHidden(true)
+                        Text(Self.words(last: last, today: today))
+                            .font(Txt.value.weight(.semibold))
+                            .accessibilityIdentifier("review.done.last")
+                    }
+                    .foregroundStyle(tint.ink)
+                } else {
+                    Button("Review done") { model.markWeeklyReviewDone() }
+                        .buttonStyle(.filled(tint))
+                        .accessibilityIdentifier("review.done")
+                    Text(Self.words(last: last, today: today))
+                        .font(Txt.label)
+                        .foregroundStyle(.soft)
+                        .accessibilityIdentifier("review.done.last")
+                }
                 Spacer(minLength: 0)
             }
             .padding(.vertical, 2)
@@ -456,7 +469,7 @@ struct ReviewDoneStep: View {
 
     static func words(last: DateOnly?, today: DateOnly) -> String {
         guard let last else { return "No review recorded yet" }
-        if last >= today { return "Done today" }
+        if last >= today { return "Review done today" }
         return "Last done \(DayWords.withWeekday(last))"
     }
 }

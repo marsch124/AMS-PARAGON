@@ -1682,8 +1682,11 @@ struct FolderChoiceView: View {
         #if os(macOS)
         .frame(width: 400)
         #else
+        .padding(.top, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .presentationDetents([.height(260)])
+        // The same solid page as the restore sheet (build 315 polish): never see-through.
+        .presentationBackground(Theme.canvas)
         #endif
         .accessibilityIdentifier("folderChoice.sheet")
     }

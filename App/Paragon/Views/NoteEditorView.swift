@@ -11,6 +11,8 @@ struct NoteEditorView: View {
 
     @State private var text = ""
     @State private var newTask = ""
+    /// True while the find bar is up on the iPhone; the Add a task bar hides meanwhile.
+    @State private var findBarUp = false
     @State private var isDirty = false
     @State private var pendingSave: Task<Void, Never>?
     @State private var showTasks = true
@@ -318,6 +320,7 @@ struct NoteEditorView: View {
             NoteFind.run(.show)
             #else
             NoteFind.show()
+            findBarUp = true
             #endif
         }
     }
@@ -325,11 +328,12 @@ struct NoteEditorView: View {
     /// **Share…**: three ways to send the note on, and on the Mac where its file is.
     private var shareMenu: some View {
         Menu {
-            Button("As PDF") { share(.pdf) }
+            // Build 315 polish: a mark on each, like every other row of the menu.
+            Button { share(.pdf) } label: { MarkLabel("As PDF", "doc.text", size: 16) }
                 .accessibilityIdentifier("note.share.pdf")
-            Button("As plain text") { share(.text) }
+            Button { share(.text) } label: { MarkLabel("As plain text", "list.bullet.indent", size: 16) }
                 .accessibilityIdentifier("note.share.text")
-            Button("The file itself") { share(.file) }
+            Button { share(.file) } label: { MarkLabel("The file itself", "folder", size: 16) }
                 .accessibilityIdentifier("note.share.file")
             #if os(macOS)
             Divider()
@@ -465,12 +469,30 @@ struct NoteEditorView: View {
         // Review round 4: the open note sits on the app's page, like the lists it came from.
         .phonePage()
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 0) {
-                Divider()
-                addTaskBar
+            // Build 315 polish: while Apple's find bar is up, this bar is away. Before, it
+            // peeked out half hidden behind the find bar.
+            if !findBarUp {
+                VStack(spacing: 0) {
+                    Divider()
+                    addTaskBar
+                }
+                .background(.bar)
             }
-            .background(.bar)
         }
+        #if os(iOS)
+        // The tabs step aside too: with no keys on screen the find bar sits at the very foot.
+        .toolbar(findBarUp ? .hidden : .automatic, for: .tabBar)
+        .task(id: findBarUp) {
+            // The find bar is Apple's and closes by itself (its tick, or the keyboard going
+            // away); asking it is the one sure way to know. Only while it is up.
+            guard findBarUp else { return }
+            try? await Task.sleep(for: .milliseconds(700))
+            while !Task.isCancelled, NoteFind.isUp {
+                try? await Task.sleep(for: .milliseconds(250))
+            }
+            if !Task.isCancelled { findBarUp = false }
+        }
+        #endif
     }
 
     /// Renaming this note, or nil when the name is not his to change. A function, not a

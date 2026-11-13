@@ -47,6 +47,17 @@ enum NoteFind {
         let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow) ?? scenes.flatMap(\.windows).first
         guard let textView = first(PictureTextView.self, in: window) else { return }
         textView.findInteraction?.presentFindNavigator(showingReplace: false)
+        // The bar's tick and the keyboard's Search key stay Apple's blue: the bar is drawn
+        // by the keyboard and takes no colour from the text view or its window (tried in
+        // build 315, both ignored).
+    }
+
+    /// True while the find bar is on screen (build 315 polish: the note's own bar at the foot
+    /// steps aside for it).
+    static var isUp: Bool {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow) ?? scenes.flatMap(\.windows).first
+        return first(PictureTextView.self, in: window)?.findInteraction?.isFindNavigatorVisible == true
     }
 
     private static func first<V: UIView>(_ type: V.Type, in view: UIView?) -> V? {

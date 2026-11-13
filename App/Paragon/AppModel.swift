@@ -4535,7 +4535,10 @@ final class AppModel: ObservableObject {
     func refreshBackups() {
         backups = vault?.backups() ?? []
         let stamp = defaults.double(forKey: lastOutsideBackupKey)
-        lastOutsideBackup = stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil
+        let made = stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil
+        // Build 315 polish: the row never says "Not yet", or an older day, beside a restore
+        // sheet that offers a newer copy (one another device put into the shared folder).
+        lastOutsideBackup = [made, newestOutsideCopySeen].compactMap { $0 }.max()
         outsideBackupFolderName = defaults.data(forKey: outsideBackupBookmarkKey) == nil
             ? nil : defaults.string(forKey: outsideBackupNameKey)
     }
@@ -4593,6 +4596,7 @@ final class AppModel: ObservableObject {
         defaults.set(data, forKey: outsideBackupBookmarkKey)
         defaults.set(url.lastPathComponent, forKey: outsideBackupNameKey)
         outsideBackupProblem = nil
+        newestOutsideCopySeen = nil
         refreshBackups()
         backUpOutside(reason: "manual", force: true)
     }
@@ -4602,6 +4606,7 @@ final class AppModel: ObservableObject {
         defaults.removeObject(forKey: outsideBackupBookmarkKey)
         defaults.removeObject(forKey: outsideBackupNameKey)
         outsideBackupProblem = nil
+        newestOutsideCopySeen = nil
         refreshBackups()
         backUpOutside(reason: "manual", force: true)
     }
@@ -4706,6 +4711,10 @@ final class AppModel: ObservableObject {
 
     @Published private(set) var outsideRestoreChoice: OutsideRestoreChoice?
 
+    /// The date of the newest outside copy the restore sheet found, so **Last made** in
+    /// Settings agrees with it. Forgotten when another folder is chosen.
+    private var newestOutsideCopySeen: Date?
+
     /// Where the outside copies are, and the chosen folder when that is it (it needs its
     /// access opened around every read).
     private func outsidePlace() -> (place: URL, chosen: URL?)? {
@@ -4746,6 +4755,8 @@ final class AppModel: ObservableObject {
             guard let self, self.outsideRestoreChoice != nil, self.vault?.rootURL == root else { return }
             self.outsideRestoreChoice?.selected = copies.first?.id
             self.outsideRestoreChoice?.finding = copies.isEmpty ? .none : .copies(copies)
+            self.newestOutsideCopySeen = copies.first?.backup.date
+            self.refreshBackups()
         }
     }
 

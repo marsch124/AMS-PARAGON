@@ -533,8 +533,12 @@ struct OutsideRestoreView: View {
         #if os(macOS)
         .frame(width: 420)
         #else
+        .padding(.top, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .presentationDetents(copies.count > 1 || copies.contains(where: { !$0.isMarked }) ? [.medium, .large] : [.height(340)])
+        // Build 315 polish: a low sheet is glass on the iPhone and the Settings rows behind
+        // showed through the words. The app's own page colour, by day and at night.
+        .presentationBackground(Theme.canvas)
         #endif
         .interactiveDismissDisabled(isRestoring)
         .accessibilityIdentifier("outsideRestore.sheet")

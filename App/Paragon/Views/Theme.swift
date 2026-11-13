@@ -130,9 +130,10 @@ struct EmptyStateView: View {
                     .accessibilityIdentifier("empty.hint")
             }
             if let actionTitle, let action {
+                // Build 315 polish: the one button of an empty screen is its main button, so
+                // it is filled in the part's colour (before, a pale bordered pill).
                 Button(actionTitle, action: action)
-                    .buttonStyle(.bordered)
-                    .tint(tint)
+                    .buttonStyle(.filled(tint == .secondary ? Theme.fallbackTint : tint == .orange ? Theme.attention : tint))
                     .padding(.top, 4)
                     .accessibilityIdentifier(actionIdentifier ?? "empty.action")
             }
@@ -566,6 +567,9 @@ struct DateTimeChoiceView: View {
     @State private var typed = ""
     @State private var atText = ""
     @State private var date = Date()
+    /// The height of the iPhone sheet's content, so the sheet is as tall as what it holds.
+    @State private var phoneHeight: CGFloat = 0
+    @Environment(\.dismiss) private var dismiss
 
     init(current: DateOnly?, time: TimeOfDay? = nil, offersTime: Bool = true,
          clearTitle: String? = nil, cancel: (() -> Void)? = nil,
@@ -588,24 +592,97 @@ struct DateTimeChoiceView: View {
         return !(offersTime && reading == .invalid)
     }
 
+    /// True on the iPhone, where the window is a sheet of its own shape (build 315 polish).
+    private var isPhone: Bool {
+        #if os(iOS)
+        return UIDevice.current.userInterfaceIdiom == .phone
+        #else
+        return false
+        #endif
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            TextField("2031-12-01", text: $typed)
-                .textFieldStyle(.roundedBorder)
-                .font(Txt.value.monospacedDigit())
-                .onSubmit(set)
-                // Named for the screen tests (build 268). Accessibility only.
-                .accessibilityIdentifier("date.field")
-            Text(parsed == nil ? "Write the date as 2031-12-01." : "Or pick it below.")
-                .font(Txt.label)
-                .foregroundStyle(parsed == nil ? Color.red : Theme.soft)
-            DatePicker("Date", selection: $date, displayedComponents: .date)
-                .datePickerStyle(.graphical)
-                .labelsHidden()
-                .onChange(of: date) { _, picked in typed = DateOnly(picked).description }
-            if offersTime {
-                atLine
+        #if os(iOS)
+        if isPhone { phoneBody } else { deskBody }
+        #else
+        deskBody
+        #endif
+    }
+
+    private func load() {
+        let start = current ?? DateOnly(Date())
+        typed = start.description
+        date = start.date() ?? Date()
+        atText = time?.description ?? ""
+    }
+
+    /// The field, its hint, the calendar and the **At** line: the same on every device.
+    @ViewBuilder
+    private var fields: some View {
+        TextField("2031-12-01", text: $typed)
+            .modifier(DateFieldLook(isPhone: isPhone))
+            .font(Txt.value.monospacedDigit())
+            .onSubmit(set)
+            // Named for the screen tests (build 268). Accessibility only.
+            .accessibilityIdentifier("date.field")
+        Text(parsed == nil ? "Write the date as 2031-12-01." : "Or pick it below.")
+            .font(Txt.label)
+            .foregroundStyle(parsed == nil ? Color.red : Theme.soft)
+        DatePicker("Date", selection: $date, displayedComponents: .date)
+            .datePickerStyle(.graphical)
+            .labelsHidden()
+            .onChange(of: date) { _, picked in typed = DateOnly(picked).description }
+        if offersTime {
+            atLine
+        }
+    }
+
+    #if os(iOS)
+    /// The iPhone's date sheet (build 315 polish): a title, Cancel at the left and the filled
+    /// **Set** at the right of the bar, the content from the top with the page's 16-point
+    /// margins, and a sheet as tall as what it holds. Before, the Mac's 300-point panel sat
+    /// in the middle of a tall sheet.
+    private var phoneBody: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    fields
+                    if let clearTitle {
+                        Button(clearTitle, role: .destructive) { choose(nil, nil) }
+                            .accessibilityIdentifier("date.clear")
+                            .padding(.top, 2)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .measureHeight($phoneHeight)
             }
+            .scrollBounceBehavior(.basedOnSize)
+            .background(Theme.canvas)
+            .navigationTitle("Date")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { if let cancel { cancel() } else { dismiss() } }
+                        .tint(Theme.fallbackTint.ink)
+                        .accessibilityIdentifier("date.cancel")
+                }
+                DateSetItem(canSet: canSet, set: set)
+            }
+        }
+        .presentationDetents(phoneHeight > 0 ? [.height(phoneHeight + Self.phoneBarRoom), .large] : [.large])
+        .presentationBackground(Theme.canvas)
+        .onAppear(perform: load)
+    }
+
+    /// The room the sheet's bar takes above the content.
+    private static let phoneBarRoom: CGFloat = 64
+    #endif
+
+    private var deskBody: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            fields
             HStack {
                 if let clearTitle {
                     Button(clearTitle, role: .destructive) { choose(nil, nil) }
@@ -624,12 +701,7 @@ struct DateTimeChoiceView: View {
         }
         .padding(12)
         .frame(width: 300)
-        .onAppear {
-            let start = current ?? DateOnly(Date())
-            typed = start.description
-            date = start.date() ?? Date()
-            atText = time?.description ?? ""
-        }
+        .onAppear(perform: load)
 #if os(iOS)
         // A Set above the keys, as Search has its Done (build 160). Only with the At line: the
         // plain date windows keep their look. No identifier: the screen tests find `date.set`
@@ -658,7 +730,7 @@ struct DateTimeChoiceView: View {
                 Text("At")
                     .font(Txt.value.weight(.semibold))
                 TextField("14:00", text: $atText)
-                    .textFieldStyle(.roundedBorder)
+                    .modifier(DateFieldLook(isPhone: isPhone))
                     .font(Txt.value.monospacedDigit())
                     .frame(width: 84)
                     .submitLabel(.done)
@@ -680,6 +752,9 @@ struct DateTimeChoiceView: View {
             Text(atHint)
                 .font(Txt.label)
                 .foregroundStyle(reading == .invalid ? Color.red : Theme.soft)
+                // On the iPhone the hint always keeps the room of two lines, so the sheet
+                // does not jump when a time is picked and the hint grows (build 315 polish).
+                .lineLimit(isPhone ? 2 : 10, reservesSpace: isPhone)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -703,6 +778,65 @@ struct DateTimeChoiceView: View {
         case .empty: choose(parsed, nil)
         case .time(let at): choose(parsed, at)
         }
+    }
+}
+
+#if os(iOS)
+/// **Set** in the bar of the iPhone's date sheet: the app's own filled button, whole (never
+/// cut), without the round glass iOS 26 draws behind a bar button.
+struct DateSetItem: ToolbarContent {
+    let canSet: Bool
+    let set: () -> Void
+
+    var body: some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            ToolbarItem(placement: .confirmationAction) { button }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .confirmationAction) { button }
+        }
+    }
+
+    private var button: some View {
+        Button("Set", action: set)
+            .buttonStyle(.filled(Theme.fallbackTint))
+            .fixedSize()
+            .disabled(!canSet)
+            .accessibilityIdentifier("date.set")
+    }
+}
+#endif
+
+/// A field of the date window. On the Mac and the iPad Apple's rounded field, as before; on
+/// the iPhone the app's own surface with a hairline, which reads by day and at night (Apple's
+/// rounded field is a pure black box on the night sheet). Build 315 polish.
+struct DateFieldLook: ViewModifier {
+    let isPhone: Bool
+
+    func body(content: Content) -> some View {
+        if isPhone {
+            content
+                .textFieldStyle(.plain)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(Theme.surface, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.line, lineWidth: 1))
+        } else {
+            content.textFieldStyle(.roundedBorder)
+        }
+    }
+}
+
+extension View {
+    /// The room round a date window in a popover on the Mac and the iPad. None on the iPhone,
+    /// where the window is a sheet with its own margins.
+    @ViewBuilder
+    func datePopoverRoom() -> some View {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone { self } else { padding().frame(minWidth: 280) }
+        #else
+        padding().frame(minWidth: 280)
+        #endif
     }
 }
 

@@ -1064,9 +1064,10 @@ final class ScreenTests: XCTestCase {
         let last = element("review.done.last")
         XCTAssertTrue(last.exists, "No line says when the review was last done. On screen: \(visibleTexts())")
         if done.isHittable { done.press() } else { done.pressCentre() }
-        XCTAssertTrue(becomes(within: 10) { self.words(of: last) == "Done today" },
-                      "Review done was pressed and the line says: \(words(of: last))")
-        XCTAssertFalse(done.isEnabled, "Review done can be pressed twice on one day.")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" },
+                      "Review done was pressed and the line says: \(words(of: element("review.done.last")))")
+        XCTAssertFalse(app.buttons.matching(identifier: "review.done").firstMatch.exists,
+                       "Review done can be pressed twice on one day.")
     }
 
     /// Scrolls the screen until the element is there and on screen, and returns it. On the

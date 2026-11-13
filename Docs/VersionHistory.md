@@ -61,8 +61,8 @@ The version is shown as 1.0 (315) in Settings › About, at the foot of the Mac 
 - Before: the **Weekly review** ended with step 8, and PARAGON did not know when you last did it.
 - Now: under step 8 is one button, **Review done**, filled in the review's colour. Press it when you have walked through the review.
 - PARAGON writes today's date into this week's note. So the iPhone and the Mac both know. If this week has no weekly note yet, the press makes it.
-- The line beside the button says **Done today**, or **Last done Thursday 2026-11-05**, or **No review recorded yet**.
-- After a press the button rests until tomorrow.
+- The line beside the button says **Last done Thursday 2026-11-05**, or **No review recorded yet**.
+- After a press the button is gone until tomorrow: a tick and **Review done today** stand there, in the review's colour.
 
 **5. Today says when the review is late.**
 - Before: nothing told you that a week had passed without a review.
