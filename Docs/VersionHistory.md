@@ -112,8 +112,8 @@ The version is shown as 1.0 (316) in Settings › About, at the foot of the Mac 
 **11. Mac: Record my own key… for quick capture from any app.**
 - Before: **Settings › Quick capture › Key from any app** had **Off** and 3 fixed keys. The first, ⌃⌥Space, can already be the macOS key for the next input source.
 - Now: under the list is the button **Record my own key…**. A small window opens. Press your keys, and they show as symbols, for example ⌥⌘K. The buttons are **Cancel** and **Save**; Escape is **Cancel**, Return is **Save**.
-- A key without ⌘, ⌃ or ⌥ is refused, and a line says why: it would stop you typing that key in every app.
-- A key that macOS or nearly every app already uses (⌘Space, ⌘Tab, ⌘Q, ⇧⌘4 and others) gets a warning. You may still save it.
+- A key needs ⌘ or ⌃. A key by itself, or with only ⌥ or ⌥⇧, is refused, and a line says why: it would stop you typing that key or sign (for example @ on a Swedish keyboard) in every app.
+- A key that nearly every app already uses (⌘C, ⌘V, ⌘Z, ⌘Q, ⌘Tab, ⌘Space and others) is refused too, so copy and paste keep working everywhere. Other keys that macOS uses get a warning, and you may still save them.
 - After **Save** the list shows **My own key: ⌥⌘K**, and the key works at once. If macOS does not give the key, the old line shows: "Another app already uses this key. Pick a different one."
 - **Save** is always full colour. Pressed with nothing recorded, it says "Press the keys first."
 - macOS asks for no permission. The key is kept on each Mac by itself.
