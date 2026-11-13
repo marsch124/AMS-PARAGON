@@ -77,6 +77,24 @@ public final class Vault {
         config = (try? loadConfig()) ?? config
     }
 
+    /// config.json as it is on disk right now, or nil when it cannot be read without waiting
+    /// (still in iCloud) or at all. Never waits for a download.
+    public func configOnDisk() -> VaultConfig? {
+        if fm.fileExists(atPath: CloudFiles.placeholderURL(for: configURL).path) { return nil }
+        guard fm.fileExists(atPath: configURL.path), CloudFiles.presence(of: configURL) != .away else { return nil }
+        return try? loadConfig()
+    }
+
+    /// Takes over config.json when the other device changed it (review round 8): it was read
+    /// only when the vault was opened, and the next settings change here wrote the old picture
+    /// over the other device's. True when the settings in memory changed.
+    @discardableResult
+    public func reloadConfigIfChanged() -> Bool {
+        guard let disk = configOnDisk(), disk != config else { return false }
+        config = disk
+        return true
+    }
+
     public func loadConfig() throws -> VaultConfig {
         let data = try Data(contentsOf: configURL)
         return try JSONDecoder().decode(VaultConfig.self, from: data)

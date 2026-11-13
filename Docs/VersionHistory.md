@@ -1,6 +1,176 @@
 # Version history
 
-The version is shown as 1.0 (314) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (315) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 315 · 13 November 2026
+
+**Small features, in many places.** This is round 8 of the premium review. Round 7 was build 314, the Mac window. This round adds 17 small things, on the iPhone, the iPad and the Mac: a third answer when the sync asks about a list, a way to put the outside copy back, a button and a reminder for the weekly review, a time of day in **Quick capture**, find and share in a note, widgets that open the right place, a way forward on every empty screen, and the version in **Settings**.
+
+**Before (build 314).**
+- When the sync asked about a Reminders list with the same name as a note, the only answers were **Do it** and **Cancel**. To keep the two apart you had to rename the note or the list.
+- The second copy outside the vault could only be put back by hand, in Finder.
+- PARAGON did not know when you last did the weekly review, and had no reminder for it.
+- The **Date…** button in **Quick capture** gave a date only, and a second press added a second date to the line.
+- A press on a widget only opened PARAGON, wherever it was.
+- You could not search inside one note, and you could not share a note.
+- An empty list was an icon and one title.
+- The list of versions was called "Version history", and **Settings › Help** on the Mac had 1 row.
+- The version was at the foot of the Mac sidebar and at the foot of **Browse** only.
+
+### Reminders sync
+
+**1. A third answer when the sync asks: Keep them apart.**
+- Before: when a Reminders list has the same name as a note, and holds reminders PARAGON did not make, the sync stops and asks (**Sync stopped to ask you**). There were 2 buttons, **Do it** and **Cancel**. The last sentence said "To keep them apart, cancel and rename the note or the list."
+- Now: there are 3 buttons: **Keep them apart**, **Do it** and **Cancel**.
+- **Keep them apart** is for when the note and the list are two different things. One press: PARAGON remembers that list and does not ask about it again. The list and the note stay as they are. Nothing is copied either way, and the note's text is not touched.
+- The last sentence of the question now says: "If the note and the list are two different things, choose Keep them apart: PARAGON leaves both as they are and does not ask about this list again."
+- A short message says, for example, "The list “Trip” is kept apart". Then the sync runs again by itself.
+- If the same sync also wanted to cancel or delete many things, it asks about that again, by itself, after **Keep them apart**.
+- What this costs: while a list is kept apart, the tasks of the note with that name do not go to Reminders. The note has no list of its own there.
+- The choice is kept in the vault. So the iPhone and the Mac both know it, and it is still there after you close the app.
+- A list that is already joined to its note stays joined. **Keep them apart** never cuts a link that is already there.
+
+**2. Settings: Lists kept apart, with Connect again.**
+- Before: there was no such list.
+- Now: **Settings** has a group **Lists kept apart**, just under **Reminders sync**. It shows the name of each list you keep apart, with a **Connect again** button beside it.
+- **Connect again** forgets the choice. Nothing is joined by that press. The next sync asks you about the list once more.
+- When you delete a list you kept apart, the device you made the choice on forgets it at the next sync. A new list with the same name is asked about like any other.
+- With no list kept apart, the group is not shown.
+
+### Backups
+
+**3. Restore from the outside copy.**
+- Before: the second copy outside the vault (build 308) could only be put back by hand, in Finder.
+- Now: **Settings › Second copy, outside the vault** has a new button, **Restore from the outside copy…**.
+- It first asks. The question names the vault and the outside copy: when it was made, like 2026-11-13 14:05, where it is kept, and how many notes it holds. The buttons are **Cancel** and a full-colour **Restore**. On the Mac, Escape is **Cancel**.
+- With more than 1 outside copy, the question lists them, newest first, as the backups inside the vault are listed: the date, the number of notes, and "made just before a restore" for a copy a restore saved. The newest is chosen to begin with. Press another row to choose it.
+- Only copies of this vault are offered. Each new outside copy says which vault it is of; a copy of another vault in the same folder is not shown. A copy made before build 315 does not say it. It is shown with the words "made before build 315" and the names of its folders, so you can tell.
+- **Restore** puts the notes, pictures and sketches of that copy back into the vault, over the versions you have now.
+- Before anything is put back, PARAGON saves what you have now, 2 times: as a backup inside the vault (it is listed under **Restore a copy** as "before restore") and as a new outside copy with your pictures. If one of the two cannot be saved, nothing is restored.
+- Nothing is deleted. Notes and pictures you made after the copy stay. The copy you restored from stays too.
+- A note that is still coming from iCloud is never written over. The app names what it could not put back. While notes are still coming from iCloud, the restore does not start at all, and says why.
+- A file of the copy that is not on this device (still in iCloud or Dropbox) is not put back and is named. The note in the vault stays as it was. A file is never taken out before its copy is safely written.
+- No sync runs during a restore, and a restore does not start during a sync. It says: "A sync is running, so nothing was restored. Try again when it has finished." The same holds for **Restore a copy**.
+- With no outside copy yet, the question says "There is no outside copy yet." and has only **Cancel**.
+- Afterwards a short message says, for example, "Restored 212 files from the outside copy of 2026-11-13 14:05".
+- To undo a restore: **Restore a copy**, and choose the one marked "before restore".
+
+### The weekly review
+
+**4. Review done.**
+- Before: the **Weekly review** ended with step 8, and PARAGON did not know when you last did it.
+- Now: under step 8 is one button, **Review done**, filled in the review's colour. Press it when you have walked through the review.
+- PARAGON writes today's date into this week's note. So the iPhone and the Mac both know. If this week has no weekly note yet, the press makes it.
+- The line beside the button says **Done today**, or **Last done Thursday 2026-11-05**, or **No review recorded yet**.
+- After a press the button rests until tomorrow.
+
+**5. Today says when the review is late.**
+- Before: nothing told you that a week had passed without a review.
+- Now: when the last **Review done** is more than 7 days old, one line under the date on **Today** says, for example, **Last weekly review: 9 days ago**. Tap it (click on the Mac) and the **Weekly review** opens.
+- Exactly 7 days is still on time. So a review every Sunday never shows the line.
+- The line shows only after your first **Review done**. Before that press, PARAGON has no date to count from, and the line never shows.
+
+**6. A reminder for the weekly review.**
+- Before: **Settings** had 2 reminders, **Morning reminder** and **Evening reminder**.
+- Now: there is a third, **Weekly review reminder**, with the switch **Remind me to do the weekly review**. Turned on, it shows **On** (the day, Monday to Sunday) and **At** (the time).
+- It starts as Sunday at 17:00, and it is off until you turn it on.
+- It is one notification a week. Press it and the **Weekly review** opens.
+- **Try it now** sends one in 10 seconds, as for the other two.
+- The reminder is set on each device by itself, like the other two. Turn it on where you want it.
+
+### Capture and dates
+
+**7. Quick capture: the date window has a time of day, and a new date replaces the old one.**
+- Before: the **Date…** button in **Quick capture** opened a window with a date only. A time had to be typed by hand. And a second press on **Date…** added a second date to the line.
+- Now: **Date…** opens the same date window a task has, with its **At** line, the four quick times (**09:00**, **12:00**, **14:00**, **16:00**) and **No time of day**.
+- Example: "Call the bank" with 2026-11-14 at 14:00 becomes `Call the bank >2026-11-14T14:00`.
+- Press **Date…** again and the date already on the line is changed. It is not added a second time.
+
+**8. Close the day: "Day…" has the At line too.**
+- Before: **Day…** in **Close the day** moved a task to another day, with no time.
+- Now: the same window opens, with the **At** line. It opens on the task's own time. You can give the task a time, change it, or take it away.
+
+**9. Mac: a key for quick capture from any app.**
+- Before: ⇧⌘N opened quick capture only while PARAGON was in front. From another app you used the item in the menu bar.
+- Now: **Settings › Quick capture** has **Key from any app**, with 4 choices: **Off**, **⌃⌥Space**, **⌃⇧Space** and **⌃⌥⌘Space**.
+- The key is **Off** until you choose one. Nothing changes for you before that.
+- Press the key in any app and a small capture panel opens in the middle of the screen. The app you were in stays in front.
+- Write and press Return: the line is saved and the panel closes by itself. Escape, or the key again, closes it without saving.
+- macOS does not ask for any permission.
+- If another app already uses the key, **Settings** says "Another app already uses this key. Pick a different one."
+- The choice is kept on each Mac by itself. It is not in the vault.
+
+### Inside a note
+
+**10. Find in a note.**
+- Before: **Search** looked through all notes. You could not search inside the one note you had open.
+- Now, on the Mac: **⌘F**, or **Edit › Find in Note**, shows Apple's find bar above the note's text. **⌘G** goes to the next place and **⇧⌘G** to the one before. The bar shows how many places it found.
+- Now, on the iPhone: the note's **…** menu has **Find in note**.
+- Find works on the text you edit. So a note in **Read** is switched to **Edit** first, and stays in **Edit**.
+- **⇧⌘F** is still **Search Everywhere**.
+
+**11. Share a note.**
+- Before: a note could only leave PARAGON as its file, by hand in Finder.
+- Now: an open note has **Share…**, with 3 choices. **As PDF** makes A4 pages that look like **Read**, with tasks as boxes. **As plain text** is what you wrote, without the settings block at the top. **The file itself** is the note's own .md file.
+- On the Mac and the iPad, **Share…** is a button in the note's toolbar, between **Archive** and **Delete**. On the iPhone it is in the note's **…** menu.
+- On the Mac the menu also has **Show in Finder**, which shows where the note's file is.
+- What is shared is always a copy. Nothing another app does can change your note.
+- What you typed last is saved first, so the copy is never old.
+
+### Getting around
+
+**12. Widgets open the right place.**
+- Before: a press on a widget only opened PARAGON, wherever it was.
+- Now, on **Today's actions**: each line opens its own note.
+- Now, on **What is waiting**: each of the 4 numbers opens its own list. *Due today* and *overdue* open **Today**. *Inbox* opens the **Inbox**. *For a look* opens the **Weekly review**.
+- Overdue has no screen of its own, so it opens **Today**. If the **Overdue** part is folded there, it stays folded.
+- The small widget size can open one place only (Apple's rule). Small **Today's actions** opens **Today**. Small **What is waiting** opens the first of its 4 lists that has something in it.
+- A side effect on the iPhone: a link or a widget that opens **Today** or the **Inbox** now changes to that tab, and the tab goes back to its first screen. Before, the iPhone stayed on the tab you were on.
+- **Today's plan** on the Mac still opens **Plan**, as before.
+
+**13. Mac: two more keys in the Go menu.**
+- Before: **⌘1** to **⌘5** (**Inbox**, **Today**, **Plan**, **All actions**, **Aspirations**).
+- Now: also **⌘6** **Projects** and **⌘7** **Weekly review**. The first 5 are unchanged.
+
+**14. Empty screens show a way forward.**
+- Before: an empty list was an icon and one title.
+- Now: each has one small button in the part's colour, or one short grey line.
+- **Waiting for**: **Make a line wait…** opens **Quick capture** with "Waiting for " already typed. Add "Anna: the quote" and save. The line is then in this list, under Anna.
+- **Inbox** (Inbox zero): **Capture something…**
+- **All actions** (Nothing open): **Capture an action…**
+- **Map** (Nothing to map yet): **New goal…**
+- **Aspirations**, with **All of them** on: **New aspiration…**
+- **Calendar** with no daily notes: **Open today's note**. A day with no note: **Start this day's note**.
+- **Templates**: **New template…**
+- Any other empty list of notes: **New…**
+- **Deleted**: "A note you delete is kept here for 30 days"
+- **Archive**: "A note comes here with Move to Archive"
+- **Recent**: "Open any note and it is listed here"
+- **Tags**: "Write a word with # in front, like #travel, in a note or a task"
+- **Snippets**: "Write one in Templates › Snippets, with a name above each block"
+- **Projects**, **Areas**, **Resources**, **Goals** and **Work** already had their **New …** button and keep it.
+- Not changed: "Nothing matches" in a search, the "Pick a …" panels on the Mac, and the pages that say notes are still coming from iCloud.
+
+### Help and the version
+
+**15. Mac: Settings › Help has "How it works" and "What's new".**
+- Before: **Settings › Help** on the Mac had 1 row, **Words in PARAGON**.
+- Now: it has 3 rows: **How it works**, **Words in PARAGON** and **What's new**. Each opens the Help window on that page.
+- The **Help** menu in the menu bar is still there, with the same three.
+
+**16. The list of versions is called "What's new" everywhere.**
+- Before: it was "Version history" in the iPhone's **Settings**, in the Mac's **Help** menu, and on the switch at the top of the Help window.
+- Now: it is **What's new** in all three places, and the page's own heading says **What's new** too. It is this page.
+
+**17. The version, in Settings too.**
+- Before: **Settings › About** showed only the **Device id**. The version was at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone.
+- Now: **Settings › About** also shows **Version**, like 1.0 (315), as its first row, on the iPhone, the iPad and the Mac.
+- The foot of the Mac sidebar and the foot of **Browse** still show it.
+- Behind the scenes: a new check fails when the build number in the app and the newest entry of this page are not the same. So the app can never show one number over a list that starts with another.
+
+**What did not change.** Your notes, tasks and backups. How the sync joins a note and its list when you press **Do it**. The Mac window of build 314, the colours of build 310 and the icons of build 311. A project's deadline, a goal's target date and the day something ended are still a date only, with no time of day.
+
+**The version.** It shows as "PARAGON 1.0 (315)".
 
 ## Build 314 · 13 November 2026
 

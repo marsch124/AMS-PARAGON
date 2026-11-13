@@ -137,7 +137,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 314
+    static let number = 315
 }
 
 @MainActor
@@ -588,7 +588,14 @@ final class AppModel: ObservableObject {
         set {
             guard let vault else { return }
             objectWillChange.send()
-            do { try vault.save(config: newValue) } catch { errorMessage = error.localizedDescription }
+            // Review round 8: config.json is written whole, so a change that does not touch the
+            // lists kept apart takes them from the file as it is now — the other device may
+            // have added or removed one since this device last read it.
+            var merged = newValue
+            if merged.listsKeptApart == vault.config.listsKeptApart, let disk = vault.configOnDisk() {
+                merged.listsKeptApart = disk.listsKeptApart
+            }
+            do { try vault.save(config: merged) } catch { errorMessage = error.localizedDescription }
             // "Needs attention" on the Review row reads the config (stale days, the rhythm).
             refreshSidebarCounts()
             // The review rhythm lives in the config and decides how many notes are "due for a
@@ -1215,7 +1222,14 @@ final class AppModel: ObservableObject {
     /// a change the vault signature can see — materialising a file leaves its date alone — so a
     /// vault with anything outstanding is simply read again.
     private func cloudFilesChanged() {
-        guard vault != nil, !isSyncing else { return }
+        guard let vault, !isSyncing else { return }
+        // Review round 8: the settings may be what changed (a list kept apart on the other
+        // device). They were read only when the vault was opened.
+        if vault.reloadConfigIfChanged() {
+            log("settings changed on another device; read again")
+            objectWillChange.send()
+            refreshSidebarCounts()
+        }
         if !notesWaitingForCloud.isEmpty || !cloudDownloads.isEmpty {
             log("iCloud reported a change; re-reading the vault")
             reloadInBackground()
@@ -4670,13 +4684,25 @@ final class AppModel: ObservableObject {
         enum Finding: Equatable {
             case looking
             case none
-            case copy(VaultBackup)
+            /// The copies that may be put back into this vault, newest first (round 8).
+            case copies([OutsideCopy])
             case restoring(VaultBackup)
         }
         var finding: Finding
         /// Where the copy is kept, in his words: "on this Mac", "in the folder “Dropbox”".
         var placeWords: String
+        /// The vault the copy would be put back into: its folder's name.
+        var vaultName: String
+        /// The folder name of the copy chosen in the list; the newest to begin with.
+        var selected: String?
+
+        var selectedCopy: OutsideCopy? {
+            guard case .copies(let copies) = finding else { return nil }
+            return copies.first { $0.id == selected } ?? copies.first
+        }
     }
+
+    static let restoreWaitsForSync = "A sync is running, so nothing was restored. Try again when it has finished."
 
     @Published private(set) var outsideRestoreChoice: OutsideRestoreChoice?
 
@@ -4700,7 +4726,8 @@ final class AppModel: ObservableObject {
         guard let vault, let (place, chosen) = outsidePlace() else { return }
         let words = (chosen != nil ? outsideBackupFolderName.map { "in the folder \u{201C}\($0)\u{201D}" } : nil)
             ?? "on \(AppModel.thisDevice)"
-        outsideRestoreChoice = OutsideRestoreChoice(finding: .looking, placeWords: words)
+        outsideRestoreChoice = OutsideRestoreChoice(finding: .looking, placeWords: words,
+                                                    vaultName: vault.rootURL.lastPathComponent)
         let root: URL = vault.rootURL
         let config: VaultConfig = vault.config
         var makeOneFirst = false
@@ -4708,16 +4735,24 @@ final class AppModel: ObservableObject {
         makeOneFirst = TestVault.isWanted
         #endif
         Task { [weak self] in
-            let newest: VaultBackup? = await AppModel.offMain {
+            let copies: [OutsideCopy] = await AppModel.offMain {
                 let scoped = chosen?.startAccessingSecurityScopedResource() ?? false
                 defer { if scoped { chosen?.stopAccessingSecurityScopedResource() } }
-                guard let copyOfVault = try? Vault(rootURL: root, config: config) else { return nil }
+                guard let copyOfVault = try? Vault(rootURL: root, config: config) else { return [] }
                 if makeOneFirst { _ = try? copyOfVault.makeOutsideCopy(in: place, reason: "daily") }
-                return copyOfVault.outsideCopies(in: place).first
+                // Only this vault's copies, and the unmarked ones from before build 315.
+                return copyOfVault.outsideCopiesForRestore(in: place)
             }
             guard let self, self.outsideRestoreChoice != nil, self.vault?.rootURL == root else { return }
-            self.outsideRestoreChoice?.finding = newest.map { .copy($0) } ?? .none
+            self.outsideRestoreChoice?.selected = copies.first?.id
+            self.outsideRestoreChoice?.finding = copies.isEmpty ? .none : .copies(copies)
         }
+    }
+
+    /// A press on a copy in the list. Changes nothing but the choice.
+    func chooseOutsideCopy(_ copy: OutsideCopy) {
+        guard case .copies = outsideRestoreChoice?.finding else { return }
+        outsideRestoreChoice?.selected = copy.id
     }
 
     func cancelOutsideRestore() {
@@ -4729,8 +4764,14 @@ final class AppModel: ObservableObject {
     /// puts the copy back, and reads the vault again. Off the main thread: with pictures this
     /// is as big as the copy itself. Nothing is deleted.
     func restoreOutsideCopy() {
-        guard let vault, case .copy(let backup) = outsideRestoreChoice?.finding,
+        guard let vault, let backup = outsideRestoreChoice?.selectedCopy?.backup,
               let (place, chosen) = outsidePlace() else { return }
+        // Review round 8: never while a sync is at work, and no sync starts while this runs.
+        guard !isSyncing else {
+            outsideRestoreChoice = nil
+            errorMessage = AppModel.restoreWaitsForSync
+            return
+        }
         // The same rule as `restore` (build 261): never while part of the vault is still coming.
         if let reason = partVaultReason(for: "nothing was restored") {
             outsideRestoreChoice = nil
@@ -4739,6 +4780,10 @@ final class AppModel: ObservableObject {
         }
         flushPendingEdits()
         outsideRestoreChoice?.finding = .restoring(backup)
+        // The restore works off the main thread for up to a minute. Held like a sync for all
+        // of it, so the timed sync, a tap on Sync now and the re-reads all wait: a sync that
+        // met half the notes put back would take the missing lines for deleted tasks.
+        isSyncing = true
         let root: URL = vault.rootURL
         let config: VaultConfig = vault.config
         Task { [weak self] in
@@ -4748,6 +4793,8 @@ final class AppModel: ObservableObject {
                 return Result { try Vault(rootURL: root, config: config).restoreOutsideCopy(backup, in: place) }
             }
             guard let self else { return }
+            // Let go on every way out, a failed restore included.
+            self.isSyncing = false
             self.outsideRestoreChoice = nil
             guard self.vault?.rootURL == root else { return }
             let stamp = DayWords.plainWithTime(backup.date)
@@ -4898,6 +4945,11 @@ final class AppModel: ObservableObject {
 
     func restore(_ backup: VaultBackup) {
         guard let vault else { return }
+        // Review round 8: never while a sync is at work on the same notes.
+        guard !isSyncing else {
+            errorMessage = AppModel.restoreWaitsForSync
+            return
+        }
         // A restore reaches across the whole vault like a sync (build 261). Notes still coming
         // from iCloud are exactly what made a full vault look empty in build 100 — a moment
         // when restoring is tempting and wrong.
@@ -5023,6 +5075,9 @@ final class AppModel: ObservableObject {
         // while it is being made must not start a second sync.
         isSyncing = true
         defer { isSyncing = false }
+        // Review round 8: with the settings as the file holds them now (the other device may
+        // have set a list apart since this one last read them).
+        if vault.reloadConfigIfChanged() { objectWillChange.send() }
         if backsUpBeforeSync { _ = await backUpOffMain(reason: "sync") }
         guard self.vault === vault else { return }
         do {
@@ -5054,10 +5109,28 @@ final class AppModel: ObservableObject {
             lastReport = report
             for warning in report.warnings { log("sync: \(warning)") }
             reload()
+            await forgetDeletedListsKeptApart(in: vault)
         } catch {
             errorMessage = error.localizedDescription
             if self.vault === vault { reload() }
         }
+    }
+
+    /// Review round 8: a list this device set apart that is no longer in Reminders is forgotten,
+    /// so a later list with the same name is asked about like any new one. Lists set apart on
+    /// the other device are left to that device.
+    private func forgetDeletedListsKeptApart(in vault: Vault) async {
+        guard !vault.config.listsKeptApart.isEmpty, let lists = try? await remindersStore.lists(),
+              self.vault === vault else { return }
+        vault.reloadConfigIfChanged()
+        let here = Set(lists.map(\.id).filter { !$0.isEmpty })
+        let kept = ListsKeptApart.droppingDeleted(deviceID: deviceID, deviceListIDs: here, from: vault.config.listsKeptApart)
+        guard kept != vault.config.listsKeptApart else { return }
+        let gone = vault.config.listsKeptApart.filter { !kept.contains($0) }.map(\.name).joined(separator: ", ")
+        var changed = vault.config
+        changed.listsKeptApart = kept
+        config = changed
+        log("kept apart no longer (list deleted in Reminders): \(gone)")
     }
 
     private func scheduleAutoSync() {

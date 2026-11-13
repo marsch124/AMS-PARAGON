@@ -116,6 +116,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Getting things in
 
 - **Inbox** — where new things land before you decide where they belong.
+- **Key from any app** — in **Settings › Quick capture** on the Mac: a key that opens a small capture panel while you are in another app. It is **Off** until you choose one.
 - **Capture** — writing something down quickly, to sort later. It goes to the Inbox. On the iPhone it starts with the round **+** button at the bottom right of **Today**, **Actions** and **Inbox**, just above the tab bar. In **New**, the button for it is called **Inbox**, because that is where the line lands.
 - **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
 - **Add** and **Save** — a button that adds one thing straight away says **Add**, like **Add** beside a new tag. A screen with fields to fill in ends with **Save**. The app does not say Make or Create for this.
@@ -139,6 +140,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Recent** — the notes you opened last. On the Mac it is a list in the sidebar. On the iPhone the newest ones, up to 5, are in one line at the top of **Browse**.
 - **Done** (in the sidebar) — a diary of the last 12 weeks. For each day: the tasks you finished, the time on the focus timer, your line from **Close the day**, and what the work went towards. At the top, **Last 12 weeks** shows a small square for each day; the stronger the colour, the more was done. An empty square with an orange dashed edge is a day whose note is still coming from iCloud.
 - **Deleted** — notes you deleted. They are kept for 30 days and can be restored.
+- **Review done** — the button at the end of the **Weekly review**, under step 8. It keeps today's date as the day you did the review. When that day is more than 7 days ago, **Today** shows one line, like **Last weekly review: 9 days ago**.
+- **Find in note** — search inside the one note you have open: **⌘F** on the Mac, the **…** menu on the iPhone. **Search** looks through all notes.
+- **Share…** — on an open note: hand a copy of it to another app, **As PDF**, **As plain text** or **The file itself**.
 
 ## Tools
 
@@ -156,4 +160,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Backup** — a dated copy of the whole vault, made every day and before each sync, kept in tiers (last 5 before-sync copies, one per day for 14 days, one per week for 2 months). Since build 308 a second copy, with pictures and sketches, is made once a day outside the vault: on this device, or in a folder you choose.
 - **Conflict copy** — a file named "… (conflict date time).md" beside a note. It holds a second version of the note that PARAGON would not throw away: your text when both devices changed the same line, or a version iCloud had parked.
 - **Waiting for iCloud** — notes that iCloud has not put on this device yet. The app says so rather than showing them as missing, with the words **still coming from iCloud** and a button, **Ask iCloud again**. PARAGON fetches them in the background and never waits for them while it starts.
-- **Build number** — the number at the foot of the sidebar. It tells you which version of the app you have.
+- **Build number** — the number in **Settings › About** (since build 315), at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, like 1.0 (315). It tells you which version of the app you have.
+- **What's new** — the page that lists every version, newest first, and says what each one changed. It is in **Settings › Help** and, on the Mac, in the **Help** menu. Before build 315 it was called "Version history".
+- **Keep them apart** — an answer when the sync asks about a Reminders list with the same name as a note. PARAGON leaves both alone and does not ask again. The note's tasks do not go to Reminders while its list is kept apart. Undo it with **Connect again** in **Settings**, in the group **Lists kept apart**.
+- **Connect again** — beside a list in **Lists kept apart**. It forgets that you keep the list apart. Nothing is joined by the press; the next sync asks you about the list once more.
+- **Outside copy** — the second copy of your vault, kept outside the vault folder: on this device, or in a folder you choose. It holds your notes, pictures and sketches.
+- **Restore from the outside copy…** — a button in **Settings › Second copy, outside the vault**. It puts an outside copy of this vault back into the vault (the newest, unless you choose another in the list), after saving what you have now. Nothing is deleted.

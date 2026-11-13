@@ -34,6 +34,11 @@ struct QuickCaptureView: View {
     /// that could answer differently.
     var embedded = false
     var onSaved: (() -> Void)? = nil
+    /// Review round 8: what Cancel and Escape do where SwiftUI's `dismiss` cannot close the
+    /// screen (the capture key's own panel on the Mac). Nil: `dismiss`.
+    var onCancel: (() -> Void)? = nil
+    /// Review round 8: called when words are typed, so the panel does not close under them.
+    var onTyped: (() -> Void)? = nil
 
     @State private var text = ""
     @State private var target: CaptureTarget = .inbox
@@ -71,6 +76,7 @@ struct QuickCaptureView: View {
                 text = preset
             }
         }
+        .onChange(of: text) { _, now in if !now.isEmpty { onTyped?() } }
         .popover(isPresented: $showingSyntax) { CaptureSyntaxHelp() }
         .sheet(isPresented: $pickingDate) {
             // Round 8 (build 315): the same date window as a task's, with its **At** line, so
@@ -150,7 +156,7 @@ struct QuickCaptureView: View {
             phoneBody
                 .sheetChrome(title: "Quick capture", tint: SidebarSection.inbox.tint,
                              actionTitle: "Save", showsAction: false,
-                             cancel: { dismiss() }, act: save)
+                             cancel: { if let onCancel { onCancel() } else { dismiss() } }, act: save)
         }
     }
 
@@ -222,7 +228,7 @@ struct QuickCaptureView: View {
             deskBody
                 .sheetChrome(title: "Quick capture", tint: SidebarSection.inbox.tint,
                              actionTitle: "Save", canAct: canSave, actionIdentifier: "capture.save",
-                             cancel: { dismiss() }, act: save)
+                             cancel: { if let onCancel { onCancel() } else { dismiss() } }, act: save)
         }
     }
 

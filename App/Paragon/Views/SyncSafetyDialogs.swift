@@ -62,10 +62,14 @@ extension AppModel {
     /// and their notes alone from now on and does not ask about them again. Anything else the
     /// sync stopped for is asked again by that run, on its own.
     func keepApart(_ summary: MassChangeSummary) {
-        guard vault != nil, !summary.listsToJoin.isEmpty else { return }
+        guard let vault, !summary.listsToJoin.isEmpty else { return }
+        // Review round 8: added to the lists as the file holds them now, not as this device
+        // read them when it opened the vault — the other device may have set one apart since.
+        vault.reloadConfigIfChanged()
         var changed = config
         for join in summary.listsToJoin {
-            changed.listsKeptApart = ListsKeptApart.adding(id: join.listID, name: join.listName, to: changed.listsKeptApart)
+            changed.listsKeptApart = ListsKeptApart.adding(id: join.listID, name: join.listName, device: deviceID,
+                                                           to: changed.listsKeptApart)
         }
         config = changed
         let names = summary.listsToJoin.map { "\u{201C}\($0.listName)\u{201D}" }.joined(separator: ", ")
@@ -77,6 +81,7 @@ extension AppModel {
     /// **Connect again** in Settings: the list is forgotten, and the next sync asks about it
     /// as it did the first time. Nothing is joined by this press.
     func connectAgain(_ list: KeptApartList) {
+        vault?.reloadConfigIfChanged()
         var changed = config
         changed.listsKeptApart = ListsKeptApart.removing(list, from: changed.listsKeptApart)
         config = changed

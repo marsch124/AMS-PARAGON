@@ -99,11 +99,14 @@ struct PhoneRootView: View {
         }
         // A widget's link can start the app from cold: the request is then already made when
         // this screen first appears, and `onChange` never hears of it.
+        // Review round 8: a section that is no tab of its own (the weekly review, from the
+        // widget's number or from the reminder) chooses Browse, whose stack pushes it when it
+        // appears. It used to stay on Today.
         .onAppear {
             let request = model.sectionRequest
-            guard request.count > 0, let wanted = Tab.allCases.first(where: { $0.section == request.section }),
-                  tab != wanted else { return }
-            tab = wanted
+            guard request.count > 0 else { return }
+            let wanted = Tab.allCases.first { $0.section == request.section } ?? .browse
+            if tab != wanted { tab = wanted }
         }
     }
 
@@ -251,6 +254,9 @@ struct PhoneStack<Content: View>: View {
     let isActive: Bool
     @ViewBuilder let content: () -> Content
     @State private var path: [PhoneRoute] = []
+    /// The newest section request this stack has dealt with (review round 8), so the one made
+    /// before the app was on screen is pushed once when Browse appears, and never again.
+    @State private var requestsSeen = 0
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -281,6 +287,14 @@ struct PhoneStack<Content: View>: View {
         }
         .onAppear {
             if isActive, let section, model.section != section { model.section = section }
+            // Review round 8: a request made before this stack existed (the app started from
+            // a widget or a notification) was never heard by `onChange` below. Browse pushes it.
+            let request = model.sectionRequest
+            guard request.count > requestsSeen else { return }
+            requestsSeen = request.count
+            guard self.section == nil,
+                  !PhoneRootView.Tab.allCases.contains(where: { $0.section == request.section }) else { return }
+            if path.last != .section(request.section) { path.append(.section(request.section)) }
         }
         .onChange(of: isActive) { _, active in
             if active, let section, model.section != section { model.section = section }
@@ -322,6 +336,7 @@ struct PhoneStack<Content: View>: View {
         // turn. A guard would have made the button do nothing at all the first time.
         .onChange(of: model.sectionRequest) { _, request in
             guard request.count > 0 else { return }
+            requestsSeen = request.count
             // Round 8: a tab asked for by name goes back to its own first screen.
             if let own = self.section {
                 if own == request.section, !path.isEmpty { path.removeAll() }

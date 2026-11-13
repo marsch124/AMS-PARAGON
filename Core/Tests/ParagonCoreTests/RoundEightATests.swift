@@ -33,6 +33,7 @@ final class RoundEightATests: XCTestCase {
         try vault.save(config: config)
         let reopened = try Vault(rootURL: vault.rootURL)
         XCTAssertEqual(reopened.config.listsKeptApart, [KeptApartList(id: join.listID, name: "Trip")])
+        XCTAssertEqual(try JSONDecoder().decode(KeptApartList.self, from: Data(#"{"id":"A","name":"Trip"}"#.utf8)).device, nil)
 
         guard case .finished(let report) = try await SyncEngine(vault: reopened, store: store, deviceID: "d").sync() else {
             return XCTFail("kept apart: no second question")
@@ -41,11 +42,23 @@ final class RoundEightATests: XCTestCase {
         XCTAssertEqual(try reopened.loadNote(relativePath: "Projects/Trip.md").text, textBefore, "the note is untouched")
         XCTAssertEqual(store.records.values.map(\.title), ["Renew passport"], "the list is untouched")
 
-        // The rule itself: by identity; by name only for an identity this device does not have.
-        let kept = [KeptApartList(id: "A", name: "Trip")]
-        XCTAssertTrue(ListsKeptApart.isKeptApart(name: "Journey", ids: ["A"], deviceListIDs: ["A"], in: kept), "renamed, same list")
-        XCTAssertFalse(ListsKeptApart.isKeptApart(name: "Trip", ids: ["B"], deviceListIDs: ["A", "B"], in: kept), "another list took the name")
-        XCTAssertTrue(ListsKeptApart.isKeptApart(name: "Trip", ids: ["B"], deviceListIDs: ["B"], in: kept), "remembered on the other device")
+        // The rule itself: by identity; by name only on another device than the one that
+        // remembered it, for an identity that device does not have (review round 8).
+        let kept = [KeptApartList(id: "A", name: "Trip", device: "mac")]
+        func apart(_ name: String, _ ids: [String], _ here: Set<String>, on device: String) -> Bool {
+            ListsKeptApart.isKeptApart(name: name, ids: ids, deviceListIDs: here, deviceID: device, in: kept)
+        }
+        XCTAssertTrue(apart("Journey", ["A"], ["A"], on: "mac"), "renamed, same list")
+        XCTAssertFalse(apart("Trip", ["B"], ["A", "B"], on: "mac"), "another list took the name")
+        XCTAssertTrue(apart("Trip", ["B"], ["B"], on: "phone"), "remembered on the other device")
+        XCTAssertFalse(apart("Trip", ["B"], ["B"], on: "mac"),
+                       "its own list was deleted: a later list with the same name is asked about again")
+        // And the entry for the deleted list is dropped on the device that made it, only there.
+        XCTAssertEqual(ListsKeptApart.droppingDeleted(deviceID: "mac", deviceListIDs: ["B"], from: kept), [])
+        XCTAssertEqual(ListsKeptApart.droppingDeleted(deviceID: "mac", deviceListIDs: ["A"], from: kept), kept)
+        XCTAssertEqual(ListsKeptApart.droppingDeleted(deviceID: "phone", deviceListIDs: ["B"], from: kept), kept)
+        XCTAssertEqual(ListsKeptApart.droppingDeleted(deviceID: "mac", deviceListIDs: [], from: kept), kept,
+                       "Reminders could not be read: nothing is dropped")
 
         // Connect again: the next sync asks as before.
         config.listsKeptApart = ListsKeptApart.removing(KeptApartList(id: join.listID, name: "Trip"), from: config.listsKeptApart)
@@ -93,6 +106,91 @@ final class RoundEightATests: XCTestCase {
         let outside = vault.outsideCopies(in: place)
         XCTAssertEqual(Set(outside.map(\.reason)), ["daily", "before restore"])
         XCTAssertTrue(outside.contains { $0.folderName == copy.folderName })
+    }
+
+    /// Review round 8: a file of the copy that cannot be read leaves the vault's file as it is
+    /// (it used to be taken out first, and was gone when the copy then failed).
+    func testAFileThatCannotBeCopiedLeavesTheVaultFileUnchanged() throws {
+        let vault = try makeTemporaryVault()
+        defer { removeVault(vault) }
+        var note = try vault.createNote(kind: .project, title: "Boat")
+        note.body = "The first text\n"
+        try vault.save(note)
+        var other = try vault.createNote(kind: .project, title: "Car")
+        other.body = "Car, first\n"
+        try vault.save(other)
+        let start = Date()
+        let backup = try XCTUnwrap(try vault.makeBackup(now: start))
+
+        var changed = try vault.loadNote(relativePath: "Projects/Boat.md")
+        changed.body = "The later text\n"
+        try vault.save(changed)
+        var changedOther = try vault.loadNote(relativePath: "Projects/Car.md")
+        changedOther.body = "Car, later\n"
+        try vault.save(changedOther)
+
+        // The copy's Boat cannot be read (as a file still in Dropbox, offline).
+        let unreadable = vault.backupsURL.appendingPathComponent(backup.folderName).appendingPathComponent("Projects/Boat.md")
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: unreadable.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: unreadable.path) }
+
+        let result = try vault.restore(backup, now: start.addingTimeInterval(120))
+        XCTAssertEqual(result.failed, ["Projects/Boat.md"])
+        XCTAssertEqual(try vault.loadNote(relativePath: "Projects/Boat.md").body, "The later text\n",
+                       "the vault file is still there, as it was")
+        XCTAssertEqual(try vault.loadNote(relativePath: "Projects/Car.md").body, "Car, first\n", "the rest is restored")
+        let left = try FileManager.default.contentsOfDirectory(atPath: vault.rootURL.appendingPathComponent("Projects").path)
+        XCTAssertFalse(left.contains { $0.hasPrefix(Vault.restoreTempPrefix) }, "no half-written file is left behind")
+    }
+
+    /// Review round 8: only this vault's outside copies are offered for a restore; a copy of
+    /// another vault in the same place is not, and one from before build 315 says so.
+    func testOnlyThisVaultsOutsideCopiesAreOfferedForRestore() throws {
+        let mine = try makeTemporaryVault()
+        let other = try makeTemporaryVault()
+        defer { removeVault(mine); removeVault(other) }
+        let place = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ams-para-outside-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: place, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: place) }
+        try mine.createNote(kind: .project, title: "Mine")
+        try other.createNote(kind: .project, title: "Theirs")
+        let start = Date()
+        let old = try XCTUnwrap(try mine.makeOutsideCopy(in: place, now: start.addingTimeInterval(-7200)))
+        let home = Vault.outsideBackupsURL(in: place)
+        // As a copy made before build 315: no mark.
+        try FileManager.default.removeItem(at: home.appendingPathComponent(old.folderName).appendingPathComponent(Vault.ownerFileName))
+        let theirs = try XCTUnwrap(try other.makeOutsideCopy(in: place, now: start.addingTimeInterval(-3600)))
+        try mine.createNote(kind: .project, title: "Mine too")
+        let own = try XCTUnwrap(try mine.makeOutsideCopy(in: place, now: start))
+
+        XCTAssertNil(try mine.makeOutsideCopy(in: place, now: start.addingTimeInterval(60)), "the identity does not make the vault look changed")
+        let offered = mine.outsideCopiesForRestore(in: place)
+        XCTAssertEqual(offered.map(\.id), [own.folderName, old.folderName], "newest first, the other vault's left out")
+        XCTAssertFalse(offered.contains { $0.id == theirs.folderName })
+        XCTAssertTrue(offered[0].isMarked)
+        XCTAssertEqual(offered[1].unmarkedFolders?.contains("Projects"), true, "an unmarked copy shows its top folders")
+        XCTAssertEqual(mine.identity()?.name, mine.rootURL.lastPathComponent)
+
+        // The mark never lands in the vault.
+        _ = try mine.restoreOutsideCopy(own, in: place, now: start.addingTimeInterval(120))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: mine.rootURL.appendingPathComponent(Vault.ownerFileName).path))
+    }
+
+    /// Review round 8: the settings are read again when the other device changed them.
+    func testSettingsChangedOnTheOtherDeviceAreReadAgain() throws {
+        let vault = try makeTemporaryVault()
+        defer { removeVault(vault) }
+        try vault.save(config: vault.config)
+        let otherDevice = try Vault(rootURL: vault.rootURL)
+        var theirs = otherDevice.config
+        theirs.listsKeptApart = [KeptApartList(id: "A", name: "Trip", device: "phone")]
+        try otherDevice.save(config: theirs)
+        XCTAssertTrue(vault.config.listsKeptApart.isEmpty)
+        XCTAssertEqual(vault.configOnDisk()?.listsKeptApart, theirs.listsKeptApart)
+        XCTAssertTrue(vault.reloadConfigIfChanged())
+        XCTAssertEqual(vault.config.listsKeptApart, theirs.listsKeptApart)
+        XCTAssertFalse(vault.reloadConfigIfChanged())
     }
 
     // MARK: features-06

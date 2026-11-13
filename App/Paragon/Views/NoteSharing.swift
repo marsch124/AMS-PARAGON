@@ -127,7 +127,7 @@ struct NotePrint {
         } else {
             result.append(AnyView(
                 Text(note.displayTitle)
-                    .font(.system(size: Txt.Editor.h1, weight: .semibold))
+                    .font(Txt.pageTitle)
                     .foregroundStyle(Color.black)
                     .padding(.bottom, 6)
             ))

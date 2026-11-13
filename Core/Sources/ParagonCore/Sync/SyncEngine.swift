@@ -293,7 +293,8 @@ public final class SyncEngine {
             // things. The note is taken out of this run whole, whatever the list holds now:
             // nothing of it goes to Reminders, nothing of the list comes into it, no question.
             let ids = storeLists.filter { $0.name == list && !$0.id.isEmpty }.map(\.id)
-            if ListsKeptApart.isKeptApart(name: list, ids: ids, deviceListIDs: existingListIDs, in: config.listsKeptApart) {
+            if ListsKeptApart.isKeptApart(name: list, ids: ids, deviceListIDs: existingListIDs,
+                                          deviceID: deviceID, in: config.listsKeptApart) {
                 keptApart.append((list, path))
                 continue
             }

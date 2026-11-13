@@ -70,6 +70,15 @@ public enum CloudFiles {
         return presence(isUbiquitous: values?.isUbiquitousItem, status: values?.ubiquitousItemDownloadingStatus)
     }
 
+    /// Whether the file is only a name on this disk, its contents kept by a cloud service
+    /// (review round 8). Dropbox and other file providers mark an online-only file this way;
+    /// `presence(of:)` knows iCloud's files only. Metadata only: never waits for a download.
+    public static func isDataless(_ url: URL) -> Bool {
+        var info = stat()
+        guard lstat(url.path, &info) == 0 else { return false }
+        return info.st_flags & 0x4000_0000 != 0   // SF_DATALESS
+    }
+
     /// The longest one read may wait for iCloud to send one file.
     public static let longestWait: TimeInterval = 20
     /// The longest one background pass may spend waiting, all files together.

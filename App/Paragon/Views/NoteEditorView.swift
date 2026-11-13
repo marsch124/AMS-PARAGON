@@ -50,6 +50,8 @@ struct NoteEditorView: View {
     private var isPhone: Bool { sizeClass == .compact }
     #else
     private var isPhone: Bool { false }
+    /// Whether this editor's window is the one in front (review round 8, for ⌘F).
+    @Environment(\.controlActiveState) private var controlActiveState
     #endif
 
     /// Edit or Read, and nothing else. Split was a third choice he never used and asked to
@@ -195,7 +197,13 @@ struct NoteEditorView: View {
         }
         .navigationTitle(note?.displayTitle ?? path)
         // Round 8 (build 315): ⌘F from the Mac's Edit menu.
-        .onChange(of: model.findInNoteRequests) { _, _ in findInNote() }
+        // Every open editor hears the count; only the one in the window in front acts.
+        .onChange(of: model.findInNoteRequests) { _, _ in
+            #if os(macOS)
+            guard controlActiveState == .key else { return }
+            #endif
+            findInNote()
+        }
         .modifier(SharesNoteFile(file: sharedFileBinding))
         .toolbar {
             // The phone's navigation bar has room for a back button, a title and one control.

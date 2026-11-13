@@ -403,27 +403,40 @@ struct SettingsView: View {
     }
 }
 
-/// Build 315, **Restore from the outside copy…**: which copy, from when, how many notes, and
-/// what a yes does — with Cancel (Escape on the Mac) and one main button. Nothing has been
-/// changed while this is on screen.
+/// Build 315, **Restore from the outside copy…**: the copies of this vault (newest chosen to
+/// begin with), each with its date and how many notes it holds, and what a yes does — with
+/// Cancel (Escape on the Mac) and one main button. Nothing has been changed while this is on
+/// screen.
 struct OutsideRestoreView: View {
     @EnvironmentObject private var model: AppModel
+
+    private var copies: [OutsideCopy] {
+        if case .copies(let copies) = model.outsideRestoreChoice?.finding { return copies }
+        return []
+    }
 
     /// The headline, the smaller lines under it, and whether the main button is offered.
     private var words: (headline: String, details: [String], canRestore: Bool, busy: Bool) {
         let place = model.outsideRestoreChoice?.placeWords ?? ""
+        let vault = "\u{201C}\(model.outsideRestoreChoice?.vaultName ?? "")\u{201D}"
         switch model.outsideRestoreChoice?.finding {
         case nil, .looking:
             return ("Looking for the outside copy\u{2026}", ["Nothing is changed."], false, true)
         case .some(.none):
             return ("There is no outside copy yet.",
-                    ["PARAGON looked \(place) and found none. One is made once a day, and with Back up now. Nothing was changed."], false, false)
-        case .copy(let copy):
-            return ("Restore the outside copy from \(DayWords.plainWithTime(copy.date))?",
-                    ["It is the newest outside copy, kept \(place). It holds \(FolderChoiceView.notes(copy.noteCount)), with their pictures and sketches.",
-                     "Restoring puts those notes, pictures and sketches back into the vault, over the versions you have now.",
-                     "What you have now is saved as a backup first, so you can go back. Notes you made since that copy are left alone. Nothing is deleted."],
-                    true, false)
+                    ["PARAGON looked \(place) and found no copy of the vault \(vault). One is made once a day, and with Back up now. Nothing was changed."], false, false)
+        case .copies(let copies):
+            guard let copy = model.outsideRestoreChoice?.selectedCopy else { return ("", [], false, false) }
+            let which = copies.count == 1 ? "It is the only outside copy of the vault \(vault)"
+                : (copy.id == copies.first?.id ? "It is the newest of \(copies.count) outside copies of the vault \(vault)"
+                   : "It is one of \(copies.count) outside copies of the vault \(vault)")
+            var details = ["\(which), kept \(place). It holds \(FolderChoiceView.notes(copy.backup.noteCount)), with their pictures and sketches."]
+            if !copy.isMarked {
+                details.append("This copy was made before build 315, so it does not say which vault it is of. Check its folders before you restore it.")
+            }
+            details += ["Restoring puts those notes, pictures and sketches back into the vault \(vault), over the versions you have now.",
+                        "What you have now is saved as a backup first, so you can go back. Notes you made since that copy are left alone. Nothing is deleted."]
+            return ("Restore the outside copy from \(DayWords.plainWithTime(copy.backup.date))?", details, true, false)
         case .restoring(let copy):
             return ("Restoring the copy from \(DayWords.plainWithTime(copy.date))\u{2026}",
                     ["Saving what you have now first, then putting the copy back. With many pictures this can take a minute."], false, true)
@@ -433,6 +446,55 @@ struct OutsideRestoreView: View {
     private var isRestoring: Bool {
         if case .restoring = model.outsideRestoreChoice?.finding { return true }
         return false
+    }
+
+    /// The smaller line of a copy's row: how many notes, and what sets it apart.
+    static func rowDetail(_ copy: OutsideCopy) -> String {
+        var parts = [FolderChoiceView.notes(copy.backup.noteCount)]
+        if copy.isBeforeRestore { parts.append("made just before a restore") }
+        if let folders = copy.unmarkedFolders {
+            parts.append("made before build 315")
+            parts.append(folders.isEmpty ? "no folders" : "folders: " + folders.prefix(6).joined(separator: ", "))
+        }
+        return parts.joined(separator: " \u{00B7} ")
+    }
+
+    /// The copies, newest first; a press chooses one. Shown as the copies inside the vault are.
+    private var copyList: some View {
+        let chosen = model.outsideRestoreChoice?.selectedCopy?.id
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(Array(copies.enumerated()), id: \.element.id) { index, copy in
+                    Button {
+                        model.chooseOutsideCopy(copy)
+                    } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            MarkImage("checkmark", size: 11)
+                                .foregroundStyle(Theme.fallbackTint.ink)
+                                .opacity(copy.id == chosen ? 1 : 0)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(DayWords.plainWithTime(copy.backup.date))
+                                    .font(Txt.list)
+                                Text(Self.rowDetail(copy))
+                                    .font(Txt.label)
+                                    .foregroundStyle(.soft)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, 6)
+                        .background(RoundedRectangle(cornerRadius: 6)
+                            .fill(Theme.fallbackTint.ink.opacity(copy.id == chosen ? 0.12 : 0)))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("outsideRestore.copy.\(index)")
+                    .accessibilityAddTraits(copy.id == chosen ? .isSelected : [])
+                }
+            }
+        }
+        .frame(maxHeight: 150)
     }
 
     var body: some View {
@@ -445,6 +507,7 @@ struct OutsideRestoreView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("outsideRestore.headline")
             }
+            if copies.count > 1 || copies.contains(where: { !$0.isMarked }) { copyList }
             ForEach(words.details, id: \.self) { line in
                 Text(line)
                     .font(Txt.list)
@@ -471,7 +534,7 @@ struct OutsideRestoreView: View {
         .frame(width: 420)
         #else
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .presentationDetents([.height(340)])
+        .presentationDetents(copies.count > 1 || copies.contains(where: { !$0.isMarked }) ? [.medium, .large] : [.height(340)])
         #endif
         .interactiveDismissDisabled(isRestoring)
         .accessibilityIdentifier("outsideRestore.sheet")

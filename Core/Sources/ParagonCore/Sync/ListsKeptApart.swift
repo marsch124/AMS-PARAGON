@@ -8,10 +8,13 @@ public struct KeptApartList: Codable, Equatable, Hashable, Sendable, Identifiabl
     public var id: String
     /// The list's name when it was set apart.
     public var name: String
+    /// The device on which it was set apart (review round 8). Nil when not known.
+    public var device: String?
 
-    public init(id: String, name: String) {
+    public init(id: String, name: String, device: String? = nil) {
         self.id = id
         self.name = name
+        self.device = device
     }
 }
 
@@ -21,23 +24,36 @@ public struct KeptApartList: Codable, Equatable, Hashable, Sendable, Identifiabl
 /// both devices know; the sync then leaves the note and the list alone and never asks again.
 public enum ListsKeptApart {
     /// Whether the list called `name`, which carries `ids` on this device (two lists can share
-    /// a name), is kept apart. It is when one of its identities is remembered. A remembered
-    /// identity that no list on this device has was remembered on the other device, where the
-    /// same list can be known under another identity: then the name decides.
+    /// a name), is kept apart. It is when one of its identities is remembered.
+    ///
+    /// The name decides only on **another** device than the one that remembered it: there the
+    /// same list can be known under another identity. On the device that remembered it the
+    /// identity is the whole answer (review round 8): once that list is deleted, a later list
+    /// with the same name is a new list, and the sync asks about it again.
     public static func isKeptApart(name: String, ids: [String], deviceListIDs: Set<String>,
-                                   in kept: [KeptApartList]) -> Bool {
+                                   deviceID: String, in kept: [KeptApartList]) -> Bool {
         kept.contains { entry in
             if ids.contains(entry.id) { return true }
+            if entry.device == deviceID, !entry.id.isEmpty { return false }
             return entry.name == name && !deviceListIDs.contains(entry.id)
         }
     }
 
+    /// `kept` without the entries this device remembered for a list that is no longer in
+    /// Reminders here. Entries of other devices stay: only they know whether their list lives.
+    /// With no lists at all (Reminders could not be read) nothing is dropped.
+    public static func droppingDeleted(deviceID: String, deviceListIDs: Set<String>,
+                                       from kept: [KeptApartList]) -> [KeptApartList] {
+        guard !deviceListIDs.isEmpty else { return kept }
+        return kept.filter { $0.device != deviceID || $0.id.isEmpty || deviceListIDs.contains($0.id) }
+    }
+
     /// `kept` with one more list. The same identity is never remembered twice; a list set
     /// apart again under a new name takes that name.
-    public static func adding(id: String, name: String, to kept: [KeptApartList]) -> [KeptApartList] {
+    public static func adding(id: String, name: String, device: String? = nil, to kept: [KeptApartList]) -> [KeptApartList] {
         guard !id.isEmpty || !name.isEmpty else { return kept }
         var result = kept.filter { $0.id != id }
-        result.append(KeptApartList(id: id, name: name))
+        result.append(KeptApartList(id: id, name: name, device: device))
         return result.sorted { ($0.name.lowercased(), $0.id) < ($1.name.lowercased(), $1.id) }
     }
 

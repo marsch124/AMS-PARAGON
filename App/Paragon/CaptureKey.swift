@@ -21,6 +21,9 @@ final class CaptureKey {
     private var hotKey: EventHotKeyRef?
     private var handler: EventHandlerRef?
     private var panel: CapturePanel?
+    /// Counts every opening, closing, save and typed word (review round 8). The close that
+    /// follows a save happens only when nothing of that kind came after it.
+    private var generation = 0
 
     /// Called once at launch, and again whenever the choice in Settings changes.
     func apply(_ choice: CaptureHotKey, model: AppModel) {
@@ -48,6 +51,7 @@ final class CaptureKey {
     }
 
     func toggle() {
+        generation += 1
         if let panel, panel.isVisible {
             panel.close()
             return
@@ -56,14 +60,31 @@ final class CaptureKey {
         let panel = self.panel ?? CapturePanel()
         self.panel = panel
         // A fresh screen each time, so the field is empty and has the cursor.
-        // Once the words are saved it shows "Saved" for a moment and goes away by itself.
-        let screen = QuickCaptureView(compact: true, onSaved: { [weak panel] in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { panel?.close() }
-        })
+        // Once the words are saved it shows "Saved" for a moment and goes away by itself —
+        // unless he opened it again or went on typing meanwhile: then it stays.
+        let screen = QuickCaptureView(compact: true,
+                                      onSaved: { [weak self] in self?.closeSoon() },
+                                      onCancel: { [weak self] in self?.close() },
+                                      onTyped: { [weak self] in self?.generation += 1 })
         panel.contentView = NSHostingView(rootView: screen.environmentObject(model))
         panel.setContentSize(panel.contentView?.fittingSize ?? NSSize(width: 380, height: 260))
         panel.center()
         panel.makeKeyAndOrderFront(nil)
+    }
+
+    /// Cancel and Escape in the panel: SwiftUI's own `dismiss` does nothing in a bare panel.
+    private func close() {
+        generation += 1
+        panel?.close()
+    }
+
+    private func closeSoon() {
+        generation += 1
+        let mine = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            guard let self, self.generation == mine else { return }
+            self.panel?.close()
+        }
     }
 }
 
