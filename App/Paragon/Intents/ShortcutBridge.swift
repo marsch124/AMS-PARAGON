@@ -23,18 +23,30 @@ extension AppModel {
     /// file and saved, and when that cannot be done now (no vault open, the Inbox still coming
     /// from iCloud) the words are kept in the capture outbox — the share extension's file — and
     /// filed the next time the app sees the vault. Answers whether it is in the Inbox now.
-    func captureFromShortcut(_ item: CaptureItem) -> Bool {
+    ///
+    /// **It never says "Added" for words that are nowhere** (build 317): when the Inbox could
+    /// not be written and the outbox could not be written either, it throws
+    /// `ShortcutProblem.notSaved`, and Siri says so in plain words.
+    func captureFromShortcut(_ item: CaptureItem) throws -> Bool {
         let asked = Date().addingTimeInterval(-1)
-        let hadProblem = errorMessage != nil
+        // Set aside for a moment, so a problem with this very capture can be told from an
+        // older one that is still on screen.
+        let problemBefore = errorMessage
+        errorMessage = nil
         capture(text: item.text, url: nil, target: item.target, asTask: item.asTask)
         let waiting = CaptureOutbox(fileURL: Self.outboxURL).peek()
         let kept = waiting.contains { $0.text == item.text && $0.createdAt >= asked }
-        if kept, !hadProblem, errorMessage != nil {
-            // The app would otherwise greet him with "Something went wrong" for a capture that
-            // is safe; the action's own answer already says it is kept.
-            errorMessage = nil
-        }
-        return !kept
+        // `capture` reports its own failure with these words (and then tries the outbox).
+        let failed = errorMessage?.hasPrefix("Could not file the capture now") == true
+        // In the Inbox now: a vault is open, the capture did not fail, and the app's own answer
+        // is "Saved to Inbox" (every other answer of `capture` means "kept for later").
+        let filed = vault != nil && !failed && (lastCaptureMessage ?? "").hasPrefix("Saved to ")
+        // The app would otherwise greet him with "Something went wrong" for this capture; the
+        // action's own answer already says what happened to it. Another problem is left to show.
+        if failed || errorMessage == nil { errorMessage = problemBefore }
+        if kept { return false }
+        guard filed else { throw ShortcutProblem.notSaved }
+        return true
     }
 
     /// **Start the day** and **Close the day** from an action: the rule of a press on the daily
@@ -109,6 +121,8 @@ enum ShortcutProblem: Error, CustomLocalizedStringResourceConvertible {
     case taskGone
     case cannotFocus(String)
     case busy
+    /// Neither the Inbox nor the capture outbox could be written.
+    case notSaved
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
@@ -122,6 +136,8 @@ enum ShortcutProblem: Error, CustomLocalizedStringResourceConvertible {
             return "\(why)"
         case .busy:
             return "PARAGON is asking about the clock you stopped. Answer that first."
+        case .notSaved:
+            return "PARAGON could not save this, so it was not added. Nothing was lost from your notes. Please try again."
         }
     }
 }

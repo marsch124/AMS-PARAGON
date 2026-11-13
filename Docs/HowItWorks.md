@@ -1043,6 +1043,7 @@ today's daily note, so you can see later how long things really took.
 - A block in **Plan** has **Focus on this** on its right-click menu too. If exactly one open task has the same name as the block, the clock also belongs to that task, so you can tick it off when you stop. See **A clock on a block** below.
 - On **Today**, the line that starts with **Now** has a small orange clock button. It starts the focus timer on the plan block you are in.
 - Since build 316, on the iPhone and the iPad: swipe a task from the right and press **Focus**, beside **Tomorrow**. On the Mac: move the pointer over a task's row and press the small timer button at the right end of the row. The menu still has **Focus on this** as its first line.
+- Since build 317 you can also say "Start focus in PARAGON" to Siri, or use the action **Start Focus** in the **Shortcuts** app. With no task named, it starts on what is next today. See **Siri and Shortcuts**.
 - **Focus on this** is not offered inside **Start the day** and **Close the day**, nor in the
   Mac's separate **Plan** window (⇧⌘P), because the bar cannot be seen there. Nor is it
   offered on a task in a work note.
@@ -1103,6 +1104,24 @@ Click it for a short menu: the task, how long you planned (when the task has a t
   answered the question.
 - If another screen is open in PARAGON, such as **New** or **Close the day**, **Stop…**
   stops the clock but does not close that screen. The question comes when you close it.
+
+### On the Lock Screen and in the Dynamic Island
+
+Since build 317, on the iPhone and the iPad. Nothing changes on the Mac.
+
+- When you start a focus timer, it also shows on the Lock Screen and in the Dynamic Island.
+- On the Lock Screen you see an orange dot, the task's name, the running clock in large numbers, "of 45 min" when a time was planned, and a thin orange bar that fills up to the planned time. There are 2 round buttons: **Pause** (orange) and **Stop**.
+- While it is paused, the dot is pale, the clock stands still, the words say "paused", and the button is **Go on**.
+- The Dynamic Island, closed, shows the timer mark in orange on the left (the pause mark while paused) and the clock on the right. Held open, it shows the name, the clock, the bar, and the buttons **Pause** or **Go on**, and **Stop**. When another app shares the island, PARAGON shows a small ring that fills up to the planned time.
+- **Pause** and **Go on** work without opening PARAGON.
+- **Stop** stops the clock at once and opens PARAGON on the usual question (see **Stopping it**). Until you answer, the Lock Screen says "stopped" and "Open PARAGON to save the time", and shows no buttons.
+- A tap on the timer, on the Lock Screen or on the island, opens PARAGON.
+- When the timer is over, it leaves the Lock Screen and the island at once: after you stopped it and answered, when a new timer replaced it, or when the vault was closed.
+- The timer does not end by itself at the planned time. The bar is then full, the usual notification comes, and the clock counts on.
+- If you swipe it away from the Lock Screen, it comes back the next time PARAGON comes to the front while the timer runs.
+- A timer started with **Start Focus** from Siri or Shortcuts shows there at once too.
+- The first time, the iPhone itself asks on the Lock Screen "Allow Live Activities from PARAGON?" Press **Allow**. Later it asks 1 more time; press **Always Allow**. These are Apple's questions. "Live Activity" is Apple's name for this kind of display.
+- If Live Activities are turned off for PARAGON in the iPhone's Settings, nothing shows on the Lock Screen and PARAGON asks nothing. The bar in the app is unchanged.
 
 ### Stopping it
 
@@ -1386,6 +1405,7 @@ Type two square brackets in any note and a list of your notes appears under the 
 - **Recent** in the Mac's sidebar (under **Look back**) lists what you opened last (up to 40 notes), newest first, whatever kind it was. It is remembered between launches; **Clear** empties it.
 - **Calendar › Notes** lists every daily and weekly note you have written, newest first, with the first line of each and its own search field. Day, Week and Month are for finding a date; Notes is for finding what you wrote.
 - **Search Everywhere** (⇧⌘F) looks inside every note and task; see below.
+- **Outside PARAGON (since build 317)**: your notes are also in the search of the iPhone, the iPad and the Mac. The switch is in **Settings › System search**. See **System search**.
 
 ### Search Everywhere
 
@@ -1614,7 +1634,8 @@ Open **Templates** in the sidebar, pick a file and edit it. It saves itself a mo
 - On the iPhone, since build 312, it is the round **+** button at the bottom right, just above the tab bar, on **Today**, **Actions** and **Inbox**: a white plus on the leaf green of the **Inbox**, 54 points wide. Your thumb reaches it with one hand. It opens the **New** screen with **Inbox** already chosen. It hides while the keyboard is up, and it is only on the first page of each tab, never over an open note. Before, the **+** was a small circle at the top left; on those three tabs that one is gone. **Plan** keeps its own small **+**, and **Browse** has none.
 - On the iPhone the capture screen has one **Cancel**, at the top left, and one **Save**, at the top right, in the full leaf green (since build 312). **Save** is never grey: pressed with nothing written, the screen says "Write something first" at the top for 2.5 seconds. Before, there was a second **Cancel** and a wide **Save** at the foot. The Mac and the iPad are unchanged.
 - On the iPhone, Share › PARAGON sends text or a link.
-- **From other apps, with a Shortcut.** In the Shortcuts app, use the action **Open URL** with this link: `amspara://capture?text=Call%20the%20bank&target=inbox`. Put your own words after `text=`; a space is written `%20`. `target=inbox` sends the line to the Inbox. Since build 309 this link is only here, and no longer in Settings.
+- **With Siri or the Shortcuts app (since build 317).** Say "Add to PARAGON" to Siri, or use the action **Add to Inbox** in the **Shortcuts** app. It adds 1 task to the Inbox without opening PARAGON. See **Siri and Shortcuts**.
+- **From other apps, with a link.** This is the older way and it still works. In the Shortcuts app, use the action **Open URL** with this link: `amspara://capture?text=Call%20the%20bank&target=inbox`. Put your own words after `text=`; a space is written `%20`. `target=inbox` sends the line to the Inbox. Since build 309 this link is only here, and no longer in Settings.
 - **Settings › Quick capture** says it in plain words. On the iPhone: "Use Share › PARAGON from any app". On the Mac (since build 315): "⇧⌘N opens quick capture in PARAGON; the key above opens it from any app. A Shortcut can add to the Inbox too: see How it works."
 
 Captures land in the Inbox, today's note or a project, and are filed the next time the app is active.
@@ -1661,6 +1682,79 @@ Since build 316 you can write the date in English words, and PARAGON reads it. B
 - English words only. Not read: the **+** in **Start the day**, the share sheet, a capture by link, and a line typed directly into a note's text.
 
 The full list of words is in **Exact details (build 316)**.
+
+## Siri and Shortcuts
+
+Since build 317, on the iPhone, the iPad and the Mac. PARAGON has 6 actions. You set up nothing: they are in the **Shortcuts** app under PARAGON, in the system search, and Siri understands them. You can also put one on the Action Button, on the Home Screen, or into a longer shortcut of your own.
+
+Each phrase must have the name PARAGON in it. That is Apple's rule: the name is what Siri listens for.
+
+### The six actions and what to say
+
+- **Add to Inbox**: "Add to PARAGON". Also "Add to PARAGON Inbox", "Add to Inbox in PARAGON", "Add a task to PARAGON", "Capture in PARAGON". PARAGON does not open.
+- **What Is Due Today?** (its tile says **Due Today**): "What is due today in PARAGON". Also "What is due in PARAGON", "What is due today PARAGON", "PARAGON what is due today". PARAGON does not open.
+- **Open Today**: "Open Today in PARAGON". Also "Open PARAGON Today", "Show Today in PARAGON". PARAGON opens on **Today**.
+- **Start the Day**: "Start the day in PARAGON". Also "Start my day in PARAGON", "Start the day with PARAGON". PARAGON opens on **Start the day**.
+- **Close the Day**: "Close the day in PARAGON". Also "Close my day in PARAGON", "Close the day with PARAGON". PARAGON opens on **Close the day**.
+- **Start Focus**: "Start focus in PARAGON". Also "Start a focus in PARAGON", "Start the focus clock in PARAGON", "Focus with PARAGON". PARAGON does not open.
+
+**Settings › Siri and Shortcuts** (after **Quick capture**) lists the 6 actions with the first phrase of each. Under them is a button that opens the **Shortcuts** app: Apple's own **Shortcuts** button on the iPhone and the iPad, **Open Shortcuts** on the Mac.
+
+### Add to Inbox
+
+- Siri asks "What do you want to add?" when you gave no words. Your words become 1 task in the **Inbox**.
+- In the **Shortcuts** app the action has 2 fields: **Text** and **Day**. **Day** is a date without a time; you may leave it empty.
+- `>2026-11-14`, `>2026-11-14T14:00`, `!`, `!!`, `!!!` and `#tags` in the words work as in **Quick capture**. If the words already have a `>` date, that date wins over **Day**.
+- A date in plain words ("tomorrow") is not read here. Use **Day**, or the `>` date.
+- The answers are "Added to your Inbox.", or with a date "Added to your Inbox, for 2026-11-14.", or with a time "Added to your Inbox, for 2026-11-14 14:00."
+- When the Inbox cannot be reached now (no vault is open on this device, or the Inbox is still coming from iCloud), the words are kept, and PARAGON puts them into the Inbox the next time it sees your notes. The answer is then "Saved. It goes into your Inbox the next time PARAGON opens your notes."
+- If the words can neither be written nor kept, the action never says "Added". It says "PARAGON could not save this, so it was not added. Nothing was lost from your notes. Please try again."
+- The task counts in "caught today", like any capture.
+- The action runs inside PARAGON itself. The system starts PARAGON quietly in the background when it is not running. No second program writes your Inbox.
+
+### What Is Due Today?
+
+- It says 1 sentence and shows a short card. It uses the same tasks as **Due today** and **Overdue** on **Today**. Tasks in work notes are never in it.
+- "Nothing is due today." · "One thing is due today: Call the bank at 14:00." · "3 things are due today: A, B and C." · with more than 3: "7 things are due today: A, B, C, and 4 more."
+- A task with a time is read with "at 14:00". `#tags` are not read out.
+- Overdue tasks add "One more is overdue." or "2 more are overdue." With nothing due today it is "One thing is overdue." or "2 things are overdue."
+- If notes are still coming from iCloud, it adds, for example, "2 notes are still coming from iCloud, so this may not be everything."
+- The card shows **Due today** with the sun mark in the colour of **Today**, the date at the right, and up to 5 tasks. Each task has an empty round box, its words, the name of its note in small grey, and its time at the right. A grey line under them says, for example, "and 2 more · 1 overdue".
+- In a longer shortcut the action gives the list of task names to the next action.
+
+### Open Today, Start the Day, Close the Day
+
+- They open PARAGON on that screen. With no vault open they say "PARAGON has no notes folder open. Open PARAGON and choose your folder first."
+- If another screen is open in PARAGON at that moment, **Start the day** or **Close the day** waits until you close that screen. Nothing you typed is thrown away.
+- On the Mac the main window comes to the front. If it was closed, it opens.
+
+### Start Focus
+
+- In the **Shortcuts** app the action has 1 field, **Task**; you may leave it empty. The list it offers: tasks due today and overdue first, then the next action of each project. You can search for any open task by its words. Tasks in work notes are never offered.
+- With no task, PARAGON picks in this order: the block of today's plan that runs now; else the first task due today; else the next block of today's plan. With none of these it says "Nothing is planned or due today. Choose a task to focus on." and starts nothing.
+- It is the same clock as after **Focus on this**. A clock that runs on another task is stopped first, and its time is written under **Worked**.
+- The answers: "Focus started on Call the bank, 45 minutes planned." (the minutes only when the task or block has a time) · "The clock is already running on Call the bank." · "That task is no longer open in PARAGON." · "PARAGON is asking about the clock you stopped. Answer that first."
+- On the iPhone and the iPad the timer shows on the Lock Screen and in the Dynamic Island at once.
+
+## System search
+
+Since build 317, on the iPhone, the iPad and the Mac. The search of the device itself (Spotlight) finds your notes. Swipe down on the Home Screen, or press ⌘Space on the Mac, and type a few letters.
+
+- Each result shows the note's title, and under it the part and the first words of the note, for example "Project · Call the bank about travel money · Book the cabin".
+- Each result has a small coloured tile with the part's hand-drawn mark in white: green with a flag for a project, pink with 4 dots for an area, blue with books for a resource, gold with a target for a goal, a star for an aspiration, a calendar for a daily or weekly note, a tray for the Inbox, grey with a box for the Archive.
+- A press on a result opens that note in PARAGON. If the note no longer exists, PARAGON says "PARAGON could not find that note. It may have been moved or deleted."
+- Found: projects, areas, resources, goals, aspirations, daily notes, weekly notes, the Inbox and archived notes (they say "Archive"). A note is found by its title, its first words and its tags.
+- Never found: work notes, conflict copies, deleted notes, templates and snippets.
+- The list keeps itself current: 2 seconds after a change to your notes, only the changed notes are handed over, and notes that are gone are taken out.
+- While notes are still coming from iCloud, nothing is taken out of the search.
+- The list stays on this device. Each device builds its own. Building it never reads or writes a file in your vault.
+
+**Settings › System search** (after **Siri and Shortcuts**):
+
+- The switch **Show notes in system search**. It is on unless you turn it off. Off: every PARAGON note is taken out of the system search at once. On again: the list is built from nothing.
+- The row **Notes in it** shows the number, for example "1204". It says "Building…" during the first pass, "1204, updating…" during an update, "None" with the switch off, and "No vault open" with no vault.
+- The button **Build the list again** empties PARAGON's part of the system search and builds it anew.
+- The list is also built from nothing after every new version and when you open another vault. Closing the vault empties it.
 
 ## Backups
 
@@ -1820,6 +1914,99 @@ The precise rules and names behind round 9 of the premium review, for reference.
 - **Small things.** **New** sheet tiles: 5 points left and right of the word; the word shrinks to 65 % at most. Fold arrows: 16 points in **Projects**, 14 points in **Aspirations** and the **Goals** list.
 - **The build number.** `BuildStamp.number` is 316; **Settings › About** says 1.0 (316).
 
+## Exact details (build 317)
+
+The precise rules and names behind build 317, for reference. The words in `code letters` are names in the app's code, in its files and in its tests. You do not need them to use PARAGON.
+
+**Siri and Shortcuts**
+
+- **Where the code is.** `App/Paragon/Intents/`: `ParagonIntents.swift` (the 6 actions), `ParagonShortcuts.swift` (the phrases and tiles), `FocusTaskEntity.swift` (the task list of **Start Focus**), `ShortcutBridge.swift` (how an action reaches the app). What an action says is decided in `Core/Sources/ParagonCore/Vault/ShortcutAnswers.swift`.
+- **One model, one writer.** `AppModel.shared` is the one model for the windows and for the actions. An action runs inside the app; the system starts the app in the background when it is not running. Nothing in `App/Paragon/Intents/` opens a file.
+- **The actions.** `AddToInboxIntent` ("Add to Inbox"), `DueTodayIntent` ("What Is Due Today?", tile "Due Today"), `OpenTodayIntent` ("Open Today"), `StartTheDayIntent` ("Start the Day"), `CloseTheDayIntent` ("Close the Day"), `StartFocusIntent` ("Start Focus"). The 3 that open PARAGON have `openAppWhenRun` true; the other 3 have it false.
+- **The phrases.** 5 for Add to Inbox, 4 for What is due today, 3 each for Open Today, Start the day and Close the day, 4 for Start focus: 22 in all, as listed in **Siri and Shortcuts**. Each holds the app's name.
+- **The tiles.** `shortcutTileColor` is purple. Apple's symbols: `tray.and.arrow.down`, `checklist`, `sun.max`, `cup.and.saucer.fill`, `moon.fill`, `timer`.
+- **Add to Inbox: fields.** **Text** (needed; Siri asks "What do you want to add?") and **Day** (a date, may be empty).
+- **Add to Inbox: the line.** `ShortcutCapture.item(text:day:)`: line breaks become spaces, spaces are collapsed. Empty words: nothing is written and Siri asks again. **Day** adds `>YYYY-MM-DD` only when the words carry no date; a typed date wins. The target is always the Inbox, as a task (`- [ ] …`).
+- **Add to Inbox: the writing.** `AppModel.captureFromShortcut` calls `AppModel.capture`, the path of **Quick capture**: unsaved typing in the open note is written first, the line is added, the Inbox is saved. It counts in "caught today".
+- **Add to Inbox: kept for later.** With no vault open, or the Inbox still coming from iCloud, or a failed write, the words go into `capture-outbox.jsonl` in the App Group folder (the file the share extension uses) and are filed the next time PARAGON sees the vault.
+- **Add to Inbox: the answers.** `ShortcutCapture.answer(for:filed:)`: "Added to your Inbox." · "Added to your Inbox, for 2026-11-14." · "Added to your Inbox, for 2026-11-14 14:00." · kept: "Saved. It goes into your Inbox the next time PARAGON opens your notes." · kept with a date: "Saved, for 2026-11-14. It goes into your Inbox the next time PARAGON opens your notes."
+- **Add to Inbox: neither written nor kept.** When the line is not in the Inbox and not in the outbox, the action throws `ShortcutProblem.notSaved`: "PARAGON could not save this, so it was not added. Nothing was lost from your notes. Please try again." It never says "Added" then.
+- **What is due today: the tasks.** `DueTodayAnswer`: open tasks dated today (`due`) and the number dated before today (`overdueCount`), from `index.openTasks(dueOnOrBefore:)`, in the order of **Today**. Before answering, unsaved typing is written and the notes are read again (only changed notes), unless a sync is running.
+- **What is due today: the sentence.** `DueTodayAnswer.spoken`. At most 3 names are said (`spokenLimit`); the rest is "and N more". A time is said as "at 14:00". `#tags` are left out (`spokenTitle`). Overdue: "One more is overdue." / "N more are overdue."; with nothing due today "One thing is overdue." / "N things are overdue.". Notes still coming: "One note is still coming from iCloud, so this may not be everything." / "N notes are still coming from iCloud, so this may not be everything."
+- **What is due today: the card.** `DueTodaySnippet`: at most 5 tasks (`shownLimit`); the grey line is `footnote`, "and N more · N overdue". The action returns the task names as a list of text.
+- **Open Today, Start the Day, Close the Day.** With no vault: `ShortcutProblem.noVault`, "PARAGON has no notes folder open. Open PARAGON and choose your folder first." The day's screens go through `AppModel.openDayStep`: when another sheet, the stop question or the "what next" question is open, the screen waits (`openWhenFree`). On the Mac `showMainWindowForShortcut` brings the main window to the front.
+- **Start Focus: the list.** `AppModel.focusSuggestions`: tasks due today or earlier in Today's order, then each project's next action, at most 30. `focusMatches`: open tasks whose words hold the text, at most 30. Never a task in a work note.
+- **Start Focus: the pick.** `FocusPick.pick(plan:dueToday:)`: the block running now, else the first task due today, else the next block, else nothing ("Nothing is planned or due today. Choose a task to focus on.").
+- **Start Focus: the answers.** "Focus started on X, N minutes planned." (minutes only when planned) · "The clock is already running on X." · `taskGone`: "That task is no longer open in PARAGON." · `busy`: "PARAGON is asking about the clock you stopped. Answer that first." · when the app refuses to start a clock, its own words are said (`cannotFocus`).
+- **Start Focus and the Lock Screen.** On iOS `StartFocusIntent` is a `LiveActivityIntent`, so the timer shows on the Lock Screen at once, also when PARAGON is in the background.
+- **Settings.** `SiriShortcutsSection` in `App/Paragon/SystemSearch/SystemSearchViews.swift`, heading "Siri and Shortcuts", 6 rows, the button with the identifier `settings.shortcuts.open` (iPhone and iPad: Apple's `ShortcutsLink`; Mac: **Open Shortcuts**, which opens `shortcuts://`).
+
+**System search**
+
+- **Where the code is.** `Core/Sources/ParagonCore/Vault/SystemSearch.swift` (the rules), `App/Paragon/SystemSearch/SystemSearchIndexer.swift`, `SystemSearchThumbnails.swift`, `SystemSearchViews.swift`.
+- **What is in it.** `SystemSearchRule.entries(for:)`: every note of the vault, also archived ones. Left out: notes in the Work folder, conflict copies, deleted notes, templates, snippets.
+- **A result.** Title: the name the app shows. Part word: Project, Area, Resource, Goal, Aspiration, Daily note, Weekly note, Inbox, Archive. A goal with no end is an Aspiration. The line under the title is the part word, " · ", and the first words.
+- **The first words.** The note's lines without headings, empty lines, picture lines, code fences, rules and comments; without task boxes and hidden task marks (`^t…`); `[[Health]]` reads "Health", `[the bank](https://…)` reads "the bank"; `**`, `__`, `==` and backticks are dropped. Lines are joined with " · ". At most 300 characters (`snippetLimit`), cut at a whole word, with "…".
+- **Found by.** Title, part word, first words, and tags. The keywords are the tags, the part word and "PARAGON".
+- **The tiles.** One picture per part, the day colour, the same by day and by night.
+- **Kept current.** 2 seconds after the last change to the notes, the notes whose result would look different are handed over and the notes that are gone are taken out. A rename is "old one out, new one in".
+- **Built from nothing.** When the build number changes, another vault is opened, the switch is turned on, **Build the list again** is pressed, or the memory file is gone.
+- **Still coming from iCloud.** While any note is still coming, nothing is taken out.
+- **Switch off or vault closed.** PARAGON's part of the system search is emptied. A build that is running stops, and what it handed over in that moment is taken out again.
+- **The memory file.** `paragon-system-search.json` in the app's Caches folder: which build and vault the list was made for, and one short mark per note. Indexing uses the notes the app holds in memory; it reads and writes no file in the vault.
+- **Names.** Setting `showNotesInSystemSearch` (on when never set). Apple's group name `com.schabbauer.amspara.notes`. A result's identity is `note:` and the note's path in the vault. Results never expire.
+- **A result that is gone.** "PARAGON could not find that note. It may have been moved or deleted."
+- **Test runs.** The test vault is never put into the system search of the machine, unless `PARAGON_SYSTEM_SEARCH_TEST` is 1.
+- **Settings.** `SystemSearchSection`, heading "System search": the switch `settings.systemSearch.switch`, the row **Notes in it** `settings.systemSearch.count` ("None", "No vault open", "Building…", "Not built yet", "1204", "1204, updating…"), the button **Build the list again** `settings.systemSearch.rebuild`. The grey line on the Mac: "With this on, Spotlight (⌘Space) on this Mac finds your notes by title, first words and tags, and a press on a result opens the note in PARAGON. The list stays on this device. Work notes are never in it." On the iPhone and the iPad the place is "the search on this device (swipe down on the Home Screen)".
+
+**A tick on the widget**
+
+- **Where the code is.** `Core/Sources/ParagonCore/Vault/WidgetTicks.swift` (`WidgetTick`, `WidgetTickQueue`), `App/ParagonWidgets/WidgetTickIntent.swift` (`TickWidgetTaskIntent`, `ActionLine`), `App/Paragon/WidgetTickApply.swift` (`AppModel.applyWidgetTicks`). Tests: `WidgetTickTests`.
+- **The file.** `widget-ticks.jsonl` in the App Group folder (`group.com.schabbauer.amspara`; on the Mac `D24ENP83QQ.group.com.schabbauer.amspara`), beside `widget-snapshot.json`. One line per press, added at the end, never rewritten in place.
+- **A line.** `key` (the widget line: note path, `#`, line number), `notePath`, `taskID` (the task's `^t` id, may be missing), `title` (the task's words exactly as in the note), `due` (may be missing), `at` (the time), `ticked` (true; false means the tick was taken back).
+- **The last press counts.** A tick and then a take-back on the same line leave nothing waiting.
+- **When the app writes.** `applyWidgetTicks` runs at launch, when PARAGON comes to the front, and in the 10-second look while it is open. It first writes what is being typed.
+- **Finding the task.** By its `^t` id among the open tasks of that note. Else by exact words and date, when exactly 1 open task matches. A task with that id that is already done: dropped. 2 tasks that cannot be told apart: dropped.
+- **Writing the tick.** Through `AppModel.toggle`, the path of every tick in the app. If the note changed on disk at that moment, the app reads it again and tries 1 more time; if that fails too, the tick is dropped.
+- **Waiting.** The tick goes back into the file when its note is missing while notes are still coming from iCloud, or when the note is here as an older copy while iCloud holds a newer one (`notesBeingUpdated`).
+- **The message.** "Ticked on the widget: X" for 1, "N tasks ticked on the widget." for more. Only for ticks that are really in the note. Then the widget summary is written at once.
+- **The summary file.** Each item of `widget-snapshot.json` has 4 new fields that may be missing: `notePath`, `taskID`, `rawTitle`, `due`. A line without `notePath` (written by an older build) shows no tick circle.
+- **The widget.** Tick circles on the medium and large **Today's actions** only. A waiting tick is drawn ticked, grey and struck through, and is left out of the Lock Screen widget's number and lines.
+- **The Mac test copy.** It has no App Group, so the tick circle does nothing there.
+
+**The Lock Screen widget Due today**
+
+- **Where the code is.** `App/ParagonWidgets/LockScreenWidgets.swift`; the words are `LockGlance` in `WidgetTicks.swift`.
+- **Names.** Widget kind `ParagonLock`, name "Due today", description "How much is due today, and your next two actions." 3 shapes: round, wide, and the line above the clock. iPhone and iPad only.
+- **The words.** "N due today" · "N due today, M overdue" · "M overdue" · "Nothing due today". The round number is due today plus overdue; at zero a drawn tick.
+- **No file, or a file from another day.** "Open PARAGON"; the round shape shows the sun mark.
+- **The wide shape.** The first 2 lines of **Today's actions**; with none, "Nothing due, nothing waiting".
+- **A tap** opens **Today**.
+
+**Today's plan on the iPhone**
+
+- The iPhone's and iPad's widget list now holds: **Today's actions**, **What is waiting**, **One list**, **Today's plan**, **Due today** (Lock Screen), and the focus timer's Lock Screen display. The Mac's list is unchanged.
+- `AppModel.hasPlanWidget` is true on every device. The iPhone's `widget-snapshot.json` now holds `plan`, and `events` when Calendar access is given and events are shown. It never asks for Calendar access.
+- On a day with no blocks the iPhone says **Tap to plan the day**; the Mac says **Click to plan the day**.
+- Tinted and clear widgets: the block's name and the plan blocks are marked `widgetAccentable`.
+- The line **Today's plan** in **Settings › Widget** is still on the Mac only.
+
+**The focus timer on the Lock Screen and in the Dynamic Island**
+
+- **Where the code is.** `App/Shared/FocusActivityShared.swift` (in the app and in the widgets), `App/Paragon/FocusLiveActivity.swift`, `App/ParagonWidgets/FocusLiveActivityWidget.swift`, `Core/Sources/ParagonCore/Vault/FocusGlance.swift`.
+- **It never counts.** It holds dates (`FocusGlance`: `isPaused`, `awaitingAnswer`, `workedSeconds`, `countsFrom`, `plannedSeconds`) and the system draws the clock and the bar. The app sends an update only on pause, go on and stop. No push messages are used.
+- **The small words.** "of 45 min" · "of 45 min · paused" · "paused" · "stopped". Under a stopped clock: "Open PARAGON to save the time".
+- **No end of its own.** The clock counts on past the planned time. It ends only when the timer ends.
+- **One rule.** `FocusLiveActivity.sync` makes the Lock Screen display match `AppModel.focus`. It runs on every change of the timer, at launch, when PARAGON comes to the front, and when the stop question opens or closes. Every display that is not the timer now running is ended at once. So none is left behind and there are never 2.
+- **Starting.** A display can be started while PARAGON is in front, or by **Start Focus**. If it was swiped away, it comes back the next time PARAGON comes to the front while the timer runs.
+- **The buttons.** `PauseFocusIntent` ("Pause the focus timer"), `ResumeFocusIntent` ("Go on with the focus timer"), `StopFocusIntent` ("Stop the focus timer"; it opens PARAGON). They call `pauseFocus`, `resumeFocus`, `stopFocus` in the app. They are not shown in the **Shortcuts** app. They also work when the iPhone had closed PARAGON completely.
+- **Switched off.** With Live Activities off for PARAGON in the iPhone's Settings, nothing is shown and nothing is asked.
+- **Settings of the app.** `NSSupportsLiveActivities` is true in the app's Info.plist.
+- **Test runs.** Nothing is put on the Lock Screen under `-paragon-test-vault`, unless `-paragon-live-activity` is also given.
+- **The look.** White words on black at 62 %; the plan's orange for the dot, the bar and the main button; hand-drawn play and pause marks; the stop square is drawn in the same line.
+
+**The build number.** `BuildStamp.number` is 317; **Settings › About** says 1.0 (317).
+
 ## On the iPhone
 
 **Reading or writing.** A note opens ready to write in. The **pencil** button at the bottom of the note (in the toolbar on the Mac) turns writing on and off. When the pencil is lit and its frame is solid, you are writing. When it is grey with a thin solid frame, you are reading: the note is shown rendered — headings, bold, tappable links — and there is no cursor. If a note ever seems to refuse your typing, look at that button.
@@ -1877,7 +2064,7 @@ Since build 316 the toolbar over an open note has a **Find in note** button (a m
 
 ## Widgets
 
-Four widgets on the Mac and three on the iPhone (since build 316; before, three and two). **Today's plan** is for the Mac only.
+Four widgets on the Mac. On the iPhone and the iPad, four for the Home Screen and one for the Lock Screen (since build 317; before, three, and none for the Lock Screen). Since build 317 **Today's plan** is on the iPhone and the iPad too, and you can tick a task on **Today's actions**.
 
 **On the Mac**: click the date and time at the right of the menu bar to open Notification Centre, scroll to the bottom and click **Edit Widgets**. Search for **PARAGON** and drag one in. You can also right-click the desktop and choose **Edit Widgets**, which puts the widget on the desktop itself.
 
@@ -1887,11 +2074,25 @@ Four widgets on the Mac and three on the iPhone (since build 316; before, three 
 
 **Today's actions** is the same list the planner shows: everything due today or earlier, then your next actions. Each line shows the note it lives in and, under it, **what it serves** — the goal in gold, or the area in pink. It comes in three sizes; the small one shows three lines, the medium four, the large seven.
 
+**Ticking a task on Today's actions** (since build 317; iPhone, iPad and Mac). In the medium and the large size each line starts with a tick circle, in the colour of the task's kind of note.
+
+- Press the circle and the line is ticked at once: the circle is ticked, and the words turn grey with a line through them.
+- Press the rest of the line and its note opens, as before.
+- Press a ticked circle again and the tick is taken back. This works until PARAGON has written the tick.
+- The small size has no tick circle. The whole small widget opens **Today**.
+- **The widget does not write into your notes.** It leaves a short line in a small file that the widget and PARAGON share. PARAGON itself writes the tick into the note: when it starts, when it comes to the front, and every 10 seconds while it is open.
+- So on the Mac, with PARAGON open, the tick is in the note within about 10 seconds. On the iPhone, with PARAGON closed, the tick waits until you next open PARAGON. Until then the widget shows the task as ticked, but the note, Apple Reminders and your other device still have it open.
+- When the tick is written, the line leaves the widget, and PARAGON says "Ticked on the widget: Book the hotel", or "3 tasks ticked on the widget."
+- It is written the same way as a tick in the app: what you are typing is saved first, a repeating task gets its next copy, and Reminders follows at the next sync.
+- A tick only lands on the task you pressed. If that task is gone, already done, or cannot be told apart from another task with the same words and date, the tick is dropped and nothing else is ticked. The task then shows as open again on the widget.
+- If the note is still coming from iCloud, or iCloud holds a newer copy of it, the tick waits.
+- After an update from an older build, the tick circles show once you have opened PARAGON one time.
+
 **What is waiting** is four numbers: due today, overdue, waiting in the Inbox, and due for a look. A zero is grey and a number that wants you is in its own colour, so the one to read finds you first. The Inbox number is leaf green (since build 310; before, amber).
 
 **One list** (since build 316) is a small widget for one list. It shows the list's name and mark, one big number, and a few words, like "3 due today" or "Nothing overdue". A press opens that list. Choose the list with the widget's own **Edit Widget** (hold the widget on the iPhone, right-click it on the Mac): **Today**, **Overdue**, **Inbox** or **Review**. It starts as **Today**. You can place one for each list. A zero is grey, as on **What is waiting**; the words at zero are "Nothing due today", "Nothing overdue", "The Inbox is empty" and "Nothing for a look". **Today** and **Overdue** open **Today**, **Inbox** opens the **Inbox**, and **Review** opens the **Weekly review**. It comes in the small size only.
 
-**Today's plan** is the third widget, on the Mac only. It comes in three sizes. At the top it says **Today's plan**. Under that, in big orange letters, is the plan block you are in now, or else the next one, for example **Swim**. Under the name, a few words say when it is: **Now · 20 min left**, **Now · until 11:00**, **in 25 min** or **at 14:00**. Under that, in grey, comes the block after it, like **Then 11:00 Write the report**.
+**Today's plan** shows your plan for today. Since build 317 it is on the iPhone and the iPad as well as on the Mac (before, on the Mac only). It comes in three sizes. At the top it says **Today's plan**. Under that, in big orange letters, is the plan block you are in now, or else the next one, for example **Swim**. Under the name, a few words say when it is: **Now · 20 min left**, **Now · until 11:00**, **in 25 min** or **at 14:00**. Under that, in grey, comes the block after it, like **Then 11:00 Write the report**.
 
 - The big line is made from your plan blocks only. It names the same block as the **Now** and **Then** lines on **Today**. Your calendar events are never in it.
 - The medium widget has a small ruler of the next three hours on its right, and the large one has a ruler of six hours below the words. The small widget has the words only.
@@ -1899,12 +2100,24 @@ Four widgets on the Mac and three on the iPhone (since build 316; before, three 
 - The thin blue-grey line with a dot is the time right now.
 - The words and the line move by themselves, also when PARAGON is closed. The widget has a new picture ready for every minute of the next hour, and then for every quarter hour. macOS decides when it really draws them. If it is late, the line and **at 14:00** stay right, and **in 25 min** can be up to a quarter of an hour old.
 - A block that you also put into Apple Calendar shows in both lanes, as it does in **Plan**. The big line uses the block only, so it never shows it twice. Two events at the same time are drawn on top of each other in the small ruler.
-- On a day with no blocks it says **No blocks planned today** and **Click to plan the day**. After the last block it says **Nothing more planned today**.
+- On a day with no blocks it says **No blocks planned today** and **Click to plan the day** (on the iPhone and the iPad: **Tap to plan the day**). After the last block it says **Nothing more planned today**.
 - Click it and PARAGON opens on **Plan**, on today. If PARAGON already has its window open, the click uses that window and brings it to the front. It does not open a second window.
 - If you add, move or remove a block in **Plan**, or an event changes in Apple Calendar, the widget follows after a few seconds.
 - The Calendar lane needs **Show the day's events in Today and in daily notes** to be on in Settings, and Calendar access to be allowed. If not, the lane says **Calendar not shown**, on the medium widget inside the lane and on the large one above it. The widget never asks for Calendar access: that question belongs to PARAGON itself.
+- On an iPhone that shows its widgets tinted or clear, the block's name and the plan blocks take the tint and the calendar's outlines stay plain. So the 2 lanes can still be told apart.
 
-Clicking or tapping any of the three opens PARAGON, and since build 315 it opens the right place. A press on a line of **Today's actions** opens that action's note. A press on a number of **What is waiting** opens its list: *due today* and *overdue* open **Today**, *in the Inbox* opens the **Inbox**, *for a look* opens the **Weekly review**. Anywhere else on these two widgets opens **Today**. Overdue has no screen of its own: it lands on **Today**, and if the **Overdue** part is folded there, it stays folded. The small size can open only one place (Apple's rule): small **Today's actions** opens **Today**, and small **What is waiting** opens the first of its four lists that is not empty. **Today's plan** opens **Plan**, as before. Before build 315 a press only opened PARAGON, wherever it was.
+**Due today** (since build 317) is a widget for the Lock Screen of the iPhone and the iPad. It comes in 3 shapes.
+
+- Round: the number of open tasks due today or earlier, with the word "due" under it. At zero it shows a drawn tick.
+- Wide: 1 line in words, for example "3 due today", and under it your next 2 actions (the first 2 lines of **Today's actions**). With no actions it says "Nothing due, nothing waiting".
+- The line above the clock: words only, for example "3 due today".
+- The words are "3 due today", "3 due today, 1 overdue", "2 overdue" or "Nothing due today".
+- If PARAGON has written nothing for today yet, it says "Open PARAGON" and never shows yesterday's number. The round shape then shows the sun mark and no number.
+- A task you ticked on a widget is already left out of the number and the lines.
+- A tap opens PARAGON on **Today**.
+- To add it: hold the Lock Screen, press **Customise**, choose the Lock Screen, press the widget area, and pick PARAGON.
+
+Clicking or tapping a widget opens PARAGON, and since build 315 it opens the right place. A press on a line of **Today's actions** opens that action's note. A press on a number of **What is waiting** opens its list: *due today* and *overdue* open **Today**, *in the Inbox* opens the **Inbox**, *for a look* opens the **Weekly review**. Anywhere else on these two widgets opens **Today**. Overdue has no screen of its own: it lands on **Today**, and if the **Overdue** part is folded there, it stays folded. The small size can open only one place (Apple's rule): small **Today's actions** opens **Today**, and small **What is waiting** opens the first of its four lists that is not empty. **Today's plan** opens **Plan**, as before. Before build 315 a press only opened PARAGON, wherever it was.
 
 Each side is fed by the app on that machine: the Mac widget by PARAGON on the Mac, the iPhone widget by PARAGON on the iPhone. They can therefore show slightly different things for a moment, until both apps have seen the same notes through iCloud.
 
@@ -1912,7 +2125,7 @@ Each side is fed by the app on that machine: the Mac widget by PARAGON on the Ma
 
 The widget never opens your vault. It cannot: the vault is a folder you chose, and only the app itself is allowed to open it.
 
-Instead, **PARAGON writes a short summary for the widget a few seconds after a change that the widget would show**, and the widget reads only that. These changes reach it: you tick a task, you change a task's date, you add a task that is due today or is a next action, a line comes into the Inbox or leaves it, a sync finishes, or a file arrives from iCloud. On the Mac, two more changes reach it: you add, move or remove a plan block, or an event today changes in Apple Calendar. A change that the widget does not draw writes nothing. So:
+Instead, **PARAGON writes a short summary for the widget a few seconds after a change that the widget would show**, and the widget reads only that. These changes reach it: you tick a task, you change a task's date, you add a task that is due today or is a next action, a line comes into the Inbox or leaves it, a sync finishes, or a file arrives from iCloud. Two more changes reach it (since build 317 on the iPhone too, before on the Mac only): you add, move or remove a plan block, or an event today changes in Apple Calendar. A change that the widget does not draw writes nothing. So:
 
 - The widgets are right as of the last time the app noticed a change.
 - The few seconds are on purpose. While you type, PARAGON waits until you stop. When you leave PARAGON for another app or the Home Screen, or quit it, it writes at once. It writes only when the widget would show something different.
@@ -1921,7 +2134,7 @@ Instead, **PARAGON writes a short summary for the widget a few seconds after a c
 - If PARAGON has not seen today yet — it was not running at midnight and you have not opened it — the widget says **"Nothing since you last opened PARAGON"** rather than showing yesterday's list as though it were this morning's.
 - When there is genuinely nothing due and nothing waiting, it says that too. An empty widget and a widget with nothing to say are different things, and it never leaves you guessing which one you are looking at.
 
-Nothing is written back from the widget, and nothing about your notes leaves the machine it is on. That includes the plan: on the Mac, the titles of today's plan blocks and today's calendar events are kept in the same small file, which stays on this Mac, inside PARAGON's own shared folder. The iPhone has no widget that draws them, so PARAGON on the iPhone does not write them.
+The widget never writes into your notes, and nothing about your notes leaves the machine it is on. Since build 317 one thing is written by the widget: a tick on **Today's actions** leaves a short line in a second small file, `widget-ticks.jsonl`, in the same shared folder, and PARAGON itself then ticks the task in its note (see **Ticking a task on Today's actions** above). The plan is in the summary too: the titles of today's plan blocks and today's calendar events are kept in the same small file, which stays on this device, inside PARAGON's own shared folder. Since build 317 PARAGON on the iPhone writes them too, because the iPhone now has the **Today's plan** widget. The events are written only when PARAGON already has Calendar access and shows events.
 
 ### When the app asks for a vault folder
 
@@ -2000,7 +2213,7 @@ Both apps come from TestFlight. When a new build is sent, TestFlight tells you a
 Update: on the iPhone in the TestFlight app, on the Mac in TestFlight for Mac. The Mac app
 lives in your Applications folder like any other app.
 
-To see which version you have, look at **Settings › About**: **Version** says, for example, 1.0 (316). Since build 316 the technical lines are behind the row **Details** under it, closed at first: open it to see **Device id**, which you can copy, and one sentence about how the sync keeps its links. To read what a version changed, open **Settings › Help › What's new** (called "Version history" before build 315). Since build 316 a date in its headings is written like 2026-11-13. It lists every version, newest first.
+To see which version you have, look at **Settings › About**: **Version** says, for example, 1.0 (317). Since build 316 the technical lines are behind the row **Details** under it, closed at first: open it to see **Device id**, which you can copy, and one sentence about how the sync keeps its links. To read what a version changed, open **Settings › Help › What's new** (called "Version history" before build 315). Since build 316 a date in its headings is written like 2026-11-13. It lists every version, newest first.
 
 ## Keyboard shortcuts
 

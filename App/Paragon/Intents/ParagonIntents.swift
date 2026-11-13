@@ -40,7 +40,7 @@ struct AddToInboxIntent: AppIntent {
         guard let item = ShortcutCapture.item(text: text, day: chosenDay) else {
             throw $text.needsValueError("What do you want to add?")
         }
-        let filed = AppModel.shared.captureFromShortcut(item)
+        let filed = try AppModel.shared.captureFromShortcut(item)
         return .result(dialog: IntentDialog(stringLiteral: ShortcutCapture.answer(for: item, filed: filed)))
     }
 }
