@@ -71,6 +71,14 @@ The vault is one folder. Pick it once under Settings › Vault. Inside it the ap
 
 Since build 316, **Settings › Vault** shows the folder in plain words: its name and where it is, for example "PARAGON Vault · in iCloud Drive". The place is "in iCloud Drive", "in Dropbox", or "on this Mac" (on the iPhone "on this iPhone", on the iPad "on this iPad"). On the Mac the button **Show in Finder**, under **Choose folder…**, opens Finder with the vault folder chosen, and the full path shows when the pointer rests on the row. Before build 316 the row showed the raw path.
 
+Since build 319, **Settings › Vault** has more rows. Which ones you see depends on where your notes are.
+- On the iPhone and the iPad, **Show in Files** opens the Files app at the vault folder. It is there for every vault.
+- While your notes are in a folder you chose: **Move to PARAGON's own folder…**, with the grey line "PARAGON can keep the notes in a folder of its own in iCloud Drive and open it by itself on every device. Nothing happens until you say so." The row is shown only when PARAGON can reach its folder in iCloud Drive.
+- When another device has moved the notes: **Your notes have moved…** instead.
+- When the notes are in PARAGON's own folder: the row says "PARAGON · in iCloud Drive", with the line "PARAGON keeps your notes in its own folder, iCloud Drive › PARAGON, and opens it by itself on every device." While the old folder can still be reached, there is also a line such as "Your old folder “PARAGON Vault” is still there, as it was on 2026-11-14. PARAGON only reads it." and the button **Go back to the old folder…**.
+- **Choose folder…** and **Close vault** are as before.
+The chapter **PARAGON's own iCloud folder**, below, explains all of this.
+
 - `Inbox.md`
 - `Goals/`, `Projects/`, `Areas/`, `Resources/`, `Archive/`
 - `Calendar/` for daily notes (`20260906.md`) and weekly notes (`2026-W36.md`)
@@ -82,6 +90,79 @@ You can open the same folder in NotePlan, Obsidian or any text editor. If the fo
 **Choosing a folder looks first (since build 308).** When you choose a folder, PARAGON looks inside before it writes anything and a sheet tells you what it found. While it looks it says "Looking at this folder…" and "Nothing is written." A folder that is already a vault says "This folder has 1,412 notes." and "It is a PARAGON vault.", with the button **Open it**. Any other folder says "This folder is not a PARAGON vault.", "It has 12 notes of its own. They stay as they are." (when it has notes) and "Setting it up adds the PARAGON folders, an Inbox note and templates.", with the button **Set it up here**. While iCloud is still listing the folder it says "iCloud is still listing this folder." and "PARAGON is waiting and has written nothing. This can take a minute."; it never calls a folder empty that is only still arriving, and a caution line appears when an iCloud folder may not be fully listed yet. A folder that cannot be read says "PARAGON cannot read this folder." and "Nothing was written. Choose another folder." **Cancel** (Escape on the Mac) leaves everything as it was. Starting the app and **Open … again** open your folder directly, without the sheet.
 
 **Very long titles (since build 308).** A note with a very long title gets a shortened file name in the folder (at most 180 bytes). The full title is kept in the note's `title:` line and shown everywhere in PARAGON, and links find the note by that title. If two shortened names would be the same, the later ones get " 2", " 3".
+
+## PARAGON's own iCloud folder
+
+Since build 319. PARAGON has a folder of its own in iCloud Drive. Files and Finder show it as **PARAGON**, and PARAGON writes it as "iCloud Drive › PARAGON". A device that uses this folder opens it by itself at every start. There is no folder to choose and no folder to lose.
+
+**Nothing moves by itself.** Your notes stay in the folder you chose until you press **Move my notes**. You move them 1 time, on 1 device. The other devices follow.
+
+**The old folder is always kept.** A move is a copy. PARAGON never deletes the old folder and never deletes a note in it. You delete it yourself, when you are sure.
+
+**First, on every device.** Open PARAGON 319 or newer 1 time on your iPhone, your iPad and your Mac. Each device then writes 1 small file into the notes folder that says "I have build 319". PARAGON does not move the notes while a device is not ready.
+
+**The offer.** Open **Settings › Vault** and press **Move to PARAGON's own folder…**. The page **Move your notes to PARAGON's own folder** opens. Opening it moves nothing. It says:
+- what happens: a backup copy is made and checked, then your notes, pictures and settings are copied, and every file is compared with its original; only then does PARAGON switch;
+- that your old folder stays as it is, with 1 small text file added that says where the notes went;
+- that Reminders sync rests during the move and goes on afterwards;
+- which devices use your notes, 1 line each, for example "Martin's Mac: PARAGON 319, this device" and "iPhone: PARAGON 319, seen 2026-11-14".
+
+The buttons are **Cancel** and **Move my notes**. On the Mac, Escape is **Cancel**.
+
+**When the main button is Check again.** PARAGON refuses the move in these 3 cases, and the button **Move my notes** is replaced by **Check again**:
+- A device has not opened build 319 yet. The list shows "Another device: has not opened PARAGON 319 or newer yet, last synced 2026-11-10". Open PARAGON on that device, then press **Check again**.
+- Another device started a move less than 1 day ago and has not finished it. The page names the device. Finish the move there, or wait 1 day.
+- PARAGON cannot reach iCloud Drive on this device. Check that you are signed in to iCloud and that iCloud Drive is on for PARAGON.
+
+**The move, in this order.** The page is called **Moving your notes** and shows each step with a count.
+1. Reminders sync rests, and the text you are writing is saved.
+2. "Reading your notes: 212 files…": every file is read, and fetched from iCloud when needed.
+3. A backup copy is made outside the notes folder, in the place of your second copy, and checked file by file.
+4. PARAGON checks that the device has room, and marks the new folder as "being filled".
+5. "Copying 87 of 412 files…": every file is copied, the hidden folder `.ams-para` too.
+6. "Checking every file: 300 of 824…": both folders are listed again and compared. Each file is counted 2 times, 1 time in each folder.
+7. "Sending to iCloud: 87 of 412 files…": PARAGON waits until iCloud has taken every file, 20 minutes at most.
+8. Both folders are compared 1 more time, so that what you changed during the wait is in the copy too.
+9. "Finishing…": the new folder is marked "complete", the text file **PARAGON has moved these notes.txt** is added to the old folder, PARAGON opens the new folder, and Reminders sync goes on.
+
+**Stop** works until "Finishing…". If you stop, nothing has changed.
+
+**The end.** The page **Your notes are in PARAGON's own folder** says how many notes and files were copied and checked, for example "125 notes, 412 files in all (14 MB): every one copied and checked." Press **Done**.
+
+**When a move is stopped halfway.** You pressed **Stop**, PARAGON was closed, the connection was lost, or a check failed. Then your notes are where they were: PARAGON goes on using the old folder, and Reminders sync goes on. The files copied so far stay in iCloud Drive › PARAGON with the mark "being filled". No device opens a folder with that mark as your notes. The next try from the same device goes on where it stopped. Another device may take the move over after 1 day.
+
+**On your other devices.** A device that still uses the old folder shows a bar at the top of the window:
+- "Your notes have moved. Waiting for iCloud: 87 of 125 files." with **More…**, while iCloud still brings the files. You can go on working.
+- "Your notes have moved to iCloud Drive › PARAGON." with **Open…**, when everything is there.
+
+The page **Your notes have moved** says which device moved them and on which day. Press **Open the new folder**. What you changed on this device since the move comes along first. Then PARAGON switches and says **Your notes are open in their new place**. **Not now** closes the page; the bar stays.
+
+**Reminders sync rests there until the device has followed.** From the moment a device sees that the notes have moved, it does not sync the old folder with Reminders. **Sync now** then says "Reminders sync rests: your notes have moved to another folder." After **Open the new folder** the sync goes on by itself.
+
+**Changes in the old folder after the move.** A device with an older PARAGON, or a device that has not followed yet, still writes into the old folder. Every device that has moved or followed looks at the old folder when it opens your notes, and then 1 time an hour at most. When files of yours changed there, a bar says "3 files were changed in the old folder after the move." with **Look…**. The page lists them, with **Not now** and **Bring them over**. The rules of **Bring them over**:
+- a new file is copied;
+- a note changed only in the old folder, after the move, replaces the one in the new folder; the replaced text is kept in a set-aside folder first;
+- a note changed in both folders is kept 2 times; the old folder's version gets "(conflict 2026-11-14 1412)" in its name;
+- an older copy never replaces a newer note; both are kept;
+- nothing is deleted. A file deleted in the old folder stays in the new one.
+
+The old folder is only read.
+
+**Going back.** On a device that uses PARAGON's folder, and while the old folder can be reached, **Settings › Vault** has **Go back to the old folder…**. The page **Go back to the old folder** has **Cancel** and **Go back**. It is the same move in the other direction: changes waiting in the old folder are brought over first, a backup copy is made and checked, everything is copied to the old folder, and every file is compared. A file in the old folder that is replaced, or that is no longer among your notes, is set aside in `.ams-para/Set aside by a move/`. It is not deleted. Your other devices follow by themselves, and iCloud Drive › PARAGON stays as it is.
+
+**A new device, or a device that lost its folder.** Before the welcome screen, PARAGON looks into its own folder:
+- Complete notes are there: **I found your notes here — use them?** with, for example, "iCloud Drive › PARAGON: 125 notes, last changed 2026-11-13." Press **Use them**. **Choose a different folder…** is there too.
+- The notes are still arriving: "Your notes are in iCloud Drive › PARAGON and are still arriving on this iPhone: 87 of 412 files are here."
+- A move did not finish: PARAGON says so, and by which device. Finish it on that device.
+- Nothing is there: the welcome screen with **Choose a vault folder…**, as before.
+
+**Seeing the folder.** **Settings › Vault › Show in Files** on the iPhone and the iPad, **Show in Finder** on the Mac.
+
+**Obsidian and other apps.** They may open and read iCloud Drive › PARAGON. Please do not let another app write into the old or the new folder during a move.
+
+**What build 319 does even if you never move.** Each device writes 1 small file into the notes folder, in `.ams-para/devices/`. And PARAGON looks for the marks of a move before every Reminders sync and every 30 seconds; this look only reads. A folder **PARAGON** may appear in iCloud Drive; it is empty until a move.
+
+The exact rules, numbers and messages are in **Exact details (build 319)**.
 
 ## Notes
 
@@ -592,6 +673,8 @@ The sync goes both ways. Click the sync ring at the foot of the sidebar and choo
 
 **In the Mac menu bar.** Since build 303 a second PARAGON item sits beside the quick-capture one: the same clock ring as at the foot of the sidebar (green under an hour, yellow after that or while waiting for iCloud, full red after conflicts, grey and empty before any sync), with the short word beside it ("10:55", "Yesterday", "Syncing…"). Click it for a menu: the sync line (such as "Synced at 10:55", "Synced yesterday at 21:40" or, for an earlier day, "Synced 2026-11-09 at 21:40"), **Sync now**, **Show me what would change…**, **Last sync report…**, **Sync settings…** and **Show PARAGON**. Since build 304 it also shows the number of tasks due today right beside the ring, for example "3 · 11:20"; nothing is shown when no task is due, and over 99 it says "99+". The ring is drawn once per minute (in build 303 it redrew without pause and the Mac app would not open). To hide it, switch off **Show the sync ring in the menu bar** in Settings › Reminders sync (on by default).
 - Subtasks become separate reminders named "Parent › Child". Tasks with a time get an alarm.
+
+**When the notes have moved (since build 319).** Before every sync PARAGON looks for the marks of a move in the vault folder. When the notes have left this folder, or are being moved into it, no sync runs from it, and **Sync now** says "Reminders sync rests: your notes have moved to another folder." A mark that is still coming from iCloud rests the sync too, until it can be read. The sync also rests while a move runs on this device. See **PARAGON's own iCloud folder**.
 
 Each device keeps its own sync bookkeeping, so the Mac and the iPhone can both sync the same vault. Since build 307 the device keeps its identity in a second safe place. If its bookkeeping is missing, the first sync takes over the ticks and edits from Reminders and does not undo them. If the bookkeeping file is there but cannot be read, the sync stops with a message and you try again in a moment; it never starts from zero. Since build 308 the sync also has its own access to the vault folder, separate from the screen's, so a sync in the background and your typing cannot trip over each other.
 
@@ -1854,6 +1937,8 @@ Copies made by **Back up now** and before a restore count as daily or weekly, by
 
 **One vault, one identity (since build 316).** If the iPhone and the Mac each gave the vault an identity before iCloud had brought the first one across, both now keep the older one. The other one stays known as an older name of the same vault, so copies marked with it are still offered for a restore.
 
+**Backups and a move (since build 319).** Before PARAGON moves your notes to its own folder, or back, it makes an outside copy in the place of the second copy and checks it: every file in the copy must be the same as in the vault, nothing may be left out, and the number of notes must be the same. If the check fails, nothing is moved. The copy is listed under **Restore from the outside copy…** like the others. The files a move writes for itself (`.ams-para/move/`, **PARAGON has moved these notes.txt**, and `.ams-para/Set aside by a move/`) are not part of any backup, inside or outside the vault, and a restore never writes them. The backups inside the vault and the deleted notes move with the vault. The outside copies stay in the same folder as before, because the vault keeps its identity.
+
 Time Machine is a good third net on the Mac.
 
 ## Exact safety rules (build 307)
@@ -2169,6 +2254,140 @@ The precise rules and names behind build 318, for reference. The words in `code 
 **Tests.** `SharedFilesTests` (5), `GoalNumberTests` (7), `MotionRulesTests` (2), and `testATickedTaskIsKnownFromAStaleCopy` in `NoteTests.swift`.
 
 **The build number.** `BuildStamp.number` is 318; **Settings › About** says 1.0 (318).
+
+## Exact details (build 319)
+
+The precise rules and names behind build 319, **PARAGON's own iCloud folder**, for reference. The words in `code letters` are names in the app's code, in its files and in its tests. You do not need them to use PARAGON.
+
+**The place**
+
+- **Where the code is.** `Core/Sources/ParagonCore/Vault/VaultMove.swift` (the rules of a move), `Core/Sources/ParagonCore/Vault/VaultDevices.swift` (the list of devices), `App/Paragon/OwnFolder.swift` (finding the folder, switching), `App/Paragon/Views/OwnFolderViews.swift` (the pages, the bar, the rows in Settings).
+- **The folder.** The iCloud container `iCloud.com.schabbauer.AMSPara` (`VaultMove.containerID`). The vault is its `Documents` folder. Files and Finder show it as **PARAGON** in iCloud Drive; PARAGON writes "iCloud Drive › PARAGON" (`VaultMove.ownFolderWords`). It is always looked for off the main thread.
+- **Reachable.** PARAGON's folder counts as reachable when the device is signed in to iCloud and iCloud gives the app its container. While it is not, **Settings › Vault** does not show **Move to PARAGON's own folder…**.
+- **Kept on each device** (not in the vault): `vaultInOwnFolder` (this device opens PARAGON's folder), `lastVaultInOwnFolder`, `previousVaultBookmark` and `previousVaultName` (the folder before the move), `oldFolderChangesSeen` (the list you answered **Not now** to).
+- **First build.** `VaultMove.firstBuild` is 319.
+
+**The files a move writes**
+
+- In the folder the notes go to: `.ams-para/move/arriving.json` (the mark "being filled"), `.ams-para/move/complete.json` (the mark "complete"), `.ams-para/move/manifest.json` (the list of every file with its size and fingerprint), and later `.ams-para/move/seen-<device id>.json` (what that device last saw in the old folder).
+- In the folder the notes leave: `PARAGON has moved these notes.txt`, at the top of the folder (the mark "moved"). It holds 4 plain sentences and then the same data as the other marks. Its text: "PARAGON moved these notes to PARAGON's own folder (iCloud Drive › PARAGON) on 2026-11-14 by Martin's Mac." "This folder is the old copy. PARAGON does not use it any more and has not changed it." "Keep it until you are sure that everything is in the new place." "Please leave this file here: it tells PARAGON on your other devices where the notes went."
+- Set aside: `.ams-para/Set aside by a move/<yyyy-MM-dd HHmmss>/<path>`. A name that is taken there gets " 2", " 3".
+- In every vault, from the first start of build 319: `.ams-para/devices/<device id>.json` with `deviceID`, `name`, `build`, `kind` ("iPhone", "iPad" or "Mac") and `seenAt`. Written when it is not there, when the build, the name or the kind changed, or when the last one is 1 day old. A file still in iCloud is not written over.
+- **What each mark holds** (`MoveStamp`): `format` 1, `moveID`, `generation` (the move number: 1 for the first move, 2 for a move back, and so on), `vaultID`, `at`, `deviceName`, `deviceID`, `toOwnFolder`, `placeName`, `build`. The mark "complete" also holds `fileCount`, `byteCount`, `noteCount` and `manifestDigest` (one fingerprint over path, size and fingerprint of every file). Fingerprints are SHA-256.
+
+**What a folder is** (`VaultMove.standing`)
+
+- The mark with the highest move number decides.
+- `plain`: no mark. `vault`: the mark "complete" is highest. `halfMade`: a mark "being filled" with a higher number than any mark "complete" beside it. `movedAway`: a mark "moved" with a higher number than the mark "complete". `unclear`: a mark is there but its content is still in iCloud; nothing is decided.
+- Equal numbers: "complete" wins over "moved".
+- `openVault` refuses a `halfMade` folder, whoever asks: "A move into this folder was started on 2026-11-14 by Martin's Mac and has not finished. The notes are still in their old folder."
+- A folder chosen by hand with **Choose folder…** that is PARAGON's own is treated as PARAGON's own.
+
+**The devices** (`VaultDevices`)
+
+- The list holds every device with a file in `.ams-para/devices/`, and every device known only by its Reminders sync file that synced in the last 60 days (`recentDays`). A device of the second kind is shown as "Another device: has not opened PARAGON 319 or newer yet, last synced 2026-11-10" and is not ready.
+- A ready device is shown as "name: PARAGON 319, this device" or "name: PARAGON 319, seen 2026-11-14". On the Mac the name is the Mac's own name; on the iPhone and the iPad it is "iPhone" or "iPad".
+- Not ready first, then by name. `VaultDevices.allReady` must hold for **Move my notes** to be offered, and it is asked again when the move starts (`startMove`). There is no way round it.
+
+**The order of a move** (`AppModel.startMove`, then `VaultMove.run`)
+
+1. A sync is running: "A sync is running. Try again when it has finished." Otherwise the text in the editor is written and the sync is held.
+2. Moving to PARAGON's folder: the devices are checked again.
+3. Going back: the changes waiting in the old folder are brought over first; a failure there stops it.
+4. Every file is read, which brings it down from iCloud. A file still in iCloud is waited for, 20 seconds each. A file of which the device holds an older copy than iCloud is asked for and looked at every 0.25 seconds; if the newer one does not come in time, the file counts as not here. If a file does not come, the move stops and names it.
+5. Versions of notes that iCloud had set aside are saved as "(conflict …)" copies, by the existing rule.
+6. An outside copy with the reason "before move" is made in the place of the second copy and checked (`checkNewestOutsideCopy`): every file in it has the same bytes as the vault's, nothing was left out, the number of notes is equal. Otherwise "The backup copy could not be confirmed, so nothing was moved." followed by the reason.
+7. The place the notes go to (`checkDestination`): it must be empty, or carry marks of this same vault. A complete vault of this vault there: refused, "Your notes are already in that place: …". A mark "being filled" by another device that is less than 1 day old (86 400 seconds): refused, "… is moving your notes too. …". Files that PARAGON did not put there: refused. A mark not readable yet: "iCloud has not finished listing the new place. Try again in a minute."
+8. Room on the device: the bytes to copy and 20 MB more.
+9. `arriving.json` is written. PARAGON waits until iCloud has it, 2 minutes at most, then checks that the mark is still its own (`checkOnlyOurMove`).
+10. Copy. Each file is read 1 time; the bytes whose fingerprint is taken are the bytes that are written. The write goes through iCloud's file coordination, and the file keeps its dates.
+11. Check: both folders are listed again and compared by number of files, size and fingerprint. Files that changed are copied again, 3 rounds at most; then "The copy could not be checked because these files kept changing: …".
+12. Wait for iCloud: every file must be taken. Looked at every 2 seconds, 20 minutes at most (`uploadPatience`). iCloud full: "iCloud is full, so the copy could not be sent to your other devices. …". Too slow: "iCloud has not taken 12 files yet (no connection, or iCloud is busy). …".
+13. Both folders are listed 1 more time. Differences are copied and sent too, 3 passes at most.
+14. `checkOnlyOurMove` again. From here the move is not stopped any more ("Finishing…").
+15. `manifest.json` and `complete.json` are written. An old mark "moved" in that folder is removed.
+16. The text file is written into the folder the notes left. If it cannot be written, the move still counts; the next device that follows writes it.
+17. The app opens the new folder, remembers the old one as "previous", and the sync goes on.
+
+- **What is copied.** Every ordinary file under the vault folder, hidden ones too: notes, pictures, PDFs, sketches, templates, settings (`config.json`), the vault's identity, the Reminders memory of every device (`sync-state-<device>.json`), the backups inside the vault and the deleted notes. Left out: the move's own files, `.DS_Store`, files whose name starts with `._`, and Finder's `Icon` file.
+- **What stops a move.** A link or another thing that is not an ordinary file: "The folder holds something PARAGON cannot copy safely: … Nothing was moved." The new place inside the old one, or the other way round.
+- **Stop.** The button is on the pages **Moving your notes** and **Going back to the old folder** until the step "Finishing…". After a stop or a failure the folder the notes are in is not changed and not marked; the other folder is `halfMade`. The next try by the same device, in the same direction, goes on under the same move number and `moveID`; files that are there and equal are not copied again. The copied files are not removed by themselves.
+- **Only 1 device.** `checkOnlyOurMove` fails when `.ams-para/move` holds a second file whose name starts with "arriving", when `arriving.json` cannot be read or carries another `moveID`, or when `complete.json` carries another `moveID` with the same or a higher move number.
+- **Progress words** (`MoveProgress.words`): "Reading your notes…", "Reading your notes: 212 files…", "Copying 87 of 412 files…", "Checking every file: 300 of 824…", "Sending to iCloud: 87 of 412 files…", "Finishing…". Before the first one: "Getting ready…".
+
+**Following a move on another device**
+
+- A device knows that its notes have moved when its own folder carries the mark "moved", or when PARAGON's folder holds a complete vault with one of this vault's ids and a higher move number than its own folder shows.
+- The device opens the new place only when the mark "complete" can be read, `manifest.json` has the fingerprint the mark names, and every listed file outside `.ams-para/Backups` and `.ams-para/Deleted` is there and downloaded (`PlaceLook.isComplete`).
+- **Listed files that are not there.** **Open the new folder** is offered all the same when nothing is still arriving, at most a tenth of the listed files are not there (`mayOpenDespiteMissing`: missing × 10 ≤ expected), and 4 looks 30 seconds apart agree. The page names up to 8 of them. On the welcome screen: 12 looks 5 seconds apart, and only with `config.json` listed; the caution then reads "2 files from the list made at the move are not here. They may have been deleted or renamed since."
+- **Open the new folder** (`followMove`): the new place is looked at again; `bringOver` from the folder the device leaves; the mark "moved" is written there if it is missing; the app switches. Not complete yet: the page **Not yet** with "The notes are not complete in the new place on this device yet. Nothing has changed."
+- The new place cannot be reached: "PARAGON cannot reach iCloud Drive on this iPhone. Check that iCloud Drive is on for PARAGON." After a move back, on a device that does not know the old folder: "PARAGON cannot find that folder on this iPhone. Choose it in Settings › Vault › Choose folder…".
+- **A move back that never finished.** A device in the old folder shows the bar "… is moving your notes back into this folder. Reminders sync rests until that is done.", with no button. If PARAGON's folder still holds the complete vault, the bar is "Your notes have moved to iCloud Drive › PARAGON." with **Open…** instead.
+
+**Reminders sync**
+
+- `syncNow` looks at the marks first (`refreshOwnFolder`), every time. Standing `movedAway`, `halfMade` or `unclear`, or a complete vault of this vault in PARAGON's folder with a higher move number: the sync rests, with "Reminders sync rests: your notes have moved to another folder." on a sync you asked for.
+- The same look runs every 30 seconds while a vault is open.
+- During a move, a move back, **Open the new folder** and **Bring them over**, the sync is held as during a sync.
+
+**Bring over** (`VaultMove.bringOver`)
+
+- Compared with `seen-<device id>.json`, or the first time with `manifest.json`.
+- The old folder's file equals the list: nothing. Not in the new folder: copied. In the new folder with the same bytes: nothing.
+- The new folder's file equals the list, and the old folder's file is under `.ams-para/` or its date is later than the date of the mark "complete": the new one is first copied to `.ams-para/Set aside by a move/<yyyy-MM-dd HHmmss>/<path>`, then replaced.
+- Anything else for a file of yours: a conflict copy "<name> (conflict yyyy-MM-dd HHmm).md" beside the note; " 2", " 3" when the name is taken; never 2 copies with the same bytes. For PARAGON's own files under `.ams-para/`, the new folder's stays.
+- Deleted in the old folder: reported only.
+- `.ams-para/Backups` of the old folder is not looked at. The old folder is only read.
+- What the device saw is remembered only when no file failed; a file that failed is offered again.
+- The result lines: "2 files new in the old folder: copied.", "1 file changed in the old folder: brought over.", "1 file changed in both places: both versions kept, the old folder's with “(conflict …)” in its name.", "1 file deleted in the old folder: still here, nothing was deleted.", "2 files could not be brought over and are still in the old folder: …".
+
+**Looking at the old folder**
+
+- Only devices in PARAGON's folder that still know the old one. When the vault opens, and then 1 time an hour at most (3600 seconds). It never waits for iCloud: a file that is not down yet is asked for, and the look is tried again at the next 30-second look.
+- Only your own files, outside `.ams-para`, raise the bar. The page lists 12 at most, then "and N more".
+- **Not now** stores the list; the bar comes back when the list is a different one.
+
+**Go back**
+
+- Shown while the device is in PARAGON's folder, knows the old folder, and can reach it.
+- `bringOver` from the old folder first; then the same move with `toOwnFolder` false and the next move number.
+- In the old folder: equal files stay; files that differ and files that are no longer in the vault are moved to `Set aside by a move`. Its mark "moved" is removed when the mark "complete" is written.
+- Afterwards the device forgets the "previous" folder.
+
+**Start, and the welcome screen**
+
+- `vaultInOwnFolder` is set: the folder is looked for off the main thread, with "Opening your notes…". It is opened only when its standing is `vault` or `movedAway` and `config.json` is listed. Otherwise: "Your notes are in iCloud Drive › PARAGON, and iCloud has not brought them to this iPhone yet. PARAGON is waiting and opens them when they are here." PARAGON then looks every 5 seconds.
+- iCloud cannot be reached: "PARAGON cannot reach its folder in iCloud Drive on this iPhone. Check that you are signed in to iCloud and that iCloud Drive is on for PARAGON."
+- No folder known: PARAGON looks into its own folder every 5 seconds, writing nothing, and shows what is there: **I found your notes here — use them?** with **Use them** and **Choose a different folder…**; or the line that the notes are still arriving; or "A move into iCloud Drive › PARAGON was started on 2026-11-14 by Martin's Mac and has not finished. Finish it on that device; the notes are still in their old folder."
+- No vault is ever set up afresh in PARAGON's folder at a start.
+- **Siri and Shortcuts.** `AppModel.vaultOnceOpen()` waits while the folder is being opened, 40 times 250 milliseconds at most (10 seconds), before an action answers that there is no vault.
+
+**Backups**
+
+- `Vault.backedUpPaths` and `Vault.restore` skip every path for which `VaultMove.isMoveOwn` holds.
+
+**Page titles**
+
+- **Move your notes to PARAGON's own folder**, **Moving your notes**, **Your notes are in PARAGON's own folder**, **Your notes were not moved**, **Nothing was moved**, **The copy is complete, but PARAGON could not switch yet**.
+- **Your notes have moved**, **Opening your notes in their new place**, **Your notes are open in their new place**, **Not yet**.
+- "3 files were changed in the old folder after the move" (the title of the page behind **Look…**), **Bringing the changes over**, **The changes are here**, **Nothing was brought over**.
+- **Go back to the old folder**, **Going back to the old folder**, **PARAGON is back in the old folder**, **PARAGON did not go back**.
+- Buttons: **Cancel**, **Move my notes**, **Check again**, **Stop**, **OK**, **Done**, **Not now**, **Open the new folder**, **Bring them over**, **Go back**; on the bar **More…**, **Open…**, **Look…**. On the Mac, Escape is the left button and Return is the coloured one.
+
+**Identifiers**
+
+- The page: `ownFolder.page`, `ownFolder.title`, `ownFolder.cancel`, `ownFolder.confirm`.
+- The bar: `ownFolder.banner`, `ownFolder.banner.button`.
+- **Settings › Vault**: `settings.vault.move`, `settings.vault.moved`, `settings.vault.show`, `settings.vault.goBack`.
+- The welcome screen: `ownFolder.found`, `ownFolder.found.use`.
+
+**For trying without iCloud** (debug builds only, never in TestFlight): `-paragon-own-folder <path>` uses an ordinary folder as PARAGON's own; `-paragon-own-step offer`, `move` or `back` opens that step by itself.
+
+**Not changed.** The share extension and the widgets do not open the vault and know nothing of a move. The debug Mac app has no iCloud right, so it never offers the move unless `-paragon-own-folder` is given.
+
+**Tests.** `VaultMoveTests` (16): a move copies and checks every file and leaves the old folder as it was; a stopped move is never a vault and can be run again; a note changed during the copy; iCloud full, no room, a folder with other files; a second device opens only a complete folder; changes in the old folder; going back sets aside and never deletes; devices not on this build hold the offer back; the backup check; never into a vault in use; 2 devices at the same time; a note changed during the wait for iCloud; odd names, empty files and links; an older copy never replaces a newer note; many listed files not there means still arriving; backups and restore leave the marks alone.
+
+**The build number.** `BuildStamp.number` is 319; **Settings › About** says 1.0 (319).
 
 ## On the iPhone
 
