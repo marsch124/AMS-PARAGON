@@ -8,8 +8,12 @@ public struct VaultBackup: Identifiable, Equatable, Sendable {
     public var noteCount: Int
     /// What triggered it: "sync", "daily", "rename", "before restore" or "manual".
     public var reason: String
+    /// Outside copies only (build 316): the vault's own sub-folder of "PARAGON Backups" the
+    /// copy is in. Nil for a copy inside the vault, and for an outside copy in the old place,
+    /// straight in "PARAGON Backups", where every copy went up to build 315.
+    public var subfolder: String? = nil
 
-    public var id: String { folderName }
+    public var id: String { subfolder.map { "\($0)/\(folderName)" } ?? folderName }
 
     public static let folderFormat = "yyyy-MM-dd HHmm"
 
@@ -83,12 +87,15 @@ public struct VaultBackup: Identifiable, Equatable, Sendable {
 public struct RestoreResult: Equatable, Sendable {
     public let written: Int
     public let failed: [String]
+    /// How many of the written files are notes (build 316), for "Restored 15 notes".
+    public let notes: Int
 
     public var isComplete: Bool { failed.isEmpty }
 
-    public init(written: Int, failed: [String]) {
+    public init(written: Int, failed: [String], notes: Int = 0) {
         self.written = written
         self.failed = failed
+        self.notes = notes
     }
 }
 
@@ -111,7 +118,7 @@ public struct OutsideCopy: Identifiable, Equatable, Sendable {
     /// 315) the names of its top folders, so he can tell which vault it is of.
     public var unmarkedFolders: [String]?
 
-    public var id: String { backup.folderName }
+    public var id: String { backup.id }
     public var isMarked: Bool { unmarkedFolders == nil }
     /// Saved by a restore, just before it put another copy back.
     public var isBeforeRestore: Bool { backup.reason == "before restore" }
@@ -140,6 +147,11 @@ public extension Vault {
     /// when nil, otherwise a folder of outside copies — and there only a folder that holds a
     /// finished copy's `signature.txt` counts, so nothing else in it is ever listed or cleared.
     func backups(in folder: URL? = nil) -> [VaultBackup] {
+        copies(in: folder, subfolder: nil)
+    }
+
+    /// The copies straight inside one folder. `subfolder` is only written into each result.
+    private func copies(in folder: URL?, subfolder: String?) -> [VaultBackup] {
         let fm = FileManager.default
         let home = folder ?? backupsURL
         guard let entries = try? fm.contentsOfDirectory(at: home, includingPropertiesForKeys: nil) else { return [] }
@@ -155,7 +167,7 @@ public extension Vault {
                 .filter { $0.pathExtension.lowercased() == "md" }
                 .count) ?? 0
             return VaultBackup(folderName: name, date: date, noteCount: count,
-                               reason: parts.count > 1 ? parts[1] : "manual")
+                               reason: parts.count > 1 ? parts[1] : "manual", subfolder: subfolder)
         }
         .sorted { $0.date > $1.date }
     }
@@ -167,7 +179,7 @@ public extension Vault {
     /// `prune: false` keeps every older copy (a restore clears out old ones only once it is done,
     /// so the copy being restored can never be the one that makes room — build 307).
     func makeBackup(reason: String = "manual", prune: Bool = true, now: Date = Date()) throws -> VaultBackup? {
-        try makeCopy(in: nil, reason: reason, prune: prune, now: now)
+        try makeCopy(outsideIn: nil, reason: reason, prune: prune, now: now)
     }
 
     /// A second copy **outside the vault** (build 308, hardening-13): in `place` — a folder the
@@ -181,12 +193,78 @@ public extension Vault {
     /// Returns nil when nothing changed since the last outside copy.
     @discardableResult
     func makeOutsideCopy(in place: URL, reason: String = "daily", now: Date = Date()) throws -> VaultBackup? {
-        try makeCopy(in: Self.outsideBackupsURL(in: place), reason: reason, prune: true, now: now)
+        try makeCopy(outsideIn: place, reason: reason, prune: true, now: now)
     }
 
-    /// The outside copies in `place`, newest first.
+    /// The outside copies in `place` that can be this vault's, newest first (build 316): the
+    /// ones in this vault's own sub-folders, and every copy in the old place, straight in
+    /// "PARAGON Backups" (whose copy each of those is, its mark says). Another vault's
+    /// sub-folder is never looked into.
     func outsideCopies(in place: URL) -> [VaultBackup] {
-        backups(in: Self.outsideBackupsURL(in: place))
+        let home = Self.outsideBackupsURL(in: place)
+        var found = copies(in: home, subfolder: nil)
+        for name in outsideSubfolders(in: place, of: knownIdentities().all) {
+            found += copies(in: home.appendingPathComponent(name, isDirectory: true), subfolder: name)
+        }
+        return found.sorted { $0.date > $1.date }
+    }
+
+    /// Where one outside copy is.
+    func outsideCopyURL(_ backup: VaultBackup, in place: URL) -> URL {
+        var home = Self.outsideBackupsURL(in: place)
+        if let sub = backup.subfolder { home.appendPathComponent(sub, isDirectory: true) }
+        return home.appendingPathComponent(backup.folderName, isDirectory: true)
+    }
+
+    // MARK: One sub-folder per vault (round 9, build 316)
+
+    /// The name of a new sub-folder for a vault's copies: the vault's name, then its identity.
+    /// The identity is what counts; the name is there for a person looking in Finder.
+    static func outsideSubfolderName(for identity: VaultIdentity) -> String {
+        "\(identity.name) \(identity.id)"
+    }
+
+    /// The sub-folders of "PARAGON Backups" that belong to one of `ids`: named exactly as the
+    /// identity, or ending in a space and the identity (the vault may have been renamed since).
+    func outsideSubfolders(in place: URL, of ids: Set<String>) -> [String] {
+        let ids = ids.filter(VaultIDs.isWellFormed)
+        guard !ids.isEmpty else { return [] }
+        let home = Self.outsideBackupsURL(in: place)
+        let entries = (try? FileManager.default.contentsOfDirectory(at: home, includingPropertiesForKeys: [.isDirectoryKey])) ?? []
+        return entries
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+            .map(\.lastPathComponent)
+            .filter { name in ids.contains { name == $0 || name.hasSuffix(" \($0)") } }
+            .sorted()
+    }
+
+    /// The outside copies that are **surely this vault's**: marked, the mark readable here,
+    /// and naming one of the vault's identities. Only these are ever cleared out, and only
+    /// these decide whether the vault changed since the last copy.
+    func ownMarkedOutsideCopies(in place: URL) -> [VaultBackup] {
+        let ids = knownIdentities().all
+        guard !ids.isEmpty else { return [] }
+        return outsideCopies(in: place).filter { backup in
+            let mark = outsideCopyURL(backup, in: place).appendingPathComponent(Self.ownerFileName)
+            guard FileManager.default.fileExists(atPath: mark.path), CloudFiles.presence(of: mark) != .away,
+                  !CloudFiles.isDataless(mark),
+                  let data = try? Data(contentsOf: mark),
+                  let owner = try? JSONDecoder().decode(VaultIdentity.self, from: data) else { return false }
+            return ids.contains(owner.id)
+        }
+    }
+
+    /// Clears out old outside copies by the same tiers as inside the vault — **this vault's
+    /// own marked copies only** (build 316). A copy of another vault, a copy with no mark, a
+    /// copy whose mark cannot be read here, and anything else in the folder are never touched.
+    /// Until build 315 the tiers ran over every copy in the folder, so two vaults sharing one
+    /// folder thinned out each other's.
+    func pruneOutsideCopies(in place: URL, now: Date = Date(), protecting: Set<String> = []) {
+        let own = ownMarkedOutsideCopies(in: place)
+        // The tiers go by folder name. Two copies of the same name in two places both stay.
+        for old in VaultBackup.toRemove(from: own, now: now, protecting: protecting) {
+            try? FileManager.default.removeItem(at: outsideCopyURL(old, in: place))
+        }
     }
 
     // MARK: Whose copy it is (review round 8)
@@ -197,26 +275,106 @@ public extension Vault {
     /// Where the vault keeps its own identity: one line, made once, travelling with the vault.
     var identityURL: URL { stateFolderURL.appendingPathComponent("vault-id.txt") }
 
+    /// The folder with one small file per identity this vault has had (`VaultIDs`).
+    var identityRecordsURL: URL { stateFolderURL.appendingPathComponent(VaultIDs.folderName, isDirectory: true) }
+
+    /// The identities noted in `.ams-para/vault-ids`. Only the file names are read, so a
+    /// record that is still in iCloud counts as well.
+    func identityRecords() -> [VaultIDRecord] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: identityRecordsURL.path)) ?? []
+        return names.compactMap { VaultIDs.record(fromFileName: CloudFiles.realName(ofPlaceholder: $0) ?? $0) }
+    }
+
+    /// What `vault-id.txt` says. `.unknown` when it cannot be read here (still in iCloud).
+    private enum IdentityFile { case none, unknown, id(String) }
+
+    private func identityFile() -> IdentityFile {
+        let fm = FileManager.default
+        let url = identityURL
+        if fm.fileExists(atPath: CloudFiles.placeholderURL(for: url).path) { return .unknown }
+        guard fm.fileExists(atPath: url.path) else { return .none }
+        guard CloudFiles.presence(of: url) != .away,
+              let text = try? String(contentsOf: url, encoding: .utf8) else { return .unknown }
+        let id = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return id.isEmpty ? .unknown : .id(id)
+    }
+
+    /// The vault's identity and every identity it has had (build 316): the one in
+    /// `vault-id.txt` and the ones noted in `.ams-para/vault-ids`. `current` is the oldest of
+    /// them (`VaultIDs.winner`); nil while `vault-id.txt` cannot be read. Reads only.
+    func knownIdentities() -> (current: String?, all: Set<String>) {
+        var records = identityRecords()
+        var all = Set(records.map(\.id))
+        switch identityFile() {
+        case .unknown:
+            return (nil, all)
+        case .none:
+            return (VaultIDs.winner(of: records), all)
+        case .id(let id):
+            all.insert(id)
+            if !records.contains(where: { $0.id == id }) {
+                records.append(VaultIDRecord(id: id, created: VaultIDs.unrecordedCreated))
+            }
+            // An identity that is not shaped like PARAGON's own was put there by hand: it is
+            // kept as it is, and no other one replaces it.
+            guard VaultIDs.isWellFormed(id) else { return (id, all) }
+            return (VaultIDs.winner(of: records) ?? id, all)
+        }
+    }
+
+    /// Notes one identity in `.ams-para/vault-ids`, unless it is noted already.
+    private func noteIdentity(_ id: String, created: Date) {
+        guard VaultIDs.isWellFormed(id), !identityRecords().contains(where: { $0.id == id }) else { return }
+        let fm = FileManager.default
+        let url = identityRecordsURL.appendingPathComponent(VaultIDs.fileName(for: VaultIDRecord(id: id, created: created)))
+        try? fm.createDirectory(at: identityRecordsURL, withIntermediateDirectories: true)
+        try? VaultIDs.fileText.write(to: url, atomically: true, encoding: .utf8)
+    }
+
     /// This vault's name (its folder's) and its lasting identity. `creating` writes a new
     /// identity when the vault has none yet. Nil when there is none and none may be made, or
     /// when the file is still in iCloud: a second identity must never be made beside it.
+    ///
+    /// **Build 316: two identities become one.** When two devices each made one before iCloud
+    /// had brought the file across, the vault keeps the older (`VaultIDs.winner`). With
+    /// `creating`, every identity seen is noted in `.ams-para/vault-ids` — the one in
+    /// `vault-id.txt`, and the ones in versions of that file iCloud set aside — and
+    /// `vault-id.txt` is rewritten when it holds a younger one. Without `creating` nothing is
+    /// written, and the answer is the same.
     func identity(creating: Bool = false) -> VaultIdentity? {
         let fm = FileManager.default
-        let url = identityURL
         let name = rootURL.lastPathComponent
-        if fm.fileExists(atPath: CloudFiles.placeholderURL(for: url).path) { return nil }
-        if fm.fileExists(atPath: url.path) {
-            guard CloudFiles.presence(of: url) != .away,
-                  let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
-            let id = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            return id.isEmpty ? nil : VaultIdentity(id: id, name: name)
+        let file = identityFile()
+        if case .unknown = file { return nil }
+        guard creating else {
+            return knownIdentities().current.map { VaultIdentity(id: $0, name: name) }
         }
-        guard creating else { return nil }
+        if case .id(let id) = file {
+            noteIdentity(id, created: VaultIDs.unrecordedCreated)
+            guard VaultIDs.isWellFormed(id) else { return VaultIdentity(id: id, name: name) }
+            // The other device's identity, when iCloud kept its file as a set-aside version.
+            // Read only; the version itself is left as it is.
+            for version in NSFileVersion.unresolvedConflictVersionsOfItem(at: identityURL) ?? []
+            where version.hasLocalContents {
+                if let text = try? String(contentsOf: version.url, encoding: .utf8) {
+                    noteIdentity(text.trimmingCharacters(in: .whitespacesAndNewlines), created: VaultIDs.unrecordedCreated)
+                }
+            }
+        }
+        if let winner = knownIdentities().current {
+            if case .id(let id) = file, id == winner { return VaultIdentity(id: winner, name: name) }
+            // No file, or a younger identity in it: the older one is written. A failed write
+            // changes nothing about the answer; the next copy tries again.
+            try? fm.createDirectory(at: stateFolderURL, withIntermediateDirectories: true)
+            try? winner.write(to: identityURL, atomically: true, encoding: .utf8)
+            return VaultIdentity(id: winner, name: name)
+        }
         let id = UUID().uuidString
         do {
             try fm.createDirectory(at: stateFolderURL, withIntermediateDirectories: true)
-            try id.write(to: url, atomically: true, encoding: .utf8)
+            try id.write(to: identityURL, atomically: true, encoding: .utf8)
         } catch { return nil }
+        noteIdentity(id, created: Date())
         return VaultIdentity(id: id, name: name)
     }
 
@@ -226,17 +384,17 @@ public extension Vault {
     /// as another vault's is never offered.
     func outsideCopiesForRestore(in place: URL) -> [OutsideCopy] {
         let fm = FileManager.default
-        let home = Self.outsideBackupsURL(in: place)
-        let own = identity()
+        let own = knownIdentities().all
         return outsideCopies(in: place).compactMap { backup -> OutsideCopy? in
-            let folder = home.appendingPathComponent(backup.folderName, isDirectory: true)
+            let folder = outsideCopyURL(backup, in: place)
             let mark = folder.appendingPathComponent(Self.ownerFileName)
             if fm.fileExists(atPath: mark.path) || fm.fileExists(atPath: CloudFiles.placeholderURL(for: mark).path) {
                 // Marked: offered only when the mark can be read and names this vault.
-                guard let own, CloudFiles.presence(of: mark) != .away,
+                // Build 316: an older identity of this vault counts as well.
+                guard CloudFiles.presence(of: mark) != .away,
                       let data = try? Data(contentsOf: mark),
                       let owner = try? JSONDecoder().decode(VaultIdentity.self, from: data),
-                      owner.id == own.id else { return nil }
+                      own.contains(owner.id) else { return nil }
                 return OutsideCopy(backup: backup, unmarkedFolders: nil)
             }
             let folders = ((try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.isDirectoryKey],
@@ -248,24 +406,46 @@ public extension Vault {
         }
     }
 
-    /// One copy, inside the vault (`folder` nil: notes and settings) or outside it (`folder`
+    /// One copy, inside the vault (`place` nil: notes and settings) or outside it (`place`
     /// given: pictures and sketches as well).
-    private func makeCopy(in folder: URL?, reason: String, prune: Bool, now: Date) throws -> VaultBackup? {
+    ///
+    /// **Build 316: an outside copy goes into the vault's own sub-folder** of "PARAGON
+    /// Backups", so two vaults that share one folder keep their copies apart. A vault with no
+    /// identity that can be used (it cannot be read or written just now) still gets its copy:
+    /// in the old place, with no mark, and nothing is cleared out that time.
+    private func makeCopy(outsideIn place: URL?, reason: String, prune: Bool, now: Date) throws -> VaultBackup? {
         let fm = FileManager.default
-        let home = folder ?? backupsURL
-        let withPictures = folder != nil
+        let withPictures = place != nil
         // Before the signature is taken: a vault given its identity here must not look changed
         // to the next copy because of it.
         let owner = withPictures ? identity(creating: true) : nil
+        var subfolder: String?
+        var home = backupsURL
+        if let place {
+            home = Self.outsideBackupsURL(in: place)
+            if let owner, VaultIDs.isWellFormed(owner.id) {
+                let name = outsideSubfolders(in: place, of: [owner.id]).first ?? Self.outsideSubfolderName(for: owner)
+                subfolder = name
+                home.appendPathComponent(name, isDirectory: true)
+            }
+        }
         let signature = try contentSignature(withPictures: withPictures)
-        let existing = backups(in: folder)
-        if let last = existing.first,
-           let lastSignature = try? String(contentsOf: home.appendingPathComponent(last.folderName).appendingPathComponent("signature.txt"), encoding: .utf8),
+        // The newest copy that is surely of this vault, wherever it is: in the sub-folder, or
+        // in the old place with this vault's mark.
+        let last: (backup: VaultBackup, url: URL)?
+        if let place {
+            let own = owner != nil ? ownMarkedOutsideCopies(in: place) : copies(in: home, subfolder: nil)
+            last = own.first.map { ($0, outsideCopyURL($0, in: place)) }
+        } else {
+            last = backups().first.map { ($0, home.appendingPathComponent($0.folderName, isDirectory: true)) }
+        }
+        if let last,
+           let lastSignature = try? String(contentsOf: last.url.appendingPathComponent("signature.txt"), encoding: .utf8),
            lastSignature == signature {
             return nil
         }
         // The last copy's folder, to take unchanged pictures from (outside copies only).
-        let previous = withPictures ? existing.first.map { home.appendingPathComponent($0.folderName, isDirectory: true) } : nil
+        let previous = withPictures ? last?.url : nil
 
         var name = "\(VaultBackup.formatter.string(from: now))~\(reason)"
         var target = home.appendingPathComponent(name, isDirectory: true)
@@ -328,15 +508,22 @@ public extension Vault {
                                                        atomically: true, encoding: .utf8)
         }
 
-        if prune { pruneBackups(in: folder, now: now) }
-        return VaultBackup(folderName: name, date: now, noteCount: copied, reason: reason)
+        if prune {
+            if let place {
+                // Only with an identity: without one there is no telling whose the copies are.
+                if owner != nil { pruneOutsideCopies(in: place, now: now, protecting: [name]) }
+            } else {
+                pruneBackups(now: now)
+            }
+        }
+        return VaultBackup(folderName: name, date: now, noteCount: copied, reason: reason, subfolder: subfolder)
     }
 
     /// Puts the notes from a backup back into the vault, after saving the current state as a
     /// backup of its own. Notes created since the backup are left where they are.
     @discardableResult
     func restore(_ backup: VaultBackup, now: Date = Date()) throws -> RestoreResult {
-        try restore(backup, from: nil, now: now)
+        try restore(backup, outsideIn: nil, now: now)
     }
 
     /// Puts an **outside copy** back into the vault (build 315): its notes, settings, pictures
@@ -347,28 +534,30 @@ public extension Vault {
     /// are, and neither the copy restored from nor the two fresh ones are cleared out.
     @discardableResult
     func restoreOutsideCopy(_ backup: VaultBackup, in place: URL, now: Date = Date()) throws -> RestoreResult {
-        try restore(backup, from: Self.outsideBackupsURL(in: place), now: now)
+        try restore(backup, outsideIn: place, now: now)
     }
 
     /// One restore, from the vault's own Backups folder (`folder` nil) or from a folder of
     /// outside copies.
-    private func restore(_ backup: VaultBackup, from folder: URL?, now: Date) throws -> RestoreResult {
+    private func restore(_ backup: VaultBackup, outsideIn place: URL?, now: Date) throws -> RestoreResult {
         let fm = FileManager.default
-        let source = (folder ?? backupsURL).appendingPathComponent(backup.folderName, isDirectory: true)
+        let source = place.map { outsideCopyURL(backup, in: $0) }
+            ?? backupsURL.appendingPathComponent(backup.folderName, isDirectory: true)
         guard fm.fileExists(atPath: source.path) else { throw VaultError.noteNotFound(backup.folderName) }
         // Not cleared out here: with a full list, making room would delete the very copy being
         // restored before a single file was read from it (build 307, hardening-02).
         try makeBackup(reason: "before restore", prune: false, now: now)
         // An inside copy being restored is kept whatever its age; the outside copies are not
         // cleared out here at all (the next daily copy does that, by the same tiers).
-        defer { pruneBackups(now: now, protecting: folder == nil ? [backup.folderName] : []) }
-        if let folder {
+        defer { pruneBackups(now: now, protecting: place == nil ? [backup.folderName] : []) }
+        if let place {
             // The pictures are only in an outside copy, so the way back needs one too. Nil
             // means the newest outside copy already is the vault as it stands.
-            _ = try makeCopy(in: folder, reason: "before restore", prune: false, now: now)
+            _ = try makeCopy(outsideIn: place, reason: "before restore", prune: false, now: now)
         }
 
         var written = 0
+        var notes = 0
         var failed: [String] = []
         let sourceComponents = source.standardizedFileURL.pathComponents
         guard let walker = fm.enumerator(at: source, includingPropertiesForKeys: [.isRegularFileKey]) else {
@@ -413,19 +602,20 @@ public extension Vault {
             }
             // A picture the vault already holds exactly as the copy does is left as it is
             // (outside copies; build 315): nothing to put back, and no second write of it.
-            if folder != nil, Self.isPicture(relative), Self.sameFile(fileURL, destination) { continue }
+            if place != nil, Self.isPicture(relative), Self.sameFile(fileURL, destination) { continue }
             // Never taken out first (review round 8): the copy is written beside the vault file
             // under another name, and only a finished copy takes the file's place. A copy that
             // fails — the disk is full, the source went away — leaves the vault file as it was.
             if Self.putBack(fileURL, over: destination) {
                 written += 1
+                if relative.lowercased().hasSuffix(".md") { notes += 1 }
             } else {
                 // Half a restore is worse than a reported one: keep going and name the rest.
                 failed.append(relative)
             }
         }
         reloadConfig()
-        return RestoreResult(written: written, failed: failed)
+        return RestoreResult(written: written, failed: failed, notes: notes)
     }
 
     /// The start of the name a file carries while a restore writes it beside its place.
