@@ -306,6 +306,10 @@ struct SettingsView: View {
                 #endif
             }
 
+            // Build 317: Siri and Shortcuts (features-07), notes in the system search (features-21).
+            SiriShortcutsSection()
+            SystemSearchSection()
+
             Section("Weekly review") {
                 Stepper("Flag projects unchanged for \(model.config.staleProjectDays) days", value: Binding(
                     get: { model.config.staleProjectDays },
