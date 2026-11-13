@@ -96,6 +96,16 @@
 			path = Paragon;
 			sourceTree = "<group>";
 		};
+		9C2C65FD77F3B3143D6279AC /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			name = Shared;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		FE3F513E78C0C7E220632898 /* ParagonWidgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			explicitFileTypes = {
@@ -144,6 +154,7 @@
 				42A707B22CE1D9EF04587CDC /* Paragon */,
 				31232FE96D5ABE88FA583233 /* ParagonShare */,
 				FE3F513E78C0C7E220632898 /* ParagonWidgets */,
+				9C2C65FD77F3B3143D6279AC /* Shared */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -246,6 +257,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				FE3F513E78C0C7E220632898 /* ParagonWidgets */,
+				9C2C65FD77F3B3143D6279AC /* Shared */,
 			);
 			name = ParagonWidgets;
 			packageProductDependencies = (
@@ -273,6 +285,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				42A707B22CE1D9EF04587CDC /* Paragon */,
+				9C2C65FD77F3B3143D6279AC /* Shared */,
 			);
 			name = Paragon;
 			packageProductDependencies = (
