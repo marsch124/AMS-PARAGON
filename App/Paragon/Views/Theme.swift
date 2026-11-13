@@ -1017,12 +1017,11 @@ struct GoalProgressBar: View {
     var body: some View {
         if let fraction = progress.fraction, let percent = progress.percent {
             HStack(spacing: 6) {
-                ProgressView(value: fraction)
-                    .tint(tint)
-                    .frame(width: width)
-                    // Build 318: the bar fills to its new value over 0.35 s.
-                    .animation(Motion.fill, value: fraction)
-                Text("\(percent)%")
+                // Build 318: the same drawn bar as the goal's number under it (it was Apple's
+                // grey-tracked bar, so two bars of two kinds stood on one page). It fills to
+                // its new value over 0.35 s.
+                GoalNumberBar(fraction: fraction, tint: tint, width: width)
+                Text("\(percent) %")
                     .foregroundStyle(tint.ink)
                 if showsCounts {
                     Text(counts)

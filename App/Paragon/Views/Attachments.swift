@@ -92,6 +92,11 @@ enum AttachmentFiles {
 
     static let rowHeight: CGFloat = 52
 
+    /// The row's size in points: 52 high, 200 to 340 wide.
+    static func rowSize(width: CGFloat) -> CGSize {
+        CGSize(width: max(min(width, 340), 200), height: rowHeight)
+    }
+
     /// A PDF in the text, drawn as a row: its first page small, its name, `PDF · 3 pages`.
     /// `real` is false while the file is not on this device, so it is drawn again later.
     static func rowImage(path: String, label: String, root: URL, width: CGFloat) -> (image: PlatformImage, real: Bool) {
@@ -100,7 +105,7 @@ enum AttachmentFiles {
         if state == .coming { CloudFiles.startDownload(url) }
         let words = words(for: path, label: label, url: url)
         let thumb = state == .here ? pageThumb(of: url, side: 40) : nil
-        let size = CGSize(width: max(min(width, 340), 200), height: rowHeight)
+        let size = rowSize(width: width)
         #if os(iOS)
         func render(_ style: UIUserInterfaceStyle) -> UIImage {
             var made = UIImage()
@@ -111,9 +116,15 @@ enum AttachmentFiles {
         }
         // Drawn for day and for night, so the row follows the appearance without being remade.
         let asset = UIImageAsset()
-        asset.register(render(.light), with: UITraitCollection(userInterfaceStyle: .light))
-        asset.register(render(.dark), with: UITraitCollection(userInterfaceStyle: .dark))
-        return (asset.image(with: .current), state == .here)
+        // Registered with the screen's own scale: without it the image came back three times
+        // too large on an iPhone (156 points high, cut off at the right edge).
+        func traits(_ style: UIUserInterfaceStyle) -> UITraitCollection {
+            UITraitCollection(traitsFrom: [UITraitCollection(userInterfaceStyle: style),
+                                           UITraitCollection(displayScale: UIScreen.main.scale)])
+        }
+        asset.register(render(.light), with: traits(.light))
+        asset.register(render(.dark), with: traits(.dark))
+        return (asset.image(with: traits(UITraitCollection.current.userInterfaceStyle == .dark ? .dark : .light)), state == .here)
         #else
         let image = NSImage(size: size, flipped: true) { _ in
             drawRow(size: size, words: words, thumb: thumb)
@@ -298,6 +309,9 @@ struct AttachmentBlock: View {
     private var pdfRow: some View {
         HStack(spacing: 8) {
             thumbBox(pdf?.thumb, page: true)
+                // In a list the page stands in the same 40-point slot as a picture's square,
+                // so the names of pictures and PDFs begin on one line (they were 10 points apart).
+                .frame(width: compact ? 40 : nil)
             VStack(alignment: .leading, spacing: 1) {
                 Text(pdf?.title ?? attachment.fileName)
                     .font(compact ? Txt.list : Txt.listTitle).lineLimit(compact ? 2 : 1).truncationMode(.middle)

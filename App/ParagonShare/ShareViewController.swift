@@ -316,6 +316,8 @@ struct ShareCaptureView: View {
                 }
                 .frame(width: 40, height: 40)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
+                // A fine edge, so a white picture (a receipt, a page) keeps its shape on a white row.
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.25), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 1) {
                     Text(file.name).font(.subheadline).lineLimit(1).truncationMode(.middle)
                     Text((file.isPDF ? "PDF · " : "Picture · ") + ByteCountFormatter.string(fromByteCount: file.bytes, countStyle: .file))
@@ -368,18 +370,20 @@ struct ShareCaptureView: View {
                         problemRows
                     }
                 }
-                Section("Save to") {
+                // The explanation is the foot of this part, not a card of its own.
+                Section {
                     destination
                     if model.files.isEmpty {
                         Toggle("As note, not task", isOn: $model.asNote)
                     }
-                }
-                Section {
+                } header: {
+                    Text("Save to")
+                } footer: {
                     Text(footnote)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
+            // The parts sit close together: the whole sheet is in view with the keyboard up.
+            .listSectionSpacing(.compact)
             .navigationTitle("PARAGON")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -387,8 +391,10 @@ struct ShareCaptureView: View {
                     Button("Cancel") { model.cancel() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
+                    // The main button: full colour, white word.
                     Button("Save") { model.save() }
                         .fontWeight(.semibold)
+                        .buttonStyle(.borderedProminent)
                         .disabled(!model.canSave)
                 }
             }

@@ -97,6 +97,9 @@ enum Marks {
         "hand.draw": .init(kind: .app(.hand)),
         "paintpalette": .init(kind: .app(.palette)),
         "ruler": .init(kind: .app(.ruler)),
+        // Build 318: a goal's number has a mark of its own — a rising line on two axes — so
+        // **Set a number…** does not wear the measure's ruler beside it.
+        "chart.line": .init(kind: .drawn(Marks.chartPath)),
         "repeat": .init(kind: .app(.`repeat`)),
         "questionmark.circle": .init(kind: .app(.question)),
         "arrow.up.right": .init(kind: .app(.openLink)),
@@ -146,6 +149,9 @@ enum Marks {
 
     /// The deadline's mark: a pole, a three-cornered pennant and the finish line under it.
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
+
+    /// A goal's number: two axes and a line that climbs.
+    static let chartPath = "M4.5 4.5V19.5H20 M8 15.5L11.5 11.5L14.5 13.5L19.5 7.5"
 
     /// Stop: a square with round corners, the same drawing as on the Lock Screen banner.
     static let stopPath = "M7 7h10v10h-10Z"

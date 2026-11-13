@@ -29,6 +29,8 @@ struct GoalNumberBar: View {
                 Capsule().fill(tint)
                     // Never a sliver thinner than the bar is high: a round end needs that much.
                     .frame(width: fraction <= 0 ? 0 : max(height, geo.size.width * fraction))
+                    // The bar fills to its new value over 0.35 s, like every bar in the app.
+                    .animation(Motion.fill, value: fraction)
             }
         }
         .frame(width: width, height: height)
@@ -43,19 +45,25 @@ struct GoalNumberLine: View {
     var tint: Color = ParaKind.goal.tint
     var barWidth: CGFloat? = 54
     var compact = false
+    /// True where the bar is drawn on a line of its own (the goal's page on a narrow phone).
+    var wordsOnly = false
 
     var body: some View {
         HStack(spacing: 6) {
-            GoalNumberBar(fraction: number.barFraction, tint: tint, width: barWidth)
+            if !wordsOnly {
+                GoalNumberBar(fraction: number.barFraction, tint: tint, width: barWidth)
+            }
             if compact {
                 Text(Self.compactWords(number))
                     .foregroundStyle(.soft)
             } else {
                 Text(number.words())
                     .foregroundStyle(.soft)
+                    .fixedSize()
                 if let percent = number.percent {
                     Text("\(percent) %")
                         .foregroundStyle(tint.ink)
+                        .fixedSize()
                 }
             }
         }
@@ -165,23 +173,26 @@ struct GoalNumberPanel: View {
         if let number = current.goalNumber {
             let tint = ChainTint.forGoal(current)
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    GoalNumberLine(number: number, tint: tint, barWidth: 160)
-                    if number.isReached {
-                        Pill(text: "Reached", color: tint)
+                // One line where it fits (Mac, iPad, short numbers). On a narrow phone the
+                // words and the button share the first line and the bar has the second to
+                // itself — never a cut-off number ("1… 1…" in the first try of 318).
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) {
+                        GoalNumberLine(number: number, tint: tint, barWidth: 160)
+                        reached(number, tint)
+                        Spacer(minLength: 6)
+                        updateButton(number, tint, current)
                     }
-                    Spacer(minLength: 6)
-                    Button("Update\u{2026}") { updating = true }
-                        .buttonStyle(.filled(tint))
-                        .controlSize(.small)
-                        .accessibilityIdentifier("goal.number.update")
-                        .popover(isPresented: $updating) {
-                            GoalNumberEditor(number: number, setup: false, tint: tint,
-                                             cancel: { updating = false }) { draft in
-                                model.updateGoalNumber(draft.current, on: current)
-                                updating = false
-                            } remove: {}
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            GoalNumberLine(number: number, tint: tint, barWidth: nil, wordsOnly: true)
+                            reached(number, tint)
+                            Spacer(minLength: 6)
+                            updateButton(number, tint, current)
                         }
+                        GoalNumberBar(fraction: number.barFraction, tint: tint)
+                            .frame(maxWidth: 360)
+                    }
                 }
                 if number.curve.count > 1 {
                     GoalNumberCurve(number: number, tint: tint)
@@ -192,8 +203,37 @@ struct GoalNumberPanel: View {
                     .foregroundStyle(.soft)
                     .lineLimit(1)
             }
+            // Its own element with its children kept: without this the panel's name is
+            // handed down and hides `goal.number.line` and `goal.number.update`.
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("goal.number.panel")
         }
+    }
+
+    @ViewBuilder
+    private func reached(_ number: GoalNumber, _ tint: Color) -> some View {
+        if number.isReached {
+            Pill(text: "Reached", color: tint)
+                .fixedSize()
+        }
+    }
+
+    private func updateButton(_ number: GoalNumber, _ tint: Color, _ current: Note) -> some View {
+        Button("Update\u{2026}") { updating = true }
+            .buttonStyle(.filled(tint))
+            #if os(macOS)
+            .controlSize(.small)
+            #endif
+            .fixedSize()
+            .accessibilityIdentifier("goal.number.update")
+            // Above the button, so the bar and its words stay in view while typing.
+            .popover(isPresented: $updating, arrowEdge: .bottom) {
+                GoalNumberEditor(number: number, setup: false, tint: tint,
+                                 cancel: { updating = false }) { draft in
+                    model.updateGoalNumber(draft.current, on: current)
+                    updating = false
+                } remove: {}
+            }
     }
 
     /// "From 90 kg · last update 2026-11-13 · 3 updates", built outside the ViewBuilder.
@@ -229,7 +269,7 @@ struct GoalNumberChip: View {
         let number = current.goalNumber
         let tint = ChainTint.forGoal(current)
         Button { editing = true } label: {
-            MarkLabel(number == nil ? "Set a number\u{2026}" : "Edit number\u{2026}", "ruler")
+            MarkLabel(number == nil ? "Set a number\u{2026}" : "Edit number\u{2026}", "chart.line")
                 .lineLimit(1)
                 .foregroundStyle(number == nil ? Theme.soft : tint.ink)
                 .helpWhenClosed("A number this goal is tracked by: where you started, where you want to be, and where you are now.", open: editing)
@@ -349,6 +389,8 @@ struct GoalNumberEditor: View {
         }
         .padding(14)
         .frame(width: 300)
+        // Cancel in the goal's gold in both windows (it was violet in **Update…**).
+        .tint(tint.ink)
         .presentationCompactAdaptation(.popover)
         .onAppear(perform: fill)
     }
@@ -381,7 +423,9 @@ struct GoalNumberEditor: View {
     /// The one sentence under the heading, built outside the ViewBuilder.
     private var sentence: String {
         if setup {
-            return "Where you started, where you want to be and where you are now. The target may be lower than the start."
+            // One line: on the phone the window hangs between the top of the screen and its
+            // button, and a longer sentence was cut off with "…".
+            return "The target may be lower than the start."
         }
         guard let number else { return "" }
         return "Now \(number.valueWords(number.current)), target \(number.valueWords(number.target)). Saved with today's date, \(DayWords.plain(DateOnly.today()))."

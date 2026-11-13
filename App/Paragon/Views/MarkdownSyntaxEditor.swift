@@ -167,7 +167,8 @@ enum PictureText {
                     image = captioned(image, caption)
                 }
                 attachment.image = image
-                attachment.bounds = CGRect(origin: .zero, size: image.size)
+                // A PDF's row is always its own size in points, whatever scale the image says.
+                attachment.bounds = CGRect(origin: .zero, size: attachment.isFile ? AttachmentFiles.rowSize(width: width) : image.size)
             }
             placed.append(((out as NSString).length, attachment))
             out += mark
@@ -1373,9 +1374,17 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         var replaced = false
         let versionChanged = context.coordinator.shownVersion != pictures?.version
         if versionChanged { context.coordinator.cache = [:]; context.coordinator.shownVersion = pictures?.version }
-        if versionChanged || context.coordinator.markdown() != text {
+        // Build 318: captions and PDF rows are drawn as pictures in the day's or the night's
+        // ink. When the phone goes from day to night with the note open they are drawn again
+        // (they stayed white on light, or dark on dark, until the note was opened again).
+        let scheme = context.environment.colorScheme
+        let schemeChanged = context.coordinator.styledScheme != nil && context.coordinator.styledScheme != scheme
+        if schemeChanged { context.coordinator.cache = [:] }
+        if versionChanged || schemeChanged || context.coordinator.markdown() != text {
             let selected = textView.selectedRange
-            context.coordinator.show(text)
+            UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light).performAsCurrent {
+                context.coordinator.show(text)
+            }
             let length = (textView.text as NSString).length
             textView.selectedRange = NSRange(location: min(selected.location, length), length: 0)
             replaced = true
@@ -1383,7 +1392,6 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         // Restyled only when something it depends on changed, as on the Mac (build 252). This
         // runs after every key — the text is a binding — and restyling the whole note here
         // each time undid the point of restyling only the typed line (hardening-20).
-        let scheme = context.environment.colorScheme
         if replaced || context.coordinator.styledTint != tint || context.coordinator.styledScheme != scheme {
             context.coordinator.styledTint = tint
             context.coordinator.styledScheme = scheme

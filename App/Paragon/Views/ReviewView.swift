@@ -799,6 +799,9 @@ struct GoalHealthRow: View {
             .font(Txt.label)
             .foregroundStyle(.soft)
             .lineLimit(1)
+            // Build 318: mark and words, always. In the phone's list the marks stood alone
+            // ("flag, squares, circle, tick") because a list row may drop a label's words.
+            .labelStyle(.titleAndIcon)
             if !health.flags.isEmpty {
                 WrappingHStack(spacing: 6, lineSpacing: 3) {
                     ForEach(health.flags, id: \.self) { flag in
