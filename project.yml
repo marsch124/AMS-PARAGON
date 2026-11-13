@@ -47,8 +47,8 @@ targets:
         product: ParagonCore
       - package: AMSIcons
         product: AMSIcons
+      # Both platforms since build 318: Share › PARAGON on the Mac as well.
       - target: ParagonShare
-        platformFilter: iOS
       # Both platforms since build 178. It was iPhone only in 174, and he then said he uses
       # the widget on the Mac only: the PARAGON widget the Mac could offer him came from the
       # phone over iPhone Mirroring, which Apple does not provide in the EU, so it could only
@@ -136,9 +136,12 @@ targets:
           DEVELOPMENT_TEAM[sdk=macosx*]: ""
           PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]: ""
 
+  # Share › PARAGON. iPhone and iPad since the start; the Mac since build 318, the same way the
+  # widget went to the Mac in build 178: one target, one bundle id, both platforms. It takes
+  # text, links, pictures and PDFs, and only ever writes into the App Group folder.
   ParagonShare:
     type: app-extension
-    platform: iOS
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: App/ParagonShare
         type: syncedFolder
@@ -157,6 +160,9 @@ targets:
               NSExtensionActivationSupportsText: true
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
               NSExtensionActivationSupportsWebPageWithMaxCount: 1
+              # Build 318: pictures and PDFs, up to 20 at a time (SharedFiles.maxItems).
+              NSExtensionActivationSupportsImageWithMaxCount: 20
+              NSExtensionActivationSupportsFileWithMaxCount: 20
     entitlements:
       path: App/Config/ParagonShare/ParagonShare.entitlements
       properties:
@@ -171,6 +177,18 @@ targets:
         GENERATE_INFOPLIST_FILE: false
         PRODUCT_BUNDLE_IDENTIFIER: com.schabbauer.AMSPara.Share
         SKIP_INSTALL: true
+        # The Mac needs its own entitlements: sandboxed, and the App Group with the Team ID in
+        # front (see ParagonWidgets).
+        CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/ParagonShare/ParagonShare-macOS.entitlements
+      # Inside the Mac Debug app (com.schabbauer.AMSPara.dev) — see the Paragon target.
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]: com.schabbauer.AMSPara.dev.Share
+          CODE_SIGN_ENTITLEMENTS[sdk=macosx*]: App/Config/ParagonShare/ParagonShare-macOS-Debug.entitlements
+          CODE_SIGN_STYLE[sdk=macosx*]: Manual
+          CODE_SIGN_IDENTITY[sdk=macosx*]: "-"
+          DEVELOPMENT_TEAM[sdk=macosx*]: ""
+          PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]: ""
 
   # The widget (build 174 on the iPhone, build 178 on the Mac as well). It reads one small
   # file out of the App Group container that the app writes on every reload; it never opens

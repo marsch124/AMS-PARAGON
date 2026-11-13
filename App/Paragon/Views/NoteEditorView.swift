@@ -190,6 +190,7 @@ struct NoteEditorView: View {
         } message: {
             Text("The file is renamed too, and every note that links to it is pointed at the new name.")
         }
+        .attachmentPreview($openedFile)
         .sheet(item: $sketch) { request in
             SketchSheet(request: request, tint: note?.tint ?? Theme.fallbackTint) { png, drawing in
                 saveSketch(request, png: png, drawing: drawing)
@@ -689,7 +690,11 @@ struct NoteEditorView: View {
                                 photoOffset = offset
                                 if camera { takingPhoto = true } else { choosingPhoto = true }
                             },
-                            open: { picture in sketch = SketchRequest(offset: nil, picturePath: picture) },
+                            open: { picture in
+                                // Build 318: a PDF opens in Quick Look; a picture as before.
+                                if SharedFiles.isPDF(picture) { openedFile = picture }
+                                else { sketch = SketchRequest(offset: nil, picturePath: picture) }
+                            },
                             caption: { offset, link in
                                 captionEdit = CaptionEdit(offset: offset, link: link)
                                 captionDraft = Pictures.caption(ofLink: link) ?? ""
@@ -716,30 +721,37 @@ struct NoteEditorView: View {
         text = ns.replacingCharacters(in: range, with: Pictures.settingCaption(captionDraft, inLink: edit.link))
     }
 
+    /// Build 318: the PDF opened in Quick Look, from the vault's root.
+    @State private var openedFile: String?
+
     /// Build 290 (Mac): pictures dragged in from Finder, copied into the Pictures folder, each
     /// on its own line where they were dropped. The originals stay where they were.
+    /// Build 318: PDFs too, into the Attachments folder. Copied by file, under a name that is
+    /// safe inside a link and that nothing in the folder has.
     private func dropPictures(_ urls: [URL], at offset: Int) {
         guard let vault = model.vault else { return }
-        let folder = vault.rootURL.appendingPathComponent(Pictures.droppedFolder)
-        var taken = Set((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? [])
+        let fm = FileManager.default
+        var taken: [String: Set<String>] = [:]
         var at = min(offset, (text as NSString).length)
         var result = text
         for url in urls {
             let reading = url.startAccessingSecurityScopedResource()
             defer { if reading { url.stopAccessingSecurityScopedResource() } }
-            guard let data = try? Data(contentsOf: url) else {
-                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be read."
-                continue
-            }
-            let name = Pictures.freeName(for: url.lastPathComponent, taken: taken)
+            let folder = SharedFiles.folder(for: url.lastPathComponent)
+            let folderURL = vault.rootURL.appendingPathComponent(folder, isDirectory: true)
+            var names = taken[folder] ?? SharedFiles.takenNames(in: (try? fm.contentsOfDirectory(atPath: folderURL.path)) ?? [])
+            let name = SharedFiles.freeName(for: SharedFiles.safeName(url.lastPathComponent), taken: names)
             do {
-                try vault.writeFile(data, at: Pictures.droppedFolder + "/" + name)
+                try fm.createDirectory(at: folderURL, withIntermediateDirectories: true)
+                // `copyItem` never writes over a file that is there.
+                try fm.copyItem(at: url, to: folderURL.appendingPathComponent(name))
             } catch {
-                model.errorMessage = "The picture could not be saved: \(error.localizedDescription)"
+                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be saved: \(error.localizedDescription)"
                 continue
             }
-            taken.insert(name)
-            let link = Sketches.link(toFile: name, fromNote: path, folder: Pictures.droppedFolder, alt: "Picture")
+            names.insert(name)
+            taken[folder] = names
+            let link = SharedFiles.link(toFile: name, fromNote: path)
             let put = Sketches.inserting(link: link, into: result, at: at)
             result = put.text
             at = put.cursor
@@ -885,7 +897,7 @@ struct NoteEditorView: View {
                     .onChange(of: linkDraft) { _, _ in linkChoice = 0 }
             }
             if mode != .edit, let note {
-                MarkdownPreview(note: note, beforeToggle: flushSave)
+                MarkdownPreview(note: note, beforeToggle: flushSave, root: model.vault?.rootURL)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }

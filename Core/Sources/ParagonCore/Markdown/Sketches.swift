@@ -91,6 +91,7 @@ public enum Pictures {
         public var range: NSRange
         /// The file, from the vault's root.
         public var path: String
+        public init(range: NSRange, path: String) { self.range = range; self.path = path }
     }
 
     /// Every picture link in `text`, in order.

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Build 318: Share › PARAGON on the Mac. An extension inside a sandboxed Mac app has to
+	     be sandboxed itself. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- The Mac spelling of the App Group (Team ID in front), the same folder the Mac widget
+	     uses: the extension leaves what was shared there and the app files it. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>D24ENP83QQ.group.com.schabbauer.amspara</string>
+	</array>
+	<!-- To read the picture or PDF that was shared; it never writes outside the group folder. -->
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+</dict>
+</plist>
