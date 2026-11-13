@@ -302,6 +302,8 @@ struct TaskDatePicker: View {
 
     var body: some View {
         page
+            // Build 318: Date, Deadline and Repeat fade into each other (0.2 s).
+            .animation(Motion.page, value: tab)
             .onAppear { TaskWindowStart.forget() }
             .onDisappear { TaskWindowStart.forget() }
     }

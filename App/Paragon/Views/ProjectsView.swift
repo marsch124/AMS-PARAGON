@@ -633,6 +633,8 @@ struct ProjectProgress: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(ParaKind.project.tint.opacity(0.2))
                 Capsule().fill(ParaKind.project.tint).frame(width: 40 * fraction)
+                    // Build 318: the bar fills to its new value over 0.35 s.
+                    .animation(Motion.fill, value: fraction)
             }
             .frame(width: 40, height: 5)
             Text(ProjectLine.progressText(done: done, total: total))

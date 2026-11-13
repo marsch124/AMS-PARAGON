@@ -86,6 +86,9 @@ struct AllActionsView: View {
                 actionsPart(all: all, shown: shown, waiting: waiting)
             }
         }
+        // Build 318: Actions and Waiting for fade into each other (0.2 s).
+        .animation(Motion.page, value: showsWaiting)
+        .animation(Motion.fold, value: folded)
     }
 
     /// The column as it was before build 279: header, boxes, and the list of actions.
@@ -183,7 +186,7 @@ struct AllActionsView: View {
     private func filterButton(symbol: Bool) -> some View {
         let lit = !folded || !model.actionFilter.isEmpty
         return Button {
-            if isPhone { phoneFolded.toggle() } else { deskFolded.toggle() }
+            withAnimation(Motion.fold) { if isPhone { phoneFolded.toggle() } else { deskFolded.toggle() } }
         } label: {
             HStack(spacing: 4) {
                 if symbol {

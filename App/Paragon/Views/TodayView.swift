@@ -258,6 +258,9 @@ struct TodayView: View {
                 // Review round 4: on the iPhone each row is a card in the part's colour.
                 .phoneCard(SidebarSection.today.tint)
             }
+            // Build 318: the fold is remembered in the settings, which do not carry a movement by themselves.
+            .animation(Motion.fold, value: foldedSections)
+            .animation(Motion.fold, value: calendarFolded.wrappedValue)
         }
         .task(id: today) { await model.loadEvents(for: today) }
     }

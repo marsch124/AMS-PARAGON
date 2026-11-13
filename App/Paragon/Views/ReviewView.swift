@@ -286,6 +286,8 @@ struct ReviewView: View {
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.review.tint)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: openText.wrappedValue)
         #if os(iOS)
         // Round 9 (build 316): the folded steps sit closer together on the iPhone (they were
         // about 66 points apart). Apple's compact spacing between the parts of a list.

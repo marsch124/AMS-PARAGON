@@ -338,12 +338,12 @@ struct SyncRingGlyph: View {
                 .trim(from: 0, to: fill)
                 .stroke(tint, style: StrokeStyle(lineWidth: 2.2, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.4), value: fill)
+                .animation(Motion.fill, value: fill)
             MarkImage("arrow.triangle.2.circlepath", size: (ring * 0.54).rounded())
                 .foregroundStyle(plain ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
                 .rotationEffect(.degrees(syncing ? 360 : 0))
-                .animation(syncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
-                           value: syncing)
+                // Build 318: no turning with Reduce Motion (`Motion.spin` is nil then).
+                .animation(syncing ? Motion.spin : Motion.fade, value: syncing)
         }
         .frame(width: ring, height: ring)
     }
@@ -1020,6 +1020,8 @@ struct GoalProgressBar: View {
                 ProgressView(value: fraction)
                     .tint(tint)
                     .frame(width: width)
+                    // Build 318: the bar fills to its new value over 0.35 s.
+                    .animation(Motion.fill, value: fraction)
                 Text("\(percent)%")
                     .foregroundStyle(tint.ink)
                 if showsCounts {
@@ -1096,6 +1098,8 @@ struct StateToggle: View {
                 .background { fill }
                 .overlay { border }
                 .contentShape(Rectangle())
+                // Build 318: on and off fade into each other (0.15 s).
+                .animation(Motion.press, value: isOn)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isOn ? "\(title), on" : "\(title), off")
@@ -1149,12 +1153,14 @@ struct FoldButton<Label: View>: View {
 
     var body: some View {
         Button {
-            isOpen.toggle()
+            // Build 318: the group opens and closes over 0.2 s and the arrow turns with it.
+            withAnimation(Motion.fold) { isOpen.toggle() }
         } label: {
             HStack(spacing: 6) {
                 MarkImage("chevron.right")
                     .foregroundStyle(.soft)
                     .rotationEffect(.degrees(isOpen ? 90 : 0))
+                    .animation(Motion.fold, value: isOpen)
                 label()
             }
             .contentShape(Rectangle())
