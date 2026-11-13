@@ -38,7 +38,7 @@ final class Round8CTests: XCTestCase {
         XCTAssertEqual(CaptureHotKey.controlOptionSpace.keyCode, 49)
         XCTAssertEqual(CaptureHotKey.controlOptionSpace.modifiers, 0x1800)
         // Every choice is a different key, and every one holds Control.
-        let on = CaptureHotKey.allCases.filter { $0 != .off }
+        let on = CaptureHotKey.fixedChoices.filter { $0 != .off } // his own key (build 316) is in RecordedKey
         XCTAssertEqual(Set(on.map(\.modifiers)).count, on.count)
         XCTAssertTrue(on.allSatisfy { $0.modifiers & 0x1000 != 0 })
     }

@@ -11,6 +11,8 @@ public enum CaptureHotKey: String, CaseIterable, Sendable, Identifiable {
     case controlOptionSpace
     case controlShiftSpace
     case controlOptionCommandSpace
+    /// A key he recorded himself (build 316): which one is in `RecordedKey`, not here.
+    case custom
 
     public static let storageKey = "captureHotKey"
 
@@ -28,16 +30,21 @@ public enum CaptureHotKey: String, CaseIterable, Sendable, Identifiable {
         case .controlOptionSpace: return "\u{2303}\u{2325}Space"
         case .controlShiftSpace: return "\u{2303}\u{21E7}Space"
         case .controlOptionCommandSpace: return "\u{2303}\u{2325}\u{2318}Space"
+        case .custom: return "My own key"
         }
     }
 
-    /// The key's number on the keyboard (Space is 49), or nil when off.
-    public var keyCode: UInt32? { self == .off ? nil : 49 }
+    /// The three fixed keys and Off: what the Settings list always offers.
+    public static let fixedChoices: [CaptureHotKey] = [.off, .controlOptionSpace, .controlShiftSpace, .controlOptionCommandSpace]
+
+    /// The key's number on the keyboard (Space is 49), or nil when off. Nil for his own key
+    /// too: its number is in `RecordedKey`.
+    public var keyCode: UInt32? { self == .off || self == .custom ? nil : 49 }
 
     /// The held keys, in Carbon's numbers: Command 0x100, Shift 0x200, Option 0x800, Control 0x1000.
     public var modifiers: UInt32 {
         switch self {
-        case .off: return 0
+        case .off, .custom: return 0
         case .controlOptionSpace: return 0x1000 | 0x800
         case .controlShiftSpace: return 0x1000 | 0x200
         case .controlOptionCommandSpace: return 0x1000 | 0x800 | 0x100

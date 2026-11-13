@@ -531,11 +531,13 @@ struct ParagonWidgetBundle: WidgetBundle {
         ActionsWidget()
         CountsWidget()
         TodayPlanWidget()
+        OneListWidget()
     }
     #else
     var body: some Widget {
         ActionsWidget()
         CountsWidget()
+        OneListWidget()
     }
     #endif
 }

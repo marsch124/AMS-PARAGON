@@ -97,6 +97,22 @@ public struct RestoreResult: Equatable, Sendable {
         self.failed = failed
         self.notes = notes
     }
+
+    /// The one line that says what a restore did (build 316), for the message and for the
+    /// line that stays in Settings: "Restored 15 notes from 2026-11-13 08:57". `stamp` is the
+    /// day and time of the copy.
+    public func line(stamp: String) -> String {
+        func count(_ n: Int, _ word: String) -> String { "\(n) \(word)\(n == 1 ? "" : "s")" }
+        guard isComplete else {
+            return "Restored \(written) of \(count(written + failed.count, "file")) from \(stamp). "
+                + "\(failed.count) could not be written."
+        }
+        if written == 0 { return "Nothing was put back from \(stamp). Your notes are as they were." }
+        let others = written - notes
+        if notes == 0 { return "Restored \(count(written, "file")) from \(stamp)" }
+        if others == 0 { return "Restored \(count(notes, "note")) from \(stamp)" }
+        return "Restored \(count(notes, "note")) and \(count(others, "other file")) from \(stamp)"
+    }
 }
 
 /// A vault's name and its lasting identity (review round 8): written into every outside copy,

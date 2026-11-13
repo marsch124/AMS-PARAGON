@@ -277,6 +277,16 @@ struct NoteEditorView: View {
                             tint: note?.tint ?? Theme.fallbackTint) {
                     mode = mode == .edit ? .preview : .edit
                 }
+                // Build 316: the iPad at full width had no way to Find in note (the Mac has
+                // ⌘F in the Edit menu, the iPhone its ⋯ menu). Beside the note's other actions.
+                #if os(iOS)
+                Button {
+                    findInNote()
+                } label: {
+                    MarkLabel("Find in note", "magnifyingglass", size: 16)
+                }
+                .accessibilityIdentifier("note.find")
+                #endif
                 if let note, model.canArchive(note) {
                     Button {
                         flushSave()
@@ -1791,6 +1801,17 @@ struct TaskRow: View {
 
     private var isNext: Bool { ref.task.tags.contains(Note.nextActionTag) }
 
+    /// Mac (build 316): the pointer is over this row.
+    @State private var hovering = false
+
+    /// Whether the row draws its own **Focus on this** button (Mac, build 316): where a timer
+    /// bar is shown, on a task that can be focused on, and not where the time button — which
+    /// already holds Focus on this — is drawn.
+    private var offersFocusButton: Bool {
+        guard focusBarShown, !renaming, model.canFocus(on: ref) else { return false }
+        return TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes) == .nothing
+    }
+
     /// The tick's state in words, for VoiceOver and the screen tests.
     private var tickState: String {
         if ref.task.status == .cancelled { return "cancelled" }
@@ -1890,8 +1911,33 @@ struct TaskRow: View {
                         .foregroundStyle(.soft)
                 }
             }
+            // **Build 316, Mac: Focus on this as the row's own small button**, seen while the
+            // pointer is over the row. Only where the time button (which holds Focus on this
+            // in Start the day and Plan the day) is not drawn, so nothing is offered twice and
+            // no existing button moves. Its place is kept when it is not seen, so the row
+            // does not jump. The right-click menu keeps its item.
+            #if os(macOS)
+            if offersFocusButton {
+                Button {
+                    model.startFocus(on: ref)
+                } label: {
+                    MarkImage("timer", size: 14)
+                        .foregroundStyle(Theme.planBlockTint.ink)
+                        .frame(width: 20, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .opacity(hovering ? 1 : 0)
+                .help("Focus on this: start a clock on this task")
+                .accessibilityLabel("Focus on this")
+                .accessibilityIdentifier("task.focus.\(ref.task.title)")
+            }
+            #endif
         }
         .contentShape(Rectangle())
+        #if os(macOS)
+        .onHover { hovering = $0 }
+        #endif
         // **Build 304 (his yes to my idea): swipe a task to tick it.** A swipe from the left
         // edge does what the circle does — the same `toggle`, so the same gentle tap (build 303)
         // and the same repeat rule. A full swipe ticks at once. Only inside a list (SwiftUI
@@ -1929,6 +1975,23 @@ struct TaskRow: View {
                 }
                 .tint(Theme.eveningTint)
                 .accessibilityIdentifier("task.swipeTomorrow.\(ref.task.title)")
+                // **Build 316: Focus on this, beside Tomorrow.** Since build 312 the time button
+                // (which holds it) is shown only in Start the day and Plan the day, so on every
+                // other list it was in the long-press menu alone. The second button of the same
+                // swipe: Tomorrow stays first, and stays what a full swipe does.
+                if focusBarShown, model.canFocus(on: ref) {
+                    Button {
+                        model.startFocus(on: ref)
+                    } label: {
+                        Label {
+                            Text("Focus")
+                        } icon: {
+                            Marks.templateImage("timer", size: 20)
+                        }
+                    }
+                    .tint(Theme.planBlockTint)
+                    .accessibilityIdentifier("task.swipeFocus.\(ref.task.title)")
+                }
             }
         }
         .draggable(TaskTransfer(ref))

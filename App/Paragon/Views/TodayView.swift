@@ -147,6 +147,18 @@ struct TodayView: View {
                 .accessibilityIdentifier("today.reviewLate")
                 .padding(.horizontal, Theme.gutter + 6)
                 .padding(.bottom, Theme.tight)
+            } else if model.showsNoWeeklyReviewYet {
+                // Build 316: a week of use and no review ever recorded. Same line, same press.
+                Button { model.openSection(.review) } label: {
+                    MarkLabel(WeeklyReviewDone.noneYetLine, SidebarSection.review.markName, text: .footnote)
+                        .font(Txt.label)
+                        .foregroundStyle(SidebarSection.review.tint.ink)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("today.reviewNoneYet")
+                .padding(.horizontal, Theme.gutter + 6)
+                .padding(.bottom, Theme.tight)
             }
             List(selection: model.noteSelection) {
                 Group {

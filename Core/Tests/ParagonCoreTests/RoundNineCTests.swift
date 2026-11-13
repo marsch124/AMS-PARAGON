@@ -123,6 +123,42 @@ final class RoundNineCTests: XCTestCase {
         XCTAssertNoThrow(try mine.loadNote(relativePath: "Projects/Old.md"))
     }
 
+    // MARK: 16 — a capture key he recorded himself
+
+    func testARecordedKeyNeedsAModifierAndWarnsAboutKeysMacOSOwns() {
+        let plain = RecordedKey(keyCode: 40, modifiers: 0, keyName: "K")
+        let shifted = RecordedKey(keyCode: 40, modifiers: RecordedKey.shift, keyName: "K")
+        let own = RecordedKey(keyCode: 40, modifiers: RecordedKey.option | RecordedKey.command, keyName: "K")
+        XCTAssertFalse(plain.isAllowed)
+        XCTAssertFalse(shifted.isAllowed, "Shift and a letter is typing")
+        XCTAssertTrue(own.isAllowed)
+        XCTAssertEqual(own.label, "\u{2325}\u{2318}K")
+        XCTAssertNil(own.warningLine)
+        let spotlight = RecordedKey(keyCode: 49, modifiers: RecordedKey.command, keyName: "Space")
+        XCTAssertTrue(spotlight.isAllowed, "a warning, not a refusal")
+        XCTAssertEqual(spotlight.knownUse, "Spotlight on most Macs")
+        XCTAssertNotNil(RecordedKey(keyCode: 12, modifiers: RecordedKey.command, keyName: "Q").warningLine)
+        // Stored and read back, also when the key is the colon itself.
+        XCTAssertEqual(RecordedKey(stored: own.stored), own)
+        let colon = RecordedKey(keyCode: 41, modifiers: RecordedKey.control, keyName: ":")
+        XCTAssertEqual(RecordedKey(stored: colon.stored), colon)
+        XCTAssertNil(RecordedKey(stored: "nonsense"))
+        XCTAssertEqual(CaptureHotKey.stored("custom"), .custom)
+        XCTAssertNil(CaptureHotKey.custom.keyCode)
+        XCTAssertFalse(CaptureHotKey.fixedChoices.contains(.custom))
+    }
+
+    // MARK: 8 — the line that stays in Settings
+
+    func testTheRestoreLineNamesNotesAndTheCopysDay() {
+        let stamp = "2026-11-13 08:57"
+        XCTAssertEqual(RestoreResult(written: 15, failed: [], notes: 15).line(stamp: stamp), "Restored 15 notes from 2026-11-13 08:57")
+        XCTAssertEqual(RestoreResult(written: 5, failed: [], notes: 1).line(stamp: stamp), "Restored 1 note and 4 other files from 2026-11-13 08:57")
+        XCTAssertEqual(RestoreResult(written: 2, failed: ["a.md"], notes: 2).line(stamp: stamp),
+                       "Restored 2 of 3 files from 2026-11-13 08:57. 1 could not be written.")
+        XCTAssertTrue(RestoreResult(written: 0, failed: []).line(stamp: stamp).hasPrefix("Nothing was put back"))
+    }
+
     // MARK: 12 — "No weekly review yet"
 
     func testNoWeeklyReviewYetShowsAWeekAfterFirstUseAndNeverAfterAReview() {
