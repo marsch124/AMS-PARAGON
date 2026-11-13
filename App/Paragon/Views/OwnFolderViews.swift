@@ -8,7 +8,6 @@ import ParagonCore
 /// Every page that asks something has Cancel (Escape on the Mac) and one full-colour button.
 struct OwnFolderPageView: View {
     @EnvironmentObject private var model: AppModel
-    @State private var askingAnyway = false
 
     private struct Words {
         var title: String
@@ -16,7 +15,6 @@ struct OwnFolderPageView: View {
         var list: [String] = []
         var cancel: String? = "Cancel"
         var action: String?
-        var second: String?
     }
 
     private static func count(_ n: Int, _ one: String, _ many: String) -> String { n == 1 ? "1 \(one)" : "\(n) \(many)" }
@@ -50,8 +48,8 @@ struct OwnFolderPageView: View {
                 w.action = "Move my notes"
             } else {
                 w.lines.append("Open PARAGON \(VaultMove.firstBuild) or newer once on every device first. A device with an older PARAGON would go on writing into the old folder.")
+                w.lines.append("PARAGON does not move the notes while a device is not ready: nothing written there would reach the new folder by itself.")
                 w.action = "Check again"
-                w.second = "Move anyway\u{2026}"
             }
             return w
         case .working(let title):
@@ -174,10 +172,6 @@ struct OwnFolderPageView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             HStack {
-                if let second = words.second {
-                    Button(second) { askingAnyway = true }
-                        .accessibilityIdentifier("ownFolder.anyway")
-                }
                 Spacer()
                 if let cancel = words.cancel {
                     Button(cancel, role: .cancel) { self.cancel() }
@@ -204,13 +198,6 @@ struct OwnFolderPageView: View {
         .presentationBackground(Theme.canvas)
         #endif
         .interactiveDismissDisabled(isWorking)
-        .confirmationDialog("Move although a device has not opened PARAGON \(VaultMove.firstBuild) yet?",
-                            isPresented: $askingAnyway, titleVisibility: .visible) {
-            Button("Move my notes") { model.startMove(toOwn: true) }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("That device goes on writing into the old folder until it is updated. PARAGON will find such changes later and offer to bring them over.")
-        }
         .accessibilityIdentifier("ownFolder.page")
     }
 }
@@ -317,7 +304,8 @@ struct OwnFolderSettingsRows: View {
                 if case .moved(let moved)? = model.ownFolder.banner {
                     Button("Your notes have moved\u{2026}") { model.showOwnFolderPage(.moved(moved), fromSettings: true) }
                         .accessibilityIdentifier("settings.vault.moved")
-                } else {
+                } else if model.ownFolder.reachable {
+                    // Review of build 319: offered only where PARAGON's folder can be reached.
                     Button("Move to PARAGON\u{2019}s own folder\u{2026}") { model.showMoveOffer(fromSettings: true) }
                         .accessibilityIdentifier("settings.vault.move")
                     Text("PARAGON can keep the notes in a folder of its own in iCloud Drive and open it by itself on every device. Nothing happens until you say so.")

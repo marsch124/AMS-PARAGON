@@ -600,6 +600,10 @@ public extension Vault {
                   !relative.isEmpty else { continue }
             // What is left of a restore that was cut off: never a file of the vault.
             guard !fileURL.lastPathComponent.hasPrefix(Self.restoreTempPrefix) else { continue }
+            // Review of build 319: a move's markers say what THIS folder is. A copy made in
+            // another folder (or before a move back) carries other ones; restored, they would
+            // tell every device that the notes are somewhere else. Never restored.
+            guard !VaultMove.isMoveOwn(relative) else { continue }
             // A file of the backup that is itself only an iCloud stub here — a backup made on the
             // other device — cannot be restored from this one; copied, it would put a stub into
             // the vault (build 261).
@@ -732,6 +736,8 @@ public extension Vault {
             let ext = fileURL.pathExtension.lowercased()
             guard ext == "md" || ext == "json" || ext == "txt"
                     || (withPictures && Self.pictureExtensions.contains(ext)) else { continue }
+            // Review of build 319: a move's markers belong to the folder, not to the notes.
+            guard !VaultMove.isMoveOwn(relative) else { continue }
             paths.append(relative)
         }
         return paths.sorted()

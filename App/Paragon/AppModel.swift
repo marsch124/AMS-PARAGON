@@ -5229,6 +5229,12 @@ final class AppModel: ObservableObject {
         guard let vault, !isSyncing else { return }
         // Build 319: the notes have left this folder (or are being moved): no Reminders sync
         // from here, or two folders would both talk to the same lists.
+        // Review of build 319: asked afresh before EVERY sync, not taken from the last
+        // 30-second look. A sync right after launch (the timer, an intent in a background
+        // start, the wait for iCloud ending) ran before the first look and would have synced
+        // the folder the notes had left.
+        await refreshOwnFolder()
+        guard self.vault === vault, !isSyncing else { return }
         if ownFolder.holdsSync {
             if !quietly { flash("Reminders sync rests: your notes have moved to another folder.") }
             return

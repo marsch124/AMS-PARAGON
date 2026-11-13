@@ -40,6 +40,7 @@ struct AddToInboxIntent: AppIntent {
         guard let item = ShortcutCapture.item(text: text, day: chosenDay) else {
             throw $text.needsValueError("What do you want to add?")
         }
+        await AppModel.shared.vaultOnceOpen()
         let filed = try AppModel.shared.captureFromShortcut(item)
         return .result(dialog: IntentDialog(stringLiteral: ShortcutCapture.answer(for: item, filed: filed)))
     }
@@ -56,6 +57,7 @@ struct OpenTodayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         let model = AppModel.shared
+        await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         #if os(macOS)
         model.showMainWindowForShortcut()
@@ -76,6 +78,7 @@ struct StartTheDayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         let model = AppModel.shared
+        await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         #if os(macOS)
         model.showMainWindowForShortcut()
@@ -96,6 +99,7 @@ struct CloseTheDayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         let model = AppModel.shared
+        await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         #if os(macOS)
         model.showMainWindowForShortcut()
@@ -130,6 +134,7 @@ struct StartFocusIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let model = AppModel.shared
+        await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         guard !model.focusQuestionPending else { throw ShortcutProblem.busy }
         let before = model.focus
@@ -206,6 +211,7 @@ struct DueTodayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<[String]> & ProvidesDialog & ShowsSnippetView {
         let model = AppModel.shared
+        await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         // A fresh look at the files, the app's own: only notes changed since the last look are
         // read again. The open note's unsaved text is written first, as before every re-read.

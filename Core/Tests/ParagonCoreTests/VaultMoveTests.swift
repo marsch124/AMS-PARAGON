@@ -376,4 +376,191 @@ final class VaultMoveTests: XCTestCase {
         XCTAssertFalse(stale.isGood)
         XCTAssertEqual(stale.different, ["Projects/Alpha.md"])
     }
+
+    // MARK: Review of build 319: the ways notes could be lost, doubled or forked
+
+    func testAMoveNeverGoesIntoAVaultInUseNorIntoAnotherDevicesFreshCopy() throws {
+        let old = try oldVault(), new = try emptyFolder()
+        try VaultMove.run(request(from: old, to: new))
+        try write("# Alpha, written in the new place\n", "Projects/Alpha.md", in: new)
+        // The phone has not seen the move yet and presses "Move my notes" too.
+        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: new, device: "PHONE"))) {
+            guard case .alreadyMoved = $0 as? MoveError else { return XCTFail("\($0)") }
+        }
+        XCTAssertEqual(text("Projects/Alpha.md", in: new), "# Alpha, written in the new place\n")
+        XCTAssertEqual(isVault(VaultMove.standing(of: new))?.generation, 1)
+        XCTAssertFalse(fm.fileExists(atPath: new.appendingPathComponent(".ams-para/Set aside by a move").path))
+
+        // A copy the Mac started an hour ago: the phone does not take it over. After a day it may.
+        let half = try emptyFolder()
+        var stop = MoveHooks()
+        stop.uploadState = { $0.lastPathComponent == VaultMove.arrivingName ? .sent : .full }
+        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: half), hooks: stop))
+        let again = try oldVault()
+        XCTAssertThrowsError(try VaultMove.run(request(from: again, to: half, device: "PHONE"))) {
+            guard case .otherDeviceMoving = $0 as? MoveError else { return XCTFail("\($0)") }
+        }
+        var later = MoveHooks()
+        later.now = { Date().addingTimeInterval(2 * 86_400) }
+        XCTAssertNoThrow(try VaultMove.run(request(from: again, to: half, device: "PHONE"), hooks: later))
+    }
+
+    func testTwoDevicesMovingAtTheSameTimeBothStopBeforeTheCopyCounts() throws {
+        // iCloud parks the other device's marker beside this one's before a note is copied.
+        let old = try oldVault(), new = try emptyFolder()
+        var hooks = MoveHooks()
+        hooks.uploadState = { [self] url in
+            if url.lastPathComponent == VaultMove.arrivingName {
+                try? write("{}", ".ams-para/move/arriving 2.json", in: new)
+            }
+            return .sent
+        }
+        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: new), hooks: hooks)) {
+            guard case .otherDeviceMoving = $0 as? MoveError else { return XCTFail("\($0)") }
+        }
+        XCTAssertFalse(fm.fileExists(atPath: new.appendingPathComponent("Projects/Alpha.md").path), "nothing copied yet")
+        XCTAssertEqual(VaultMove.standing(of: old), .plain)
+
+        // The other device's marker takes this one's place while the copy is being sent.
+        let second = try emptyFolder()
+        var late = MoveHooks()
+        var swapped = false
+        late.progress = { [self] progress in
+            guard progress.step == .sending, !swapped else { return }
+            swapped = true
+            let other = MoveStamp(moveID: "OTHER", generation: 1, vaultID: "11111111-2222-3333-4444-555555555555", at: Date(),
+                                  deviceName: "iPhone", deviceID: "PHONE", toOwnFolder: true, placeName: "x", build: 319)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            try? encoder.encode(other).write(to: second.appendingPathComponent(".ams-para/move/arriving.json"))
+        }
+        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: second), hooks: late)) {
+            XCTAssertEqual($0 as? MoveError, .otherDeviceMoving("iPhone"))
+        }
+        XCTAssertNil(isVault(VaultMove.standing(of: second)), "never called complete")
+        XCTAssertEqual(VaultMove.standing(of: old), .plain)
+    }
+
+    func testANoteChangedWhileICloudTakesTheCopyIsInTheCopyBeforeItCounts() throws {
+        let old = try oldVault(), new = try emptyFolder()
+        var hooks = MoveHooks()
+        var changed = false
+        hooks.uploadState = { [self] url in
+            if url.lastPathComponent == "Beta.md", !changed {
+                changed = true
+                try? write("# Beta\n- [ ] typed during the wait for iCloud\n", "Projects/Beta.md", in: old)
+                try? write("# Written by a widget tick meanwhile\n", "Projects/Zeta.md", in: old)
+            }
+            return .sent
+        }
+        let outcome = try VaultMove.run(request(from: old, to: new), hooks: hooks)
+        XCTAssertTrue(changed)
+        XCTAssertEqual(text("Projects/Beta.md", in: new), "# Beta\n- [ ] typed during the wait for iCloud\n")
+        XCTAssertEqual(text("Projects/Zeta.md", in: new), "# Written by a widget tick meanwhile\n")
+        XCTAssertEqual(try VaultMove.manifest(of: new).files, try VaultMove.manifest(of: old).files)
+        XCTAssertEqual(VaultMove.list(in: new, matching: outcome.stamp)?.hashes["Projects/Zeta.md"] != nil, true)
+        XCTAssertEqual(outcome.setAside, 0)
+    }
+
+    func testOddNamesEmptyFilesStubsAndLinksAreCopiedExactlyOrStopTheMove() throws {
+        let old = try oldVault(), new = try emptyFolder()
+        // "å" written as a + ring (as a Mac or iCloud may hand a name over), an empty file,
+        // a hidden one, a name that differs from another only by its capitals' place in a folder.
+        let decomposed = "Areas/Ma\u{030A}l och va\u{0308}g.md"
+        try write("# Mål\n", decomposed, in: old)
+        try write("", "Areas/Empty.md", in: old)
+        try write("hidden", ".obsidian/app.json", in: old)
+        try write("x", String(repeating: "långt namn ", count: 18) + ".md", in: old)
+        let outcome = try VaultMove.run(request(from: old, to: new))
+        XCTAssertEqual(text(decomposed.precomposedStringWithCanonicalMapping, in: new), "# Mål\n")
+        XCTAssertEqual(text("Areas/Empty.md", in: new), "")
+        XCTAssertEqual(text(".obsidian/app.json", in: new), "hidden")
+        XCTAssertEqual(outcome.manifest.files.filter { $0.path.hasSuffix("g.md") && $0.path.hasPrefix("Areas/M") }.count, 1)
+        let look = VaultMove.look(at: new)
+        XCTAssertTrue(look.isComplete, "missing: \(look.missing)")
+        // The same name in the other spelling is the same file: no false "changed", no false "deleted".
+        let baseline = try XCTUnwrap(VaultMove.baseline(for: "PHONE", in: new))
+        XCTAssertTrue(try VaultMove.changes(in: old, since: baseline).changes.isEmpty)
+
+        // A file iCloud has not brought (only its stub is here) stops the move; it is never
+        // counted as copied and never copied as an empty file.
+        let withStub = try oldVault(), target = try emptyFolder()
+        try write("", "Projects/.Evicted.md.icloud", in: withStub)
+        XCTAssertThrowsError(try VaultMove.run(request(from: withStub, to: target))) {
+            XCTAssertEqual($0 as? MoveError, .notHere(["Projects/Evicted.md"]))
+        }
+        XCTAssertEqual(VaultMove.standing(of: target), .plain)
+        // A link to somewhere else stops it too.
+        let withLink = try oldVault(), other = try emptyFolder()
+        try fm.createSymbolicLink(at: withLink.appendingPathComponent("Projects/Link.md"), withDestinationURL: old.appendingPathComponent("Projects/Alpha.md"))
+        XCTAssertThrowsError(try VaultMove.run(request(from: withLink, to: other))) {
+            XCTAssertEqual($0 as? MoveError, .unsupported(["Projects/Link.md"]))
+        }
+    }
+
+    func testAnOlderCopyOfANoteIsNeverTakenForAChangeMadeAfterTheMove() throws {
+        let old = try oldVault(), new = try emptyFolder()
+        // This device holds an older copy of Beta while iCloud has a newer one: no list is made.
+        XCTAssertThrowsError(try VaultMove.manifest(of: old, waitingUpTo: 0.3, presence: {
+            $0.lastPathComponent == "Beta.md" ? .stale : .here
+        })) {
+            XCTAssertEqual($0 as? MoveError, .notHere(["Projects/Beta.md"]))
+        }
+
+        try VaultMove.run(request(from: old, to: new))
+        // A phone that was offline: its old folder shows Alpha as it was a week ago. The text
+        // differs from the list made at the move, but it is older — it must not replace the note.
+        try write("# Alpha as it was last week\n", "Projects/Alpha.md", in: old)
+        try fm.setAttributes([.modificationDate: Date().addingTimeInterval(-7 * 86_400)],
+                             ofItemAtPath: old.appendingPathComponent("Projects/Alpha.md").path)
+        // And a real change made after the move on a device with an older PARAGON.
+        try write("# Gamma, changed after the move\n", "Areas/Gamma.md", in: old)
+        try fm.setAttributes([.modificationDate: Date().addingTimeInterval(60)],
+                             ofItemAtPath: old.appendingPathComponent("Areas/Gamma.md").path)
+        let result = try VaultMove.bringOver(from: old, to: new, deviceID: "PHONE")
+        XCTAssertEqual(text("Projects/Alpha.md", in: new), "# Alpha\n- [ ] one ^t111111\n", "the newer note stays")
+        XCTAssertEqual(result.keptBoth.count, 1)
+        XCTAssertEqual(text(result.keptBoth[0], in: new), "# Alpha as it was last week\n")
+        XCTAssertEqual(result.replaced, ["Areas/Gamma.md"])
+        XCTAssertEqual(text("Areas/Gamma.md", in: new), "# Gamma, changed after the move\n")
+        // What was replaced is kept, not gone.
+        let aside = new.appendingPathComponent(".ams-para/Set aside by a move")
+        let kept = try XCTUnwrap(fm.enumerator(atPath: aside.path)?.allObjects as? [String]).filter { $0.hasSuffix("Areas/Gamma.md") }
+        XCTAssertEqual(kept.count, 1)
+        XCTAssertEqual(text(".ams-para/Set aside by a move/" + kept[0], in: new), "# Gamma\n")
+    }
+
+    func testManyListedFilesNotThereMeansStillArrivingNotDeleted() {
+        var look = PlaceLook()
+        look.standing = .vault(MoveStamp(moveID: "m", generation: 1, vaultID: "v", at: Date(), deviceName: "Mac", deviceID: "MAC",
+                                         toOwnFolder: true, placeName: "x", build: 319))
+        look.listHere = true
+        look.expected = 100
+        look.missing = (1...10).map { "Projects/\($0).md" }
+        XCTAssertTrue(look.mayOpenDespiteMissing, "a few files deleted or renamed since the move")
+        look.missing.append("Projects/11.md")
+        XCTAssertFalse(look.mayOpenDespiteMissing, "more than a tenth: iCloud has not listed the folder yet")
+        XCTAssertFalse(look.isComplete)
+    }
+
+    func testBackupsLeaveTheMarkersOutAndARestoreNeverBringsAMarkerBack() throws {
+        let old = try oldVault(), new = try emptyFolder()
+        try VaultMove.run(request(from: old, to: new))
+        let vault = try Vault(rootURL: new)
+        let backup = try XCTUnwrap(try vault.makeBackup(reason: "manual"))
+        let folder = vault.backupsURL.appendingPathComponent(backup.folderName)
+        XCTAssertFalse(fm.fileExists(atPath: folder.appendingPathComponent(".ams-para/move").path))
+        XCTAssertTrue(fm.fileExists(atPath: folder.appendingPathComponent("Projects/Alpha.md").path))
+        // A copy from another folder of the same vault (made there after the notes had left
+        // it, or before a move back) carries that folder's markers.
+        let later = MoveStamp(moveID: "LATER", generation: 9, vaultID: "11111111-2222-3333-4444-555555555555", at: Date(),
+                              deviceName: "iPhone", deviceID: "PHONE", toOwnFolder: false, placeName: "elsewhere", build: 319)
+        try write(VaultMove.movedText(later), VaultMove.movedFileName, in: folder)
+        try write("{}", ".ams-para/move/complete.json", in: folder)
+        try write("# Alpha, from the backup\n", "Projects/Alpha.md", in: folder)
+        _ = try vault.restore(backup)
+        XCTAssertEqual(text("Projects/Alpha.md", in: new), "# Alpha, from the backup\n")
+        XCTAssertEqual(isVault(VaultMove.standing(of: new))?.generation, 1, "still the vault, as before the restore")
+        XCTAssertFalse(fm.fileExists(atPath: new.appendingPathComponent(VaultMove.movedFileName).path))
+    }
 }

@@ -151,6 +151,10 @@ public enum MoveError: Error, LocalizedError, Equatable {
     case uploadSlow(Int)
     case markerFailed(String)
     case noList
+    /// The place the notes should go to is a vault in use: another device moved them already.
+    case alreadyMoved(String)
+    /// Another device is making the same move right now.
+    case otherDeviceMoving(String)
 
     public static func megabytes(_ bytes: Int) -> String {
         let mb = Double(bytes) / 1_000_000
@@ -192,6 +196,10 @@ public enum MoveError: Error, LocalizedError, Equatable {
             return "The move could not be finished: \(why) Nothing has changed: your notes are where they were."
         case .noList:
             return "The list of files made at the move is not on this device yet."
+        case .alreadyMoved(let name):
+            return "Your notes are already in that place: \(name) moved them. Nothing was changed. PARAGON shows \u{201C}Your notes have moved\u{201D} here as soon as it has seen it."
+        case .otherDeviceMoving(let name):
+            return "\(name) is moving your notes too. Two devices must not move them at the same time, so this move stopped. Nothing has changed: your notes are where they were. Let that device finish, or try again tomorrow."
         }
     }
 }
@@ -274,6 +282,10 @@ public struct PlaceLook: Equatable, Sendable {
     /// Everything iCloud knows of has arrived, but some listed files are not there. Only after
     /// several looks agree may the app ask him whether they were deleted or renamed since.
     public var isAllButMissing: Bool { stamp != nil && listHere && arriving.isEmpty && !missing.isEmpty }
+    /// Review of build 319: "deleted or renamed since" is only believed of a few files. With
+    /// more than a tenth of the list not there, iCloud has not finished listing the folder —
+    /// opened like that, the notes that are still to come would look deleted to the Reminders sync.
+    public var mayOpenDespiteMissing: Bool { isAllButMissing && missing.count * 10 <= expected }
 }
 
 /// What changed in the folder the notes left, since a list was made.
@@ -397,6 +409,7 @@ public enum VaultMove {
     /// **Blocks the calling thread; never called on the main one.**
     public static func manifest(of root: URL, waitingUpTo wait: TimeInterval = CloudFiles.longestWait,
                                 skippingBackups: Bool = false,
+                                presence: (URL) -> CloudFiles.Presence = VaultMove.freshPresence,
                                 progress: ((Int) -> Void)? = nil,
                                 cancelled: () -> Bool = { false }) throws -> MoveManifest {
         let fm = FileManager.default
@@ -430,7 +443,7 @@ public enum VaultMove {
                 continue
             }
             if cancelled() { throw MoveError.cancelled }
-            guard let data = try? CloudFiles.read(root.appendingPathComponent(raw), waitingUpTo: wait) else {
+            guard let data = try? currentData(root.appendingPathComponent(raw), waitingUpTo: wait, presence: presence) else {
                 notHere.append(path)
                 continue
             }
@@ -440,6 +453,31 @@ public enum VaultMove {
         if !strange.isEmpty { throw MoveError.unsupported(strange.sorted()) }
         if !notHere.isEmpty { throw MoveError.notHere(notHere.sorted()) }
         return MoveManifest(files: files, folders: folders)
+    }
+
+    /// iCloud's mark for a file, asked afresh (a URL remembers the answer it got first).
+    public static func freshPresence(of url: URL) -> CloudFiles.Presence {
+        var fresh = URL(fileURLWithPath: url.path)
+        fresh.removeAllCachedResourceValues()
+        return CloudFiles.presence(of: fresh)
+    }
+
+    /// The bytes of a file **as iCloud has it now** (review of build 319). A file of which this
+    /// device holds an older copy while iCloud has a newer one reads at once — as the older
+    /// text. Listed like that, a device that was offline would take its old copy for a change
+    /// made after the move and put it over the newer note. Such a file is asked for and waited
+    /// for; if the newer copy does not come in time, the read fails and nothing is decided.
+    static func currentData(_ url: URL, waitingUpTo wait: TimeInterval,
+                            presence: (URL) -> CloudFiles.Presence = VaultMove.freshPresence) throws -> Data {
+        if presence(url) == .stale {
+            CloudFiles.startDownload(url)
+            let end = Date().addingTimeInterval(wait)
+            while presence(url) == .stale {
+                guard Date() < end else { throw CocoaError(.fileReadNoPermission, userInfo: [NSFilePathErrorKey: url.path]) }
+                Thread.sleep(forTimeInterval: 0.25)
+            }
+        }
+        return try CloudFiles.read(url, waitingUpTo: wait)
     }
 
     // MARK: Reading and writing the markers
@@ -637,13 +675,27 @@ public enum VaultMove {
     /// May the notes be copied into this folder? Yes when it is empty, or when its markers say
     /// it belongs to this same vault (a move that was stopped, or the folder the vault once
     /// left). Anything else is somebody's files and is not touched.
-    static func checkDestination(_ destination: URL, knownVaultIDs: Set<String>) throws {
+    ///
+    /// Review of build 319: **never into a vault in use.** A device that has not yet seen that
+    /// another one moved the notes would otherwise copy the old folder over the new one. And
+    /// not into a copy another device started less than a day ago.
+    static func checkDestination(_ destination: URL, knownVaultIDs: Set<String>, deviceID: String = "",
+                                 now: Date = Date()) throws {
         let fm = FileManager.default
         try? fm.createDirectory(at: destination, withIntermediateDirectories: true)
         switch standing(of: destination) {
         case .unclear:
             throw MoveError.destinationUnclear
-        case .vault(let stamp), .halfMade(let stamp), .movedAway(let stamp):
+        case .vault(let stamp):
+            if knownVaultIDs.contains(stamp.vaultID) { throw MoveError.alreadyMoved(stamp.deviceName) }
+        case .halfMade(let stamp):
+            if knownVaultIDs.contains(stamp.vaultID) {
+                if stamp.deviceID != deviceID, now.timeIntervalSince(stamp.at) < 86_400 {
+                    throw MoveError.otherDeviceMoving(stamp.deviceName)
+                }
+                return
+            }
+        case .movedAway(let stamp):
             if knownVaultIDs.contains(stamp.vaultID) { return }
         case .plain:
             break
@@ -664,7 +716,7 @@ public enum VaultMove {
         let from = source.appendingPathComponent(path)
         let to = destination.appendingPathComponent(path)
         do {
-            let data = try CloudFiles.read(from, waitingUpTo: wait)
+            let data = try currentData(from, waitingUpTo: wait)
             try fm.createDirectory(at: to.deletingLastPathComponent(), withIntermediateDirectories: true)
             var coordinationError: NSError?
             var writeError: Error?
@@ -704,6 +756,23 @@ public enum VaultMove {
         }
     }
 
+    /// Copies a file of `folder` into its set-aside folder before it is replaced. The file
+    /// itself stays where it is.
+    private static func keepCopy(of path: String, in folder: URL, stamp: String) throws {
+        let fm = FileManager.default
+        let target = folder.appendingPathComponent(Vault.stateFolderName, isDirectory: true)
+            .appendingPathComponent(setAsideFolderName, isDirectory: true)
+            .appendingPathComponent(stamp, isDirectory: true).appendingPathComponent(path)
+        try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+        var free = target
+        var number = 2
+        while fm.fileExists(atPath: free.path) {
+            free = target.deletingLastPathComponent().appendingPathComponent("\(target.lastPathComponent) \(number)")
+            number += 1
+        }
+        try fm.copyItem(at: folder.appendingPathComponent(path), to: free)
+    }
+
     /// **The whole move**: check the destination, mark it "being filled", copy, verify, wait for
     /// iCloud, then write "complete" there and "moved" in the folder the notes left. Throws at
     /// the first thing that is not right; until the complete marker is written nothing has
@@ -713,7 +782,7 @@ public enum VaultMove {
     public static func run(_ request: MoveRequest, hooks: MoveHooks = MoveHooks()) throws -> MoveOutcome {
         let fm = FileManager.default
         let source = base(request.source)
-        try checkDestination(request.destination, knownVaultIDs: request.knownVaultIDs)
+        try checkDestination(request.destination, knownVaultIDs: request.knownVaultIDs, deviceID: request.deviceID, now: hooks.now())
         let destination = base(request.destination)
         guard source.path != destination.path, !destination.path.hasPrefix(source.path + "/"),
               !source.path.hasPrefix(destination.path + "/") else {
@@ -746,87 +815,123 @@ public enum VaultMove {
                               toOwnFolder: request.toOwnFolder, placeName: request.placeName, build: request.build)
         try write(stamp, named: arrivingName, in: destination)
 
+        /// Waits until iCloud has taken the given files of the destination.
+        func waitUntilSent(_ paths: [String], patience: TimeInterval, showing: Bool) throws {
+            var left = paths
+            let total = left.count
+            let started = hooks.now()
+            while true {
+                if hooks.cancelled() { throw MoveError.cancelled }
+                var still: [String] = []
+                for path in left {
+                    switch hooks.uploadState(destination.appendingPathComponent(path)) {
+                    case .sent: break
+                    case .waiting: still.append(path)
+                    case .full: throw MoveError.cloudFull
+                    case .failed(let why): throw MoveError.uploadFailed(path, why)
+                    }
+                }
+                left = still
+                if showing { hooks.progress(MoveProgress(step: .sending, done: total - left.count, total: total)) }
+                if left.isEmpty { break }
+                if hooks.now().timeIntervalSince(started) > patience { throw MoveError.uploadSlow(left.count) }
+                hooks.pause(2)
+            }
+        }
+
+        // Review of build 319 — **one device at a time.** The "being filled" marker goes to
+        // iCloud before a single note is copied, and then this device looks whether the marker
+        // is still its own. Two devices that press "Move my notes" within the same minute both
+        // write one; iCloud keeps one and parks the other, and both devices see that here (and
+        // once more before the copy counts) and stop. Without this both would fill the folder,
+        // and iCloud would keep every note twice ("Note 2.md").
+        let arrivingPath = "\(Vault.stateFolderName)/\(folderName)/\(arrivingName)"
+        try waitUntilSent([arrivingPath], patience: min(hooks.uploadPatience, 120), showing: false)
+        try checkOnlyOurMove(stamp, in: destination)
+
         let asideStamp = stampFormatter.string(from: hooks.now())
         var copied = 0, alreadyThere = 0, aside = 0
         // Files this run wrote itself: copied again when the vault changed meanwhile, and not
         // set aside — only what was in the destination before the move is worth keeping.
         var ours: Set<String> = []
-        var verified = false
-        var lastDifferences: [String] = []
-        for round in 1...3 {
-            let have = there.hashes
-            let wanted = Set(plan.files.map(\.path))
-            // What is in the destination and not in the vault is set aside first, so a file
-            // that became a folder (or the other way round) cannot be in the way.
-            for extra in there.files where !wanted.contains(extra.path) {
-                if ours.contains(extra.path) {
-                    // Copied a moment ago and deleted from the vault since: the copy goes too.
-                    try? fm.removeItem(at: destination.appendingPathComponent(extra.path))
-                    ours.remove(extra.path)
-                } else {
-                    try setAside(extra.path, in: destination, stamp: asideStamp)
-                    aside += 1
-                }
-            }
-            for folder in plan.folders {
-                try? fm.createDirectory(at: destination.appendingPathComponent(folder), withIntermediateDirectories: true)
-            }
-            var done = 0
-            for file in plan.files {
-                if hooks.cancelled() { throw MoveError.cancelled }
-                if have[file.path] == file.hash {
-                    if round == 1 { alreadyThere += 1 }
-                } else {
-                    if have[file.path] != nil, !ours.contains(file.path) {
-                        try setAside(file.path, in: destination, stamp: asideStamp)
+        var firstRound = true
+        var pass = 0
+        while true {
+            pass += 1
+            var verified = false
+            var lastDifferences: [String] = []
+            for _ in 1...3 {
+                let have = there.hashes
+                let wanted = Set(plan.files.map(\.path))
+                // What is in the destination and not in the vault is set aside first, so a file
+                // that became a folder (or the other way round) cannot be in the way.
+                for extra in there.files where !wanted.contains(extra.path) {
+                    if ours.contains(extra.path) {
+                        // Copied a moment ago and deleted from the vault since: the copy goes too.
+                        try? fm.removeItem(at: destination.appendingPathComponent(extra.path))
+                        ours.remove(extra.path)
+                    } else {
+                        try setAside(extra.path, in: destination, stamp: asideStamp)
                         aside += 1
                     }
-                    try copyFile(file.path, from: source, to: destination, wait: hooks.readWait)
-                    ours.insert(file.path)
-                    copied += 1
                 }
-                done += 1
-                hooks.progress(MoveProgress(step: .copying, done: done, total: plan.files.count))
+                for folder in plan.folders {
+                    try? fm.createDirectory(at: destination.appendingPathComponent(folder), withIntermediateDirectories: true)
+                }
+                var done = 0
+                for file in plan.files {
+                    if hooks.cancelled() { throw MoveError.cancelled }
+                    if have[file.path] == file.hash {
+                        if firstRound { alreadyThere += 1 }
+                    } else {
+                        if have[file.path] != nil, !ours.contains(file.path) {
+                            try setAside(file.path, in: destination, stamp: asideStamp)
+                            aside += 1
+                        }
+                        try copyFile(file.path, from: source, to: destination, wait: hooks.readWait)
+                        ours.insert(file.path)
+                        copied += 1
+                    }
+                    done += 1
+                    hooks.progress(MoveProgress(step: .copying, done: done, total: plan.files.count))
+                }
+                firstRound = false
+                // Verify: both folders listed again, from the disk, and compared.
+                let total = plan.files.count * 2
+                let again = try manifest(of: source, waitingUpTo: hooks.readWait,
+                                         progress: { hooks.progress(MoveProgress(step: .checking, done: $0, total: total)) },
+                                         cancelled: hooks.cancelled)
+                let made = try manifest(of: destination, waitingUpTo: hooks.readWait,
+                                        progress: { hooks.progress(MoveProgress(step: .checking, done: again.fileCount + $0, total: total)) },
+                                        cancelled: hooks.cancelled)
+                lastDifferences = again.differences(from: made)
+                plan = again
+                there = made
+                if lastDifferences.isEmpty, again.fileCount == made.fileCount, again.byteCount == made.byteCount {
+                    verified = true
+                    break
+                }
             }
-            // Verify: both folders listed again, from the disk, and compared.
-            let total = plan.files.count * 2
-            let again = try manifest(of: source, waitingUpTo: hooks.readWait,
-                                     progress: { hooks.progress(MoveProgress(step: .checking, done: $0, total: total)) },
-                                     cancelled: hooks.cancelled)
-            let made = try manifest(of: destination, waitingUpTo: hooks.readWait,
-                                    progress: { hooks.progress(MoveProgress(step: .checking, done: again.fileCount + $0, total: total)) },
-                                    cancelled: hooks.cancelled)
-            lastDifferences = again.differences(from: made)
-            plan = again
-            there = made
-            if lastDifferences.isEmpty, again.fileCount == made.fileCount, again.byteCount == made.byteCount {
-                verified = true
-                break
-            }
-        }
-        guard verified else { throw MoveError.keptChanging(lastDifferences) }
+            guard verified else { throw MoveError.keptChanging(lastDifferences) }
 
-        // iCloud must have taken every file before any device is told the vault is here.
-        var left = plan.files.map(\.path)
-        let total = left.count
-        let started = hooks.now()
-        while true {
+            // iCloud must have taken every file before any device is told the vault is here.
+            try waitUntilSent(plan.files.map(\.path), patience: hooks.uploadPatience, showing: true)
             if hooks.cancelled() { throw MoveError.cancelled }
-            var still: [String] = []
-            for path in left {
-                switch hooks.uploadState(destination.appendingPathComponent(path)) {
-                case .sent: break
-                case .waiting: still.append(path)
-                case .full: throw MoveError.cloudFull
-                case .failed(let why): throw MoveError.uploadFailed(path, why)
-                }
-            }
-            left = still
-            hooks.progress(MoveProgress(step: .sending, done: total - left.count, total: total))
-            if left.isEmpty { break }
-            if hooks.now().timeIntervalSince(started) > hooks.uploadPatience { throw MoveError.uploadSlow(left.count) }
-            hooks.pause(2)
+
+            // Review of build 319 — the wait for iCloud can take minutes, and the vault is in
+            // use meanwhile (he types in the main window, another device's change arrives, a
+            // widget tick is written). So both folders are listed **once more, last of all**:
+            // the copy only counts when it equals the vault as it is at this moment. Otherwise
+            // what changed is copied and sent too (three passes at most).
+            let last = try manifest(of: source, waitingUpTo: hooks.readWait, cancelled: hooks.cancelled)
+            let lastMade = try manifest(of: destination, waitingUpTo: hooks.readWait, cancelled: hooks.cancelled)
+            let late = last.differences(from: lastMade)
+            plan = last
+            there = lastMade
+            if late.isEmpty, last.fileCount == lastMade.fileCount, last.byteCount == lastMade.byteCount { break }
+            guard pass < 3 else { throw MoveError.keptChanging(late) }
         }
+        try checkOnlyOurMove(stamp, in: destination)
         if hooks.cancelled() { throw MoveError.cancelled }
 
         // From here on the move is done and is not stopped any more.
@@ -848,8 +953,35 @@ public enum VaultMove {
         // true. It is PARAGON's own marker; the move number would overrule it anyway.
         for stale in movedFiles(in: destination) { try? fm.removeItem(at: stale) }
         // Last of all, and the only thing ever written into the folder the notes left.
-        try writeMoved(stamp, in: source)
+        // Review of build 319: not an error any more when it cannot be written. The complete
+        // marker is there, so the move HAS happened; saying "nothing has changed" now would be
+        // untrue. Every device also learns of the move from the new folder itself, and the
+        // device that follows writes this file then (`writeMoved`).
+        try? writeMoved(stamp, in: source)
         return MoveOutcome(stamp: stamp, manifest: plan, copied: copied, alreadyThere: alreadyThere, setAside: aside)
+    }
+
+    /// Throws when the copy being made into `destination` is not this move's alone: the
+    /// "being filled" marker is another move's or has gone, iCloud has parked a second one
+    /// beside it ("arriving 2.json"), or a complete marker of another move is there.
+    static func checkOnlyOurMove(_ stamp: MoveStamp, in destination: URL) throws {
+        let folder = moveFolder(in: base(destination))
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        let stem = (arrivingName as NSString).deletingPathExtension
+        for listed in names {
+            let name = CloudFiles.realName(ofPlaceholder: listed) ?? listed
+            if name.hasPrefix(stem), name != arrivingName { throw MoveError.otherDeviceMoving("Another device") }
+        }
+        switch marker(at: folder.appendingPathComponent(arrivingName)) {
+        case .stamp(let there):
+            if there.moveID != stamp.moveID { throw MoveError.otherDeviceMoving(there.deviceName) }
+        case .none, .unclear:
+            throw MoveError.otherDeviceMoving("Another device")
+        }
+        if case .stamp(let done) = marker(at: folder.appendingPathComponent(completeName)),
+           done.generation >= stamp.generation, done.moveID != stamp.moveID {
+            throw MoveError.alreadyMoved(done.deviceName)
+        }
     }
 
     /// Writes the "moved" file into the folder the notes left, unless one of this move or a
@@ -970,12 +1102,25 @@ public enum VaultMove {
         let before = baseline.hashes
         let oldHashes = seen.hashes
         var result = BroughtOver()
+        // Review of build 319. "Changed in the old folder, untouched here" may only replace the
+        // note here when the change was really made after the move: the old file's date is later
+        // than the move. A device that was offline, or a version iCloud delivered late, shows a
+        // text that differs from the list too, but is OLDER than the note here; that one is kept
+        // beside the note as a conflict copy, never put over it. And whatever is replaced is
+        // first copied to "Set aside by a move", so no text is ever gone.
+        var movedAt: Date?
+        if case .vault(let stamp) = standing(of: new) { movedAt = stamp.at }
+        let asideStamp = stampFormatter.string(from: now)
+        func changedAfterTheMove(_ path: String) -> Bool {
+            guard let movedAt, let date = (try? fm.attributesOfItem(atPath: old.appendingPathComponent(path).path))?[.modificationDate] as? Date else { return false }
+            return date > movedAt
+        }
         result.deletedInOld = changes.deleted.filter { CloudFiles.exists(new.appendingPathComponent($0)) }
         for path in changes.added + changes.changed {
             let target = new.appendingPathComponent(path)
             var here: String?
             if CloudFiles.exists(target) {
-                guard let data = try? CloudFiles.read(target, waitingUpTo: wait) else {
+                guard let data = try? currentData(target, waitingUpTo: wait) else {
                     result.failed.append(path)
                     continue
                 }
@@ -986,13 +1131,14 @@ public enum VaultMove {
                 if here == nil {
                     try copyFile(path, from: old, to: new, wait: wait)
                     result.copied.append(path)
-                } else if let was = before[path], here == was {
+                } else if let was = before[path], here == was, path.hasPrefix(statePrefix) || changedAfterTheMove(path) {
+                    try keepCopy(of: path, in: new, stamp: asideStamp)
                     try copyFile(path, from: old, to: new, wait: wait)
                     result.replaced.append(path)
                 } else if path.hasPrefix(statePrefix) {
                     result.leftAlone.append(path)
                 } else {
-                    let data = try CloudFiles.read(old.appendingPathComponent(path), waitingUpTo: wait)
+                    let data = try currentData(old.appendingPathComponent(path), waitingUpTo: wait)
                     var number = 1
                     while true {
                         let copyPath = conflictPath(for: path, at: now, number: number)

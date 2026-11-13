@@ -84,6 +84,9 @@ struct OwnFolderState: Equatable {
     var previousName: String?
     var canGoBack = false
     var movedOn: Date?
+    /// PARAGON's folder in iCloud Drive can be reached on this device. While it cannot (iCloud
+    /// off, or a build without the iCloud right), Settings does not offer the move at all.
+    var reachable = false
 }
 
 /// A stop flag a move reads from its own thread.
@@ -255,7 +258,7 @@ extension AppModel {
             return
         }
         let look = seen.look
-        if look.isAllButMissing { looksWithTheSameMissing += 1 } else { looksWithTheSameMissing = 0 }
+        if look.mayOpenDespiteMissing { looksWithTheSameMissing += 1 } else { looksWithTheSameMissing = 0 }
         // Listed files that are not here: offered only after a minute of looks that agree and
         // with the vault's own settings file listed, and then with the caution below.
         if let stamp = look.stamp, look.isComplete || (looksWithTheSameMissing >= 12 && seen.isVaultHere) {
@@ -288,6 +291,18 @@ extension AppModel {
         openVault(at: url, ownFolder: true)
     }
 
+    /// Review of build 319: a device that keeps its notes in PARAGON's folder opens them a
+    /// moment AFTER launch (the folder is found off the main thread). Siri, Shortcuts and the
+    /// widgets can start the app in the background and ask at once; they wait here, ten
+    /// seconds at most, instead of answering "no vault".
+    func vaultOnceOpen() async {
+        var tries = 0
+        while vault == nil, ownFolder.opening, tries < 40 {
+            try? await Task.sleep(for: .milliseconds(250))
+            tries += 1
+        }
+    }
+
     // MARK: A vault is open
 
     /// Called whenever a vault has been opened: notes this device in the vault, and starts
@@ -300,6 +315,7 @@ extension AppModel {
         ownFolder.foundNote = nil
         ownFolder.banner = nil
         ownFolder.holdsSync = false
+        ownFolder.reachable = false
         ownFolder.isOwn = settingsStore.bool(forKey: ownFolderKey)
         ownFolder.previousName = settingsStore.data(forKey: previousVaultBookmarkKey) != nil
             ? settingsStore.string(forKey: previousVaultNameKey) : nil
@@ -400,8 +416,8 @@ extension AppModel {
         func moved(_ stamp: MoveStamp, _ look: PlaceLook?, reachable: Bool) -> OwnFolderState.Moved {
             let same = look?.stamp?.moveID == stamp.moveID || (look?.stamp?.generation ?? 0) > stamp.generation
             let usable = same ? look : nil
-            if usable?.isAllButMissing == true { looksWithTheSameMissing += 1 } else { looksWithTheSameMissing = 0 }
-            let ready = usable?.isComplete == true || (usable?.isAllButMissing == true && looksWithTheSameMissing >= 4)
+            if usable?.mayOpenDespiteMissing == true { looksWithTheSameMissing += 1 } else { looksWithTheSameMissing = 0 }
+            let ready = usable?.isComplete == true || (usable?.mayOpenDespiteMissing == true && looksWithTheSameMissing >= 4)
             return OwnFolderState.Moved(stamp: stamp, reachable: reachable, ready: ready,
                                         here: usable?.here ?? 0, expected: usable?.expected ?? (stamp.fileCount ?? 0),
                                         missing: usable?.missing ?? [])
@@ -409,6 +425,18 @@ extension AppModel {
         var banner: OwnFolderState.Banner?
         var holds = false
         var canGoBack = false
+        // The vault is complete in PARAGON's folder under a later move number than anything
+        // this folder says: the notes are there, whatever this folder's own markers say (the
+        // "moved" file has not arrived, was taken away, cannot be read yet, or a move back
+        // into this folder was started and never finished).
+        var here = 0
+        if case .vault(let stamp) = seen.standing { here = stamp.generation }
+        if case .movedAway(let stamp) = seen.standing { here = stamp.generation }
+        var ownSays: MoveStamp?
+        if !isOwn, let stamp = seen.ownLook?.stamp, stamp.toOwnFolder, seen.known.contains(stamp.vaultID),
+           stamp.generation > here {
+            ownSays = stamp
+        }
         switch seen.standing {
         case .movedAway(let stamp):
             holds = true
@@ -417,17 +445,14 @@ extension AppModel {
                 : .moved(moved(stamp, seen.previousLook, reachable: seen.previousReachable))
         case .halfMade(let stamp):
             holds = true
-            banner = .beingFilled(stamp)
+            banner = ownSays.map { .moved(moved($0, seen.ownLook, reachable: true)) } ?? .beingFilled(stamp)
         case .unclear:
-            holds = ownFolder.holdsSync
-            banner = ownFolder.banner
+            // Review of build 319: a marker is in this folder and cannot be read yet. It may
+            // say "the notes have moved", so the sync rests until it can be read (seconds).
+            holds = true
+            banner = ownSays.map { .moved(moved($0, seen.ownLook, reachable: true)) } ?? ownFolder.banner
         case .plain, .vault:
-            var here = 0
-            if case .vault(let stamp) = seen.standing { here = stamp.generation }
-            if !isOwn, let stamp = seen.ownLook?.stamp, stamp.toOwnFolder, seen.known.contains(stamp.vaultID),
-               stamp.generation > here {
-                // The vault is complete in PARAGON's folder and the "moved" file has not
-                // reached this folder (or was taken away): the same thing, said by the other side.
+            if let stamp = ownSays {
                 holds = true
                 banner = .moved(moved(stamp, seen.ownLook, reachable: true))
             } else if isOwn {
@@ -441,6 +466,7 @@ extension AppModel {
                 }
             }
         }
+        ownFolder.reachable = ownReachable
         if holds, !ownFolder.holdsSync { log("sync rests: the notes left this folder") }
         ownFolder.holdsSync = holds
         ownFolder.banner = banner
@@ -552,6 +578,15 @@ extension AppModel {
                 do {
                     let own = try Vault(rootURL: root, config: config)
                     var notes: [String] = []
+                    // Review of build 319: no move while a device that uses these notes has not
+                    // opened a PARAGON that understands a move. Asked again here, where the move
+                    // starts, whatever the page showed. There is no "Move anyway".
+                    if toOwn {
+                        let this = VaultDevice(deviceID: id, name: AppModel.deviceOwnName(kind: kind), build: build, kind: kind, seenAt: Date())
+                        guard VaultDevices.allReady(own.deviceLines(this: this)) else {
+                            return .failed("One of your devices has not opened PARAGON \(VaultMove.firstBuild) or newer yet. It would go on writing into the old folder, so nothing was moved. Open PARAGON once on every device, then try again.")
+                        }
+                    }
                     // Going back: what waits in the old folder comes over first, so the move
                     // back cannot set a newer note aside.
                     if !toOwn {
@@ -653,7 +688,7 @@ extension AppModel {
                 defer { if scoped { previous?.stopAccessingSecurityScopedResource() } }
                 let look = VaultMove.look(at: destination)
                 guard let there = look.stamp, there.generation >= stamp.generation, look.listHere, look.arriving.isEmpty,
-                      look.missing.isEmpty || allowMissing else {
+                      look.missing.isEmpty || (allowMissing && look.mayOpenDespiteMissing) else {
                     return .notYet("The notes are not complete in the new place on this device yet. Nothing has changed.")
                 }
                 do {
