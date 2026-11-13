@@ -1,6 +1,253 @@
 # Version history
 
-The version is shown as 1.0 (315) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (316) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 316 · 13 November 2026
+
+**Dates in plain words, a deadline for a task, more ways to repeat, safer outside copies, and a polish sweep.** This is round 9 of the premium review. Round 8 was build 315. This round has 37 things, on the iPhone, the iPad and the Mac. Three are bigger: you can write "tomorrow 14:00" when you capture, a task can have a **Deadline** besides its date, and **Repeat** has three new choices. Nine make the outside copy and other tools safer or easier. Twenty-five are small fixes to how screens look and read. No button was moved and no screen was put in another order.
+
+**Before (build 315).**
+- A date in a capture was only read as `>2026-11-14`, or set with **Today**, **Tomorrow** and **Date…**. The word "tomorrow" stayed plain text.
+- A task had 1 date: the day you plan to do it. Only a project had a deadline.
+- **Repeat** had 6 choices, always counted from the task's date.
+- All outside copies of all vaults went into the one folder **PARAGON Backups**, and 2 vaults there could clear out each other's older copies.
+- After a restore from the outside copy, the only sign was a short message that went away after a few seconds.
+- A small widget could open 1 place only, and the Mac's capture key was 1 of 3 fixed keys.
+- By day, orange warning words, the white words on the coloured band and the cards on the iPhone were hard to read or to see.
+
+**Please read: the new repeats need build 316 on both devices.** Use **On weekdays…**, **Last day of the month** and **Count from the day I finish it** only when the iPhone and the Mac both have build 316. Build 315 does not know these 3 repeats. If a device on build 315 changes such a task (ticks it or moves it), it writes the task again without the repeat, and the repeat is lost. The 6 old choices are safe on every build.
+
+### Task dates
+
+**1. Write the date in plain words when you capture.**
+- Before: a date was only read as `>2026-11-14` or `>2026-11-14T14:00`, or set with the buttons **Today**, **Tomorrow** and **Date…**. Words such as "tomorrow" stayed in the title.
+- Now: write the date in English words and PARAGON reads it. Examples: "Call the bank tomorrow 14:00", "Send the report next Friday", "Water the plants in 3 days", "Buy presents 13 Dec 9:00".
+- What PARAGON read shows as a dashed chip before you save: **Due tomorrow 14:00**, or **Due Friday 2026-11-20**. The date chip now shows the time too; before, it showed the day only.
+- The chip has a small **x**. One press takes the date away, and the words stay as normal text. This is for a title like "Watch Tomorrow". If you then write other date words, they are read again.
+- Where it works: **Quick capture** (also the Mac's panel from any app, and **Inbox** in the **New** screen), the field **Capture something…** at the top of the **Inbox**, and **Add a task…** at the foot of a note. In the last two, the chip shows under the field while date words are in it.
+- The file gets the normal date. "Call the bank tomorrow 14:00", written on 2026-11-13, is saved as `- [ ] Call the bank >2026-11-14T14:00`. The date words leave the title.
+- Words that are read: today, tomorrow, day after tomorrow; a weekday (on Friday, by Friday, next Friday); in 3 days, in two weeks, in a month, in 2 years; next week, next month; 13 Dec, December 13th, 13 December 2026; and 2026-12-13 without the `>`.
+- A time may follow the date: 14:00, 14.00, 9:30 am, 2pm, noon, at 14.
+- "Friday" is the next Friday after today, never today itself. "next Friday" is the Friday of the week after this one. Weeks start on Monday. "next week" is its Monday; "next month" is its first day.
+- PARAGON never guesses. These are not read: a weekday in the middle of a sentence ("Prepare Friday meeting"), a short weekday alone ("Enjoy the sun"), a time without a day ("Call at 14:00"), words inside quotation marks, a link or `code`, "tomorrow's", a day that does not exist (31 Feb), and number dates such as 13/12.
+- A line that already has a `>` date keeps that date; no words are read. Only the first date in a line is read.
+- With **A note** chosen in **Quick capture**, nothing is read: only a task has a date.
+- If you use **Date…** while words are read, the date you pick replaces them.
+- English words only. Not read: the **+** in **Start the day**, the share sheet, a capture by link, and lines you type directly into a note's text. There is no chip there to check it.
+- The **ⓘ** lists in **Quick capture** and beside **Add a task…** name the new words.
+
+**2. A task can have a Deadline besides its date.**
+- Before: a task had 1 date, the day you plan to do it. Only a project had a deadline.
+- Now: a task can also have a **Deadline**: the day it must be finished by.
+- On the task's row you see a small red flag and words: "7 days left", "1 day left", "Due today", "1 day late", "3 days late". The words are grey while there is time. They turn red on the day itself and after it. A finished task shows a grey flag and the date.
+- To set it: right-click the task (hold it on the iPhone) › **Deadline** › **Pick a date…** or **In a week**. **Remove deadline** takes it off.
+- Or open the task's date window. It now has 3 chips at the top: **Date**, **Deadline** and **Repeat**. On **Deadline**, pick the day and press **Set**. **No deadline** clears it. **Cancel** (Escape on the Mac) changes nothing. A deadline is a day only; it has no time of day.
+- Moving the task to another day never moves the deadline. This holds for **Reschedule**, the swipe to **Tomorrow** and dragging.
+- A task with a deadline no longer shows its date in red when that day has passed. For such a task, late means past the deadline, and the flag shows the red.
+- The flag shows on task rows, on lines in the **Inbox**, and on the Inbox's chosen line.
+- When you tick a repeating task with a deadline, the next one keeps the same number of days between its date and its deadline. Do on Tuesday, finished by Friday, stays so. A repeating task with only a deadline gets the next deadline.
+- In the file it is `@deadline(2026-11-20)` on the task's line.
+- The deadline is not sent to Apple Reminders. The reminder's date is still the task's date, as before. Setting or clearing a deadline starts no sync, and a change in Reminders never removes it.
+- Not changed: **Overdue** on **Today**, the **Weekly review** and the widgets still go by the task's date, not by the deadline.
+- On build 315 and older, the deadline is not lost, but it shows as the text "@deadline(2026-11-20)" in the task's title. Build 316 reads it again.
+
+**3. Repeat: chosen weekdays, the last day of the month, and counting from the day you finish.**
+- Before: **Repeat** had 6 choices (every day, week, 2 weeks, month, 3 months, year), always counted from the task's date.
+- Now: under the 6 choices, the **Repeat** menu also has **On weekdays…**, **Last day of the month** and **Other…**. When the task repeats every so many days, weeks, months or years, there is also **Count from the day I finish it**, with a tick when it is on.
+- **On weekdays…** and **Other…** open the task's date window on its new **Repeat** page. It has 4 choices: **Does not repeat**, **Every…**, **On weekdays** and **Last day of the month**.
+- **Every…**: write any number and choose days, weeks, months or years, for example every 10 days. The chip **Count from the day I finish it** is there too.
+- **On weekdays**: 7 chips, **Mon** to **Sun**, and the button **Monday to Friday**.
+- One grey sentence says what your choice does. The buttons are **Cancel** and **Save**. On the Mac, Escape is **Cancel** and Return is **Save**. Nothing is written before **Save**.
+- The task's row says the rule in words: "Every Mon, Wed, Fri", "Every working day", "Last day of the month", "10 days after it is done".
+- **Count from the day I finish it**, an example: water the plants every 10 days. It was planned for the 1st, and you did it on the 13th. The next one is on the 23rd. Counted from its date it would be the 21st.
+- **Last day of the month** knows short months: 28 or 29 February, 30 April.
+- Ticking the task in Apple Reminders makes the next one by the same rules.
+- The 6 old choices work as before.
+- Use the 3 new repeats only when both devices have build 316. See **Please read** at the top of this entry.
+
+### Backups
+
+**4. Each vault has its own folder for outside copies.**
+- Before: every outside copy went straight into the folder **PARAGON Backups**. Two vaults that used the same folder cleared out each other's older copies.
+- Now: each vault has its own folder inside **PARAGON Backups**. Its name is the vault's name and the vault's identity (36 letters and numbers), for example "Notes 6F1C…". New copies go there.
+- Clearing out old copies only touches copies that are surely this vault's own. A copy with no mark, and a copy of another vault, is never cleared out.
+- Copies made by earlier builds stay where they are. They are still listed under **Restore from the outside copy…** and can still be restored. Nothing is moved.
+- A device still on build 315 does not see the new folders, so it cannot clear them out.
+
+**5. Two identities of one vault become one: the older one.**
+- Before: the vault got its identity with the first outside copy. If the iPhone and the Mac each made that first copy before iCloud had brought the identity across, there were 2 identities. Copies marked with the one that lost looked like another vault's, and were not offered for a restore.
+- Now: every identity is noted in a small file of its own, with the day it was made. Both devices see both and both keep the older one. The other one stays known as an older name of the same vault. Its copies are still offered for a restore.
+- Limit: an identity that was already lost before build 316 cannot be found again. Copies marked with it stay on disk, untouched, but are not offered.
+
+**6. The result of a restore stays in Settings.**
+- Before: after **Restore from the outside copy…**, the only sign was a short message at the bottom of the window, like "Restored 23 files from the outside copy of …". It went away after a few seconds, and it counted files, not notes.
+- Now: in **Settings › Second copy, outside the vault**, under the button **Restore from the outside copy…**, one line stays, for example **Restored 15 notes from 2026-11-13 08:57**. The day and time are the copy's.
+- The line is still there after you close **Settings** and after you quit PARAGON, until the next restore. It is kept on each device by itself.
+- With pictures or other files too, it says, for example, "Restored 15 notes and 4 other files from 2026-11-13 08:57". If some files could not be written, it says how many.
+- The short message in the main window uses the same words.
+
+**7. "Restoring…" where it said "Syncing…".**
+- Before: during a restore from the outside copy, the sync line and the sync ring said "Syncing…", because a restore holds the sync.
+- Now: they say **Restoring…**. This is on the ring on the iPhone, the line at the foot of the sidebar on the Mac and the iPad, the Mac menu bar item, and the button in **Settings › Reminders sync**. Under **Restore from the outside copy…** it also says **Restoring…** while it runs.
+
+### The weekly review
+
+**8. Today says "No weekly review yet".**
+- Before: **Today** showed "Last weekly review: N days ago" only after you had pressed **Review done** at least once. If you never did, you saw nothing.
+- Now: when PARAGON has been used on this device for 7 days or more, and **Review done** was never pressed, **Today** shows **No weekly review yet**, in the same place and look. A press opens the **Weekly review**.
+- After the first **Review done** it is gone for good, and the old line takes over.
+- PARAGON did not store your first day before build 316. At the first start of build 316 it notes today, or the day of the oldest backup inside the vault when that is earlier. So the line can show at once.
+- It is not shown while notes are still coming from iCloud.
+
+**9. Weekly review on the iPhone: closer steps, ticks in one line.**
+- Before: the folded steps were about 66 points apart. The tick of a finished step came straight after the words, so it sat in a different place on each line.
+- Now: the steps sit closer. The tick of every finished step sits at the right end of its line, one under the other. The tick's new place is the same on the iPad and the Mac.
+
+**10. Weekly review on the Mac: headings are not cut.**
+- Before: beside an open note, a heading was cut, like "2. Reschedule or drop o…".
+- Now: a heading takes up to 2 lines.
+
+### Capture, focus and find
+
+**11. Mac: Record my own key… for quick capture from any app.**
+- Before: **Settings › Quick capture › Key from any app** had **Off** and 3 fixed keys. The first, ⌃⌥Space, can already be the macOS key for the next input source.
+- Now: under the list is the button **Record my own key…**. A small window opens. Press your keys, and they show as symbols, for example ⌥⌘K. The buttons are **Cancel** and **Save**; Escape is **Cancel**, Return is **Save**.
+- A key without ⌘, ⌃ or ⌥ is refused, and a line says why: it would stop you typing that key in every app.
+- A key that macOS or nearly every app already uses (⌘Space, ⌘Tab, ⌘Q, ⇧⌘4 and others) gets a warning. You may still save it.
+- After **Save** the list shows **My own key: ⌥⌘K**, and the key works at once. If macOS does not give the key, the old line shows: "Another app already uses this key. Pick a different one."
+- **Save** is always full colour. Pressed with nothing recorded, it says "Press the keys first."
+- macOS asks for no permission. The key is kept on each Mac by itself.
+
+**12. Focus on this, without the long-press menu.**
+- Before: since build 312, on most lists **Focus on this** was only in the right-click menu (hold on the iPhone).
+- Now, on the iPhone and the iPad: swipe a task from the right. Beside **Tomorrow** there is a second button, **Focus**. **Tomorrow** stays first, and a full swipe still means **Tomorrow**.
+- Now, on the Mac: with the pointer over a task's row, a small timer button shows at the right end of the row. A press starts the clock. The swipe works with the trackpad too.
+- The menu keeps **Focus on this** as its first item. Lines in the **Inbox** are unchanged. As before, there is no **Focus** on a finished task or on a task in a Work note.
+
+**13. Find in note on the iPad.**
+- Before: on the iPad, with its 3 columns, there was no **Find in note**. It was only in the iPhone's **…** menu and on the Mac's ⌘F.
+- Now: the iPad's toolbar over an open note has a **Find in note** button, a magnifying glass, right after the pencil. It opens the same find bar as on the iPhone.
+
+**14. Find in note on the iPhone: the title no longer lies on the text.**
+- Before: with the find bar up, the note scrolled under a see-through top bar, so the note's title lay on top of the text.
+- Now: while the find bar is up, the top bar is solid. The text scrolls under it, unseen.
+
+### Widgets
+
+**15. A new small widget: One list.**
+- Before: a small widget can open 1 place only. The small **What is waiting** opens the first list with something in it; the small **Today's actions** opens **Today**.
+- Now: a new small widget, **One list**. It shows the list's name and mark, one big number, and a few words, like "3 due today" or "Nothing overdue". A press opens that list.
+- Choose the list with the widget's own **Edit Widget**: **Today**, **Overdue**, **Inbox** or **Review**. It starts as **Today**. You can place one widget for each list. On the iPhone and on the Mac.
+- A zero is grey, as on **What is waiting**. The words at zero are "Nothing due today", "Nothing overdue", "The Inbox is empty" and "Nothing for a look".
+- The widgets you already placed are not changed.
+
+### Settings and help
+
+**16. What's new: the date in a heading is written 2026-11-13.**
+- Before: the headings of **What's new** said "Build 315 · 13 November 2026".
+- Now: they say "Build 315 · 2026-11-13", like every other date in PARAGON. On the iPhone, the iPad and the Mac. The search field of the page now finds "2026-11" in a heading, not "November".
+
+**17. What's new on the iPhone: no empty band above the search field.**
+- Before: opened from **Settings**, the page had an empty band of about 100 points above **Search this page**.
+- Now: the band is gone. The bar has a small title ("What's new", "How it works", "Words"), and the search field sits right under it. The same on the iPad.
+
+**18. iPhone Settings: "If both changed" fits on one line.**
+- Before: on the iPhone, the row **When both sides changed** put its value on a second line.
+- Now: on the iPhone the row is **If both changed**, with the values **Note wins** and **Reminder wins**, on 1 line. The Mac and the iPad keep **When both sides changed** with **The note wins** and **The reminder wins**. The setting itself is the same.
+
+**19. Settings › About: the technical lines are behind Details.**
+- Before: **About** showed **Version**, then **Device id** (the id broke onto a second line) and a sentence about how the sync keeps its links.
+- Now: **About** shows **Version** and a row **Details**, closed at first. Open **Details** to see **Device id**, with the id under it on 1 line, and the same sentence. You can copy the id. Nothing was removed.
+
+**20. Settings › Vault: the folder in plain words.**
+- Before: **Folder** showed the raw path, like "/Users/…/Library/Mobile Documents/com~apple~CloudDocs/…".
+- Now: **Folder** shows the folder's name and where it is, for example "PARAGON Vault · in iCloud Drive". The place is "in iCloud Drive", "in Dropbox", or "on this Mac" (on the iPhone "on this iPhone", on the iPad "on this iPad").
+- On the Mac there is a new button **Show in Finder** under **Choose folder…**. The full path shows when the pointer rests on the row.
+
+**21. Mac menus: no dots where no window opens.**
+- Before: **File › Search Everywhere…** and **Go › Plan…** had three dots, but neither opens a question.
+- Now: they are **Search Everywhere** and **Plan**. **New…** and **Quick Capture…** keep their dots.
+- Two hover tips on the Mac no longer repeat the words of their own empty box: the week's goal box and the **How was the week?** box.
+
+**22. Mac: the tip on the sync ring says what a press does.**
+- Before: the tip of the ring at the foot of the sidebar said "Sync tasks with Apple Reminders now (⇧⌘R).", but since build 312 a press opens a small menu.
+- Now: "The sync with Apple Reminders. Press for Sync now and the other choices; ⇧⌘R syncs at once."
+
+### Colours by day
+
+**23. Orange warning words are darker by day.**
+- Before: warnings were written in Apple's orange, #FF9500. On white that is 2.2 to 1, too pale to read well. This was on iCloud notices, "Missed", "Calendar access is off", "too much for today", the priority marks and others.
+- Now: #B35300 by day. That is 5.1 to 1 on white and 4.6 to 1 on the page. At night it is #FFA23A, as bright as before. About 50 places. Only the colour changed, no words. Small words in an orange capsule are #9F4B08.
+
+**24. The coloured band by day runs to a darker end.**
+- Before: by day the band faded from the part's colour to a lighter end. White words at the far end measured 2.9 to 3.5 to 1. The small words on the band were white at 85 %.
+- Now: the band runs to an end that is 18 % deeper, for example **Today** #6B4EA8 to #58408A, **Inbox** #5E7D12 to #4D660F, **Projects** #2E7D5B to #26664B. Three starts were made a little deeper so white reads 4.5 to 1: **Plan** #C05E0C is now #B6590B, the blue of the line for now #4B7F9E is now #477996, the morning orange #D4640A is now #B65609. The other 10 are unchanged.
+- White words now measure 4.7 to 8.0 to 1 at the start and 6.4 to 10.1 to 1 at the end. The small words on a band are full white. The night band is unchanged.
+
+**25. iPhone cards can be seen by day.**
+- Before: a card was white with 7 % of its part's colour. In **Settings** and **Today** that was #F5F3F9 on the page #F3F5F8: 1.01 to 1, nearly invisible.
+- Now: 12 % by day on the iPhone. **Settings** and **Today** #EDEAF5 (1.09 to 1 against the page), **Inbox** #ECEFE3, **Projects** #E6EFEB, **Areas** #F8E8EF, **Resources** #E6EEF6, **Goals** #F2EEE2. Soft grey words on the new card read 5.0 to 1.
+- Unchanged: night (13 %), the Mac and the iPad (7 %), and the page colour.
+
+**26. iPhone at night: "Add a task…" is no longer a black box.**
+- Before: the field **Add a task…** at the foot of a note was a pure black box at night. So were **Search for a word** on the Search page and **Capture something…** at the top of the **Inbox**.
+- Now: all 3 are the app's own field on the iPhone: #FFFFFF by day and #1E2228 at night, with a thin line of 1 point around it (#E2E6EB by day, #2E333A at night) and round corners of 8 points. The Mac and the iPad are unchanged.
+
+### Lists and screens
+
+**27. Inbox: Add is always full colour.**
+- Before: **Add** beside **Capture something…** was pale while the field was empty.
+- Now: **Add** is always full colour, on the iPhone, the iPad and the Mac. Pressed with an empty field, it puts the cursor in the field and adds nothing.
+
+**28. iPhone sheets: Save is a filled button.**
+- Before: on the edit sheets with **Cancel** at the left (new project, goal, area, **Start the day**, **Close the day** and others), the word at the right was a coloured word that went grey when it could not act.
+- Now: it is a filled button in the part's colour, as on the capture sheet. When it cannot act, it is a pale fill with the word in the part's colour. Its place is the same. iPhone and iPad.
+
+**29. Daily note on the iPhone: the date is no longer there 3 times.**
+- Before: the date was in the top bar, again in the band right under it, and a third time as the first line of the note's own text.
+- Now: the top bar of a daily note is empty on the iPhone. The back arrow and the **…** menu stay. The band says the date. Your text is not touched. On the Mac and the iPad the title stays.
+
+**30. iPhone: bands no longer repeat the line under them.**
+- **Inbox**. Before: the band said "1 waiting" and the line under it "1 to sort". Now: the line "… to sort" is not shown on the iPhone. The Mac and the iPad keep it.
+- **Plan**. Before: the band said "No time blocks today" and the line under the day's name "No blocks yet". Now: when the day shown is today, that line no longer counts the blocks. It still counts events, like "2 events". On another day the line is as before.
+
+**31. Plan: the count is right at once, the message is above the tab bar.**
+- Before: right after you added a block, the **Plan** band on the iPhone still said "No time blocks today". The message "Added to your plan at 22:15." lay on top of the tab bar. **Not planned yet** in **Plan the week** listed an action that already had a block.
+- Now: the band counts the blocks of today's plan, so it says "1 time block today" at once. Messages at the foot of the iPhone sit 66 points up, above the tab bar (16 before). **Not planned yet** leaves out an action that has a block on any day of the week shown.
+
+**32. iPhone: a note stays on the tab you opened it on.**
+- Before: with a note open on one tab, a change to another tab could show the same note there. **Today** showed a note you had opened in **Browse**.
+- Now: a note stays on its tab. When you come back to that tab, the note is still open there.
+
+**33. Texts that were cut.**
+- **Projects** list, second line ("Next: Define the outcome and the first step"): up to 2 lines (1 before).
+- **Not planned yet** tiles in **Plan the week** and **Start the day**: the action's words are cut last; the note's name gives way first.
+- Snippets list: the preview takes 3 lines (2 before).
+- **Calendar**, the day heading ("Thursday 2026-11-12"): 1 line, shrinking to 75 % in a narrow column. Before, it broke into 2 lines.
+
+**34. Map: cleaner lines, longer titles.**
+- Before: a line ran from every action row up to its box, through the rows above. A long box title was cut after 1 line. The iPhone's top bar had an empty slot between **Arrange** and **Export**. On the Mac a small map sat in the middle of its page, with an empty band of about 90 points above it.
+- Now: the actions under a box share 1 line, to the first of them. A box title takes 2 lines. The empty slot is gone. A small map starts at the top of the page.
+
+**35. Mac Projects: a group heading of one line is lower again.**
+- Before (since build 310): every group heading had 8 points above and below.
+- Now: a heading of 1 line has 4 points above and below. Only a name on 2 lines gets the 8 points.
+
+**36. Mac Search: no empty band, and a row in the sidebar.**
+- Before: on a wide window the tick boxes sat in the middle of a taller area, with an empty band above them. The sidebar showed no chosen row while Search was open.
+- Now: the boxes start right under the line that says what is looked for. While Search is open, the sidebar shows a **Search** row under **Look back**, as the chosen row. It goes away when you choose another row.
+
+**37. Small things.**
+- **New** sheet, the 6 tiles: 5 points of room left and right of the word (2 before), so "Aspiration" and "Resource" do not touch the tile's edge.
+- Fold arrows are bigger: 16 points beside the group headings of **Projects** (12 before), and 14 points beside the rows of **Aspirations** and the status headings of the **Goals** list (12 before).
+
+### Looked at and left as it was
+
+- **Weekly review reminder**: your own day and time were already there (**On** and **At**, since build 315). Nothing to build.
+- "Add a task…" staying in the middle of the page after Search: it could not be made to happen, so nothing was changed.
+- **Cancel** in the icon picker (a grey outline) comes from the icon library all AMS apps share. It is left for a change there.
+- The **Map** on the iPhone is wider than the screen and scrolls sideways, so a box can be cut at the right edge. A fix needs a new starting zoom, which is your choice.
+- The tick of the find bar on the iPhone stays Apple's blue. It cannot be coloured.
 
 ## Build 315 · 13 November 2026
 
