@@ -52,7 +52,26 @@ struct QuickCaptureView: View {
     @State private var greeting = QuickCaptureView.greetings[0]
     @FocusState private var focused: Bool
 
-    private var reading: CaptureReading { CaptureReading(line: text) }
+    /// Build 316: the date words he took away with the chip's **x** ("tomorrow"). While these
+    /// very words are in the field they stay plain text.
+    @State private var ignoredDateWords: String?
+
+    /// A date written in plain words ("tomorrow 14:00"), when the capture is a task and he has
+    /// not taken it away. A note line keeps its words: only a task carries a date.
+    private var plainDate: PlainDate? {
+        guard !asNote, let found = PlainDate.read(text, today: .today()),
+              !found.isIgnored(by: ignoredDateWords) else { return nil }
+        return found
+    }
+
+    /// The line as it will be saved: date words turned into the date mark (build 316).
+    private var lineToSave: String {
+        asNote ? text : PlainDate.line(text, understoodOn: .today(), ignoring: ignoredDateWords)
+    }
+
+    /// Read from the line that will be saved, so the chips still cannot say one thing while
+    /// the vault stores another.
+    private var reading: CaptureReading { CaptureReading(line: lineToSave) }
     private var canSave: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     /// One of his extras: the empty field says hello. Picked on appear, never mid-typing.
@@ -84,7 +103,9 @@ struct QuickCaptureView: View {
             DateTimeChoiceView(current: reading.dueDate, time: reading.dueTime,
                                cancel: { pickingDate = false }) { picked, at in
                 if let picked {
-                    text = CaptureReading.line(text, dated: picked, at: at)
+                    // Build 316: date words already read are written as their mark first, so
+                    // the window's date replaces them and "tomorrow" is not left in the title.
+                    text = CaptureReading.line(lineToSave, dated: picked, at: at)
                     focused = true
                 }
                 pickingDate = false
@@ -273,7 +294,9 @@ struct QuickCaptureView: View {
         if !reading.isPlain {
             WrappingHStack(spacing: 6, lineSpacing: 6) {
                 if let due = dueChipTitle {
-                    ReadChip(title: due, markName: "calendar", tint: SidebarSection.calendar.tint)
+                    ReadChip(title: due, markName: reading.dueTime == nil ? "calendar" : "clock",
+                             tint: SidebarSection.calendar.tint, remove: removeReadDate())
+                        .accessibilityIdentifier("capture.dueChip")
                 }
                 if let marks = reading.priorityMarks {
                     ReadChip(title: "Priority \(marks)", markName: "exclamationmark",
@@ -290,13 +313,15 @@ struct QuickCaptureView: View {
     /// "Due today", "Due tomorrow", or "Due 15 September". Built outside the ViewBuilder.
     private var dueChipTitle: String? {
         guard let dueDate = reading.dueDate else { return nil }
-        switch reading.nearness(to: .today()) {
-        case .today?: return "Due today"
-        case .tomorrow?: return "Due tomorrow"
-        case .yesterday?: return "Was due yesterday"
-        default: break
-        }
-        return "Due " + DayWords.withWeekday(dueDate)
+        return PlainDateChip.title(date: dueDate, time: reading.dueTime)
+    }
+
+    /// The **x** on the date chip, only while the date comes from plain words: it takes the
+    /// date away and the words stay as he wrote them. A function, not a ternary with a
+    /// closure in one arm (builds 152, 154).
+    private func removeReadDate() -> (() -> Void)? {
+        guard let found = plainDate else { return nil }
+        return { ignoredDateWords = found.words }
     }
 
     /// The buttons that write the syntax for him, so it never has to be remembered.
@@ -372,10 +397,11 @@ struct QuickCaptureView: View {
     }
 
     private func save() {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = lineToSave.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         model.capture(text: trimmed, target: target, asTask: !asNote)
         text = ""
+        ignoredDateWords = nil
         withAnimation(.easeOut(duration: 0.2)) {
             confirmation = model.lastCaptureMessage ?? "Saved"
             flying = true
@@ -399,16 +425,31 @@ struct ReadChip: View {
     let title: String
     let markName: String
     let tint: Color
+    /// Build 316: when given, the chip ends in a small **x** that takes away what was read.
+    var remove: (() -> Void)? = nil
 
     var body: some View {
-        MarkLabel(title, markName, text: .footnote)
-            .font(Txt.label)
-            .foregroundStyle(tint)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .overlay(
-                Capsule().strokeBorder(tint.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
-            )
+        HStack(spacing: 5) {
+            MarkLabel(title, markName, text: .footnote)
+            if let remove {
+                Button(action: remove) {
+                    MarkImage("xmark", size: 9)
+                        .frame(width: 16, height: 16)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Not a date: keep these words as text")
+                .accessibilityLabel("Not a date, keep the words")
+                .accessibilityIdentifier("readChip.remove")
+            }
+        }
+        .font(Txt.label)
+        .foregroundStyle(tint)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .overlay(
+            Capsule().strokeBorder(tint.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        )
     }
 }
 
@@ -506,8 +547,9 @@ struct CaptureSyntaxHelp: View {
             Text("What you can write")
                 .font(Txt.label.weight(.semibold))
             Group {
-                line(">2026-09-15", "a date")
-                line(">2026-09-15T14:30", "a date and a time")
+                line("tomorrow 14:00", "a date in words")
+                line("next Friday", "also: in 3 days, 13 Dec")
+                line(">2026-09-15T14:30", "a date and a time, exactly")
                 line("!  !!  !!!", "how important, most marks first")
                 line("#travel", "a tag")
             }

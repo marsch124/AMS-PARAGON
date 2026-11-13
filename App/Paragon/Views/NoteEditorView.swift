@@ -11,6 +11,8 @@ struct NoteEditorView: View {
 
     @State private var text = ""
     @State private var newTask = ""
+    /// Build 316: date words in **Add a task…** that he took away with the chip's x.
+    @State private var ignoredDateWords: String?
     /// True while the find bar is up on the iPhone; the Add a task bar hides meanwhile.
     @State private var findBarUp = false
     @State private var isDirty = false
@@ -916,7 +918,17 @@ struct NoteEditorView: View {
         }
     }
 
+    /// Build 316: the bar is the row it always was, and under it — only while date words are
+    /// read in the field ("tomorrow 14:00") — the chip that says what was understood.
     private var addTaskBar: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            addTaskRow
+            PlainDateChip(text: newTask, ignored: $ignoredDateWords)
+        }
+        .padding(8)
+    }
+
+    private var addTaskRow: some View {
         HStack(spacing: 8) {
             // Which mode you are in used to be a Picker three taps deep in the ⋯ menu, and a
             // note left in Preview looks exactly like an editor that refuses to type — it
@@ -957,7 +969,6 @@ struct NoteEditorView: View {
                 snippetMenu(iconOnly: false)
             }
         }
-        .padding(8)
     }
 
     private var canAdd: Bool { !newTask.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -1084,8 +1095,10 @@ struct NoteEditorView: View {
 
     private func addTask() {
         flushSave()
-        model.addTask(newTask, to: path)
+        // Build 316: date words that were read ("tomorrow 14:00") are saved as the date mark.
+        model.addTask(PlainDateChip.line(newTask, ignoring: ignoredDateWords), to: path)
         newTask = ""
+        ignoredDateWords = nil
     }
 }
 
@@ -1854,8 +1867,11 @@ struct TaskRow: View {
                         // The date and, since build 277 when the **At** line can write one, the
                         // time of day: `dueText` in Core is the one wording of it.
                         MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
-                            .rowTint(due < .today() && !ref.task.isDone ? Color.red : Color.secondary)
+                            // Build 316: with a deadline, late means past the deadline; a
+                            // do-day that has gone by stays grey and the flag carries the red.
+                            .rowTint(due < .today() && !ref.task.isDone && ref.task.deadline == nil ? Color.red : Color.secondary)
                     }
+                    DeadlineLabel(task: ref.task)
                     if let rule = ref.task.repeatRule {
                         MarkLabel(rule.label, "repeat", text: .footnote)
                     }
@@ -2288,12 +2304,15 @@ private struct TaskSyntaxHelp: View {
     }
 
     private static let rows = [
+        Row(code: "tomorrow 14:00", meaning: "A date in words. Also next Friday, in 3 days, 13 Dec"),
         Row(code: ">2026-09-10", meaning: "A date"),
         Row(code: ">2026-09-10T14:30", meaning: "A date and a time"),
         Row(code: "!  !!  !!!", meaning: "Priority, lowest to highest"),
         Row(code: "~45m  ~1h30m", meaning: "How long it takes"),
         Row(code: "#tag", meaning: "A tag"),
         Row(code: "@repeat(weekly)", meaning: "Comes back every week. Also 2w, monthly, yearly"),
+        Row(code: "@repeat(mon,wed,fri)", meaning: "Comes back on these days. Also weekdays, monthend, 10d after done"),
+        Row(code: "@deadline(2026-09-20)", meaning: "Must be finished by this day"),
     ]
 
     var body: some View {

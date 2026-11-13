@@ -66,6 +66,8 @@ extension TaskRef {
 struct InboxTriageView: View {
     @EnvironmentObject private var model: AppModel
     @State private var newItem = ""
+    /// Build 316: date words in the capture field that he took away with the chip's x.
+    @State private var ignoredDateWords: String?
     @State private var pickingDateFor: TaskRef?
     @FocusState private var captureFocused: Bool
 
@@ -209,6 +211,16 @@ struct InboxTriageView: View {
 
     @ViewBuilder
     private var captureBar: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            captureRow
+            // Build 316: a date read from plain words, shown before it is added.
+            PlainDateChip(text: newItem, ignored: $ignoredDateWords)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    private var captureRow: some View {
         HStack(spacing: 8) {
             MarkImage("tray.and.arrow.down")
                 .foregroundStyle(SidebarSection.inbox.tint)
@@ -220,8 +232,6 @@ struct InboxTriageView: View {
                 .buttonStyle(.filled(SidebarSection.inbox.tint))
                 .disabled(newItem.trimmingCharacters(in: .whitespaces).isEmpty)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -253,8 +263,10 @@ struct InboxTriageView: View {
     private func capture() {
         let text = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let inbox else { return }
-        model.addTask(text, to: inbox.relativePath)
+        // Build 316: date words that were read ("tomorrow 14:00") are saved as the date mark.
+        model.addTask(PlainDateChip.line(text, ignoring: ignoredDateWords), to: inbox.relativePath)
         newItem = ""
+        ignoredDateWords = nil
     }
 
     /// Runs a single-key action on the selected line, unless you are typing in the capture box.
@@ -312,6 +324,11 @@ struct InboxRow: View {
                     MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
                         .font(Txt.listSecond)
                         .rowTint(due < .today() ? Color.red : .secondary)
+                }
+                if ref.task.deadline != nil {
+                    DeadlineLabel(task: ref.task)
+                        .font(Txt.listSecond)
+                        .foregroundStyle(.soft)
                 }
             }
             Spacer(minLength: 6)
@@ -627,6 +644,11 @@ struct InboxFileItView: View {
                     MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
                         .font(Txt.label)
                         .foregroundStyle(due < .today() ? Color.red : Theme.soft)
+                }
+                if ref.task.deadline != nil {
+                    DeadlineLabel(task: ref.task)
+                        .font(Txt.label)
+                        .foregroundStyle(.soft)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
