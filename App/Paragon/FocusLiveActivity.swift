@@ -33,6 +33,11 @@ enum FocusLiveActivity {
         }
     }
 
+    /// Comes back when every sync asked for so far has reached the system.
+    static func settled() async {
+        await last?.value
+    }
+
     private static func apply(_ session: FocusSession?, awaitingAnswer: Bool) async {
         var wanted: (attributes: FocusActivityAttributes, state: FocusGlance)?
         if let session, let started = session.startedAt {
@@ -88,9 +93,23 @@ extension AppModel {
             case .stop: self.stopFocus()
             }
             // The stop question opens a turn later, and Pause is refused while it is open:
-            // say what is true now either way.
-            self.afterUpdate { self.afterUpdate { self.syncFocusActivity() } }
+            // say what is true now either way — and wait until it has been said.
+            await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+                self.afterUpdate { self.afterUpdate {
+                    self.syncFocusActivity()
+                    done.resume()
+                } }
+            }
+            await FocusLiveActivity.settled()
         }
+        #endif
+    }
+
+    /// For an action that changed the timer in the background: comes back when the Live
+    /// Activity shows it. Nothing on the Mac.
+    func focusActivitySettled() async {
+        #if os(iOS)
+        await FocusLiveActivity.settled()
         #endif
     }
 }

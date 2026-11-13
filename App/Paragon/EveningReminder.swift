@@ -455,6 +455,9 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
 final class ReminderAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // Build 317: a button on the focus timer's Live Activity can start the app in the
+        // background, with no window. Only then is the model made from here.
+        FocusActivityBridge.wake = { _ = AppModel.shared }
         EveningReminder.shared.start()
         return true
     }

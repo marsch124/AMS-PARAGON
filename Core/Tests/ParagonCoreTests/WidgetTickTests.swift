@@ -41,6 +41,17 @@ final class WidgetTickTests: XCTestCase {
         XCTAssertEqual(tick("Pack").outcome(in: nil, notesStillArriving: false), .gone)
     }
 
+    /// Review of build 317: an older copy of the note, with a newer one on its way from iCloud,
+    /// is never written into. The tick waits.
+    func testATickWaitsWhileItsNoteIsBeingUpdatedFromICloud() {
+        let race = note("- [ ] Book the hotel >2026-11-13 ^t1a2b3c\n")
+        let press = tick("Book the hotel", id: "t1a2b3c", due: today)
+        XCTAssertEqual(press.outcome(in: race, notesStillArriving: false, noteBeingUpdated: true), .wait)
+        guard case .tick = press.outcome(in: race, notesStillArriving: false, noteBeingUpdated: false) else {
+            return XCTFail("a current note takes the tick")
+        }
+    }
+
     func testTheLastPressOnALineCountsAndNothingIsLostBetweenTwoWriters() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: folder) }

@@ -34,15 +34,23 @@ enum FocusActivityAction: String, Sendable {
 /// that can be a moment after the button's code runs, so `run` waits for it briefly.
 @MainActor
 enum FocusActivityBridge {
-    static var handler: ((FocusActivityAction) -> Void)?
+    /// Async (review of build 317): it comes back when the Live Activity has been told, so
+    /// the button's work is not over — and the app put to sleep again — with the banner still
+    /// showing a running clock.
+    static var handler: (@MainActor (FocusActivityAction) async -> Void)?
+    /// Makes the app's model, which hands `handler` in (review of build 317). Set by the app's
+    /// delegate at launch: started in the background for a button, with no window, nothing
+    /// else is certain to have made the model.
+    static var wake: (@MainActor () -> Void)?
 
     static func run(_ action: FocusActivityAction) async {
+        if handler == nil { wake?() }
         var waited = 0
         while handler == nil, waited < 40 {
             try? await Task.sleep(for: .milliseconds(100))
             waited += 1
         }
-        handler?(action)
+        await handler?(action)
     }
 }
 

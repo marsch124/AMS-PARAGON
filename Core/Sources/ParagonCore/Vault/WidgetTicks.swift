@@ -52,8 +52,13 @@ public struct WidgetTick: Codable, Equatable, Sendable {
     /// The rule. `note` is the note at `notePath` as the app holds it now, or nil when it has
     /// none; `notesStillArriving` is true while any note is still coming from iCloud — a missing
     /// note is then not proof of anything (build 100's rule), and the tick waits.
-    public func outcome(in note: Note?, notesStillArriving: Bool) -> Outcome {
+    ///
+    /// `noteBeingUpdated` (review of build 317): the note is here, but as an older copy while
+    /// iCloud holds a newer one. The other device may have ticked the task there already, so
+    /// nothing is written into the old copy; the tick waits for the new one.
+    public func outcome(in note: Note?, notesStillArriving: Bool, noteBeingUpdated: Bool = false) -> Outcome {
         guard let note else { return notesStillArriving ? .wait : .gone }
+        if noteBeingUpdated { return .wait }
         let open = note.tasks.filter { !$0.isDone }
         if let id = taskID {
             if let byID = open.first(where: { $0.id == id }) { return .tick(byID) }
@@ -118,7 +123,9 @@ public struct WidgetTickQueue: Sendable {
     public func drain() -> [WidgetTick] {
         let taken = fileURL.deletingLastPathComponent()
             .appendingPathComponent("widget-ticks.\(UUID().uuidString).jsonl")
-        guard (try? FileManager.default.moveItem(at: fileURL, to: taken)) != nil else { return [] }
+        // Asked first: this runs every ten seconds, and nearly always there is no file.
+        guard FileManager.default.fileExists(atPath: fileURL.path),
+              (try? FileManager.default.moveItem(at: fileURL, to: taken)) != nil else { return [] }
         defer { try? FileManager.default.removeItem(at: taken) }
         guard let data = try? Data(contentsOf: taken) else { return [] }
         return Self.settle(Self.lines(in: data))

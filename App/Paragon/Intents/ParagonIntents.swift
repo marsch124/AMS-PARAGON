@@ -171,6 +171,9 @@ struct StartFocusIntent: AppIntent {
             }
             throw ShortcutProblem.taskGone
         }
+        // The Lock Screen and the Dynamic Island show the clock before the action is over
+        // (`LiveActivityIntent`, below, is what lets it start with PARAGON in the background).
+        await model.focusActivitySettled()
         let planned = now.plannedMinutes.map { ", \($0) minutes planned" } ?? ""
         return .result(dialog: IntentDialog(stringLiteral: "Focus started on \(Self.spoken(wanted))\(planned)."))
     }
@@ -181,6 +184,14 @@ struct StartFocusIntent: AppIntent {
         return plain.isEmpty ? title : plain
     }
 }
+
+#if os(iOS)
+/// Review of build 317: started from Siri or Shortcuts the clock is on the Lock Screen and in
+/// the Dynamic Island at once. Apple lets an app start a Live Activity from the background
+/// only for an action that says it is one; without this the banner came the next time PARAGON
+/// was opened.
+extension StartFocusIntent: LiveActivityIntent {}
+#endif
 
 // MARK: What is due today?
 

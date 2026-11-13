@@ -107,8 +107,8 @@ final class SystemSearchIndexer: ObservableObject {
         isWorking = true
         Task {
             let held = await store.run(job)
-            // The setting may have been switched off while this ran.
-            if self.isOn { self.count = held }
+            // The setting may have been switched off, or the vault closed, while this ran.
+            if self.isOn, self.model?.vault != nil { self.count = held }
             self.isWorking = false
         }
     }
@@ -141,6 +141,11 @@ actor SystemSearchStore {
     private var made: [String: (note: Note, entry: SystemSearchEntry)] = [:]
     private var waiting: Job?
     private var running = false
+    /// Counted up each time everything is taken out (review of build 317). An actor lets
+    /// `removeEverything` in while a pass waits for Apple's index, and that pass would then
+    /// go on handing notes over **after the switch was turned off**. A pass that finds the
+    /// number changed stops, and takes out what it put in meanwhile.
+    private var emptied = 0
 
     private static var memoryURL: URL {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
@@ -173,14 +178,19 @@ actor SystemSearchStore {
 
     /// Takes every PARAGON note out of the system search and forgets the marks.
     func removeEverything() async {
-        try? await index.deleteSearchableItems(withDomainIdentifiers: [SystemSearchIndexer.domain])
+        emptied += 1
+        // A list waiting for its turn was made before this, so it is not handed over either.
+        waiting = nil
+        // Forgotten before the wait below, so a pass that starts during it builds from nothing.
         memory = nil
         loaded = true
         made = [:]
         try? FileManager.default.removeItem(at: Self.memoryURL)
+        try? await index.deleteSearchableItems(withDomainIdentifiers: [SystemSearchIndexer.domain])
     }
 
     private func work(_ job: Job) async {
+        let startedAt = emptied
         if !loaded {
             loaded = true
             if let data = try? Data(contentsOf: Self.memoryURL) {
@@ -190,6 +200,7 @@ actor SystemSearchStore {
         // Another build, another vault, no memory, or asked: start from nothing.
         if job.fromNothing || memory == nil || memory?.stamp != job.stamp || memory?.vault != job.vaultKey {
             try? await index.deleteSearchableItems(withDomainIdentifiers: [SystemSearchIndexer.domain])
+            guard emptied == startedAt else { return }
             memory = Memory(stamp: job.stamp, vault: job.vaultKey, marks: [:])
         }
         guard var memory else { return }
@@ -222,6 +233,12 @@ actor SystemSearchStore {
             } catch {
                 // Not marked as in: the next pass tries these again.
             }
+            // Everything was taken out while this batch was on its way (the switch turned
+            // off, the vault closed): the batch goes out again and nothing is remembered.
+            guard emptied == startedAt else {
+                try? await index.deleteSearchableItems(withDomainIdentifiers: [SystemSearchIndexer.domain])
+                return
+            }
         }
         if job.mayRemove, !change.remove.isEmpty {
             let gone = change.remove.map { SystemSearchIndexer.identifierPrefix + $0 }
@@ -229,6 +246,7 @@ actor SystemSearchStore {
                 for path in change.remove { memory.marks[path] = nil }
             }
         }
+        guard emptied == startedAt else { return }
         self.memory = memory
         if !change.index.isEmpty || !change.remove.isEmpty || !FileManager.default.fileExists(atPath: Self.memoryURL.path) {
             if let data = try? JSONEncoder().encode(memory) {
