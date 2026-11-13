@@ -223,9 +223,9 @@ One thing was seen on the way and not changed: in the dark bar of the focus time
 **2. A task can have a Deadline besides its date.**
 - Before: a task had 1 date, the day you plan to do it. Only a project had a deadline.
 - Now: a task can also have a **Deadline**: the day it must be finished by.
-- On the task's row you see a small red flag and words: "7 days left", "1 day left", "Due today", "1 day late", "3 days late". The words are grey while there is time. They turn red on the day itself and after it. A finished task shows a grey flag and the date.
+- On the task's row you see a small red mark of its own (a pennant on a finish line, not the project's flag) and words: "7 days left", "1 day left", "Due today", "1 day late", "3 days late". The words are grey while there is time. They turn red on the day itself and after it. A finished task shows a grey flag and the date.
 - To set it: right-click the task (hold it on the iPhone) › **Deadline** › **Pick a date…** or **In a week**. **Remove deadline** takes it off.
-- Or open the task's date window. It now has 3 chips at the top: **Date**, **Deadline** and **Repeat**. On **Deadline**, pick the day and press **Set**. **No deadline** clears it. **Cancel** (Escape on the Mac) changes nothing. A deadline is a day only; it has no time of day.
+- Or open the task's date window. It now has 3 pages, chosen at the top with Apple's own control: **Date**, **Deadline** and **Repeat**. The window keeps one height on all three pages. On **Deadline**, pick the day and press **Save**. **Remove deadline** clears it. **Cancel** (Escape on the Mac) changes nothing. A deadline is a day only; it has no time of day.
 - Moving the task to another day never moves the deadline. This holds for **Reschedule**, the swipe to **Tomorrow** and dragging.
 - A task with a deadline no longer shows its date in red when that day has passed. For such a task, late means past the deadline, and the flag shows the red.
 - The flag shows on task rows, on lines in the **Inbox**, and on the Inbox's chosen line.
@@ -239,8 +239,8 @@ One thing was seen on the way and not changed: in the dark bar of the focus time
 - Before: **Repeat** had 6 choices (every day, week, 2 weeks, month, 3 months, year), always counted from the task's date.
 - Now: under the 6 choices, the **Repeat** menu also has **On weekdays…**, **Last day of the month** and **Other…**. When the task repeats every so many days, weeks, months or years, there is also **Count from the day I finish it**, with a tick when it is on.
 - **On weekdays…** and **Other…** open the task's date window on its new **Repeat** page. It has 4 choices: **Does not repeat**, **Every…**, **On weekdays** and **Last day of the month**.
-- **Every…**: write any number and choose days, weeks, months or years, for example every 10 days. The chip **Count from the day I finish it** is there too.
-- **On weekdays**: 7 chips, **Mon** to **Sun**, and the button **Monday to Friday**.
+- **Every…** is one line: the word "Every", a number from 1 to 999 with **−** and **+**, and a menu with day, week, month or year, for example every 10 days. Under it is the switch **Count from the day I finish it**.
+- **On weekdays**: 7 equal buttons in one row, **Mon** to **Sun**, and the button **Monday to Friday**.
 - One grey sentence says what your choice does. The buttons are **Cancel** and **Save**. On the Mac, Escape is **Cancel** and Return is **Save**. Nothing is written before **Save**.
 - The task's row says the rule in words: "Every Mon, Wed, Fri", "Every working day", "Last day of the month", "10 days after it is done".
 - **Count from the day I finish it**, an example: water the plants every 10 days. It was planned for the 1st, and you did it on the 13th. The next one is on the 23rd. Counted from its date it would be the 21st.
@@ -424,6 +424,47 @@ One thing was seen on the way and not changed: in the dark bar of the focus time
 **37. Small things.**
 - **New** sheet, the 6 tiles: 5 points of room left and right of the word (2 before), so "Aspiration" and "Resource" do not touch the tile's edge.
 - Fold arrows are bigger: 16 points beside the group headings of **Projects** (12 before), and 14 points beside the rows of **Aspirations** and the status headings of the **Goals** list (12 before).
+
+### After the designer's look
+
+A strict designer looked at every new screen of this build on the iPhone and listed 15 points. All 15 are in this build.
+
+**38. A task row with a deadline and a repeat stays tidy.**
+- Before (first try of this build): the small line under the title broke into three lines, and a project's name was cut inside a word. The row was 108 points tall.
+- Now: every fact (date, deadline, repeat, project) stays whole. When the row is full, whole facts move to a second small line. Only the project's name may shorten, with "…". The row is about 88 points with two small lines, 68 with one.
+
+**39. Inbox: the keyboard can be put away.**
+- Return on the empty field closes the keyboard, as in build 315. Dragging the list closes it. Pressing a line closes it.
+- **Add** with nothing typed puts the cursor in the field. After **Add** with words the cursor stays in the field, as in build 315.
+
+**40. The task's date window: one height, one colour, one word.**
+- The window is 730 points tall on all three pages, so **Date · Deadline · Repeat** no longer move under your finger.
+- The whole window has one colour: the colour of the note the task lives in (from the Inbox: green).
+- The button says **Save** on all three pages. Other date windows (a goal's target, a project's deadline) still say **Set**.
+- Choices in the window are 32 points tall.
+
+**41. Main buttons are never pale.**
+- **Save** on the **New** sheet (Project, Goal, Area, Resource, Aspiration) keeps its full colour while the name is empty. Pressed with no name it saves nothing, puts the cursor in **Name** and says "Give it a name first."
+- The round send arrow beside **Add a task…** keeps its full colour. Pressed with nothing typed it puts the cursor in the field.
+- **Set** or **Save** in a date window keeps its full colour. With a date that cannot be read it does nothing, and the red line "Write the date as 2031-12-01." says why.
+
+**42. The date chip under a field.**
+- It starts where the field starts, and it has the screen's colour (green in the Inbox). It is 28 points tall, and its **x** has a 28 by 28 point touch area.
+
+**43. The task menu has a mark on every line.**
+- Before: only **Focus on this** had a mark. Now: every line has its hand-drawn mark. **Remove date** and **Remove deadline** are red.
+
+**44. Calendar › Day on the iPhone: the daily note opens.**
+- Before: **Create the daily note** made the note but did not open it, and **Open the daily note** did nothing. This was also so in build 315.
+- Now: both open the note.
+
+**45. Smaller things.**
+- What's new, How it works and Words in PARAGON on the iPhone and iPad: the page's name stood twice. Now it stands once, in the bar.
+- **Projects**: when a project's small line needs two lines, the lower one starts under the upper one, without a dot.
+- **Settings › About › Details**: what is inside starts where "Version" starts.
+- **Settings › Second copy**: the restore result has a green tick and small grey print, and "from 2026-11-13 16:53" stays together.
+- **Weekly review**: a step's heading shows its count or its tick, never both.
+- **Settings › Widget**: the grey text is no longer drawn over the row above.
 
 ### Looked at and left as it was
 

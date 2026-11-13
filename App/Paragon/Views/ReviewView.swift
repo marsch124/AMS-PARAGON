@@ -403,8 +403,9 @@ struct ReviewPartHeading: View {
         self.part = part
     }
 
+    /// Round 9 (build 316): the count or the tick, never both ("… · 1 ✓").
     private var shown: String {
-        count > 0 ? "\(title) \u{00B7} \(count)" : title
+        ReviewOpening.heading(title, count: count, toDo: toDo)
     }
 
     /// Said aloud and readable by a test, beside the `isSelected` trait `FoldButton` gives an

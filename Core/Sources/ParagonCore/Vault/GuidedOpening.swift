@@ -34,6 +34,13 @@ public enum ReviewOpening {
     public static func isTicked(toDo: Int?) -> Bool {
         toDo == 0
     }
+
+    /// The words of a part's heading (round 9, build 316): its count after a dot, or — when
+    /// the heading carries the tick — the title alone. Never a count and a tick together
+    /// ("3. Read the aspirations again · 1 ✓").
+    public static func heading(_ title: String, count: Int, toDo: Int?) -> String {
+        count > 0 && !isTicked(toDo: toDo) ? "\(title) \u{00B7} \(count)" : title
+    }
 }
 
 /// **An explanation that steps back once it is known** (build 312). Start the day and Close the
@@ -51,5 +58,19 @@ public enum HintRule {
     /// `opens` counts this opening too: 1, 2 and 3 show the explanation, 4 and later fold it.
     public static func showsByItself(opens: Int) -> Bool {
         opens <= timesShown
+    }
+}
+
+/// A list row's one second line, which may take two lines (round 9, build 316). When all its
+/// facts fit they stand on one line, joined with dots. When they do not, the row breaks
+/// between the leading facts and the rest — so the lower line starts with words, under the
+/// upper one, and never with a dot.
+public enum SecondLine {
+    public static let dot = " \u{00B7} "
+
+    public static func split(first: [String], rest: [String]) -> (one: String, upper: String, lower: String?) {
+        let upper = first.joined(separator: dot)
+        let lower = rest.isEmpty ? nil : rest.joined(separator: dot)
+        return ((first + rest).joined(separator: dot), upper, lower)
     }
 }

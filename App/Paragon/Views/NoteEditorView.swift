@@ -13,6 +13,8 @@ struct NoteEditorView: View {
     @State private var newTask = ""
     /// Build 316: date words in **Add a task…** that he took away with the chip's x.
     @State private var ignoredDateWords: String?
+    /// Round 9 (build 316): the cursor is in **Add a task…**.
+    @FocusState private var addFieldFocused: Bool
     /// True while the find bar is up on the iPhone; the Add a task bar hides meanwhile.
     @State private var findBarUp = false
     @State private var isDirty = false
@@ -940,7 +942,15 @@ struct NoteEditorView: View {
     private var addTaskBar: some View {
         VStack(alignment: .leading, spacing: 4) {
             addTaskRow
-            PlainDateChip(text: newTask, ignored: $ignoredDateWords)
+            // Round 9 (build 316): the chip starts where the field starts (on the iPhone the
+            // Edit button stands before the field), in the note's own colour.
+            HStack(spacing: 8) {
+                if isPhone {
+                    Color.clear.frame(width: 30, height: 1)
+                }
+                PlainDateChip(text: newTask, ignored: $ignoredDateWords,
+                              tint: note?.tint ?? Theme.fallbackTint)
+            }
         }
         .padding(8)
     }
@@ -968,23 +978,25 @@ struct NoteEditorView: View {
             // Apple's rounded field was a pure black box at night.
             TextField("Add a task…", text: $newTask)
                 .modifier(DateFieldLook(isPhone: isPhone))
+                .focused($addFieldFocused)
                 .onSubmit(addTask)
             TaskSyntaxButton()
             if isPhone {
-                // The phone has no room for two words beside the field. Both become symbols,
-                // and Add only takes its colour once there is something to add.
+                // The phone has no room for two words beside the field. Both become symbols.
+                // Round 9 (build 316): the send arrow keeps its full colour while the field
+                // is empty (it was pale); pressed with nothing typed it puts the cursor in
+                // the field. The same on the Mac's and the iPad's **Add**.
                 snippetMenu(iconOnly: true)
-                Button(action: addTask) {
+                Button(action: pressAdd) {
                     MarkImage("arrow.up.circle.fill", size: 26)
-                        .foregroundStyle(ParaKind.project.tint.opacity(canAdd ? 1 : 0.4))
+                        .foregroundStyle(ParaKind.project.tint)
                 }
                 .buttonStyle(.plain)
-                .disabled(!canAdd)
                 .accessibilityLabel("Add")
+                .accessibilityIdentifier("note.addTask.send")
             } else {
-                Button("Add", action: addTask)
+                Button("Add", action: pressAdd)
                     .buttonStyle(.filled(ParaKind.project.tint))
-                    .disabled(!canAdd)
                 snippetMenu(iconOnly: false)
             }
         }
@@ -1112,7 +1124,19 @@ struct NoteEditorView: View {
         }
     }
 
+    /// The button beside **Add a task…**: adds the line, or — with nothing typed — puts the
+    /// cursor in the field (round 9, build 316).
+    private func pressAdd() {
+        guard canAdd else {
+            addFieldFocused = true
+            return
+        }
+        addTask()
+    }
+
     private func addTask() {
+        // Return on the empty field adds nothing (and, on the iPhone, closes the keyboard).
+        guard canAdd else { return }
         flushSave()
         // Build 316: date words that were read ("tomorrow 14:00") are saved as the date mark.
         model.addTask(PlainDateChip.line(newTask, ignoring: ignoredDateWords), to: path)
@@ -1834,6 +1858,12 @@ struct TaskRow: View {
         return TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes) == .nothing
     }
 
+    /// Whether the small line under the title has anything to show.
+    private var hasFacts: Bool {
+        ref.task.priority > 0 || ref.task.dueDate != nil || ref.task.deadline != nil
+            || ref.task.repeatRule != nil || showNote
+    }
+
     /// The tick's state in words, for VoiceOver and the screen tests.
     private var tickState: String {
         if ref.task.status == .cancelled { return "cancelled" }
@@ -1881,6 +1911,8 @@ struct TaskRow: View {
                         if isNext && !ref.task.isDone {
                             Text("next")
                                 .font(Txt.listSecond.weight(.semibold))
+                                .lineLimit(1)
+                                .fixedSize()
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 1)
                                 .background(tint.opacity(0.2), in: Capsule())
@@ -1888,30 +1920,39 @@ struct TaskRow: View {
                         }
                     }
                 }
-                HStack(spacing: 8) {
-                    if ref.task.priority > 0 {
-                        Text(String(repeating: "!", count: ref.task.priority))
-                            .rowTint(Theme.attention.ink)
+                // Round 9 (build 316): each fact keeps one line and its whole width; when the
+                // row is full the facts move to a second line as whole pieces, and only the
+                // project's name may shorten with "…". Before, one `HStack` squeezed them:
+                // "Every / Mon, / Wed, Fri" on three lines and a name cut inside a word. Every
+                // mark has 5 points to its words and 12 points to the next fact.
+                if hasFacts {
+                    WrappingHStack(spacing: RowFact.gap, lineSpacing: 2) {
+                        if ref.task.priority > 0 {
+                            Text(String(repeating: "!", count: ref.task.priority))
+                                .lineLimit(1)
+                                .fixedSize()
+                                .rowTint(Theme.attention.ink)
+                        }
+                        if let due = ref.task.dueDate {
+                            // The date and, since build 277 when the **At** line can write one, the
+                            // time of day: `dueText` in Core is the one wording of it.
+                            RowFact(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
+                                // Build 316: with a deadline, late means past the deadline; a
+                                // do-day that has gone by stays grey and the deadline's mark carries the red.
+                                .rowTint(due < .today() && !ref.task.isDone && ref.task.deadline == nil ? Color.red : Color.secondary)
+                        }
+                        DeadlineLabel(task: ref.task)
+                        if let rule = ref.task.repeatRule {
+                            RowFact(rule.label, "repeat")
+                        }
+                        if showNote {
+                            RowFact(ref.noteTitle, noteSymbol, shortens: true)
+                                .rowTint(tint.ink)
+                        }
                     }
-                    if let due = ref.task.dueDate {
-                        // The date and, since build 277 when the **At** line can write one, the
-                        // time of day: `dueText` in Core is the one wording of it.
-                        MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
-                            // Build 316: with a deadline, late means past the deadline; a
-                            // do-day that has gone by stays grey and the flag carries the red.
-                            .rowTint(due < .today() && !ref.task.isDone && ref.task.deadline == nil ? Color.red : Color.secondary)
-                    }
-                    DeadlineLabel(task: ref.task)
-                    if let rule = ref.task.repeatRule {
-                        MarkLabel(rule.label, "repeat", text: .footnote)
-                    }
-                    if showNote {
-                        MarkLabel(ref.noteTitle, noteSymbol, text: .footnote)
-                            .rowTint(tint.ink)
-                    }
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
                 }
-                .font(Txt.label)
-                .foregroundStyle(.soft)
             }
             // **Who?** hangs off the title, not off the row: the row already carries the date
             // popover, and a second presentation on one view is not reliable on the phone

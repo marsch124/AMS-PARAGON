@@ -568,6 +568,14 @@ struct DateTimeChoiceView: View {
     /// window puts its **Date · Deadline · Repeat** chips there).
     let title: String
     let header: AnyView?
+    /// Round 9 (build 316): the word on the main button — **Set**, or **Save** in a task's
+    /// window, whose three pages now say the same word.
+    let confirmTitle: String
+    /// The one colour of the window: its buttons, and the calendar's arrows and chosen day
+    /// (the calendar took the colour of the screen behind it, so a window had two colours).
+    let tint: Color
+    /// A task's window hands in the one height its three pages share on the iPhone.
+    let sheetHeight: CGFloat?
 
     @State private var typed = ""
     @State private var atText = ""
@@ -579,9 +587,14 @@ struct DateTimeChoiceView: View {
     init(current: DateOnly?, time: TimeOfDay? = nil, offersTime: Bool = true,
          clearTitle: String? = nil, cancel: (() -> Void)? = nil,
          title: String = "Date", header: AnyView? = nil,
+         confirmTitle: String = "Set", tint: Color = Theme.fallbackTint,
+         sheetHeight: CGFloat? = nil,
          choose: @escaping (DateOnly?, TimeOfDay?) -> Void) {
         self.title = title
         self.header = header
+        self.confirmTitle = confirmTitle
+        self.tint = tint
+        self.sheetHeight = sheetHeight
         self.current = current
         self.time = time
         self.offersTime = offersTime
@@ -594,11 +607,6 @@ struct DateTimeChoiceView: View {
 
     /// What the **At** field holds, read as a time.
     private var reading: TypedTime { TimeOfDay.typed(atText) }
-
-    private var canSet: Bool {
-        if parsed == nil { return false }
-        return !(offersTime && reading == .invalid)
-    }
 
     /// True on the iPhone, where the window is a sheet of its own shape (build 315 polish).
     private var isPhone: Bool {
@@ -640,6 +648,7 @@ struct DateTimeChoiceView: View {
         DatePicker("Date", selection: $date, displayedComponents: .date)
             .datePickerStyle(.graphical)
             .labelsHidden()
+            .tint(tint.ink)
             .onChange(of: date) { _, picked in typed = DateOnly(picked).description }
         if offersTime {
             atLine
@@ -662,6 +671,9 @@ struct DateTimeChoiceView: View {
                             .padding(.top, 2)
                     }
                 }
+                // Round 9 (build 316): the quick times and **No time of day** in the
+                // window's one colour too (they took the colour of the screen behind).
+                .tint(tint.ink)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 12)
@@ -674,15 +686,21 @@ struct DateTimeChoiceView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { if let cancel { cancel() } else { dismiss() } }
-                        .tint(Theme.fallbackTint.ink)
+                        .tint(tint.ink)
                         .accessibilityIdentifier("date.cancel")
                 }
-                DateSetItem(canSet: canSet, set: set)
+                DateSetItem(title: confirmTitle, tint: tint, set: set)
             }
         }
-        .presentationDetents(phoneHeight > 0 ? [.height(phoneHeight + Self.phoneBarRoom), .large] : [.large])
+        .presentationDetents(phoneDetents)
         .presentationBackground(Theme.canvas)
         .onAppear(perform: load)
+    }
+
+    /// As tall as what it holds — or, in a task's window, the one height of its three pages.
+    private var phoneDetents: Set<PresentationDetent> {
+        if let sheetHeight { return [.height(sheetHeight), .large] }
+        return phoneHeight > 0 ? [.height(phoneHeight + Self.phoneBarRoom), .large] : [.large]
     }
 
     /// The room the sheet's bar takes above the content.
@@ -702,9 +720,10 @@ struct DateTimeChoiceView: View {
                     Button("Cancel", action: cancel)
                         .accessibilityIdentifier("date.cancel")
                 }
-                Button("Set", action: set).buttonStyle(.filled(Theme.fallbackTint))
+                // Round 9 (build 316): never pale. With a date that cannot be read it does
+                // nothing, and the red line under the field says how to write it.
+                Button(confirmTitle, action: set).buttonStyle(.filled(tint))
                     .keyboardShortcut(.defaultAction)
-                    .disabled(!canSet)
                     .accessibilityIdentifier("date.set")
             }
         }
@@ -719,8 +738,7 @@ struct DateTimeChoiceView: View {
             if offersTime {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("Set", action: set).buttonStyle(.filled(Theme.fallbackTint))
-                        .disabled(!canSet)
+                    Button(confirmTitle, action: set).buttonStyle(.filled(tint))
                 }
             }
         }
@@ -794,7 +812,8 @@ struct DateTimeChoiceView: View {
 /// **Set** in the bar of the iPhone's date sheet: the app's own filled button, whole (never
 /// cut), without the round glass iOS 26 draws behind a bar button.
 struct DateSetItem: ToolbarContent {
-    let canSet: Bool
+    var title = "Set"
+    var tint: Color = Theme.fallbackTint
     let set: () -> Void
 
     var body: some ToolbarContent {
@@ -807,10 +826,10 @@ struct DateSetItem: ToolbarContent {
     }
 
     private var button: some View {
-        Button("Set", action: set)
-            .buttonStyle(.filled(Theme.fallbackTint))
-            .fixedSize()
-            .disabled(!canSet)
+        // Round 9 (build 316): always full colour; `set` does nothing while the date
+        // cannot be read, and the red line under the field says how to write it.
+        Button(action: set) { Text(title).lineLimit(1).fixedSize() }
+            .buttonStyle(.filled(tint))
             .accessibilityIdentifier("date.set")
     }
 }
@@ -873,7 +892,10 @@ struct WrappingHStack: Layout {
         for row in rows(of: subviews, within: bounds.width) {
             var x = bounds.minX
             for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
+                // Round 9 (build 316): a child wider than the whole row is given the row's
+                // width, so its words shorten with "…" and it never runs off the edge.
+                var size = subviews[index].sizeThatFits(.unspecified)
+                size.width = min(size.width, bounds.width)
                 subviews[index].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2),
                                       proposal: ProposedViewSize(size))
                 x += size.width + spacing
@@ -892,7 +914,8 @@ struct WrappingHStack: Layout {
         var rows: [Row] = []
         var row = Row()
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+            var size = subviews[index].sizeThatFits(.unspecified)
+            size.width = min(size.width, limit)
             let wanted = row.indices.isEmpty ? size.width : row.width + spacing + size.width
             if !row.indices.isEmpty, wanted > limit {
                 rows.append(row)

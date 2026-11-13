@@ -164,11 +164,17 @@ struct DayCalendarView: View {
                 }
             }
             Section {
+                // Round 9 (build 316), the designer's list: on the iPhone this button made
+                // the note and did not open it, and **Open the daily note** did nothing. A
+                // press on the row also made the list clear its selection, and that came
+                // after the note was opened, so the note closed again at once. The note is
+                // now opened one turn later, after the list has had its say.
                 Button {
-                    model.afterUpdate { model.openDailyNote(for: day) }
+                    model.afterUpdate { model.afterUpdate { model.openDailyNote(for: day) } }
                 } label: {
                     MarkLabel(overview.dailyNotePath == nil ? "Create the daily note" : "Open the daily note", "doc.text")
                 }
+                .accessibilityIdentifier("calendar.day.dailyNote")
                 .tag(overview.dailyNotePath ?? "")
             }
             }
