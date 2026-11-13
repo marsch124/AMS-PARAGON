@@ -143,7 +143,7 @@ public enum MarkdownHighlight {
                 spans.append(MarkdownSpan(range: shift(box.range(at: 4), by: lineRange.location), style: .finished))
             }
         }
-        for regex in [TaskParser.dueRegex, TaskParser.doneRegex, TaskParser.repeatRegex, TaskParser.sinceRegex, TaskTime.regex] {
+        for regex in [TaskParser.dueRegex, TaskParser.doneRegex, TaskParser.repeatRegex, TaskParser.sinceRegex, TaskParser.deadlineRegex, TaskTime.regex] {
             for m in regex.matches(in: text, range: full) {
                 spans.append(MarkdownSpan(range: shift(m.range, by: lineRange.location), style: .dueDate))
             }
