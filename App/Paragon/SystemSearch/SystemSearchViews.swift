@@ -122,24 +122,58 @@ struct SiriShortcutsSection: View {
         var id: String { action }
     }
 
-    /// What to say, in the order of `ParagonShortcuts`. The first phrase of each.
+    /// What to say, in the order of `ParagonShortcuts`. The first phrase of each. Each action
+    /// is spelled as its tile in the Shortcuts app spells it ("Start the Day"), so the name
+    /// here is the name he looks for there (designer, build 317; before: "Start the day").
     static let phrases: [Phrase] = [
         Phrase(action: "Add to Inbox", say: "Add to PARAGON"),
-        Phrase(action: "Due today", say: "What is due today in PARAGON"),
+        Phrase(action: "Due Today", say: "What is due today in PARAGON"),
         Phrase(action: "Open Today", say: "Open Today in PARAGON"),
-        Phrase(action: "Start the day", say: "Start the day in PARAGON"),
-        Phrase(action: "Close the day", say: "Close the day in PARAGON"),
-        Phrase(action: "Start focus", say: "Start focus in PARAGON"),
+        Phrase(action: "Start the Day", say: "Start the day in PARAGON"),
+        Phrase(action: "Close the Day", say: "Close the day in PARAGON"),
+        Phrase(action: "Start Focus", say: "Start focus in PARAGON"),
     ]
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var widthClass
+    #endif
+
+    /// On the iPhone every row is the action with its phrase under it. Side by side, the
+    /// longest phrase ("What is due today in PARAGON") did not fit and that one row alone
+    /// broke into two lines (designer's list, build 317). The iPad and the Mac have the width.
+    private var stacked: Bool {
+        #if os(iOS)
+        return widthClass == .compact
+        #else
+        return false
+        #endif
+    }
+
+    @ViewBuilder
+    private func phraseRow(_ row: Phrase) -> some View {
+        let say = "\u{201C}\(row.say)\u{201D}"
+        if stacked {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(row.action)
+                Text(say)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.soft)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+        } else {
+            LabeledContent(row.action) {
+                Text(say)
+                    .foregroundStyle(Theme.soft)
+                    .multilineTextAlignment(.trailing)
+            }
+        }
+    }
 
     var body: some View {
         Section("Siri and Shortcuts") {
             ForEach(Self.phrases) { row in
-                LabeledContent(row.action) {
-                    Text("\u{201C}\(row.say)\u{201D}")
-                        .foregroundStyle(Theme.soft)
-                        .multilineTextAlignment(.trailing)
-                }
+                phraseRow(row)
             }
             #if os(iOS)
             // Apple's own button: opens the Shortcuts app on PARAGON's actions.
