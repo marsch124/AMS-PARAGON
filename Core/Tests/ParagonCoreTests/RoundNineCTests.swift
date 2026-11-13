@@ -152,10 +152,10 @@ final class RoundNineCTests: XCTestCase {
 
     func testTheRestoreLineNamesNotesAndTheCopysDay() {
         let stamp = "2026-11-13 08:57"
-        XCTAssertEqual(RestoreResult(written: 15, failed: [], notes: 15).line(stamp: stamp), "Restored 15 notes from 2026-11-13 08:57")
-        XCTAssertEqual(RestoreResult(written: 5, failed: [], notes: 1).line(stamp: stamp), "Restored 1 note and 4 other files from 2026-11-13 08:57")
+        XCTAssertEqual(RestoreResult(written: 15, failed: [], notes: 15).line(stamp: stamp), "Restored 15 notes from\u{00A0}2026-11-13\u{00A0}08:57")
+        XCTAssertEqual(RestoreResult(written: 5, failed: [], notes: 1).line(stamp: stamp), "Restored 1 note and 4 other files from\u{00A0}2026-11-13\u{00A0}08:57")
         XCTAssertEqual(RestoreResult(written: 2, failed: ["a.md"], notes: 2).line(stamp: stamp),
-                       "Restored 2 of 3 files from 2026-11-13 08:57. 1 could not be written.")
+                       "Restored 2 of 3 files from\u{00A0}2026-11-13\u{00A0}08:57. 1 could not be written.")
         XCTAssertTrue(RestoreResult(written: 0, failed: []).line(stamp: stamp).hasPrefix("Nothing was put back"))
     }
 

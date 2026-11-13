@@ -424,19 +424,20 @@ struct ProjectRow: View {
             // then the need; the need element keeps its old name and its "Next: …" label.
             // Round 9 (build 316): the need may take two lines before it is cut ("Next:
             // Define the outcome and the first ste…" was cut on the iPhone).
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                if let count = second.count {
-                    Text(count + " \u{00B7}")
-                        .lineLimit(1)
-                        .fixedSize()
+            // Round 9, the designer's list: when it takes two lines, the break is between
+            // the need and the facts after it, and the lower line starts under the upper
+            // one — it began with the dot, set in 47 points ("· Walk the Kungsleden…").
+            ViewThatFits(in: .horizontal) {
+                needLine(count: second.count, words: second.lines.one)
+                VStack(alignment: .leading, spacing: 1) {
+                    needLine(count: second.count, words: second.lines.upper,
+                             lines: second.lines.lower == nil ? 2 : 1)
+                    if let lower = second.lines.lower {
+                        Text(lower)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
                 }
-                Text(second.text)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(needWords)
-                    .accessibilityIdentifier("project.next.\(line.id)")
             }
             .font(Txt.listSecond)
             // Red when a date has passed; orange ("look at this") when the project is due
@@ -449,7 +450,27 @@ struct ProjectRow: View {
     /// The facts of the second line, most telling first, joined with a middle dot; `late` when
     /// one of them is a date that has passed on a running project. Assembled here rather than
     /// in the body, where a loop and `var` are not allowed (build 58).
-    private var secondText: (count: String?, text: String, late: Bool, attention: Bool) {
+    /// The count and the need, as one line. The count is its own words; the need element
+    /// keeps its name and its "Next: …" label.
+    private func needLine(count: String?, words: String, lines: Int = 1) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            if let count {
+                Text(count + " \u{00B7}")
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            Text(words)
+                .lineLimit(lines)
+                .truncationMode(.tail)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: lines > 1)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(needWords)
+                .accessibilityIdentifier("project.next.\(line.id)")
+        }
+    }
+
+    private var secondText: (count: String?, text: String, lines: (one: String, upper: String, lower: String?), late: Bool, attention: Bool) {
         let today = DateOnly.today()
         var parts: [String] = []
         var count: String?
@@ -489,7 +510,10 @@ struct ProjectRow: View {
         } else if line.goalIsMissing, let name = line.note.goal {
             parts.append("No goal called \(name)")
         }
-        return (count, parts.joined(separator: " \u{00B7} "), late, attention)
+        // The need stands first on a live project; everything after it may move down a line.
+        let lead = isOver ? parts : Array(parts.prefix(1))
+        let rest = isOver ? [] : Array(parts.dropFirst())
+        return (count, parts.joined(separator: SecondLine.dot), SecondLine.split(first: lead, rest: rest), late, attention)
     }
 
     /// The need line in words, set as its label: one element with one sentence reads the same

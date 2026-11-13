@@ -53,6 +53,8 @@ struct HelpDocument: View {
     let fileName: String
     /// A title that stands in place of the document's own first line ("What's new").
     var title: String? = nil
+    /// False where a navigation bar above the page already says its name (the iPhone).
+    var showsTitle = true
     @State private var open: Set<String> = []
     @State private var search = ""
 
@@ -89,8 +91,10 @@ struct HelpDocument: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(title ?? document.title)
-                    .font(Txt.pageTitle.bold())
+                if showsTitle {
+                    Text(title ?? document.title)
+                        .font(Txt.pageTitle.bold())
+                }
                 ForEach(Array(document.intro.enumerated()), id: \.offset) { _, block in
                     render(block)
                 }

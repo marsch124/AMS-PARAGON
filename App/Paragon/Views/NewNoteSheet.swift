@@ -122,6 +122,8 @@ struct NewNoteSheet: View {
     /// the moment he is making the note, so he does not write a second one meaning the same.
     @State private var tags: [String] = []
     @FocusState private var nameFocused: Bool
+    /// Round 9 (build 316): **Save** was pressed with no name; a red line under the field says so.
+    @State private var nameMissing = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -139,8 +141,10 @@ struct NewNoteSheet: View {
         .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
         // 1.0: Cancel and Create at the top right on the Mac (Escape, Return, ⌘S), in the
         // navigation bar on the iPhone. `SheetChrome` in Look.swift is the one shape.
+        // Round 9 (build 316): **Save** keeps its full colour while the name is empty (it was
+        // pale). Pressed with no name it saves nothing and puts the cursor in **Name**.
         .sheetChrome(title: "New", tint: tint(for: thing), actionTitle: "Save",
-                     canAct: canCreate, showsAction: !thing.isCapture,
+                     canAct: true, showsAction: !thing.isCapture,
                      cancel: { dismiss() }, act: create)
         .onAppear {
             if let match = NewThing.forSection(model.section) {
@@ -228,6 +232,12 @@ struct NewNoteSheet: View {
                     .focused($nameFocused)
                     .onSubmit(create)
                     .accessibilityIdentifier("new.name")
+                if nameMissing && !canCreate {
+                    Text("Give it a name first.")
+                        .font(Txt.label)
+                        .foregroundStyle(Color.red)
+                        .accessibilityIdentifier("new.name.missing")
+                }
             }
 
             Text(hint)
@@ -249,7 +259,7 @@ struct NewNoteSheet: View {
     /// the bottom corner. `SheetFooter` (Theme.swift) is where that is put right, for every
     /// sheet at once since build 191.
     private var footer: some View {
-        SheetFooter(actionTitle: "Save", tint: tint(for: thing), canAct: canCreate,
+        SheetFooter(actionTitle: "Save", tint: tint(for: thing), canAct: true,
                     cancel: { dismiss() }, act: create)
     }
 
@@ -566,7 +576,12 @@ struct NewNoteSheet: View {
     private func create() {
         guard !thing.isCapture else { return }
         let trimmed = title.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else {
+            // Nothing to save yet: the cursor goes to the name, and the field says what is missing.
+            nameMissing = true
+            nameFocused = true
+            return
+        }
         let kind = thing.kind
         var extra: [(String, String)] = []
         if kind == .area, !parentArea.isEmpty {

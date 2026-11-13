@@ -179,6 +179,9 @@ struct InboxTriageView: View {
                         }
                     }
                 }
+                // Round 9 (build 316): dragging the list puts the keyboard away. It stayed
+                // up and covered the tabs and the round +.
+                .scrollDismissesKeyboard(.immediately)
             }
         }
         .focusable()
@@ -201,6 +204,8 @@ struct InboxTriageView: View {
         }
         .onChange(of: model.inboxSelection) { _, new in
             guard new != nil else { return }
+            // Round 9 (build 316): pressing a line on the iPhone puts the keyboard away too.
+            if isPhone, captureFocused { captureFocused = false }
             model.afterUpdate {
                 model.inboxShowsNote = false
                 model.selectedNotePath = nil
@@ -208,7 +213,8 @@ struct InboxTriageView: View {
         }
         .sheet(item: $pickingDateFor) { ref in
             TaskDatePicker(ref: ref, isPresented: Binding(get: { pickingDateFor != nil },
-                                                         set: { if !$0 { pickingDateFor = nil } }))
+                                                         set: { if !$0 { pickingDateFor = nil } }),
+                           tint: SidebarSection.inbox.tint)
         }
     }
 
@@ -217,7 +223,14 @@ struct InboxTriageView: View {
         VStack(alignment: .leading, spacing: 4) {
             captureRow
             // Build 316: a date read from plain words, shown before it is added.
-            PlainDateChip(text: newItem, ignored: $ignoredDateWords)
+            // Round 9: it starts where the field starts, past the mark, in the Inbox's colour.
+            HStack(spacing: 8) {
+                MarkImage("tray.and.arrow.down")
+                    .hidden()
+                    .frame(height: 1)
+                    .accessibilityHidden(true)
+                PlainDateChip(text: newItem, ignored: $ignoredDateWords, tint: SidebarSection.inbox.tint)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -231,11 +244,14 @@ struct InboxTriageView: View {
             TextField("Capture something…", text: $newItem)
                 .modifier(DateFieldLook(isPhone: isPhone))
                 .focused($captureFocused)
+                // Return adds the line. On the empty field it adds nothing and, on the
+                // iPhone, the keyboard goes away as it did up to build 315.
                 .onSubmit(capture)
             // Round 9 (build 316): the main button keeps its full colour while the field
             // is empty (it was pale). A press with nothing typed puts the cursor in the field.
-            Button("Add", action: capture)
+            Button("Add", action: pressAdd)
                 .buttonStyle(.filled(SidebarSection.inbox.tint))
+                .accessibilityIdentifier("inbox.add")
         }
     }
 
@@ -265,13 +281,20 @@ struct InboxTriageView: View {
         if new != inbox.text { model.saveText(new, forNoteAt: inbox.relativePath) }
     }
 
-    private func capture() {
-        let text = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else {
-            captureFocused = true
+    /// **Add**: with nothing typed it puts the cursor in the field, once — only the button
+    /// does that. Return on the empty field must let go of the field, or the keyboard can
+    /// never be put away (the first pictures of build 316).
+    private func pressAdd() {
+        guard !newItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            if !captureFocused { captureFocused = true }
             return
         }
-        guard let inbox else { return }
+        capture()
+    }
+
+    private func capture() {
+        let text = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, let inbox else { return }
         // Build 316: date words that were read ("tomorrow 14:00") are saved as the date mark.
         model.addTask(PlainDateChip.line(text, ignoring: ignoredDateWords), to: inbox.relativePath)
         newItem = ""
@@ -327,17 +350,21 @@ struct InboxRow: View {
                     Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
                         .lineLimit(2)
                 }
-                if let due = ref.task.dueDate {
-                    // With the time of day when it has one (build 277): the At line can be
-                    // reached from the Inbox's **Pick a date**, so this row has to show it.
-                    MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
-                        .font(Txt.listSecond)
-                        .rowTint(due < .today() ? Color.red : .secondary)
-                }
-                if ref.task.deadline != nil {
-                    DeadlineLabel(task: ref.task)
-                        .font(Txt.listSecond)
-                        .foregroundStyle(.soft)
+                // Round 9 (build 316): the date and the deadline on one small line, each mark
+                // 5 points from its words and the first mark under the first letter of the
+                // title (as `Label`s the marks stood 12 points to the right of it).
+                if !editing, ref.task.dueDate != nil || ref.task.deadline != nil {
+                    WrappingHStack(spacing: RowFact.gap, lineSpacing: 2) {
+                        if let due = ref.task.dueDate {
+                            // With the time of day when it has one (build 277): the At line can be
+                            // reached from the Inbox's **Pick a date**, so this row has to show it.
+                            RowFact(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock")
+                                .rowTint(due < .today() ? Color.red : .secondary)
+                        }
+                        DeadlineLabel(task: ref.task)
+                    }
+                    .font(Txt.listSecond)
+                    .foregroundStyle(.soft)
                 }
             }
             Spacer(minLength: 6)
