@@ -6,6 +6,14 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 
 **PARAGON can now keep your notes in a folder of its own: iCloud Drive › PARAGON.** This build has 1 new thing. PARAGON gets its own folder in iCloud Drive. A device that uses this folder opens it by itself at every start, so there is no folder to choose and no folder to lose. Your notes get there by a move that you start yourself, 1 time, on 1 device. The move is only offered. No button was moved and no screen was put in another order.
 
+**After the designer's look.** A strict designer walked through every page of the move on a test phone, with an ordinary folder standing in for iCloud, and changed these before the upload:
+- The offer page is a full page with headed parts: **Where your notes will be**, **What happens** (steps 1 to 4), **Nothing is deleted** and **Your devices**. Before, it was a half-height page of grey text, and the devices were below the edge.
+- When a device is not ready, the reason stands first, in a warning box.
+- While the move is at work the page shows five steps: done, at work with its count, or waiting. Before, it was one line on an empty page.
+- The bar "Your notes have moved" is quiet and tinted, with a small button. Before, it was orange with a large button.
+- Words: "is paused" where it said "rests"; "Please wait. This takes a moment." on the pages that have no **Stop**; after a **Stop**: "The move was stopped. Your notes are where they were."
+- Not shown on the test phone, because they pass in an instant without real iCloud: "Sending to iCloud", "Switching" and the page after **Stop**.
+
 **Please read this first.**
 - **Nothing moves by itself.** Your notes stay in the folder they are in today. They move only when you press **Move my notes**.
 - **In this build, please do NOT move your real notes yet.** First we try the move together, with a small set of notes that may be thrown away. Only when that has worked on your iPhone, iPad and Mac do we move the real notes.
@@ -49,10 +57,10 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 - A press opens the page **Move your notes to PARAGON's own folder**. Opening the page moves nothing.
 
 **7. What the page says.**
-- "PARAGON gets a folder of its own, iCloud Drive › PARAGON, and opens it by itself on your iPhone, iPad and Mac. No folder to choose, nothing to remember."
+- "PARAGON gets a folder of its own, iCloud Drive › PARAGON, and opens it by itself on your iPhone, iPad and Mac. You do not need to choose a folder again."
 - "What happens: a backup copy is made and checked. Then your 125 notes, pictures and settings are copied, and every file is compared with its original. Only then does PARAGON switch." The number is your own number of notes.
-- "Your old folder “PARAGON Vault” stays as it is. PARAGON adds one small text file to it that says where the notes went. You decide later when it can go." The name is your own folder's name.
-- "Reminders sync rests during the move and goes on afterwards."
+- "Your old folder “PARAGON Vault” stays as it is. PARAGON adds one small text file to it that says where the notes went. You decide later when to delete it." The name is your own folder's name.
+- "Reminders sync is paused during the move and goes on afterwards."
 - Then the list of the devices that use your notes, 1 line each. For example: "Martin's Mac: PARAGON 319, this device" and "iPhone: PARAGON 319, seen 2026-11-14".
 - When every device is ready, the last line says: "Move on one device only. The others follow by themselves." The buttons are **Cancel** and **Move my notes**. On the Mac, Escape is **Cancel**.
 
@@ -67,7 +75,7 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 
 **9. Another device is moving the notes.**
 - Only 1 device may move the notes at a time.
-- When another device started a move less than 1 day ago and has not finished it, the page says, for example: "iPhone started a move on 2026-11-14 and has not finished it. Finish it there, or wait a day." The main button is **Check again**.
+- When another device started a move less than 1 day ago and has not finished it, the page says, for example: "iPhone started a move on 2026-11-14 and has not finished it. Finish the move on that device, or try again tomorrow." The main button is **Check again**.
 - When 2 devices press **Move my notes** in the same minute, both stop before the copy counts. The message: "iPhone is moving your notes too. Two devices must not move them at the same time, so this move stopped. Nothing has changed: your notes are where they were. Let that device finish, or try again tomorrow."
 
 **10. The notes were moved already.**
@@ -88,7 +96,7 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 ### The move, step by step
 
 **12. What happens after Move my notes, in this order.**
-1. Reminders sync rests. The text you are writing is saved.
+1. Reminders sync is paused. The text you are writing is saved.
 2. **Reading.** Every file in your notes folder is read. A file that is still in iCloud is fetched; PARAGON waits up to 20 seconds for each.
 3. **The backup, outside the notes folder, first.** PARAGON makes a backup copy in the place of your second copy (**Settings › Second copy, outside the vault**). Then it checks the copy: every file in it must be the same as in your notes folder, nothing may be left out, and the number of notes must be the same.
 4. **Room.** The device must have room for the copy and 20 MB more.
@@ -100,9 +108,9 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 10. **The switch.** PARAGON writes the list of all files and the mark "complete" into the new folder. It adds the text file **PARAGON has moved these notes.txt** to the old folder. Then it opens the new folder, and Reminders sync goes on with the same memory, so no reminder is made twice.
 
 **13. What you see during the move.**
-- The page is called **Moving your notes**. It shows where the move stands: "Reading your notes: 212 files…", "Copying 87 of 412 files…", "Checking every file: 300 of 824…", "Sending to iCloud: 87 of 412 files…", "Finishing…". A bar fills.
+- The page is called **Moving your notes**. It shows where the move stands: "Reading your notes: 212 files…", "Copying 87 of 412 files…", "Comparing copies and originals: 300 of 824 files…", "Sending to iCloud: 87 of 412 files…", "Finishing…". A bar fills.
 - "Checking" counts each file 2 times, 1 time in each folder. So 412 files show as 824.
-- Under it: "You can stop until the last step. If you stop, nothing has changed." The button **Stop** is there until "Finishing…".
+- Under it: "You can press Stop until the last step. Your notes then stay where they are." The button **Stop** is there until "Finishing…".
 - The page cannot be swiped away while the move runs.
 
 **14. The end of a move.**
@@ -126,17 +134,17 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 - In **Settings › Vault** the row **Your notes have moved…** opens the same page.
 
 **17. The page Your notes have moved.**
-- It says, for example: "On 2026-11-14 Martin's Mac moved them to iCloud Drive › PARAGON." and "Reminders sync rests on this iPhone until it uses the new place too."
+- It says, for example: "On 2026-11-14 Martin's Mac moved them to iCloud Drive › PARAGON." and "Reminders sync is paused on this iPhone until it uses the new place too."
 - While iCloud is still bringing the files: "Waiting for iCloud: 87 of 125 files are here. You can go on working; your changes come along." The only button is **Not now**.
 - When everything is there: "Everything is here: 125 files. What you changed on this iPhone since the move comes along." The buttons are **Not now** and **Open the new folder**.
 - The count leaves out the backups inside the vault and the deleted notes. A device does not wait for those.
 - **Open the new folder** first brings along what this device changed in the old folder since the move (by the rules in point 20). Then PARAGON switches. It never copies all the notes a second time.
 - The end page **Your notes are open in their new place** says, for example: "PARAGON now uses iCloud Drive › PARAGON on this iPhone, as on Martin's Mac." and "Nothing had changed on this iPhone since the move." and "Reminders sync goes on as before." The button is **Done**.
 
-**18. Reminders sync rests there until the device has followed.**
+**18. Reminders sync is paused there until the device has followed.**
 - From the moment a device sees that the notes have moved, it does not sync the old folder with Reminders. Otherwise 2 folders would both write to the same Reminders lists.
-- PARAGON looks at the marks before every sync, also right after it starts. A mark that is there but still coming from iCloud rests the sync too, until it can be read.
-- A press on **Sync now** then shows: "Reminders sync rests: your notes have moved to another folder."
+- PARAGON looks at the marks before every sync, also right after it starts. A mark that is there but still coming from iCloud pauses the sync too, until it can be read.
+- A press on **Sync now** then shows: "Reminders sync is paused: your notes have moved to another folder."
 - After **Open the new folder**, the sync goes on by itself.
 
 **19. Files from the list that are not there.**
@@ -169,7 +177,7 @@ The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac 
 - **Set aside, never deleted.** A file in the old folder that is replaced by a newer one, or that is no longer among your notes, is moved into `.ams-para/Set aside by a move/` and then a folder named by day and time. Nothing in the old folder is deleted.
 - The end page **PARAGON is back in the old folder** says how many notes and files were copied and checked, and how many older files were set aside.
 - The other devices then see "Your notes have moved" with the old folder's name, and follow the same way with **Open the new folder**.
-- When a move back was started and not finished, a device in the old folder shows: "Martin's Mac is moving your notes back into this folder. Reminders sync rests until that is done." If the notes are still complete in iCloud Drive › PARAGON, the bar offers **Open…** to go there.
+- When a move back was started and not finished, a device in the old folder shows: "Martin's Mac is moving your notes back into this folder. Reminders sync is paused until that is done." If the notes are still complete in iCloud Drive › PARAGON, the bar offers **Open…** to go there.
 
 ### A new device, or a lost folder
 

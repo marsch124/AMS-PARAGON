@@ -5289,7 +5289,7 @@ final class AppModel: ObservableObject {
         await refreshOwnFolder()
         guard self.vault === vault, !isSyncing else { return }
         if ownFolder.holdsSync {
-            if !quietly { flash("Reminders sync rests: your notes have moved to another folder.") }
+            if !quietly { flash("Reminders sync is paused: your notes have moved to another folder.") }
             return
         }
         // Never sync half a vault. A note that has not arrived from iCloud has no tasks as far
