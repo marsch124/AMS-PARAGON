@@ -6,7 +6,9 @@ import AppKit
 
 @main
 struct ParagonApp: App {
-    @StateObject private var model = AppModel()
+    // The one model (build 317): the actions in Shortcuts and Siri use the same one, also
+    // when the system has started the app in the background and no window exists.
+    @StateObject private var model = AppModel.shared
     // Only so the reminders' delegate is in place before launch finishes: a press on a
     // notification can start the app from cold (builds 234 and 270).
     #if os(iOS)
@@ -30,6 +32,8 @@ struct ParagonApp: App {
                 // A link opened while this window is up (a click on the Today's plan widget)
                 // goes to this window and does not make a second one (build 276).
                 .modifier(TakesLinksInOpenWindow())
+                // Build 317: a press on a note in the system search opens it here.
+                .modifier(SystemSearchLink(model: model))
         }
         .commands {
             // `replacing:`, not `after:`. A WindowGroup puts its own "New Window" in this
