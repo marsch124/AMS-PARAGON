@@ -262,6 +262,8 @@ struct PlanHeadline: View {
             Text(headline.title)
                 .font(.system(size == .small ? .headline : .title3, design: .rounded).weight(.semibold))
                 .foregroundStyle(PlanLook.plan)
+                // Build 317: keeps its own colour group when the iPhone tints its widgets.
+                .widgetAccentable()
                 .lineLimit(2)
                 .minimumScaleFactor(0.6)
         }
@@ -521,6 +523,9 @@ struct PlanRuler: View {
                 }
             }
             .frame(width: box.width, height: box.height)
+            // Build 317: on a tinted iPhone Home Screen the plan blocks take the tint and the
+            // calendar's outlines stay plain, so the two lanes are still told apart.
+            .widgetAccentable(box.isBlock)
             .offset(x: box.x, y: box.y)
     }
 

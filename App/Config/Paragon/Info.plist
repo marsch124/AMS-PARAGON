@@ -49,6 +49,8 @@
 	<string>PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

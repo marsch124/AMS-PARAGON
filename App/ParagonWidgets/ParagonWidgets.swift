@@ -43,6 +43,8 @@ struct ParagonEntry: TimelineEntry {
     /// matter how often PARAGON is opened. Before 177 that looked exactly like "the app has
     /// never run here", and he was told to open the app again — which could never have worked.
     var folderFound: Bool = true
+    /// Tasks ticked on a widget that PARAGON has not written into their notes yet (build 317).
+    var ticks: [WidgetTick] = []
 }
 
 extension ParagonEntry {
@@ -57,7 +59,8 @@ extension ParagonEntry {
         }
         return ParagonEntry(date: date,
                             snapshot: WidgetSnapshot.read(fromContainer: container),
-                            folderFound: true)
+                            folderFound: true,
+                            ticks: WidgetTickQueue(container: container).pending())
     }
 }
 
@@ -102,13 +105,13 @@ struct ParagonProvider: TimelineProvider {
         items: [
             .init(id: "1", title: "Book the hotel", noteTitle: "Jönköping 70.3", noteKind: "project",
                   dueText: "today", isOverdue: false, serves: "Still racing at seventy",
-                  servesIsGoal: true, url: "amspara://"),
+                  servesIsGoal: true, url: "amspara://", notePath: "Projects/Example.md"),
             .init(id: "2", title: "Long ride, 3 h", noteTitle: "Base training", noteKind: "project",
                   dueText: "1 day over", isOverdue: true, serves: "Endurance",
-                  servesIsGoal: false, url: "amspara://"),
+                  servesIsGoal: false, url: "amspara://", notePath: "Projects/Example.md"),
             .init(id: "3", title: "Order the new saddle", noteTitle: "Bike", noteKind: "project",
                   dueText: nil, isOverdue: false, serves: "Still racing at seventy",
-                  servesIsGoal: true, url: "amspara://"),
+                  servesIsGoal: true, url: "amspara://", notePath: "Projects/Example.md"),
         ]
     )
 }
@@ -272,12 +275,12 @@ struct ActionsWidgetView: View {
         VStack(alignment: .leading, spacing: 6) {
             header
             if let snapshot = entry.snapshot, !snapshot.items.isEmpty {
+                let ticked = snapshot.tickedIDs(entry.ticks)
                 ForEach(snapshot.items.prefix(rowLimit)) { item in
                     // Round 8 (build 315): each line opens its own note. The small size can
                     // open one place only (Apple's rule), so there the whole widget opens Today.
-                    WidgetLink(to: family == .systemSmall ? nil : item.url) {
-                        ActionRow(item: item, compact: family == .systemSmall)
-                    }
+                    // Build 317: on the medium and large sizes a tick circle comes first.
+                    ActionLine(item: item, small: family == .systemSmall, ticked: ticked.contains(item.id))
                 }
                 if snapshot.items.count > rowLimit {
                     Text("and \(snapshot.items.count - rowLimit) more")
@@ -349,15 +352,23 @@ struct ActionsWidgetView: View {
 struct ActionRow: View {
     let item: WidgetSnapshot.Item
     var compact = false
+    /// False where a tick circle in the kind's colour stands in front of the line (build 317).
+    var showsKind = true
+    /// Ticked on the widget and waiting for PARAGON to write it: struck through and grey.
+    var ticked = false
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
-            WidgetMark(name: WidgetLook.symbol(forKind: item.noteKind))
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(WidgetLook.tint(forKind: item.noteKind))
+            if showsKind {
+                WidgetMark(name: WidgetLook.symbol(forKind: item.noteKind))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(WidgetLook.tint(forKind: item.noteKind))
+            }
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.title)
                     .font(.caption)
+                    .strikethrough(ticked)
+                    .foregroundStyle(ticked ? Color.secondary : Color.primary)
                     .lineLimit(compact ? 1 : 2)
                 // The chain, in one line: the goal this is in aid of, else the area. A list of
                 // actions without it is just a list (build 149).
@@ -534,10 +545,15 @@ struct ParagonWidgetBundle: WidgetBundle {
         OneListWidget()
     }
     #else
+    // Build 317: **Today's plan** on the iPhone too, the Lock Screen widgets, and the focus
+    // timer's Live Activity.
     var body: some Widget {
         ActionsWidget()
         CountsWidget()
         OneListWidget()
+        TodayPlanWidget()
+        LockWidget()
+        FocusLiveActivityWidget()
     }
     #endif
 }

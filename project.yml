@@ -32,6 +32,11 @@ targets:
       # regenerating the project, so the committed project rarely changes.
       - path: App/Paragon
         type: syncedFolder
+      # Build 317: the files the app and the widgets must both hold — what the focus timer's
+      # Live Activity is made of, and its Pause / Go on / Stop buttons. Listed under both
+      # targets; a file added here is in both without anything else to do.
+      - path: App/Shared
+        type: syncedFolder
       # The built-in manual (Help window on the Mac, Settings › Help on iOS): How it works,
       # Words in PARAGON (build 228) and the version history. A new file here needs the
       # project regenerated, and a change to this file is what triggers that.
@@ -69,6 +74,8 @@ targets:
         NSRemindersFullAccessUsageDescription: PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.
         NSRemindersUsageDescription: PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.
         NSCameraUsageDescription: PARAGON uses the camera to put a photo into a note.
+        # Build 317: the focus timer on the iPhone's Lock Screen and in the Dynamic Island.
+        NSSupportsLiveActivities: true
         NSHumanReadableCopyright: ""
         UILaunchScreen: {}
         # Apple rejects an upload without these: iPad multitasking needs all four.
@@ -173,6 +180,9 @@ targets:
     supportedDestinations: [iOS, macOS]
     sources:
       - path: App/ParagonWidgets
+        type: syncedFolder
+      # Build 317: see the Paragon target.
+      - path: App/Shared
         type: syncedFolder
     dependencies:
       - package: ParagonCore
