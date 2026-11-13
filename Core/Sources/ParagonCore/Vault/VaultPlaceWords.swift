@@ -6,8 +6,17 @@ import Foundation
 public enum VaultPlaceWords {
     /// The folder's own name: the last part of its path.
     public static func name(path: String) -> String {
+        // Build 319: PARAGON's own iCloud folder is "Documents" on disk and "PARAGON" in Files
+        // and Finder; he is told the name he sees.
+        if isOwnFolder(path: path) { return "PARAGON" }
         let name = (path as NSString).lastPathComponent
         return name.isEmpty ? path : name
+    }
+
+    /// True for the `Documents` folder of the app's own iCloud container.
+    public static func isOwnFolder(path: String) -> Bool {
+        let folder = VaultMove.containerID.replacingOccurrences(of: ".", with: "~")
+        return path.hasSuffix("/Mobile Documents/\(folder)/Documents") || path.hasSuffix("/Mobile Documents/\(folder)/Documents/")
     }
 
     /// "in iCloud Drive", "in Dropbox", or "on <device>" for anywhere else.

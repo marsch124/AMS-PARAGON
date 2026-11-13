@@ -64,6 +64,8 @@ struct SettingsView: View {
                 #if os(macOS)
                 .help(model.vaultPath ?? "")
                 #endif
+                // Build 319: PARAGON's own folder — the offer to move, Show in Files, the way back.
+                OwnFolderSettingsRows()
                 Button("Choose folder…") {
                     pickingBackupFolder = false
                     showingImporter = true
@@ -439,6 +441,7 @@ struct SettingsView: View {
         #if os(macOS)
         .frame(width: 520, height: 560)
         #endif
+        .modifier(OwnFolderSheet())
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result {
                 if pickingBackupFolder {

@@ -131,6 +131,9 @@ enum AppSheet: String, Identifiable {
     case startDay
     /// The focus timer was stopped: one question, is the task done (build 256).
     case focusStop
+    /// Build 319: a page about PARAGON's own folder (the notes have moved; changes waiting in
+    /// the old folder).
+    case ownFolder
 
     var id: String { rawValue }
 }
@@ -1004,7 +1007,7 @@ final class AppModel: ObservableObject {
         folderChoice = nil
     }
 
-    func openVault(at url: URL) {
+    func openVault(at url: URL, ownFolder: Bool = false) {
         guard !isSyncing else {
             errorMessage = "A sync is running. Try again when it has finished."
             return
@@ -1030,7 +1033,8 @@ final class AppModel: ObservableObject {
         }
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = scoped ? url : nil
-        storeBookmark(for: url)
+        // Build 319: PARAGON's own iCloud folder needs no bookmark; the app finds it by itself.
+        if ownFolder { storeOwnFolderChoice() } else { storeBookmark(for: url) }
         vaultProblem = nil
         selectedNotePath = nil
         clearHistory()
@@ -1048,6 +1052,7 @@ final class AppModel: ObservableObject {
         backUpDaily()
         purgeOldDeleted()
         scheduleAutoSync()
+        vaultOpenedForOwnFolder()
     }
 
     func closeVault() {
@@ -1063,6 +1068,7 @@ final class AppModel: ObservableObject {
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = nil
         defaults.removeObject(forKey: bookmarkKey)
+        defaults.removeObject(forKey: ownFolderKey)
         cloudWatcher.stop()
         vault = nil
         notes = []
@@ -1385,10 +1391,20 @@ final class AppModel: ObservableObject {
     /// build 100's rule broken in the one place it hurts most: the app looked empty and said
     /// nothing about why.
     private func restoreVault() {
-        guard let data = defaults.data(forKey: bookmarkKey) else { return }
+        // Build 319: the notes live in PARAGON's own iCloud folder — found off the main thread.
+        if defaults.bool(forKey: ownFolderKey) {
+            openOwnFolderAtLaunch()
+            return
+        }
+        guard let data = defaults.data(forKey: bookmarkKey) else {
+            // No folder known (a fresh install): look in PARAGON's own folder before welcoming.
+            lookInOwnFolder()
+            return
+        }
         guard let url = resolveBookmark(data) else {
             vaultProblem = "PARAGON could not open \(lastVaultName ?? "your vault folder"). The folder may have been renamed or moved, or iCloud may not have it on this device yet."
             log("vault bookmark did not resolve")
+            lookInOwnFolder()
             return
         }
         securityScopedURL = url.startAccessingSecurityScopedResource() ? url : nil
@@ -1399,6 +1415,7 @@ final class AppModel: ObservableObject {
             cloudWatcher.watch(vault.rootURL)
             reload()
             scheduleAutoSync()
+            vaultOpenedForOwnFolder()
             // Not during launch (build 261): both walk the whole vault, and iOS stops an app that
             // takes too long to show its first screen. `===`, so a folder changed meanwhile is
             // left alone.
@@ -1424,6 +1441,11 @@ final class AppModel: ObservableObject {
     /// Closing a vault, or a bookmark that did not resolve at launch, both land on the welcome
     /// screen; this is the one press that returns to the notes.
     func reopenLastVault() {
+        if defaults.bool(forKey: lastVaultOwnKey) {
+            vaultProblem = nil
+            openOwnFolderAtLaunch()
+            return
+        }
         guard let data = defaults.data(forKey: lastVaultBookmarkKey) ?? defaults.data(forKey: bookmarkKey) else {
             vaultProblem = "PARAGON has no folder to go back to. Choose one."
             return
@@ -1446,6 +1468,67 @@ final class AppModel: ObservableObject {
         // Kept past a close, so the welcome screen can offer the way back.
         if data != nil { defaults.set(data, forKey: lastVaultBookmarkKey) }
         defaults.set(url.lastPathComponent, forKey: lastVaultNameKey)
+        defaults.removeObject(forKey: ownFolderKey)
+        defaults.removeObject(forKey: lastVaultOwnKey)
+    }
+
+    // MARK: PARAGON's own iCloud folder (build 319) — what OwnFolder.swift needs from in here
+
+    /// Everything the pages about PARAGON's own folder show. The work is in OwnFolder.swift.
+    @Published var ownFolder = OwnFolderState()
+    /// True while this device's notes are in PARAGON's own iCloud folder: no bookmark then.
+    let ownFolderKey = "vaultInOwnFolder"
+    let lastVaultOwnKey = "lastVaultInOwnFolder"
+    /// The folder the notes were in before a move, kept so the old folder can be looked at for
+    /// later changes and gone back to. Never the open vault's bookmark.
+    let previousVaultBookmarkKey = "previousVaultBookmark"
+    let previousVaultNameKey = "previousVaultName"
+    var ownFolderCache: URL?
+    var ownFolderWatch: Task<Void, Never>?
+    var ownFolderLookTask: Task<Void, Never>?
+    var settingsStore: UserDefaults { defaults }
+
+    private func storeOwnFolderChoice() {
+        defaults.set(true, forKey: ownFolderKey)
+        defaults.set(true, forKey: lastVaultOwnKey)
+        defaults.set("PARAGON", forKey: lastVaultNameKey)
+        defaults.removeObject(forKey: bookmarkKey)
+    }
+
+    /// The open vault's bookmark becomes "the folder before the move". Called just before the
+    /// app switches to another folder because of a move.
+    func rememberVaultAsPrevious() {
+        guard let vault, let data = defaults.data(forKey: bookmarkKey) else { return }
+        defaults.set(data, forKey: previousVaultBookmarkKey)
+        defaults.set(vault.rootURL.lastPathComponent, forKey: previousVaultNameKey)
+    }
+
+    /// The folder before the move, or nil when it cannot be reached. The caller starts and
+    /// stops the access. Not `resolveBookmark`: that one re-stores a stale bookmark as the vault's.
+    func previousVaultFolder() -> URL? {
+        guard let data = defaults.data(forKey: previousVaultBookmarkKey) else { return nil }
+        var stale = false
+        #if os(macOS)
+        let options: URL.BookmarkResolutionOptions = [.withSecurityScope]
+        #else
+        let options: URL.BookmarkResolutionOptions = []
+        #endif
+        return try? URL(resolvingBookmarkData: data, options: options, relativeTo: nil, bookmarkDataIsStale: &stale)
+    }
+
+    /// A move holds everything a sync holds: no sync, no restore, no other folder meanwhile.
+    func holdForMove(_ on: Bool) { isSyncing = on }
+
+    /// Where the backup before a move goes: the folder he chose for the second copy, else this
+    /// device's own storage.
+    func backupPlaceForMove() -> (place: URL, chosen: URL?)? {
+        let chosen = chosenBackupPlace()
+        guard let place = chosen ?? deviceBackupPlace else { return nil }
+        return (place, chosen)
+    }
+
+    nonisolated static func away<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
+        await offMain(work)
     }
 
     func reload() {
@@ -5137,6 +5220,12 @@ final class AppModel: ObservableObject {
 
     func syncNow(force: Bool = false, quietly: Bool = false, allowMassChanges: Bool = false) async {
         guard let vault, !isSyncing else { return }
+        // Build 319: the notes have left this folder (or are being moved): no Reminders sync
+        // from here, or two folders would both talk to the same lists.
+        if ownFolder.holdsSync {
+            if !quietly { flash("Reminders sync rests: your notes have moved to another folder.") }
+            return
+        }
         // Never sync half a vault. A note that has not arrived from iCloud has no tasks as far
         // as this device can see, and while the engine is careful never to delete a reminder
         // whose note it could not read, a sync in that state is needless risk and produces a

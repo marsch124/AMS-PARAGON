@@ -91,6 +91,13 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UISupportsDocumentBrowser: true
         LSSupportsOpeningDocumentsInPlace: true
+        # Build 319: makes the app's iCloud container show as "PARAGON" in iCloud Drive
+        # (Files and Finder). Apple reads this only when the build number goes up.
+        NSUbiquitousContainers:
+          iCloud.com.schabbauer.AMSPara:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerName: PARAGON
+            NSUbiquitousContainerSupportedFolderLevels: Any
     entitlements:
       path: App/Config/Paragon/Paragon.entitlements
       properties:
@@ -99,6 +106,12 @@ targets:
         com.apple.security.files.bookmarks.app-scope: true
         com.apple.security.personal-information.calendars: true
         com.apple.security.application-groups: [group.com.schabbauer.amspara]
+        # Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). The same three
+        # keys are in Paragon-macOS.entitlements, which is kept by hand. NOT in the Mac Debug
+        # entitlements: that build is signed to run locally and macOS would refuse to start it.
+        com.apple.developer.icloud-container-identifiers: [iCloud.com.schabbauer.AMSPara]
+        com.apple.developer.icloud-services: [CloudDocuments]
+        com.apple.developer.ubiquity-container-identifiers: [iCloud.com.schabbauer.AMSPara]
     settings:
       base:
         # The built app is PARAGON.app, not Paragon.app: on the Mac, Finder and the Dock

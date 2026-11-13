@@ -18,5 +18,18 @@
 	<array>
 		<string>D24ENP83QQ.group.com.schabbauer.amspara</string>
 	</array>
+	<!-- Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). -->
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.com.schabbauer.AMSPara</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudDocuments</string>
+	</array>
+	<key>com.apple.developer.ubiquity-container-identifiers</key>
+	<array>
+		<string>iCloud.com.schabbauer.AMSPara</string>
+	</array>
 </dict>
 </plist>

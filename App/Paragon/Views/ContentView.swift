@@ -118,6 +118,11 @@ struct ContentView: View {
                 }
             }
         }
+        // Build 319: a bar while something about the vault's folder waits for him. Nothing
+        // at all otherwise, so the window is exactly as before.
+        .safeAreaInset(edge: .top, spacing: 0) {
+            OwnFolderBanner()
+        }
         // One sheet modifier for the whole window: stacking several of them makes
         // SwiftUI present an empty sheet and leave the window modal.
         .sheet(item: model.sheetSelection) { sheet in
@@ -145,6 +150,10 @@ struct ContentView: View {
                     .environment(\.focusBarShown, false)
             case .focusStop:
                 FocusStopView()
+                    .environmentObject(model)
+            case .ownFolder:
+                // Build 319: the notes have moved, or files wait in the old folder.
+                OwnFolderPageView()
                     .environmentObject(model)
             case .settings:
                 NavigationStack {
@@ -502,9 +511,15 @@ struct WelcomeView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(model.vaultProblem == nil ? Theme.soft : Theme.attention.ink)
                 .frame(maxWidth: 420)
+            // Build 319: notes found in PARAGON's own iCloud folder come before everything else.
+            OwnFolderFoundView()
             // The way back comes first when there is one: it is the answer nine times out of
             // ten, and choosing a folder by hand is the fallback, not the first offer.
-            if model.canReopenLastVault {
+            if model.ownFolder.opening {
+                ProgressView("Opening your notes\u{2026}")
+            } else if model.ownFolder.found != nil {
+                Button("Choose a different folder…") { showingImporter = true }
+            } else if model.canReopenLastVault {
                 Button(backTitle) { model.reopenLastVault() }
                     .buttonStyle(.filled(Theme.fallbackTint))
                 Button("Choose a different folder…") { showingImporter = true }
