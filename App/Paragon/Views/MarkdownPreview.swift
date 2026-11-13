@@ -45,7 +45,8 @@ struct MarkdownPreview: View {
         case blank
     }
 
-    private var blocks: [Block] {
+    /// Not private since round 8: the printed note (`NotePrint`) is made of the same blocks.
+    var blocks: [Block] {
         var result: [Block] = []
         var codeLines: [String]?
         var paragraph: [String] = []
@@ -144,7 +145,7 @@ struct MarkdownPreview: View {
     // MARK: Rendering
 
     @ViewBuilder
-    private func render(_ block: Block) -> some View {
+    func render(_ block: Block) -> some View {
         switch block {
         case .heading(let level, let text):
             inline(text)
@@ -211,7 +212,7 @@ struct MarkdownPreview: View {
     }
 
     /// Inline markdown with wikilinks turned into `amspara://` links.
-    private func inline(_ text: String) -> Text {
+    func inline(_ text: String) -> Text {
         let converted = Self.convertWikilinks(text)
         if let attributed = try? AttributedString(markdown: converted, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
             return Text(attributed)

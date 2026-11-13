@@ -176,6 +176,37 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
     }
 }
 
+/// The four lists a number on the **What is waiting** widget opens (review round 8, build 315).
+public enum WidgetList: String, CaseIterable, Sendable {
+    case today, overdue, inbox, review
+}
+
+public extension WidgetSnapshot {
+    /// `amspara:///list/<name>`: the existing scheme with an empty host, like `planLink`, so a
+    /// note called "list" (`amspara://list`) can never be taken for one.
+    static func link(toList list: WidgetList) -> String {
+        "amspara:///list/\(list.rawValue)"
+    }
+
+    /// The list a link asks for, or nil for every other link.
+    static func list(for url: URL) -> WidgetList? {
+        guard url.scheme?.lowercased() == CaptureItem.urlScheme, (url.host ?? "").isEmpty else { return nil }
+        let parts = url.path.split(separator: "/").map(String.init)
+        guard parts.count == 2, parts[0] == "list" else { return nil }
+        return WidgetList(rawValue: parts[1].lowercased())
+    }
+
+    /// A small widget can open one place only (Apple's rule: no separate links on that size).
+    /// It opens the first list that has something in it, in the order the numbers are drawn.
+    var firstWaitingList: WidgetList {
+        if dueToday > 0 { return .today }
+        if overdue > 0 { return .overdue }
+        if inboxCount > 0 { return .inbox }
+        if dueForReview > 0 { return .review }
+        return .today
+    }
+}
+
 public extension WidgetSnapshot {
     /// Reads the snapshot from a container folder. **Every failure reads as nil**, never as an
     /// empty snapshot: "the app has not written yet" and "it wrote nothing to do" are different

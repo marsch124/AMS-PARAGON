@@ -730,6 +730,9 @@ final class LinkingTextView: NSTextView {
         textView.maxSize = old.maxSize
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
+        // Round 8 (build 315): Apple's own find bar, above the text (⌘F, `NoteFind`).
+        textView.usesFindBar = true
+        textView.isIncrementalSearchingEnabled = true
         _ = storage
         scrollView.documentView = textView
         return scrollView
@@ -1284,6 +1287,8 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             coordinator.pictures?.paste(coordinator.markdownOffset(textView.selectedRange.location), jpeg, "jpg")
         }
         textView.delegate = context.coordinator
+        // Round 8 (build 315): Apple's own find bar (**Find in note**, `NoteFind`).
+        textView.isFindInteractionEnabled = true
         // NO gesture recogniser here. Build 114 added a tap recogniser so a tap could open a
         // [[link]], with cancelsTouchesInView = false in the belief that it would give way.
         // It did not: a UITextView's own single tap is what places the cursor, and a second
@@ -1823,6 +1828,32 @@ final class PictureTextView: UITextView {
     override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
         if action == #selector(paste(_:)), isEditable, pastesPicture { return true }
         return super.canPerformAction(action, withSender: sender)
+    }
+
+    /// Round 8 (build 315): on the iPhone the note's page does the scrolling, not this text
+    /// view, so the find bar's "next" has nothing to scroll. **Only while the find bar is up**,
+    /// a request to bring a place into view is passed on to the page. Typing is untouched.
+    private var pageForFind: UIScrollView? {
+        guard !isScrollEnabled, findInteraction?.isFindNavigatorVisible == true else { return nil }
+        var outer = superview
+        while let view = outer, !(view is UIScrollView) { outer = view.superview }
+        return outer as? UIScrollView
+    }
+
+    override func scrollRectToVisible(_ rect: CGRect, animated: Bool) {
+        super.scrollRectToVisible(rect, animated: animated)
+        guard let page = pageForFind, !rect.isNull, !rect.isInfinite else { return }
+        page.scrollRectToVisible(convert(rect, to: page).insetBy(dx: 0, dy: -60), animated: animated)
+    }
+
+    override func scrollRangeToVisible(_ range: NSRange) {
+        super.scrollRangeToVisible(range)
+        guard let page = pageForFind, let start = position(from: beginningOfDocument, offset: range.location),
+              let end = position(from: start, offset: range.length), let found = textRange(from: start, to: end)
+        else { return }
+        let rect = firstRect(for: found)
+        guard !rect.isNull, !rect.isInfinite else { return }
+        page.scrollRectToVisible(convert(rect, to: page).insetBy(dx: 0, dy: -60), animated: true)
     }
 }
 #endif

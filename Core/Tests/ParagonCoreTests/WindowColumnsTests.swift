@@ -24,7 +24,7 @@ final class WindowColumnsTests: XCTestCase {
         XCTAssertEqual(rows.count, 19)
         XCTAssertEqual(Set(rows).count, 19)
         XCTAssertFalse(rows.contains("Search"))
-        XCTAssertEqual(SidebarGroups.numbered, ["Inbox", "Today", "Time Blocks", "All actions", "Aspirations"])
+        XCTAssertEqual(SidebarGroups.numbered, ["Inbox", "Today", "Time Blocks", "All actions", "Aspirations", "Projects", "Weekly review"])
         XCTAssertEqual(SidebarGroups.folded(in: nil), ["Tools"])
         XCTAssertEqual(SidebarGroups.toggling("Look back", in: nil), "Look back|Tools")
         XCTAssertEqual(SidebarGroups.toggling("Tools", in: "Look back|Tools"), "Look back")
