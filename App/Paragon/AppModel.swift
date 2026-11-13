@@ -1015,6 +1015,12 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         // Open the new folder first; the current vault stays usable if that fails.
         let scoped = url.startAccessingSecurityScopedResource()
+        // Build 319: a folder a move is still filling is never opened as a vault, whoever asks.
+        if case .halfMade(let stamp) = VaultMove.standing(of: url) {
+            if scoped { url.stopAccessingSecurityScopedResource() }
+            errorMessage = "A move into this folder was started on \(VaultMove.day(stamp.at)) by \(stamp.deviceName) and has not finished. The notes are still in their old folder."
+            return
+        }
         let opened: Vault
         do {
             opened = try Vault(rootURL: url)

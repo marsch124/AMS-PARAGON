@@ -97,6 +97,9 @@ final class MoveCancel: @unchecked Sendable {
 @MainActor private var runningMoveCancel: MoveCancel?
 @MainActor private var lastOldFolderCheck: Date?
 @MainActor private var looksWithTheSameMissing = 0
+#if DEBUG
+@MainActor private var debugStepDone = false
+#endif
 
 private enum MoveResult: Sendable {
     case moved(MoveOutcome, [String])
@@ -303,6 +306,9 @@ extension AppModel {
         ownFolder.canGoBack = false
         lastOldFolderCheck = nil
         noteThisDevice()
+        #if DEBUG
+        runDebugStepOnce()
+        #endif
         ownFolderWatch?.cancel()
         ownFolderWatch = Task { [weak self] in
             while !Task.isCancelled {
@@ -311,6 +317,30 @@ extension AppModel {
             }
         }
     }
+
+    #if DEBUG
+    /// Debug builds only, for trying the pages without pressing anything:
+    /// `-paragon-own-step offer | move | back`, once per start.
+    private func runDebugStepOnce() {
+        guard !debugStepDone, let step = UserDefaults.standard.string(forKey: "paragon-own-step") else { return }
+        debugStepDone = true
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            guard let self else { return }
+            _ = await self.ownFolderURL()
+            switch step {
+            case "offer": self.showMoveOffer(fromSettings: false)
+            case "move":
+                self.showOwnFolderPage(.working("Moving your notes"), fromSettings: false)
+                self.startMove(toOwn: true)
+            case "back":
+                self.showOwnFolderPage(.working("Going back to the old folder"), fromSettings: false)
+                self.startMove(toOwn: false)
+            default: break
+            }
+        }
+    }
+    #endif
 
     /// One small file per device in `.ams-para/devices`, so the offer to move can tell whether
     /// every device has opened a PARAGON that understands a moved vault.
@@ -571,7 +601,7 @@ extension AppModel {
                 self.log("move \(outcome.stamp.generation) done: \(outcome.manifest.fileCount) files, \(outcome.copied) copied")
                 if toOwn { self.rememberVaultAsPrevious() }
                 self.openVault(at: destination, ownFolder: toOwn)
-                guard self.vault?.rootURL == destination.standardizedFileURL.resolvingSymlinksInPath() else {
+                guard self.vault?.rootURL.path == destination.standardizedFileURL.resolvingSymlinksInPath().path else {
                     self.ownFolder.page = .failed("The copy is complete, but PARAGON could not switch yet",
                                                   "Every file was copied and checked. PARAGON shows a bar with a button to open the new place.")
                     return
@@ -646,7 +676,7 @@ extension AppModel {
             case .brought(let brought):
                 if stamp.toOwnFolder { self.rememberVaultAsPrevious() }
                 self.openVault(at: destination, ownFolder: stamp.toOwnFolder)
-                guard self.vault?.rootURL == destination.standardizedFileURL.resolvingSymlinksInPath() else {
+                guard self.vault?.rootURL.path == destination.standardizedFileURL.resolvingSymlinksInPath().path else {
                     self.ownFolder.page = .failed("Not yet", "PARAGON could not switch folders just now. Try again in a moment.")
                     return
                 }
