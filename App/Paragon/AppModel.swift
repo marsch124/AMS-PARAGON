@@ -4281,33 +4281,60 @@ final class AppModel: ObservableObject {
             ? defaults.integer(forKey: caughtCountKey) : 0
     }
 
+    /// Build 318: every outbox the app empties. The Mac's Share › PARAGON is a sandboxed
+    /// extension and can only reach the App Group folder the Mac widget already uses, so on the
+    /// Mac that folder holds a second outbox. `outboxURL` itself stays where it was.
+    static var outboxURLs: [URL] {
+        var urls = [outboxURL]
+        #if os(macOS)
+        if let group = widgetContainerURL {
+            let shared = group.appendingPathComponent("capture-outbox.jsonl")
+            if shared.standardizedFileURL != outboxURL.standardizedFileURL { urls.append(shared) }
+        }
+        #endif
+        return urls
+    }
+
     /// Files everything the share extension left in the outbox. Returns how many items were filed.
     @discardableResult
     func drainOutbox() -> Int {
         guard let vault else { return 0 }
-        let outbox = CaptureOutbox(fileURL: Self.outboxURL)
-        let items = outbox.drain()
-        guard !items.isEmpty else { return 0 }
-        flushPendingEdits()
         var filed = 0
-        var failed: [CaptureItem] = []
-        for item in items {
-            do {
-                // On the day it was captured, not the day it is filed: a line kept for a note
-                // still coming from iCloud may be filed after midnight (build 261).
-                try vault.capture(item, today: DateOnly(item.createdAt))
-                filed += 1
-            } catch {
-                log("capture kept for later: \(error.localizedDescription)")
-                failed.append(item)
+        var kept = 0
+        var flushed = false
+        for url in Self.outboxURLs {
+            let outbox = CaptureOutbox(fileURL: url)
+            let items = outbox.drain()
+            if !items.isEmpty {
+                if !flushed { flushPendingEdits(); flushed = true }
+                var failed: [CaptureItem] = []
+                for item in items {
+                    do {
+                        // On the day it was captured, not the day it is filed: a line kept for a note
+                        // still coming from iCloud may be filed after midnight (build 261).
+                        // Build 318: shared pictures and PDFs wait beside the outbox (`filesURL`).
+                        try vault.capture(item, today: DateOnly(item.createdAt), filesRoot: outbox.filesURL)
+                        filed += 1
+                    } catch {
+                        log("capture kept for later: \(error.localizedDescription)")
+                        failed.append(item)
+                    }
+                }
+                // Anything that could not be filed (folder not downloaded yet, no permission) goes
+                // back, and its files keep waiting with it.
+                outbox.requeue(failed)
+                kept += failed.count
+            }
+            // Build 318: files of a share that was closed half-way, once they are a day old.
+            if FileManager.default.fileExists(atPath: outbox.filesURL.path) {
+                SharedFiles.sweep(root: outbox.filesURL, keeping: Set(outbox.peek().map(\.id)))
             }
         }
-        // Anything that could not be filed (folder not downloaded yet, no permission) goes back.
-        outbox.requeue(failed)
+        guard filed + kept > 0 else { return 0 }
         reload()
-        lastCaptureMessage = failed.isEmpty
+        lastCaptureMessage = kept == 0
             ? "\(filed) captured item\(filed == 1 ? "" : "s") filed"
-            : "\(filed) filed, \(failed.count) kept for later"
+            : "\(filed) filed, \(kept) kept for later"
         return filed
     }
 

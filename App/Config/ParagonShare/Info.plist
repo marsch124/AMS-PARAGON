@@ -26,6 +26,10 @@
 		<dict>
 			<key>NSExtensionActivationRule</key>
 			<dict>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>20</integer>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>20</integer>
 				<key>NSExtensionActivationSupportsText</key>
 				<true/>
 				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>

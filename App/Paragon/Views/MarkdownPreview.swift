@@ -7,6 +7,8 @@ struct MarkdownPreview: View {
     @EnvironmentObject private var model: AppModel
     let note: Note
     let beforeToggle: () -> Void
+    /// Build 318: the vault's folder, so pictures and PDFs can be shown. Nil on paper.
+    var root: URL? = nil
 
     static let linkScheme = "amspara"
 
@@ -41,6 +43,8 @@ struct MarkdownPreview: View {
         case quote(String)
         case code([String])
         case rule
+        /// Build 318: a line that is one picture or one PDF of the vault.
+        case attachment(SharedFiles.Attachment)
         case paragraph(String)
         case blank
     }
@@ -93,6 +97,11 @@ struct MarkdownPreview: View {
             if !inWorked, let plan = DayPlan.block(in: line) {
                 flushParagraph()
                 result.append(.planBlock(plan))
+                continue
+            }
+            if let attachment = SharedFiles.attachment(inLine: line, notePath: note.relativePath) {
+                flushParagraph()
+                result.append(.attachment(attachment))
                 continue
             }
             let level = Self.headingLevel(trimmed)
@@ -193,6 +202,8 @@ struct MarkdownPreview: View {
                 .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
         case .rule:
             Divider()
+        case .attachment(let attachment):
+            AttachmentBlock(attachment: attachment, root: root)
         case .paragraph(let text):
             inline(text)
         case .blank:
