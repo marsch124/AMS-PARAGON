@@ -432,21 +432,24 @@ struct ReadChip: View {
         HStack(spacing: 5) {
             MarkLabel(title, markName, text: .footnote)
             if let remove {
+                // Round 9 (build 316): a 10-point x in a 28 by 28 touch area (it was 9 in 16).
                 Button(action: remove) {
-                    MarkImage("xmark", size: 9)
-                        .frame(width: 16, height: 16)
+                    MarkImage("xmark", size: 10)
+                        .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .padding(.trailing, -8)
                 .help("Not a date: keep these words as text")
                 .accessibilityLabel("Not a date, keep the words")
                 .accessibilityIdentifier("readChip.remove")
             }
         }
         .font(Txt.label)
-        .foregroundStyle(tint)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .foregroundStyle(tint.ink)
+        .padding(.horizontal, 10)
+        // Round 9 (build 316): every read chip is 28 points tall (they were about 24).
+        .frame(minHeight: 28)
         .overlay(
             Capsule().strokeBorder(tint.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
         )
@@ -517,16 +520,34 @@ struct PickChip: View {
     let title: String
     let isOn: Bool
     let tint: Color
+    /// Round 9 (build 316): the choices of a task's date window on the iPhone — 32 points
+    /// tall with 15-point words. Everywhere else the chip is as it was.
+    var large = false
+    /// Takes an equal share of the row (the seven weekdays).
+    var fills = false
     let action: () -> Void
+
+    init(title: String, isOn: Bool, tint: Color, large: Bool = false, fills: Bool = false,
+         action: @escaping () -> Void) {
+        self.title = title
+        self.isOn = isOn
+        self.tint = tint
+        self.large = large
+        self.fills = fills
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(Txt.label)
+                .font(large ? Font.subheadline : Txt.label)
                 .fontWeight(isOn ? .semibold : .regular)
+                .lineLimit(1)
                 .foregroundStyle(isOn ? tint.capsuleWords : Theme.soft)
-                .padding(.horizontal, 10)
+                .frame(maxWidth: fills ? .infinity : nil)
+                .padding(.horizontal, fills ? 2 : large ? 12 : 10)
                 .padding(.vertical, 4)
+                .frame(minHeight: large ? 32 : nil)
                 .background(tint.opacity(isOn ? 0.16 : 0), in: Capsule())
                 .overlay(
                     Capsule().strokeBorder(isOn ? tint.opacity(0.7) : Color.secondary.opacity(0.3),

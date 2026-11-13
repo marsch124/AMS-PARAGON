@@ -4,6 +4,8 @@ import ParagonCore
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
     @State private var showingImporter = false
+    /// About › **Details** is open (round 9, build 316). Closed to begin with.
+    @State private var aboutDetailsOpen = false
     @State private var askedAboutFolder = false
     /// One folder picker serves both questions (two pickers on one screen get in each other's
     /// way): which vault to open, and where the second copy goes.
@@ -28,10 +30,12 @@ struct SettingsView: View {
             HelpWindowButton(page: .versionHistory, label: "What\u{2019}s new")
                 .accessibilityIdentifier("settings.whatsNew")
             #else
-            NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks").navigationTitle("How it works") }
+            // Round 9 (build 316): the bar already says the page's name, so the page does not
+            // say it a second time in big letters 130 points lower.
+            NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks", showsTitle: false).navigationTitle("How it works") }
                 .accessibilityIdentifier("settings.howItWorks")
-            NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words").navigationTitle("Words") }
-            NavigationLink("What\u{2019}s new") { HelpDocument(fileName: "VersionHistory", title: "What\u{2019}s new").navigationTitle("What\u{2019}s new") }
+            NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words", showsTitle: false).navigationTitle("Words") }
+            NavigationLink("What\u{2019}s new") { HelpDocument(fileName: "VersionHistory", title: "What\u{2019}s new", showsTitle: false).navigationTitle("What\u{2019}s new") }
                 .accessibilityIdentifier("settings.whatsNew")
             #endif
         }
@@ -253,11 +257,21 @@ struct SettingsView: View {
                         .foregroundStyle(.soft)
                         .accessibilityIdentifier("settings.outsideBackup.restoring")
                 } else if let line = model.lastOutsideRestoreLine {
-                    Text(line)
-                        .font(Txt.label.weight(.medium))
-                        .foregroundStyle(Color.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("settings.outsideBackup.restored")
+                    // Round 9 (build 316): a green tick, normal weight and the grey of the
+                    // small print — it read as an error in bold black. Day and time stay
+                    // on one line (the line is made in Core, `RestoreResult.line`).
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        if RestoreResult.lineSaysAllWentWell(line) {
+                            MarkImage("checkmark", text: .footnote)
+                                .foregroundStyle(Color.green)
+                                .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
+                        }
+                        Text(line)
+                            .font(Txt.label)
+                            .foregroundStyle(.soft)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("settings.outsideBackup.restored")
+                    }
                 }
                 Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside the vault, so they are still there if the vault folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
                     .font(Txt.label)
@@ -370,7 +384,7 @@ struct SettingsView: View {
 
             // On both platforms since build 178: the Mac has a widget of its own now, and the
             // Mac's entitlements carry the team-prefixed App Group that goes with it.
-            WidgetStatusSection()
+            WidgetStatusSection(first: model.widgetSnapshotOnDisk())
 
             Section("About") {
                 // Build 315 (features-06): the version is here too, on every device.
@@ -378,7 +392,25 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings.about.version")
                 // Round 9 (build 316): the technical lines sit behind **Details**, closed to
                 // begin with. Nothing was removed; the id is on one line and can be copied.
-                DisclosureGroup("Details") {
+                // Round 9, the designer's list: a fold of the app's own, so what is inside
+                // starts where "Version" starts (Apple's fold set it in 20 points more).
+                Button {
+                    aboutDetailsOpen.toggle()
+                } label: {
+                    HStack {
+                        Text("Details")
+                            .foregroundStyle(Color.primary)
+                        Spacer()
+                        MarkImage("chevron.right", text: .footnote)
+                            .foregroundStyle(.soft)
+                            .rotationEffect(.degrees(aboutDetailsOpen ? 90 : 0))
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityValue(aboutDetailsOpen ? "open" : "folded")
+                .accessibilityIdentifier("settings.about.details")
+                if aboutDetailsOpen {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Device id")
                         Text(model.deviceID)
@@ -392,7 +424,6 @@ struct SettingsView: View {
                         .font(Txt.label)
                         .foregroundStyle(.soft)
                 }
-                .accessibilityIdentifier("settings.about.details")
             }
             }
             // Review round 4: on the iPhone each row is a card in the part's colour.
@@ -819,7 +850,15 @@ struct ReviewRhythmStepper: View {
 struct WidgetStatusSection: View {
     @EnvironmentObject private var model: AppModel
     @State private var snapshot: WidgetSnapshot?
-    @State private var folderFound = true
+    /// Round 9 (build 316): the card knows its facts from its first drawing. Before, it
+    /// started as "Found" and learned the truth when it came on screen, so its text changed
+    /// under a row whose height was already set — the grey text was drawn cut, over the row
+    /// above, while the page was scrolled.
+    private var folderFound: Bool { model.widgetFolderFound }
+
+    init(first: WidgetSnapshot? = nil) {
+        _snapshot = State(initialValue: first)
+    }
 
     private var writtenText: String {
         guard let snapshot else { return "nothing written yet" }
@@ -878,8 +917,8 @@ struct WidgetStatusSection: View {
     }
 
     private func refresh() {
-        folderFound = model.widgetFolderFound
-        snapshot = model.widgetSnapshotOnDisk()
+        let now = model.widgetSnapshotOnDisk()
+        if now != snapshot { snapshot = now }
     }
 }
 

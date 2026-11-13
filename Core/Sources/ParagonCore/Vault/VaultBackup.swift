@@ -100,18 +100,27 @@ public struct RestoreResult: Equatable, Sendable {
 
     /// The one line that says what a restore did (build 316), for the message and for the
     /// line that stays in Settings: "Restored 15 notes from 2026-11-13 08:57". `stamp` is the
-    /// day and time of the copy.
+    /// day and time of the copy. "from", the day and the time are joined so that they never
+    /// part at a line's end (round 9: the line broke as "2026-11-13 / 16:14"); on a narrow
+    /// screen the second line is "from 2026-11-13 16:14", whole.
     public func line(stamp: String) -> String {
         func count(_ n: Int, _ word: String) -> String { "\(n) \(word)\(n == 1 ? "" : "s")" }
+        let from = "from\u{00A0}" + stamp.replacingOccurrences(of: " ", with: "\u{00A0}")
         guard isComplete else {
-            return "Restored \(written) of \(count(written + failed.count, "file")) from \(stamp). "
+            return "Restored \(written) of \(count(written + failed.count, "file")) \(from). "
                 + "\(failed.count) could not be written."
         }
-        if written == 0 { return "Nothing was put back from \(stamp). Your notes are as they were." }
+        if written == 0 { return "Nothing was put back \(from). Your notes are as they were." }
         let others = written - notes
-        if notes == 0 { return "Restored \(count(written, "file")) from \(stamp)" }
-        if others == 0 { return "Restored \(count(notes, "note")) from \(stamp)" }
-        return "Restored \(count(notes, "note")) and \(count(others, "other file")) from \(stamp)"
+        if notes == 0 { return "Restored \(count(written, "file")) \(from)" }
+        if others == 0 { return "Restored \(count(notes, "note")) \(from)" }
+        return "Restored \(count(notes, "note")) and \(count(others, "other file")) \(from)"
+    }
+
+    /// True for a line that says everything was put back: Settings draws a green tick before
+    /// it. A line about files that could not be written, or about nothing put back, has none.
+    public static func lineSaysAllWentWell(_ line: String) -> Bool {
+        line.hasPrefix("Restored ") && !line.contains("could not be written")
     }
 }
 

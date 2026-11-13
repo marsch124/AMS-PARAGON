@@ -109,7 +109,7 @@ struct TaskContextMenu: View {
             }
             Divider()
         }
-        Menu("Reschedule") {
+        Menu {
             Button("Today") { model.setDueDate(ref, .today()) }
             Button("Tomorrow") { model.setDueDate(ref, DateOnly.today().adding(days: 1)) }
             Button("Next Monday") { model.setDueDate(ref, Self.nextMonday()) }
@@ -117,19 +117,25 @@ struct TaskContextMenu: View {
             Divider()
             Button("Pick a date…") { openWindow(.day) }
             if ref.task.dueDate != nil {
-                Button("Remove date") { model.setDueDate(ref, nil) }
+                Button("Remove date", role: .destructive) { model.setDueDate(ref, nil) }
             }
+        } label: {
+            MarkLabel("Reschedule", "calendar")
         }
         // Build 316: the day it must be finished by, besides the day he plans to do it.
-        Menu("Deadline") {
+        // Round 9: every line of this menu has its hand-drawn mark (only Focus on this had
+        // one), and the two removals are red, as removals are everywhere else.
+        Menu {
             Button("Pick a date…") { openWindow(.deadline) }
             Button("In a week") { model.setTaskDeadline(ref, DateOnly.today().adding(days: 7)) }
             if ref.task.deadline != nil {
-                Button("Remove deadline") { model.setTaskDeadline(ref, nil) }
+                Button("Remove deadline", role: .destructive) { model.setTaskDeadline(ref, nil) }
             }
+        } label: {
+            MarkLabel("Deadline", "deadline")
         }
         if useTaskTimes {
-            Menu("How long") {
+            Menu {
                 ForEach(TaskTime.choices, id: \.self) { value in
                     TickedChoice(title: TaskTime.label(value), chosen: ref.task.minutes == value) {
                         model.setMinutes(ref, value)
@@ -139,18 +145,20 @@ struct TaskContextMenu: View {
                     Divider()
                     Button("No time") { model.setMinutes(ref, nil) }
                 }
+            } label: {
+                MarkLabel("How long", "hourglass")
             }
         }
         // Build 279: a line he has handed to somebody else. On a line that already waits the
         // item reads the same and the window starts on the current person, so asking again
         // who it is changes the name; the second item takes the line back out of the list.
         if !ref.task.isDone {
-            Button("Waiting for…") { askingWho = true }
+            Button { askingWho = true } label: { MarkLabel("Waiting for…", "person.crop.circle") }
             if ref.task.isWaiting {
-                Button("Not waiting any more") { model.stopWaiting(ref) }
+                Button { model.stopWaiting(ref) } label: { MarkLabel("Not waiting any more", "arrow.turn.left.up") }
             }
         }
-        Menu("Repeat") {
+        Menu {
             TickedChoice(title: "Does not repeat", chosen: ref.task.repeatRule == nil) { model.setRepeat(ref, nil) }
             Divider()
             ForEach(Self.repeatChoices, id: \.description) { rule in
@@ -171,19 +179,21 @@ struct TaskContextMenu: View {
                     model.setRepeat(ref, RepeatRule(count: now.count, unit: now.unit, afterDone: !now.afterDone))
                 }
             }
+        } label: {
+            MarkLabel("Repeat", "repeat")
         }
         if note?.kind == .project, !ref.task.isSubtask {
             if isNext {
-                Button("Clear next action") { model.clearNextAction(ref) }
+                Button { model.clearNextAction(ref) } label: { MarkLabel("Clear next action", "bookmark") }
             } else if !ref.task.isWaiting {
                 // Build 279: a waiting line is never the next thing, so marking one would take
                 // `#next` off the project's real next action and put it where nothing reads it.
-                Button("Make this the next action") { model.makeNextAction(ref) }
+                Button { model.makeNextAction(ref) } label: { MarkLabel("Make this the next action", "bookmark") }
             }
         }
-        Button("Block time for this…") { model.blockTime(for: ref) }
+        Button { model.blockTime(for: ref) } label: { MarkLabel("Block time for this…", "calendar.badge.clock") }
         if !ref.task.isSubtask {
-            Menu("Move to") {
+            Menu {
                 if ref.notePath != inboxPath {
                     Button("Inbox") { model.moveTask(ref, to: inboxPath) }
                     Divider()
@@ -197,17 +207,19 @@ struct TaskContextMenu: View {
                 ForEach(destinations(.area)) { note in
                     Button(label(for: note)) { model.moveTask(ref, to: note.relativePath) }
                 }
+            } label: {
+                MarkLabel("Move to", "folder")
             }
         }
         if let onRename {
-            Button("Rename…", action: onRename)
+            Button(action: onRename) { MarkLabel("Rename…", "pencil") }
         }
         if let onAddSubtask {
-            Button("Add subtask…", action: onAddSubtask)
+            Button(action: onAddSubtask) { MarkLabel("Add subtask…", "list.bullet.indent") }
         }
         if showNote, let note {
             Divider()
-            Button("Open \(note.displayTitle)") { model.show(note) }
+            Button { model.show(note) } label: { MarkLabel("Open \(note.displayTitle)", "arrow.up.right") }
         }
     }
 
@@ -263,20 +275,29 @@ struct TaskContextMenu: View {
 /// keeps the date. It is not the **No time** in **How long**, which takes away the task's length.
 ///
 /// **Build 316: three pages** — **Date** (the day he plans to do it, as before), **Deadline**
-/// (the day it must be finished by; a plain date, **No deadline** clears it) and **Repeat**
-/// (`RepeatChoiceView`). The chips at the top change the page; each page writes only its own
-/// thing, with its own **Set** or **Save**. It opens on **Date** unless the task menu asked
+/// (the day it must be finished by; a plain date, **Remove deadline** clears it) and **Repeat**
+/// (`RepeatChoiceView`). Apple's segmented control at the top changes the page; each page
+/// writes only its own thing, with its own **Save** (round 9: one word, one colour and one
+/// height for the three pages). It opens on **Date** unless the task menu asked
 /// for another page (`TaskWindowStart`).
 struct TaskDatePicker: View {
     @EnvironmentObject private var model: AppModel
     let ref: TaskRef
     @Binding var isPresented: Bool
     @State private var tab: TaskWindowTab
+    /// Round 9 (build 316): the one colour of the window. The Inbox hands in its own; every
+    /// other list leaves it, and the window takes the colour of the note the task lives in.
+    var screenTint: Color? = nil
 
-    init(ref: TaskRef, isPresented: Binding<Bool>) {
+    init(ref: TaskRef, isPresented: Binding<Bool>, tint: Color? = nil) {
         self.ref = ref
         self._isPresented = isPresented
+        self.screenTint = tint
         self._tab = State(initialValue: TaskWindowStart.tab(for: ref))
+    }
+
+    private var tint: Color {
+        screenTint ?? model.note(at: ref.notePath)?.tint ?? Theme.fallbackTint
     }
 
     var body: some View {
@@ -293,7 +314,9 @@ struct TaskDatePicker: View {
                                time: ref.task.dueTime,
                                clearTitle: ref.task.dueDate == nil ? nil : "No date",
                                cancel: { isPresented = false },
-                               header: AnyView(TaskWindowTabs(tab: $tab))) { chosenDate, chosenTime in
+                               header: AnyView(TaskWindowTabs(tab: $tab)),
+                               confirmTitle: "Save", tint: tint,
+                               sheetHeight: TaskWindowHeight.phone) { chosenDate, chosenTime in
                 model.setDue(ref, date: chosenDate, time: chosenTime)
                 isPresented = false
             }
@@ -301,16 +324,19 @@ struct TaskDatePicker: View {
         case .deadline:
             DateTimeChoiceView(current: ref.task.deadline ?? ref.task.dueDate,
                                offersTime: false,
-                               clearTitle: ref.task.deadline == nil ? nil : "No deadline",
+                               clearTitle: ref.task.deadline == nil ? nil : "Remove deadline",
                                cancel: { isPresented = false },
                                title: "Deadline",
-                               header: AnyView(TaskWindowTabs(tab: $tab, hint: Self.deadlineHint))) { chosenDate, _ in
+                               header: AnyView(TaskWindowTabs(tab: $tab, hint: Self.deadlineHint)),
+                               confirmTitle: "Save", tint: tint,
+                               sheetHeight: TaskWindowHeight.phone) { chosenDate, _ in
                 model.setTaskDeadline(ref, chosenDate)
                 isPresented = false
             }
             .id(TaskWindowTab.deadline)
         case .repeats:
-            RepeatChoiceView(ref: ref, tab: $tab, close: { isPresented = false })
+            RepeatChoiceView(ref: ref, tab: $tab, tint: tint, sheetHeight: TaskWindowHeight.phone,
+                             close: { isPresented = false })
                 .id(TaskWindowTab.repeats)
         }
     }

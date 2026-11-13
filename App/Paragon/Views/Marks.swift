@@ -9,7 +9,18 @@ import ParagonCore
 
 /// A mark by name.
 struct MarkRef {
-    enum Kind { case app(AppMark), control(ControlMark) }
+    /// `drawn` is a mark PARAGON draws itself, in the library's style: an SVG path on the
+    /// 24-point grid, stroked with the one 1.9 line and round ends, no fill (round 9).
+    enum Kind { case app(AppMark), control(ControlMark), drawn(String) }
+
+    /// The mark's path on the 24-point grid.
+    var path: String {
+        switch kind {
+        case .app(let mark): return mark.path
+        case .control(let mark): return mark.path
+        case .drawn(let path): return path
+        }
+    }
     let kind: Kind
     /// Degrees clockwise. A chevron that points down is the right-pointing chevron turned.
     var rotation: Double = 0
@@ -40,6 +51,9 @@ enum Marks {
         "scope": .init(kind: .app(.goal)),
         "flag": .init(kind: .app(.project)),
         "flag.checkered": .init(kind: .app(.finished)),
+        // Round 9 (build 316): a task's deadline has a mark of its own — a pennant on its pole,
+        // standing on the finish line. The project keeps the waving flag.
+        "deadline": .init(kind: .drawn(Marks.deadlinePath)),
         "circle.grid.2x2": .init(kind: .app(.area)),
         "books.vertical": .init(kind: .app(.resource)),
         "archivebox": .init(kind: .app(.archive)),
@@ -125,6 +139,9 @@ enum Marks {
         "list.bullet": .init(kind: .control(.list)),
     ]
 
+    /// The deadline's mark: a pole, a three-cornered pennant and the finish line under it.
+    static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
+
     /// The mark for a name. A name nobody mapped draws the dot, and says so in a debug build,
     /// so a missing drawing is noticed on the first screen and never ships as a blank.
     static func ref(_ name: String) -> MarkRef {
@@ -137,10 +154,7 @@ enum Marks {
 
     /// The SVG path of the mark, for the few places that need to draw it themselves.
     static func path(_ name: String) -> String {
-        switch ref(name).kind {
-        case .app(let mark): return mark.path
-        case .control(let mark): return mark.path
-        }
+        ref(name).path
     }
 }
 
@@ -276,11 +290,7 @@ extension Marks {
     /// The same drawing as a UIKit image, for the bar above the keyboard (build 286).
     static func uiImage(_ name: String, size: CGFloat = 24) -> UIImage {
         let ref = ref(name)
-        let path: String
-        switch ref.kind {
-        case .app(let mark): path = mark.path
-        case .control(let mark): path = mark.path
-        }
+        let path = ref.path
         let scale: CGFloat = size / 24
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
         let drawn = renderer.image { context in
@@ -308,11 +318,7 @@ extension Marks {
     /// The mark as a template image, for the places AppKit draws itself: the menu bar items.
     static func nsImage(_ name: String, size: CGFloat = 18) -> NSImage {
         let ref = ref(name)
-        let path: String
-        switch ref.kind {
-        case .app(let mark): path = mark.path
-        case .control(let mark): path = mark.path
-        }
+        let path = ref.path
         let image = NSImage(size: NSSize(width: size, height: size), flipped: true) { _ in
             guard let cg = NSGraphicsContext.current?.cgContext else { return false }
             let scale = size / 24
