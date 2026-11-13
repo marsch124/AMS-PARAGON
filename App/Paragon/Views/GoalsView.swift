@@ -654,6 +654,10 @@ struct DatedGoalRow: View {
                         .foregroundStyle(second.late ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
                         .lineLimit(1)
                 }
+                // Build 318: the goal's own number, the bar only.
+                if let number = note.goalNumber {
+                    GoalNumberLine(number: number, tint: ChainTint.forGoal(note), barWidth: 72, compact: true)
+                }
             }
         }
         .padding(.vertical, 2)

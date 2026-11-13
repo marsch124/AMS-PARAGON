@@ -778,6 +778,10 @@ struct GoalHealthRow: View {
                 // One item, so the bar and its per cent always move to a new line together.
                 GoalProgressBar(progress: health.progress, width: 54, showsCounts: false,
                                 tint: ChainTint.forGoal(health.note))
+                if let number = health.note.goalNumber {
+                    // Build 318: the goal's own number, one item so bar and words wrap together.
+                    GoalNumberLine(number: number, tint: ChainTint.forGoal(health.note))
+                }
                 if health.progress.projectsTotal > 0 {
                     MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag", text: .footnote)
                 } else {

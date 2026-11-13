@@ -1745,6 +1745,10 @@ struct NoteHeader: View {
             if note.kind == .goal {
                 GoalMeasureChip(model: model, note: note)
             }
+            if isDatedGoal(note) {
+                // Build 318: a number to track, beside the measure's words.
+                GoalNumberChip(model: model, note: note)
+            }
             if note.kind == .goal || note.kind == .area {
                 LookedAtChip(model: model, note: note)
             }
@@ -2254,6 +2258,8 @@ struct GoalDashboardView: View {
             // never finish one, so a per cent on it promises something the idea does not.
             if !GoalWording.isAspiration(goal) {
                 GoalProgressBar(progress: health.progress, width: 160, tint: ChainTint.forGoal(goal))
+                // Build 318: the goal's own number, as a second bar with its curve.
+                GoalNumberPanel(model: model, note: goal)
             }
             HStack(spacing: 14) {
                 stat("\(health.projects.count)", "projects")
