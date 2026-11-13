@@ -186,10 +186,10 @@ struct QuickCaptureView: View {
     private func saveOrSayWhy() {
         if canSave { save(); return }
         focused = true
-        withAnimation(.easeOut(duration: 0.2)) { confirmation = Self.nothingWritten }
+        withAnimation(Motion.fade) { confirmation = Self.nothingWritten }
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(2.5))
-            if confirmation == Self.nothingWritten { withAnimation { confirmation = nil } }
+            if confirmation == Self.nothingWritten { withAnimation(Motion.fade) { confirmation = nil } }
         }
     }
 
@@ -402,16 +402,16 @@ struct QuickCaptureView: View {
         model.capture(text: trimmed, target: target, asTask: !asNote)
         text = ""
         ignoredDateWords = nil
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(Motion.arrive) {
             confirmation = model.lastCaptureMessage ?? "Saved"
             flying = true
         }
         onSaved?()
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(0.5))
-            withAnimation(.easeIn(duration: 0.25)) { flying = false }
+            withAnimation(Motion.arrive) { flying = false }
             try? await Task.sleep(for: .seconds(1.3))
-            withAnimation { confirmation = nil }
+            withAnimation(Motion.fade) { confirmation = nil }
             if !compact { dismiss() }
         }
     }

@@ -41,7 +41,10 @@ struct HelpView: View {
             Divider()
             HelpDocument(fileName: page.fileName, title: page == .versionHistory ? page.title : nil)
                 .id(page)
+                .transition(.opacity)
         }
+        // Build 318: the two pages fade into each other (0.2 s).
+        .animation(Motion.page, value: page)
         .frame(minWidth: 480, minHeight: 400)
     }
 }

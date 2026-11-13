@@ -66,6 +66,8 @@ struct AreaDashboardView: View {
                 }
             }
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: projectsFolded)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .accessibilityElement(children: .contain)

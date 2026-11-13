@@ -638,6 +638,9 @@ struct InboxFileItView: View {
                         }
                     }
                 }
+            // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+            .animation(Motion.fold, value: projectsFolded)
+            .animation(Motion.fold, value: areasFolded)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
             }

@@ -360,6 +360,8 @@ struct StartDayView: View {
                     CalendarEventRows(date: day, compact: true)
                 }
             }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: calendarFolded.wrappedValue)
         }
     }
 
@@ -658,7 +660,7 @@ struct HintParagraph: View {
         HStack(alignment: .top, spacing: 8) {
             if !byItself {
                 Button {
-                    asked.toggle()
+                    withAnimation(Motion.fold) { asked.toggle() }
                 } label: {
                     MarkImage("info.circle", size: 18)
                         .foregroundStyle(asked ? tint.ink : Theme.soft)

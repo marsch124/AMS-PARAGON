@@ -103,6 +103,9 @@ struct AspirationsListView: View {
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.aspirations.tint)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: endedFolded)
+        .animation(Motion.fold, value: showAll)
     }
 
     /// An aspiration that is over drops out of the list above and gathers here, closed,
@@ -124,7 +127,7 @@ struct AspirationsListView: View {
     }
 
     private func endedHeader(_ status: NoteStatus, _ count: Int) -> some View {
-        GoalEndedHeader(status: status, count: count, folded: endedFolded) { endedFolded.toggle() }
+        GoalEndedHeader(status: status, count: count, folded: endedFolded) { withAnimation(Motion.fold) { endedFolded.toggle() } }
     }
 
     // MARK: The phone — the chain folds open in place
@@ -153,6 +156,9 @@ struct AspirationsListView: View {
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.aspirations.tint)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: endedFolded)
+        .animation(Motion.fold, value: showAll)
     }
 
     private func looseRow(_ note: Note) -> some View {
@@ -172,8 +178,11 @@ struct AspirationsListView: View {
         // means. The chevron still works; it just starts open.
         let isOpen = showAll || opened.contains(chain.note.relativePath)
         Button {
-            if showAll { showAll = false; opened = [chain.note.relativePath]; return }
-            if isOpen { opened.remove(chain.note.relativePath) } else { opened.insert(chain.note.relativePath) }
+            // Build 318: the chain opens and closes over 0.2 s.
+            withAnimation(Motion.fold) {
+                if showAll { showAll = false; opened = [chain.note.relativePath] }
+                else if isOpen { opened.remove(chain.note.relativePath) } else { opened.insert(chain.note.relativePath) }
+            }
         } label: {
             HStack(spacing: 6) {
                 // Round 9 (build 316): 14 points beside the row's name (it was 12).
@@ -306,13 +315,15 @@ struct DatedGoalsListView: View {
                     }
                 } header: {
                     GoalEndedHeader(status: group.status, count: group.notes.count,
-                                    folded: endedFolded) { endedFolded.toggle() }
+                                    folded: endedFolded) { withAnimation(Motion.fold) { endedFolded.toggle() } }
                 }
             }
             }
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.kind(.goal).tint)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: endedFolded)
     }
 
     private func phoneList(live: (wanting: [Note], rest: [Note]),
@@ -338,13 +349,15 @@ struct DatedGoalsListView: View {
                     }
                 } header: {
                     GoalEndedHeader(status: group.status, count: group.notes.count,
-                                    folded: endedFolded) { endedFolded.toggle() }
+                                    folded: endedFolded) { withAnimation(Motion.fold) { endedFolded.toggle() } }
                 }
             }
             }
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.kind(.goal).tint)
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: endedFolded)
     }
 
     /// A plain `Button`, never a selection tag: a tagged row takes the click away from the
@@ -1361,7 +1374,7 @@ struct GoalsHeader<Trailing: View>: View {
             if showsAll {
                 StateToggle(markName: "list.bullet.indent", title: "All of them",
                             isOn: showAll, tint: ParaKind.goal.tint) {
-                    showAll.toggle()
+                    withAnimation(Motion.fold) { showAll.toggle() }
                 }
             }
         }

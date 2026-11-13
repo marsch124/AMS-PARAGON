@@ -2289,6 +2289,22 @@ final class AppModel: ObservableObject {
         vault?.isWorkPath(note.relativePath) ?? false
     }
 
+    /// **Build 318: a save the eye can follow** (`Motion.settle`, 0.25 s). The note is written
+    /// at once, exactly as `save` writes it; only the lists that show the change draw it as a
+    /// movement — a ticked row fades and the list closes up, a new line gets its room. Nothing
+    /// is held back for the movement, and with Reduce Motion there is none.
+    @discardableResult
+    private func saveSettling(_ note: Note) -> Bool {
+        var saved = false
+        withAnimation(Motion.settle) { saved = save(note) }
+        return saved
+    }
+
+    /// The same for a change that reads the notes again (several notes written in one go).
+    private func reloadSettling() {
+        withAnimation(Motion.settle) { reload() }
+    }
+
     func toggle(_ ref: TaskRef) {
         flushPendingEdits()
         guard var note = note(at: ref.notePath) else { return }
@@ -2304,7 +2320,7 @@ final class AppModel: ObservableObject {
                 flash("Done. Next time: \((next.dueDate ?? next.deadline)?.description ?? "")")
             }
         }
-        save(note)
+        saveSettling(note)
     }
 
     /// Finds a dragged task again in its note (by line, then by title).
@@ -2325,7 +2341,7 @@ final class AppModel: ObservableObject {
         guard var note = note(at: ref.notePath) else { return }
         let task = ref.task.settingDueDate(date)
         guard note.replace(task: task) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     /// Sets a task's date **and** its time of day together — the **Set** button in the date
@@ -2343,7 +2359,7 @@ final class AppModel: ObservableObject {
         let current = liveTask(for: ref, in: note)
         let changed = current.settingDue(date: date, time: time)
         guard changed != current, note.replace(task: changed) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     /// The task a row stands for, read out of the note as it is now: by its `^t` id, else by line
@@ -2408,7 +2424,7 @@ final class AppModel: ObservableObject {
             movedByNote[note.relativePath] = moved
             return changed ? updated : nil
         }
-        reload()
+        reloadSettling()
         if result.isComplete {
             let moved = refs.filter { result.saved.contains($0.notePath) }.count
             let message = custom ?? (moved == 1 ? "1 task moved." : "\(moved) tasks moved.")
@@ -2468,7 +2484,7 @@ final class AppModel: ObservableObject {
     func makeNextAction(_ ref: TaskRef) {
         flushPendingEdits()
         guard var note = note(at: ref.notePath), note.setNextAction(ref.task) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     func clearNextAction(_ ref: TaskRef) {
@@ -2477,7 +2493,7 @@ final class AppModel: ObservableObject {
         var task = ref.task
         task.title = Note.removingTag(Note.nextActionTag, from: task.title)
         guard note.replace(task: task) else { return }
-        save(note)
+        saveSettling(note)
     }
 
     /// Moves a task (with its subtasks) to another note. Its id travels with it, so the
@@ -2490,7 +2506,7 @@ final class AppModel: ObservableObject {
             // The target is written first, so a failure can leave the task in two places but
             // never in none. See Vault.move.
             let move = try vault.move(task: ref.task, from: source, to: target)
-            reload()
+            reloadSettling()
             log("moved task \"\(ref.task.title)\" \(ref.notePath) -> \(path)")
             if move.leftInSource {
                 errorMessage = "\u{201C}\(ref.task.title)\u{201D} was added to \(move.target.displayTitle), but "
@@ -2519,7 +2535,7 @@ final class AppModel: ObservableObject {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, var note = note(at: path) else { return }
         note.append(task: TaskParser.normalized(TaskItem(title: trimmed)))
-        save(note)
+        saveSettling(note)
     }
 
     func addSubtask(_ title: String, to parent: TaskRef) {
@@ -2527,7 +2543,7 @@ final class AppModel: ObservableObject {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, var note = note(at: parent.notePath) else { return }
         note.appendSubtask(TaskParser.normalized(TaskItem(title: trimmed)), to: parent.task)
-        save(note)
+        saveSettling(note)
     }
 
     /// Renames a task in place, keeping its id, date, tags and subtasks.
@@ -2555,7 +2571,7 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         guard let current = note(at: ref.notePath),
               let removal = current.removingTaskBlock(for: ref.task) else { return }
-        if save(removal.note) {
+        if saveSettling(removal.note) {
             log("deleted task \"\(ref.task.title)\" from \(ref.notePath)")
             flash("Deleted \u{201C}\(ref.task.title)\u{201D}", offering: .deletion(removal.record))
         }
@@ -4230,7 +4246,7 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         do {
             let note = try vault.capture(item)
-            reload()
+            reloadSettling()
             lastCaptureMessage = "Saved to \(note.displayTitle)"
         } catch VaultError.notDownloadedYet {
             // Not a failure to report as one (build 261): the note it belongs in is still coming

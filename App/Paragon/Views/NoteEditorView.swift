@@ -583,7 +583,7 @@ struct NoteEditorView: View {
                                 .foregroundStyle(.soft)
                             StateToggle(markName: "eye.slash", title: "Hide finished",
                                         isOn: hideFinishedTasks, tint: note.tint) {
-                                hideFinishedTasks.toggle()
+                                withAnimation(Motion.settle) { hideFinishedTasks.toggle() }
                             }
                         }
                     }
@@ -1819,6 +1819,8 @@ struct TaskChecklist: View {
                 .padding(.leading, CGFloat(task.indentLevel) * 14)
             }
         }
+        // Build 318: Hide finished is kept in the settings; the rows leave and come back in 0.25 s.
+        .animation(Motion.settle, value: hideFinishedTasks)
         .padding(.top, 4)
         .alert("New subtask", isPresented: Binding(get: { subtaskParent != nil }, set: { if !$0 { subtaskParent = nil } })) {
             TextField("Subtask", text: $subtaskTitle)
@@ -1902,7 +1904,8 @@ struct TaskRow: View {
                 // 1.0: the circle is the size of the text (15) and sits in a 22-point box that
                 // takes the press anywhere inside it — a stroked ring alone only took a press on
                 // its line, which is what the first Mac run of build 280 found.
-                MarkImage(ref.task.status == .cancelled ? "xmark.circle" : (ref.task.isDone ? "checkmark.circle.fill" : "circle"), size: 15)
+                // Build 318: the circle fills over 0.2 s when the task is ticked (`TickMark`).
+                TickMark(isDone: ref.task.isDone, isCancelled: ref.task.status == .cancelled)
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
                     .frame(width: 22, height: 22)
                     .contentShape(Rectangle())
@@ -1924,6 +1927,7 @@ struct TaskRow: View {
                         Text(isNext ? Note.removingTag(Note.nextActionTag, from: ref.task.title) : ref.task.title)
                             .strikethrough(ref.task.isDone)
                             .foregroundStyle(ref.task.isDone ? .secondary : .primary)
+                            .animation(Motion.tick, value: ref.task.isDone)
                         if isNext && !ref.task.isDone {
                             Text("next")
                                 .font(Txt.listSecond.weight(.semibold))
@@ -2538,6 +2542,8 @@ struct NoteGallery: View {
                 }
             }
         }
+        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
+        .animation(Motion.fold, value: folded)
         .accessibilityIdentifier("note.gallery")
     }
 }
@@ -2886,7 +2892,7 @@ struct PictureZoom: View {
             .simultaneousGesture(dragGesture(geo.size))
             .onTapGesture(count: 2) {
                 guard !selecting else { return }
-                withAnimation(.easeOut(duration: 0.2)) {
+                withAnimation(Motion.page) {
                     if scale > 1 { reset() } else { scale = Pictures.doubleTapZoom; lastScale = scale }
                 }
             }
@@ -2919,7 +2925,7 @@ struct PictureZoom: View {
             Button(selecting ? "Stop selecting" : "Select part") {
                 selecting.toggle()
                 box = nil
-                if selecting { withAnimation(.easeOut(duration: 0.2)) { reset() } }
+                if selecting { withAnimation(Motion.page) { reset() } }
             }
             .buttonStyle(.filled(tint))
             .controlSize(.small)
@@ -2935,7 +2941,7 @@ struct PictureZoom: View {
             .onChanged { value in scale = Pictures.zoom(lastScale * value.magnification) }
             .onEnded { _ in
                 lastScale = scale
-                if scale <= 1 { withAnimation(.easeOut(duration: 0.2)) { reset() } }
+                if scale <= 1 { withAnimation(Motion.page) { reset() } }
                 else { offset = clamped(offset, in: size); lastOffset = offset }
             }
     }

@@ -46,8 +46,12 @@ struct FocusBar: View {
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     bar(session, now: context.date)
                 }
+                // Build 318: the bar comes up from the foot when a clock starts and goes back
+                // down when it stops (0.25 s); it only fades with Reduce Motion.
+                .transition(Motion.rise)
             }
         }
+        .animation(Motion.arrive, value: model.focus != nil)
         .modifier(KeyboardWatch(up: $keyboardUp, clockStart: clockStart))
     }
 
