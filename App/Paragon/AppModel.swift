@@ -1034,7 +1034,8 @@ final class AppModel: ObservableObject {
         securityScopedURL?.stopAccessingSecurityScopedResource()
         securityScopedURL = scoped ? url : nil
         // Build 319: PARAGON's own iCloud folder needs no bookmark; the app finds it by itself.
-        if ownFolder { storeOwnFolderChoice() } else { storeBookmark(for: url) }
+        // Also when he picked that very folder by hand in the folder chooser.
+        if ownFolder || VaultPlaceWords.isOwnFolder(path: opened.rootURL.path) { storeOwnFolderChoice() } else { storeBookmark(for: url) }
         vaultProblem = nil
         selectedNotePath = nil
         clearHistory()

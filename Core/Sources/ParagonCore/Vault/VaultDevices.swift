@@ -59,7 +59,8 @@ public enum VaultDevices {
         for device in devices {
             if let known = lines[device.deviceID], (known.lastSeen ?? .distantPast) >= device.seenAt { continue }
             lines[device.deviceID] = Line(id: device.deviceID, name: device.name, build: device.build, lastSeen: device.seenAt,
-                                          isReady: device.build >= minimumBuild, isThisDevice: device.deviceID == thisDeviceID)
+                                          isReady: device.build >= minimumBuild || device.deviceID == thisDeviceID,
+                                          isThisDevice: device.deviceID == thisDeviceID)
         }
         let limit = now.addingTimeInterval(-Double(recentDays) * 86_400)
         for state in syncStates where lines[state.deviceID] == nil && state.deviceID != thisDeviceID {
@@ -119,9 +120,11 @@ public extension Vault {
         }
     }
 
-    /// The devices to show before a move.
-    func deviceLines(thisDeviceID: String, now: Date = Date()) -> [VaultDevices.Line] {
-        let states = otherSyncStateFiles(currentDeviceID: thisDeviceID).map { (deviceID: $0.deviceName, modifiedAt: $0.modifiedAt) }
-        return VaultDevices.lines(devices: devices(), syncStates: states, thisDeviceID: thisDeviceID, now: now)
+    /// The devices to show before a move. `this` is the device that asks: it is always in
+    /// the list and always ready, whether or not its own file has been written yet.
+    func deviceLines(this: VaultDevice, now: Date = Date()) -> [VaultDevices.Line] {
+        let states = otherSyncStateFiles(currentDeviceID: this.deviceID).map { (deviceID: $0.deviceName, modifiedAt: $0.modifiedAt) }
+        let others = devices().filter { $0.deviceID != this.deviceID }
+        return VaultDevices.lines(devices: others + [this], syncStates: states, thisDeviceID: this.deviceID, now: now)
     }
 }

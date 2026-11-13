@@ -253,7 +253,9 @@ extension AppModel {
         }
         let look = seen.look
         if look.isAllButMissing { looksWithTheSameMissing += 1 } else { looksWithTheSameMissing = 0 }
-        if let stamp = look.stamp, look.isComplete || looksWithTheSameMissing >= 4 {
+        // Listed files that are not here: offered only after a minute of looks that agree and
+        // with the vault's own settings file listed, and then with the caution below.
+        if let stamp = look.stamp, look.isComplete || (looksWithTheSameMissing >= 12 && seen.isVaultHere) {
             var found = OwnFolderState.Found(notes: seen.notes, lastChanged: seen.lastChanged,
                                              movedOn: stamp.at, movedBy: stamp.deviceName)
             if !look.missing.isEmpty {
@@ -314,9 +316,6 @@ extension AppModel {
     /// every device has opened a PARAGON that understands a moved vault.
     private func noteThisDevice() {
         guard let vault else { return }
-        #if DEBUG
-        if TestVault.isWanted { return }
-        #endif
         let root: URL = vault.rootURL
         let config: VaultConfig = vault.config
         let id = deviceID
@@ -445,12 +444,15 @@ extension AppModel {
         let config: VaultConfig = vault.config
         let id = deviceID
         let notes = notes.count
+        let kind = AppModel.deviceOwnKind
+        let build = BuildStamp.number
         Task { [weak self] in
             guard let self else { return }
             self.ownFolderCache = nil
             let own = await self.ownFolderURL()
             let info: (lines: [VaultDevices.Line], other: String?) = await AppModel.away {
-                let lines = (try? Vault(rootURL: root, config: config))?.deviceLines(thisDeviceID: id) ?? []
+                let this = VaultDevice(deviceID: id, name: AppModel.deviceOwnName(kind: kind), build: build, kind: kind, seenAt: Date())
+                let lines = (try? Vault(rootURL: root, config: config))?.deviceLines(this: this) ?? []
                 var other: String?
                 if let own, case .halfMade(let stamp) = VaultMove.standing(of: own), stamp.deviceID != id,
                    Date().timeIntervalSince(stamp.at) < 86_400 {
@@ -697,7 +699,7 @@ extension AppModel {
                 self.log("old folder: \(brought.copied.count) copied, \(brought.replaced.count) replaced, \(brought.keptBoth.count) kept twice, \(brought.failed.count) failed")
                 var lines = brought.lines
                 if lines.isEmpty { lines = ["Everything was here already."] }
-                lines.append("The old folder was only read. A device with an older PARAGON still writes there: update PARAGON on it.")
+                lines.append("The old folder was only read. If a device with an older PARAGON still writes there, update PARAGON on it.")
                 self.ownFolder.page = .done("The changes are here", lines)
             }
             await self.refreshOwnFolder(lookAtOldFolderNow: true)

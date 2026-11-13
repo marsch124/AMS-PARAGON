@@ -353,6 +353,12 @@ final class VaultMoveTests: XCTestCase {
         lines = VaultDevices.lines(devices: vault.devices(), syncStates: [("MAC", now), ("PHONE", recent)], thisDeviceID: "MAC", now: now)
         XCTAssertTrue(VaultDevices.allReady(lines))
         XCTAssertEqual(lines.count, 2)
+        // The device that asks is in the list and ready even before its own file is written.
+        let pad = VaultDevice(deviceID: "IPAD", name: "iPad", build: 319, kind: "iPad", seenAt: now)
+        XCTAssertEqual(vault.deviceLines(this: pad, now: now).filter(\.isThisDevice).map(\.id), ["IPAD"])
+        // PARAGON's own folder is called by the name he sees in Files and Finder.
+        XCTAssertEqual(VaultPlaceWords.line(path: "/Users/m/Library/Mobile Documents/iCloud~com~schabbauer~AMSPara/Documents", device: "this Mac"),
+                       "PARAGON \u{00B7} in iCloud Drive")
     }
 
     func testTheBackupMadeBeforeAMoveIsCheckedAgainstTheVault() throws {

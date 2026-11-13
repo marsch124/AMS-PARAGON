@@ -89,7 +89,7 @@ struct OwnFolderPageView: View {
             return w
         case .oldChanges(let changes):
             var w = Words(title: "\(Self.count(changes.notes.count, "file was", "files were")) changed in the old folder after the move")
-            w.lines = ["A device with an older PARAGON still writes into \u{201C}\(changes.oldName)\u{201D}.",
+            w.lines = ["Another device still writes into \u{201C}\(changes.oldName)\u{201D}: it has an older PARAGON, or has not opened the new folder yet.",
                        "Bring them over: a new note is copied; a note changed only there replaces the one here; a note changed in both places is kept twice. Nothing is deleted."]
             w.list = Array(changes.notes.prefix(12)) + (changes.notes.count > 12 ? ["and \(changes.notes.count - 12) more"] : [])
             if !changes.deleted.isEmpty {
