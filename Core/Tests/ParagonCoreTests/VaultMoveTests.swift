@@ -88,7 +88,7 @@ final class VaultMoveTests: XCTestCase {
         XCTAssertFalse(fm.fileExists(atPath: old.appendingPathComponent(".ams-para/move").path))
         let words = try XCTUnwrap(text(VaultMove.movedFileName, in: old))
         XCTAssertTrue(words.hasPrefix("PARAGON moved these notes to PARAGON\u{2019}s own folder (iCloud Drive \u{203A} PARAGON) on "))
-        XCTAssertTrue(words.contains("by Martin\u{2019}s Mac."))
+        XCTAssertTrue(words.contains("The move was made on the device \u{201C}Martin\u{2019}s Mac\u{201D}."))
 
         // What each folder now is.
         XCTAssertEqual(isVault(VaultMove.standing(of: new))?.moveID, outcome.stamp.moveID)

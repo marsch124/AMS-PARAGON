@@ -512,7 +512,7 @@ extension AppModel {
                 var other: String?
                 if let own, case .halfMade(let stamp) = VaultMove.standing(of: own), stamp.deviceID != id,
                    Date().timeIntervalSince(stamp.at) < 86_400 {
-                    other = "\(stamp.deviceName) started a move on \(VaultMove.day(stamp.at)) and has not finished it. Finish it there, or wait a day."
+                    other = "\(stamp.deviceName) started a move on \(VaultMove.day(stamp.at)) and has not finished it. Finish the move on that device, or try again tomorrow."
                 }
                 return (lines, other)
             }
@@ -647,15 +647,15 @@ extension AppModel {
                     self.ownFolder.previousName = nil
                 }
                 let files = outcome.manifest.fileCount
-                var lines = ["\(outcome.manifest.noteCount) notes, \(files) files in all (\(MoveError.megabytes(outcome.manifest.byteCount))): every one copied and checked."]
+                var lines = ["Everything was copied and checked: \(outcome.manifest.noteCount == 1 ? "1 note" : "\(outcome.manifest.noteCount) notes"), \(files) files in all (\(MoveError.megabytes(outcome.manifest.byteCount)))."]
                 if toOwn {
                     lines.append("They are now in \(VaultMove.ownFolderWords). PARAGON opens that folder by itself on every device.")
-                    lines.append("Your old folder \u{201C}\(root.lastPathComponent)\u{201D} is as it was, plus one text file that says where the notes went. Keep it until you are sure.")
-                    lines.append("On your other devices PARAGON shows \u{201C}Your notes have moved\u{201D} and waits until iCloud has brought everything.")
+                    lines.append("Nothing was deleted. Your old folder \u{201C}\(root.lastPathComponent)\u{201D} is as it was; PARAGON only added one text file that says where the notes went. You decide later when to delete it.")
+                    lines.append("On your other devices PARAGON shows \u{201C}Your notes have moved\u{201D}. Press Open\u{2026} there when iCloud has brought everything.")
                 } else {
                     lines.append("They are in the folder \u{201C}\(placeName)\u{201D} again.")
                     if outcome.setAside > 0 {
-                        lines.append("\(outcome.setAside) older file\(outcome.setAside == 1 ? "" : "s") in that folder were set aside, not deleted: .ams-para \u{203A} Set aside by a move.")
+                        lines.append("\(outcome.setAside == 1 ? "1 older file in that folder was" : "\(outcome.setAside) older files in that folder were") set aside, not deleted. PARAGON keeps \(outcome.setAside == 1 ? "it" : "them") in a hidden part of that folder, under \u{201C}Set aside by a move\u{201D}.")
                     }
                 }
                 lines.append(contentsOf: notes)
@@ -719,7 +719,7 @@ extension AppModel {
                     self.settingsStore.removeObject(forKey: self.previousVaultBookmarkKey)
                     self.settingsStore.removeObject(forKey: self.previousVaultNameKey)
                 }
-                var lines = ["PARAGON now uses \(stamp.toOwnFolder ? VaultMove.ownFolderWords : "the folder \u{201C}\(stamp.placeName)\u{201D}") on \(AppModel.thisDevice), as on \(stamp.deviceName)."]
+                var lines = ["PARAGON now uses \(stamp.toOwnFolder ? VaultMove.ownFolderWords : "the folder \u{201C}\(stamp.placeName)\u{201D}") on \(AppModel.thisDevice)."]
                 lines.append(contentsOf: brought.lines)
                 if !brought.changedSomething { lines.append("Nothing had changed on \(AppModel.thisDevice) since the move.") }
                 lines.append("Reminders sync goes on as before.")

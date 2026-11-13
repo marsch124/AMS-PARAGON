@@ -125,9 +125,9 @@ public struct MoveProgress: Equatable, Sendable {
     /// "Copying 87 of 412 files…"
     public var words: String {
         switch step {
-        case .reading: return done == 0 ? "Reading your notes…" : "Reading your notes: \(done) files…"
+        case .reading: return done == 0 ? "Reading your notes…" : "Reading your notes: \(done) file\(done == 1 ? "" : "s")…"
         case .copying: return "Copying \(done) of \(total) files…"
-        case .checking: return "Checking every file: \(done) of \(total)…"
+        case .checking: return "Comparing copies and originals: \(done) of \(total) files…"
         case .sending: return "Sending to iCloud: \(done) of \(total) files…"
         case .finishing: return "Finishing…"
         }
@@ -169,7 +169,7 @@ public enum MoveError: Error, LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .cancelled:
-            return "The move was stopped. Nothing has changed: your notes are where they were."
+            return "The move was stopped. Your notes are where they were."
         case .cannotRead(let name):
             return "PARAGON could not read the folder \u{201C}\(name)\u{201D}."
         case .notHere(let paths):
@@ -197,7 +197,7 @@ public enum MoveError: Error, LocalizedError, Equatable {
         case .noList:
             return "The list of files made at the move is not on this device yet."
         case .alreadyMoved(let name):
-            return "Your notes are already in that place: \(name) moved them. Nothing was changed. PARAGON shows \u{201C}Your notes have moved\u{201D} here as soon as it has seen it."
+            return "Your notes are already in that place: \(name) moved them. Nothing was changed. PARAGON will soon show \u{201C}Your notes have moved\u{201D} on this device."
         case .otherDeviceMoving(let name):
             return "\(name) is moving your notes too. Two devices must not move them at the same time, so this move stopped. Nothing has changed: your notes are where they were. Let that device finish, or try again tomorrow."
         }
@@ -332,7 +332,7 @@ public struct BroughtOver: Equatable, Sendable {
         if !replaced.isEmpty { lines.append("\(Self.files(replaced.count)) changed in the old folder: brought over.") }
         if !keptBoth.isEmpty { lines.append("\(Self.files(keptBoth.count)) changed in both places: both versions kept, the old folder\u{2019}s with \u{201C}(conflict \u{2026})\u{201D} in its name.") }
         if !deletedInOld.isEmpty { lines.append("\(Self.files(deletedInOld.count)) deleted in the old folder: still here, nothing was deleted.") }
-        if !failed.isEmpty { lines.append("\(Self.files(failed.count)) could not be brought over and are still in the old folder: \(failed.prefix(5).joined(separator: ", ")).") }
+        if !failed.isEmpty { lines.append("\(Self.files(failed.count)) could not be brought over. \(failed.count == 1 ? "It is" : "They are") still in the old folder: \(failed.prefix(5).joined(separator: ", ")).") }
         return lines
     }
 }
@@ -530,11 +530,12 @@ public enum VaultMove {
         let place = stamp.toOwnFolder ? "PARAGON\u{2019}s own folder (\(stamp.placeName))" : "the folder \u{201C}\(stamp.placeName)\u{201D}"
         let json = (try? encoder.encode(stamp)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         return """
-        PARAGON moved these notes to \(place) on \(day(stamp.at)) by \(stamp.deviceName).
+        PARAGON moved these notes to \(place) on \(day(stamp.at)). The move was made on the device \u{201C}\(stamp.deviceName)\u{201D}.
 
         This folder is the old copy. PARAGON does not use it any more and has not changed it.
         Keep it until you are sure that everything is in the new place.
         Please leave this file here: it tells PARAGON on your other devices where the notes went.
+        The lines below are for PARAGON. Please do not change them.
 
         \(json)
 
