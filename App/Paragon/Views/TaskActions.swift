@@ -115,9 +115,17 @@ struct TaskContextMenu: View {
             Button("Next Monday") { model.setDueDate(ref, Self.nextMonday()) }
             Button("In a week") { model.setDueDate(ref, DateOnly.today().adding(days: 7)) }
             Divider()
-            Button("Pick a date…") { pickingDate = true }
+            Button("Pick a date…") { openWindow(.day) }
             if ref.task.dueDate != nil {
                 Button("Remove date") { model.setDueDate(ref, nil) }
+            }
+        }
+        // Build 316: the day it must be finished by, besides the day he plans to do it.
+        Menu("Deadline") {
+            Button("Pick a date…") { openWindow(.deadline) }
+            Button("In a week") { model.setTaskDeadline(ref, DateOnly.today().adding(days: 7)) }
+            if ref.task.deadline != nil {
+                Button("Remove deadline") { model.setTaskDeadline(ref, nil) }
             }
         }
         if useTaskTimes {
@@ -146,7 +154,22 @@ struct TaskContextMenu: View {
             TickedChoice(title: "Does not repeat", chosen: ref.task.repeatRule == nil) { model.setRepeat(ref, nil) }
             Divider()
             ForEach(Self.repeatChoices, id: \.description) { rule in
-                TickedChoice(title: rule.label, chosen: ref.task.repeatRule == rule) { model.setRepeat(ref, rule) }
+                TickedChoice(title: rule.label, chosen: isChosen(rule)) { model.setRepeat(ref, keepingCount(rule)) }
+            }
+            // Build 316: chosen weekdays, the month's last day, and counting from the tick.
+            Divider()
+            TickedChoice(title: weekdaysTitle, chosen: ref.task.repeatRule?.weekdays.isEmpty == false) {
+                openWindow(.repeats)
+            }
+            TickedChoice(title: "Last day of the month", chosen: ref.task.repeatRule?.monthEnd == true) {
+                model.setRepeat(ref, .lastDayOfMonth)
+            }
+            Button(otherTitle) { openWindow(.repeats) }
+            if let now = ref.task.repeatRule, now.canCountFromDone {
+                Divider()
+                TickedChoice(title: "Count from the day I finish it", chosen: now.afterDone) {
+                    model.setRepeat(ref, RepeatRule(count: now.count, unit: now.unit, afterDone: !now.afterDone))
+                }
             }
         }
         if note?.kind == .project, !ref.task.isSubtask {
@@ -188,6 +211,39 @@ struct TaskContextMenu: View {
         }
     }
 
+    /// Opens the task's date window on one of its pages (build 316).
+    private func openWindow(_ tab: TaskWindowTab) {
+        TaskWindowStart.tab = tab
+        pickingDate = true
+    }
+
+    /// A menu choice is the chosen one whether or not the rule counts from the tick.
+    private func isChosen(_ rule: RepeatRule) -> Bool {
+        guard let now = ref.task.repeatRule, now.canCountFromDone else { return false }
+        return now.count == rule.count && now.unit == rule.unit
+    }
+
+    /// Another length from the menu keeps **Count from the day I finish it** as it was.
+    private func keepingCount(_ rule: RepeatRule) -> RepeatRule {
+        let counts = ref.task.repeatRule?.afterDone ?? false
+        return RepeatRule(count: rule.count, unit: rule.unit, afterDone: counts)
+    }
+
+    /// "On weekdays…", or the chosen days when there are some ("Every Mon, Wed, Fri…").
+    private var weekdaysTitle: String {
+        guard let now = ref.task.repeatRule, !now.weekdays.isEmpty else { return "On weekdays\u{2026}" }
+        return now.label + "\u{2026}"
+    }
+
+    /// "Other…", or the rule's own words when it is none of the six ("Every 10 days…").
+    private var otherTitle: String {
+        guard let now = ref.task.repeatRule, now.canCountFromDone,
+              !Self.repeatChoices.contains(where: { $0.count == now.count && $0.unit == now.unit }) else {
+            return "Other\u{2026}"
+        }
+        return RepeatRule(count: now.count, unit: now.unit).label + "\u{2026}"
+    }
+
     static func nextMonday(calendar: Calendar = .current) -> DateOnly {
         var day = DateOnly.today().adding(days: 1)
         for _ in 0..<7 {
@@ -205,20 +261,61 @@ struct TaskContextMenu: View {
 /// the only date window that offers a time: a deadline, a goal's target and the others choose a
 /// plain date. **No date** takes the date and the time off; **No time of day** (in the window)
 /// keeps the date. It is not the **No time** in **How long**, which takes away the task's length.
+///
+/// **Build 316: three pages** — **Date** (the day he plans to do it, as before), **Deadline**
+/// (the day it must be finished by; a plain date, **No deadline** clears it) and **Repeat**
+/// (`RepeatChoiceView`). The chips at the top change the page; each page writes only its own
+/// thing, with its own **Set** or **Save**. It opens on **Date** unless the task menu asked
+/// for another page (`TaskWindowStart`).
 struct TaskDatePicker: View {
     @EnvironmentObject private var model: AppModel
     let ref: TaskRef
     @Binding var isPresented: Bool
+    @State private var tab: TaskWindowTab
+
+    init(ref: TaskRef, isPresented: Binding<Bool>) {
+        self.ref = ref
+        self._isPresented = isPresented
+        self._tab = State(initialValue: TaskWindowStart.tab)
+    }
 
     var body: some View {
-        DateTimeChoiceView(current: ref.task.dueDate,
-                           time: ref.task.dueTime,
-                           clearTitle: ref.task.dueDate == nil ? nil : "No date",
-                           cancel: { isPresented = false }) { chosenDate, chosenTime in
-            model.setDue(ref, date: chosenDate, time: chosenTime)
-            isPresented = false
+        page
+            .onAppear { TaskWindowStart.tab = .day }
+            .onDisappear { TaskWindowStart.tab = .day }
+    }
+
+    @ViewBuilder
+    private var page: some View {
+        switch tab {
+        case .day:
+            DateTimeChoiceView(current: ref.task.dueDate,
+                               time: ref.task.dueTime,
+                               clearTitle: ref.task.dueDate == nil ? nil : "No date",
+                               cancel: { isPresented = false },
+                               header: AnyView(TaskWindowTabs(tab: $tab))) { chosenDate, chosenTime in
+                model.setDue(ref, date: chosenDate, time: chosenTime)
+                isPresented = false
+            }
+            .id(TaskWindowTab.day)
+        case .deadline:
+            DateTimeChoiceView(current: ref.task.deadline ?? ref.task.dueDate,
+                               offersTime: false,
+                               clearTitle: ref.task.deadline == nil ? nil : "No deadline",
+                               cancel: { isPresented = false },
+                               title: "Deadline",
+                               header: AnyView(TaskWindowTabs(tab: $tab, hint: Self.deadlineHint))) { chosenDate, _ in
+                model.setTaskDeadline(ref, chosenDate)
+                isPresented = false
+            }
+            .id(TaskWindowTab.deadline)
+        case .repeats:
+            RepeatChoiceView(ref: ref, tab: $tab, close: { isPresented = false })
+                .id(TaskWindowTab.repeats)
         }
     }
+
+    static let deadlineHint = "The day it must be finished by. It stays where it is when you move the task to another day."
 }
 
 /// The switch in **Settings › Tasks** (build 248). His own ask: task times must be something he

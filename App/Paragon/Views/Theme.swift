@@ -563,6 +563,10 @@ struct DateTimeChoiceView: View {
     let clearTitle: String?
     let cancel: (() -> Void)?
     let choose: (DateOnly?, TimeOfDay?) -> Void
+    /// Build 316: the iPhone sheet's title, and something drawn above the field (a task's
+    /// window puts its **Date · Deadline · Repeat** chips there).
+    let title: String
+    let header: AnyView?
 
     @State private var typed = ""
     @State private var atText = ""
@@ -573,7 +577,10 @@ struct DateTimeChoiceView: View {
 
     init(current: DateOnly?, time: TimeOfDay? = nil, offersTime: Bool = true,
          clearTitle: String? = nil, cancel: (() -> Void)? = nil,
+         title: String = "Date", header: AnyView? = nil,
          choose: @escaping (DateOnly?, TimeOfDay?) -> Void) {
+        self.title = title
+        self.header = header
         self.current = current
         self.time = time
         self.offersTime = offersTime
@@ -619,6 +626,7 @@ struct DateTimeChoiceView: View {
     /// The field, its hint, the calendar and the **At** line: the same on every device.
     @ViewBuilder
     private var fields: some View {
+        if let header { header }
         TextField("2031-12-01", text: $typed)
             .modifier(DateFieldLook(isPhone: isPhone))
             .font(Txt.value.monospacedDigit())
@@ -660,7 +668,7 @@ struct DateTimeChoiceView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .background(Theme.canvas)
-            .navigationTitle("Date")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

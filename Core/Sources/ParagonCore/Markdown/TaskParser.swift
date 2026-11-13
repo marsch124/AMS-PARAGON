@@ -31,6 +31,9 @@ public struct TaskItem: Equatable, Sendable {
     /// written. A task line has no creation date, so this is the only way to know "waited five
     /// days", and a guess would be a lie.
     public var since: DateOnly?
+    /// `@deadline(2026-11-20)`: the day it must be finished by, besides the day he plans to do
+    /// it (`dueDate`) (build 316). Moving the do-day never moves it. Not sent to Reminders.
+    public var deadline: DateOnly?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
     public var indent: String
@@ -54,7 +57,8 @@ public struct TaskItem: Equatable, Sendable {
                 bullet: String = "-",
                 lineIndex: Int = -1,
                 parentLineIndex: Int? = nil,
-                since: DateOnly? = nil) {
+                since: DateOnly? = nil,
+                deadline: DateOnly? = nil) {
         self.status = status
         self.title = title
         self.dueDate = dueDate
@@ -70,6 +74,7 @@ public struct TaskItem: Equatable, Sendable {
         self.lineIndex = lineIndex
         self.parentLineIndex = parentLineIndex
         self.since = since
+        self.deadline = deadline
     }
 
     public var isDone: Bool { status == .done || status == .cancelled }
@@ -110,19 +115,35 @@ public struct TaskItem: Equatable, Sendable {
 
     /// For a repeating task that was just completed: the next open copy, without an id, due on
     /// the next date after the old due date (or after the completion day when it had none).
+    ///
+    /// Build 316: a rule that **counts from the day it is finished** starts at the completion
+    /// day, whatever date the task had. A **deadline** keeps its distance to the do-day (do on
+    /// Tuesday, in by Friday stays so); a task with a deadline and no do-day gets the next
+    /// deadline and still no do-day.
     public func nextOccurrence(completedOn day: DateOnly, calendar: Calendar = .current) -> TaskItem? {
         guard let rule = repeatRule else { return nil }
-        var next = rule.next(after: dueDate ?? day, calendar: calendar)
-        var guardCount = 0
-        while next <= day && guardCount < 400 {
-            next = rule.next(after: next, calendar: calendar)
-            guardCount += 1
+        func following(_ start: DateOnly) -> DateOnly {
+            var next = rule.next(after: start, calendar: calendar)
+            var guardCount = 0
+            while next <= day && guardCount < 400 {
+                next = rule.next(after: next, calendar: calendar)
+                guardCount += 1
+            }
+            return next
         }
         var copy = self
         copy.status = .open
         copy.doneStamp = nil
         copy.id = nil
-        copy.dueDate = next
+        if let deadline, dueDate == nil {
+            copy.deadline = following(rule.afterDone ? day : deadline)
+        } else {
+            let next = following(rule.afterDone ? day : (dueDate ?? day))
+            copy.dueDate = next
+            if let deadline, let dueDate {
+                copy.deadline = next.adding(days: max(0, dueDate.days(until: deadline, calendar: calendar)), calendar: calendar)
+            }
+        }
         // A new copy has not started waiting (build 279).
         copy.since = nil
         copy.lineIndex = -1
@@ -137,6 +158,7 @@ public struct TaskItem: Equatable, Sendable {
         if let dueDate { parts.append(">\(dueDate)" + (dueTime.map { "T\($0)" } ?? "")) }
         if let repeatRule { parts.append("@repeat(\(repeatRule))") }
         if let since { parts.append("@since(\(since))") }
+        if let deadline { parts.append("@deadline(\(deadline))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
         if let id { parts.append("^\(id)") }
         return "\(indent)\(bullet) [\(status.rawValue)] \(parts.joined(separator: " "))"
@@ -150,7 +172,12 @@ public struct TaskItem: Equatable, Sendable {
     }
 }
 
-/// How often a task comes back: every N days, weeks, months or years.
+/// How often a task comes back: every N days, weeks, months or years — and, since build 316,
+/// on chosen weekdays, on the last day of the month, or counted from the day it is finished.
+///
+/// In the file it is one word in `@repeat(…)`:
+/// `daily`, `weekly`, `2w`, `3m` (as before), `mon,wed,fri`, `weekdays` (Monday to Friday),
+/// `monthend`, and `10d after done` for a rule that counts from the day the task is ticked.
 public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
     public enum Unit: String, Sendable, CaseIterable {
         case day = "d", week = "w", month = "m", year = "y"
@@ -158,22 +185,89 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
 
     public var count: Int
     public var unit: Unit
-
-    public init(count: Int = 1, unit: Unit) {
-        self.count = max(1, count)
-        self.unit = unit
+    /// The chosen weekdays, 1 = Monday … 7 = Sunday, in order. Empty for every other rule.
+    /// With days chosen, `count` is 1 and `unit` is `.week`.
+    public private(set) var weekdays: [Int] = []
+    /// True for "the last day of the month". `count` is 1 and `unit` is `.month`.
+    public private(set) var monthEnd = false
+    /// "Count from the day I finish it": the next date is counted from the day the task was
+    /// ticked, not from the date it had. Only for the every-N rules.
+    public var afterDone = false {
+        didSet { if !weekdays.isEmpty || monthEnd { afterDone = false } }
     }
 
-    /// Accepts `daily`, `weekly`, `monthly`, `yearly`, `2w`, `3 months`, `every 2 weeks`.
+    public init(count: Int = 1, unit: Unit, afterDone: Bool = false) {
+        self.count = max(1, count)
+        self.unit = unit
+        self.afterDone = afterDone
+    }
+
+    /// On these weekdays (1 = Monday … 7 = Sunday). Nil when none is valid. All seven is
+    /// simply every day.
+    public init?(weekdays: [Int]) {
+        let days = Array(Set(weekdays.filter { (1...7).contains($0) })).sorted()
+        guard !days.isEmpty else { return nil }
+        if days.count == 7 {
+            self.init(unit: .day)
+        } else {
+            self.init(unit: .week)
+            self.weekdays = days
+        }
+    }
+
+    /// The last day of every month.
+    public static var lastDayOfMonth: RepeatRule {
+        var rule = RepeatRule(unit: .month)
+        rule.monthEnd = true
+        return rule
+    }
+
+    /// Monday to Friday.
+    public static var workingDays: RepeatRule { RepeatRule(weekdays: [1, 2, 3, 4, 5])! }
+
+    /// True for the every-N rules, the only ones that can count from the day of finishing.
+    public var canCountFromDone: Bool { weekdays.isEmpty && !monthEnd }
+
+    static let dayNames = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    /// "Mon" … "Sun", for buttons; index 0 is Monday.
+    public static let dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    private static let dayWords: [String: Int] = [
+        "mon": 1, "monday": 1, "tue": 2, "tues": 2, "tuesday": 2, "wed": 3, "wednesday": 3,
+        "thu": 4, "thur": 4, "thurs": 4, "thursday": 4, "fri": 5, "friday": 5,
+        "sat": 6, "saturday": 6, "sun": 7, "sunday": 7,
+    ]
+
+    /// Accepts `daily`, `weekly`, `monthly`, `yearly`, `2w`, `3 months`, `every 2 weeks` (as
+    /// always), and `mon,wed,fri`, `weekdays`, `monthend`, each every-N form followed by
+    /// ` after done`.
     public init?(_ text: String) {
         var t = text.lowercased().trimmingCharacters(in: .whitespaces)
         if t.hasPrefix("every ") { t = String(t.dropFirst(6)) }
+        var afterDone = false
+        for suffix in [" after done", " after-done", " afterdone"] where t.hasSuffix(suffix) {
+            t = String(t.dropLast(suffix.count)).trimmingCharacters(in: .whitespaces)
+            afterDone = true
+        }
         switch t {
-        case "daily", "day", "days": self.init(unit: .day); return
-        case "weekly", "week", "weeks": self.init(unit: .week); return
-        case "monthly", "month", "months": self.init(unit: .month); return
-        case "yearly", "annually", "year", "years": self.init(unit: .year); return
+        case "daily", "day", "days": self.init(unit: .day, afterDone: afterDone); return
+        case "weekly", "week", "weeks": self.init(unit: .week, afterDone: afterDone); return
+        case "monthly", "month", "months": self.init(unit: .month, afterDone: afterDone); return
+        case "yearly", "annually", "year", "years": self.init(unit: .year, afterDone: afterDone); return
         default: break
+        }
+        if !afterDone {
+            switch t {
+            case "weekdays", "workdays", "working days":
+                self = .workingDays; return
+            case "monthend", "month-end", "month end", "last day of month", "last day of the month", "eom":
+                self = .lastDayOfMonth; return
+            default: break
+            }
+            let words = t.split(whereSeparator: { $0 == "," || $0 == " " || $0 == "+" }).map(String.init)
+            let days = words.compactMap { Self.dayWords[$0] }
+            if !words.isEmpty, days.count == words.count, let rule = RepeatRule(weekdays: days) {
+                self = rule; return
+            }
         }
         let digits = t.prefix { $0.isNumber }
         let rest = t.dropFirst(digits.count).trimmingCharacters(in: .whitespaces)
@@ -187,23 +281,40 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
         default: unit = nil
         }
         guard let unit else { return nil }
-        self.init(count: n, unit: unit)
+        self.init(count: n, unit: unit, afterDone: afterDone)
     }
 
     public var description: String {
+        if monthEnd { return "monthend" }
+        if weekdays == [1, 2, 3, 4, 5] { return "weekdays" }
+        if !weekdays.isEmpty { return weekdays.map { Self.dayNames[$0 - 1] }.joined(separator: ",") }
+        var base = "\(count)\(unit.rawValue)"
         if count == 1 {
             switch unit {
-            case .day: return "daily"
-            case .week: return "weekly"
-            case .month: return "monthly"
-            case .year: return "yearly"
+            case .day: base = "daily"
+            case .week: base = "weekly"
+            case .month: base = "monthly"
+            case .year: base = "yearly"
             }
         }
-        return "\(count)\(unit.rawValue)"
+        return afterDone ? base + " after done" : base
     }
 
     /// "Every 2 weeks", for menus.
     public var label: String {
+        if monthEnd { return "Last day of the month" }
+        if weekdays == [1, 2, 3, 4, 5] { return "Every working day" }
+        if !weekdays.isEmpty { return "Every " + weekdays.map { Self.dayLabels[$0 - 1] }.joined(separator: ", ") }
+        if afterDone {
+            let word: String
+            switch unit {
+            case .day: word = "day"
+            case .week: word = "week"
+            case .month: word = "month"
+            case .year: word = "year"
+            }
+            return "\(count) \(word)\(count == 1 ? "" : "s") after it is done"
+        }
         switch (count, unit) {
         case (1, .day): return "Every day"
         case (1, .week): return "Every week"
@@ -217,6 +328,22 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
     }
 
     public func next(after date: DateOnly, calendar: Calendar = .current) -> DateOnly {
+        if !weekdays.isEmpty {
+            // The next chosen weekday strictly after the date.
+            var day = date
+            for _ in 0..<7 {
+                day = day.adding(days: 1, calendar: calendar)
+                if weekdays.contains(PlainDate.isoWeekday(day, calendar)) { return day }
+            }
+            return day
+        }
+        if monthEnd {
+            // The end of this month when the date is before it, else the end of the next.
+            let thisEnd = Self.lastDay(year: date.year, month: date.month, calendar: calendar)
+            if date < thisEnd { return thisEnd }
+            let month = date.month == 12 ? 1 : date.month + 1
+            return Self.lastDay(year: date.month == 12 ? date.year + 1 : date.year, month: month, calendar: calendar)
+        }
         let component: Calendar.Component
         switch unit {
         case .day: component = .day
@@ -227,6 +354,49 @@ public struct RepeatRule: Equatable, Sendable, CustomStringConvertible {
         guard let base = date.date(calendar: calendar),
               let shifted = calendar.date(byAdding: component, value: count, to: base) else { return date }
         return DateOnly(shifted, calendar: calendar)
+    }
+
+    private static func lastDay(year: Int, month: Int, calendar: Calendar) -> DateOnly {
+        let first = DateOnly(year: year, month: month, day: 1)
+        guard let date = first.date(calendar: calendar),
+              let range = calendar.range(of: .day, in: .month, for: date) else { return first }
+        return DateOnly(year: year, month: month, day: range.count)
+    }
+}
+
+/// A task's deadline in words (build 316): how far away it is from a day.
+public enum TaskDeadline {
+    /// Days from `today` to the deadline: 0 on the day, negative when it has passed.
+    public static func daysLeft(until deadline: DateOnly, from today: DateOnly, calendar: Calendar = .current) -> Int {
+        today.days(until: deadline, calendar: calendar)
+    }
+
+    /// "3 days left", "1 day left", "Due today", "1 day late", "4 days late".
+    public static func words(until deadline: DateOnly, from today: DateOnly, calendar: Calendar = .current) -> String {
+        let left = daysLeft(until: deadline, from: today, calendar: calendar)
+        if left == 0 { return "Due today" }
+        let n = abs(left)
+        return "\(n) day\(n == 1 ? "" : "s") \(left > 0 ? "left" : "late")"
+    }
+
+    /// True on the deadline's own day and after it: the words turn red.
+    public static func isPressing(_ deadline: DateOnly, on today: DateOnly) -> Bool { deadline <= today }
+}
+
+public extension TaskItem {
+    /// This task with another deadline, or none. The do-day and everything else stay.
+    func settingDeadline(_ day: DateOnly?) -> TaskItem {
+        var copy = self
+        copy.deadline = day
+        return copy
+    }
+}
+
+public extension DateOnly {
+    /// Whole days from this date to `other`; negative when `other` is earlier.
+    func days(until other: DateOnly, calendar: Calendar = .current) -> Int {
+        guard let a = date(calendar: calendar), let b = other.date(calendar: calendar) else { return 0 }
+        return calendar.dateComponents([.day], from: a, to: b).day ?? 0
     }
 }
 
@@ -239,6 +409,8 @@ public enum TaskParser {
     static let repeatRegex = try! NSRegularExpression(pattern: #"(?<!\S)@repeat\(([^)]*)\)"#)
     /// `@since(2026-11-01)` (build 279), written like `@done(...)`.
     static let sinceRegex = try! NSRegularExpression(pattern: #"(?<!\S)@since\((\d{4}-\d{2}-\d{2})\)"#)
+    /// `@deadline(2026-11-20)` (build 316), written like `@since(...)`.
+    static let deadlineRegex = try! NSRegularExpression(pattern: #"(?<!\S)@deadline\((\d{4}-\d{2}-\d{2})\)"#)
     static let tagRegex = try! NSRegularExpression(pattern: #"(?<!\S)#([\p{L}\p{N}_/\-]+)"#)
 
     /// Parses a single line. Returns nil when the line is not a task.
@@ -259,11 +431,13 @@ public enum TaskParser {
         var repeatRule: RepeatRule?
         var minutes: Int?
         var since: DateOnly?
+        var deadline: DateOnly?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
         rest = extract(repeatRegex, from: rest) { repeatRule = RepeatRule($0) }
         rest = extract(sinceRegex, from: rest) { since = DateOnly($0) }
+        rest = extract(deadlineRegex, from: rest) { deadline = DateOnly($0) ?? deadline }
         let restNS = rest as NSString
         if let due = dueRegex.firstMatch(in: rest, range: NSRange(location: 0, length: restNS.length)) {
             dueDate = DateOnly(restNS.substring(with: due.range(at: 1)))
@@ -279,7 +453,7 @@ public enum TaskParser {
         let tags = allCaptures(tagRegex, in: title)
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
-                        indent: indent, bullet: bullet, lineIndex: lineIndex, since: since)
+                        indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline)
     }
 
     /// Parses every task line in a body, ignoring fenced code blocks. Indented tasks below another

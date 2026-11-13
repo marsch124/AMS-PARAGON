@@ -2294,7 +2294,8 @@ final class AppModel: ObservableObject {
             // Build 303: a gentle tap you can feel (iPhone and iPad only).
             Haptics.done()
             if let next = note.complete(task: ref.task) {
-                flash("Done. Next time: \(next.dueDate?.description ?? "")")
+                // Build 316: a repeat with only a deadline has no do-day to name.
+                flash("Done. Next time: \((next.dueDate ?? next.deadline)?.description ?? "")")
             }
         }
         save(note)
@@ -2440,6 +2441,18 @@ final class AppModel: ObservableObject {
         var task = ref.task
         task.repeatRule = rule
         guard note.replace(task: task) else { return }
+        save(note)
+    }
+
+    /// A task's deadline, written as `@deadline(2026-11-20)` on its line (build 316). Nil
+    /// removes it. The do-day (`>date`) is not touched, and the change is made on the task as
+    /// the note holds it now. Named apart from `setDeadline(_:_:)`, which is a project's.
+    func setTaskDeadline(_ ref: TaskRef, _ day: DateOnly?) {
+        flushPendingEdits()
+        guard var note = note(at: ref.notePath) else { return }
+        let current = liveTask(for: ref, in: note)
+        let changed = current.settingDeadline(day)
+        guard changed != current, note.replace(task: changed) else { return }
         save(note)
     }
 
