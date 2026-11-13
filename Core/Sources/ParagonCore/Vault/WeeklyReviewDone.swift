@@ -42,6 +42,19 @@ public enum WeeklyReviewDone {
         return days > lateAfterDays
     }
 
+    /// The words on Today when no review was ever recorded (build 316).
+    public static let noneYetLine = "No weekly review yet"
+
+    /// **The rule for "No weekly review yet"** (round 9, build 316). Shown when no review was
+    /// ever recorded and PARAGON has been in use on this device for a whole week or more
+    /// (`firstUse` is at least seven days ago). With no first day known, never: there is
+    /// nothing to count from. Gone for good with the first **Review done**.
+    public static func isNoneYetDue(last: DateOnly?, firstUse: DateOnly?, today: DateOnly,
+                                    calendar: Calendar = .current) -> Bool {
+        guard last == nil, let firstUse else { return false }
+        return today.days(since: firstUse, calendar: calendar) >= lateAfterDays
+    }
+
     /// The words of the line on Today.
     public static func lateLine(last: DateOnly, today: DateOnly, calendar: Calendar = .current) -> String {
         let days = daysSince(last: last, today: today, calendar: calendar) ?? 0

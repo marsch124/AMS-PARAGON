@@ -30,16 +30,29 @@ final class CaptureKey {
         self.model = model
         if let hotKey { UnregisterEventHotKey(hotKey) }
         hotKey = nil
-        guard let code = choice.keyCode else { return }
+        // Build 316: his own recorded key. One that is not allowed (no ⌘, ⌃ or ⌥) is never
+        // asked for, whatever is stored.
+        let own = choice == .custom
+            ? RecordedKey(stored: UserDefaults.standard.string(forKey: RecordedKey.storageKey)).flatMap { $0.isAllowed ? $0 : nil }
+            : nil
+        guard let code = own?.keyCode ?? choice.keyCode else { return }
+        let held = own?.modifiers ?? choice.modifiers
         installHandler()
         let id = EventHotKeyID(signature: 0x5041_5247 /* "PARG" */, id: 1)
         var ref: EventHotKeyRef?
-        let status = RegisterEventHotKey(code, choice.modifiers, id, GetApplicationEventTarget(), 0, &ref)
+        let status = RegisterEventHotKey(code, held, id, GetApplicationEventTarget(), 0, &ref)
         if status == noErr { hotKey = ref } else { model.log("capture key not taken: \(status)") }
     }
 
     /// Whether macOS gave PARAGON the key (another app can hold it already).
     var isRegistered: Bool { hotKey != nil }
+
+    /// Lets go of the key while he records a new one (build 316), so pressing the old key in
+    /// the recording window does not open the panel. `apply` takes it again.
+    func letGo() {
+        if let hotKey { UnregisterEventHotKey(hotKey) }
+        hotKey = nil
+    }
 
     private func installHandler() {
         guard handler == nil else { return }

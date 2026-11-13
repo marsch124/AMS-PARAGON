@@ -4547,6 +4547,9 @@ final class AppModel: ObservableObject {
 
     func refreshBackups() {
         backups = vault?.backups() ?? []
+        noteFirstUseDay()
+        lastOutsideRestoreLine = defaults.string(forKey: lastOutsideRestoreVaultKey) == vault?.rootURL.path
+            ? defaults.string(forKey: lastOutsideRestoreLineKey) : nil
         let stamp = defaults.double(forKey: lastOutsideBackupKey)
         let made = stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil
         // Build 315 polish: the row never says "Not yet", or an older day, beside a restore
@@ -4694,6 +4697,46 @@ final class AppModel: ObservableObject {
         #endif
     }
 
+    // MARK: Round 9 (build 316): what the last restore did, and the first day of use
+
+    /// What the last **Restore from the outside copy** did, in one line that stays in Settings
+    /// ("Restored 15 notes from 2026-11-13 08:57"). Until build 316 the only sign was a short
+    /// message in the main window. Kept on this device, for this vault folder.
+    @Published private(set) var lastOutsideRestoreLine: String?
+    private let lastOutsideRestoreLineKey = "lastOutsideRestoreLine"
+    private let lastOutsideRestoreVaultKey = "lastOutsideRestoreVault"
+
+    private func rememberOutsideRestore(_ line: String, root: URL) {
+        defaults.set(line, forKey: lastOutsideRestoreLineKey)
+        defaults.set(root.path, forKey: lastOutsideRestoreVaultKey)
+        lastOutsideRestoreLine = line
+    }
+
+    /// True while a restore from the outside copy is at work. It holds `isSyncing` so nothing
+    /// else starts; this says which of the two it is, so the sync line reads "Restoring…".
+    @Published private(set) var isRestoring = false
+
+    /// The first day PARAGON was used on this device, for **No weekly review yet** on Today.
+    /// None was kept before build 316, so it is noted now: today, or the day of the oldest
+    /// backup inside the vault when that is earlier (he has used the app at least since then).
+    private let firstUseDayKey = "firstUseDay"
+
+    var firstUseDay: DateOnly? { defaults.string(forKey: firstUseDayKey).flatMap { DateOnly($0) } }
+
+    private func noteFirstUseDay() {
+        guard vault != nil, defaults.string(forKey: firstUseDayKey) == nil else { return }
+        let oldest = backups.map(\.date).min().map { DateOnly($0) }
+        let day = [DateOnly.today(), oldest].compactMap { $0 }.min() ?? DateOnly.today()
+        defaults.set(day.description, forKey: firstUseDayKey)
+    }
+
+    /// **No weekly review yet** on Today (`WeeklyReviewDone.isNoneYetDue`): never while notes
+    /// are still coming from iCloud, because a review noted in one of them is not known yet.
+    var showsNoWeeklyReviewYet: Bool {
+        guard vault != nil, notesWaitingForCloud.isEmpty else { return false }
+        return WeeklyReviewDone.isNoneYetDue(last: lastWeeklyReview, firstUse: firstUseDay, today: .today())
+    }
+
     // MARK: Restore from the outside copy (build 315)
 
     /// What "Restore from the outside copy…" found, for its sheet. Nothing has been changed
@@ -4808,6 +4851,7 @@ final class AppModel: ObservableObject {
         // of it, so the timed sync, a tap on Sync now and the re-reads all wait: a sync that
         // met half the notes put back would take the missing lines for deleted tasks.
         isSyncing = true
+        isRestoring = true
         let root: URL = vault.rootURL
         let config: VaultConfig = vault.config
         Task { [weak self] in
@@ -4819,6 +4863,7 @@ final class AppModel: ObservableObject {
             guard let self else { return }
             // Let go on every way out, a failed restore included.
             self.isSyncing = false
+            self.isRestoring = false
             self.outsideRestoreChoice = nil
             guard self.vault?.rootURL == root else { return }
             let stamp = DayWords.plainWithTime(backup.date)
@@ -4829,11 +4874,13 @@ final class AppModel: ObservableObject {
                 self.vault?.reloadConfig()
                 self.selectedNotePath = nil
                 self.reload()
+                // Build 316: the same words stay in Settings, under the button.
+                self.rememberOutsideRestore(result.line(stamp: stamp), root: root)
                 self.refreshBackups()
                 if result.isComplete, result.written == 0 {
                     self.errorMessage = "Nothing was put back: the outside copy from \(stamp) held no files that could be restored. Your notes are as they were."
                 } else if result.isComplete {
-                    self.flash("Restored \(result.written) file\(result.written == 1 ? "" : "s") from the outside copy of \(stamp)")
+                    self.flash(result.line(stamp: stamp))
                 } else {
                     self.errorMessage = "Restored \(result.written) of \(result.written + result.failed.count) files. "
                         + "\(result.failed.count) could not be written and still hold what they held before: "
@@ -4841,6 +4888,7 @@ final class AppModel: ObservableObject {
                 }
             case .failure(let error):
                 self.log("outside copy not restored: \(error.localizedDescription)")
+                self.rememberOutsideRestore("The copy of \(stamp) was not restored. Nothing was changed.", root: root)
                 self.errorMessage = "The outside copy could not be restored, and nothing was changed: \(error.localizedDescription)"
             }
         }

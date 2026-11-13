@@ -299,7 +299,8 @@ struct SyncRingMark: View {
         let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                  conflicts: conflicts, now: now)
         // Build 312: "Not synced" / "Synced 5 min ago" — the words name the sync.
-        let word = SyncRing.caption(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+        // Build 316: a restore holds the sync; the words then say "Restoring".
+        let word = model.isRestoring ? "Restoring" : SyncRing.caption(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                     conflicts: conflicts, now: now)
         let tint = colour(mood)
         let mark = SyncRingGlyph(fill: fill, tint: tint, plain: mood == .none,
@@ -316,7 +317,7 @@ struct SyncRingMark: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Sync with Reminders")
-        .accessibilityValue(SyncStatus.line(syncing: syncing, waiting: waiting,
+        .accessibilityValue(model.isRestoring ? "Restoring…" : SyncStatus.line(syncing: syncing, waiting: waiting,
                                             finishedAt: finishedAt, conflicts: conflicts, now: now))
     }
 }
@@ -380,7 +381,7 @@ struct MenuBarSyncLabel: View {
                                      conflicts: conflicts, now: now)
             let fill = SyncRing.fill(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                      conflicts: conflicts, now: now)
-            let word = SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
+            let word = model.isRestoring ? "Restoring" : SyncRing.word(syncing: syncing, waiting: waiting, finishedAt: finishedAt,
                                      conflicts: conflicts, now: now)
             // Build 304: the number of tasks due today, right beside the ring (none when 0).
             let due = model.index.openTasks(dueOn: DateOnly(now)).count
@@ -433,7 +434,7 @@ struct MenuBarSyncMenu: View {
 
     var body: some View {
         let finishedAt = model.lastReport.map { $0.finishedAt ?? $0.startedAt }
-        Text(SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
+        Text(model.isRestoring ? "Restoring…" : SyncStatus.line(syncing: model.isSyncing, waiting: model.syncWaitsForCloud,
                              finishedAt: finishedAt,
                              conflicts: model.lastReport?.conflicts.count ?? 0))
         Divider()

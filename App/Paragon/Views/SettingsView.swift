@@ -85,7 +85,7 @@ struct SettingsView: View {
                 Button {
                     Task { await model.syncNow() }
                 } label: {
-                    MarkLabel(model.isSyncing ? "Syncing…" : "Sync now", "arrow.triangle.2.circlepath")
+                    MarkLabel(model.isRestoring ? "Restoring…" : (model.isSyncing ? "Syncing…" : "Sync now"), "arrow.triangle.2.circlepath")
                 }
                 .disabled(model.isSyncing || model.vault == nil)
                 Picker("Sync automatically", selection: Binding(
@@ -230,6 +230,19 @@ struct SettingsView: View {
                 // Build 315: until now this copy could only be put back by hand, in Finder.
                 Button("Restore from the outside copy\u{2026}") { model.lookAtOutsideCopy() }
                     .accessibilityIdentifier("settings.outsideBackup.restore")
+                // Build 316: what the last restore did stays here, not only in a short message.
+                if model.isRestoring {
+                    Text("Restoring\u{2026}")
+                        .font(Txt.label)
+                        .foregroundStyle(.soft)
+                        .accessibilityIdentifier("settings.outsideBackup.restoring")
+                } else if let line = model.lastOutsideRestoreLine {
+                    Text(line)
+                        .font(Txt.label.weight(.medium))
+                        .foregroundStyle(Color.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("settings.outsideBackup.restored")
+                }
                 Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside the vault, so they are still there if the vault folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
@@ -553,28 +566,153 @@ struct OutsideRestoreView: View {
 struct CaptureKeyRow: View {
     @EnvironmentObject private var model: AppModel
     @AppStorage(CaptureHotKey.storageKey) private var stored = CaptureHotKey.off.rawValue
+    /// Build 316: the key he recorded himself, as `RecordedKey.stored`; empty for none.
+    @AppStorage(RecordedKey.storageKey) private var storedOwn = ""
     @State private var refused = false
+    @State private var recording = false
+
+    private var own: RecordedKey? { RecordedKey(stored: storedOwn) }
+
+    private func choose(_ choice: CaptureHotKey) {
+        stored = choice.rawValue
+        CaptureKey.shared.apply(choice, model: model)
+        refused = choice != .off && !CaptureKey.shared.isRegistered
+    }
 
     var body: some View {
         Picker("Key from any app", selection: Binding(
             get: { CaptureHotKey.stored(stored) },
-            set: { choice in
-                stored = choice.rawValue
-                CaptureKey.shared.apply(choice, model: model)
-                refused = choice != .off && !CaptureKey.shared.isRegistered
-            }
+            set: { choice in choose(choice) }
         )) {
-            ForEach(CaptureHotKey.allCases) { choice in
+            ForEach(CaptureHotKey.fixedChoices) { choice in
                 Text(choice.label).tag(choice)
+            }
+            // His own key is in the list once one is recorded.
+            if let own {
+                Text("My own key: \(own.label)").tag(CaptureHotKey.custom)
             }
         }
         .accessibilityIdentifier("settings.captureKey")
+        Button("Record my own key\u{2026}") { recording = true }
+            .accessibilityIdentifier("settings.captureKey.record")
+            .sheet(isPresented: $recording) {
+                RecordKeySheet(current: own) { key in
+                    storedOwn = key.stored
+                    choose(.custom)
+                }
+                // Whatever way the window closed, the chosen key is taken again.
+                .onDisappear { CaptureKey.shared.apply(CaptureHotKey.stored(stored), model: model) }
+            }
         if refused {
             Text("Another app already uses this key. Pick a different one.")
                 .font(Txt.label)
                 .foregroundStyle(Theme.attention)
                 .accessibilityIdentifier("settings.captureKey.refused")
         }
+    }
+}
+
+/// **Record my own key…** (round 9, build 316): press the keys, see them as symbols, then
+/// **Save**. A key without ⌘, ⌃ or ⌥ is refused; a key macOS is known to use gets a warning
+/// and may still be saved. Cancel and Escape leave everything as it was.
+///
+/// Only keys pressed **while this window is open** are looked at, and only inside PARAGON
+/// (`addLocalMonitorForEvents`): nothing is read from other apps and no permission is needed.
+struct RecordKeySheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let current: RecordedKey?
+    let save: (RecordedKey) -> Void
+    @State private var pressed: RecordedKey?
+    @State private var triedToSave = false
+    @State private var monitor: Any?
+
+    private var refusedLine: String? {
+        if let pressed, !pressed.isAllowed { return RecordedKey.refusedLine }
+        if pressed == nil, triedToSave { return "Press the keys first." }
+        return nil
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Record my own key")
+                .font(Txt.sectionTitle)
+            Text("Press the keys that should open quick capture from any app, for example \u{2325}\u{2318}K.")
+                .font(Txt.list)
+                .foregroundStyle(.soft)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(pressed?.label ?? current.map { "Now: \($0.label)" } ?? "Waiting for keys\u{2026}")
+                .font(.system(.title, design: .rounded).weight(.semibold))
+                .foregroundStyle(pressed == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.primary))
+                .frame(maxWidth: .infinity, minHeight: 56)
+                .background(Theme.fallbackTint.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.fallbackTint.opacity(0.45), lineWidth: 1))
+                .accessibilityIdentifier("recordKey.keys")
+            if let refusedLine {
+                Text(refusedLine)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.attention)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("recordKey.refused")
+            } else if let warning = pressed?.warningLine {
+                Text(warning)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.attention)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("recordKey.warning")
+            }
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel) { dismiss() }
+                    .accessibilityIdentifier("recordKey.cancel")
+                // Always full colour: pressed with nothing usable, it says what is missing.
+                Button("Save") { trySave() }
+                    .buttonStyle(.filled(Theme.fallbackTint))
+                    .accessibilityIdentifier("recordKey.save")
+            }
+            .padding(.top, 6)
+        }
+        .padding(16)
+        .frame(width: 380)
+        .accessibilityIdentifier("recordKey.sheet")
+        .onAppear(perform: startListening)
+        .onDisappear(perform: stopListening)
+    }
+
+    private func trySave() {
+        triedToSave = true
+        guard let pressed, pressed.isAllowed else { return }
+        save(pressed)
+        dismiss()
+    }
+
+    /// Every key press in this window is the answer, so the buttons' own keys are read here:
+    /// Escape by itself is Cancel and Return by itself is Save.
+    private func startListening() {
+        CaptureKey.shared.letGo()
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            let code = UInt32(event.keyCode)
+            if flags.isEmpty, code == 53 { dismiss(); return nil }
+            if flags.isEmpty, code == 36 || code == 76 { trySave(); return nil }
+            var held: UInt32 = 0
+            if flags.contains(.command) { held |= RecordedKey.command }
+            if flags.contains(.shift) { held |= RecordedKey.shift }
+            if flags.contains(.option) { held |= RecordedKey.option }
+            if flags.contains(.control) { held |= RecordedKey.control }
+            // The letter printed on the key, without what the held keys make of it (⇧3 is "3").
+            let typed = (event.characters(byApplyingModifiers: []) ?? event.charactersIgnoringModifiers ?? "").uppercased()
+            let name = RecordedKey.specialName(forKeyCode: code)
+                ?? (typed.unicodeScalars.first.map { $0.value > 32 && $0.value < 0xF700 } == true ? typed : "Key \(code)")
+            pressed = RecordedKey(keyCode: code, modifiers: held, keyName: name)
+            triedToSave = false
+            return nil
+        }
+    }
+
+    private func stopListening() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
     }
 }
 #endif

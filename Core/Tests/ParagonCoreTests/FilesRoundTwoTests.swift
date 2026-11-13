@@ -27,7 +27,7 @@ final class FilesRoundTwoTests: XCTestCase {
         try vault.writeFile(Data([6]), at: "Sketches/Sketch 1.drawing")
 
         let copy = try XCTUnwrap(try vault.makeOutsideCopy(in: place, reason: "daily"))
-        let folder = Vault.outsideBackupsURL(in: place).appendingPathComponent(copy.folderName)
+        let folder = vault.outsideCopyURL(copy, in: place)
         XCTAssertFalse(folder.path.hasPrefix(vault.rootURL.path), "outside the vault")
         for path in ["Projects/Race.md", "Photos/Photo 1.jpg", "Sketches/Sketch 1.png", "Sketches/Sketch 1.drawing"] {
             XCTAssertTrue(FileManager.default.fileExists(atPath: folder.appendingPathComponent(path).path), path)
@@ -52,7 +52,7 @@ final class FilesRoundTwoTests: XCTestCase {
         // An unchanged picture is carried over from the copy before.
         _ = try vault.createNote(kind: .project, title: "Latest")
         let last = try XCTUnwrap(try vault.makeOutsideCopy(in: place, now: start))
-        XCTAssertTrue(FileManager.default.fileExists(atPath: home.appendingPathComponent(last.folderName).appendingPathComponent("Pictures/Kept.png").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: vault.outsideCopyURL(last, in: place).appendingPathComponent("Pictures/Kept.png").path))
         XCTAssertEqual(vault.outsideCopies(in: place).count, 2, "the 200-day-old copy is gone")
         XCTAssertTrue(FileManager.default.fileExists(atPath: keepsake.path), "a folder that is not a finished copy is left alone")
     }
