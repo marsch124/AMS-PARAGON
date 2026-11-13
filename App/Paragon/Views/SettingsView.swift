@@ -670,7 +670,7 @@ struct RecordKeySheet: View {
                 .foregroundStyle(.soft)
                 .fixedSize(horizontal: false, vertical: true)
             Text(pressed?.label ?? current.map { "Now: \($0.label)" } ?? "Waiting for keys\u{2026}")
-                .font(.system(.title, design: .rounded).weight(.semibold))
+                .font(Txt.pageTitle)
                 .foregroundStyle(pressed == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.primary))
                 .frame(maxWidth: .infinity, minHeight: 56)
                 .background(Theme.fallbackTint.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
