@@ -15,7 +15,17 @@ The version is shown as 1.0 (318) in Settings › About, at the foot of the Mac 
 - A goal had a **Measure**, 1 line of words. Its per cent came only from the ticked tasks of its projects. "Weigh 82 kg" or "Save 100 000 kr" could not show where the number stands.
 - Almost nothing moved. A ticked task was gone in the same instant and the rows under it jumped up. A group opened and closed in 1 jump. Only **Quick capture** listened to the device's **Reduce Motion** switch.
 
-**Please read: some of this could not be tried on a real iPhone or Mac.** It was built and tested with test notes on a Mac and on a simulated iPhone. The part **Not yet tried on a real iPhone or Mac**, at the end of this entry, lists what only a real device can show. Please try those things and tell me what you see.
+**Please read: some of this could not be tried on a real iPhone or Mac.** It was built and tested with test notes on a Mac and on a simulated iPhone. The part **After the designer's look.** A strict designer looked at the new screens on the iPhone and fixed these before the upload:
+- A goal's page: the number words were cut ("86,5 of 82…"). Now they always show whole, and on the iPhone the bar has its own line. **Update…** is 32 points high on the iPhone (it was 21).
+- All bars for a goal are now the same drawn bar, on the goal's page and in the weekly review. Per cent is written with a space: "65 %".
+- The **Set a number…** window: the hint is one short line, "The target may be lower than the start.", and the button has its own mark, a small curve.
+- The **Update…** window no longer covers the number, and its **Cancel** has the goal's colour.
+- A PDF row inside a note you are editing was 3 times too big (156 points) and cut off. Now it is 52 points.
+- **Inbox › Notes**: the names of shared pictures and PDFs stand in one line. The share sheet's **Save** is a full green button.
+- Weekly review on the iPhone, the goals step: the marks have their words again.
+- Sharing 2 pictures from Photos into PARAGON was tried from start to end on a test phone, and it worked.
+
+**Not yet tried on a real iPhone or Mac**, at the end of this entry, lists what only a real device can show. Please try those things and tell me what you see.
 
 ### Pictures and PDFs
 

@@ -2087,6 +2087,8 @@ The precise rules and names behind build 317, for reference. The words in `code 
 
 ## Exact details (build 318)
 
+- **After the designer's look (build 318).** `GoalProgressBar` is one drawn bar everywhere and fills in 0.35 seconds; per cent is written "65 %". On the iPhone the number words stand on their own line above the bar and are never cut; **Update…** is 32 points high. The number window's hint: "The target may be lower than the start."; its button mark is `chart.line`. A PDF row in a note being edited is 52 points high. Identifiers: `goal.number.line`, `goal.number.update`.
+
 The precise rules and names behind build 318, for reference. The words in `code letters` are names in the app's code, in its files and in its tests. You do not need them to use PARAGON.
 
 **Sharing pictures and PDFs in**
