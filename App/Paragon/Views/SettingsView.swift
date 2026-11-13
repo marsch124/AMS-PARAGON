@@ -125,6 +125,26 @@ struct SettingsView: View {
             .id("settings.sync")
             .disabled(model.vault == nil)
 
+            // Build 315: the lists he answered "Keep them apart" for. Hidden while there are none.
+            if !model.config.listsKeptApart.isEmpty {
+                Section {
+                    ForEach(model.config.listsKeptApart) { list in
+                        HStack {
+                            Text(list.name)
+                            Spacer()
+                            Button("Connect again") { model.connectAgain(list) }
+                                .accessibilityIdentifier("settings.keptApart.connect.\(list.name)")
+                        }
+                    }
+                } header: {
+                    Text("Lists kept apart")
+                } footer: {
+                    Text("These Reminders lists have the same name as a note, and you chose to keep them apart. The sync leaves the list and the note alone. After **Connect again**, the next sync asks you about the list once more.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityIdentifier("settings.keptApart")
+            }
+
             Section("Backups") {
                 Toggle("Save a copy of the vault before each sync", isOn: Binding(
                     get: { model.backsUpBeforeSync },
@@ -201,6 +221,9 @@ struct SettingsView: View {
                     #endif
                     Spacer()
                 }
+                // Build 315: until now this copy could only be put back by hand, in Finder.
+                Button("Restore from the outside copy\u{2026}") { model.lookAtOutsideCopy() }
+                    .accessibilityIdentifier("settings.outsideBackup.restore")
                 Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside the vault, so they are still there if the vault folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
@@ -312,6 +335,9 @@ struct SettingsView: View {
             WidgetStatusSection()
 
             Section("About") {
+                // Build 315 (features-06): the version is here too, on every device.
+                LabeledContent("Version", value: AppVersion.text)
+                    .accessibilityIdentifier("settings.about.version")
                 LabeledContent("Device id", value: model.deviceID)
                 Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
                     .font(Txt.label)
@@ -339,6 +365,10 @@ struct SettingsView: View {
             }
         }
         .modifier(FolderChoiceSheet(asked: $askedAboutFolder))
+        .sheet(isPresented: Binding(get: { model.outsideRestoreChoice != nil },
+                                    set: { shown in if !shown { model.cancelOutsideRestore() } })) {
+            OutsideRestoreView().environmentObject(model)
+        }
         .confirmationDialog("Restore the backup from \(backupToRestore.map { DayWords.plainWithTime($0.date) } ?? "")?",
                             isPresented: Binding(get: { backupToRestore != nil }, set: { if !$0 { backupToRestore = nil } }),
                             presenting: backupToRestore) { backup in
@@ -361,6 +391,81 @@ struct SettingsView: View {
             withAnimation { proxy.scrollTo("settings.sync", anchor: .top) }
             model.settingsJumpToSync = false
         }
+    }
+}
+
+/// Build 315, **Restore from the outside copy…**: which copy, from when, how many notes, and
+/// what a yes does — with Cancel (Escape on the Mac) and one main button. Nothing has been
+/// changed while this is on screen.
+struct OutsideRestoreView: View {
+    @EnvironmentObject private var model: AppModel
+
+    /// The headline, the smaller lines under it, and whether the main button is offered.
+    private var words: (headline: String, details: [String], canRestore: Bool, busy: Bool) {
+        let place = model.outsideRestoreChoice?.placeWords ?? ""
+        switch model.outsideRestoreChoice?.finding {
+        case nil, .looking:
+            return ("Looking for the outside copy\u{2026}", ["Nothing is changed."], false, true)
+        case .some(.none):
+            return ("There is no outside copy yet.",
+                    ["PARAGON looked \(place) and found none. One is made once a day, and with Back up now. Nothing was changed."], false, false)
+        case .copy(let copy):
+            return ("Restore the outside copy from \(DayWords.plainWithTime(copy.date))?",
+                    ["It is the newest outside copy, kept \(place). It holds \(FolderChoiceView.notes(copy.noteCount)), with their pictures and sketches.",
+                     "Restoring puts those notes, pictures and sketches back into the vault, over the versions you have now.",
+                     "What you have now is saved as a backup first, so you can go back. Notes you made since that copy are left alone. Nothing is deleted."],
+                    true, false)
+        case .restoring(let copy):
+            return ("Restoring the copy from \(DayWords.plainWithTime(copy.date))\u{2026}",
+                    ["Saving what you have now first, then putting the copy back. With many pictures this can take a minute."], false, true)
+        }
+    }
+
+    private var isRestoring: Bool {
+        if case .restoring = model.outsideRestoreChoice?.finding { return true }
+        return false
+    }
+
+    var body: some View {
+        let words = words
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                if words.busy { ProgressView().controlSize(.small) }
+                Text(words.headline)
+                    .font(Txt.sectionTitle)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("outsideRestore.headline")
+            }
+            ForEach(words.details, id: \.self) { line in
+                Text(line)
+                    .font(Txt.list)
+                    .foregroundStyle(.soft)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel) { model.cancelOutsideRestore() }
+                    .keyboardShortcut(.cancelAction)
+                    .disabled(isRestoring)
+                    .accessibilityIdentifier("outsideRestore.cancel")
+                if words.canRestore {
+                    Button("Restore") { model.restoreOutsideCopy() }
+                        .buttonStyle(.filled(Theme.fallbackTint))
+                        .keyboardShortcut(.defaultAction)
+                        .accessibilityIdentifier("outsideRestore.confirm")
+                }
+            }
+            .padding(.top, 6)
+        }
+        .padding(16)
+        #if os(macOS)
+        .frame(width: 420)
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .presentationDetents([.height(340)])
+        #endif
+        .interactiveDismissDisabled(isRestoring)
+        .accessibilityIdentifier("outsideRestore.sheet")
     }
 }
 

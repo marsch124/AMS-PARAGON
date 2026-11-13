@@ -114,11 +114,14 @@ public struct MassChangeSummary: Equatable, Sendable {
         public var listName: String
         /// The reminders in that list now.
         public var reminderCount: Int
+        /// The list's own identity in Reminders, for "Keep them apart" (build 315).
+        public var listID: String
 
-        public init(noteTitle: String, listName: String, reminderCount: Int) {
+        public init(noteTitle: String, listName: String, reminderCount: Int, listID: String = "") {
             self.noteTitle = noteTitle
             self.listName = listName
             self.reminderCount = reminderCount
+            self.listID = listID
         }
     }
 
@@ -142,7 +145,7 @@ public struct MassChangeSummary: Equatable, Sendable {
             let n = join.reminderCount
             sentences.append("Reminders already has a list called \u{201C}\(join.listName)\u{201D} with \(n) reminder\(n == 1 ? "" : "s") that PARAGON did not make. This sync would join it to the note \u{201C}\(join.noteTitle)\u{201D} and add \(n == 1 ? "that reminder" : "those reminders") to the note as tasks.")
         }
-        if !listsToJoin.isEmpty { sentences.append("To keep them apart, cancel and rename the note or the list.") }
+        if !listsToJoin.isEmpty { sentences.append("If the note and the list are two different things, choose Keep them apart: PARAGON leaves both as they are and does not ask about \(listsToJoin.count == 1 ? "this list" : "these lists") again.") }
         return sentences.joined(separator: " ") + " Nothing was changed."
     }
 

@@ -238,13 +238,37 @@ public extension Vault {
     /// backup of its own. Notes created since the backup are left where they are.
     @discardableResult
     func restore(_ backup: VaultBackup, now: Date = Date()) throws -> RestoreResult {
+        try restore(backup, from: nil, now: now)
+    }
+
+    /// Puts an **outside copy** back into the vault (build 315): its notes, settings, pictures
+    /// and sketches. Two fresh copies of what is in the vault now are made first, and without
+    /// them nothing is restored: one inside the vault ("before restore", so it is in the list
+    /// in Settings) and one outside, beside the copy being restored, because only an outside
+    /// copy holds the pictures. Nothing is deleted: files made since the copy stay where they
+    /// are, and neither the copy restored from nor the two fresh ones are cleared out.
+    @discardableResult
+    func restoreOutsideCopy(_ backup: VaultBackup, in place: URL, now: Date = Date()) throws -> RestoreResult {
+        try restore(backup, from: Self.outsideBackupsURL(in: place), now: now)
+    }
+
+    /// One restore, from the vault's own Backups folder (`folder` nil) or from a folder of
+    /// outside copies.
+    private func restore(_ backup: VaultBackup, from folder: URL?, now: Date) throws -> RestoreResult {
         let fm = FileManager.default
-        let source = backupsURL.appendingPathComponent(backup.folderName, isDirectory: true)
+        let source = (folder ?? backupsURL).appendingPathComponent(backup.folderName, isDirectory: true)
         guard fm.fileExists(atPath: source.path) else { throw VaultError.noteNotFound(backup.folderName) }
         // Not cleared out here: with a full list, making room would delete the very copy being
         // restored before a single file was read from it (build 307, hardening-02).
         try makeBackup(reason: "before restore", prune: false, now: now)
-        defer { pruneBackups(now: now, protecting: [backup.folderName]) }
+        // An inside copy being restored is kept whatever its age; the outside copies are not
+        // cleared out here at all (the next daily copy does that, by the same tiers).
+        defer { pruneBackups(now: now, protecting: folder == nil ? [backup.folderName] : []) }
+        if let folder {
+            // The pictures are only in an outside copy, so the way back needs one too. Nil
+            // means the newest outside copy already is the vault as it stands.
+            _ = try makeCopy(in: folder, reason: "before restore", prune: false, now: now)
+        }
 
         var written = 0
         var failed: [String] = []
@@ -279,6 +303,9 @@ public extension Vault {
                 failed.append(relative)
                 continue
             }
+            // A picture the vault already holds exactly as the copy does is left as it is
+            // (outside copies; build 315): nothing to put back, and no second write of it.
+            if folder != nil, Self.isPicture(relative), Self.sameFile(fileURL, destination) { continue }
             do {
                 try fm.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try? fm.removeItem(at: destination)

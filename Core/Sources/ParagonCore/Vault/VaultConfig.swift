@@ -43,6 +43,9 @@ public struct VaultConfig: Codable, Equatable, Sendable {
     public var createMissingLists = true
     /// Import reminders that are already completed but were never linked to a task.
     public var importCompletedReminders = false
+    /// Reminders lists kept apart from the note with the same name (build 315): the sync
+    /// never joins them and never asks about them again. See `ListsKeptApart`.
+    public var listsKeptApart: [KeptApartList] = []
 
     public init() {}
 
@@ -51,6 +54,7 @@ public struct VaultConfig: Codable, Equatable, Sendable {
         case dailyNotesListName, syncDailyNotes, staleProjectDays, reviewIntervalDays
         case conflictPolicy, syncAreas, createMissingLists, importCompletedReminders
         case aspirationReviewDays, goalReviewDays, areaReviewDays
+        case listsKeptApart
     }
 
     public init(from decoder: Decoder) throws {
@@ -77,6 +81,7 @@ public struct VaultConfig: Codable, Equatable, Sendable {
         aspirationReviewDays = try c.decodeIfPresent(Int.self, forKey: .aspirationReviewDays) ?? d.aspirationReviewDays
         goalReviewDays = try c.decodeIfPresent(Int.self, forKey: .goalReviewDays) ?? d.goalReviewDays
         areaReviewDays = try c.decodeIfPresent(Int.self, forKey: .areaReviewDays) ?? d.areaReviewDays
+        listsKeptApart = try c.decodeIfPresent([KeptApartList].self, forKey: .listsKeptApart) ?? []
     }
 
     public func folder(for kind: ParaKind) -> String? {

@@ -56,16 +56,49 @@ extension AppModel {
     }
 }
 
+extension AppModel {
+    /// Build 315, **Keep them apart**: the lists the sync asked about are remembered in the
+    /// vault's settings (so both devices know), and the sync runs again. It leaves those lists
+    /// and their notes alone from now on and does not ask about them again. Anything else the
+    /// sync stopped for is asked again by that run, on its own.
+    func keepApart(_ summary: MassChangeSummary) {
+        guard vault != nil, !summary.listsToJoin.isEmpty else { return }
+        var changed = config
+        for join in summary.listsToJoin {
+            changed.listsKeptApart = ListsKeptApart.adding(id: join.listID, name: join.listName, to: changed.listsKeptApart)
+        }
+        config = changed
+        let names = summary.listsToJoin.map { "\u{201C}\($0.listName)\u{201D}" }.joined(separator: ", ")
+        log("kept apart: \(names)")
+        flash(summary.listsToJoin.count == 1 ? "The list \(names) is kept apart" : "\(summary.listsToJoin.count) lists are kept apart")
+        Task { await syncNow() }
+    }
+
+    /// **Connect again** in Settings: the list is forgotten, and the next sync asks about it
+    /// as it did the first time. Nothing is joined by this press.
+    func connectAgain(_ list: KeptApartList) {
+        var changed = config
+        changed.listsKeptApart = ListsKeptApart.removing(list, from: changed.listsKeptApart)
+        config = changed
+        log("connect again: \u{201C}\(list.name)\u{201D}")
+    }
+}
+
 struct SyncSafetyDialogs: ViewModifier {
     @EnvironmentObject private var model: AppModel
 
     func body(content: Content) -> some View {
         content
-            .alert("Sync stopped to ask you", isPresented: massPresented, presenting: model.massChangeQuestion) { _ in
+            .alert("Sync stopped to ask you", isPresented: massPresented, presenting: model.massChangeQuestion) { summary in
                 Button("Do it", role: .destructive) {
                     Task { await model.syncNow(allowMassChanges: true) }
                 }
                 .accessibilityIdentifier("sync.mass.doIt")
+                // Build 315: only when the question is (also) about a list PARAGON did not make.
+                if !summary.listsToJoin.isEmpty {
+                    Button("Keep them apart") { model.keepApart(summary) }
+                        .accessibilityIdentifier("sync.mass.keepApart")
+                }
                 Button("Cancel", role: .cancel) { }
                     .accessibilityIdentifier("sync.mass.cancel")
             } message: { summary in

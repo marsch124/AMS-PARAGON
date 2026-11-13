@@ -4605,6 +4605,119 @@ final class AppModel: ObservableObject {
         #endif
     }
 
+    // MARK: Restore from the outside copy (build 315)
+
+    /// What "Restore from the outside copy…" found, for its sheet. Nothing has been changed
+    /// while this is on screen.
+    struct OutsideRestoreChoice: Equatable {
+        enum Finding: Equatable {
+            case looking
+            case none
+            case copy(VaultBackup)
+            case restoring(VaultBackup)
+        }
+        var finding: Finding
+        /// Where the copy is kept, in his words: "on this Mac", "in the folder “Dropbox”".
+        var placeWords: String
+    }
+
+    @Published private(set) var outsideRestoreChoice: OutsideRestoreChoice?
+
+    /// Where the outside copies are, and the chosen folder when that is it (it needs its
+    /// access opened around every read).
+    private func outsidePlace() -> (place: URL, chosen: URL?)? {
+        #if DEBUG
+        // The screen tests never look into the real copies: theirs live in a throwaway folder.
+        if TestVault.isWanted {
+            return (FileManager.default.temporaryDirectory.appendingPathComponent("paragon-test-outside", isDirectory: true), nil)
+        }
+        #endif
+        let chosen = chosenBackupPlace()
+        guard let place = chosen ?? deviceBackupPlace else { return nil }
+        return (place, chosen)
+    }
+
+    /// Looks for the newest outside copy, off the main thread (counting its notes walks the
+    /// whole copy), and shows the question. Changes nothing.
+    func lookAtOutsideCopy() {
+        guard let vault, let (place, chosen) = outsidePlace() else { return }
+        let words = (chosen != nil ? outsideBackupFolderName.map { "in the folder \u{201C}\($0)\u{201D}" } : nil)
+            ?? "on \(AppModel.thisDevice)"
+        outsideRestoreChoice = OutsideRestoreChoice(finding: .looking, placeWords: words)
+        let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
+        var makeOneFirst = false
+        #if DEBUG
+        makeOneFirst = TestVault.isWanted
+        #endif
+        Task { [weak self] in
+            let newest: VaultBackup? = await AppModel.offMain {
+                let scoped = chosen?.startAccessingSecurityScopedResource() ?? false
+                defer { if scoped { chosen?.stopAccessingSecurityScopedResource() } }
+                guard let copyOfVault = try? Vault(rootURL: root, config: config) else { return nil }
+                if makeOneFirst { _ = try? copyOfVault.makeOutsideCopy(in: place, reason: "daily") }
+                return copyOfVault.outsideCopies(in: place).first
+            }
+            guard let self, self.outsideRestoreChoice != nil, self.vault?.rootURL == root else { return }
+            self.outsideRestoreChoice?.finding = newest.map { .copy($0) } ?? .none
+        }
+    }
+
+    func cancelOutsideRestore() {
+        if case .restoring = outsideRestoreChoice?.finding { return }
+        outsideRestoreChoice = nil
+    }
+
+    /// His yes: saves what the vault holds now (inside the vault and beside the outside copy),
+    /// puts the copy back, and reads the vault again. Off the main thread: with pictures this
+    /// is as big as the copy itself. Nothing is deleted.
+    func restoreOutsideCopy() {
+        guard let vault, case .copy(let backup) = outsideRestoreChoice?.finding,
+              let (place, chosen) = outsidePlace() else { return }
+        // The same rule as `restore` (build 261): never while part of the vault is still coming.
+        if let reason = partVaultReason(for: "nothing was restored") {
+            outsideRestoreChoice = nil
+            errorMessage = reason
+            return
+        }
+        flushPendingEdits()
+        outsideRestoreChoice?.finding = .restoring(backup)
+        let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
+        Task { [weak self] in
+            let outcome: Result<RestoreResult, Error> = await AppModel.offMain {
+                let scoped = chosen?.startAccessingSecurityScopedResource() ?? false
+                defer { if scoped { chosen?.stopAccessingSecurityScopedResource() } }
+                return Result { try Vault(rootURL: root, config: config).restoreOutsideCopy(backup, in: place) }
+            }
+            guard let self else { return }
+            self.outsideRestoreChoice = nil
+            guard self.vault?.rootURL == root else { return }
+            let stamp = DayWords.plainWithTime(backup.date)
+            switch outcome {
+            case .success(let result):
+                self.log("restored outside copy \(backup.folderName): \(result.written) files, \(result.failed.count) not written")
+                // The settings came back with the copy: read them from the file again.
+                self.vault?.reloadConfig()
+                self.selectedNotePath = nil
+                self.reload()
+                self.refreshBackups()
+                if result.isComplete, result.written == 0 {
+                    self.errorMessage = "Nothing was put back: the outside copy from \(stamp) held no files that could be restored. Your notes are as they were."
+                } else if result.isComplete {
+                    self.flash("Restored \(result.written) file\(result.written == 1 ? "" : "s") from the outside copy of \(stamp)")
+                } else {
+                    self.errorMessage = "Restored \(result.written) of \(result.written + result.failed.count) files. "
+                        + "\(result.failed.count) could not be written and still hold what they held before: "
+                        + result.failed.prefix(5).joined(separator: ", ")
+                }
+            case .failure(let error):
+                self.log("outside copy not restored: \(error.localizedDescription)")
+                self.errorMessage = "The outside copy could not be restored, and nothing was changed: \(error.localizedDescription)"
+            }
+        }
+    }
+
     /// Saves a copy unless the vault is unchanged since the last one. Returns what was saved.
     @discardableResult
     func backUp(reason: String) -> VaultBackup? {

@@ -277,6 +277,7 @@ public final class SyncEngine {
         // daily lists and a list named in the note's `reminders-list:` were chosen by the user.
         // Any other list with reminders of its own is joined only after a yes.
         var joins: [MassChangeSummary.ListJoin] = []
+        var keptApart: [(list: String, path: String)] = []
         for (list, path) in pathForList.sorted(by: { $0.key < $1.key }) where existingLists.contains(list) {
             guard let note = notesByPath[path], note.kind != .inbox, note.kind != .daily,
                   note.frontmatter.string("reminders-list") == nil else { continue }
@@ -288,9 +289,29 @@ public final class SyncEngine {
             let inList = remindersByID.values.filter { $0.listName == list }
             let own = Set(note.tasks.compactMap(\.id))
             if inList.contains(where: { Self.markerTaskID(in: $0.notes).map(own.contains) ?? false }) { continue }
+            // Build 315, "Keep them apart": he said this list and this note are two different
+            // things. The note is taken out of this run whole, whatever the list holds now:
+            // nothing of it goes to Reminders, nothing of the list comes into it, no question.
+            let ids = storeLists.filter { $0.name == list && !$0.id.isEmpty }.map(\.id)
+            if ListsKeptApart.isKeptApart(name: list, ids: ids, deviceListIDs: existingListIDs, in: config.listsKeptApart) {
+                keptApart.append((list, path))
+                continue
+            }
             let foreign = inList.filter { Self.markerTaskID(in: $0.notes) == nil }.count
-            if foreign > 0 { joins.append(.init(noteTitle: note.title, listName: list, reminderCount: foreign)) }
+            if foreign > 0 {
+                joins.append(.init(noteTitle: note.title, listName: list, reminderCount: foreign, listID: ids.first ?? ""))
+            }
         }
+        for (list, path) in keptApart {
+            pathForList[list] = nil
+            listForPath[path] = nil
+            notesByPath[path] = nil
+            // Task ids this run gave its lines are not written: the note stays as it is.
+            dirtyPaths.remove(path)
+            mutations[path] = nil
+            report.notesSynced -= 1
+        }
+        if !keptApart.isEmpty { indexTasks() }
 
         // 2c. Mapped lists that do not exist. When all of a note's reminders now live together in
         // one other list that no note uses, the list was renamed in Reminders: the note follows it

@@ -68,7 +68,8 @@ final class SyncIdentityTests: XCTestCase {
         let textBefore = try vault.loadNote(relativePath: "Projects/Trip.md").text
 
         guard case .needsConfirmation(let summary) = try await engine.sync() else { return XCTFail("should ask first") }
-        XCTAssertEqual(summary.listsToJoin, [.init(noteTitle: "Trip", listName: "Trip", reminderCount: 1)])
+        XCTAssertEqual(summary.listsToJoin, [.init(noteTitle: "Trip", listName: "Trip", reminderCount: 1,
+                                                   listID: store.listIDs["Trip"] ?? "")])
         XCTAssertEqual(try vault.loadNote(relativePath: "Projects/Trip.md").text, textBefore)
         XCTAssertEqual(store.records.count, 1)
 
