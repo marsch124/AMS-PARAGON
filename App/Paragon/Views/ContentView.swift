@@ -177,11 +177,20 @@ struct ContentView: View {
         // (build 238), and the count is the one handed in, never read back (build 242).
         .onReceive(EveningReminder.shared.$openRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(.evening, upTo: count) else { return }
-            answerReminder(opening: DayReminder.evening.sheet)
+            answerReminder(opening: .closeDay)
         }
         .onReceive(EveningReminder.shared.$morningRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(.morning, upTo: count) else { return }
-            answerReminder(opening: DayReminder.morning.sheet)
+            answerReminder(opening: .startDay)
+        }
+        // The weekly review's reminder (round 8, build 315) opens the review itself: a place,
+        // not a sheet, so nothing typed in an open sheet is lost by going there.
+        .onReceive(EveningReminder.shared.$reviewRequests) { count in
+            guard EveningReminder.shared.takeOpenRequest(.weeklyReview, upTo: count) else { return }
+            model.afterUpdate {
+                guard model.vault != nil else { return }
+                model.openSection(.review)
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
@@ -1015,17 +1024,21 @@ struct NoteListView: View {
             case .kind(.archive)?:
                 EmptyStateView(title: "The archive is empty", markName: "archivebox",
                                message: "Finished projects and closed areas land here. They stay searchable and stop syncing to Reminders.",
-                               tint: ParaKind.archive.tint)
+                               tint: ParaKind.archive.tint,
+                               hint: "A note comes here with Move to Archive")
             case .work?:
                 EmptyStateView(title: "No work notes yet", markName: SidebarSection.work.markName,
                                message: "A separate set of notes, kept out of Today, the map, the weekly review, the main search and Reminders. Nothing here is planned or synced.",
                                tint: SidebarSection.work.tint, actionTitle: "New work note…") { makingWorkNote = true }
             case .recent?:
                 EmptyStateView(title: "Nothing opened yet", markName: "clock.arrow.circlepath",
-                               message: "The notes you open show up here, newest first, so you can get back to what you were on.")
+                               message: "The notes you open show up here, newest first, so you can get back to what you were on.",
+                               hint: "Open any note and it is listed here")
             default:
                 EmptyStateView(title: "Nothing here yet", markName: "doc.text",
-                               message: "Notes you add to this section show up in this list.")
+                               message: "Notes you add to this section show up in this list.",
+                               actionTitle: "New\u{2026}",
+                               action: { model.activeSheet = .newNote })
             }
         }
     }

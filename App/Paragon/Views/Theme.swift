@@ -94,6 +94,11 @@ struct EmptyStateView: View {
     /// Build 291: only a page that warns keeps its sentence ("Still coming from iCloud").
     /// Every other empty page is its icon and title — he could read what belongs there.
     var warns = false
+    /// Round 8 (build 315): an empty page always shows a way forward. A page with nothing to
+    /// press says in one short line how something gets here; the others have their one button.
+    var hint: String? = nil
+    /// The button's name for the screen tests.
+    var actionIdentifier: String? = nil
 
     var body: some View {
         // Build 291: the icon sits in a soft circle of the part's colour; no explanation.
@@ -116,11 +121,20 @@ struct EmptyStateView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 320)
             }
+            if let hint, !(warns || tint == .orange) {
+                Text(hint)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.soft)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 320)
+                    .accessibilityIdentifier("empty.hint")
+            }
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .buttonStyle(.bordered)
                     .tint(tint)
                     .padding(.top, 4)
+                    .accessibilityIdentifier(actionIdentifier ?? "empty.action")
             }
         }
         .padding(28)

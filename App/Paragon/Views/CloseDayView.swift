@@ -574,9 +574,17 @@ private struct LeftoverRow: View {
             .buttonStyle(.plain)
             .help("Move this to another day")
             .popover(isPresented: $choosingDay) {
-                DateChoiceView(current: today.adding(days: 1), cancel: { choosingDay = false }) { chosen in
+                // Round 8 (build 315): the task's date window, with its **At** line. A day
+                // alone moves the task as before; a changed time is written with the day.
+                DateTimeChoiceView(current: today.adding(days: 1), time: ref.task.dueTime,
+                                   cancel: { choosingDay = false }) { chosen, at in
                     choosingDay = false
-                    if let chosen { model.moveTasks([ref], to: chosen) }
+                    guard let chosen else { return }
+                    if at == ref.task.dueTime {
+                        model.moveTasks([ref], to: chosen)
+                    } else {
+                        model.setDue(ref, date: chosen, time: at)
+                    }
                 }
                 .padding()
                 .frame(minWidth: 280)

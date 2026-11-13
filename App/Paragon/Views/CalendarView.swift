@@ -337,7 +337,10 @@ struct DailyNotesListView: View {
                                message: searchText.isEmpty
                                    ? "A daily note is made the first time you write in a day. Pick a day in the month grid to start one."
                                    : "No daily or weekly note matches what you typed.",
-                               tint: ParaKind.daily.tint)
+                               tint: ParaKind.daily.tint,
+                               actionTitle: searchText.isEmpty ? "Open today\u{2019}s note" : nil,
+                               action: { model.openDailyNote(for: .today()) },
+                               actionIdentifier: "calendar.empty.today")
             } else {
                 List(selection: model.noteSelection) {
                     Group {

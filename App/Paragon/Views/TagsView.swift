@@ -34,7 +34,8 @@ struct TagsView: View {
                 EmptyStateView(title: "No tags yet",
                                markName: SidebarSection.tags.markName,
                                message: "Write #travel, #waiting or any other word with a # in front of it, in a note or in a task. Or make one here and put it on a note later.",
-                               tint: SidebarSection.tags.tint)
+                               tint: SidebarSection.tags.tint,
+                               hint: "Write a word with # in front, like #travel, in a note or a task")
             } else {
                 // A plain List, and every row a Button. Nothing is tagged for selection: one
                 // note can carry two tags and would then appear twice, and two rows with the
@@ -206,7 +207,8 @@ struct SnippetsView: View {
                 EmptyStateView(title: "No snippets yet",
                                markName: SidebarSection.snippets.markName,
                                message: "A snippet is a block of tasks you use again and again \u{2014} packing for a trip, closing a project. They live in one file, Templates \u{203a} Snippets, with a name above each block.",
-                               tint: SidebarSection.snippets.tint)
+                               tint: SidebarSection.snippets.tint,
+                               hint: "Write one in Templates \u{203A} Snippets, with a name above each block")
             } else {
                 List {
                     Group {

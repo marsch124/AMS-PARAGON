@@ -20,6 +20,9 @@ import AppKit
 enum DayReminder: String, CaseIterable, Identifiable {
     case morning
     case evening
+    /// Once a week, on a day he picks (round 8, build 315). A press opens the **Weekly review**,
+    /// which is a place in the app and not a sheet, so it has no `sheet`.
+    case weeklyReview
 
     var id: String { rawValue }
 
@@ -28,6 +31,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "paragon.startTheDay"
         case .evening: return "paragon.closeTheDay"
+        case .weeklyReview: return "paragon.weeklyReview"
         }
     }
 
@@ -37,6 +41,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "paragon.startTheDay.test"
         case .evening: return "paragon.closeTheDay.test"
+        case .weeklyReview: return "paragon.weeklyReview.test"
         }
     }
 
@@ -45,6 +50,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "morningReminderOn"
         case .evening: return "eveningReminderOn"
+        case .weeklyReview: return "weeklyReviewReminderOn"
         }
     }
 
@@ -52,22 +58,40 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "morningReminderMinutes"
         case .evening: return "eveningReminderMinutes"
+        case .weeklyReview: return "weeklyReviewReminderMinutes"
         }
     }
 
-    /// 07:30 and 21:00, unless he picks another time.
+    /// The weekly reminder's day, as the calendar counts it: 1 is Sunday, 2 is Monday, up to 7.
+    static let weekdayKey = "weeklyReviewReminderWeekday"
+    /// Sunday, the last day of the app's week (Monday to Sunday).
+    static let defaultWeekday = 1
+    /// The days in the order of the app's week, with the calendar's number for each.
+    static let weekdays: [(name: String, number: Int)] = [
+        ("Monday", 2), ("Tuesday", 3), ("Wednesday", 4), ("Thursday", 5),
+        ("Friday", 6), ("Saturday", 7), ("Sunday", 1),
+    ]
+
+    static func weekday(in defaults: UserDefaults) -> Int {
+        let stored = defaults.object(forKey: weekdayKey) as? Int ?? defaultWeekday
+        return (1...7).contains(stored) ? stored : defaultWeekday
+    }
+
+    /// 07:30 and 21:00, and Sunday 17:00 for the weekly review, unless he picks another time.
     var defaultMinutes: Int {
         switch self {
         case .morning: return 7 * 60 + 30
         case .evening: return 21 * 60
+        case .weeklyReview: return 17 * 60
         }
     }
 
-    /// The screen a press opens.
-    var sheet: AppSheet {
+    /// The screen a press opens, or nil for the weekly review, which is not a sheet.
+    var sheet: AppSheet? {
         switch self {
         case .morning: return .startDay
         case .evening: return .closeDay
+        case .weeklyReview: return nil
         }
     }
 
@@ -76,6 +100,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "Start the day"
         case .evening: return "Close the day"
+        case .weeklyReview: return "Weekly review"
         }
     }
 
@@ -83,6 +108,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "What matters most today? Pick it and put it in your plan."
         case .evening: return "What did you finish today, and what moves to tomorrow?"
+        case .weeklyReview: return "Time to walk through the week: the Inbox, what is overdue, your projects and areas."
         }
     }
 
@@ -91,6 +117,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "Morning reminder"
         case .evening: return "Evening reminder"
+        case .weeklyReview: return "Weekly review reminder"
         }
     }
 
@@ -98,6 +125,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "Remind me to start the day"
         case .evening: return "Remind me to close the day"
+        case .weeklyReview: return "Remind me to do the weekly review"
         }
     }
 
@@ -105,6 +133,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "One notification a day. Press it to open Start the day."
         case .evening: return "One notification a day. Press it to open Close the day."
+        case .weeklyReview: return "One notification a week. Press it to open the Weekly review."
         }
     }
 
@@ -114,6 +143,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
         switch self {
         case .morning: return "settings.morningReminder"
         case .evening: return "settings.eveningReminder"
+        case .weeklyReview: return "settings.weeklyReviewReminder"
         }
     }
 
@@ -155,6 +185,8 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     /// How many times the morning reminder has been pressed since launch (build 267). A count of
     /// its own, so each window can tell which screen a press asks for.
     @Published private(set) var morningRequests = 0
+    /// How many times the weekly review's reminder has been pressed since launch (build 315).
+    @Published private(set) var reviewRequests = 0
     /// How many presses of each have been answered. **Kept here, not in a view** (build 238): a
     /// view's `@State` starts again at 0 in every new window, so closing the Mac window and
     /// clicking the Dock icon replayed the last press and opened the screen by itself.
@@ -371,6 +403,8 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
         var when = DateComponents()
         when.hour = minutes / 60
         when.minute = minutes % 60
+        // The weekly one names its day too, so the same repeating trigger comes once a week.
+        if kind == .weeklyReview { when.weekday = DayReminder.weekday(in: .standard) }
         let trigger = UNCalendarNotificationTrigger(dateMatching: when, repeats: true)
         let request = UNNotificationRequest(identifier: kind.requestID,
                                             content: Self.content(for: kind), trigger: trigger)
@@ -384,6 +418,7 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
         switch kind {
         case .morning: morningRequests += 1
         case .evening: openRequests += 1
+        case .weeklyReview: reviewRequests += 1
         }
     }
 

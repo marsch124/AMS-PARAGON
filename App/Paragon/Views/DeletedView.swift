@@ -15,7 +15,8 @@ struct DeletedView: View {
             if listed.isEmpty {
                 EmptyStateView(title: "Nothing deleted",
                                markName: "trash",
-                               message: "Notes you delete wait here for \(AppModel.deletedKeptForDays) days, so a mistake is never final. Tasks are not kept here — only whole notes.")
+                               message: "Notes you delete wait here for \(AppModel.deletedKeptForDays) days, so a mistake is never final. Tasks are not kept here — only whole notes.",
+                               hint: "A note you delete is kept here for \(AppModel.deletedKeptForDays) days")
             } else {
                 List {
                     Group {

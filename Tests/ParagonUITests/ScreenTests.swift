@@ -1055,6 +1055,20 @@ final class ScreenTests: XCTestCase {
                       "The goal was written and the box does not show it. It says: \(box.label)")
     }
 
+    /// The end of the Weekly review (round 8, build 315): **Review done** records today, the
+    /// line beside it says so, and the button rests until tomorrow. Found by identifier.
+    func testTheReviewEndsWithReviewDone() {
+        go(to: .review)
+        let done = reveal(app.buttons.matching(identifier: "review.done").firstMatch)
+        XCTAssertTrue(done.exists, "The Weekly review has no Review done button. On screen: \(visibleTexts())")
+        let last = element("review.done.last")
+        XCTAssertTrue(last.exists, "No line says when the review was last done. On screen: \(visibleTexts())")
+        if done.isHittable { done.press() } else { done.pressCentre() }
+        XCTAssertTrue(becomes(within: 10) { self.words(of: last) == "Done today" },
+                      "Review done was pressed and the line says: \(words(of: last))")
+        XCTAssertFalse(done.isEnabled, "Review done can be pressed twice on one day.")
+    }
+
     /// Scrolls the screen until the element is there and on screen, and returns it. On the
     /// phone a list draws only the rows in view; on the Mac the list is scrolled where it is,
     /// down first and then, in case the first half went the wrong way, up.

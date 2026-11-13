@@ -3053,6 +3053,31 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// The day **Review done** was last pressed, on any device (round 8, build 315): the newest
+    /// `review-done:` line in a weekly note.
+    var lastWeeklyReview: DateOnly? { index.lastWeeklyReview() }
+
+    /// **Review done**, at the end of the Weekly review: writes today into this week's note as
+    /// `review-done:`. Makes the weekly note when there is none, because here he has said
+    /// something. False when it could not be written, and the message says why.
+    @discardableResult
+    func markWeeklyReviewDone() -> Bool {
+        flushPendingEdits()
+        guard let vault else { return false }
+        let today = DateOnly.today()
+        guard lastWeeklyReview != today else { return true }
+        do {
+            let note = try vault.weeklyNote(for: WeekRef(containing: today))
+            let updated = WeeklyReviewDone.setting(today, on: self.note(at: note.relativePath) ?? note)
+            guard save(updated) else { return false }
+            reload()
+            return true
+        } catch {
+            errorMessage = "Could not write that the review is done: \(error.localizedDescription)"
+            return false
+        }
+    }
+
     /// Shows the weekly note for a week, creating the file when it does not exist yet.
     func openWeeklyNote(for week: WeekRef) {
         guard let vault else { return }
@@ -3663,6 +3688,10 @@ final class AppModel: ObservableObject {
     /// published value from inside a view's lifecycle is a publish during a view update, the
     /// fault `afterUpdate` exists for.
     var newNotePreset: NewNotePreset?
+
+    /// What Quick capture starts with, handed over by an empty screen's button such as
+    /// **Make a line wait…** (round 8, build 315). Plain for the same reason as the one above.
+    var capturePreset: String?
 
     private func askWaitingStopQuestion() {
         guard activeSheet == nil, stopQuestionWaiting else { return }

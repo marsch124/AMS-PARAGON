@@ -15,6 +15,10 @@ struct HelpView: View {
 
         var id: String { rawValue }
 
+        /// The word on the switch. The list of versions is called "What's new" everywhere
+        /// (round 8, build 315); the raw value stays, because an open Help window is remembered by it.
+        var title: String { self == .versionHistory ? "What\u{2019}s new" : rawValue }
+
         var fileName: String {
             switch self {
             case .howItWorks: return "HowItWorks"
@@ -29,13 +33,13 @@ struct HelpView: View {
     var body: some View {
         VStack(spacing: 0) {
             Picker("Page", selection: $page) {
-                ForEach(Page.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(Page.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
             .padding(10)
             Divider()
-            HelpDocument(fileName: page.fileName)
+            HelpDocument(fileName: page.fileName, title: page == .versionHistory ? page.title : nil)
                 .id(page)
         }
         .frame(minWidth: 480, minHeight: 400)
@@ -47,6 +51,8 @@ struct HelpView: View {
 /// page you drill into, with a search box that filters it.
 struct HelpDocument: View {
     let fileName: String
+    /// A title that stands in place of the document's own first line ("What's new").
+    var title: String? = nil
     @State private var open: Set<String> = []
     @State private var search = ""
 
@@ -83,7 +89,7 @@ struct HelpDocument: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(document.title)
+                Text(title ?? document.title)
                     .font(Txt.pageTitle.bold())
                 ForEach(Array(document.intro.enumerated()), id: \.offset) { _, block in
                     render(block)

@@ -55,7 +55,10 @@ struct CalendarDetailView: View {
                 EmptyStateView(title: "No note for this day yet",
                                markName: "doc.text",
                                message: "Open or create the daily note from the list on the left, and it appears here.",
-                               tint: ParaKind.daily.tint)
+                               tint: ParaKind.daily.tint,
+                               actionTitle: "Start this day\u{2019}s note",
+                               action: { model.openDailyNote(for: model.selectedDate) },
+                               actionIdentifier: "calendar.empty.startNote")
             }
         } else {
             DayScheduleView(day: model.selectedDate)

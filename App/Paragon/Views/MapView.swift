@@ -32,7 +32,13 @@ struct MapView: View {
             if map.isEmpty {
                 EmptyStateView(title: "Nothing to map yet", markName: SidebarSection.map.markName,
                                message: "Add a goal, then give your projects and areas a goal: line. They show up here, top down.",
-                               tint: SidebarSection.map.tint)
+                               tint: SidebarSection.map.tint,
+                               actionTitle: "New goal\u{2026}",
+                               action: {
+                                   model.newNotePreset = NewNotePreset(thing: .goal, servesGoal: "")
+                                   model.activeSheet = .newNote
+                               },
+                               actionIdentifier: "map.empty.new")
             } else {
                 let layout = MapLayout(map: map, zoom: zoom, pinned: model.pinnedMapPositions)
                 let lit = selectedID.map { map.neighbourhood(of: $0) }

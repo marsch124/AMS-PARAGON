@@ -133,7 +133,10 @@ struct InboxTriageView: View {
                 EmptyStateView(title: "Inbox zero",
                                markName: "tray",
                                message: "Nothing left to sort. Anything you capture — here, from the menu bar, or from the share sheet on the phone — lands in this list.",
-                               tint: SidebarSection.inbox.tint)
+                               tint: SidebarSection.inbox.tint,
+                               actionTitle: "Capture something\u{2026}",
+                               action: { model.activeSheet = .quickCapture },
+                               actionIdentifier: "inbox.empty.capture")
             } else {
                 header
                 List(selection: $model.inboxSelection) {

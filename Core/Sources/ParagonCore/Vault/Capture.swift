@@ -299,6 +299,23 @@ public extension CaptureReading {
     }
 }
 
+public extension CaptureReading {
+    /// The line with its date set to `day`, and `time` when one is given (round 8, build 315,
+    /// the date window in Quick capture). **A date already written is replaced, never joined
+    /// by a second one**: the window opened on that date, so **Set** is a change of it. The
+    /// marker is the task line's own: `>2026-11-14` or `>2026-11-14T14:00`.
+    static func line(_ line: String, dated day: DateOnly, at time: TimeOfDay?) -> String {
+        let marker = ">" + day.description + (time.map { "T" + $0.description } ?? "")
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        let old = #"(^|\s)>\d{4}-\d{2}-\d{2}(T\d{1,2}:\d{2})?(?=\s|$)"#
+        if let found = trimmed.range(of: old, options: .regularExpression) {
+            let lead = trimmed[found].hasPrefix(">") ? "" : String(trimmed[found].prefix(1))
+            return trimmed.replacingCharacters(in: found, with: lead + marker)
+        }
+        return trimmed.isEmpty ? marker : trimmed + " " + marker
+    }
+}
+
 public extension CaptureItem {
     /// This capture read back, exactly as the note will read it.
     var reading: CaptureReading { CaptureReading(line: lineText) }
