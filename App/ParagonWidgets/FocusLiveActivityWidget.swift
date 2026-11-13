@@ -32,10 +32,9 @@ struct FocusLiveActivityWidget: Widget {
                         .padding(.leading, 6)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    FocusClock(state: context.state)
+                    FocusClock(state: context.state, trailing: true)
                         .font(.title3.weight(.semibold).monospacedDigit())
-                        .multilineTextAlignment(.trailing)
-                        .frame(maxWidth: 86, maxHeight: .infinity, alignment: .trailing)
+                        .frame(maxHeight: .infinity, alignment: .trailing)
                         .padding(.trailing, 4)
                 }
                 DynamicIslandExpandedRegion(.center) {
@@ -71,10 +70,8 @@ struct FocusLiveActivityWidget: Widget {
                 FocusSmallMark(state: context.state)
                     .padding(.leading, 2)
             } compactTrailing: {
-                FocusClock(state: context.state)
+                FocusClock(state: context.state, trailing: true)
                     .font(.caption.weight(.semibold).monospacedDigit())
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 52, alignment: .trailing)
             } minimal: {
                 FocusMinimal(state: context.state)
             }
@@ -100,7 +97,6 @@ struct FocusBanner: View {
                     HStack(alignment: .firstTextBaseline, spacing: 5) {
                         FocusClock(state: state)
                             .font(.title2.weight(.bold).monospacedDigit())
-                            .fixedSize()
                         if let note = state.note {
                             Text(note)
                                 .font(.footnote)
@@ -145,17 +141,37 @@ struct FocusDot: View {
 
 /// The time worked. Running, the system counts it from `countsFrom`; paused or stopped, it is
 /// the fixed figure the bar in the app shows.
+///
+/// **A counting text asks for all the width there is**, so it is drawn on top of a hidden
+/// figure of the right length ("00:00", or "0:00:00" from an hour on) and is exactly that wide.
+/// The words after it then sit beside it. A clock that passes the hour with no update in
+/// between is drawn a little smaller rather than cut.
 struct FocusClock: View {
     let state: FocusGlance
+    var trailing = false
+
+    private var template: String {
+        let long = state.workedSeconds >= 3600 || (state.plannedSeconds ?? 0) > 3600
+        return long ? "0:00:00" : "00:00"
+    }
 
     var body: some View {
         if state.isPaused {
             Text(state.clock)
+                .lineLimit(1)
         } else {
-            // A day is far more than a clock ever runs: the app asks about one left running
-            // for over twelve hours.
-            Text(timerInterval: state.countsFrom...state.countsFrom.addingTimeInterval(24 * 3600),
-                 countsDown: false)
+            Text(template)
+                .lineLimit(1)
+                .hidden()
+                .overlay(alignment: trailing ? .trailing : .leading) {
+                    // A day is far more than a clock ever runs: the app asks about one left
+                    // running for over twelve hours.
+                    Text(timerInterval: state.countsFrom...state.countsFrom.addingTimeInterval(24 * 3600),
+                         countsDown: false)
+                        .multilineTextAlignment(trailing ? .trailing : .leading)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
         }
     }
 }
@@ -239,7 +255,7 @@ struct FocusButtons: View {
 enum FocusMark {
     static let play = ControlMark.play.path
     static let pause = ControlMark.pause.path
-    static let stop = "M7.5 7.5h9v9h-9Z"
+    static let stop = "M7 7h10v10h-10Z"
 }
 
 struct FocusMarkView: View {

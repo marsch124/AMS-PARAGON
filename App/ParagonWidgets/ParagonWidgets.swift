@@ -105,13 +105,13 @@ struct ParagonProvider: TimelineProvider {
         items: [
             .init(id: "1", title: "Book the hotel", noteTitle: "Jönköping 70.3", noteKind: "project",
                   dueText: "today", isOverdue: false, serves: "Still racing at seventy",
-                  servesIsGoal: true, url: "amspara://"),
+                  servesIsGoal: true, url: "amspara://", notePath: "Projects/Example.md"),
             .init(id: "2", title: "Long ride, 3 h", noteTitle: "Base training", noteKind: "project",
                   dueText: "1 day over", isOverdue: true, serves: "Endurance",
-                  servesIsGoal: false, url: "amspara://"),
+                  servesIsGoal: false, url: "amspara://", notePath: "Projects/Example.md"),
             .init(id: "3", title: "Order the new saddle", noteTitle: "Bike", noteKind: "project",
                   dueText: nil, isOverdue: false, serves: "Still racing at seventy",
-                  servesIsGoal: true, url: "amspara://"),
+                  servesIsGoal: true, url: "amspara://", notePath: "Projects/Example.md"),
         ]
     )
 }

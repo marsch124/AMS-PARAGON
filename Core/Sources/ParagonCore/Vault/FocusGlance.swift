@@ -10,7 +10,7 @@ import Foundation
 /// the same session always gives the same value and an unchanged session is never sent twice.
 public struct FocusGlance: Codable, Hashable, Sendable {
     public var isPaused: Bool
-    /// **Stop** was pressed and the question (**Done, tick it off** / **Save the time**) is
+    /// **Stop** was pressed and the question (**Done, tick it off** / **Not done yet**) is
     /// waiting in PARAGON. Pause and Go on do nothing then, so no buttons are drawn.
     public var awaitingAnswer: Bool
     /// Whole seconds worked when this was made. What a paused clock shows.

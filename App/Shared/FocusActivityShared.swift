@@ -69,7 +69,7 @@ struct ResumeFocusIntent: LiveActivityIntent {
 }
 
 /// **Stop** on the Live Activity. The clock stops at once; PARAGON then opens on its one
-/// question (**Done, tick it off** / **Save the time**), exactly as **Stop** in the app does.
+/// question (**Done, tick it off** / **Not done yet**), exactly as **Stop** in the app does.
 struct StopFocusIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Stop the focus timer"
     static var isDiscoverable: Bool = false
