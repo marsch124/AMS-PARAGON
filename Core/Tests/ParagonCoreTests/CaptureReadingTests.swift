@@ -4,6 +4,19 @@ import XCTest
 /// What the capture screen shows back has to be what the note will hold. These pin that the
 /// read-back comes from the task parser and not from a second, looser one of its own.
 final class CaptureReadingTests: XCTestCase {
+    func testTheDateWindowWritesDateAndTimeAndReplacesAnOlderDate() {
+        let day = DateOnly(year: 2026, month: 11, day: 14)
+        let at = TimeOfDay(hour: 14, minute: 0)
+        XCTAssertEqual(CaptureReading.line("Call the bank", dated: day, at: at), "Call the bank >2026-11-14T14:00")
+        XCTAssertEqual(CaptureReading.line("Call the bank >2026-11-20T09:30 #money", dated: day, at: nil),
+                       "Call the bank >2026-11-14 #money")
+        XCTAssertEqual(CaptureReading.line(">2026-11-20", dated: day, at: at), ">2026-11-14T14:00")
+        XCTAssertEqual(CaptureReading.line("", dated: day, at: nil), ">2026-11-14")
+        let read = CaptureReading(line: CaptureReading.line("Call the bank", dated: day, at: at))
+        XCTAssertEqual(read.dueDate, day)
+        XCTAssertEqual(read.dueTime, at)
+    }
+
     private let today = DateOnly(year: 2026, month: 9, day: 13)
 
     func testReadsTheDatePriorityAndTagsOutOfOneLine() {

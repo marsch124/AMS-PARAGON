@@ -244,6 +244,8 @@ struct ReviewView: View {
             Group {
                 WeekLookStep(chosenWeek: $lookedWeek, isOpen: openBinding("7"))
                 WeekGoalStep(isOpen: openBinding("8"))
+                // Round 8 (build 315): the walk has an end, and the end is recorded.
+                ReviewDoneStep()
             }
 
             // **Last, and with no number** (build 171). It sat above step 1, which put a
@@ -421,6 +423,41 @@ struct ReviewPartHeading: View {
         }
         .accessibilityValue(state)
         .accessibilityIdentifier("review.part.\(part)")
+    }
+}
+
+/// **Review done**, the end of the walk (round 8, build 315). One filled button in the review's
+/// colour and one quiet line saying when the review was last done. The press writes today into
+/// this week's note (`AppModel.markWeeklyReviewDone`); **Today** stops saying the review is late.
+/// Never folded: it is one row, and it is the thing the walk leads to.
+struct ReviewDoneStep: View {
+    @EnvironmentObject private var model: AppModel
+
+    private var tint: Color { SidebarSection.review.tint }
+
+    var body: some View {
+        let today = DateOnly.today()
+        let last = model.lastWeeklyReview
+        Section {
+            HStack(spacing: 10) {
+                Button("Review done") { model.markWeeklyReviewDone() }
+                    .buttonStyle(.filled(tint))
+                    .disabled(last == today)
+                    .accessibilityIdentifier("review.done")
+                Text(Self.words(last: last, today: today))
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                    .accessibilityIdentifier("review.done.last")
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    static func words(last: DateOnly?, today: DateOnly) -> String {
+        guard let last else { return "No review recorded yet" }
+        if last >= today { return "Done today" }
+        return "Last done \(DayWords.withWeekday(last))"
     }
 }
 

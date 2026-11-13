@@ -208,7 +208,15 @@ struct WaitingForList: View {
             EmptyStateView(title: "Nothing is waiting for anyone",
                            markName: WaitingShowing.symbol,
                            message: "\(DeviceWords.click) an action\u{2019}s menu (or \(DeviceWords.holdSmall) the action) and choose \u{201C}Waiting for\u{2026}\u{201D}. The action then shows up here, under the person.",
-                           tint: tint)
+                           tint: tint,
+                           // Round 8 (build 315): Quick capture opens with "Waiting for "
+                           // typed. Add "Anna: the quote", save, and the line is listed here.
+                           actionTitle: "Make a line wait\u{2026}",
+                           action: {
+                               model.capturePreset = "Waiting for "
+                               model.activeSheet = .quickCapture
+                           },
+                           actionIdentifier: "waiting.empty.start")
                 .accessibilityIdentifier("waiting.empty")
         } else {
             EmptyStateView(title: "Not everything is here yet",

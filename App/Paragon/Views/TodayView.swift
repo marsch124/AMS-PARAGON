@@ -132,6 +132,22 @@ struct TodayView: View {
                     .padding(.horizontal, Theme.gutter + 6)
                     .padding(.bottom, Theme.tight)
             }
+            // **The weekly review is late, one line** (round 8, build 315): only when a review
+            // was recorded and it is more than seven days old (`WeeklyReviewDone.isLate`, Core).
+            // A press opens the review. Outside the `List` like the lines above it.
+            if let last = model.lastWeeklyReview, WeeklyReviewDone.isLate(last: last, today: today) {
+                Button { model.openSection(.review) } label: {
+                    MarkLabel(WeeklyReviewDone.lateLine(last: last, today: today),
+                              SidebarSection.review.markName, text: .footnote)
+                        .font(Txt.label)
+                        .foregroundStyle(SidebarSection.review.tint.ink)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("today.reviewLate")
+                .padding(.horizontal, Theme.gutter + 6)
+                .padding(.bottom, Theme.tight)
+            }
             List(selection: model.noteSelection) {
                 Group {
                 if model.showsCalendarEvents {

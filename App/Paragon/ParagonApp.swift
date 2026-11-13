@@ -212,7 +212,7 @@ struct HelpMenuButtons: View {
         Button("How PARAGON Works") { openWindow(id: "help", value: HelpView.Page.howItWorks) }
             .keyboardShortcut("?", modifiers: [.command])
         Button("Words in PARAGON") { openWindow(id: "help", value: HelpView.Page.words) }
-        Button("Version History") { openWindow(id: "help", value: HelpView.Page.versionHistory) }
+        Button("What\u{2019}s New") { openWindow(id: "help", value: HelpView.Page.versionHistory) }
     }
 }
 
@@ -223,6 +223,17 @@ struct WordsWindowButton: View {
 
     var body: some View {
         Button("Words in PARAGON") { openWindow(id: "help", value: HelpView.Page.words) }
+    }
+}
+
+/// A Settings row on the Mac that opens the Help window on one page (round 8, build 315).
+struct HelpWindowButton: View {
+    let page: HelpView.Page
+    let label: String
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button(label) { openWindow(id: "help", value: page) }
     }
 }
 #endif

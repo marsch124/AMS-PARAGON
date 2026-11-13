@@ -1270,7 +1270,8 @@ struct AllAspirationsView: View {
                     EmptyStateView(title: "No aspirations yet",
                                    markName: ChainSymbol.aspiration,
                                    message: "An aspiration says what you are becoming. Make one and everything working towards it appears here.",
-                                   tint: ChainTint.aspiration)
+                                   tint: ChainTint.aspiration,
+                                   actionTitle: "New aspiration\u{2026}") { model.activeSheet = .newNote }
                 }
                 ForEach(chains) { chain in
                     AspirationChainBody(chain: chain, compact: false, fullHead: false)

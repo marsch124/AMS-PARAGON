@@ -65,11 +65,22 @@ struct QuickCaptureView: View {
         .onAppear {
             focused = true
             greeting = Self.greetings.randomElement() ?? Self.greetings[0]
+            // Words handed over by an empty screen's button (round 8, build 315). Taken once.
+            if text.isEmpty, let preset = model.capturePreset {
+                model.capturePreset = nil
+                text = preset
+            }
         }
         .popover(isPresented: $showingSyntax) { CaptureSyntaxHelp() }
         .sheet(isPresented: $pickingDate) {
-            DateChoiceView(current: reading.dueDate, cancel: { pickingDate = false }) { picked in
-                if let picked { insert(">\(picked)") }
+            // Round 8 (build 315): the same date window as a task's, with its **At** line, so
+            // "Call the bank at 14:00" needs no typing of `>2026-11-14T14:00`.
+            DateTimeChoiceView(current: reading.dueDate, time: reading.dueTime,
+                               cancel: { pickingDate = false }) { picked, at in
+                if let picked {
+                    text = CaptureReading.line(text, dated: picked, at: at)
+                    focused = true
+                }
                 pickingDate = false
             }
         }

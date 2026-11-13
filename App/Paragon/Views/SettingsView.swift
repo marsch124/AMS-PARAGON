@@ -19,14 +19,20 @@ struct SettingsView: View {
     private var helpSection: some View {
         Section("Help") {
             #if os(macOS)
-            // The Mac's manual is its own window, reached from the Help menu. Only the list
-            // of words gets a row here too, so it can be found from both places (build 228).
+            // The Mac's manual is its own window, reached from the Help menu. Its three pages
+            // have a row here too, as in every app of his (round 8, build 315; before, only
+            // the list of words did, build 228).
+            HelpWindowButton(page: .howItWorks, label: "How it works")
+                .accessibilityIdentifier("settings.howItWorks")
             WordsWindowButton()
+            HelpWindowButton(page: .versionHistory, label: "What\u{2019}s new")
+                .accessibilityIdentifier("settings.whatsNew")
             #else
             NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks").navigationTitle("How it works") }
                 .accessibilityIdentifier("settings.howItWorks")
             NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words").navigationTitle("Words") }
-            NavigationLink("Version history") { HelpDocument(fileName: "VersionHistory").navigationTitle("Version history") }
+            NavigationLink("What\u{2019}s new") { HelpDocument(fileName: "VersionHistory", title: "What\u{2019}s new").navigationTitle("What\u{2019}s new") }
+                .accessibilityIdentifier("settings.whatsNew")
             #endif
         }
     }
@@ -256,6 +262,7 @@ struct SettingsView: View {
             // Morning first, the order of the day (build 267).
             DayReminderSection(kind: .morning)
             DayReminderSection(kind: .evening)
+            DayReminderSection(kind: .weeklyReview)
 
             Section("Quick capture") {
                 #if os(macOS)
@@ -518,6 +525,8 @@ struct DayReminderSection: View {
     @ObservedObject private var reminder = EveningReminder.shared
     @AppStorage private var isOn: Bool
     @AppStorage private var minutes: Int
+    /// Only the weekly review's reminder has a day (round 8, build 315).
+    @AppStorage(DayReminder.weekdayKey) private var weekday = DayReminder.defaultWeekday
 
     init(kind: DayReminder) {
         self.kind = kind
@@ -534,6 +543,17 @@ struct DayReminderSection: View {
                 .onAppear { reminder.refreshPermission() }
                 .onChange(of: isOn) { _, on in reminder.update(kind, on: on) }
                 .onChange(of: minutes) { _, _ in reminder.update(kind, on: isOn) }
+                .onChange(of: weekday) { _, _ in
+                    if kind == .weeklyReview { reminder.update(kind, on: isOn) }
+                }
+            if isOn, kind == .weeklyReview {
+                Picker("On", selection: $weekday) {
+                    ForEach(DayReminder.weekdays, id: \.number) { day in
+                        Text(day.name).tag(day.number)
+                    }
+                }
+                .accessibilityIdentifier(kind.settingsIdentifier + ".day")
+            }
             if isOn {
                 DatePicker("At", selection: time, displayedComponents: .hourAndMinute)
             }
