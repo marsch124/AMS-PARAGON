@@ -273,7 +273,11 @@ struct ActionsWidgetView: View {
             header
             if let snapshot = entry.snapshot, !snapshot.items.isEmpty {
                 ForEach(snapshot.items.prefix(rowLimit)) { item in
-                    ActionRow(item: item, compact: family == .systemSmall)
+                    // Round 8 (build 315): each line opens its own note. The small size can
+                    // open one place only (Apple's rule), so there the whole widget opens Today.
+                    WidgetLink(to: family == .systemSmall ? nil : item.url) {
+                        ActionRow(item: item, compact: family == .systemSmall)
+                    }
                 }
                 if snapshot.items.count > rowLimit {
                     Text("and \(snapshot.items.count - rowLimit) more")
@@ -287,7 +291,8 @@ struct ActionsWidgetView: View {
             WidgetFoot(entry: entry)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .widgetURL(URL(string: "amspara://"))
+        // Anywhere that is not a line: Today, where these actions are.
+        .widgetURL(URL(string: WidgetSnapshot.link(toList: .today)))
     }
 
     private var header: some View {
@@ -389,19 +394,29 @@ struct ActionsWidget: Widget {
 // MARK: - The small counts widget
 
 struct CountsWidgetView: View {
+    @Environment(\.widgetFamily) private var family
     var entry: ParagonEntry
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             if let s = entry.snapshot {
-                CountLine(number: s.dueToday, word: "due today",
-                          symbol: "calendar", tint: WidgetLook.project)
-                CountLine(number: s.overdue, word: "overdue",
-                          symbol: "clock.badge.exclamationmark", tint: WidgetLook.attention)
-                CountLine(number: s.inboxCount, word: "in the Inbox",
-                          symbol: "tray", tint: WidgetLook.resource)
-                CountLine(number: s.dueForReview, word: "for a look",
-                          symbol: "target", tint: WidgetLook.goal)
+                // Round 8 (build 315): each number opens its own list.
+                WidgetLink(to: link(.today)) {
+                    CountLine(number: s.dueToday, word: "due today",
+                              symbol: "calendar", tint: WidgetLook.project)
+                }
+                WidgetLink(to: link(.overdue)) {
+                    CountLine(number: s.overdue, word: "overdue",
+                              symbol: "clock.badge.exclamationmark", tint: WidgetLook.attention)
+                }
+                WidgetLink(to: link(.inbox)) {
+                    CountLine(number: s.inboxCount, word: "in the Inbox",
+                              symbol: "tray", tint: WidgetLook.resource)
+                }
+                WidgetLink(to: link(.review)) {
+                    CountLine(number: s.dueForReview, word: "for a look",
+                              symbol: "target", tint: WidgetLook.goal)
+                }
             } else {
                 Text(entry.folderFound
                      ? "Open PARAGON once and the counts appear here."
@@ -413,7 +428,34 @@ struct CountsWidgetView: View {
             WidgetFoot(entry: entry)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .widgetURL(URL(string: "amspara://"))
+        // The small size can open one place only: the first list with something in it.
+        .widgetURL(URL(string: WidgetSnapshot.link(toList: entry.snapshot?.firstWaitingList ?? .today)))
+    }
+
+    /// A line's own link on the medium size; nil on the small one, which has only `widgetURL`.
+    private func link(_ list: WidgetList) -> String? {
+        family == .systemSmall ? nil : WidgetSnapshot.link(toList: list)
+    }
+}
+
+/// A line that opens its own place in PARAGON (round 8, build 315). With no link, or one that
+/// is not a link at all, the line is drawn plain and the widget's own link takes the press.
+struct WidgetLink<Content: View>: View {
+    let destination: URL?
+    let content: Content
+
+    init(to link: String?, @ViewBuilder content: () -> Content) {
+        self.destination = link.flatMap { URL(string: $0) }
+        self.content = content()
+    }
+
+    var body: some View {
+        if let destination {
+            Link(destination: destination) { content }
+                .buttonStyle(.plain)
+        } else {
+            content
+        }
     }
 }
 

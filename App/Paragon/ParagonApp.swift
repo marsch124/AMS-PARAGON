@@ -73,6 +73,7 @@ struct ParagonApp: App {
                 // brackets are \u{2325}8 and \u{2325}9, so the shortcut would be a three-finger
                 // chord and the menu would advertise a key he does not have.
                 // Round 7 (build 314): ⌘1 to ⌘5 for the sidebar's first five rows.
+                // Round 8 (build 315): ⌘6 Projects and ⌘7 Weekly review follow them.
                 ForEach(Array(SidebarGroups.numbered.enumerated()), id: \.offset) { index, key in
                     if let section = SidebarSection.all.first(where: { $0.key == key }) {
                         Button(section.title) { model.section = section }
@@ -95,6 +96,20 @@ struct ParagonApp: App {
                     .disabled(!model.canGoForward)
             }
             #if os(macOS)
+            // Round 8 (build 315): Edit › Find in Note, with Apple's own find bar over the
+            // note's text. ⌘F here; ⇧⌘F stays Search Everywhere (round 7). ⌘G and ⇧⌘G are the
+            // Mac's own keys for next and previous.
+            CommandGroup(after: .textEditing) {
+                Button("Find in Note") { model.findInNote() }
+                    .keyboardShortcut("f", modifiers: [.command])
+                    .disabled(model.selectedNotePath == nil)
+                Button("Find Next") { NoteFind.run(.next) }
+                    .keyboardShortcut("g", modifiers: [.command])
+                    .disabled(model.selectedNotePath == nil)
+                Button("Find Previous") { NoteFind.run(.previous) }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(model.selectedNotePath == nil)
+            }
             // Build 287/288: Format › Bold, Italic, Strikethrough, Heading, sent to the note's text view.
             CommandGroup(replacing: .textFormatting) {
                 Button("Bold") { NSApp.sendAction(#selector(LinkingTextView.paragonBold(_:)), to: nil, from: nil) }

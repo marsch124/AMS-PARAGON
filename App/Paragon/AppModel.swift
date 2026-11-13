@@ -386,6 +386,15 @@ final class AppModel: ObservableObject {
         loadCaughtToday()
         // Before the vault is opened: opening it is what starts the watch.
         cloudWatcher.onChange = { [weak self] in self?.cloudFilesChanged() }
+        #if os(macOS)
+        // Round 8 (build 315): the key that opens quick capture from any app, when he chose one.
+        // After launch has finished, so the app's event target exists.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let choice = CaptureHotKey.stored(UserDefaults.standard.string(forKey: CaptureHotKey.storageKey))
+            if choice != .off { CaptureKey.shared.apply(choice, model: self) }
+        }
+        #endif
         #if DEBUG
         // The screen tests CI runs have nobody to choose a folder, so they ask for one to be
         // made (build 190). Everything after this is the ordinary path: `openVault(at:)` is
@@ -3533,6 +3542,12 @@ final class AppModel: ObservableObject {
 
     @Published private(set) var sectionRequest = SectionRequest(section: .inbox, count: 0)
 
+    /// Round 8 (build 315): **Find in Note** was asked for from the Mac's menu (⌘F). A count,
+    /// never a latch, like `sectionRequest`; the open note's screen hears it and shows the bar.
+    @Published private(set) var findInNoteRequests = 0
+
+    func findInNote() { findInNoteRequests += 1 }
+
     /// Show a section, from anywhere, on either machine.
     ///
     /// `show` alone is enough on the Mac. The phone also needs the Browse tab chosen and the
@@ -4239,6 +4254,19 @@ final class AppModel: ObservableObject {
             afterUpdate {
                 self.plannerDay = DateOnly.today()
                 self.show(section: .timeBlocks, notePath: nil)
+            }
+            return
+        }
+        // Round 8 (build 315): a number on the **What is waiting** widget opens its own list.
+        // Overdue is the Overdue part of Today. `openSection`, so the phone goes there too.
+        if let list = WidgetSnapshot.list(for: url) {
+            guard vault != nil else { return }
+            afterUpdate {
+                switch list {
+                case .today, .overdue: self.openSection(.today)
+                case .inbox: self.openSection(.inbox)
+                case .review: self.openSection(.review)
+                }
             }
             return
         }

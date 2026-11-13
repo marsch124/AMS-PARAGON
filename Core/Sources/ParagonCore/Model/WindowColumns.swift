@@ -60,8 +60,9 @@ public enum SidebarGroups {
         Group(name: "Tools", rows: ["Templates", "Snippets", "Tags"], foldedAtFirst: true),
     ]
 
-    /// ⌘1 to ⌘5: the first five rows, top to bottom.
-    public static var numbered: [String] { Array(all.flatMap(\.rows).prefix(5)) }
+    /// ⌘1 to ⌘5: the first five rows, top to bottom, where he placed them (round 7). Round 8
+    /// adds ⌘6 Projects and ⌘7 Weekly review after them and moves none of the five.
+    public static var numbered: [String] { Array(all.flatMap(\.rows).prefix(5)) + ["Projects", "Weekly review"] }
 
     /// The names of the folded groups as they are kept ("Tools|Look back"), after one is
     /// pressed. Nil = never touched, so the groups are as `foldedAtFirst` says.

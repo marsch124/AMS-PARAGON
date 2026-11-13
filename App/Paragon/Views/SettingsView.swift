@@ -260,11 +260,13 @@ struct SettingsView: View {
             Section("Quick capture") {
                 #if os(macOS)
                 Toggle("Show capture panel in the menu bar", isOn: $showMenuBarItem)
+                // Round 8 (build 315): one key that opens quick capture from any app.
+                CaptureKeyRow()
                 #endif
                 // Each device its own words, and no link in Settings (round 3): the link
                 // example is in How it works, under Quick capture.
                 #if os(macOS)
-                Text("⇧⌘N opens quick capture. A Shortcut can add to the Inbox from other apps: see How it works.")
+                Text("⇧⌘N opens quick capture in PARAGON; the key above opens it from any app. A Shortcut can add to the Inbox too: see How it works.")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
                 #else
@@ -366,6 +368,38 @@ struct SettingsView: View {
 
 /// One line of the review rhythm. Its own view because building the `Binding` for a level is
 /// a statement, and a `@ViewBuilder` takes views and nothing else (build 58).
+#if os(macOS)
+/// Settings › Quick capture: the key that opens quick capture from any app (round 8, build
+/// 315). Off until he picks one; the choice is kept on this Mac and takes effect at once.
+struct CaptureKeyRow: View {
+    @EnvironmentObject private var model: AppModel
+    @AppStorage(CaptureHotKey.storageKey) private var stored = CaptureHotKey.off.rawValue
+    @State private var refused = false
+
+    var body: some View {
+        Picker("Key from any app", selection: Binding(
+            get: { CaptureHotKey.stored(stored) },
+            set: { choice in
+                stored = choice.rawValue
+                CaptureKey.shared.apply(choice, model: model)
+                refused = choice != .off && !CaptureKey.shared.isRegistered
+            }
+        )) {
+            ForEach(CaptureHotKey.allCases) { choice in
+                Text(choice.label).tag(choice)
+            }
+        }
+        .accessibilityIdentifier("settings.captureKey")
+        if refused {
+            Text("Another app already uses this key. Pick a different one.")
+                .font(Txt.label)
+                .foregroundStyle(Theme.attention)
+                .accessibilityIdentifier("settings.captureKey.refused")
+        }
+    }
+}
+#endif
+
 struct ReviewRhythmStepper: View {
     @ObservedObject var model: AppModel
     let level: ReviewLevel

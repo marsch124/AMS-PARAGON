@@ -91,8 +91,19 @@ struct PhoneRootView: View {
         // (build 225). Browse is the tab that can hold any section, so the request chooses it
         // here and `PhoneStack` pushes the screen in the same turn.
         .onChange(of: model.sectionRequest) { _, request in
-            guard request.count > 0, tab != .browse else { return }
-            tab = .browse
+            guard request.count > 0 else { return }
+            // Round 8 (build 315): a section that is a tab of its own (Today, Inbox) is shown
+            // on that tab, back at its first screen; every other one is pushed on Browse.
+            let wanted = Tab.allCases.first { $0.section == request.section } ?? .browse
+            if tab != wanted { tab = wanted }
+        }
+        // A widget's link can start the app from cold: the request is then already made when
+        // this screen first appears, and `onChange` never hears of it.
+        .onAppear {
+            let request = model.sectionRequest
+            guard request.count > 0, let wanted = Tab.allCases.first(where: { $0.section == request.section }),
+                  tab != wanted else { return }
+            tab = wanted
         }
     }
 
@@ -310,7 +321,14 @@ struct PhoneStack<Content: View>: View {
         // screen is pushed onto this stack and `PhoneRootView` switches to it in the same
         // turn. A guard would have made the button do nothing at all the first time.
         .onChange(of: model.sectionRequest) { _, request in
-            guard self.section == nil, request.count > 0 else { return }
+            guard request.count > 0 else { return }
+            // Round 8: a tab asked for by name goes back to its own first screen.
+            if let own = self.section {
+                if own == request.section, !path.isEmpty { path.removeAll() }
+                return
+            }
+            // Browse does not push a screen that is a tab of its own.
+            guard !PhoneRootView.Tab.allCases.contains(where: { $0.section == request.section }) else { return }
             if path.last != .section(request.section) { path.append(.section(request.section)) }
         }
         // Hiding is still a change of the flag, and only ever in one direction.

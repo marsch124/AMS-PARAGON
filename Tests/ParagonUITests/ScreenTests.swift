@@ -3381,6 +3381,29 @@ final class ScreenTests: XCTestCase {
     private func hasKeyboardFocus(_ element: XCUIElement) -> Bool {
         (element.value(forKey: "hasKeyboardFocus") as? Bool) == true
     }
+
+    // MARK: Share a note (review round 8, build 315)
+
+    /// **An open note has Share…** (`note.share`) in the window's toolbar, and the menu under
+    /// it offers the three ways out and Show in Finder. Nothing is pressed in the menu: the
+    /// Mac's share list and Finder are not the app's to test.
+    func testAnOpenNoteOffersShare() {
+        go(to: .goals)
+        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20),
+                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+        row.press()
+
+        let share = element("note.share")
+        XCTAssertTrue(share.waitForExistence(timeout: 20),
+                      "The open note has no Share button (note.share). On screen: \(visibleTexts())")
+        share.press()
+        for name in ["note.share.pdf", "note.share.text", "note.share.file", "note.showInFinder"] {
+            XCTAssertTrue(element(name).waitForExistence(timeout: 10),
+                          "The Share menu lost \(name). On screen: \(visibleTexts())")
+        }
+        app.typeKey(.escape, modifierFlags: [])
+    }
     #endif
 }
 

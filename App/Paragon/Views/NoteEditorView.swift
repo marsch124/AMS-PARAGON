@@ -19,6 +19,10 @@ struct NoteEditorView: View {
     @State private var confirmTrash = false
     @State private var snippetToFill: Snippet?
     @State private var renamingNote = false
+    #if os(iOS)
+    /// Round 8 (build 315): the copy **Share…** made, waiting for the share sheet.
+    @State private var sharedFile: SharedFile?
+    #endif
     @State private var noteTitleDraft = ""
     /// A `[[` being typed, with where the caret is; nil when nothing is.
     @State private var linkDraft: LinkDraftOnScreen?
@@ -190,6 +194,9 @@ struct NoteEditorView: View {
             }
         }
         .navigationTitle(note?.displayTitle ?? path)
+        // Round 8 (build 315): ⌘F from the Mac's Edit menu.
+        .onChange(of: model.findInNoteRequests) { _, _ in findInNote() }
+        .modifier(SharesNoteFile(file: sharedFileBinding))
         .toolbar {
             // The phone's navigation bar has room for a back button, a title and one control.
             // Everything went in as separate items and the segmented picker was squeezed to
@@ -197,6 +204,14 @@ struct NoteEditorView: View {
             if isPhone {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
+                        // Round 8 (build 315): find a word in this note, and send the note on.
+                        Button {
+                            findInNote()
+                        } label: {
+                            MarkLabel("Find in note", "magnifyingglass", size: 16)
+                        }
+                        .accessibilityIdentifier("note.find")
+                        shareMenu
                         if let note, note.kind != .inbox, note.kind != .daily {
                             Button {
                                 noteTitleDraft = note.displayTitle
@@ -223,6 +238,7 @@ struct NoteEditorView: View {
                     } label: {
                         MarkLabel("More", "ellipsis.circle", size: 16)
                     }
+                    .accessibilityIdentifier("note.more")
                 }
             } else {
             // Where a browser keeps them, at the leading edge. Not on the phone: its
@@ -261,6 +277,9 @@ struct NoteEditorView: View {
                     .accessibilityIdentifier("note.moveToArchive")
                     .help("Move this note to the Archive folder and stop syncing its tasks")
                 }
+                // Round 8 (build 315): Share… and, on the Mac, Show in Finder.
+                shareMenu
+                    .help("Send this note on: as a PDF, as plain text, or the file itself")
                 // No Rename button. It was a second pencil beside the Edit toggle and a whole
                 // toolbar slot for one rare action — "exaggerated", his word, build 154. The
                 // note's name in the header is what renames it now.
@@ -277,6 +296,67 @@ struct NoteEditorView: View {
             }
         }
     }
+
+    // MARK: Find and Share (review round 8, build 315)
+
+    /// Shows Apple's find bar over the note's text. The bar belongs to the text you edit, so a
+    /// note that is in Read is turned to Edit first.
+    private func findInNote() {
+        guard note != nil else { return }
+        let wait = mode == .preview ? 0.3 : 0.0
+        if mode == .preview { mode = .edit }
+        DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
+            #if os(macOS)
+            NoteFind.run(.show)
+            #else
+            NoteFind.show()
+            #endif
+        }
+    }
+
+    /// **Share…**: three ways to send the note on, and on the Mac where its file is.
+    private var shareMenu: some View {
+        Menu {
+            Button("As PDF") { share(.pdf) }
+                .accessibilityIdentifier("note.share.pdf")
+            Button("As plain text") { share(.text) }
+                .accessibilityIdentifier("note.share.text")
+            Button("The file itself") { share(.file) }
+                .accessibilityIdentifier("note.share.file")
+            #if os(macOS)
+            Divider()
+            Button("Show in Finder") {
+                flushSave()
+                if let url = model.vault?.url(for: path) { NoteSharing.showInFinder(url) }
+            }
+            .accessibilityIdentifier("note.showInFinder")
+            #endif
+        } label: {
+            MarkLabel("Share…", "square.and.arrow.up", size: 16)
+        }
+        .accessibilityIdentifier("note.share")
+    }
+
+    private func share(_ form: NoteShare.Form) {
+        // What is on screen first, so the copy carries the last words typed.
+        flushSave()
+        guard let note = model.note(at: path) else { return }
+        guard let url = NoteSharing.file(form, for: note) else {
+            model.errorMessage = "PARAGON could not make the copy to share. Nothing was changed."
+            return
+        }
+        #if os(macOS)
+        NoteSharing.present(url)
+        #else
+        sharedFile = SharedFile(url: url)
+        #endif
+    }
+
+    #if os(iOS)
+    private var sharedFileBinding: Binding<SharedFile?> { $sharedFile }
+    #else
+    private var sharedFileBinding: Binding<SharedFile?> { .constant(nil) }
+    #endif
 
     /// Mac and iPad, unchanged: a fixed column whose editor absorbs the leftover height.
     /// Builds 30 and 34 are both about this — anything here that reports its full
@@ -2750,6 +2830,30 @@ struct PictureZoom: View {
                 imageSize = CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
             } else { imageSize = ns.size }
         }
+        #endif
+    }
+}
+
+#if os(macOS)
+/// The Mac shares through its own list (`NoteSharing.present`); this only keeps the name alive
+/// so the note screen has no `#if` in the middle of its chain (build 148's lesson).
+struct SharedFile: Identifiable {
+    let url: URL
+    var id: String { url.path }
+}
+#endif
+
+/// The iPhone's and iPad's share sheet for a note's copy (round 8, build 315). Nothing on the Mac.
+struct SharesNoteFile: ViewModifier {
+    @Binding var file: SharedFile?
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        content.sheet(item: $file) { file in
+            ShareSheet(url: file.url)
+        }
+        #else
+        content
         #endif
     }
 }
