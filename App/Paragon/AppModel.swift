@@ -231,6 +231,8 @@ final class AppModel: ObservableObject {
             // The screen a reminder is waiting for is on screen, by whatever route: the kept
             // press is answered (build 267).
             if let waiting = waitingScreen, activeSheet == waiting { waitingScreen = nil }
+            // Build 317: the Live Activity says "stopped" while the stop question is open.
+            if activeSheet == .focusStop || oldValue == .focusStop { syncFocusActivity() }
             askWaitingStopQuestion()
             openWaitingScreen()
         }
@@ -430,6 +432,11 @@ final class AppModel: ObservableObject {
         // After the screen tests have wiped the settings, so a test never inherits a clock a
         // test before it left running.
         loadFocus()
+        // Build 317: the Live Activity's buttons reach the timer, an activity left behind with
+        // no timer is ended, and tasks ticked on a widget while PARAGON was closed are written.
+        listenToFocusActivity()
+        syncFocusActivity()
+        afterUpdate { [weak self] in self?.applyWidgetTicks() }
         fetchCloudFiles(force: true)
         #if os(macOS)
         terminationObserver = NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
@@ -1326,6 +1333,8 @@ final class AppModel: ObservableObject {
         // the day on the summary does, and "today" is what its lines are counted from.
         if let last = lastWidgetSnapshot, last.day != DateOnly.today() { writeWidgetSnapshot() }
         guard vault != nil, !isSyncing else { return }
+        // Build 317: tasks ticked on a widget while PARAGON is open (the Mac's desktop).
+        applyWidgetTicks()
         fetchCloudFiles()
         // Notes still coming from iCloud need another look even though nothing on disk has
         // changed: materialising a file does not change its date, so the signature below would
@@ -1833,13 +1842,10 @@ final class AppModel: ObservableObject {
     /// widget that draws them, and a change to a block or an event does not write a file and
     /// redraw the iPhone's two widgets for nothing (review of build 273). **When the widget
     /// comes to the iPhone, this is the one place to change**, with `ParagonWidgetBundle`.
-    private static let hasPlanWidget: Bool = {
-        #if os(macOS)
-        return true
-        #else
-        return false
-        #endif
-    }()
+    ///
+    /// **Build 317: the iPhone has it too**, so this is true everywhere. Kept as the one name
+    /// the plan's part of the file hangs on.
+    private static let hasPlanWidget = true
 
     /// Asks for a write in two seconds, and asks again, from the start, each time it is called
     /// (build 271). A save every 600 ms while he types is therefore one write, two seconds
@@ -3749,6 +3755,8 @@ final class AppModel: ObservableObject {
         #if os(macOS)
         focusStatusItem.show(focus)
         #endif
+        // Build 317: and the iPhone's Lock Screen and Dynamic Island.
+        syncFocusActivity()
     }
 
     private static let focusKey = "focusSession"
@@ -3886,6 +3894,7 @@ final class AppModel: ObservableObject {
         }
         if let open = activeSheet, open != .focusStop {
             stopQuestionWaiting = true
+            syncFocusActivity()
             flash("The clock is stopped. Its question comes when you close the screen that is open.")
             return
         }

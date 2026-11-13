@@ -30,10 +30,23 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
         public var servesIsGoal: Bool
         /// `amspara://…`, so a tap opens the note in the app.
         public var url: String
+        /// What a tick on the widget needs to find this task again (build 317, `WidgetTick`):
+        /// its note, its `^t` id, its title exactly as the note has it, and its date. All
+        /// optional, so a file written before build 317 still decodes — and its lines then
+        /// have no tick circle.
+        public var notePath: String?
+        public var taskID: String?
+        public var rawTitle: String?
+        public var due: DateOnly?
 
         public init(id: String, title: String, noteTitle: String, noteKind: String,
                     dueText: String?, isOverdue: Bool, serves: String?, servesIsGoal: Bool,
-                    url: String) {
+                    url: String, notePath: String? = nil, taskID: String? = nil,
+                    rawTitle: String? = nil, due: DateOnly? = nil) {
+            self.notePath = notePath
+            self.taskID = taskID
+            self.rawTitle = rawTitle
+            self.due = due
             self.id = id
             self.title = title
             self.noteTitle = noteTitle
@@ -295,7 +308,11 @@ public extension NoteIndex {
                 isOverdue: due.map { $0 < day } ?? false,
                 serves: serves?.title,
                 servesIsGoal: serves?.isGoal ?? false,
-                url: WidgetSnapshot.link(toNoteTitled: ref.noteTitle)
+                url: WidgetSnapshot.link(toNoteTitled: ref.noteTitle),
+                notePath: ref.notePath,
+                taskID: ref.task.id,
+                rawTitle: ref.task.title,
+                due: due
             )
         }
         return WidgetSnapshot(

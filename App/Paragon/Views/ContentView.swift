@@ -198,6 +198,9 @@ struct ContentView: View {
                 model.afterUpdate {
                     model.checkForExternalChanges()
                     model.drainOutbox()
+                    // Build 317: tasks ticked on a widget, and the focus timer's Live Activity.
+                    model.applyWidgetTicks()
+                    model.syncFocusActivity()
                 }
             case .inactive, .background:
                 // Going to the background (or being quit on iOS): write what is being typed.
