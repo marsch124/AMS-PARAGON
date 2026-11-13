@@ -41,8 +41,14 @@ public struct CaptureItem: Codable, Equatable, Identifiable, Sendable {
     /// true: `- [ ] text` under Tasks. false: `- text` under Notes.
     public var asTask: Bool
     public var createdAt: Date
+    /// Build 318: pictures and PDFs shared along, waiting beside the outbox — each a path from
+    /// the `capture-files` folder (`SharedFiles`). Nil for every capture without files, and
+    /// absent from the lines older builds wrote.
+    public var files: [String]?
 
-    public init(id: UUID = UUID(), text: String, url: URL? = nil, target: CaptureTarget = .inbox, asTask: Bool = true, createdAt: Date = Date()) {
+    public init(id: UUID = UUID(), text: String, url: URL? = nil, target: CaptureTarget = .inbox, asTask: Bool = true, createdAt: Date = Date(),
+                files: [String]? = nil) {
+        self.files = files
         self.id = id
         self.text = text
         self.url = url
@@ -153,7 +159,7 @@ public struct CaptureOutbox: Sendable {
 public extension Vault {
     /// Appends a capture to its target note (falling back to the Inbox) and saves it.
     @discardableResult
-    func capture(_ item: CaptureItem, today: DateOnly = .today()) throws -> Note {
+    func capture(_ item: CaptureItem, today: DateOnly = .today(), filesRoot: URL? = nil) throws -> Note {
         var note: Note
         switch item.target {
         case .inbox:
@@ -177,6 +183,10 @@ public extension Vault {
             } else {
                 note = try inboxNote()
             }
+        }
+        // Build 318: a share with pictures or PDFs (`SharedFiles`).
+        if let files = item.files, !files.isEmpty {
+            return try fileShared(item, into: note, filesRoot: filesRoot)
         }
         if item.asTask {
             note.append(task: TaskParser.normalized(TaskItem(title: item.lineText)))
