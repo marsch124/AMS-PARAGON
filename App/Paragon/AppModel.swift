@@ -137,7 +137,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 313
+    static let number = 314
 }
 
 @MainActor
@@ -835,6 +835,14 @@ final class AppModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Round 7 (build 314): the Mac's **Close Note**. The note's side goes and the list takes
+    /// the whole window again; what was being typed is written first.
+    func closeNote() {
+        guard selectedNotePath != nil else { return }
+        flushPendingEdits()
+        selectedNotePath = nil
     }
 
     /// Lists bind their selection through these so SwiftUI's own selection resets, which

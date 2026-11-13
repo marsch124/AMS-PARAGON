@@ -128,6 +128,18 @@ struct SearchView: View {
                 // field labelled "Search for a word" (his screenshot, build 161). The text is
                 // still the one source of truth — the field now shows and edits only its
                 // words, and `SearchQuery.replacing(wordsIn:with:)` leaves the boxes alone.
+                #if os(macOS)
+                // Round 7 (build 314): on the Mac the words are typed in the toolbar's search
+                // field, the one search there is. This line says what is being looked for.
+                Text(SearchQuery.words(in: model.queryText).isEmpty
+                     ? "Type in the search field at the top of the window"
+                     : "Looking for \u{201C}\(SearchQuery.words(in: model.queryText))\u{201D}")
+                    .font(Txt.listSecond)
+                    .foregroundStyle(.soft)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("search.words")
+                #else
                 TextField("Search for a word", text: $fieldText)
                     .textFieldStyle(.roundedBorder)
                     .focused($focused)
@@ -148,6 +160,7 @@ struct SearchView: View {
                     .onChange(of: focused) { _, isOn in
                         if !isOn { fieldText = SearchQuery.words(in: model.queryText) }
                     }
+                #endif
                 Button {
                     if isPhone { phoneFiltersFolded.toggle() } else { deskFiltersFolded.toggle() }
                 } label: {

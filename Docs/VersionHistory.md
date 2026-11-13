@@ -1,6 +1,64 @@
 # Version history
 
-The version is shown as 1.0 (313) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (314) at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 314 · 13 November 2026
+
+**The Mac window, tidied.** This is round 7 of the premium review, and it is for the Mac only. The iPhone is unchanged. The iPad is unchanged too, and keeps its **Search** row in the sidebar. Round 6 was build 312 (and 313, the same app sent again). This round is about the Mac window: how the sidebar is arranged, how wide a list is, and where you search.
+
+**Before (build 313).**
+- The Mac sidebar had five groups, and **All actions** sat under **Recent** and **Done**, far from **Today**.
+- Only the **Tools** group could be folded. Its arrow was the only one.
+- **Search** was a row in the sidebar, and also a field in the toolbar.
+- A screen that is only a list (**Today**, **All actions**, **Done** and others) was a narrow column of 220 to 280 points, with a big empty "New…" panel beside it.
+- Every Mac list had its own small **Search notes** field at the top.
+- The only keyboard shortcuts for moving were the ones for **Plan** (⇧⌘P) and the **Map** (⇧⌘M).
+
+### The sidebar
+
+**1. Mac: four groups, each with a name that says what is in it.**
+- Before: five groups, and **All actions** far from **Today**.
+- Now: **Do** (**Inbox**, **Today**, **Plan**, **All actions**), **Goals and PARA** (**Aspirations**, **Goals**, **Projects**, **Areas**, **Resources**, **Archive**), **Look back** (**Calendar**, **Weekly review**, **Map**, **Recent**, **Done**, **Deleted**) and **Tools** (**Templates**, **Snippets**, **Tags**).
+- **All actions** moved from beside **Recent** and **Done** to under **Do**, next to **Today** and **Plan**.
+- The long press on the **Goals and PARA** heading still shows **Work**, as before.
+
+**2. Mac: every group heading folds its group away.**
+- Before: only **Tools** had a fold arrow.
+- Now: every heading has a small arrow. Click the heading to fold the group shut, and again to open it. PARAGON remembers what you folded, also after you close the app.
+- **Tools** starts folded, the first time. Open it once and it stays open.
+- Nothing is lost by folding: the rows are still there, and **Go** in the menu bar reaches every one of them.
+
+**3. Mac: no Search row in the sidebar.**
+- Before: **Search** was a row in the sidebar and a field in the toolbar, two ways to the same place.
+- Now: the row is gone. The search field in the toolbar does the job (see 6). **⇧⌘F** still jumps to it.
+- The iPad keeps the **Search** row, because it has no search field in its toolbar.
+
+**4. Mac: five new shortcuts in the Go menu.**
+- Now: **⌘1** **Inbox**, **⌘2** **Today**, **⌘3** **Plan**, **⌘4** **All actions**, **⌘5** **Aspirations**.
+- Before: you needed the mouse, or ⇧⌘P for **Plan**. ⇧⌘P and ⇧⌘M still work.
+
+### Lists at full width
+
+**5. Mac: a list is as wide as the window until you open a note.**
+- Before: **Today**, **Weekly review**, **All actions**, **Search**, **Done**, **Deleted**, **Recent**, **Tags**, **Projects**, **Areas**, **Resources**, **Archive** and **Work** were a narrow column (220 to 280 points) with an empty "New…" panel beside it.
+- Now: these screens use the whole width of the window.
+- When you open a note, the list narrows to a column and the note opens beside it, as before.
+- To get the full width back, close the note: the **Close** button (a small cross) in the note's toolbar, or **Go › Close Note** (**⌃⌘↑**, beside Back and Forward on ⌃⌘← and ⌃⌘→).
+- **Inbox**, **Calendar**, **Plan**, **Templates**, **Snippets**, **Aspirations** and **Goals** keep their two parts side by side as before, because the right side has real content there (the day, the editor, the chain).
+- What this costs: with no note open, the **+** **New** button is no longer over a narrow column. It stays in the toolbar and on ⌘N.
+
+### One search
+
+**6. Mac: one search field, on every screen.**
+- Before: a field in the toolbar, a **Search** row in the sidebar, and a small **Search notes** field at the top of each list.
+- Now: one field in the toolbar, on every screen. Type in it and the **Search** screen opens with your words. **⇧⌘F** still jumps to it.
+- The small **Search notes** field at the top of each Mac list is gone. To search only in the **Archive**, tick **Archive** in **Search**, as on the iPhone since build 312.
+- **Search the daily notes** in the **Calendar** and **Find a tag** in **Tags** are unchanged.
+- The iPhone is unchanged. The iPad keeps its sidebar **Search** row and its list fields.
+
+**What did not change.** Your notes, tasks, backups and sync. The colours of build 310 and the icons of build 311. The whole iPhone. Dragging a note, the Map window, and every setting.
+
+**The version.** It shows as "PARAGON 1.0 (314)".
 
 ## Build 313 · 13 November 2026
 

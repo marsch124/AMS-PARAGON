@@ -1734,6 +1734,13 @@ final class ScreenTests: XCTestCase {
     private func go(to place: Place) {
         XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
                       "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
+        #if os(macOS)
+        // Round 7 (build 314): the Mac's sidebar has no Search row; ⇧⌘F opens the page.
+        if place == .search {
+            app.typeKey("f", modifierFlags: [.command, .shift])
+            return
+        }
+        #endif
         for name in Self.way(to: place) {
             let step = element(name)
             #if os(iOS)
@@ -1808,7 +1815,7 @@ final class ScreenTests: XCTestCase {
                                    "sidebar.Time Blocks", "sidebar.Weekly review", "sidebar.Map",
                                    "sidebar.All actions", "sidebar.Aspirations", "sidebar.Goals",
                                    "sidebar.Projects",
-                                   "sidebar.Areas", "sidebar.Resources", "sidebar.Search"]
+                                   "sidebar.Areas", "sidebar.Resources"]
 
     /// One click on the sidebar row.
     private static func way(to place: Place) -> [String] {
@@ -3291,11 +3298,10 @@ final class ScreenTests: XCTestCase {
     func testASearchBoxIsATickBoxThatTurnsUpTheTasks() {
         XCTAssertTrue(element(Self.home).waitForExistence(timeout: appears),
                       "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
-        let search = element("sidebar.Search")
-        XCTAssertTrue(search.waitForExistence(timeout: 20),
-                      "The sidebar has no Search row. On screen: \(visibleTexts())")
-        bringIntoView(search)
-        search.press()
+        // Round 7 (build 314): no Search row in the Mac's sidebar; ⇧⌘F opens the page.
+        XCTAssertFalse(element("sidebar.Search").exists, "The Mac's sidebar still has a Search row.")
+        XCTAssertTrue(element("sidebar.fold.Tools").exists, "The sidebar's Tools heading (sidebar.fold.Tools) is missing.")
+        app.typeKey("f", modifierFlags: [.command, .shift])
 
         let box = app.buttons.matching(identifier: "search.box.is:open").firstMatch
         XCTAssertTrue(box.waitForExistence(timeout: 20),

@@ -49,6 +49,28 @@ struct ContentView: View {
         #endif
     }
 
+    /// The window's columns. **On the Mac two since round 7 (build 314)**: the sidebar, and one
+    /// side that is the list alone until a note is open (`MacMainColumns`). The iPad keeps the
+    /// three columns it had.
+    @ViewBuilder
+    private var columns: some View {
+        #if os(macOS)
+        NavigationSplitView {
+            SidebarView()
+        } detail: {
+            MacMainColumns()
+        }
+        #else
+        NavigationSplitView {
+            SidebarView()
+        } content: {
+            NoteListView()
+        } detail: {
+            DetailView()
+        }
+        #endif
+    }
+
     var body: some View {
         Group {
             if model.vault == nil {
@@ -68,13 +90,7 @@ struct ContentView: View {
                 PhoneRootView()
                 #endif
             } else {
-                NavigationSplitView {
-                    SidebarView()
-                } content: {
-                    NoteListView()
-                } detail: {
-                    DetailView()
-                }
+                columns
                 .modifier(ColumnsFitTheScreen())
                 // The focus timer's bar at the foot of the window (build 256). Nothing at all
                 // while no timer runs, so the window is exactly as before.
@@ -321,6 +337,126 @@ private struct ColumnsFitTheScreen: ViewModifier {
 /// absence") broken in the one place where it is the whole screen.
 ///
 /// His words for what was missing: *"a way out back into the app"*. That is `reopenLastVault`.
+#if os(macOS)
+/// The Mac window's right side (review round 7, build 314, his pick A): **the list takes the
+/// whole width until a note is open.** Before, every list sat in a 280-point column beside an
+/// empty panel with a grey "New…" button, and the weekly review's headings were cut.
+///
+/// One `HStack`, and the list is always its first child, so it keeps its state (what is
+/// folded, where it is scrolled) when the note's side comes and goes. Which sections keep both
+/// parts at all times is Core's `WindowColumns`.
+struct MacMainColumns: View {
+    @EnvironmentObject private var model: AppModel
+    /// The list's width beside an open note. His to drag.
+    @AppStorage("macListWidth") private var listWidth = WindowColumns.listWidthAtFirst
+    @State private var widthAtDragStart: Double?
+
+    private var noteOpen: Bool {
+        guard let path = model.selectedNotePath else { return false }
+        return model.note(at: path) != nil
+    }
+    private var wide: Bool { WindowColumns.listTakesAll(section: model.section?.key, noteOpen: noteOpen) }
+    private var canClose: Bool { WindowColumns.canCloseNote(section: model.section?.key, noteOpen: noteOpen) }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            NoteListView()
+                .frame(width: wide ? nil : WindowColumns.listWidth(listWidth))
+                .frame(maxWidth: wide ? .infinity : nil)
+            if !wide {
+                divider
+                DetailView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .toolbar {
+            if canClose {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        model.closeNote()
+                    } label: {
+                        MarkLabel("Close note", "xmark", size: 16)
+                    }
+                    .help("Close this note and give the list the whole window again (⌃⌘↑)")
+                    .accessibilityIdentifier("note.close")
+                }
+            }
+        }
+        .modifier(MacToolbarSearch())
+    }
+
+    /// The line between the list and the note, with a wider strip over it to drag.
+    private var divider: some View {
+        Divider()
+            .overlay {
+                Color.clear
+                    .frame(width: 9)
+                    .contentShape(Rectangle())
+                    .onHover { inside in
+                        if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+                    }
+                    .gesture(DragGesture(minimumDistance: 1, coordinateSpace: .global)
+                        .onChanged { drag in
+                            let start = widthAtDragStart ?? WindowColumns.listWidth(listWidth)
+                            widthAtDragStart = start
+                            listWidth = WindowColumns.listWidth(start + drag.translation.width)
+                        }
+                        .onEnded { _ in widthAtDragStart = nil })
+            }
+    }
+}
+
+/// The Mac's one search (round 7, build 314): a field in the toolbar on every screen. Typing
+/// in it opens the Search page with those words; the page's own word field is gone on the
+/// Mac, so there is one place to type. ⇧⌘F puts the cursor here.
+private struct MacToolbarSearch: ViewModifier {
+    @EnvironmentObject private var model: AppModel
+    @State private var text = ""
+    @State private var shown = false
+    /// What this field last wrote into the model, so its own writes are not read back into
+    /// it under the cursor (a token half typed, `#tra`, would be taken out of the field).
+    @State private var written: String?
+
+    func body(content: Content) -> some View {
+        content
+            .searchable(text: $text, isPresented: $shown, placement: .toolbar, prompt: "Search")
+            .onChange(of: text) { _, value in
+                let words = value.trimmingCharacters(in: .whitespaces)
+                if model.section != .search {
+                    // Arriving by typing: a fresh search for these words, no old boxes.
+                    guard !words.isEmpty else { return }
+                    let query = SearchQuery.replacing(wordsIn: "", with: value)
+                    written = query
+                    model.queryText = query
+                    model.section = .search
+                } else {
+                    let query = SearchQuery.replacing(wordsIn: model.queryText, with: value)
+                    guard query != model.queryText else { return }
+                    written = query
+                    model.queryText = query
+                }
+            }
+            .onChange(of: model.queryText) { _, value in
+                // Set from elsewhere: a tag pressed, a saved search, Clear, a link.
+                guard value != written else { return }
+                written = nil
+                let words = model.section == .search ? SearchQuery.words(in: value) : ""
+                if text != words { text = words }
+            }
+            .onChange(of: model.section) { _, section in
+                if section == .search {
+                    let words = SearchQuery.words(in: model.queryText)
+                    if text.isEmpty, !words.isEmpty { text = words }
+                    shown = true
+                } else if !text.isEmpty {
+                    written = nil
+                    text = ""
+                }
+            }
+    }
+}
+#endif
+
 struct WelcomeView: View {
     @EnvironmentObject private var model: AppModel
     @Binding var showingImporter: Bool
@@ -375,68 +511,42 @@ struct WelcomeView: View {
 
 struct SidebarView: View {
     @EnvironmentObject private var model: AppModel
-    /// Whether the Tools group is folded shut. Kept across launches: it is a shelf you open
-    /// now and then, not a list you work from.
-    @AppStorage("toolsFolded") private var toolsFolded = false
+    /// Review round 7 (build 314): the folded groups, by name ("Look back|Tools"). Empty until
+    /// a heading is first pressed, and then `SidebarGroups` says Tools is the folded one.
+    @AppStorage("sidebarFoldedGroups") private var foldedStore = "-"
+
+    private var folded: Set<String> { SidebarGroups.folded(in: foldedStore == "-" ? nil : foldedStore) }
 
     var body: some View {
         List(selection: model.sectionSelection) {
-            Section("Actions") {
-                row(.inbox)
-                    .acceptsTaskDrop { ref in model.moveTask(ref, to: model.vault?.config.inboxFile ?? "Inbox.md") }
-                row(.today)
-                row(.calendar)
-                row(.timeBlocks)
-                row(.review)
-                row(.map)
-                // His order, build 153: the three lists you look back at sit together, just
-                // above Deleted, which is the furthest back of all.
-                row(.allActions)
-                row(.recent)
-                row(.done)
-                row(.deleted)
-                row(.search)
-            }
-            Section {
-                // A fold button in the header, not a DisclosureGroup: those drew their rows
-                // over each other inside a List (build 93). A Section header is not a
-                // selectable row, so the button takes no click away from the list.
-                if !toolsFolded {
-                    ForEach(SidebarSection.tools) { section in
-                        row(section)
+            // Round 7, his pick A: four short groups in the iPhone's order — Do, Goals and
+            // PARA, Look back, Tools — and each folds. His tick moved All actions up to Do,
+            // away from Recent and Done (his order of build 153).
+            ForEach(SidebarGroups.all, id: \.name) { group in
+                Section {
+                    // A fold in the header, not a DisclosureGroup: those drew their rows over
+                    // each other inside a List (build 93). A Section header is not a selectable
+                    // row, so the press takes no click away from the list.
+                    if !folded.contains(group.name) {
+                        ForEach(group.rows, id: \.self) { key in
+                            if let section = SidebarSection.all.first(where: { $0.key == key }) {
+                                if section == .inbox {
+                                    row(section)
+                                        .acceptsTaskDrop { ref in model.moveTask(ref, to: model.vault?.config.inboxFile ?? "Inbox.md") }
+                                } else {
+                                    row(section)
+                                }
+                            }
+                        }
+                        #if !os(macOS)
+                        // The Mac's search is the field in its toolbar (round 7). The iPad
+                        // has no such field, so its row stays.
+                        if group.name == "Look back" { row(.search) }
+                        #endif
                     }
+                } header: {
+                    groupHeader(group)
                 }
-            } header: {
-                Button {
-                    toolsFolded.toggle()
-                } label: {
-                    HStack(spacing: 6) {
-                        MarkImage(toolsFolded ? "chevron.right" : "chevron.down", text: .footnote)
-                        Text("Tools")
-                        Spacer(minLength: 0)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .help(toolsFolded ? "Show Templates, Snippets and Tags" : "Hide Templates, Snippets and Tags")
-            }
-            // **Two rows since build 199.** Aspirations used to be what the row named Goals
-            // drew, so a goal with a date had no list of its own and only appeared once the
-            // aspiration above it had been picked. One idea per row now.
-            Section("Goals") {
-                row(.aspirations)
-                row(.kind(.goal))
-            }
-            Section {
-                row(.kind(.project))
-                row(.kind(.area))
-                row(.kind(.resource))
-                row(.kind(.archive))
-            } header: {
-                // The way in on the Mac: a long press on this heading. A Section header is not
-                // a selectable row, so a gesture here takes nothing away from the list.
-                Text("PARA")
-                    .onLongPressGesture(minimumDuration: 1.2) { model.revealWork() }
             }
             if model.workRevealed {
                 Section {
@@ -446,7 +556,7 @@ struct SidebarView: View {
             // 1.0: the version as he reads it, "1.0 (280)", as the last line of the list — it
             // scrolls with the rows, so it never lies over one. A bar at the foot did, and on a
             // small iPad in portrait the Areas row sat exactly under it (the iPad screen test of
-            // build 280). The long press that reveals Work lives on the PARA heading above.
+            // build 280). The long press that reveals Work lives on the Goals and PARA heading above.
             Section {
                 Text("PARAGON \(AppVersion.text)")
                     .font(Txt.listSecond)
@@ -473,6 +583,28 @@ struct SidebarView: View {
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         #endif
+    }
+
+    /// A group's heading: a small arrow and the name; a press folds or opens the group.
+    /// **A tap gesture, not a Button**, so the long press on "Goals and PARA" — the way in to
+    /// Work on the Mac — does not also fold the group when the finger comes up.
+    private func groupHeader(_ group: SidebarGroups.Group) -> some View {
+        let isFolded = folded.contains(group.name)
+        return HStack(spacing: 6) {
+            MarkImage(isFolded ? "chevron.right" : "chevron.down", text: .footnote)
+            Text(group.name)
+            Spacer(minLength: 0)
+        }
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: 1.2) {
+            if group.name == "Goals and PARA" { model.revealWork() }
+        }
+        .onTapGesture {
+            foldedStore = SidebarGroups.toggling(group.name, in: foldedStore == "-" ? nil : foldedStore)
+        }
+        .help(isFolded ? "Show \(group.name)" : "Hide \(group.name)")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityIdentifier("sidebar.fold.\(group.name)")
     }
 
     private func row(_ section: SidebarSection) -> some View {
@@ -814,8 +946,9 @@ struct NoteListView: View {
         } message: {
             Text("The file is renamed too, and every note that links to it is pointed at the new name.")
         }
-        #if os(macOS)
-        // The map wants room for its diagram; every other section is a list.
+        #if !os(macOS)
+        // The map wants room for its diagram; every other section is a list. (The Mac's list
+        // is no column of the split view since round 7: `MacMainColumns` gives it its width.)
         .navigationSplitViewColumnWidth(min: shown == .map ? 420 : 220, ideal: shown == .map ? 720 : 280)
         #endif
     }
@@ -1395,11 +1528,17 @@ private struct ListSearch: ViewModifier {
     @Environment(\.phoneLook) private var phoneLook
 
     func body(content: Content) -> some View {
+        #if os(macOS)
+        // Round 7 (build 314): the Mac has one search, the field in the toolbar on every
+        // screen (`MacToolbarSearch`). A second one that showed on some lists only is gone.
+        content
+        #else
         if phoneLook {
             content
         } else {
             content.searchable(text: $text, prompt: "Search notes")
         }
+        #endif
     }
 }
 

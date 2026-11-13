@@ -72,6 +72,21 @@ struct ParagonApp: App {
                 // Arrows, not the browsers' \u{2318}[ and \u{2318}]: on a Swedish keyboard those
                 // brackets are \u{2325}8 and \u{2325}9, so the shortcut would be a three-finger
                 // chord and the menu would advertise a key he does not have.
+                // Round 7 (build 314): ⌘1 to ⌘5 for the sidebar's first five rows.
+                ForEach(Array(SidebarGroups.numbered.enumerated()), id: \.offset) { index, key in
+                    if let section = SidebarSection.all.first(where: { $0.key == key }) {
+                        Button(section.title) { model.section = section }
+                            .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: [.command])
+                            .disabled(model.vault == nil)
+                    }
+                }
+                Divider()
+                #if os(macOS)
+                // Not ⌥⌘W (macOS closes every window with it) and not ⌃⌘W (Work).
+                Button("Close Note") { model.closeNote() }
+                    .keyboardShortcut(.upArrow, modifiers: [.command, .control])
+                    .disabled(!WindowColumns.canCloseNote(section: model.section?.key, noteOpen: model.selectedNotePath != nil))
+                #endif
                 Button("Back") { model.goBack() }
                     .keyboardShortcut(.leftArrow, modifiers: [.command, .control])
                     .disabled(!model.canGoBack)
