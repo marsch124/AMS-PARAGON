@@ -389,9 +389,9 @@ struct GoalNumberEditor: View {
 
     private func fill() {
         if setup, let number {
-            start = GoalNumber.shown(number.start)
-            target = GoalNumber.shown(number.target)
-            now = GoalNumber.shown(number.current)
+            start = GoalNumber.typed(number.start)
+            target = GoalNumber.typed(number.target)
+            now = GoalNumber.typed(number.current)
             unit = number.unit
         }
         // Focus does not always take in the turn the popover appears (build 119).

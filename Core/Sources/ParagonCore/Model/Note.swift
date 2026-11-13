@@ -374,6 +374,16 @@ public struct Note: Equatable, Identifiable, Sendable {
         return inserted
     }
 
+    /// Build 318 (review): true when the line this task stands for is **already ticked** in the
+    /// note — found by its `^t` id, else by its line and title. A row that is fading out of a
+    /// list (0.25 s since build 318) still holds the open task; a second press on it must not
+    /// tick the task again, because for a repeating task every tick writes a next time.
+    public func holdsDone(_ task: TaskItem) -> Bool {
+        let all = tasks
+        if let id = task.id, let same = all.first(where: { $0.id == id }) { return same.isDone }
+        return all.first { $0.lineIndex == task.lineIndex && $0.title == task.title }?.isDone ?? false
+    }
+
     /// Marks a task done and, when it repeats, adds the next occurrence right below it.
     /// Returns the new occurrence, if any.
     @discardableResult

@@ -109,4 +109,42 @@ final class SharedFilesTests: XCTestCase {
         SharedFiles.sweep(root: staging, keeping: [], now: Date().addingTimeInterval(3 * 86_400))
         XCTAssertFalse(FileManager.default.fileExists(atPath: staging.appendingPathComponent(waiting).path))
     }
+
+    /// Build 318 (review): draining one item at a time. A line a stopped run had taken is
+    /// picked up again, a line that cannot be filed goes back, and an item whose waiting
+    /// folder is gone was filed already and writes nothing a second time.
+    func testDrainLosesNothingAndFilesNothingTwice() throws {
+        let outbox = CaptureOutbox(fileURL: staging.appendingPathComponent("capture-outbox.jsonl"))
+        // A run that was stopped half-way left its taken lines behind.
+        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
+        let left = CaptureItem(text: "Left behind", asTask: false)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        var line = try encoder.encode(left)
+        line.append(0x0A)
+        try line.write(to: staging.appendingPathComponent("capture-outbox.\(UUID().uuidString).jsonl"))
+        try outbox.append(CaptureItem(text: "Not yet", asTask: false))
+        let id = UUID()
+        let staged = try SharedFiles.stage(try source("a.png", "new"), named: "a.png", itemID: id, index: 0, root: outbox.filesURL)
+        let shared = CaptureItem(id: id, text: "Receipt", asTask: false, files: [staged])
+        try outbox.append(shared)
+        let result = outbox.drain { item in
+            if item.text == "Not yet" { throw VaultError.notDownloadedYet("Inbox.md") }
+            try self.vault.capture(item, filesRoot: outbox.filesURL)
+        }
+        XCTAssertEqual(result.filed, 2)
+        XCTAssertEqual(outbox.peek().map(\.text), ["Not yet"])
+        let names = try FileManager.default.contentsOfDirectory(atPath: staging.path)
+        XCTAssertEqual(names.filter { CaptureOutbox.isTakenFile($0) }, [])
+        // The same share once more (the app was stopped before it struck the line).
+        try outbox.append(shared)
+        outbox.drain { item in
+            if item.text == "Not yet" { throw VaultError.notDownloadedYet("Inbox.md") }
+            try self.vault.capture(item, filesRoot: outbox.filesURL)
+        }
+        let text = try vault.inboxNote().text
+        XCTAssertEqual(text.components(separatedBy: "Receipt").count - 1, 1)
+        XCTAssertEqual(text.components(separatedBy: "Left behind").count - 1, 1)
+        XCTAssertNil(vault.fileData(at: "Pictures/a 2.png"))
+    }
 }

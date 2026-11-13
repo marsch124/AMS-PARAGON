@@ -129,4 +129,21 @@ final class GoalNumberTests: XCTestCase {
         XCTAssertEqual(number.wordsWithPercent(locale: english), "86.5 of 82 kg \u{00B7} 44 %")
         XCTAssertEqual(GoalNumber(start: 0, target: 10, current: 2).words(locale: english), "2 of 10")
     }
+
+    /// Build 318 (review): a field filled for him to change reads back as the same number on
+    /// every device (no sign between the thousands), and a mistyped giant number does not stop
+    /// the app.
+    func testFilledFieldsReadBackAndGiantNumbersAreHeld() {
+        for id in ["en_US", "en_GB", "sv_SE", "de_DE", "de_CH", "fr_FR"] {
+            let locale = Locale(identifier: id)
+            for value in [100_000, 86.5, 1250.75, -3, 0] as [Double] {
+                XCTAssertEqual(GoalNumber.parse(GoalNumber.typed(value, locale: locale)), value, "\(id) \(value)")
+            }
+        }
+        XCTAssertEqual(GoalNumber.typed(100_000, locale: Locale(identifier: "en_US")), "100000")
+        XCTAssertEqual(GoalNumber.typed(86.5, locale: Locale(identifier: "sv_SE")), "86,5")
+        XCTAssertEqual(GoalNumber.parse("86,5"), 86.5)
+        XCTAssertEqual(GoalNumber(start: 0, target: 0.01, current: 1e20).percent, 1_000_000_000)
+        XCTAssertEqual(GoalNumber.plain(1e16), "10000000000000000")
+    }
 }

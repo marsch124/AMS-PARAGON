@@ -2313,6 +2313,9 @@ final class AppModel: ObservableObject {
             task.markOpen()
             note.replace(task: task)
         } else {
+            // Build 318 (review): a second press on a row that is still fading away finds the
+            // task ticked already and does nothing — no second "next time" for a repeat.
+            guard !note.holdsDone(ref.task) else { return }
             // Build 303: a gentle tap you can feel (iPhone and iPad only).
             Haptics.done()
             if let next = note.complete(task: ref.task) {
@@ -4320,30 +4323,27 @@ final class AppModel: ObservableObject {
         var flushed = false
         for url in Self.outboxURLs {
             let outbox = CaptureOutbox(fileURL: url)
-            let items = outbox.drain()
-            if !items.isEmpty {
+            // Build 318 (review): one item at a time, each struck from the waiting file only
+            // when it is filed or back in the outbox — an app closed half-way loses nothing
+            // (`CaptureOutbox.drain(filing:)`). Anything that could not be filed (folder not
+            // downloaded yet, no permission) goes back, and its files keep waiting with it.
+            let result = outbox.drain { item in
                 if !flushed { flushPendingEdits(); flushed = true }
-                var failed: [CaptureItem] = []
-                for item in items {
-                    do {
-                        // On the day it was captured, not the day it is filed: a line kept for a note
-                        // still coming from iCloud may be filed after midnight (build 261).
-                        // Build 318: shared pictures and PDFs wait beside the outbox (`filesURL`).
-                        try vault.capture(item, today: DateOnly(item.createdAt), filesRoot: outbox.filesURL)
-                        filed += 1
-                    } catch {
-                        log("capture kept for later: \(error.localizedDescription)")
-                        failed.append(item)
-                    }
+                do {
+                    // On the day it was captured, not the day it is filed: a line kept for a note
+                    // still coming from iCloud may be filed after midnight (build 261).
+                    // Build 318: shared pictures and PDFs wait beside the outbox (`filesURL`).
+                    try vault.capture(item, today: DateOnly(item.createdAt), filesRoot: outbox.filesURL)
+                } catch {
+                    log("capture kept for later: \(error.localizedDescription)")
+                    throw error
                 }
-                // Anything that could not be filed (folder not downloaded yet, no permission) goes
-                // back, and its files keep waiting with it.
-                outbox.requeue(failed)
-                kept += failed.count
             }
+            filed += result.filed
+            kept += result.kept.count
             // Build 318: files of a share that was closed half-way, once they are a day old.
             if FileManager.default.fileExists(atPath: outbox.filesURL.path) {
-                SharedFiles.sweep(root: outbox.filesURL, keeping: Set(outbox.peek().map(\.id)))
+                SharedFiles.sweep(root: outbox.filesURL, keeping: Set(outbox.peek().map(\.id)).union(result.kept.map(\.id)))
             }
         }
         guard filed + kept > 0 else { return 0 }

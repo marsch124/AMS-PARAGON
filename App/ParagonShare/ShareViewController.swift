@@ -225,8 +225,14 @@ final class ShareModel: ObservableObject {
         return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
     }
 
+    private nonisolated static let jpegLock = NSLock()
+
     /// A JPEG of a picture, longest side 3000, in the temporary folder.
     private nonisolated static func jpegCopy(of url: URL) -> URL? {
+        // One at a time: each holds the whole picture in memory for a moment (up to 3000 × 3000),
+        // and the system hands over several files at once. An extension is given little memory.
+        jpegLock.lock()
+        defer { jpegLock.unlock() }
         guard let image = small(url, side: 3000) else { return nil }
         let target = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
         guard let destination = CGImageDestinationCreateWithURL(target as CFURL, UTType.jpeg.identifier as CFString, 1, nil) else { return nil }
@@ -236,8 +242,11 @@ final class ShareModel: ObservableObject {
 
     // MARK: Save and Cancel
 
+    /// True once the line is in the outbox: a second press on **Save** writes nothing more.
+    private var saved = false
+
     func save() {
-        guard let outbox else { return }
+        guard !saved, let outbox else { return }
         let words = text.trimmingCharacters(in: .whitespacesAndNewlines)
         // A share with files is written as note lines: a picture is not a task.
         let item = CaptureItem(id: itemID, text: words, url: url, target: target,
@@ -245,6 +254,7 @@ final class ShareModel: ObservableObject {
                                files: files.isEmpty ? nil : files.map(\.relative))
         do {
             try outbox.append(item)
+            saved = true
             context?.completeRequest(returningItems: nil)
         } catch {
             problems.append("Could not be saved: \(error.localizedDescription)")
@@ -252,8 +262,9 @@ final class ShareModel: ObservableObject {
     }
 
     func cancel() {
-        // The copies made for this share are taken away again.
-        if let outbox {
+        // The copies made for this share are taken away again — never after Save: the line in
+        // the outbox names them.
+        if !saved, let outbox {
             try? FileManager.default.removeItem(at: outbox.filesURL.appendingPathComponent(itemID.uuidString, isDirectory: true))
         }
         context?.cancelRequest(withError: NSError(domain: "ParagonShare", code: NSUserCancelledError))

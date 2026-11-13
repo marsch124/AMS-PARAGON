@@ -120,7 +120,8 @@ public struct GoalNumber: Equatable, Sendable {
     public var percent: Int? {
         guard let fraction else { return nil }
         if fraction <= 0 { return 0 }
-        let rounded = Int((fraction * 100).rounded())
+        // Held below what an `Int` takes: a mistyped "now" of twenty digits must not stop the app.
+        let rounded = Int(min((fraction * 100).rounded(), 1_000_000_000))
         if rounded >= 100, !isReached { return 99 }
         if rounded <= 0 { return 1 }
         return rounded
@@ -165,7 +166,24 @@ public struct GoalNumber: Equatable, Sendable {
         }
         var text = String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), rounded)
         while text.hasSuffix("0") { text.removeLast() }
+        if text.hasSuffix(".") { text.removeLast() }
         return text
+    }
+
+    /// A number as it is put into a field for him to change: his own decimal sign, **nothing
+    /// between the thousands**. `shown` writes 100000 as "100,000" for an American or British
+    /// device, and `parse` reads a lone comma as the decimal sign — so a field filled with
+    /// `shown` and saved untouched would turn 100000 into 100.
+    public static func typed(_ value: Double, locale: Locale = .current) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = false
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        let text = formatter.string(from: NSNumber(value: value)) ?? plain(value)
+        // A device whose digits or signs `parse` does not read gets the plain spelling.
+        return parse(text) == (Double(plain(value)) ?? value) ? text : plain(value)
     }
 
     /// A number as he reads it: his own decimal sign and a space or point between thousands.

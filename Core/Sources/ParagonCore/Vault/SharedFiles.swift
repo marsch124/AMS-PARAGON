@@ -250,6 +250,14 @@ extension Vault {
         var note = note
         var placedNames: [String] = []
         var placedURLs: [URL] = []
+        // Build 318 (review): the waiting folder is made before the outbox line is written and
+        // is removed only after the note is saved with the lines. No folder therefore means
+        // this very item was filed already (the app was stopped before it could strike the
+        // line, or Save was pressed twice): nothing is written a second time.
+        if let filesRoot, !(item.files ?? []).isEmpty,
+           !fm.fileExists(atPath: filesRoot.appendingPathComponent(item.id.uuidString, isDirectory: true).path) {
+            return note
+        }
         let sources: [URL] = (item.files ?? []).compactMap { relative in
             guard let filesRoot, SharedFiles.accepts(relative),
                   let source = SharedFiles.stagedURL(relative, root: filesRoot),
