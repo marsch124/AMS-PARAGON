@@ -105,3 +105,34 @@ public enum HelpBlock: Equatable, Sendable {
         }
     }
 }
+
+/// **Dates in a help heading, written as everywhere else in the app** (round 9, build 316).
+/// The list of versions is written by hand with headings like "Build 315 · 13 November 2026";
+/// on screen that reads "Build 315 · 2026-11-13". The file is not changed, only how the
+/// heading is shown. "7-8 September 2026" becomes "2026-09-07 to 2026-09-08".
+public enum HelpDates {
+    private static let months = ["January", "February", "March", "April", "May", "June", "July",
+                                 "August", "September", "October", "November", "December"]
+
+    public static func plain(_ heading: String) -> String {
+        let pattern = "(?:\\b(\\d{1,2})\\s?[-\u{2013}]\\s?)?\\b(\\d{1,2}) (" + months.joined(separator: "|") + ") (\\d{4})\\b"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return heading }
+        let whole = heading as NSString
+        var result = heading
+        // From the end, so the places found earlier in the line stay where they are.
+        for match in regex.matches(in: heading, range: NSRange(location: 0, length: whole.length)).reversed() {
+            guard let day = Int(whole.substring(with: match.range(at: 2))),
+                  let month = months.firstIndex(of: whole.substring(with: match.range(at: 3))),
+                  let year = Int(whole.substring(with: match.range(at: 4))),
+                  (1...31).contains(day) else { continue }
+            func written(_ day: Int) -> String { String(format: "%04d-%02d-%02d", year, month + 1, day) }
+            var words = written(day)
+            if match.range(at: 1).location != NSNotFound, let first = Int(whole.substring(with: match.range(at: 1))),
+               (1...31).contains(first) {
+                words = written(first) + " to " + words
+            }
+            result = (result as NSString).replacingCharacters(in: match.range, with: words)
+        }
+        return result
+    }
+}

@@ -470,7 +470,7 @@ struct VaultWarningBar: View {
         VStack(spacing: 2) {
             MarkLabel(text, "exclamationmark.triangle.fill", text: .footnote)
                 .font(Txt.listSecond)
-                .foregroundStyle(.orange)
+                .foregroundStyle(Theme.attention.ink)
                 .multilineTextAlignment(.center)
             Button("Ask iCloud again", action: retry)
                 .font(Txt.listSecond)
@@ -1343,8 +1343,11 @@ struct TaskTray: View {
 
     private func tile(_ ref: TaskRef) -> some View {
         HStack(spacing: 5) {
+            // Round 9 (build 316): the action's own words come first. In a narrow tile the
+            // note's name is cut before they are (it was the other way round).
             Text(ref.task.title)
                 .lineLimit(1)
+                .layoutPriority(1)
             Text(ref.noteTitle)
                 .font(Txt.listSecond)
                 .foregroundStyle(.faint)

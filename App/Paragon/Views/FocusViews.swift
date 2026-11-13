@@ -209,7 +209,7 @@ struct FocusStopView: View {
                 // alert behind it (builds 238, 246).
                 Text(problem)
                     .font(Txt.value)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if session.notePath != nil {
@@ -246,7 +246,7 @@ struct FocusStopView: View {
                 // A clock left running overnight would write whole days of 00:00–24:00 lines.
                 Text("The clock ran for over 12 hours. If it was left running by mistake, choose Don\u{2019}t save the time.")
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
             // The third answer (build 256's review): the time was not real, so nothing is

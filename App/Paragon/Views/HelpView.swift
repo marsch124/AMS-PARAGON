@@ -138,6 +138,12 @@ struct HelpDocument: View {
             .padding(.vertical, 8)
             .background(.bar)
         }
+        #if os(iOS)
+        // Round 9 (build 316): a small title in the bar. Pushed from Settings the page took
+        // Settings' large title, which left an empty band of about 100 points above the
+        // search field; the page writes its own title under the field anyway.
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     @ViewBuilder
@@ -229,7 +235,8 @@ struct HelpParts {
                 if title.isEmpty { title = text } else { blocks.append(block) }
             case .heading(let text):
                 close()
-                heading = text
+                // Round 9 (build 316): "13 November 2026" in a heading reads 2026-11-13.
+                heading = HelpDates.plain(text)
             default:
                 blocks.append(block)
             }

@@ -42,7 +42,8 @@ struct ParagonApp: App {
                     .disabled(model.vault == nil)
                 Button("Quick Capture…") { model.activeSheet = .quickCapture }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
-                Button("Search Everywhere…") { model.section = .search }
+                // Round 9 (build 316): no dots; it opens no dialog.
+                Button("Search Everywhere") { model.section = .search }
                     .keyboardShortcut("f", modifiers: [.command, .shift])
                     .disabled(model.vault == nil)
                 Button("Sync with Reminders") { Task { await model.syncNow() } }
@@ -288,7 +289,8 @@ struct PlannerMenuButton: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Button("Plan\u{2026}") { openWindow(id: ParagonApp.plannerWindowID) }
+        // Round 9 (build 316): no dots; it opens a window, not a dialog (as "Map" beside it).
+        Button("Plan") { openWindow(id: ParagonApp.plannerWindowID) }
             .keyboardShortcut("p", modifiers: [.command, .shift])
     }
 }

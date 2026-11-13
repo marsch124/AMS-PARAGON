@@ -87,9 +87,12 @@ struct DayCalendarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 // A narrow column squeezes an HStack's children until the text inside breaks
                 // (build 138), and this row gained a button. Both lines stop at two.
+                // Round 9 (build 316): a date is never cut in two. In a narrow column it
+                // keeps one line and shrinks a little (it wrapped at 280 points).
                 Text(dayTitle(day))
                     .font(Txt.sectionTitle.weight(.semibold))
-                    .lineLimit(2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                 Text(summary(day: day, overview: overview))
                     .font(Txt.label)
                     .foregroundStyle(.soft)
@@ -489,8 +492,12 @@ struct WeekOverviewView: View {
     /// "next actions and tasks with no date"; showing a dated one here would be the same task
     /// in two places, so the rule is the one the two halves agree on.
     private var toPlace: [TaskRef] {
+        // Round 9 (build 316): an action that already has a block in this week's plan is
+        // planned, so it is not listed here any more.
+        let planned = model.selectedWeek.days.flatMap { model.planBlocks(for: $0).map(\.title) }
         let undated = model.index.openTasks().filter {
             $0.task.dueDate == nil && model.note(at: $0.notePath)?.kind != .daily
+                && !NowAndNext.isPlanned($0.task.planTitle, among: planned)
         }
         let next = Set(model.index.nextActions().map(\.id))
         // Partitioned rather than sorted: Swift's sort is not stable, so a comparator that
@@ -754,7 +761,7 @@ struct WeekGoalBox: View {
                     .foregroundStyle(goal == nil ? Color.secondary : tint.ink)
                 Text(goal ?? emptyText)
                     .font(goal == nil ? .callout : .callout.weight(.semibold))
-                    .foregroundStyle(goal != nil ? Color.primary : (waiting ? Color.orange : Color.secondary))
+                    .foregroundStyle(goal != nil ? Color.primary : (waiting ? Theme.attention.ink : Color.secondary))
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -771,7 +778,8 @@ struct WeekGoalBox: View {
         // (builds 196, 253).
         .accessibilityLabel(Text(shownTitle + ": " + (goal ?? (waiting ? "still coming from iCloud" : "not written yet"))))
         .accessibilityIdentifier(identifier)
-        .help("Press to write what the week is about")
+        // Round 9 (build 316): no hover tip while the box is empty; its own words say the same.
+        .help(goal == nil ? "" : "Press to change what the week is about")
     }
 
     @ViewBuilder

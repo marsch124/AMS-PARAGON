@@ -218,7 +218,7 @@ struct AspirationReasonBox: View {
             // yet (builds 100, 261). Orange with the cloud, as Start the day draws the same state.
             MarkLabel("Being updated from iCloud. The reason may show here in a moment.", "icloud", text: .footnote)
                 .font(Txt.label)
-                .foregroundStyle(Color.orange)
+                .foregroundStyle(Theme.attention.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("aspiration.reason.waiting")
         } else {
@@ -245,7 +245,7 @@ struct AspirationReasonBox: View {
             if let notice {
                 Text(notice)
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("aspiration.reason.notice")
             }

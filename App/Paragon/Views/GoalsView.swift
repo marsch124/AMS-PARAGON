@@ -176,7 +176,8 @@ struct AspirationsListView: View {
             if isOpen { opened.remove(chain.note.relativePath) } else { opened.insert(chain.note.relativePath) }
         } label: {
             HStack(spacing: 6) {
-                MarkImage(isOpen ? "chevron.down" : "chevron.right", text: .footnote)
+                // Round 9 (build 316): 14 points beside the row's name (it was 12).
+                MarkImage(isOpen ? "chevron.down" : "chevron.right", text: .subheadline)
                     .foregroundStyle(.soft)
                     .frame(width: 14)
                 AspirationRow(chain: chain)
@@ -281,7 +282,7 @@ struct DatedGoalsListView: View {
                     }
                 } header: {
                     MarkLabel("Needs a look", "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                 }
             }
             if !live.rest.isEmpty {
@@ -396,7 +397,7 @@ struct GoalEndedHeader: View {
     var body: some View {
         Button(action: toggle) {
             HStack(spacing: 6) {
-                MarkImage(folded ? "chevron.right" : "chevron.down", text: .footnote)
+                MarkImage(folded ? "chevron.right" : "chevron.down", text: .subheadline)
                 Text(status.label)
                 Text("\(count)")
                     .font(Txt.listSecond.monospacedDigit())
@@ -988,7 +989,7 @@ struct ChainGoalBlock: View {
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
                 Text("No project delivers this goal yet")
                     .font(Txt.label)
-                    .foregroundStyle(Theme.attention)
+                    .foregroundStyle(Theme.attention.ink)
             }
             ForEach(goal.projects) { project in
                 ChainProjectRow(project: project)
@@ -1078,7 +1079,7 @@ struct ChainGoalBlock: View {
             if goal.projects.isEmpty && goal.finishedProjects.isEmpty {
                 Text("No project delivers this goal yet")
                     .font(Txt.label)
-                    .foregroundStyle(Theme.attention)
+                    .foregroundStyle(Theme.attention.ink)
                 AddServingNoteButton(model: model, parent: goal.note)
             }
             ForEach(goal.projects) { project in
@@ -1138,7 +1139,7 @@ struct ChainProjectRow: View {
                 } else if project.hasNothingToDo {
                     Text("No next action")
                         .font(Txt.label)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                 } else if project.waitingCount > 0, !project.note.isEnded {
                     // Build 279: nothing he can do himself, but not idle: every open line waits
                     // for somebody else. The same words and the same calm grey as the Projects
@@ -1284,7 +1285,7 @@ struct AllAspirationsView: View {
                                      markName: ChainSymbol.datedGoal, tint: .orange)
                         Text("Each of these is working towards nothing. Give it the aspiration it is in service of.")
                             .font(Txt.label)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Theme.attention.ink)
                         ForEach(loose) { note in
                             VStack(alignment: .leading, spacing: 4) {
                                 ChainGoalBlock(goal: model.index.chainGoal(of: note), lead: false)
@@ -1385,7 +1386,7 @@ struct NoAspirationPrompt: View {
         } label: {
             MarkLabel("Give it an aspiration", "exclamationmark.triangle.fill", text: .footnote)
                 .font(Txt.label)
-                .rowTint(.orange)
+                .rowTint(Theme.attention.ink)
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
@@ -1509,7 +1510,7 @@ struct AddServingNoteBox: View {
             if let notice {
                 Text(notice)
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("addNote.notice")
             }
@@ -1621,7 +1622,7 @@ extension NoteStatus {
     func tint(onNote noteTint: Color) -> Color {
         switch self {
         case .done: return noteTint
-        case .missed: return .orange
+        case .missed: return Theme.attention.ink
         default: return .secondary
         }
     }

@@ -220,7 +220,8 @@ struct SnippetsView: View {
                                 Text(firstLines(of: snippet))
                                     .font(Txt.label)
                                     .foregroundStyle(.soft)
-                                    .lineLimit(2)
+                                    // Round 9 (build 316): three lines before it is cut (two before).
+                                    .lineLimit(3)
                             }
                             .padding(.vertical, 2)
                         }

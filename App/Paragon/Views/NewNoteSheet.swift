@@ -624,7 +624,9 @@ private struct ThingChoice: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .padding(.horizontal, 2)
+            // Round 9 (build 316): 5 points at each side (it was 2), so "Aspiration" and
+            // "Resource" no longer touch the tile's edge; the word shrinks a little sooner.
+            .padding(.horizontal, 5)
             .foregroundStyle(tint.capsuleWords)
             .background(tint.opacity(chosen ? 0.12 : 0), in: RoundedRectangle(cornerRadius: 9))
             .overlay(
@@ -834,7 +836,7 @@ private struct PickerChip: View {
                 if let notice {
                     Text(notice)
                         .font(Txt.label)
-                        .foregroundStyle(Color.orange)
+                        .foregroundStyle(Theme.attention.ink)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("pick.notice")
                 }

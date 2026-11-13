@@ -286,7 +286,7 @@ struct CloseDayView: View {
             if let saveProblem {
                 Text(saveProblem)
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -451,7 +451,7 @@ private struct PlannedWorkedSection: View {
             return Text("\u{2013}").foregroundStyle(Theme.soft)
         }
         let text = Text(TaskTime.label(minutes)).monospacedDigit()
-        return over ? text.foregroundStyle(Color.orange).bold() : text
+        return over ? text.foregroundStyle(Theme.attention.ink).bold() : text
     }
 }
 

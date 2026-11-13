@@ -286,6 +286,11 @@ struct ReviewView: View {
             // Review round 4: on the iPhone each row is a card in the part's colour.
             .phoneCard(SidebarSection.review.tint)
         }
+        #if os(iOS)
+        // Round 9 (build 316): the folded steps sit closer together on the iPhone (they were
+        // about 66 points apart). Apple's compact spacing between the parts of a list.
+        .listSectionSpacing(isPhone ? .compact : .default)
+        #endif
         // For the screen test, which scrolls this list to reach step 7 (build 263).
         .accessibilityIdentifier("review.list")
         .onAppear { startVisit() }
@@ -409,10 +414,17 @@ struct ReviewPartHeading: View {
 
     var body: some View {
         FoldButton(isOpen: $isOpen, accessibilityName: ticked ? shown + ", nothing left to do" : shown) {
+            // Round 9 (build 316): the heading may take two lines (on the Mac it was cut to
+            // "2. Reschedule or drop o…" beside an open note), and the tick sits at the end
+            // of the line for every step. Before, it came straight after the words, so
+            // after a heading of two lines it sat somewhere else than after one of one line.
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(shown)
                     .font(Txt.sectionTitle)
                     .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 if ticked {
                     MarkImage("checkmark.circle", text: .subheadline)
                         .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
@@ -637,7 +649,7 @@ struct HealthRow: View {
             HStack(spacing: 8) {
                 KindBadge(kind: health.note.kind, size: 20)
                 MarkImage(health.needsAttention ? "exclamationmark.triangle.fill" : "checkmark.circle")
-                    .rowTint(health.needsAttention ? Color.orange : health.note.tint)
+                    .rowTint(health.needsAttention ? Theme.attention.ink : health.note.tint)
                 Text(health.note.title)
                     .font(Txt.listTitle)
                     .lineLimit(2)
@@ -788,7 +800,7 @@ struct GoalHealthRow: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(flag == .achieved ? health.note.tint.opacity(0.18) : Color.orange.opacity(0.18), in: Capsule())
-                            .rowTint(flag == .achieved ? health.note.tint.capsuleWords : Color.orange.capsuleWords)
+                            .rowTint(flag == .achieved ? health.note.tint.capsuleWords : Theme.attention.capsuleWords)
                     }
                 }
             }
@@ -864,7 +876,7 @@ struct ReviewDueRow: View {
                 Spacer(minLength: 6)
                 Text(item.whenText)
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .lineLimit(1)
                     .fixedSize()
             }

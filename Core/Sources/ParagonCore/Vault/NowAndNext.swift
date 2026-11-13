@@ -75,6 +75,14 @@ public struct NowAndNext: Equatable, Sendable {
         let key = PlannedAndWorked.key(one)
         return !key.isEmpty && key == PlannedAndWorked.key(other)
     }
+
+    /// **Planned already** (round 9, build 316): true when one of the blocks carries this
+    /// action's plan name (`sameName`). **Plan the week** leaves such an action out of
+    /// **Not planned yet**. An action with no name is never "planned".
+    public static func isPlanned(_ planTitle: String, among blockTitles: [String]) -> Bool {
+        guard !planTitle.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        return blockTitles.contains { sameName($0, planTitle) }
+    }
 }
 
 public extension NoteIndex {

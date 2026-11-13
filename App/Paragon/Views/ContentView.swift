@@ -15,7 +15,9 @@ struct ContentView: View {
     /// How far above the bottom the short messages sit: clear of the focus timer's bar while a
     /// clock runs — on the phone that bar sits above the tab bar.
     private var flashBottom: CGFloat {
-        guard model.focus != nil else { return 16 }
+        // Round 9 (build 316): on the iPhone the message sits above the tab bar (49 points
+        // and a gap). At 16 points it lay on top of the tabs.
+        guard model.focus != nil else { return isCompact && model.vault != nil ? 66 : 16 }
         return isCompact ? 128 : 72
     }
 
@@ -495,7 +497,7 @@ struct WelcomeView: View {
                 .font(Txt.pageTitle.bold())
             Text(explanation)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(model.vaultProblem == nil ? Theme.soft : Color.orange)
+                .foregroundStyle(model.vaultProblem == nil ? Theme.soft : Theme.attention.ink)
                 .frame(maxWidth: 420)
             // The way back comes first when there is one: it is the answer nine times out of
             // ten, and choosing a folder by hand is the fallback, not the first offer.
@@ -547,9 +549,15 @@ struct SidebarView: View {
                                 }
                             }
                         }
-                        #if !os(macOS)
-                        // The Mac's search is the field in its toolbar (round 7). The iPad
-                        // has no such field, so its row stays.
+                        #if os(macOS)
+                        // The Mac's search is the field in its toolbar (round 7, his pick),
+                        // so the sidebar has no Search row. Round 9 (build 316): only while
+                        // the Search page is open the row is there, as the chosen one —
+                        // before, the sidebar then showed no chosen row at all. It goes
+                        // again when another row is chosen.
+                        if group.name == "Look back", model.section == .search { row(.search) }
+                        #else
+                        // The iPad has no such field, so its row stays.
                         if group.name == "Look back" { row(.search) }
                         #endif
                     }
@@ -1425,7 +1433,9 @@ extension SyncStatusBar {
     /// Build 291: the tip says what the button does and that nothing is needed from him.
     static func tip(_ report: SyncReport?, every minutes: Int) -> String {
         let auto = minutes > 0 ? " It also runs by itself every \(minutes) minutes." : ""
-        let head = "Sync tasks with Apple Reminders now (⇧⌘R).\(auto)"
+        // Round 9 (build 316): a press opens the small menu since build 312, so the tip no
+        // longer says "Sync … now".
+        let head = "The sync with Apple Reminders. Press for Sync now and the other choices; ⇧⌘R syncs at once.\(auto)"
         guard let report else { return head }
         let time = DayWords.time(report.finishedAt ?? report.startedAt)
         if !report.conflicts.isEmpty {

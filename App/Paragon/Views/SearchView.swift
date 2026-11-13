@@ -70,7 +70,10 @@ struct SearchView: View {
                     // field plus the keyboard left the results about two rows tall, which is
                     // what he reported (build 160).
                     .frame(height: filtersHeight > 0 ? min(filtersHeight, filtersCap) : nil)
-                    .frame(maxHeight: filtersCap)
+                    // Round 9 (build 316): the cap only until the height is known. A second
+                    // frame "at most the cap" grew to the cap on a wide page, where the boxes
+                    // need fewer lines, and centred them in it: an empty band above the boxes.
+                    .frame(maxHeight: filtersHeight > 0 ? nil : filtersCap)
             }
             Divider()
             results(query)
@@ -140,8 +143,10 @@ struct SearchView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("search.words")
                 #else
+                // Round 9 (build 316): the app's own field on the iPhone, as **Add a task…**
+                // (Apple's rounded field is a pure black box at night).
                 TextField("Search for a word", text: $fieldText)
-                    .textFieldStyle(.roundedBorder)
+                    .modifier(DateFieldLook(isPhone: isPhone))
                     .focused($focused)
                     .submitLabel(.search)
                     .onSubmit { focused = false }

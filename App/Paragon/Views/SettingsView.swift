@@ -46,16 +46,30 @@ struct SettingsView: View {
             // the first thing in Settings. The Mac and the iPad keep it where it was.
             if phoneLook { helpSection }
             Section("Vault") {
+                // Round 9 (build 316): the folder's name and where it is, in plain words.
+                // Before, the raw path. On the Mac the path is the row's hover tip, and
+                // **Show in Finder** opens the place itself.
                 LabeledContent("Folder") {
-                    Text(model.vaultPath ?? "No vault selected")
+                    Text(model.vaultPath.map { VaultPlaceWords.line(path: $0, device: AppModel.thisDevice) }
+                         ?? "No vault selected")
                         .foregroundStyle(.soft)
                         .lineLimit(2)
                         .truncationMode(.middle)
+                        .accessibilityIdentifier("settings.vault.folder")
                 }
+                #if os(macOS)
+                .help(model.vaultPath ?? "")
+                #endif
                 Button("Choose folder…") {
                     pickingBackupFolder = false
                     showingImporter = true
                 }
+                #if os(macOS)
+                if let vault = model.vault {
+                    Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([vault.rootURL]) }
+                        .accessibilityIdentifier("settings.vault.show")
+                }
+                #endif
                 // On a line of its own (round 3): the red word sat right beside Choose folder.
                 if model.vault != nil {
                     Button("Close vault", role: .destructive) { model.closeVault() }
@@ -98,12 +112,14 @@ struct SettingsView: View {
                     Text("Every 30 minutes").tag(30)
                     Text("Every hour").tag(60)
                 }
-                Picker("When both sides changed", selection: Binding(
+                // Round 9 (build 316): shorter words on the iPhone, so the label and its
+                // value share one line (the value used to drop to a second line).
+                Picker(phoneLook ? "If both changed" : "When both sides changed", selection: Binding(
                     get: { model.config.conflictPolicy },
                     set: { var c = model.config; c.conflictPolicy = $0; model.config = c }
                 )) {
-                    Text("The note wins").tag(ConflictPolicy.noteWins)
-                    Text("The reminder wins").tag(ConflictPolicy.reminderWins)
+                    Text(phoneLook ? "Note wins" : "The note wins").tag(ConflictPolicy.noteWins)
+                    Text(phoneLook ? "Reminder wins" : "The reminder wins").tag(ConflictPolicy.reminderWins)
                 }
                 Toggle("Sync tasks in area notes", isOn: Binding(
                     get: { model.config.syncAreas },
@@ -208,7 +224,7 @@ struct SettingsView: View {
                 if let problem = model.outsideBackupProblem {
                     Text(problem)
                         .font(Txt.label)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                         .accessibilityIdentifier("settings.outsideBackup.problem")
                 }
                 HStack {
@@ -244,7 +260,7 @@ struct SettingsView: View {
                 if model.calendarAccessGranted == false {
                     Text("Calendar access is off. Allow it in \(DeviceWords.systemSettings) › Privacy & Security › Calendars.")
                         .font(Txt.label)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                 }
                 if model.calendarAccessGranted == true, !model.calendars.isEmpty {
                     DisclosureGroup("Calendars to show") {
@@ -332,7 +348,7 @@ struct SettingsView: View {
             Section("Last sync") {
                 if let report = model.lastReport {
                     Text(report.summary)
-                    ForEach(report.conflicts, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.orange) }
+                    ForEach(report.conflicts, id: \.self) { Text($0).font(Txt.label).foregroundStyle(Theme.attention.ink) }
                     ForEach(report.warnings, id: \.self) { Text($0).font(Txt.label).foregroundStyle(.soft) }
                 } else {
                     Text("Not synced yet in this session").foregroundStyle(.soft)
@@ -347,10 +363,23 @@ struct SettingsView: View {
                 // Build 315 (features-06): the version is here too, on every device.
                 LabeledContent("Version", value: AppVersion.text)
                     .accessibilityIdentifier("settings.about.version")
-                LabeledContent("Device id", value: model.deviceID)
-                Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
-                    .font(Txt.label)
-                    .foregroundStyle(.soft)
+                // Round 9 (build 316): the technical lines sit behind **Details**, closed to
+                // begin with. Nothing was removed; the id is on one line and can be copied.
+                DisclosureGroup("Details") {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Device id")
+                        Text(model.deviceID)
+                            .font(Txt.label.monospaced())
+                            .foregroundStyle(.soft)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .textSelection(.enabled)
+                    }
+                    Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
+                        .font(Txt.label)
+                        .foregroundStyle(.soft)
+                }
+                .accessibilityIdentifier("settings.about.details")
             }
             }
             // Review round 4: on the iPhone each row is a card in the part's colour.
@@ -572,7 +601,7 @@ struct CaptureKeyRow: View {
         if refused {
             Text("Another app already uses this key. Pick a different one.")
                 .font(Txt.label)
-                .foregroundStyle(Theme.attention)
+                .foregroundStyle(Theme.attention.ink)
                 .accessibilityIdentifier("settings.captureKey.refused")
         }
     }
@@ -673,7 +702,7 @@ struct WidgetStatusSection: View {
         Section("Widget") {
             LabeledContent("Shared folder") {
                 Text(folderFound ? "Found" : "Not found")
-                    .foregroundStyle(folderFound ? Theme.soft : Color.orange)
+                    .foregroundStyle(folderFound ? Theme.soft : Theme.attention.ink)
             }
             LabeledContent("Last written") {
                 Text(writtenText).foregroundStyle(Theme.soft)
@@ -699,7 +728,7 @@ struct WidgetStatusSection: View {
                 // Build 261: the widget is not written from part of the vault.
                 Text("Not written while \(model.notesWaitingForCloud.count) notes are still coming from iCloud: it would show only part of your vault.")
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Text(explanation)
@@ -768,7 +797,7 @@ struct DayReminderSection: View {
                 // build 243 that includes "never asked", which used to look like "all fine".
                 Text(problem)
                     .font(Txt.label)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 if reminder.permission == .notAsked {
                     Button("Allow notifications") { reminder.update(kind, on: true) }
@@ -787,7 +816,7 @@ struct DayReminderSection: View {
             if let line = testLine {
                 Text(line.text)
                     .font(Txt.label)
-                    .foregroundStyle(line.isProblem ? Color.orange : Theme.soft)
+                    .foregroundStyle(line.isProblem ? Theme.attention.ink : Theme.soft)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

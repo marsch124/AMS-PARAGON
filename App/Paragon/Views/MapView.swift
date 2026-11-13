@@ -42,6 +42,10 @@ struct MapView: View {
             } else {
                 let layout = MapLayout(map: map, zoom: zoom, pinned: model.pinnedMapPositions)
                 let lit = selectedID.map { map.neighbourhood(of: $0) }
+                // Round 9 (build 316): a map smaller than its page starts at the top. A
+                // scroll view that goes both ways centres small content, which left an empty
+                // band of about 90 points above the Map on the Mac.
+                GeometryReader { page in
                 ScrollView([.horizontal, .vertical]) {
                     MapCanvas(layout: layout, lit: lit, selectedID: selectedID,
                               select: { node in select(node) },
@@ -56,6 +60,8 @@ struct MapView: View {
                               })
                     .frame(width: layout.size.width, height: layout.size.height)
                     .padding(28)
+                    .frame(minWidth: page.size.width, minHeight: page.size.height, alignment: .top)
+                }
                 }
                 Divider()
                 MapFooter(map: map, selectedID: selectedID)
@@ -79,7 +85,11 @@ struct MapView: View {
                     arranging.toggle()
                     if !arranging { marked = [] }
                 }
+                // Round 9 (build 316): the dividing line is the Mac's only. On the iPhone and
+                // the iPad a divider in the bar drew as an empty slot.
+                #if os(macOS)
                 Divider()
+                #endif
                 Menu {
                     Button("PDF\u{2026}") { export(MapExport.pdfData(for: map), extension: "pdf") }
                     Button("PNG\u{2026}") { export(MapExport.pngData(for: map), extension: "png") }
@@ -321,7 +331,12 @@ struct MapLayout {
         let frames = Dictionary(placed.map { ($0.id, $0.frame) }, uniquingKeysWith: { a, _ in a })
         var lines: [Edge] = []
         for item in placed {
+            // Round 9 (build 316): the actions stacked under a box share one line, to the
+            // first of them. Each used to have its own, and the lines of the lower ones ran
+            // through the rows above.
+            let firstChip = item.node.children.first(where: \.isChip)?.id
             for child in item.node.children {
+                if child.isChip, child.id != firstChip { continue }
                 guard let target = frames[child.id] else { continue }
                 lines.append(Edge(from: child.id, to: item.id,
                                   start: CGPoint(x: target.midX, y: target.minY),
@@ -659,9 +674,12 @@ struct MapNodeView: View {
                       markName: note.kind == .goal ? ChainSymbol.forGoal(note) : nil,
                       tint: chainTint(for: note))
             VStack(alignment: .leading, spacing: 1) {
+                // Round 9 (build 316): a long title takes two lines before it is cut.
                 Text(note.displayTitle)
                     .font(Txt.mapTitle(zoom))
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .lineSpacing(-1)
+                    .multilineTextAlignment(.leading)
                 Text(subtitle(for: note))
                     .font(Txt.mapLabel(zoom))
                     .foregroundStyle(.soft)

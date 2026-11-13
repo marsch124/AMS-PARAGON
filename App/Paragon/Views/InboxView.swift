@@ -68,6 +68,7 @@ struct InboxTriageView: View {
     @State private var newItem = ""
     @State private var pickingDateFor: TaskRef?
     @FocusState private var captureFocused: Bool
+    @Environment(\.phoneLook) private var phoneLook
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -138,7 +139,9 @@ struct InboxTriageView: View {
                                action: { model.activeSheet = .quickCapture },
                                actionIdentifier: "inbox.empty.capture")
             } else {
-                header
+                // Round 9 (build 316): not inside the iPhone layout, where the band above
+                // already says "1 waiting" and this line said "1 to sort" right under it.
+                if !phoneLook { header }
                 List(selection: $model.inboxSelection) {
                     ForEach(items, id: \.triageID) { ref in
                         InboxRow(ref: ref)
@@ -212,13 +215,15 @@ struct InboxTriageView: View {
         HStack(spacing: 8) {
             MarkImage("tray.and.arrow.down")
                 .foregroundStyle(SidebarSection.inbox.tint)
+            // Round 9 (build 316): the app's own field on the iPhone, as **Add a task…**.
             TextField("Capture something…", text: $newItem)
-                .textFieldStyle(.roundedBorder)
+                .modifier(DateFieldLook(isPhone: isPhone))
                 .focused($captureFocused)
                 .onSubmit(capture)
+            // Round 9 (build 316): the main button keeps its full colour while the field
+            // is empty (it was pale). A press with nothing typed puts the cursor in the field.
             Button("Add", action: capture)
                 .buttonStyle(.filled(SidebarSection.inbox.tint))
-                .disabled(newItem.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -252,7 +257,11 @@ struct InboxTriageView: View {
 
     private func capture() {
         let text = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, let inbox else { return }
+        guard !text.isEmpty else {
+            captureFocused = true
+            return
+        }
+        guard let inbox else { return }
         model.addTask(text, to: inbox.relativePath)
         newItem = ""
     }

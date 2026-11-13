@@ -64,7 +64,7 @@ struct ProjectsListView: View {
                 }
                 if look > 0 {
                     MarkLabel(WeeklyFinished.lookText(look), "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.attention.ink)
                 }
             }
             .font(Txt.label)
@@ -229,11 +229,23 @@ struct ProjectGroupHeader: View {
     let group: ProjectGroup
     let open: Bool
     let toggle: () -> Void
+    /// The name's height as laid out (round 9, build 316), so only a name on two lines gets
+    /// the Mac's extra room. Since build 310 every heading had it, and a heading of one line
+    /// was 8 points taller than it needs to be.
+    @State private var nameHeight: CGFloat = 0
+
+    /// Above and below the line: 4 points; on the Mac 8 when the name takes two lines.
+    private var pad: CGFloat {
+        nameHeight > ProjectGroupHeader.oneLine ? ProjectGroupHeader.pad : 4
+    }
+    /// A 17-point heading is about 21 points tall on one line and 42 on two.
+    static let oneLine: CGFloat = 30
 
     var body: some View {
         Button(action: toggle) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                MarkImage("chevron.right", text: .footnote)
+                // Round 9 (build 316): 16 points beside the 17-point heading (it was 12).
+                MarkImage("chevron.right")
                     .foregroundStyle(.soft)
                     .rotationEffect(.degrees(open ? 90 : 0))
                 badge
@@ -246,6 +258,7 @@ struct ProjectGroupHeader: View {
                     // how tall it is, so at 280 points the name was cut with "…" instead of
                     // wrapping (the reviewer of 280).
                     .fixedSize(horizontal: false, vertical: true)
+                    .measureHeight($nameHeight)
                 // Round 3: "Done 1 · 1 this year" said the same number twice. The count gives
                 // way when the year's line already says it.
                 if yearCaption != ProjectGroup.thisYearText(group.lines.count) {
@@ -267,13 +280,13 @@ struct ProjectGroupHeader: View {
                     // folded group still says it (build 100).
                     MarkLabel("\(group.needsALookCount)", "exclamationmark.triangle.fill", text: .footnote)
                         .font(Txt.label.weight(.semibold))
-                        .foregroundStyle(Theme.attention)
+                        .foregroundStyle(Theme.attention.ink)
                 }
             }
             // The whole line, never a `Spacer` beside a short button: the Mac reported a wrong
             // frame for that shape and a test's click landed in the list (build 247).
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, ProjectGroupHeader.pad)
+            .padding(.vertical, pad)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -409,14 +422,18 @@ struct ProjectRow: View {
         } else {
             // The count is its own words, so a screen reader and the tests hear "0 of 2" and
             // then the need; the need element keeps its old name and its "Next: …" label.
-            HStack(spacing: 4) {
+            // Round 9 (build 316): the need may take two lines before it is cut ("Next:
+            // Define the outcome and the first ste…" was cut on the iPhone).
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
                 if let count = second.count {
                     Text(count + " \u{00B7}")
                         .lineLimit(1)
                         .fixedSize()
                 }
                 Text(second.text)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(needWords)
                     .accessibilityIdentifier("project.next.\(line.id)")
@@ -425,7 +442,7 @@ struct ProjectRow: View {
             // Red when a date has passed; orange ("look at this") when the project is due
             // after its goal, as the card said it (build 253); grey otherwise.
             .foregroundStyle(second.late ? AnyShapeStyle(Color.red)
-                             : second.attention ? AnyShapeStyle(Theme.attention) : AnyShapeStyle(.secondary))
+                             : second.attention ? AnyShapeStyle(Theme.attention.ink) : AnyShapeStyle(.secondary))
         }
     }
 

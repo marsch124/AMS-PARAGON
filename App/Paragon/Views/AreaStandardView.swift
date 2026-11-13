@@ -191,7 +191,7 @@ struct AreaStandardBox: View {
             if let notice {
                 Text(notice)
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("area.standard.notice")
             }
