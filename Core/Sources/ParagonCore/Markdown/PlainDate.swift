@@ -50,13 +50,19 @@ public struct PlainDate: Equatable, Sendable {
                     return r.location == NSNotFound ? nil : ns.substring(with: r).lowercased()
                 }
                 let timed = readTime(group)
-                if timed.invalid { continue }
+                // A number after the day that is no time of day ("tomorrow 45.00") is not
+                // read at all: the day is kept, without a time, and the number stays text.
+                var range = m.range
+                let clock = m.range(withName: "clock")
+                if timed.invalid, clock.location != NSNotFound {
+                    range.length = clock.location - range.location
+                }
                 let lead = group("lead")
-                let rest = ns.substring(from: NSMaxRange(m.range))
+                let rest = ns.substring(from: NSMaxRange(range))
                 let atEnd = onlyMarks.firstMatch(in: rest, range: NSRange(location: 0, length: (rest as NSString).length)) != nil
                 guard let date = pattern.date(group, lead, timed.time != nil, atEnd, today, calendar) else { continue }
-                let found = PlainDate(date: date, time: timed.time, words: ns.substring(with: m.range),
-                                      location: m.range.location, length: m.range.length)
+                let found = PlainDate(date: date, time: timed.time, words: ns.substring(with: range),
+                                      location: range.location, length: range.length)
                 if let now = best {
                     if found.location < now.location || (found.location == now.location && found.length > now.length) {
                         best = found
@@ -123,7 +129,9 @@ public struct PlainDate: Equatable, Sendable {
     /// "on", "by" or "due" in front belongs to the date and goes with it.
     private static let lead = #"(?:(?<lead>on|by|due)\s+)?"#
     /// An optional time of day after the date: 14:00, 14.00, 2pm, 2:30 pm, noon, at 14.
-    private static let time = #"(?:\s+(?:at\s+)?(?:(?<h1>\d{1,2})[:.](?<m1>\d{2})(?:\s?(?<ap1>am|pm))?|(?<h2>\d{1,2})\s?(?<ap2>am|pm)|(?<noon>noon))|\s+at\s+(?<h3>\d{1,2}))?"#
+    /// **With a dot it is a time only when no word follows** ("tomorrow 14.00"): in
+    /// "tomorrow 12.50 kr" the number is money and stays in the text.
+    private static let time = #"(?<clock>\s+(?:at\s+)?(?:(?<h1>\d{1,2}):(?<m1>\d{2})(?:\s?(?<ap1>am|pm))?|(?<h4>\d{1,2})\.(?<m4>\d{2})(?:\s?(?<ap4>am|pm))?(?!\s*\p{L})|(?<h2>\d{1,2})\s?(?<ap2>am|pm)|(?<noon>noon))|\s+at\s+(?<h3>\d{1,2}))?"#
 
     private static func make(_ body: String) -> NSRegularExpression {
         try! NSRegularExpression(pattern: before + body + time + after, options: [.caseInsensitive])
@@ -185,8 +193,10 @@ public struct PlainDate: Equatable, Sendable {
     ]
 
     /// Quotation marks, links, note links and code: words in there are his words, not a date.
+    /// And the task line's own marks with brackets — `@deadline(2026-12-01)`, `@since(…)`,
+    /// `@done(…)`, `@repeat(…)`: the date in there is that mark's, never the do-day.
     private static let shutOut = try! NSRegularExpression(
-        pattern: #"\[\[[^\]]*\]\]|\[[^\]]*\]\([^)]*\)|\S*://\S*|`[^`]*`|"[^"]*"|\x{201C}[^\x{201D}]*\x{201D}"#)
+        pattern: #"\[\[[^\]]*\]\]|\[[^\]]*\]\([^)]*\)|\S*://\S*|`[^`]*`|"[^"]*"|\x{201C}[^\x{201D}]*\x{201D}|@\w+\([^)]*\)"#)
 
     /// What may follow a date that is "the last words of the line": only the task line's own
     /// marks (#tag, !, ~45m, @repeat(…), ^id) and one closing full stop.
@@ -201,12 +211,16 @@ public struct PlainDate: Equatable, Sendable {
         var half: String?
         if let h = g("h1"), let m = g("m1") {
             hour = Int(h); minute = Int(m) ?? 0; half = g("ap1")
+        } else if let h = g("h4"), let m = g("m4") {
+            hour = Int(h); minute = Int(m) ?? 0; half = g("ap4")
         } else if let h = g("h2") {
             hour = Int(h); half = g("ap2")
         } else if g("noon") != nil {
             hour = 12
         } else if let h = g("h3") {
-            hour = Int(h)
+            // A bare "at 2" is the afternoon: 1 to 6 mean 13:00 to 18:00. "at 7" to "at 12"
+            // and "at 14" are as written; so is anything with am, pm or minutes.
+            hour = Int(h).map { (1...6).contains($0) ? $0 + 12 : $0 }
         }
         guard var h = hour else { return (nil, false) }
         if let half {

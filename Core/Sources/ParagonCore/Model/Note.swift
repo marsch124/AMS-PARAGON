@@ -248,7 +248,8 @@ public struct Note: Equatable, Identifiable, Sendable {
             guard let found = byID ?? (previousID == nil ? byTitle : nil) else { return false }
             index = found
         }
-        let newLine = task.serialized
+        // Build 316: a repeat that build 315 cannot read is written together with its id.
+        let newLine = task.withIDForNewRepeat(avoiding: Set(tasks.compactMap(\.id))).serialized
         guard current[index] != newLine else { return true }
         current[index] = newLine
         lines = current
@@ -259,8 +260,8 @@ public struct Note: Equatable, Identifiable, Sendable {
     /// Returns the task with its final `lineIndex`.
     @discardableResult
     public mutating func append(task: TaskItem, sectionHeading: String = "Tasks") -> TaskItem {
-        var inserted = task
-        inserted.lineIndex = appendLine(task.serialized, under: sectionHeading)
+        var inserted = task.withIDForNewRepeat(avoiding: Set(tasks.compactMap(\.id)))
+        inserted.lineIndex = appendLine(inserted.serialized, under: sectionHeading)
         return inserted
     }
 
@@ -341,7 +342,7 @@ public struct Note: Equatable, Identifiable, Sendable {
                 j += 1
             }
         }
-        var child = subtask
+        var child = subtask.withIDForNewRepeat(avoiding: Set(all.compactMap(\.id)))
         child.indent = parent.indent + "    "
         child.bullet = parent.bullet
         child.lineIndex = insertAt
@@ -365,7 +366,7 @@ public struct Note: Equatable, Identifiable, Sendable {
     @discardableResult
     public mutating func insert(task: TaskItem, afterLine lineIndex: Int) -> TaskItem {
         var current = lines
-        var inserted = task
+        var inserted = task.withIDForNewRepeat(avoiding: Set(tasks.compactMap(\.id)))
         let at = min(max(lineIndex + 1, 0), current.count)
         inserted.lineIndex = at
         current.insert(inserted.serialized, at: at)

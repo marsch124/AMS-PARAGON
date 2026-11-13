@@ -252,7 +252,7 @@ public final class SyncEngine {
             var keeper = ordered[0]
             var tick = false
             for twin in ordered.dropFirst() {
-                if Self.singleLine(twin.title) == Self.singleLine(keeper.title) {
+                if Self.withoutDeadlineMark(Self.singleLine(twin.title)) == Self.withoutDeadlineMark(Self.singleLine(keeper.title)) {
                     if twin.isCompleted, !keeper.isCompleted {
                         keeper.isCompleted = true
                         keeper.completedAt = twin.completedAt ?? now()
@@ -559,6 +559,9 @@ public final class SyncEngine {
 
                 var task = TaskItem(title: Self.taskTitle(fromReminderTitle: reminder.title, parentPrefix: nil), id: id)
                 apply(reminder: reminder, to: &task)
+                // A reminder that comes in new with a deadline written in its title keeps it,
+                // as the task's deadline.
+                task.deadline = Self.deadlineMark(inReminderTitle: reminder.title).flatMap(DateOnly.init)
                 task = TaskParser.normalized(task)
                 var appended = task
                 let toAppend = task
@@ -744,7 +747,16 @@ public final class SyncEngine {
     func apply(task: TaskItem, to reminder: inout ReminderRecord, listName: String, parentPrefix: String? = nil) {
         if reminder.listName != listName { reminder.listID = knownListIDs[listName] ?? "" }
         reminder.listName = listName
+        // Build 316 does not put the deadline in a reminder's title, but build 315 does (to
+        // 315 it is part of the task's words). While a device is still on 315, a title that
+        // lost its `@deadline(…)` would make that device take the deadline off the note line.
+        // So a mark that is already in the title stays: with the task's own deadline when it
+        // has one, else exactly as it is. A title without the mark never gets one.
+        let existingMark = Self.deadlineMark(inReminderTitle: reminder.title)
         reminder.title = Self.reminderTitle(for: task.title, parentPrefix: parentPrefix)
+        if let existingMark {
+            reminder.title += " @deadline(\(task.deadline?.description ?? existingMark))"
+        }
         reminder.dueDate = task.dueDate
         reminder.dueTime = task.dueDate == nil ? nil : task.dueTime
         reminder.priority = task.priority
@@ -783,10 +795,11 @@ public final class SyncEngine {
 
     /// Strips the `Parent › ` prefix again when a subtask's reminder comes back, and removes
     /// `^tXXXXXX` ids and `@done(...)` stamps typed into a reminder title, which would otherwise
-    /// be read back as the task's own id or completion.
+    /// be read back as the task's own id or completion. A `@deadline(…)` in the title (a
+    /// device on build 315 puts it there) is removed too: the task keeps its own deadline.
     static func taskTitle(fromReminderTitle title: String, parentPrefix: String?) -> String {
         var clean = singleLine(title)
-        for regex in [TaskParser.idRegex, TaskParser.doneRegex] {
+        for regex in [TaskParser.idRegex, TaskParser.doneRegex, deadlineMarkRegex] {
             let ns = clean as NSString
             clean = regex.stringByReplacingMatches(in: clean, range: NSRange(location: 0, length: ns.length), withTemplate: "")
         }
@@ -794,6 +807,23 @@ public final class SyncEngine {
         guard let parentPrefix, !parentPrefix.isEmpty else { return clean }
         let prefix = parentPrefix + Note.subtaskSeparator
         return clean.hasPrefix(prefix) ? String(clean.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces) : clean
+    }
+
+    /// `@deadline(…)` in a reminder's title, whatever is between the brackets.
+    static let deadlineMarkRegex = try! NSRegularExpression(pattern: #"(?<!\S)@deadline\(([^)]*)\)"#)
+
+    /// What is between the brackets of the first `@deadline(…)` in a reminder's title, or nil.
+    static func deadlineMark(inReminderTitle title: String) -> String? {
+        let ns = title as NSString
+        guard let m = deadlineMarkRegex.firstMatch(in: title, range: NSRange(location: 0, length: ns.length)) else { return nil }
+        return ns.substring(with: m.range(at: 1)).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// A reminder's title without any `@deadline(…)`: the part build 316 compares and shows.
+    static func withoutDeadlineMark(_ title: String) -> String {
+        let ns = title as NSString
+        return TaskParser.collapseWhitespace(deadlineMarkRegex.stringByReplacingMatches(
+            in: title, range: NSRange(location: 0, length: ns.length), withTemplate: " "))
     }
 
     static func singleLine(_ text: String) -> String {
@@ -807,7 +837,9 @@ public final class SyncEngine {
     }
 
     public static func fingerprint(_ reminder: ReminderRecord) -> String {
-        fingerprint(title: singleLine(reminder.title), done: reminder.isCompleted,
+        // Without a `@deadline(…)` a build 315 device left in the title: the deadline is not
+        // part of what the two sides share, so its coming and going is no change.
+        fingerprint(title: withoutDeadlineMark(singleLine(reminder.title)), done: reminder.isCompleted,
                     due: reminder.dueDate, time: reminder.dueDate == nil ? nil : reminder.dueTime, priority: reminder.priority)
     }
 

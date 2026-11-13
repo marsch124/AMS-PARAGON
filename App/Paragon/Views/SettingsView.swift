@@ -642,8 +642,8 @@ struct CaptureKeyRow: View {
 }
 
 /// **Record my own key…** (round 9, build 316): press the keys, see them as symbols, then
-/// **Save**. A key without ⌘, ⌃ or ⌥ is refused; a key macOS is known to use gets a warning
-/// and may still be saved. Cancel and Escape leave everything as it was.
+/// **Save**. A key without ⌘ or ⌃ is refused, and so is a key every app uses (⌘C, ⌘V, ⌘Q,
+/// ⌘Tab, ⌘Space…); another key macOS is known to use gets a warning and may still be saved. Cancel and Escape leave everything as it was.
 ///
 /// Only keys pressed **while this window is open** are looked at, and only inside PARAGON
 /// (`addLocalMonitorForEvents`): nothing is read from other apps and no permission is needed.
@@ -656,7 +656,7 @@ struct RecordKeySheet: View {
     @State private var monitor: Any?
 
     private var refusedLine: String? {
-        if let pressed, !pressed.isAllowed { return RecordedKey.refusedLine }
+        if let pressed, let refusal = pressed.refusalLine { return refusal }
         if pressed == nil, triedToSave { return "Press the keys first." }
         return nil
     }

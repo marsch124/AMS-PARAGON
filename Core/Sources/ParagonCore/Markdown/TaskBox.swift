@@ -40,7 +40,9 @@ public enum TaskBox {
             task.markDone(at: date)
             replacement = task.serialized
             if let next = task.nextOccurrence(completedOn: DateOnly(date, calendar: calendar), calendar: calendar) {
-                replacement += "\n" + next.serialized
+                // Build 316: the next copy of a repeat build 315 cannot read carries its id.
+                let taken = Set(TaskParser.parse(text: text).compactMap(\.id))
+                replacement += "\n" + next.withIDForNewRepeat(avoiding: taken).serialized
             }
         }
         return ns.replacingCharacters(in: line, with: replacement + ending)

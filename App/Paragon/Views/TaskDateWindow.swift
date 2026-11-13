@@ -12,12 +12,29 @@ enum TaskWindowTab: String, CaseIterable {
     case repeats = "Repeat"
 }
 
-/// Which page the task's date window opens on. The task menu sets it just before it asks the
-/// row to open the window (**Deadline › Pick a date…**, **Repeat › On weekdays…**); the window
-/// reads it once and puts it back to **Date**, which is what every other way in gets.
+/// Which page the task's date window opens on. The task menu asks for a page just before it
+/// asks the row to open the window (**Deadline › Pick a date…**, **Repeat › On weekdays…**).
+///
+/// **An asked-for page counts for that one task and for a moment only.** The window of
+/// another task, and a window opened later (the menu's window never came up, or the row had
+/// gone), open on **Date**, which is what every other way in gets. The window also forgets the
+/// request when it appears and when it closes.
 @MainActor
 enum TaskWindowStart {
-    static var tab: TaskWindowTab = .day
+    private static var asked: (tab: TaskWindowTab, task: String, at: Date)?
+    /// How long a request waits for its window, in seconds.
+    static let patience: TimeInterval = 3
+
+    static func ask(for tab: TaskWindowTab, of ref: TaskRef) {
+        asked = tab == .day ? nil : (tab, ref.id, Date())
+    }
+
+    static func tab(for ref: TaskRef) -> TaskWindowTab {
+        guard let asked, asked.task == ref.id, Date().timeIntervalSince(asked.at) < patience else { return .day }
+        return asked.tab
+    }
+
+    static func forget() { asked = nil }
 }
 
 /// **Date · Deadline · Repeat** at the top of a task's date window.
