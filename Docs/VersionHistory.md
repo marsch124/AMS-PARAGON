@@ -1,8 +1,131 @@
 # Version history
 
-The version is shown as 1.0 (319) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (320) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 320 · 14 November 2026
+
+**Words only: copy, not move.** You looked at **Settings › Vault** and said: "I'm not happy with this text. It implies that something is moved." You are right: PARAGON copies your notes into its own folder, checks every file, and then uses the copy. Your old folder stays as it is. Build 320 says so everywhere you read it: in **Settings › Vault**, on every page about PARAGON's own folder, on the bar, in the messages, and in **How it works**. Only words changed. No rule, no check, no order and no button place changed. No button was moved and no screen was put in another order.
+
+**Before (build 319).**
+- The button in **Settings › Vault** was **Move to PARAGON's own folder…**, the page was **Move your notes to PARAGON's own folder**, and the main button was **Move my notes**.
+- Your other devices showed **Your notes have moved**.
+- The messages said "the move", "moved" and "Nothing was moved".
+
+### Settings › Vault
+
+**1. The button.**
+- Before: **Move to PARAGON's own folder…**
+- Now: **Copy to PARAGON's own folder…**
+
+**2. The grey line under it.**
+- Before: "PARAGON can keep the notes in a folder of its own in iCloud Drive and open it by itself on every device. Nothing happens until you say so."
+- Now: "PARAGON can copy the notes into a folder of its own in iCloud Drive and open it by itself on every device. Your old folder stays as it is. Nothing happens until you say so."
+
+**3. The button on a device that has not followed yet.**
+- Before: **Your notes have moved…**
+- Now: **Your notes are in a new place…**
+
+### The offer page
+
+**4. The title.**
+- Before: **Move your notes to PARAGON's own folder**
+- Now: **Copy your notes to PARAGON's own folder**
+
+**5. A new first line under What happens.**
+- Before: the 4 steps only.
+- Now: "PARAGON copies your notes, checks every file, and then uses the copy. Your old folder stays as it is." Then the same 4 steps.
+
+**6. The line about Reminders.**
+- Before: "Reminders sync is paused during the move and goes on afterwards."
+- Now: "Reminders sync is paused while the notes are copied and goes on afterwards."
+
+**7. The line under Your devices.**
+- Before: "Move on one device only. On your other devices PARAGON then shows “Your notes have moved”: press Open… there."
+- Now: "Copy on one device only. On your other devices PARAGON then shows “Your notes are in a new place”: press Open… there."
+
+**8. The main button.**
+- Before: **Move my notes**
+- Now: **Copy my notes**
+
+**9. The warnings on the page.**
+- Before: "Another device is moving the notes". Now: "Another device is copying the notes".
+- Before: "… So PARAGON does not move the notes yet." Now: "… So PARAGON does not copy the notes yet."
+- Before: "… started a move on 2026-11-14 and has not finished it. Finish the move on that device, or try again tomorrow." Now: "… started copying on 2026-11-14 and has not finished it. Finish it on that device, or try again tomorrow."
+
+### While it works, and the end
+
+**10. The page titles.**
+- Before: **Moving your notes**. Now: **Copying your notes**.
+- Before: **Your notes were not moved**. Now: **Your notes were not copied**.
+- Before: **Nothing was moved**. Now: **Nothing was copied**.
+
+**11. After Stop.**
+- Before: "The move was stopped. Your notes are where they were."
+- Now: "The copy was stopped. Your notes are where they were."
+
+**12. The messages when something stops it.**
+- Before: "… so nothing was moved." and "… Nothing was moved." Now: "… so nothing was copied." and "… Nothing was copied." These are 7 messages.
+- Before: "The move could not be finished: …" Now: "The copy could not be finished: …"
+- Before: "The list of files made at the move is not on this device yet." Now: "The list of files made when the notes were copied is not on this device yet."
+- Before: "Your notes are already in that place: … moved them. … PARAGON will soon show “Your notes have moved” on this device." Now: "Your notes are already in that place: … copied them. … PARAGON will soon show “Your notes are in a new place” on this device."
+- Before: "… is moving your notes too. Two devices must not move them at the same time, so this move stopped. …" Now: "… is copying your notes too. Two devices must not copy them at the same time, so this copy stopped. …"
+
+**13. The last page.**
+- Before: "On your other devices PARAGON shows “Your notes have moved”. Press Open… there when iCloud has brought everything."
+- Now: "On your other devices PARAGON shows “Your notes are in a new place”. Press Open… there when iCloud has brought everything."
+
+### On your other devices
+
+**14. The bar at the top of the window.**
+- Before: "Your notes have moved to iCloud Drive › PARAGON." Now: "Your notes are in a new place: iCloud Drive › PARAGON."
+- Before: "Your notes have moved. Waiting for iCloud: 87 of 125 files." Now: "Your notes are in a new place. Waiting for iCloud: 87 of 125 files."
+- Before: "Your notes have moved. PARAGON cannot reach the new place on this iPhone." Now: "Your notes are in a new place. PARAGON cannot reach it on this iPhone."
+- Before: "… is moving your notes back into this folder. …" Now: "… is copying your notes back into this folder. …"
+- Before: "3 files were changed in the old folder after the move." Now: "3 files were changed in the old folder since the copy." The title of the page behind **Look…** changed in the same way.
+
+**15. The page behind Open… and More….**
+- Before: the title **Your notes have moved**, and "They are now in iCloud Drive › PARAGON. The move was made on 2026-11-14, on the device “MacBook Pro”."
+- Now: the title **Your notes are in a new place**, and "On 2026-11-14 “MacBook Pro” copied them to iCloud Drive › PARAGON."
+- Before: "What you changed on this iPhone since the move comes along." Now: "What you changed on this iPhone since then comes along."
+- Before: "2 files from the list made at the move are not there. You have probably deleted or renamed them after the move:" Now: "2 files from the list made when the notes were copied are not there. You have probably deleted or renamed them since then:"
+- Before: "Nothing had changed on this iPhone since the move." Now: "Nothing had changed on this iPhone since the copy."
+
+**16. Sync now, while a device has not followed.**
+- Before: "Reminders sync is paused: your notes have moved to another folder."
+- Now: "Reminders sync is paused: your notes are in another folder now."
+
+### Go back, the welcome screen, and the text file
+
+**17. The page Go back to the old folder.**
+- Before: "A file in the old folder that is replaced, or that you have deleted since the move, is set aside there, not deleted." Now: "… since the copy, …"
+- Before: "They follow: PARAGON shows “Your notes have moved” there. Press Open… on each." Now: "They follow: PARAGON shows “Your notes are in a new place” there. Press Open… on each."
+- **Go back to the old folder…** and **Go back** are as before.
+
+**18. The welcome screen, and opening a folder that is still being filled.**
+- Before: "2 files from the list made at the move are not here. …" Now: "2 files from the list made when the notes were copied are not here. …"
+- Before: "A move into iCloud Drive › PARAGON was started on 2026-11-14 by Martin's Mac and has not finished. …" Now: "Martin's Mac started copying the notes into iCloud Drive › PARAGON on 2026-11-14 and has not finished. …"
+- Before: "A move into this folder was started on 2026-11-14 by Martin's Mac and has not finished. …" Now: "Martin's Mac started copying notes into this folder on 2026-11-14 and has not finished. …"
+
+**19. The words inside the small text file in the old folder.**
+- Before: "PARAGON moved these notes to … The move was made on the device …", "This folder is the old copy." and "… where the notes went."
+- Now: "PARAGON copied these notes to … The copy was made on the device …", "This folder is the old folder." and "… where the notes are now."
+
+### What still says "move", and why
+
+- **One file name.** The small text file in the old folder is still called **PARAGON has moved these notes.txt**. Devices with build 319 look for exactly this name, so it must stay. The words inside the file now say "copied".
+- **One hidden folder name.** After **Go back**, older files are kept in a hidden folder called "Set aside by a move". The page names it as it is.
+- **One backup label.** The backup copy that PARAGON makes before it copies your notes is listed with the words "before move". These words are part of the backup folder's name.
+- Words about moving a task or a note, such as **Move to Archive** and "Moved to tomorrow.", are about something else and are as before.
+
+### Also in this build
+
+- **How it works** says "copy" in the chapters **PARAGON's own iCloud folder**, **Your vault**, **Reminders sync** and **Backups**, and has a new chapter **Exact details (build 320)** with this list.
+- A device with build 319 and a device with build 320 work together. A device is ready for the copy when it has opened build 319 or newer, as before.
+- The tests: 1 test reads the new words of the text file. Nothing else changed in the tests.
 
 ## Build 319 · 13 November 2026
+
+Build 320 changed the words: where this entry says move, the app now says copy.
 
 **PARAGON can now keep your notes in a folder of its own: iCloud Drive › PARAGON.** This build has 1 new thing. PARAGON gets its own folder in iCloud Drive. A device that uses this folder opens it by itself at every start, so there is no folder to choose and no folder to lose. Your notes get there by a move that you start yourself, 1 time, on 1 device. The move is only offered. No button was moved and no screen was put in another order.
 

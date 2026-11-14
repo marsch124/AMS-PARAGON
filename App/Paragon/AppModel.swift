@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 319
+    static let number = 320
 }
 
 @MainActor
@@ -1018,7 +1018,7 @@ final class AppModel: ObservableObject {
         // Build 319: a folder a move is still filling is never opened as a vault, whoever asks.
         if case .halfMade(let stamp) = VaultMove.standing(of: url) {
             if scoped { url.stopAccessingSecurityScopedResource() }
-            errorMessage = "A move into this folder was started on \(VaultMove.day(stamp.at)) by \(stamp.deviceName) and has not finished. The notes are still in their old folder."
+            errorMessage = "\(stamp.deviceName) started copying notes into this folder on \(VaultMove.day(stamp.at)) and has not finished. The notes are still in their old folder."
             return
         }
         let opened: Vault
@@ -5289,7 +5289,7 @@ final class AppModel: ObservableObject {
         await refreshOwnFolder()
         guard self.vault === vault, !isSyncing else { return }
         if ownFolder.holdsSync {
-            if !quietly { flash("Reminders sync is paused: your notes have moved to another folder.") }
+            if !quietly { flash("Reminders sync is paused: your notes are in another folder now.") }
             return
         }
         // Never sync half a vault. A note that has not arrived from iCloud has no tasks as far

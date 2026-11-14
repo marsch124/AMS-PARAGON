@@ -266,7 +266,7 @@ extension AppModel {
                                              movedOn: stamp.at, movedBy: stamp.deviceName)
             if !look.missing.isEmpty {
                 let n = look.missing.count
-                found.caution = "\(n) file\(n == 1 ? "" : "s") from the list made at the move \(n == 1 ? "is" : "are") not here. \(n == 1 ? "It" : "They") may have been deleted or renamed since."
+                found.caution = "\(n) file\(n == 1 ? "" : "s") from the list made when the notes were copied \(n == 1 ? "is" : "are") not here. \(n == 1 ? "It" : "They") may have been deleted or renamed since."
             }
             ownFolder.found = found
             ownFolder.foundNote = nil
@@ -277,7 +277,7 @@ extension AppModel {
                 : "Your notes are in \(VaultMove.ownFolderWords) and are still arriving on \(AppModel.thisDevice)."
         } else if let half = seen.halfMade {
             ownFolder.found = nil
-            ownFolder.foundNote = "A move into \(VaultMove.ownFolderWords) was started on \(VaultMove.day(half.at)) by \(half.deviceName) and has not finished. Finish it on that device; the notes are still in their old folder."
+            ownFolder.foundNote = "\(half.deviceName) started copying the notes into \(VaultMove.ownFolderWords) on \(VaultMove.day(half.at)) and has not finished. Finish it on that device; the notes are still in their old folder."
         } else {
             ownFolder.found = nil
             ownFolder.foundNote = nil
@@ -347,7 +347,7 @@ extension AppModel {
             switch step {
             case "offer": self.showMoveOffer(fromSettings: false)
             case "move":
-                self.showOwnFolderPage(.working("Moving your notes"), fromSettings: false)
+                self.showOwnFolderPage(.working("Copying your notes"), fromSettings: false)
                 self.startMove(toOwn: true)
             case "back":
                 self.showOwnFolderPage(.working("Going back to the old folder"), fromSettings: false)
@@ -512,7 +512,7 @@ extension AppModel {
                 var other: String?
                 if let own, case .halfMade(let stamp) = VaultMove.standing(of: own), stamp.deviceID != id,
                    Date().timeIntervalSince(stamp.at) < 86_400 {
-                    other = "\(stamp.deviceName) started a move on \(VaultMove.day(stamp.at)) and has not finished it. Finish the move on that device, or try again tomorrow."
+                    other = "\(stamp.deviceName) started copying on \(VaultMove.day(stamp.at)) and has not finished it. Finish it on that device, or try again tomorrow."
                 }
                 return (lines, other)
             }
@@ -544,7 +544,7 @@ extension AppModel {
         let fromSettings = ownFolder.pageFromSettings
         let previous = toOwn ? nil : previousVaultFolder()
         guard let destination = toOwn ? ownFolderCache : previous else {
-            showOwnFolderPage(.failed("Nothing was moved",
+            showOwnFolderPage(.failed("Nothing was copied",
                                       toOwn ? "PARAGON cannot reach its folder in iCloud Drive on \(AppModel.thisDevice)."
                                             : "PARAGON cannot reach the old folder on \(AppModel.thisDevice)."), fromSettings: fromSettings)
             return
@@ -554,7 +554,7 @@ extension AppModel {
         runningMoveCancel = cancel
         holdForMove(true)
         ownFolder.progress = nil
-        ownFolder.page = .working(toOwn ? "Moving your notes" : "Going back to the old folder")
+        ownFolder.page = .working(toOwn ? "Copying your notes" : "Going back to the old folder")
         let root: URL = vault.rootURL
         let config: VaultConfig = vault.config
         let id = deviceID
@@ -584,7 +584,7 @@ extension AppModel {
                     if toOwn {
                         let this = VaultDevice(deviceID: id, name: AppModel.deviceOwnName(kind: kind), build: build, kind: kind, seenAt: Date())
                         guard VaultDevices.allReady(own.deviceLines(this: this)) else {
-                            return .failed("One of your devices has not opened PARAGON \(VaultMove.firstBuild) or newer yet. It would go on writing into the old folder, so nothing was moved. Open PARAGON once on every device, then try again.")
+                            return .failed("One of your devices has not opened PARAGON \(VaultMove.firstBuild) or newer yet. It would go on writing into the old folder, so nothing was copied. Open PARAGON once on every device, then try again.")
                         }
                     }
                     // Going back: what waits in the old folder comes over first, so the move
@@ -602,14 +602,14 @@ extension AppModel {
                                                      cancelled: { cancel.isCancelled })
                     _ = own.settleParkedVersions(of: all.files.map(\.path).filter(VaultMove.isNote))
                     // The backup, made with the usual code, and then checked file by file.
-                    guard let backup else { return .failed("PARAGON found no place for the backup copy, so nothing was moved.") }
+                    guard let backup else { return .failed("PARAGON found no place for the backup copy, so nothing was copied.") }
                     _ = try own.makeOutsideCopy(in: backup.place, reason: "before move")
                     let check = own.checkNewestOutsideCopy(in: backup.place)
                     guard check.isGood else {
-                        return .failed("The backup copy could not be confirmed, so nothing was moved. \(check.problem ?? "")")
+                        return .failed("The backup copy could not be confirmed, so nothing was copied. \(check.problem ?? "")")
                     }
                     guard let identity = own.identity(creating: true) else {
-                        return .failed("The vault\u{2019}s id is still coming from iCloud, so nothing was moved. Try again in a minute.")
+                        return .failed("The vault\u{2019}s id is still coming from iCloud, so nothing was copied. Try again in a minute.")
                     }
                     var hooks = MoveHooks()
                     hooks.progress = report
@@ -631,7 +631,7 @@ extension AppModel {
             switch result {
             case .failed(let why):
                 self.log("move not done: \(why)")
-                self.ownFolder.page = .failed(toOwn ? "Your notes were not moved" : "PARAGON did not go back", why)
+                self.ownFolder.page = .failed(toOwn ? "Your notes were not copied" : "PARAGON did not go back", why)
             case .moved(let outcome, let notes):
                 self.log("move \(outcome.stamp.generation) done: \(outcome.manifest.fileCount) files, \(outcome.copied) copied")
                 if toOwn { self.rememberVaultAsPrevious() }
@@ -651,7 +651,7 @@ extension AppModel {
                 if toOwn {
                     lines.append("They are now in \(VaultMove.ownFolderWords). PARAGON opens that folder by itself on every device.")
                     lines.append("Nothing was deleted. Your old folder \u{201C}\(root.lastPathComponent)\u{201D} is as it was; PARAGON only added one text file that says where the notes went. You decide later when to delete it.")
-                    lines.append("On your other devices PARAGON shows \u{201C}Your notes have moved\u{201D}. Press Open\u{2026} there when iCloud has brought everything.")
+                    lines.append("On your other devices PARAGON shows \u{201C}Your notes are in a new place\u{201D}. Press Open\u{2026} there when iCloud has brought everything.")
                 } else {
                     lines.append("They are in the folder \u{201C}\(placeName)\u{201D} again.")
                     if outcome.setAside > 0 {
@@ -721,7 +721,7 @@ extension AppModel {
                 }
                 var lines = ["PARAGON now uses \(stamp.toOwnFolder ? VaultMove.ownFolderWords : "the folder \u{201C}\(stamp.placeName)\u{201D}") on \(AppModel.thisDevice)."]
                 lines.append(contentsOf: brought.lines)
-                if !brought.changedSomething { lines.append("Nothing had changed on \(AppModel.thisDevice) since the move.") }
+                if !brought.changedSomething { lines.append("Nothing had changed on \(AppModel.thisDevice) since the copy.") }
                 lines.append("Reminders sync goes on as before.")
                 self.ownFolder.page = .done("Your notes are open in their new place", lines)
             }

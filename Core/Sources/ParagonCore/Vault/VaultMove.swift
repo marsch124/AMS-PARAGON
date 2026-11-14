@@ -169,19 +169,19 @@ public enum MoveError: Error, LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .cancelled:
-            return "The move was stopped. Your notes are where they were."
+            return "The copy was stopped. Your notes are where they were."
         case .cannotRead(let name):
             return "PARAGON could not read the folder \u{201C}\(name)\u{201D}."
         case .notHere(let paths):
             return "\(paths.count) file\(paths.count == 1 ? " is" : "s are") still in iCloud and not on this device: \(Self.some(paths)). Wait until iCloud has brought everything, then try again."
         case .unsupported(let paths):
-            return "The folder holds something PARAGON cannot copy safely: \(Self.some(paths)). Nothing was moved."
+            return "The folder holds something PARAGON cannot copy safely: \(Self.some(paths)). Nothing was copied."
         case .destinationHoldsOtherThings(let count):
-            return "The new place already holds \(count) file\(count == 1 ? "" : "s") that PARAGON did not put there. Look at the folder first; nothing was moved."
+            return "The new place already holds \(count) file\(count == 1 ? "" : "s") that PARAGON did not put there. Look at the folder first; nothing was copied."
         case .destinationUnclear:
             return "iCloud has not finished listing the new place. Try again in a minute."
         case .notEnoughRoom(let needed, let free):
-            return "Not enough room on this device: the copy needs \(Self.megabytes(needed)) and \(Self.megabytes(free)) are free. Nothing was moved."
+            return "Not enough room on this device: the copy needs \(Self.megabytes(needed)) and \(Self.megabytes(free)) are free. Nothing was copied."
         case .copyFailed(let path, let why):
             return "\u{201C}\(path)\u{201D} could not be copied: \(why) Nothing has changed: your notes are where they were."
         case .keptChanging(let paths):
@@ -193,13 +193,13 @@ public enum MoveError: Error, LocalizedError, Equatable {
         case .uploadSlow(let left):
             return "iCloud has not taken \(left) file\(left == 1 ? "" : "s") yet (no connection, or iCloud is busy). Nothing has changed: your notes are where they were. Try again later; the copy made so far is kept and not made twice."
         case .markerFailed(let why):
-            return "The move could not be finished: \(why) Nothing has changed: your notes are where they were."
+            return "The copy could not be finished: \(why) Nothing has changed: your notes are where they were."
         case .noList:
-            return "The list of files made at the move is not on this device yet."
+            return "The list of files made when the notes were copied is not on this device yet."
         case .alreadyMoved(let name):
-            return "Your notes are already in that place: \(name) moved them. Nothing was changed. PARAGON will soon show \u{201C}Your notes have moved\u{201D} on this device."
+            return "Your notes are already in that place: \(name) copied them. Nothing was changed. PARAGON will soon show \u{201C}Your notes are in a new place\u{201D} on this device."
         case .otherDeviceMoving(let name):
-            return "\(name) is moving your notes too. Two devices must not move them at the same time, so this move stopped. Nothing has changed: your notes are where they were. Let that device finish, or try again tomorrow."
+            return "\(name) is copying your notes too. Two devices must not copy them at the same time, so this copy stopped. Nothing has changed: your notes are where they were. Let that device finish, or try again tomorrow."
         }
     }
 }
@@ -530,11 +530,11 @@ public enum VaultMove {
         let place = stamp.toOwnFolder ? "PARAGON\u{2019}s own folder (\(stamp.placeName))" : "the folder \u{201C}\(stamp.placeName)\u{201D}"
         let json = (try? encoder.encode(stamp)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         return """
-        PARAGON moved these notes to \(place) on \(day(stamp.at)). The move was made on the device \u{201C}\(stamp.deviceName)\u{201D}.
+        PARAGON copied these notes to \(place) on \(day(stamp.at)). The copy was made on the device \u{201C}\(stamp.deviceName)\u{201D}.
 
-        This folder is the old copy. PARAGON does not use it any more and has not changed it.
+        This folder is the old folder. PARAGON does not use it any more and has not changed it.
         Keep it until you are sure that everything is in the new place.
-        Please leave this file here: it tells PARAGON on your other devices where the notes went.
+        Please leave this file here: it tells PARAGON on your other devices where the notes are now.
         The lines below are for PARAGON. Please do not change them.
 
         \(json)

@@ -50,7 +50,7 @@ struct OwnFolderPageView: View {
         case nil:
             return Words(title: "")
         case .offer(let offer):
-            var w = Words(title: "Move your notes to PARAGON\u{2019}s own folder")
+            var w = Words(title: "Copy your notes to PARAGON\u{2019}s own folder")
             guard offer.reachable else {
                 w.notice = ["PARAGON cannot reach iCloud Drive on \(AppModel.thisDevice)",
                             "Check that you are signed in to iCloud and that iCloud Drive is on for PARAGON. Then press Check again.",
@@ -60,21 +60,22 @@ struct OwnFolderPageView: View {
             }
             let ready = VaultDevices.allReady(offer.devices)
             if let other = offer.otherMove {
-                w.notice = ["Another device is moving the notes", other]
+                w.notice = ["Another device is copying the notes", other]
             } else if !ready {
                 w.notice = ["One of your devices is not ready yet",
                             "Open PARAGON \(VaultMove.firstBuild) or newer once on every device. Then press Check again.",
-                            "A device with an older PARAGON would go on writing into the old folder, and those changes would not reach the new folder. So PARAGON does not move the notes yet."]
+                            "A device with an older PARAGON would go on writing into the old folder, and those changes would not reach the new folder. So PARAGON does not copy the notes yet."]
             }
             w.parts = [
                 Part(head: "Where your notes will be",
                      text: ["In \(VaultMove.ownFolderWords). PARAGON opens that folder by itself on your iPhone, iPad and Mac. You do not need to choose a folder again."]),
                 Part(head: "What happens",
+                     text: ["PARAGON copies your notes, checks every file, and then uses the copy. Your old folder stays as it is."],
                      steps: ["A backup copy is made and checked.",
                              "Your \(Self.count(offer.notes, "note", "notes")), pictures and settings are copied.",
                              "Every file is compared with its original.",
                              "Only then does PARAGON switch to the new folder."],
-                     after: ["Reminders sync is paused during the move and goes on afterwards."]),
+                     after: ["Reminders sync is paused while the notes are copied and goes on afterwards."]),
                 Part(head: "Nothing is deleted",
                      text: ["Your old folder \u{201C}\(offer.oldName)\u{201D} stays as it is. PARAGON only adds one small text file to it that says where the notes went. You decide later when to delete it.",
                             "You can go back: Settings \u{203A} Vault \u{203A} Go back to the old folder\u{2026}"]),
@@ -84,13 +85,13 @@ struct OwnFolderPageView: View {
                 return w
             }
             w.parts.append(Part(head: "Your devices", devices: offer.devices,
-                                after: ready ? ["Move on one device only. On your other devices PARAGON then shows \u{201C}Your notes have moved\u{201D}: press Open\u{2026} there."] : []))
-            w.action = ready ? "Move my notes" : "Check again"
+                                after: ready ? ["Copy on one device only. On your other devices PARAGON then shows \u{201C}Your notes are in a new place\u{201D}: press Open\u{2026} there."] : []))
+            w.action = ready ? "Copy my notes" : "Check again"
             return w
         case .working(let title):
             var w = Words(title: title)
             let step = model.ownFolder.progress?.step
-            let isMove = title.hasPrefix("Moving"), isBack = title.hasPrefix("Going")
+            let isMove = title.hasPrefix("Copying"), isBack = title.hasPrefix("Going")
             if isMove || isBack {
                 w.moveSteps = ["Reading your notes and making a backup copy",
                                "Copying every file",
@@ -113,8 +114,8 @@ struct OwnFolderPageView: View {
         case .moved(let moved):
             let stamp = moved.stamp
             let place = stamp.toOwnFolder ? VaultMove.ownFolderWords : "the folder \u{201C}\(stamp.placeName)\u{201D}"
-            var w = Words(title: "Your notes have moved")
-            w.lead = ["They are now in \(place). The move was made on \(VaultMove.day(stamp.at)), on the device \u{201C}\(stamp.deviceName)\u{201D}.",
+            var w = Words(title: "Your notes are in a new place")
+            w.lead = ["On \(VaultMove.day(stamp.at)) \u{201C}\(stamp.deviceName)\u{201D} copied them to \(place).",
                       "Reminders sync is paused on \(AppModel.thisDevice) until it uses the new place too."]
             w.cancel = "Not now"
             if !moved.reachable {
@@ -123,9 +124,9 @@ struct OwnFolderPageView: View {
                     : "PARAGON cannot find that folder on \(AppModel.thisDevice). Choose it in Settings \u{203A} Vault \u{203A} Choose folder\u{2026}"]
                 w.cancel = "Close"
             } else if moved.ready {
-                w.lead.append("Everything has arrived: \(Self.count(moved.here, "file", "files")). What you changed on \(AppModel.thisDevice) since the move comes along.")
+                w.lead.append("Everything has arrived: \(Self.count(moved.here, "file", "files")). What you changed on \(AppModel.thisDevice) since then comes along.")
                 if !moved.missing.isEmpty {
-                    w.parts = [Part(text: ["\(Self.count(moved.missing.count, "file", "files")) from the list made at the move \(moved.missing.count == 1 ? "is" : "are") not there. You have probably deleted or renamed \(moved.missing.count == 1 ? "it" : "them") after the move:"],
+                    w.parts = [Part(text: ["\(Self.count(moved.missing.count, "file", "files")) from the list made when the notes were copied \(moved.missing.count == 1 ? "is" : "are") not there. You have probably deleted or renamed \(moved.missing.count == 1 ? "it" : "them") since then:"],
                                     files: Array(moved.missing.prefix(8)))]
                 }
                 w.action = "Open the new folder"
@@ -135,7 +136,7 @@ struct OwnFolderPageView: View {
             }
             return w
         case .oldChanges(let changes):
-            var w = Words(title: "\(Self.count(changes.notes.count, "file was", "files were")) changed in the old folder after the move")
+            var w = Words(title: "\(Self.count(changes.notes.count, "file was", "files were")) changed in the old folder since the copy")
             w.lead = ["Another device still writes into \u{201C}\(changes.oldName)\u{201D}. It has an older PARAGON, or it has not opened the new folder yet."]
             w.parts = [
                 Part(head: changes.notes.count == 1 ? "The file" : "The files",
@@ -161,10 +162,10 @@ struct OwnFolderPageView: View {
                              "Everything you have now is copied to the old folder.",
                              "Every file is compared with its original."]),
                 Part(head: "Nothing is deleted",
-                     text: ["A file in the old folder that is replaced, or that you have deleted since the move, is set aside there, not deleted.",
+                     text: ["A file in the old folder that is replaced, or that you have deleted since the copy, is set aside there, not deleted.",
                             "\(VaultMove.ownFolderWords) stays as it is."]),
                 Part(head: "Your other devices",
-                     text: ["They follow: PARAGON shows \u{201C}Your notes have moved\u{201D} there. Press Open\u{2026} on each."]),
+                     text: ["They follow: PARAGON shows \u{201C}Your notes are in a new place\u{201D} there. Press Open\u{2026} on each."]),
             ]
             w.action = "Go back"
             return w
@@ -426,14 +427,14 @@ struct OwnFolderBanner: View {
         case nil:
             return nil
         case .moved(let moved):
-            if moved.ready { return ("Your notes have moved to \(moved.stamp.toOwnFolder ? VaultMove.ownFolderWords : moved.stamp.placeName).", "Open\u{2026}") }
-            if !moved.reachable { return ("Your notes have moved. PARAGON cannot reach the new place on \(AppModel.thisDevice).", "More\u{2026}") }
-            return ("Your notes have moved. Waiting for iCloud: \(moved.here) of \(moved.expected) files.", "More\u{2026}")
+            if moved.ready { return ("Your notes are in a new place: \(moved.stamp.toOwnFolder ? VaultMove.ownFolderWords : moved.stamp.placeName).", "Open\u{2026}") }
+            if !moved.reachable { return ("Your notes are in a new place. PARAGON cannot reach it on \(AppModel.thisDevice).", "More\u{2026}") }
+            return ("Your notes are in a new place. Waiting for iCloud: \(moved.here) of \(moved.expected) files.", "More\u{2026}")
         case .beingFilled(let stamp):
-            return ("\(stamp.deviceName) is moving your notes back into this folder. Reminders sync is paused until that is done.", nil)
+            return ("\(stamp.deviceName) is copying your notes back into this folder. Reminders sync is paused until that is done.", nil)
         case .oldChanges(let changes):
             let n = changes.notes.count
-            return ("\(n) file\(n == 1 ? " was" : "s were") changed in the old folder after the move.", "Look\u{2026}")
+            return ("\(n) file\(n == 1 ? " was" : "s were") changed in the old folder since the copy.", "Look\u{2026}")
         }
     }
 
@@ -514,13 +515,13 @@ struct OwnFolderSettingsRows: View {
                     .accessibilityIdentifier("settings.vault.show")
                 #endif
                 if case .moved(let moved)? = model.ownFolder.banner {
-                    Button("Your notes have moved\u{2026}") { model.showOwnFolderPage(.moved(moved), fromSettings: true) }
+                    Button("Your notes are in a new place\u{2026}") { model.showOwnFolderPage(.moved(moved), fromSettings: true) }
                         .accessibilityIdentifier("settings.vault.moved")
                 } else if model.ownFolder.reachable {
                     // Review of build 319: offered only where PARAGON's folder can be reached.
-                    Button("Move to PARAGON\u{2019}s own folder\u{2026}") { model.showMoveOffer(fromSettings: true) }
+                    Button("Copy to PARAGON\u{2019}s own folder\u{2026}") { model.showMoveOffer(fromSettings: true) }
                         .accessibilityIdentifier("settings.vault.move")
-                    Text("PARAGON can keep the notes in a folder of its own in iCloud Drive and open it by itself on every device. Nothing happens until you say so.")
+                    Text("PARAGON can copy the notes into a folder of its own in iCloud Drive and open it by itself on every device. Your old folder stays as it is. Nothing happens until you say so.")
                         .font(Txt.label)
                         .foregroundStyle(.soft)
                         .fixedSize(horizontal: false, vertical: true)
