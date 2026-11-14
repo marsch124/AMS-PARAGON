@@ -21,6 +21,13 @@ public enum SyncWait {
         waiting == 0 && updating == 0 ? .start : .keepWaiting
     }
 
+    /// Build 321: the notes that were being updated are looked at again every 10 seconds
+    /// (metadata only). True when every one of them is here and current now, so the vault can
+    /// be read again and a waiting sync can start. An empty list is false: nothing was waited for.
+    public static func updatedNotesHaveArrived(_ presences: [CloudFiles.Presence]) -> Bool {
+        !presences.isEmpty && presences.allSatisfy { $0 == .here }
+    }
+
     /// The calm line at the foot of the Mac's sidebar and at the top of the phone's Today while
     /// a sync waits (build 284), so it is plain the sync has not been forgotten.
     public static let waitingLine = "Sync waiting for iCloud…"

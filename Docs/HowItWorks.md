@@ -2389,6 +2389,11 @@ The precise rules and names behind build 319, **PARAGON's own iCloud folder**, f
 
 **The build number.** `BuildStamp.number` is 319; **Settings › About** says 1.0 (319).
 
+## Exact details (build 321)
+
+- **A waiting sync starts again.** `AppModel.checkForExternalChanges` (every 10 seconds): while `notesBeingUpdated` is not empty, the presence of those notes is asked again (metadata only, `CloudFiles.presence`). When every one is here and current (`SyncWait.updatedNotesHaveArrived`), the vault is read again in the background, and `SyncWait.step` then starts the waiting sync. Before, only `notesWaitingForCloud` was looked at again; a note that became current with no file date changing was never noticed. Test: `Round9FixTests.testNotesBeingUpdatedAreSeenArriving`.
+- **The sync ring's arrows.** `SyncRingGlyph` turns the arrows with `TurnsWhile`: a `TimelineView(.animation)` that takes the angle from the clock, one turn in `MotionTiming.spin` (1 second), only while a sync runs and Reduce Motion is off. No repeating animation is attached to the mark any more. The Mac menu bar's ring is a picture and never turns.
+
 ## Exact details (build 320)
 
 The precise list behind build 320, **Words only: copy, not move**, for reference. Build 320 changes words. No rule, no check, no order and no button place is changed. The words in `code letters` are names in the app's code. You do not need them to use PARAGON.

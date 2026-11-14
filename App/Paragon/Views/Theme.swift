@@ -341,11 +341,31 @@ struct SyncRingGlyph: View {
                 .animation(Motion.fill, value: fill)
             MarkImage("arrow.triangle.2.circlepath", size: (ring * 0.54).rounded())
                 .foregroundStyle(plain ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
-                .rotationEffect(.degrees(syncing ? 360 : 0))
-                // Build 318: no turning with Reduce Motion (`Motion.spin` is nil then).
-                .animation(syncing ? Motion.spin : Motion.fade, value: syncing)
+                // Build 321: the turn is drawn from the clock, not from an animation that
+                // repeats for ever. The repeating animation also took hold of the mark's place,
+                // so on the iPhone the arrows slid sideways out of the middle of the ring and
+                // stayed there (his screen recording, 14 November 2026). A clock cannot do that.
+                .modifier(TurnsWhile(active: syncing))
         }
         .frame(width: ring, height: ring)
+    }
+}
+
+/// Turns its content once every `MotionTiming.spin` seconds while `active`, from the clock.
+/// Still with Reduce Motion, and still when not active.
+private struct TurnsWhile: ViewModifier {
+    let active: Bool
+
+    func body(content: Content) -> some View {
+        if active, !Motion.isReduced {
+            TimelineView(.animation) { context in
+                let turn = context.date.timeIntervalSinceReferenceDate
+                    .truncatingRemainder(dividingBy: MotionTiming.spin) / MotionTiming.spin
+                content.rotationEffect(.degrees(turn * 360))
+            }
+        } else {
+            content
+        }
     }
 }
 

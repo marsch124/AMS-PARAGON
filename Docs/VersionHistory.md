@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (320) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (321) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 321 · 14 November 2026
+
+**Two faults found in the trial of PARAGON's own folder, on real devices.** You tried the copy with throwaway notes on the Mac and the iPhone. The copy itself went well: every file was the same afterwards, and no reminder was lost or doubled. Two smaller things showed, and both are fixed here.
+
+**Before (build 320).**
+- On the Mac, the sync ring could stay yellow with the word "iCloud", and **Sync now** did nothing more. Only closing and opening PARAGON helped.
+- On the iPhone, after a sync the two arrows could sit at the side of the sync ring, not in its middle.
+
+**1. Mac and iPhone: a sync that waits for iCloud starts again by itself.**
+- What happened: a note had an older copy on the device while iCloud held a newer one. PARAGON waits then, so it never writes over the newer text. That is right. But when the newer copy arrived, PARAGON did not look again, so it waited for good.
+- Now: every 10 seconds PARAGON looks at the notes it is waiting for. When they are all here, it reads the notes again and the waiting sync starts by itself.
+- This fault was in PARAGON before the own folder came. It shows more easily there.
+
+**2. The arrows stay in the middle of the sync ring.**
+- What happened: the turning of the arrows was an animation that repeats for ever. On the iPhone it also took hold of the arrows' place, so they slid sideways and stayed there.
+- Now: the turn is drawn from the clock. The arrows turn once a second while a sync runs and stand still in the middle afterwards. With Reduce Motion they do not turn, as before.
+
+**Still to do in the trial:** the harder cases, one at a time. Your real notes have not been copied.
 
 ## Build 320 · 14 November 2026
 

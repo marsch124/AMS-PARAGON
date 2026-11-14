@@ -169,4 +169,12 @@ final class Round9FixTests: XCTestCase {
         // The same letter with one more key held is his to take.
         XCTAssertTrue(key(RecordedKey.control | RecordedKey.command, "C").isAllowed)
     }
+
+    /// Build 321: a sync that waited for a note being updated starts again once that note is here.
+    func testNotesBeingUpdatedAreSeenArriving() {
+        XCTAssertFalse(SyncWait.updatedNotesHaveArrived([]))
+        XCTAssertFalse(SyncWait.updatedNotesHaveArrived([.stale]))
+        XCTAssertFalse(SyncWait.updatedNotesHaveArrived([.here, .away]))
+        XCTAssertTrue(SyncWait.updatedNotesHaveArrived([.here, .here]))
+    }
 }

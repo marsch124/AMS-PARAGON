@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 320
+    static let number = 321
 }
 
 @MainActor
@@ -1359,6 +1359,20 @@ final class AppModel: ObservableObject {
         if !notesWaitingForCloud.isEmpty {
             reloadInBackground()
             return
+        }
+        // Build 321 (found in the trial of PARAGON's own folder, 14 November 2026): a note that
+        // was "being updated" (an older copy here, a newer one in iCloud) can become current
+        // without any file date changing after the last re-read. Nothing then looked again, so
+        // a sync that waited for it waited for good: the ring stayed yellow with "iCloud".
+        // Metadata only, and only for the notes named: when all of them are here, read again,
+        // and the waiting sync starts by itself.
+        if !notesBeingUpdated.isEmpty, let vault {
+            let presences = notesBeingUpdated.map { CloudFiles.presence(of: vault.url(for: $0)) }
+            if SyncWait.updatedNotesHaveArrived(presences) {
+                log("notes being updated have arrived; reloading")
+                reloadInBackground()
+                return
+            }
         }
         lookForParkedVersionsNowAndThen()
         let signature = currentVaultSignature()
