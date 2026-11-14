@@ -2392,7 +2392,7 @@ The precise rules and names behind build 319, **PARAGON's own iCloud folder**, f
 ## Exact details (build 321)
 
 - **A waiting sync starts again.** `AppModel.checkForExternalChanges` (every 10 seconds): while `notesBeingUpdated` is not empty, the presence of those notes is asked again (metadata only, `CloudFiles.presence`). When every one is here and current (`SyncWait.updatedNotesHaveArrived`), the vault is read again in the background, and `SyncWait.step` then starts the waiting sync. Before, only `notesWaitingForCloud` was looked at again; a note that became current with no file date changing was never noticed. Test: `Round9FixTests.testNotesBeingUpdatedAreSeenArriving`.
-- **The sync ring's arrows.** `SyncRingGlyph` turns the arrows with `TurnsWhile`: a `TimelineView(.animation)` that takes the angle from the clock, one turn in `MotionTiming.spin` (1 second), only while a sync runs and Reduce Motion is off. No repeating animation is attached to the mark any more. The Mac menu bar's ring is a picture and never turns.
+- **The sync ring's arrows.** `SyncRingGlyph` turns the arrows with `.animation(_:body:)`: the animation (`Motion.spin` while a sync runs, `Motion.fade` after it) reaches only the `rotationEffect` inside its body, never the mark's place. Before (build 318) `.animation(_:value:)` on the whole mark let the repeating animation move the mark sideways on the iPhone. A `TimelineView(.animation)` turn was tried and refused by `Tools/launch-check.sh` (the iPhone stayed at 100 % CPU at start). The Mac menu bar's ring is a picture and never turns.
 
 ## Exact details (build 320)
 

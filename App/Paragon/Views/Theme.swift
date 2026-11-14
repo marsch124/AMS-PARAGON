@@ -341,33 +341,18 @@ struct SyncRingGlyph: View {
                 .animation(Motion.fill, value: fill)
             MarkImage("arrow.triangle.2.circlepath", size: (ring * 0.54).rounded())
                 .foregroundStyle(plain ? AnyShapeStyle(.secondary) : AnyShapeStyle(tint))
-                // Build 321: the turn is drawn from the clock, not from an animation that
-                // repeats for ever. The repeating animation also took hold of the mark's place,
-                // so on the iPhone the arrows slid sideways out of the middle of the ring and
-                // stayed there (his screen recording, 14 November 2026). A clock cannot do that.
-                .modifier(TurnsWhile(active: syncing))
+                // Build 321: the turning animation reaches the turn only. Attached to the whole
+                // mark (build 318), the animation that repeats for ever also took hold of the
+                // mark's place, so on the iPhone the arrows slid sideways out of the middle of
+                // the ring and stayed there (his screen recording, 14 November 2026).
+                .animation(syncing ? Motion.spin : Motion.fade) { mark in
+                    mark.rotationEffect(.degrees(syncing ? 360 : 0))
+                }
         }
         .frame(width: ring, height: ring)
     }
 }
 
-/// Turns its content once every `MotionTiming.spin` seconds while `active`, from the clock.
-/// Still with Reduce Motion, and still when not active.
-private struct TurnsWhile: ViewModifier {
-    let active: Bool
-
-    func body(content: Content) -> some View {
-        if active, !Motion.isReduced {
-            TimelineView(.animation) { context in
-                let turn = context.date.timeIntervalSinceReferenceDate
-                    .truncatingRemainder(dividingBy: MotionTiming.spin) / MotionTiming.spin
-                content.rotationEffect(.degrees(turn * 360))
-            }
-        } else {
-            content
-        }
-    }
-}
 
 /// **Build 303 (his yes to my idea): a gentle tap you can feel when a task is ticked done** on
 /// the iPhone and iPad — the same soft tap as a finished sync (build 301). Nothing on the Mac.

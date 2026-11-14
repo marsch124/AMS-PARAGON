@@ -17,7 +17,8 @@ The version is shown as 1.0 (321) in Settings › About, at the foot of the Mac 
 
 **2. The arrows stay in the middle of the sync ring.**
 - What happened: the turning of the arrows was an animation that repeats for ever. On the iPhone it also took hold of the arrows' place, so they slid sideways and stayed there.
-- Now: the turn is drawn from the clock. The arrows turn once a second while a sync runs and stand still in the middle afterwards. With Reduce Motion they do not turn, as before.
+- Now: the turning reaches only the turn, not the place. The arrows turn once a second while a sync runs and stand still in the middle afterwards. With Reduce Motion they do not turn, as before.
+- A first try drew the turn from the clock. The check before every upload found that it kept the iPhone busy at start, so it did not go out.
 
 **Still to do in the trial:** the harder cases, one at a time. Your real notes have not been copied.
 
