@@ -1091,7 +1091,7 @@ struct NoteListView: View {
             // frightening one: it looks exactly like losing everything (build 100).
             EmptyStateView(title: "Not everything is here yet",
                            markName: "icloud.and.arrow.down",
-                           message: "\(warning). Your notes are in your notes folder; this Mac has "
+                           message: "\(warning). Your notes are safe in their folder; this Mac has "
                                   + "their names but not their contents yet. They appear as they arrive.",
                            tint: .orange,
                            actionTitle: "Ask iCloud again") { model.fetchMissingNotes() }

@@ -1,6 +1,49 @@
 # Version history
 
-The version is shown as 1.0 (329) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (330) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 330 · 16 November 2026
+
+**Safer, calmer, plainer — what the five advisors found.** On 16 November five advisors read the whole app: one for data safety, one for speed, one for daily use, one for words, one for mindfulness and clarity. This build is what came of it.
+
+**New.**
+- **Someday, for one task.** On the task menu (right-click on the Mac, hold on the iPhone and the iPad) there is now **Someday**. On a task that is already put aside it reads **Not someday any more**. It writes the tag #someday on the task's line, the same way #next marks a next action, so you can also type it by hand. Putting a task aside takes its date and time off, and its next-action mark. A deadline stays. A task put aside is never a project's next action. After you press it the app says: "Put aside for someday. Find it in All actions under Someday."
+- **A Someday box in All actions.** In the **Mark** row there is a new box, **Someday**. Until it is ticked, tasks put aside are left out of **All actions**. Tick it to see them. Before, there was no way to put a task aside without giving it a date or letting it sit in the list.
+- **Weekly review, new step 9: "9. Thin out the loose tasks".** It comes after step 8 and before **Review done**. Loose tasks are the open tasks that nothing else in the week looks at: no date, no deadline, not a waiting-for line, not put aside for someday, not a subtask, not the next action of their project, not in the Inbox, and not in a note that is archived, ended or on hold. The heading counts all of them. The step shows 10 at a time, from the notes you left alone longest (by the day the note's file was last changed). Under each task are three answers: **Today** (gives it today's date), **Someday** (puts it aside) and **Drop** (crosses it out; the line stays in the note). The tick box works as everywhere. The line under the list says: "Tasks with no date that nothing else looks at, from the notes you left alone longest. 10 of N are shown. A few each week is enough." With 10 or fewer, it ends: "Give each a day, put it aside for someday, or drop it." With none, it says **No loose tasks**. The step never opens by itself and never counts as something still to do. Why: about 360 tasks were open and nothing ever brought the undated ones back.
+- **A guide you can read.** **How it works** had grown to 72,525 words. Settings › **How it works** (and Help › How PARAGON Works on the Mac) now opens a new, short guide of about 3,300 words. It follows a normal day, in 13 parts. The long text is kept, with the same content, under the name **Every detail**: Settings › **Every detail**, Help › Every Detail on the Mac, and a fourth page in the Help window.
+
+**Changed.**
+- **Rename, Archive and Delete check first.** Before they act, they now ask whether the note's file on disk is newer than the copy the app holds, for example an edit from another device that arrived a moment ago. If it is, nothing is removed. The notes are read again and a message says: "“Title” was changed on another device a moment ago, so it was not archived. The newer version is here now. Look at it, then try again." For Delete it says "not deleted", for Rename "not renamed". Before, Archive and Delete put the older copy away and removed the newer file without a word. Rename did the same, but made a backup first.
+- **A note that iCloud is still updating is not archived or deleted.** The message: "“Title” is being updated from iCloud, so it was not archived. Try again in a moment." Before, the older copy could be put away.
+- **A note in Deleted with no readable date.** Before, a note in Deleted whose "deleted" date could not be read was cleared out at the very next clear-out. Now it counts from the day its file was last written, so it gets its 30 days too.
+- **Search keeps its result.** The result is kept until the words, the notes or the day change. Before, the whole search was worked out again at every redraw of the Search page.
+- **The Deleted list is read less often.** It is read from its files only when the folder's names changed. Before, it was read at every re-read of the notes, and 63 places ask for one.
+- **The month in Calendar counts in one walk.** All its 35 to 42 days are counted in one pass through the tasks. Before, it was one pass per day, so 35 to 42 passes.
+- **Reading words in pictures no longer holds up the screen.** Looking through every note for its pictures now runs in the background. Before, it ran on the main thread, 3 seconds after you stopped typing, after each save.
+- **Nothing was slow with your 125 notes.** The four speed changes are for the day you have 5 to 10 times as many.
+- **Start the day.** The "N overdue" capsule has no exclamation mark any more and is in the calm evening colour, not orange.
+- **Today.** The **Overdue** heading is in the evening colour, not the attention colour. From 10 overdue tasks on, one line stands above them: "It happens. The two buttons beside the heading move them all to today or to tomorrow." The word **Overdue** itself stays everywhere: one name for one thing. "Waiting from before" would have been mixed up with **Waiting for**.
+- **Today, late review.** The line now reads "Last weekly review: 9 days ago. Whenever you are ready." Before: "Last weekly review: 9 days ago."
+- **Close the day.** When nothing was ticked: "No task was ticked off today. That is a day too."
+- **Weekly review.** After **Review done**, the line "Review done today" is followed by "That is enough for this week."
+- **The word "vault" is gone from the screens**, about 44 places. The place is "your notes folder"; what is in it is "your notes". Settings › **Vault** is now Settings › **Notes folder**. **Close vault** is **Close notes folder**. **Choose a vault folder…** is **Choose your notes folder…**. **Second copy, outside the vault** is **Second copy, outside your notes folder**.
+- **Settings › Reminders sync** no longer talks about a hidden folder and task ids. It now says: "PARAGON remembers on each device what it has synced, and marks each task with a small hidden code so a task and its reminder stay linked."
+- **Seven error messages now say what to do.** For example: "The picture could not be saved. Check that your notes folder is reachable and try again." The Map: "The Map could not be saved as a picture. Try again, or choose another place to save it." Reminders: "The reminders could not be changed. Open Settings › Privacy & Security › Reminders and check that PARAGON may use them, then sync again."
+
+**Fixed.**
+- Archive and Delete could remove a newer file from another device after putting the older copy away, without a word (see **Changed**). They now stop and say so.
+- **A task that had never been synced could not be renamed.** A task gets a small hidden code at its first sync with Reminders. Until then, renaming it, taking its next-action mark off, or (new) putting it aside for someday did nothing and said nothing. All three work now. The new screen test found it.
+- A note in Deleted with an unreadable date could be cleared out at once, with none of its 30 days (see **Changed**).
+
+**Looked at, left as it is, on purpose.**
+- **Restore puts back the sync memory.** A restore also puts back the Reminders sync memory from the day of the copy. An advisor asked whether that could do harm. Followed through in the code, it looks like the safer way: your notes and their memory go back together, so what was changed in Reminders since then comes in again at the next sync. It was not tried with real Reminders, so nothing was changed here.
+
+**Looked at, not changed. Still open.**
+- Two advisor points are suspicions that need more looking before anything is changed: a task moved between two notes while iCloud delivers the notes in the other order; and an iCloud copy named "Name 2" being synced as a note of its own.
+- The first read of all notes at the start is still on the main thread.
+- Folding **Start the day** into **Today**, and a quicker way to file from the iPhone Inbox, are ideas. They are not built.
+
+Tested: 8 new rule tests and 1 new screen test.
 
 ## Build 329 · 16 November 2026
 

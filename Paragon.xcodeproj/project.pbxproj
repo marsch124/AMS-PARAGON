@@ -19,6 +19,7 @@
 		A149D28F88891DAD8F4674CA /* IPadScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199611C16C9E127ECDA36B8E /* IPadScreens.swift */; };
 		C202C2E162F6A9616899BDAE /* Words.md in Resources */ = {isa = PBXBuildFile; fileRef = 37E5572E0E65566F6BC49B8C /* Words.md */; };
 		C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2714DD3A4254950C4A439829 /* ParagonShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FD201D15E2B58DF729309497 /* Guide.md in Resources */ = {isa = PBXBuildFile; fileRef = 9187F98112AF98AD8FA34641 /* Guide.md */; };
 		FE7F5DC055850D7FC4750F90 /* Look.md in Resources */ = {isa = PBXBuildFile; fileRef = C1D60C15B6874D11DD911583 /* Look.md */; };
 /* End PBXBuildFile section */
 
@@ -71,6 +72,7 @@
 		55B3B1883D9DE44B343B78C6 /* Core */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Core; path = Core; sourceTree = SOURCE_ROOT; };
 		6BD311D35F38F0FEFC26141A /* HowItWorks.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HowItWorks.md; sourceTree = "<group>"; };
 		78AE22FC8C9C0A80A3D7CF78 /* ParagonUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ParagonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9187F98112AF98AD8FA34641 /* Guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Guide.md; sourceTree = "<group>"; };
 		C1D60C15B6874D11DD911583 /* Look.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Look.md; sourceTree = "<group>"; };
 		E6919AFBC2371667D46DD399 /* VersionHistory.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = VersionHistory.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -193,6 +195,7 @@
 		611DF020B8C6CB1EE5F91AD6 /* Docs */ = {
 			isa = PBXGroup;
 			children = (
+				9187F98112AF98AD8FA34641 /* Guide.md */,
 				6BD311D35F38F0FEFC26141A /* HowItWorks.md */,
 				C1D60C15B6874D11DD911583 /* Look.md */,
 				E6919AFBC2371667D46DD399 /* VersionHistory.md */,
@@ -373,6 +376,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FD201D15E2B58DF729309497 /* Guide.md in Resources */,
 				156E7AB9FEFEAE96BDD7D5DB /* HowItWorks.md in Resources */,
 				FE7F5DC055850D7FC4750F90 /* Look.md in Resources */,
 				627482B9308CA63E70129D95 /* VersionHistory.md in Resources */,

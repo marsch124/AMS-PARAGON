@@ -1187,6 +1187,33 @@ final class ScreenTests: XCTestCase {
                        "Review done can be pressed twice on one day.")
     }
 
+    /// A picture for the person shipping, only when a folder is named (`TEST_RUNNER_LOOK_DIR`).
+    private func look(_ name: String) {
+        let env = ProcessInfo.processInfo.environment
+        guard let folder = env["TEST_RUNNER_LOOK_DIR"] ?? env["LOOK_DIR"] else { return }
+        try? XCUIScreen.main.screenshot().pngRepresentation
+            .write(to: URL(fileURLWithPath: folder).appendingPathComponent("\(name).png"))
+    }
+
+    /// Build 330: step 9 of the Weekly review lists the loose tasks (no date, nothing else
+    /// looks at them), each with **Today**, **Someday** and **Drop** under it, and **Someday**
+    /// takes the task out of the step. Found by identifier, whatever the task is called.
+    func testTheReviewThinsOutTheLooseTasks() {
+        go(to: .review)
+        openReviewPart("9")
+        let someday = reveal(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'loose.someday.'")).firstMatch)
+        XCTAssertTrue(someday.exists,
+                      "Step 9 lists no loose task with a Someday answer. On screen: \(visibleTexts())")
+        guard someday.exists else { return }
+        look("step9")
+        let name = someday.identifier
+        XCTAssertTrue(app.buttons.matching(identifier: name.replacingOccurrences(of: "loose.someday.", with: "loose.today.")).firstMatch.exists,
+                      "The loose task has no Today answer.")
+        pressInSight(someday)
+        XCTAssertTrue(becomes(within: 10) { !self.app.buttons.matching(identifier: name).firstMatch.exists },
+                      "Someday was pressed and the task is still listed as loose. On screen: \(visibleTexts())")
+    }
+
     /// Scrolls the screen until the element is there and on screen, and returns it. On the
     /// phone a list draws only the rows in view; on the Mac the list is scrolled where it is,
     /// down first and then, in case the first half went the wrong way, up.

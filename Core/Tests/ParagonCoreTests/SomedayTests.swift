@@ -49,4 +49,14 @@ final class SomedayTests: XCTestCase {
         XCTAssertEqual(loose.map(\.task.title), ["Sort the cellar", "Buy a map"],
                        "longest untouched note first; next action, dated, waiting, someday and Inbox left out")
     }
+
+    /// A task with no id is found by the words it had, so a change to the words reaches it.
+    func testATaskWithoutAnIdCanHaveItsWordsChanged() throws {
+        var n = note("Projects/Trip.md", .project, "# Trip\n- [ ] Book the ferry\n- [ ] Buy a map\n")
+        let task = try XCTUnwrap(n.tasks.last)
+        XCTAssertFalse(n.replace(task: task.settingSomeday(true)), "by its new words it is not found")
+        XCTAssertTrue(n.replace(task: task.settingSomeday(true), previousTitle: task.title))
+        XCTAssertTrue(n.body.contains("- [ ] Buy a map #someday"))
+        XCTAssertTrue(n.body.contains("- [ ] Book the ferry\n"))
+    }
 }

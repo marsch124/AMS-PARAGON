@@ -233,6 +233,7 @@ struct HelpMenuButtons: View {
             .keyboardShortcut("?", modifiers: [.command])
         Button("Words in PARAGON") { openWindow(id: "help", value: HelpView.Page.words) }
         Button("What\u{2019}s New") { openWindow(id: "help", value: HelpView.Page.versionHistory) }
+        Button("Every Detail") { openWindow(id: "help", value: HelpView.Page.everyDetail) }
     }
 }
 

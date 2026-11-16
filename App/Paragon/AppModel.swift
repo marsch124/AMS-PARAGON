@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 329
+    static let number = 330
 }
 
 @MainActor
@@ -2697,7 +2697,7 @@ final class AppModel: ObservableObject {
         flushPendingEdits()
         guard var note = note(at: ref.notePath) else { return }
         let task = ref.task.settingSomeday(on)
-        guard task != ref.task, note.replace(task: task) else { return }
+        guard task != ref.task, note.replace(task: task, previousTitle: ref.task.title) else { return }
         if saveSettling(note), on { flash("Put aside for someday. Find it in All actions under Someday.") }
     }
 
@@ -2723,7 +2723,7 @@ final class AppModel: ObservableObject {
         guard var note = note(at: ref.notePath) else { return }
         var task = ref.task
         task.title = Note.removingTag(Note.nextActionTag, from: task.title)
-        guard note.replace(task: task) else { return }
+        guard note.replace(task: task, previousTitle: ref.task.title) else { return }
         saveSettling(note)
     }
 
@@ -2791,7 +2791,7 @@ final class AppModel: ObservableObject {
         guard trimmed != ref.task.title, var note = note(at: ref.notePath) else { return }
         var task = ref.task
         task.title = trimmed
-        guard note.replace(task: task) else { return }
+        guard note.replace(task: task, previousTitle: ref.task.title) else { return }
         _ = save(note)
     }
 

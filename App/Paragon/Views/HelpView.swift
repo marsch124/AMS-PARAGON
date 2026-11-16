@@ -12,6 +12,10 @@ struct HelpView: View {
         /// choices and this is something you read — Settings only carries a row that opens it.
         case words = "Words"
         case versionHistory = "Version history"
+        /// Build 330: the full specification, which **How it works** was until then (72,525
+        /// words). **How it works** is now the short guide, `Docs/Guide.md`; this page shows
+        /// the long text unchanged, for the day he wants the exact rule.
+        case everyDetail = "Every detail"
 
         var id: String { rawValue }
 
@@ -21,7 +25,8 @@ struct HelpView: View {
 
         var fileName: String {
             switch self {
-            case .howItWorks: return "HowItWorks"
+            case .howItWorks: return "Guide"
+            case .everyDetail: return "HowItWorks"
             case .versionHistory: return "VersionHistory"
             case .words: return "Words"
             }

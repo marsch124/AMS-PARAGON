@@ -50,7 +50,7 @@ extension AppModel {
                 self.log("deleted note \(question.note.relativePath): \(removed) reminders removed")
                 if removed > 0 { self.flash("\(removed) reminder\(removed == 1 ? "" : "s") removed") }
             } catch {
-                self.errorMessage = "The reminders could not be changed. Open Settings \u{203A} Privacy \u{203A} Reminders and check that PARAGON may use them, then sync again. (\(error.localizedDescription))"
+                self.errorMessage = "The reminders could not be changed. Open Settings \u{203A} Privacy & Security \u{203A} Reminders and check that PARAGON may use them, then sync again. (\(error.localizedDescription))"
             }
         }
     }

@@ -29,14 +29,18 @@ struct SettingsView: View {
             WordsWindowButton()
             HelpWindowButton(page: .versionHistory, label: "What\u{2019}s new")
                 .accessibilityIdentifier("settings.whatsNew")
+            HelpWindowButton(page: .everyDetail, label: "Every detail")
+                .accessibilityIdentifier("settings.everyDetail")
             #else
             // Round 9 (build 316): the bar already says the page's name, so the page does not
             // say it a second time in big letters 130 points lower.
-            NavigationLink("How it works") { HelpDocument(fileName: "HowItWorks", showsTitle: false).navigationTitle("How it works") }
+            NavigationLink("How it works") { HelpDocument(fileName: "Guide", showsTitle: false).navigationTitle("How it works") }
                 .accessibilityIdentifier("settings.howItWorks")
             NavigationLink("Words in PARAGON") { HelpDocument(fileName: "Words", showsTitle: false).navigationTitle("Words") }
             NavigationLink("What\u{2019}s new") { HelpDocument(fileName: "VersionHistory", title: "What\u{2019}s new", showsTitle: false).navigationTitle("What\u{2019}s new") }
                 .accessibilityIdentifier("settings.whatsNew")
+            NavigationLink("Every detail") { HelpDocument(fileName: "HowItWorks", showsTitle: false).navigationTitle("Every detail") }
+                .accessibilityIdentifier("settings.everyDetail")
             #endif
         }
     }

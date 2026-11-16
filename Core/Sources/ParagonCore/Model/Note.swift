@@ -229,21 +229,29 @@ public struct Note: Equatable, Identifiable, Sendable {
     /// for a task getting its first id, by its title. `previousID` names the id the line
     /// carried before, for the case where a task is given a fresh id.
     /// Returns false when the task is no longer in the note.
+    ///
+    /// **`previousTitle`** (build 330): the words the line carried before, when the change is
+    /// to the words themselves — a rename, or a mark that lives in the title (`#next`,
+    /// `#someday`). A task with no id is found by its title; asked for by its NEW title it was
+    /// never found, so renaming a task that had not been synced yet, clearing its next-action
+    /// mark or putting it aside did nothing and said nothing. Found by the first screen test
+    /// of the loose tasks, whose test notes are never synced.
     @discardableResult
-    public mutating func replace(task: TaskItem, previousID: String? = nil) -> Bool {
+    public mutating func replace(task: TaskItem, previousID: String? = nil, previousTitle: String? = nil) -> Bool {
         var current = lines
         let wantedID = previousID ?? task.id
+        let wantedTitle = previousTitle ?? task.title
         func matches(_ line: String) -> Bool {
             guard let existing = TaskParser.parse(line: line) else { return false }
             if let wantedID, let existingID = existing.id { return wantedID == existingID }
-            return existing.title == task.title
+            return existing.title == wantedTitle
         }
         var index = task.lineIndex
         if !(index >= 0 && index < current.count && matches(current[index])) {
             let byID = wantedID.flatMap { id in current.firstIndex { TaskParser.parse(line: $0)?.id == id } }
             let byTitle = current.firstIndex {
                 guard let existing = TaskParser.parse(line: $0), existing.id == nil else { return false }
-                return existing.title == task.title
+                return existing.title == wantedTitle
             }
             guard let found = byID ?? (previousID == nil ? byTitle : nil) else { return false }
             index = found
