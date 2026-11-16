@@ -97,7 +97,7 @@ You can open the same folder in NotePlan, Obsidian or any text editor. If the fo
 
 Since build 319. PARAGON has a folder of its own in iCloud Drive. Files and Finder show it as **PARAGON**, and PARAGON writes it as "iCloud Drive › PARAGON". A device that uses this folder opens it by itself at every start. There is no folder to choose and no folder to lose.
 
-**Nothing is copied by itself.** Your notes stay in the folder you chose until you press **Copy my notes**. You copy them 1 time, on 1 device. The other devices follow. Since build 325 PARAGON does not even make the empty **PARAGON** folder in iCloud Drive when you only look at this page. The folder is made when you press **Copy my notes**. A note you deleted before the copy does not come back when a device that was offline for a long time follows. <!--CHECK-->
+**Nothing is copied by itself.** Your notes stay in the folder you chose until you press **Copy my notes**. You copy them 1 time, on 1 device. The other devices follow. Since build 325 PARAGON does not even make the empty **PARAGON** folder in iCloud Drive when you only look at this page. The folder is made when you press **Copy my notes**. A note you deleted before the copy does not come back when a device that was offline for a long time follows.
 
 **It is a copy, and the old folder is always kept.** PARAGON copies your notes, checks every file, and then uses the copy. Your old folder stays as it is. PARAGON never deletes the old folder and never deletes a note in it. You delete it yourself, when you are sure.
 
@@ -2717,6 +2717,6 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Where it applies.** **Today** (**Overdue** and **Due today**), the widgets (counts and red rows, including the Lock Screen widget), the **Weekly review** step "2. Reschedule or drop overdue tasks", a project's health and its "overdue" count, the shortcut answer **What Is Due Today?**, the suggestions of **Start Focus**, and the actions in **Plan**.
 - **Close the day.** It goes by the do-day only: it moves tasks whose do-day is today or earlier. Moving a task never changes its deadline, so a task kept by its deadline can show again as overdue or due today.
 - **Before build 325.** Everything went by the do-day only. A passed deadline made only the red flag on the row.
-- **Devices list.** An iPhone or iPad writes its model name in its small file in `.ams-para/devices/`, for example "iPad mini". <!--CHECK-->
+- **Devices list.** An iPhone or iPad writes its model name in its small file in `.ams-para/devices/`, for example "iPad mini".
 - **Own folder.** The folder **PARAGON** in iCloud Drive is made by **Copy my notes**, not when the page is opened.
-- **Note deleted before the copy.** It is not brought back by a device that follows late. <!--CHECK-->
+- **Note deleted before the copy.** It is not brought back by a device that follows late.

@@ -15,21 +15,21 @@ The version is shown as 1.0 (325) in Settings › About, at the foot of the Mac 
 - 1. **Deadlines count (you said yes).** A task is overdue when its date **or** its deadline (@deadline) has passed. A task whose deadline is today shows under **Due today**, even when its date is later or missing. This holds on **Today** (**Overdue** and **Due today**), in the widgets (the numbers and the red rows), in the **Weekly review** step "2. Reschedule or drop overdue tasks", in a project's health, in the shortcut answer **What Is Due Today?**, in the suggestions of **Start Focus** and in the actions in **Plan**. **Close the day** still moves only tasks whose date is today or earlier, because moving a task does not change its deadline.
 - 2. **Own names for iPhone and iPad.** The list of devices shows the model name, for example "iPad mini" or "iPhone 17 Pro", not just "iPhone" or "iPad".
 - 3. **No empty folder by looking.** PARAGON no longer makes an empty **PARAGON** folder in iCloud Drive just because you look at the page. It is made when you press **Copy my notes**.
-- 4. **A deleted note stays deleted.** A note you deleted before the copy no longer comes back when a device that was offline for a long time follows. <!--CHECK-->
+- 4. **A deleted note stays deleted.** A note you deleted before the copy no longer comes back when a device that was offline for a long time follows.
 - 5. **A calmer look** (points from the designer, builds 317 to 319):
   - **Goals:** the list shows one per cent, the number's, for example "285 km · 65 %". A goal row is as short as a row without a number. The dashed target line shows its value. The button says "Number: 285 of 440 km".
   - **Weekly review:** the rows are tighter. No lone dash stands before a line with a picture or a PDF.
   - **Add bar:** it hides while a number window is open.
-  - **Today:** ticking a task leaves no pale band.
+  - **Today:** when you tick a task, its circle fills for a moment before the row leaves.
   - **Share sheet:** the words field is one line and grows when you write more.
-  - **Widgets and Lock Screen:** the banner of the focus timer says "of 45 min" in a new place. The widget **Today's plan** names short blocks and starts at the half hour. The small widget has the sun in its heading. The foot line shows only when something is wrong.
+  - **Widgets and Lock Screen:** the banner of the focus timer says "of 45 min" in a new place. The widget **Today's plan** names even a 30-minute block and starts half an hour before now (before: at the full hour). The small widget has the sun in its heading. The foot line shows only when something is wrong.
   - **Search:** the wording is "Notes in the search".
   - **Copy to your own folder:** when PARAGON says no, it names the folder and has a **Show** button. **Stop** closes the page with "Stopped. Your notes are where they were." The finished page is in parts with headings.
-  - **Reminders:** the message says "Reminders sync is paused: …".
   - **Settings › Vault:** one row. Its main button is full colour.
   - **Mac:** "Set" is now "Save" in the date windows.
-  - **Icon picker:** **Cancel** is full colour.
-- 6. **Mac: restore from the iPhone's inside backups.** The Mac now asks iCloud to fetch them first. <!--CHECK-->
+  - **Icon picker:** **Cancel** is in the app's colour, not grey.
+- 6. **Mac: restore from the iPhone's inside backups.** Before, the backups the iPhone made inside the notes folder stayed "not downloaded" on the Mac, so a restore from them could not start. Now the Mac asks iCloud to fetch them, at most once an hour.
+- 7. **A lighter start (the iPad crash).** PARAGON keeps a fault log. One check in it ran on every change on the screen, hundreds of times right after a start, and each time it was slow. Now it runs at most once every 5 seconds. This is the most likely cause of the iPad that closed at every start right after the update to 322. The crash report itself had not reached Apple yet when this was built.
 
 **Not changed.** **Close the day**, the weekly review reminder (Sunday 17:00) and every button's place.
 
