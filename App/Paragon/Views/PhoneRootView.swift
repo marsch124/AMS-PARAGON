@@ -445,7 +445,14 @@ extension AppModel {
         case .calendar:
             let due = sidebarCounts.dueByToday
             return due == 0 ? "Nothing due today" : "\(due) due by today"
-        case .today, .map, .search: return DayWords.withWeekday(DateOnly.today())
+        // Build 322: the Map and Search bands say something of their own, not only the date
+        // (round 4's "a band fact should earn its place").
+        case .map:
+            let areas = sidebarCounts.notesByKind[.area] ?? 0
+            let projects = sidebarCounts.liveProjects
+            return "\(projects) \(projects == 1 ? "project" : "projects") in \(areas) \(areas == 1 ? "area" : "areas")"
+        case .search: return "Notes, tasks and words"
+        case .today: return DayWords.withWeekday(DateOnly.today())
         case .recent, .snippets, .tags, .work, .aspirations, .kind: return inAll()
         }
     }

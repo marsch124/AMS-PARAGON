@@ -553,6 +553,26 @@ public final class SyncEngine {
                     path = todayPath
                 }
 
+                // After a vault switch the link memory can be missing: before writing a NEW line,
+                // look for a task in that note with the same words that no reminder owns, and
+                // link to it instead (two devices adding the same words must not double up).
+                let words = Self.sameWords(Self.taskTitle(fromReminderTitle: reminder.title, parentPrefix: nil))
+                if !words.isEmpty,
+                   let twin = notesByPath[path]?.tasks.first(where: { candidate in
+                       guard let candidateID = candidate.id, state.links[candidateID] == nil,
+                             remindersByMarker[candidateID] == nil, !candidate.isSubtask,
+                             candidate.isDone == reminder.isCompleted else { return false }
+                       return Self.sameWords(candidate.title) == words
+                   }), let twinID = twin.id {
+                    handledReminderIDs.insert(reminder.identifier)
+                    let provisional = TaskLink(taskID: twinID, reminderID: reminder.identifier, notePath: path, listName: reminder.listName,
+                                               lastTaskFingerprint: "", lastReminderFingerprint: "", lastSyncedAt: now())
+                    state.links[twinID] = try await reconcile(task: twin, at: path, listName: reminder.listName,
+                                                              parentPrefix: nil, reminder: reminder, link: provisional,
+                                                              firstLink: true, report: &report, updateNote: updateNote)
+                    continue
+                }
+
                 var id = TaskItem.makeID()
                 while allTaskIDs.contains(id) { id = TaskItem.makeID() }
                 allTaskIDs.insert(id)
@@ -824,6 +844,11 @@ public final class SyncEngine {
         let ns = title as NSString
         return TaskParser.collapseWhitespace(deadlineMarkRegex.stringByReplacingMatches(
             in: title, range: NSRange(location: 0, length: ns.length), withTemplate: " "))
+    }
+
+    /// Words only, for telling whether two lines say the same thing: trimmed, lower case.
+    static func sameWords(_ title: String) -> String {
+        singleLine(title).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
     static func singleLine(_ text: String) -> String {

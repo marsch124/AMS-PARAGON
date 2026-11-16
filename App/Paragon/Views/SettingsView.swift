@@ -598,6 +598,7 @@ struct OutsideRestoreView: View {
                 Spacer()
                 Button("Cancel", role: .cancel) { model.cancelOutsideRestore() }
                     .keyboardShortcut(.cancelAction)
+                    .quietSheetButton()
                     .disabled(isRestoring)
                     .accessibilityIdentifier("outsideRestore.cancel")
                 if words.canRestore {

@@ -1000,6 +1000,7 @@ struct SheetFooter: View {
             Spacer()
             Button("Cancel", action: cancel)
                 .keyboardShortcut(.cancelAction)
+                .quietSheetButton()
                 .accessibilityIdentifier("sheet.cancel")
             Button(actionTitle, action: act)
                 .keyboardShortcut(.defaultAction)

@@ -315,6 +315,7 @@ struct SnippetSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
+                    .quietSheetButton()
                 Button("Add") {
                     insert(answers)
                     dismiss()
@@ -373,6 +374,7 @@ struct NewTemplateSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
+                    .quietSheetButton()
                 Button("Save") {
                     create()
                     dismiss()

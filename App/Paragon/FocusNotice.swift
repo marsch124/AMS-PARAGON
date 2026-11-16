@@ -39,7 +39,9 @@ enum FocusNotice {
         generation += 1
         let mine = generation
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: [requestID])
+        // Build 322: off the main thread, in the same line as the reminders (see
+        // `EveningReminder.noticeLine`); the question below follows it in that line.
+        EveningReminder.noticeLine.async { center.removePendingNotificationRequests(withIdentifiers: [requestID]) }
         guard let session else {
             takeAwayDelivered()
             return
@@ -48,7 +50,7 @@ enum FocusNotice {
         let title = session.title
         let fireAt = now.addingTimeInterval(left)
         let ask = mayAsk
-        center.getNotificationSettings { settings in
+        EveningReminder.noticeLine.async { center.getNotificationSettings { settings in
             let status = settings.authorizationStatus
             let silent = settings.alertSetting == .disabled || settings.alertStyle == UNAlertStyle.none
             Task { @MainActor in
@@ -79,7 +81,7 @@ enum FocusNotice {
                     add(title: title, planned: planned, at: fireAt, generation: mine)
                 }
             }
-        }
+        } }
     }
 
     private static func add(title: String, planned: Int, at fireAt: Date, generation mine: Int) {
@@ -99,7 +101,9 @@ enum FocusNotice {
     /// Takes away a notification already shown for the clock: on **Stop**, when a new clock
     /// replaces a running one, and when the clock ends.
     static func takeAwayDelivered() {
-        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [requestID])
+        EveningReminder.noticeLine.async {
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [requestID])
+        }
     }
 
     /// The same two states, in the same words, as **Settings \u{203A} Morning reminder** and

@@ -212,6 +212,7 @@ struct RepeatChoiceView: View {
                 Spacer()
                 Button("Cancel", action: close)
                     .keyboardShortcut(.cancelAction)
+                    .quietSheetButton()
                     .accessibilityIdentifier("repeat.cancel")
                 Button("Save", action: save)
                     .buttonStyle(.filled(tint))

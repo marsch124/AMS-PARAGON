@@ -379,6 +379,7 @@ struct GoalNumberEditor: View {
                 Spacer()
                 Button("Cancel", action: cancel)
                     .keyboardShortcut(.cancelAction)
+                    .quietSheetButton()
                     .accessibilityIdentifier("number.cancel")
                 Button("Save", action: commit)
                     .buttonStyle(.filled(tint))

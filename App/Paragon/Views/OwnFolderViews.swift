@@ -370,6 +370,7 @@ struct OwnFolderPageView: View {
                 if let cancel = words.cancel {
                     Button(cancel, role: .cancel) { self.cancel() }
                         .keyboardShortcut(.cancelAction)
+                        .quietSheetButton()
                         .accessibilityIdentifier("ownFolder.cancel")
                 }
                 if let action = words.action {

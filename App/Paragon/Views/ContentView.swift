@@ -1696,6 +1696,7 @@ struct FolderChoiceView: View {
                 Spacer()
                 Button("Cancel", role: .cancel) { model.cancelFolderChoice() }
                     .keyboardShortcut(.cancelAction)
+                    .quietSheetButton()
                     .accessibilityIdentifier("folderChoice.cancel")
                 if let action = words.action {
                     Button(action) { model.confirmFolderChoice() }

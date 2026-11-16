@@ -46,6 +46,17 @@ final class SyncIdentityTests: XCTestCase {
         XCTAssertEqual(again.changeCount, 0)
     }
 
+    func testAReminderWithTheWordsOfAnUnlinkedTaskLinksToItInsteadOfAddingALine() async throws {
+        try makeProject("Shop", body: "- [ ] Buy milk ^t0000aa\n")
+        _ = try await store.create(ReminderRecord(listName: "Shop", title: "  buy MILK "))
+
+        let report = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(report.tasksCreated, 0)
+        let note = try vault.loadNote(relativePath: "Projects/Shop.md")
+        XCTAssertEqual(note.tasks.count, 1, "no second line")
+        XCTAssertNotNil(try vault.loadSyncState(deviceID: "test-device").links["t0000aa"])
+    }
+
     func testATaskFromAnotherDeviceWaitsOneRoundForItsReminder() async throws {
         try makeProject("Shop", body: "- [ ] Buy milk ^t0000aa\n- [ ] Buy bread ^t0000bb\n")
         let first = try await engine.run()

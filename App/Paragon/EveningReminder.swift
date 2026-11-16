@@ -253,28 +253,39 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
 
     private var center: UNUserNotificationCenter { UNUserNotificationCenter.current() }
 
-    /// Called once at launch.
+    /// Every call to the system's notification service that waits for an answer runs here,
+    /// never on the main thread (build 322). On a fresh iOS 27 iPhone the service never
+    /// answered `removePendingNotificationRequests` at launch, and PARAGON stayed a white
+    /// screen for good. One serial line keeps "take away, then plant" in its order.
+    static let noticeLine = DispatchQueue(label: "com.schabbauer.AMSPara.notices", qos: .utility)
+
+    /// Called once at launch. Only the delegate is set here, at once — it must be in place
+    /// before launch ends; everything else goes to `noticeLine`.
     func start() {
         center.delegate = self
-        refreshPermission()
-        let defaults = UserDefaults.standard
-        // Re-plant what Settings says, so a reminder and its switch can never disagree after
-        // an update or a restore. Asking for permission is left to a switch being turned on.
-        for kind in DayReminder.allCases {
-            if defaults.bool(forKey: kind.onKey) {
-                plant(kind, minutes: kind.minutes(in: defaults))
-            } else {
-                center.removePendingNotificationRequests(withIdentifiers: [kind.requestID])
+        Self.noticeLine.async { [self] in
+            refreshPermission()
+            let defaults = UserDefaults.standard
+            // Re-plant what Settings says, so a reminder and its switch can never disagree after
+            // an update or a restore. Asking for permission is left to a switch being turned on.
+            for kind in DayReminder.allCases {
+                if defaults.bool(forKey: kind.onKey) {
+                    plant(kind, minutes: kind.minutes(in: defaults))
+                } else {
+                    center.removePendingNotificationRequests(withIdentifiers: [kind.requestID])
+                }
             }
+            refreshSchedule()
         }
-        refreshSchedule()
     }
 
     /// What a switch and its time picker call. The time is read from Settings when the system
     /// answers, never handed in, so a time changed twice in a row plants the last one.
     func update(_ kind: DayReminder, on: Bool) {
-        center.removePendingNotificationRequests(withIdentifiers: [kind.requestID])
-        refreshSchedule()
+        Self.noticeLine.async { [self] in
+            center.removePendingNotificationRequests(withIdentifiers: [kind.requestID])
+            refreshSchedule()
+        }
         guard on else { return }
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
@@ -291,10 +302,12 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     /// permission is shared, so a "yes" given for one switch, or for **Send one in 10 seconds**,
     /// is also the one the other switch, already on, was waiting for.
     private func plantWhatIsOn() {
-        let defaults = UserDefaults.standard
-        for one in DayReminder.allCases where defaults.bool(forKey: one.onKey) {
-            center.removePendingNotificationRequests(withIdentifiers: [one.requestID])
-            plant(one, minutes: one.minutes(in: defaults))
+        Self.noticeLine.async { [self] in
+            let defaults = UserDefaults.standard
+            for one in DayReminder.allCases where defaults.bool(forKey: one.onKey) {
+                center.removePendingNotificationRequests(withIdentifiers: [one.requestID])
+                plant(one, minutes: one.minutes(in: defaults))
+            }
         }
     }
 
@@ -338,7 +351,7 @@ final class EveningReminder: NSObject, ObservableObject, UNUserNotificationCente
     /// notifications is read, so Settings can say whether it came (build 244).
     func sendTest(_ kind: DayReminder) {
         tests[kind] = .asking
-        center.removeDeliveredNotifications(withIdentifiers: [kind.testID])
+        Self.noticeLine.async { [self] in center.removeDeliveredNotifications(withIdentifiers: [kind.testID]) }
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 self.refreshPermission()

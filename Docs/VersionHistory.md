@@ -1,6 +1,40 @@
 # Version history
 
-The version is shown as 1.0 (321) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (322) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 322 · 16 November 2026
+
+**Four fixes: the white screen on iOS 27, the ring round the sheet buttons on the Mac, doubled tasks after you change the notes folder, and two bands on the iPhone.** Nothing new to learn. Every button stays where it was.
+
+**Before (build 321).**
+- On a fresh iPhone with iOS 27, PARAGON could stay a white screen at start, for good. It was seen on the iOS 27 simulator in builds 315 to 321.
+- On the Mac, the outline round **Cancel**, **Stop**, **Close** and **Not now** (the outline that shows which button the keyboard is on) was wider than the button. On **Stop** in "Copying your notes" the grey button filled about 80 % of the outline, with a white strip at the right. You found this on 14 November.
+- After **Choose folder…**, two devices could each write the same new reminder into the Inbox with a different hidden code. iCloud then kept a second file, a conflict copy. You saw it on 16 November with 3 tasks.
+- On the iPhone, the coloured band on **Map** and on **Search** said only the date, the same as on **Today**.
+
+**1. iPhone: no more white screen at start on iOS 27.**
+- What happened: at start PARAGON asked the notification service of the iPhone to clear and set up the reminders, and waited for the answer. On a fresh iPhone with iOS 27 the answer never came. The window never showed.
+- Now: the morning and evening reminders and the notice of the focus timer are set up in the background, in one line, one after the other. The window shows at once. The reminders are set up as before, only a moment later.
+- Nothing you set in **Settings** changed. The reminders come at the same times.
+
+**2. Mac: the outline round a sheet button fits the button.**
+- What happened: Apple's grey button drew its outline wider than its own grey shape.
+- Now: **Cancel**, **Stop**, **Close** and **Not now** on 9 sheets are drawn by PARAGON. The grey fill is soft and covers the whole button. It has the same shape and the same height as the coloured main button beside it, so the outline sits exactly round it.
+- The touch shape of the main button now has the same round corners as its fill. Before, the outline round it was 1 point rounder than the colour.
+- The iPhone and the iPad are unchanged.
+
+**3. Sync: no doubled tasks after you change the notes folder.**
+- What happened: after **Choose folder…**, PARAGON could forget which task and reminder belong together. Two devices then each wrote the same new reminder as a new line.
+- Now: before PARAGON writes a reminder as a new line, it looks in that note for a task with the same words (capital letters do not count) that no reminder owns yet. A task that is open, or ticked like the reminder, is linked to the reminder. No second line is written.
+- A task that already has its reminder is never taken. Lines with different words are written as before.
+- A test checks it: a reminder with the words of a task without a link joins that task and adds no line.
+
+**4. iPhone: the band on Map and on Search says something of its own.**
+- **Map**: before, the date. Now, for example "12 projects in 5 areas". With 1 it says "1 project" and "1 area".
+- **Search**: before, the date. Now, "Notes, tasks and words".
+- **Today** keeps the date.
+
+**Still to do in the trial:** the harder cases, one at a time. Your real notes have not been copied.
 
 ## Build 321 · 14 November 2026
 

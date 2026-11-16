@@ -337,7 +337,9 @@ struct MainButtonStyle: ButtonStyle {
             .background(isEnabled ? color.deep.opacity(configuration.isPressed ? 0.8 : 1)
                                   : (scheme == .dark ? color : color.deep).opacity(waiting),
                         in: RoundedRectangle(cornerRadius: wide ? Theme.radius : 7))
-            .contentShape(RoundedRectangle(cornerRadius: Theme.radius))
+            // Build 322: the touch shape and the Mac's keyboard-focus ring follow the drawn
+            // fill exactly (the ring was 1 pt rounder and stood off the corners).
+            .contentShape(RoundedRectangle(cornerRadius: wide ? Theme.radius : 7))
     }
 
     private var small: Bool { controlSize == .small || controlSize == .mini }
@@ -348,6 +350,45 @@ struct MainButtonStyle: ButtonStyle {
     #else
     private static let regularPad: CGFloat = 6
     #endif
+}
+
+/// Cancel, Stop, Close and Not now beside the main button on a Mac sheet (build 322).
+///
+/// Apple's own push button drew its keyboard-focus ring wider than its grey bezel: the Stop
+/// button of "Copying your notes" filled only about 80 % of the ring, with a white strip at
+/// the right (his find, 14 Nov 2026). This style draws the grey fill over the whole frame,
+/// in the main button's shape and size, so the ring sits exactly round what you see.
+struct QuietButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.controlSize) private var controlSize
+
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 7)
+        let small = controlSize == .small || controlSize == .mini
+        let tall = controlSize == .large || controlSize == .extraLarge
+        configuration.label
+            .font(small ? Txt.label : Txt.button.weight(.regular))
+            .lineLimit(1)
+            .foregroundStyle(isEnabled ? Color.primary : Color.secondary)
+            .padding(.horizontal, small ? 10 : 14)
+            .padding(.vertical, small ? 3 : tall ? 6 : 4)
+            .background(Color.primary.opacity((scheme == .dark ? 0.16 : 0.08)
+                                              + (configuration.isPressed ? 0.08 : 0)), in: shape)
+            .contentShape(shape)
+    }
+}
+
+extension View {
+    /// The quiet button beside a sheet's main button. On the Mac it is drawn by PARAGON so the
+    /// focus ring fits it; on the iPhone and iPad nothing changes.
+    @ViewBuilder func quietSheetButton() -> some View {
+        #if os(macOS)
+        buttonStyle(QuietButtonStyle())
+        #else
+        self
+        #endif
+    }
 }
 
 extension ButtonStyle where Self == MainButtonStyle {
@@ -450,6 +491,7 @@ struct SheetBar: View {
             Spacer(minLength: 12)
             Button("Cancel", action: cancel)
                 .keyboardShortcut(.cancelAction)
+                .quietSheetButton()
                 .controlSize(.large)
                 .accessibilityIdentifier("sheet.cancel")
             if showsAction {
