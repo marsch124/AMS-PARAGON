@@ -5272,3 +5272,35 @@ Eight changes in one release; docs in `Docs/VersionHistory.md`, `HowItWorks.md`,
 - **View:** `App/Paragon/Views/StartScreen.swift`, identifier `start.screen`; `AppModel.startScreenUp` / `leaveStartScreen(_:)`. Stays until a tap (Mac: click or any key); his pick, 16 Nov ("Only when I tap").
 - **Welcome page fix:** only the line "Opening your notes…" shows while the notes open; the welcome page only when there is no notes folder, with the app icon (`AppIconTile`) in place of the old four squares.
 - **Tests:** screen tests start without it (test vault = `.test`); one screen test uses `-paragon-start-screen` and taps it away. iPad landscape walk-through presses a sidebar row up to 3 times when a press changed nothing (run 43893159835, "landscape 07 All actions").
+
+## Mac screen tests, the last eight (16 November 2026, after build 329; tests only, no new build)
+
+The Mac job of build 329 ran 57 of 65 green. All eight red tests were tried **by hand** in an
+unsigned Debug copy with the test notes (`open -n -g …/Debug/PARAGON.app --args
+-paragon-test-vault -paragon-settings-block-open -ApplePersistenceIgnoreState YES`, 900 x 450,
+the size the runner's window has too). **None is a fault of the app**; every one was the test:
+
+- **Waiting for** (2 tests): the switch works at once by hand. The test's question "which part's
+  words begin with …" timed out on the runner. `pressSwitchPart` now clicks the switch
+  (`actions.switch`) a quarter or three quarters of the way across; no question about its parts.
+- **Weekly review** (3 tests: last-week arrow, the week's line, step 8): arrow, Done and step 8
+  all work by hand. On the runner two presses at a button's middle took 5.6 s, changed nothing
+  and left the app behind another one — most likely the Dock over the foot of the window on a
+  1024 x 768 screen. `bringIntoSight` scrolls an element into `clickableRoom()` (sheet or main
+  window, cut to `NSScreen.visibleFrame`, clear of the top bar) and `pressInSight` presses it
+  there; the Mac's `reveal` ends with it. ci.yml hides the Dock and prints the screen's size.
+  The week-line test waited twice on one expectation (its own error); it asks afresh now and
+  prints `NOTE: Done in step 7 needed a second press` when it did — grep the log for `NOTE`.
+- **Share**: the test opened a goal; a goal opens on its goal page, and the note's buttons come
+  with the note (the **Note** switch). It opens a project now.
+- **The time button** (Start the day): the new task's row is below what the sheet shows in a
+  450-point window; `bringIntoSight` first.
+- **Tools heading**: found by its name, or as a button or a word called Tools.
+- Failure messages now end with `whereabouts(…)`: the element's frame, the window, the room,
+  the screen and the app's state.
+
+**The test notes never ask the keychain** (`AppModel.deviceID`, DEBUG only): an unsigned test
+copy could wait in `DeviceIDKeychain.read()` for a question from macOS and draw no window.
+
+**Mac screen tests cannot run on his Mac**: `automationmodetool` says Automation Mode needs his
+password. They stay on GitHub; faults are tried by hand in the Debug copy as above.

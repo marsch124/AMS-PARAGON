@@ -282,6 +282,16 @@ jobs:
         run: brew install xcodegen
       - name: Generate project
         run: xcodegen generate
+      # 16 Nov 2026: the runner's screen is small (about 1024 x 768) and its Dock covers the
+      # foot of the app's window. A press on a button down there landed on the Dock, took five
+      # seconds and left the app behind another one (the Mac run of build 329). The Dock is
+      # hidden, and the screen's size is printed for the next time a press goes astray.
+      - name: Hide the Dock
+        run: |
+          defaults write com.apple.dock autohide -bool true
+          killall Dock || true
+          sleep 3
+          system_profiler SPDisplaysDataType | grep -i "resolution" || true
       - name: Press the buttons
         run: |
           set -o pipefail

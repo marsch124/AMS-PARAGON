@@ -565,6 +565,11 @@ final class AppModel: ObservableObject {
     /// nothing — every task looked like a conflict, the note won, and ticks made on the phone
     /// were undone. The keychain copy is never synced to other devices: each has its own id.
     var deviceID: String {
+        #if DEBUG
+        // The test notes never ask the keychain (16 Nov 2026): an unsigned test copy on the Mac
+        // can be made to wait there for a question from macOS, with no window drawn.
+        if TestVault.isWanted { return "test-vault-device" }
+        #endif
         if let id = defaults.string(forKey: deviceIDKey) {
             if DeviceIDKeychain.read() == nil { DeviceIDKeychain.write(id) }
             return id

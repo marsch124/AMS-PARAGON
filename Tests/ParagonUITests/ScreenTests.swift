@@ -286,6 +286,12 @@ final class ScreenTests: XCTestCase {
         let time = app.buttons.matching(identifier: "task.time.Water the plants").firstMatch
         XCTAssertTrue(time.waitForExistence(timeout: 20),
                       "Start the day does not ask How long? on a task without a time. On screen: \(visibleTexts())")
+        #if os(macOS)
+        // 16 Nov 2026 (the Mac run of build 329): the new task's row is the last of the sheet's
+        // list and lies below what a 450-point window's sheet shows, so the press at its
+        // middle landed outside the list. By hand the list is scrolled first; so here.
+        bringIntoSight(time)
+        #endif
         let timeFrame = time.frame
         guard Self.isOnScreen(timeFrame) else {
             XCTFail("The time button has no place on screen: \(timeFrame)")
@@ -296,7 +302,7 @@ final class ScreenTests: XCTestCase {
         let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
         let opened = choice.waitForExistence(timeout: 10)
         XCTAssertTrue(opened,
-                      "Pressing the time button did not show the choices. On screen: \(visibleTexts())")
+                      "Pressing the time button did not show the choices. \(whereabouts(time)) On screen: \(visibleTexts())")
         guard opened else { return }
         // Measured once and used once (build 249's third run): reading `frame` twice asks the
         // app twice, and a popover can answer differently the second time.
@@ -633,6 +639,30 @@ final class ScreenTests: XCTestCase {
         return app.radioButtons.matching(named).firstMatch
         #else
         return app.segmentedControls.buttons.matching(named).firstMatch
+        #endif
+    }
+
+    /// Presses one part of the switch, and says whether the switch was there to press.
+    ///
+    /// **On the Mac by its place, not by its words** (16 Nov 2026, the Mac run of build 329):
+    /// asking the two parts for the one whose words begin with "Waiting for" timed out for
+    /// 100 s on the runner, both when asked of every radio button and when asked of the switch
+    /// alone ("Timed out while evaluating UI query"), while by hand the switch answers at once.
+    /// The switch itself is found by its name in a tenth of a second, its two parts are equally
+    /// wide, and a click a quarter of the way in or out lands on the first or the second.
+    private func pressSwitchPart(_ words: String, timeout: TimeInterval = 20) -> Bool {
+        #if os(macOS)
+        let named = app.radioGroups.matching(identifier: "actions.switch").firstMatch
+        let group = named.waitForExistence(timeout: timeout) ? named : element("actions.switch")
+        guard group.exists else { return false }
+        let across: CGFloat = words.hasPrefix("Waiting") ? 0.75 : 0.25
+        group.coordinate(withNormalizedOffset: CGVector(dx: across, dy: 0.5)).click()
+        return true
+        #else
+        let part = switchPart(words)
+        guard part.waitForExistence(timeout: timeout) else { return false }
+        part.pressCentre()
+        return true
         #endif
     }
 
@@ -1091,15 +1121,15 @@ final class ScreenTests: XCTestCase {
         let earlier = app.buttons.matching(identifier: "review.lookBack.earlier").firstMatch
         XCTAssertTrue(earlier.waitForExistence(timeout: 10),
                       "Step 7 has no arrow to an earlier week. On screen: \(visibleTexts())")
-        if earlier.isHittable { earlier.press() } else { earlier.pressCentre() }
+        pressInSight(earlier)
         XCTAssertTrue(becomes(within: 10) { self.words(of: title) != first },
-                      "The arrow was pressed and the week stayed \(first).")
+                      "The arrow was pressed and the week stayed \(first). \(whereabouts(earlier))")
 
         let later = app.buttons.matching(identifier: "review.lookBack.later").firstMatch
         XCTAssertTrue(later.waitForExistence(timeout: 10),
                       "Step 7 has no arrow to a later week. On screen: \(visibleTexts())")
         XCTAssertTrue(later.isEnabled, "One week back, the arrow to a later week is greyed out.")
-        if later.isHittable { later.press() } else { later.pressCentre() }
+        pressInSight(later)
         XCTAssertTrue(becomes(within: 10) { self.words(of: title) == first },
                       "The arrow back did not return to \(first). It says: \(words(of: title))")
     }
@@ -1113,7 +1143,7 @@ final class ScreenTests: XCTestCase {
         go(to: .review)
         openReviewPart("8")
         let box = reveal(app.buttons.matching(identifier: "review.nextGoal").firstMatch)
-        XCTAssertTrue(box.exists, "The Weekly review has no step 8. On screen: \(visibleTexts())")
+        XCTAssertTrue(box.exists, "The Weekly review has no step 8. The heading: \(whereabouts(app.buttons.matching(identifier: "review.part.8").firstMatch)) On screen: \(visibleTexts())")
         let frame = box.frame
         guard Self.isOnScreen(frame) else {
             XCTFail("The goal box in step 8 has no place on screen: \(frame)")
@@ -1170,7 +1200,10 @@ final class ScreenTests: XCTestCase {
         for attempt in 0..<tries {
             #if os(macOS)
             let window = app.windows.firstMatch
-            if target.exists && window.frame.contains(target.frame) { return target }
+            if target.exists && window.frame.contains(target.frame) {
+                bringIntoSight(target)
+                return target
+            }
             let list = element("review.list")
             let spot = list.exists
                 ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
@@ -1191,6 +1224,89 @@ final class ScreenTests: XCTestCase {
             #endif
         }
         return target
+    }
+
+    #if os(macOS)
+    /// **Where a click can land** (16 Nov 2026, the Mac run of build 329): the sheet when one is
+    /// up, else the main window, cut to what the screen really shows (no Dock, no menu bar) and
+    /// kept clear of the bar at the top. "Inside the window" was not enough: in that run two
+    /// presses at the middle of buttons that were inside the window took 5.6 s each, changed
+    /// nothing, and left the app behind another one; by hand the same buttons work. A button
+    /// in the window's last rows can lie under the Dock, or under the sheet's own edge.
+    private func clickableRoom() -> CGRect {
+        let sheet = app.sheets.firstMatch
+        var room = sheet.exists ? sheet.frame : mainWindow.frame
+        if let screen = NSScreen.screens.first {
+            // AppKit measures from the bottom of the screen, the tests from its top.
+            let top = screen.frame.height - screen.visibleFrame.maxY
+            let seen = CGRect(x: screen.visibleFrame.minX, y: top,
+                              width: screen.visibleFrame.width, height: screen.visibleFrame.height)
+            let cut = room.intersection(seen)
+            if !cut.isNull && cut.height > 80 { room = cut }
+        }
+        return CGRect(x: room.minX, y: room.minY + 60, width: room.width, height: max(room.height - 74, 40))
+    }
+
+    /// Scrolls what lies under the element until the whole of it is where a click can land.
+    /// The way to scroll is read from where the element is; when two steps move nothing, the
+    /// other way is tried, so a wrong guess about the wheel costs steps and not the test.
+    private func bringIntoSight(_ target: XCUIElement) {
+        var lastY: CGFloat?
+        var still = 0
+        var turned = false
+        for _ in 0..<16 {
+            guard target.exists else { return }
+            let frame = target.frame
+            let room = clickableRoom()
+            guard !frame.isEmpty, frame.midY.isFinite, room.height > 40 else { return }
+            let fits = frame.height <= room.height - 8
+            if fits ? (frame.minY >= room.minY && frame.maxY <= room.maxY)
+                    : (frame.midY >= room.minY && frame.midY <= room.maxY) { return }
+            if let lastY, abs(lastY - frame.midY) < 1 { still += 1 } else { still = 0 }
+            if still >= 2 { turned.toggle(); still = 0 }
+            lastY = frame.midY
+            let below = frame.midY > room.midY
+            var step = min(max(abs(frame.midY - room.midY), 30), 220) * (below ? -1 : 1)
+            if turned { step = -step }
+            let sheet = app.sheets.firstMatch
+            let host = sheet.exists ? sheet : mainWindow
+            let hostFrame = host.frame
+            guard hostFrame.width > 0, hostFrame.height > 0 else { return }
+            let x = min(max(frame.midX, room.minX + 20), room.maxX - 20)
+            host.coordinate(withNormalizedOffset: CGVector(dx: (x - hostFrame.minX) / hostFrame.width,
+                                                           dy: (room.midY - hostFrame.minY) / hostFrame.height))
+                .scroll(byDeltaX: 0, deltaY: step)
+        }
+    }
+    #endif
+
+    /// A press that first makes sure the element can be pressed at all. On the Mac it is
+    /// scrolled to where a click can land (`bringIntoSight`), pressed the system's way when the
+    /// system calls it hittable and at its middle when not, and, should the app have been left
+    /// behind by the press, brought forward and pressed once more.
+    private func pressInSight(_ target: XCUIElement) {
+        #if os(macOS)
+        bringIntoSight(target)
+        if target.isHittable { target.click() } else { target.pressCentre() }
+        if app.state != .runningForeground {
+            print("NOTE: a press left the app behind; brought forward and pressed again. \(whereabouts(target))")
+            app.activate()
+            _ = app.wait(for: .runningForeground, timeout: 8)
+            if target.exists { if target.isHittable { target.click() } else { target.pressCentre() } }
+        }
+        #else
+        if target.isHittable { target.press() } else { target.pressCentre() }
+        #endif
+    }
+
+    /// Where an element and the window are, for a message that can be read without the screen.
+    private func whereabouts(_ target: XCUIElement) -> String {
+        #if os(macOS)
+        let screen = NSScreen.screens.first.map { "screen \($0.frame.size), seen \($0.visibleFrame)" } ?? "no screen"
+        return "[\(target.exists ? "frame \(target.frame), hittable \(target.isHittable)" : "not there"); window \(mainWindow.frame); room \(clickableRoom()); \(screen); app state \(app.state.rawValue)]"
+        #else
+        return "[\(target.exists ? "frame \(target.frame), hittable \(target.isHittable)" : "not there")]"
+        #endif
     }
 
     /// The words an element shows: the phone keeps them in `label`, the Mac a text's in `value`.
@@ -1227,10 +1343,8 @@ final class ScreenTests: XCTestCase {
         XCTAssertFalse(element("actions.waitingPointer").exists,
                        "The pointer to the waiting list is drawn although nothing is waiting.")
 
-        let toggle = switchPart("Waiting for")
-        XCTAssertTrue(toggle.waitForExistence(timeout: 20),
+        XCTAssertTrue(pressSwitchPart("Waiting for"),
                       "The switch Actions | Waiting for is not under the title. On screen: \(visibleTexts())")
-        toggle.pressCentre()
 
         XCTAssertTrue(element("waiting.empty").waitForExistence(timeout: 20),
                       "The switch was pressed and the screen did not say that nothing is waiting. On screen: \(visibleTexts())")
@@ -1239,10 +1353,8 @@ final class ScreenTests: XCTestCase {
         XCTAssertFalse(element("waiting.list").exists, "A list is drawn although nothing is waiting.")
 
         // The same switch stays on the other half; its **Actions** part brings the first half back.
-        let back = switchPart("Actions")
-        XCTAssertTrue(back.waitForExistence(timeout: 10),
+        XCTAssertTrue(pressSwitchPart("Actions", timeout: 10),
                       "The Waiting for half has no switch to go back with. On screen: \(visibleTexts())")
-        back.pressCentre()
         XCTAssertTrue(element("actions.fold").waitForExistence(timeout: 20),
                       "The switch was pressed again and the boxes did not come back. On screen: \(visibleTexts())")
         XCTAssertTrue(element("task.Book the night train").waitForExistence(timeout: 20),
@@ -1291,9 +1403,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(becomes(within: 10) { self.words(of: pointer).contains("1 waiting") },
                       "The pointer does not say one line is waiting. It says: \(words(of: pointer))")
 
-        let toggle = switchPart("Waiting for")
-        XCTAssertTrue(toggle.waitForExistence(timeout: 10), "The Waiting for switch is missing.")
-        toggle.pressCentre()
+        XCTAssertTrue(pressSwitchPart("Waiting for", timeout: 10), "The Waiting for switch is missing.")
 
         XCTAssertTrue(element("waiting.person.Anna").waitForExistence(timeout: 20),
                       "The list has no heading for Anna. On screen: \(visibleTexts())")
@@ -1337,9 +1447,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(words(of: caption).contains("waited"), "The start of the wait was lost when the date moved.")
 
         // And back to the actions, with the pointer there again.
-        let back = switchPart("Actions")
-        XCTAssertTrue(back.waitForExistence(timeout: 10), "The Waiting for half has no switch to go back with.")
-        back.pressCentre()
+        XCTAssertTrue(pressSwitchPart("Actions", timeout: 10), "The Waiting for half has no switch to go back with.")
         XCTAssertTrue(element("actions.fold").waitForExistence(timeout: 20),
                       "The boxes did not come back. On screen: \(visibleTexts())")
         XCTAssertTrue(element("actions.waitingPointer").waitForExistence(timeout: 10),
@@ -2062,6 +2170,16 @@ final class ScreenTests: XCTestCase {
         #endif
     }
 
+    /// The last words on screen, for a message about something at the foot of a long page:
+    /// `visibleTexts` stops after the first twenty, which on the Mac are the sidebar's.
+    private func lastTexts() -> String {
+        app.staticTexts.allElementsBoundByIndex.suffix(14).map { text -> String in
+            let label = text.label
+            if !label.isEmpty { return label }
+            return (text.value as? String) ?? ""
+        }.joined(separator: " | ")
+    }
+
     private func visibleTexts() -> String {
         // The phone keeps a text's words in `label`, the Mac in `value` (see the capture test).
         app.staticTexts.allElementsBoundByIndex.prefix(20).map { text -> String in
@@ -2155,7 +2273,7 @@ final class ScreenTests: XCTestCase {
         // Build 312: the first part with something to do opens by itself. A part that is
         // already open is left alone — a press would fold it.
         if (heading.value as? String) == "open" { return }
-        if heading.isHittable { heading.press() } else { heading.pressCentre() }
+        pressInSight(heading)
     }
 
     /// `reveal` the other way round on the phone: swipes down, which moves the list back
@@ -2802,19 +2920,22 @@ final class ScreenTests: XCTestCase {
         let done = app.buttons.matching(identifier: "review.weekLine.done").firstMatch
         XCTAssertTrue(done.waitForExistence(timeout: 10),
                       "The open week box has no Done button. On screen: \(visibleTexts())")
-        if done.isHittable { done.press() } else { done.pressCentre() }
+        pressInSight(done)
 
-        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
         #if os(macOS)
         // Build 328: as with Review done, a first click that only woke the window is pressed
-        // once more while Done is still there.
-        if XCTWaiter().wait(for: [gone], timeout: 5) != .completed {
+        // once more while Done is still there. 16 Nov 2026: asked with a fresh question each
+        // time — one expectation waited on twice is an error of the test's own, and that error
+        // is what the Mac run of build 329 reported instead of the screen. The log says when
+        // the second press was needed, so a Done that never takes the first click is seen.
+        if !field.waitForNonExistence(timeout: 5) {
             let again = app.buttons.matching(identifier: "review.weekLine.done").firstMatch
-            if again.exists { if again.isHittable { again.press() } else { again.pressCentre() } }
+            print("NOTE: Done in step 7 needed a second press. \(whereabouts(again))")
+            if again.exists { pressInSight(again) }
         }
         #endif
-        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
-                       "The field in step 7 stayed open after Done. On screen: \(visibleTexts())")
+        XCTAssertTrue(field.waitForNonExistence(timeout: 10),
+                      "The field in step 7 stayed open after Done. \(whereabouts(done)) The last words on screen: \(lastTexts())")
         XCTAssertTrue(becomes(within: 10) { box.label.contains("A calm week") },
                       "The line was written and the box does not show it. It says: \(box.label)")
     }
@@ -3484,13 +3605,25 @@ final class ScreenTests: XCTestCase {
         // Tools is the sidebar's last group, below a 450-point window's edge, and a list draws
         // only the rows in view: the left strip is scrolled, one way and then the other, until
         // its heading is drawn (build 326).
-        let tools = element("sidebar.fold.Tools")
-        let window = app.windows.firstMatch
-        for attempt in 0..<12 where !tools.exists {
+        // 16 Nov 2026 (the Mac run of build 329): scrolled to the foot, the heading is on screen
+        // and the name `sidebar.fold.Tools` still found nothing — a heading is a row of things
+        // with a tap on it, not a button, and the Mac hands the name to none of them reliably.
+        // Its word is asked for as well.
+        let byName = element("sidebar.fold.Tools")
+        let button = app.buttons["Tools"]
+        let word = app.staticTexts["Tools"]
+        let shows: () -> Bool = { byName.exists || button.exists || word.exists }
+        let window = mainWindow
+        for attempt in 0..<12 where !shows() {
             window.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
                 .scroll(byDeltaX: 0, deltaY: attempt < 4 ? -400 : 400)
         }
-        XCTAssertTrue(tools.waitForExistence(timeout: 10), "The sidebar's Tools heading (sidebar.fold.Tools) is missing. On screen: \(visibleTexts())")
+        if !shows() {
+            let sidebarButtons = app.buttons.allElementsBoundByIndex.prefix(30)
+                .map { $0.identifier.isEmpty ? ($0.label.isEmpty ? $0.title : $0.label) : $0.identifier }
+                .filter { !$0.isEmpty }.joined(separator: ", ")
+            XCTFail("The sidebar's Tools heading (sidebar.fold.Tools) is missing. The buttons: \(sidebarButtons). On screen: \(visibleTexts())")
+        }
         app.typeKey("f", modifierFlags: [.command, .shift])
 
         let box = app.buttons.matching(identifier: "search.box.is:open").firstMatch
@@ -3585,12 +3718,18 @@ final class ScreenTests: XCTestCase {
     /// **An open note has Share…** (`note.share`) in the window's toolbar, and the menu under
     /// it offers the three ways out and Show in Finder. Nothing is pressed in the menu: the
     /// Mac's share list and Finder are not the app's to test.
+    ///
+    /// 16 Nov 2026 (the Mac run of build 329): a project is opened, not a goal. A goal opens
+    /// on its goal page, and the note's own buttons — Share among them — come with the note,
+    /// one press on **Note** later; the test looked for Share on the goal page, where it is not.
     func testAnOpenNoteOffersShare() {
-        go(to: .goals)
-        let row = element("goal.Goals/Walk the Kungsleden in one go.md")
+        go(to: .projects)
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
         XCTAssertTrue(row.waitForExistence(timeout: 20),
-                      "The Goals list does not show the test goal. On screen: \(visibleTexts())")
+                      "The Projects list does not show the test project. On screen: \(visibleTexts())")
         row.press()
+        XCTAssertTrue(element("note.editor").waitForExistence(timeout: 20),
+                      "The project opened without its editor. On screen: \(visibleTexts())")
 
         let share = element("note.share")
         XCTAssertTrue(share.waitForExistence(timeout: 20),
