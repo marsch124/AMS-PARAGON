@@ -8,11 +8,15 @@ struct DeletedView: View {
     @EnvironmentObject private var model: AppModel
     @State private var confirmEmpty = false
 
-    private var listed: [DeletedNote] { model.deletedNotes }
+    @Environment(\.phoneListQuery) private var phoneQuery
+    private var listed: [DeletedNote] { model.deletedNotes.filter { $0.title.matchesListSearch(phoneQuery) } }
 
     var body: some View {
         Group {
-            if listed.isEmpty {
+            if listed.isEmpty, !model.deletedNotes.isEmpty {
+                CalmEmptyView(text: "Nothing found", tint: SidebarSection.deleted.tint,
+                              icon: AnyView(MarkImage("magnifyingglass")))
+            } else if listed.isEmpty {
                 EmptyStateView(title: "Nothing deleted",
                                markName: "trash",
                                message: "Notes you delete wait here for \(AppModel.deletedKeptForDays) days, so a mistake is never final. Tasks are not kept here — only whole notes.",

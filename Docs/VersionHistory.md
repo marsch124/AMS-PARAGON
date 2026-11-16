@@ -1,6 +1,24 @@
 # Version history
 
-The version is shown as 1.0 (323) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (324) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 324 · 16 November 2026
+
+**iPhone: stronger cards, the Map opens whole, and a search field in each list.** Three of your picks from the polish list. All three are iPhone only. The Mac and the iPad are unchanged, and so is the night look.
+
+**Before (build 323).**
+- By day a card carried 12 % of its part's colour (7 % before build 316). In **Settings** and **Today** a card was #EDEAF5 on the page #F3F5F8.
+- The Map opened at full size (100 %). A box at the right edge was cut off, and you had to zoom out yourself.
+- The iPhone had no search inside one list, only **Search** over everything. **Tags** had its own **Find a tag** field.
+
+**Now (build 324).**
+- 1. Cards by day are clearly stronger: a card carries 20 % of its part's colour (before 12 %). You chose option 3 of a picture with 12, 16 and 20 %. In **Settings** and **Today** a card is #E1DCEE on the page #F3F5F8 (before #EDEAF5). At night the share is still 13 %.
+- 2. The Map opens showing the whole map. It picks the largest zoom step at which everything fits the width, once per visit. There are 3 new smaller steps, 30 %, 40 % and 50 %, besides 60 to 150 %. The zoom buttons work as before.
+- 3. A search field inside each list opened from **Browse**. Pull the list down and it says, for example, **Search in Projects**. It is in 12 lists: **Projects**, **Areas**, **Resources**, **Archive**, **Goals**, **Aspirations**, **All actions**, **Done**, **Recent**, **Deleted**, **Tags** and **Work**. It finds by title (in the task lists by the task's words, in **Tags** by the tag's name) and ignores capitals and accents. When nothing fits it says **Nothing found**.
+- The **Find a tag** field is gone from **Tags** on the iPhone, so there is one field only.
+- No field in **Inbox**, **Today**, **Calendar**, **Review**, **Map**, **Plan**, **Templates** and **Snippets**.
+
+**Not changed.** The weekly review reminder stays on Sunday at 17:00 (you were asked).
 
 ## Build 323 · 16 November 2026
 

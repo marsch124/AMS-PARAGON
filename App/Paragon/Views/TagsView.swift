@@ -10,9 +10,24 @@ import ParagonCore
 ///
 /// One screen, not a two-column one. A tag opens in place, so the Mac and the phone show the
 /// same thing and there is no second route to keep working.
+/// The tag screen's own "Find a tag" field, everywhere except the iPhone, where
+/// `PhoneSectionScreen` adds the one field every list there has (build 324).
+private struct OwnTagSearch: ViewModifier {
+    @Binding var filter: String
+    @Environment(\.phoneLook) private var phoneLook
+
+    func body(content: Content) -> some View {
+        if phoneLook { content } else { content.searchable(text: $filter, prompt: "Find a tag") }
+    }
+}
+
 struct TagsView: View {
     @EnvironmentObject private var model: AppModel
     @State private var filter = ""
+    /// Build 324: on the phone the screen's own field is the one `PhoneSectionScreen` adds.
+    @Environment(\.phoneListQuery) private var phoneQuery
+    @Environment(\.phoneLook) private var phoneLook
+    private var phoneListSearch: Bool { phoneLook }
     /// Tags folded shut, by their lower-case name. Everything starts folded: the list is the
     /// point, and forty open tags is not a list.
     @State private var opened: Set<String> = []
@@ -23,6 +38,7 @@ struct TagsView: View {
 
     private var uses: [TagUse] {
         let all = model.tagUses()
+        if phoneListSearch { return all.filter { $0.tag.matchesListSearch(phoneQuery) } }
         let needle = NoteIndex.normalized(filter)
         guard !needle.isEmpty else { return all }
         return all.filter { $0.tag.lowercased().contains(needle) }
@@ -55,7 +71,13 @@ struct TagsView: View {
                     // Review round 4: on the iPhone each row is a card in the part's colour.
                     .phoneCard(SidebarSection.tags.tint)
                 }
-                .searchable(text: $filter, prompt: "Find a tag")
+                .modifier(OwnTagSearch(filter: $filter))
+                .overlay {
+                    if phoneListSearch, uses.isEmpty {
+                        CalmEmptyView(text: "Nothing found", tint: SidebarSection.tags.tint,
+                                      icon: AnyView(MarkImage("magnifyingglass")))
+                    }
+                }
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) { makeBar }

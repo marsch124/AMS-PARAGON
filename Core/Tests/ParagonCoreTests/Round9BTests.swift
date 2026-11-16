@@ -40,12 +40,12 @@ final class Round9BTests: XCTestCase {
     }
 
     func testAnIPhoneCardIsStrongerByDayOnly() {
-        XCTAssertEqual(ShadeRule.tintShare(night: false, phone: true), 0.12)
+        XCTAssertEqual(ShadeRule.tintShare(night: false, phone: true), 0.20)
         XCTAssertEqual(ShadeRule.tintShare(night: false, phone: false), 0.07)
         XCTAssertEqual(ShadeRule.tintShare(night: true, phone: true), 0.13)
-        // The settings card: #F5F3F9 before, #EDEAF5 now, on the page #F3F5F8.
+        // The settings card: #F5F3F9 first, #EDEAF5 in 316, #E1DCEE since 324, on the page #F3F5F8.
         let card = Shade(hex: 0x6B4EA8).over(.white, strength: ShadeRule.tintShare(night: false, phone: true))
-        XCTAssertEqual(card.hex, 0xEDEAF5)
+        XCTAssertEqual(card.hex, 0xE1DCEE)
     }
 
     func testAnActionWithABlockIsPlanned() {

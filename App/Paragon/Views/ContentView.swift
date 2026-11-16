@@ -715,6 +715,8 @@ struct NoteListView: View {
     private var shown: SidebarSection? { fixed ?? model.section }
     /// Kept in the view, not the model: the toolbar search field writes to it while redrawing.
     @State private var searchText = ""
+    /// Build 324: the iPhone's field in a list opened from Browse; empty on the Mac and the iPad.
+    @Environment(\.phoneListQuery) private var phoneQuery
     @State private var noteToTrash: Note?
     @State private var noteToRename: Note?
     @State private var renameDraft = ""
@@ -723,7 +725,8 @@ struct NoteListView: View {
     @State private var makingWorkNote = false
     @State private var workNoteTitle = ""
 
-    private var searching: Bool { !searchText.trimmingCharacters(in: .whitespaces).isEmpty }
+    private var phoneSearching: Bool { !phoneQuery.trimmingCharacters(in: .whitespaces).isEmpty }
+    private var searching: Bool { phoneSearching || !searchText.trimmingCharacters(in: .whitespaces).isEmpty }
 
     /// Build 312: the phone's Actions and Inbox tabs carry the round capture + above the tabs.
     private var hasFloatingCapture: Bool { fixed == .allActions || fixed == .inbox }
@@ -731,7 +734,10 @@ struct NoteListView: View {
     /// Areas are a two-level list: each area followed by its sub-areas unless it is folded.
     /// While searching, and for every other section, the plain flat list.
     private var visibleNotes: [Note] {
-        let listed = model.notes(in: shown, matching: searchText)
+        // The phone's field filters by title only (build 324); the Mac's by title and body.
+        let listed = phoneSearching
+            ? model.notes(in: shown).filter { $0.title.matchesListSearch(phoneQuery) }
+            : model.notes(in: shown, matching: searchText)
         guard shown == .kind(.area), !searching else { return listed }
         return model.index.areaTree().flatMap { branch in
             foldedAreas.contains(branch.area.relativePath) ? [branch.area] : branch.all
@@ -929,7 +935,7 @@ struct NoteListView: View {
             } else {
                 let listed = visibleNotes
                 if listed.isEmpty {
-                    emptyList(searching: !searchText.trimmingCharacters(in: .whitespaces).isEmpty)
+                    emptyList(searching: searching)
                         .listSearch($searchText)
                 } else {
                 askingToTrash(
@@ -1053,6 +1059,10 @@ struct NoteListView: View {
                                   + "their names but not their contents yet. They appear as they arrive.",
                            tint: .orange,
                            actionTitle: "Ask iCloud again") { model.fetchMissingNotes() }
+        } else if phoneSearching {
+            CalmEmptyView(text: "Nothing found",
+                          tint: shown?.tint ?? Theme.fallbackTint,
+                          icon: AnyView(MarkImage("magnifyingglass")))
         } else if searching {
             EmptyStateView(title: "Nothing found",
                            markName: "magnifyingglass",

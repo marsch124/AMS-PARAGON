@@ -35,6 +35,8 @@ struct AllActionsView: View {
     @AppStorage("actionFiltersFoldedPhone") private var phoneFolded = true
     @AppStorage(WaitingShowing.key) private var showsWaiting = false
 
+    /// Build 324: the phone's search field (`PhoneSectionScreen`); empty elsewhere.
+    @Environment(\.phoneListQuery) private var phoneQuery
     private var folded: Bool { isPhone ? phoneFolded : deskFolded }
     private var tint: Color { SidebarSection.allActions.tint }
 
@@ -94,7 +96,11 @@ struct AllActionsView: View {
     /// The column as it was before build 279: header, boxes, and the list of actions.
     @ViewBuilder
     private func actionsPart(all: [TaskRef], shown: [TaskRef], waiting: WaitingList) -> some View {
-        let listed = groups(shown)
+        let listed = groups(shown).compactMap { group -> (note: Note, tasks: [TaskRef])? in
+            guard phoneQuery.trimmingCharacters(in: .whitespaces).isEmpty == false else { return group }
+            let kept = group.tasks.filter { $0.task.title.matchesListSearch(phoneQuery) }
+            return kept.isEmpty ? nil : (group.note, kept)
+        }
         if !model.actionFilter.isEmpty {
             filterLine(shown: shown.count, total: all.count)
         }
@@ -118,7 +124,9 @@ struct AllActionsView: View {
         }
         waitingPointer(waiting)
         Divider()
-        if listed.isEmpty {
+        if listed.isEmpty, !phoneQuery.trimmingCharacters(in: .whitespaces).isEmpty {
+            CalmEmptyView(text: "Nothing found", tint: tint, icon: AnyView(MarkImage("magnifyingglass")))
+        } else if listed.isEmpty {
             empty(total: all.count)
         } else {
             list(listed)

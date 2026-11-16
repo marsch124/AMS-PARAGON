@@ -651,10 +651,31 @@ struct PhoneBrowseView: View {
 struct PhoneSectionScreen: View {
     @EnvironmentObject private var model: AppModel
     let section: SidebarSection
+    /// Build 324: the field you pull down in a list. Apple's own `.searchable`.
+    @State private var query = ""
+
+    /// Only the screens that are a list of rows. The Inbox, Today, Calendar, Review, Map, Plan,
+    /// Search, Templates and Snippets are not (the Search screen has its own field).
+    private var isSearchable: Bool {
+        switch section {
+        case .kind, .aspirations, .allActions, .done, .recent, .deleted, .tags, .work: return true
+        default: return false
+        }
+    }
 
     var body: some View {
-        NoteListView(fixed: section)
-            .onAppear { if model.section != section { model.section = section } }
+        if isSearchable {
+            NoteListView(fixed: section)
+                .onAppear { if model.section != section { model.section = section } }
+                .environment(\.phoneListQuery, query)
+                .searchable(text: $query,
+                            placement: .navigationBarDrawer(displayMode: .automatic),
+                            prompt: "Search in \(section.title)")
+                .accessibilityIdentifier("section.search")
+        } else {
+            NoteListView(fixed: section)
+                .onAppear { if model.section != section { model.section = section } }
+        }
     }
 }
 #endif

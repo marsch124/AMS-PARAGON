@@ -18,6 +18,8 @@ struct DoneView: View {
     /// alive behind the other tabs (build 232) and would otherwise walk the vault again on every
     /// autosave anywhere in the app.
     @State private var isShown = false
+    /// Build 324: the phone's search field (`PhoneSectionScreen`); empty elsewhere.
+    @Environment(\.phoneListQuery) private var phoneQuery
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -87,7 +89,10 @@ struct DoneView: View {
                                 .foregroundStyle(Theme.attention.ink)
                         }
                     }
-                    ForEach(diary?.days ?? []) { day in
+                    ForEach((diary?.days ?? []).filter { day in
+                        phoneQuery.trimmingCharacters(in: .whitespaces).isEmpty
+                            || day.finished.contains { $0.task.title.matchesListSearch(phoneQuery) }
+                    }) { day in
                         Section {
                             // The day's card is the first row and is **never tagged**: an untagged
                             // row takes no click and no selection fill (builds 71–74, 201), which is
@@ -95,7 +100,7 @@ struct DoneView: View {
                             DoneDayCard(day: day, title: Self.title(for: day.day, today: today),
                                         waiting: model.dailyNoteIsWaitingForCloud(day.day))
                                 .id(day.day)
-                            ForEach(day.finished) { ref in
+                            ForEach(day.finished.filter { $0.task.title.matchesListSearch(phoneQuery) }) { ref in
                                 TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
                                     .tag(ref.notePath)
                             }

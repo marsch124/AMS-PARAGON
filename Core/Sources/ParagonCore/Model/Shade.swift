@@ -118,9 +118,9 @@ public enum ShadeRule {
     public static func bandDayEnd(day: Shade) -> Shade { bandDayStart(day: day).deeper(0.18) }
 
     /// **How much of a part's colour lies over a card or a panel.** 7 % by day and 13 % at
-    /// night; on the iPhone 12 % by day (round 9, build 316), because a 7 % card on the
-    /// iPhone's page (#F3F5F8) could hardly be told from it.
+    /// night; on the iPhone 20 % by day (build 324, his pick 3 of 12 / 16 / 20 % on 16 Nov 2026; it
+    /// was 12 % from build 316 and 7 % before), so a card is plainly told from the page (#F3F5F8).
     public static func tintShare(night: Bool, phone: Bool) -> Double {
-        night ? 0.13 : (phone ? 0.12 : 0.07)
+        night ? 0.13 : (phone ? 0.20 : 0.07)
     }
 }

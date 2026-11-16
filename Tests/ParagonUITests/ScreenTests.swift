@@ -1708,6 +1708,21 @@ final class ScreenTests: XCTestCase {
                       "Settings does not open with How it works (settings.howItWorks). On screen: \(visibleTexts())")
         XCTAssertTrue(help.isHittable, "How it works is not on the first screen of Settings.")
     }
+
+    /// Build 324: a list opened from Browse has Apple's own search field, "Search in Projects".
+    /// It hangs under the title (pull down); a word that matches nothing gives "Nothing found".
+    func testAListOpenedFromBrowseHasItsOwnSearchField() {
+        go(to: .projects)
+        let field = app.searchFields["Search in Projects"]
+        if !field.waitForExistence(timeout: 20) { app.swipeDown() }
+        let byId = element("section.search")
+        XCTAssertTrue(field.waitForExistence(timeout: 20) || byId.exists,
+                      "The Projects list has no search field (section.search). On screen: \(visibleTexts())")
+        field.tap()
+        field.typeText("zzqqxx")
+        XCTAssertTrue(app.staticTexts["Nothing found"].waitForExistence(timeout: 20),
+                      "A search that matches nothing does not say Nothing found. On screen: \(visibleTexts())")
+    }
     #endif
 
     #if os(macOS)

@@ -714,6 +714,28 @@ private struct PhoneLookKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct PhoneListQueryKey: EnvironmentKey {
+    static let defaultValue = ""
+}
+
+extension EnvironmentValues {
+    /// Build 324: what is typed in the search field of a list screen opened from Browse on the
+    /// iPhone (`PhoneSectionScreen`). Empty everywhere else, so the Mac and the iPad never see it.
+    var phoneListQuery: String {
+        get { self[PhoneListQueryKey.self] }
+        set { self[PhoneListQueryKey.self] = newValue }
+    }
+}
+
+extension String {
+    /// Case- and diacritic-insensitive "contains" for the phone's search-in-one-list field.
+    /// An empty (or blank) query matches everything.
+    func matchesListSearch(_ query: String) -> Bool {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        return q.isEmpty || range(of: q, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+    }
+}
+
 extension EnvironmentValues {
     /// True inside the iPhone layout (`PhoneRootView` and the sheets over it), false on the
     /// Mac and in the iPad's columns. Set once, in `ContentView`. Not the size class: a

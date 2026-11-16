@@ -21,7 +21,11 @@ struct MapView: View {
     @State private var shared: SharedFile?
     #endif
 
-    private static let zoomSteps: [CGFloat] = [0.6, 0.75, 0.9, 1, 1.15, 1.3, 1.5]
+    private static let zoomSteps: [CGFloat] = [0.3, 0.4, 0.5, 0.6, 0.75, 0.9, 1, 1.15, 1.3, 1.5]
+    /// Build 324, his pick: on the iPhone the Map opens showing all of it (a box was cut at
+    /// the right edge). Once per visit; after that the zoom buttons decide.
+    @State private var fitted = false
+    @Environment(\.phoneLook) private var phoneLook
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,6 +65,13 @@ struct MapView: View {
                     .frame(width: layout.size.width, height: layout.size.height)
                     .padding(28)
                     .frame(minWidth: page.size.width, minHeight: page.size.height, alignment: .top)
+                }
+                .onAppear {
+                    guard phoneLook, !fitted, page.size.width > 0 else { return }
+                    fitted = true
+                    let whole = MapLayout(map: map, zoom: 1, pinned: model.pinnedMapPositions).size.width
+                    let room = page.size.width - 56
+                    zoom = Self.zoomSteps.last { $0 <= 1 && whole * $0 <= room } ?? Self.zoomSteps[0]
                 }
                 }
                 Divider()

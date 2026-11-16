@@ -24,7 +24,7 @@ There is one scale, kept in one place in the code (`Txt` in Look.swift). No scre
 | Code | 14 | regular, monospaced | grey | Code, and the settings block. |
 | Capsule | 11 | medium | the part's colour on a 14 % tint; by day the words are 25 % deeper (section 2) | A status, or a count beside a heading (since build 291), that cannot be changed. |
 
-The Map draws its box titles at 12.5 points and its labels at 11 points at normal zoom, and scales them with its zoom. The widgets use Apple's own text styles (caption, headline, title), never a fixed point size (since build 309; before, fixed sizes of 8 to 10 points), so their text follows the text size set on the device. The share sheet uses Apple's text styles.
+The Map draws its box titles at 12.5 points and its labels at 11 points at normal zoom, and scales them with its zoom. The iPhone Map's zoom steps are 30, 40, 50, 60 to 150 % (30, 40 and 50 % new in build 324); it opens at the largest step at which the whole map fits the width, once per visit. Mac and iPad: unchanged. The widgets use Apple's own text styles (caption, headline, title), never a fixed point size (since build 309; before, fixed sizes of 8 to 10 points), so their text follows the text size set on the device. The share sheet uses Apple's text styles.
 
 ### The note editor on the Mac
 
@@ -305,7 +305,7 @@ Colour on the iPhone (build 310):
 - **The chosen tab** wears the colour of its screen (the ink step): Today and Plan purple, Actions green, Inbox leaf green, Browse the purple of `Theme.fallbackTint`. Never Apple's blue.
 - **A screen opened from Browse** wears its own part's colour for its links and buttons; Settings and anything with no part wear `Theme.fallbackTint`.
 - **The number on the Inbox tab** is white on the Inbox's leaf green (the ground step), not Apple's red. Red means overdue or danger.
-- **The page and the cards** follow the Mac's panel rule: the page is the canvas (#F3F5F8 by day, #15181C at night) and a card is the surface with its part's colour over it, 7 % by day and 13 % at night (at night Today #302E40, Projects #263632, Goals #383629). Never white on Apple's grey, and never grey on pure black.
+- **The page and the cards** follow the Mac's panel rule: the page is the canvas (#F3F5F8 by day, #15181C at night) and a card is the surface with its part's colour over it, 7 % by day on the Mac and the iPad, 20 % by day on the iPhone (since build 324; 12 % in builds 316 to 323), and 13 % at night (at night Today #302E40, Projects #263632, Goals #383629). Never white on Apple's grey, and never grey on pure black.
 - **Every list screen opens with the band** (section 15).
 - **Since build 312:** the round **+** button above the tab bar on Today, Actions and Inbox; the search field, the recent line and the gear at the top of Browse (section 18).
 
