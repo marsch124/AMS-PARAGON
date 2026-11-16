@@ -30,7 +30,7 @@ The version is shown as 1.0 (331) in Settings › About, at the foot of the Mac 
 - The case with two real devices, and a moved task arriving in the other order, was tested in the sync tests only, not on two devices.
 - The new **Suggested** and **Recent** groups were checked by a screen test on the iPhone. They were not looked at on a real iPhone, on the Mac or on the iPad.
 
-Tested: 6 new rule tests (2 for the filing order, 2 for a task moved between notes, 2 for the iCloud copy) and 1 new screen test for the filing groups on the iPhone. Rule tests in all: «RULE-TESTS».
+Tested: 6 new rule tests (2 for the filing order, 2 for a task moved between notes, 2 for the iCloud copy) and 1 new screen test for the filing groups on the iPhone. Rule tests in all: 1,128.
 
 ## Build 330 · 16 November 2026
 

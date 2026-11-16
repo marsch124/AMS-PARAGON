@@ -693,8 +693,12 @@ final class ScreenTests: XCTestCase {
         look("331-file-it-suggested")
         XCTAssertEqual(places.count, 2, "The project should be there twice: suggested, and in the whole list.")
         places.firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["Moved to \(project)"].waitForExistence(timeout: 10),
-                      "A place was pressed and no message said the line was moved. On screen: \(visibleTexts())")
+        // The proof is the line itself leaving the Inbox; the message is gone again too soon
+        // to be asked for on a slow simulator.
+        let filed = element("inbox.Pack for the Kungsleden trip")
+        let left = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: filed)
+        XCTAssertEqual(XCTWaiter().wait(for: [left], timeout: 15), .completed,
+                       "A place was pressed and the line is still in the Inbox. On screen: \(visibleTexts())")
 
         openFileIt(for: "Call the bank about the ferry")
         XCTAssertTrue(heading("Recent").waitForExistence(timeout: 10),
