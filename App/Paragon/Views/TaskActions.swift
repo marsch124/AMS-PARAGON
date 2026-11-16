@@ -191,6 +191,12 @@ struct TaskContextMenu: View {
                 Button { model.makeNextAction(ref) } label: { MarkLabel("Make this the next action", "bookmark") }
             }
         }
+        // Build 330: one task put aside, as On hold does for a whole project.
+        if ref.task.isSomeday {
+            Button { model.setSomeday(ref, false) } label: { MarkLabel("Not someday any more", "arrow.turn.left.up") }
+        } else {
+            Button { model.setSomeday(ref, true) } label: { MarkLabel("Someday", "hourglass") }
+        }
         Button { model.blockTime(for: ref) } label: { MarkLabel("Block time for this…", "calendar.badge.clock") }
         if !ref.task.isSubtask {
             Menu {

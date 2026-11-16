@@ -3,6 +3,8 @@ import ParagonCore
 
 /// Everything due today or overdue, plus undated tasks marked `!!` or `!!!`.
 struct TodayView: View {
+    /// Build 330: from this many overdue tasks on, the heading gets its kind line.
+    static let manyOverdue = 10
     @EnvironmentObject private var model: AppModel
     // Open by default, and its own key per platform, so folding it on the phone cannot
     // fold it on the Mac (build 161's pair). Build 121 still holds: the fold is one press
@@ -198,7 +200,18 @@ struct TodayView: View {
                 }
                 if !overdue.isEmpty {
                     Section {
-                        if sectionOpen("Overdue").wrappedValue { rows(overdue) }
+                        if sectionOpen("Overdue").wrappedValue {
+                            // Build 330 (the advisors' round): a long list from earlier days
+                            // gets one kind line and the way out, not only a number.
+                            if overdue.count >= TodayView.manyOverdue {
+                                Text("It happens. The two buttons beside the heading move them all to today or to tomorrow.")
+                                    .font(Txt.label)
+                                    .foregroundStyle(.soft)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("today.overdue.kind")
+                            }
+                            rows(overdue)
+                        }
                     } header: {
                         // A `WrappingHStack`, never a plain one: a heading and two buttons in a
                         // narrow middle column would squeeze until the words broke mid-word
@@ -207,7 +220,7 @@ struct TodayView: View {
                         // `.textCase(nil)` keeps a `List` from shouting them (build 214).
                         WrappingHStack(spacing: 8, lineSpacing: 6) {
                             FoldButton(isOpen: sectionOpen("Overdue"), accessibilityName: "Overdue") {
-                                SectionLabel(title: "Overdue", count: overdue.count, tint: Theme.attention)
+                                SectionLabel(title: "Overdue", count: overdue.count, tint: Theme.eveningTint)
                             }
                             // **The Inbox's own two symbols, not new ones.** `InboxQuadrant`
                             // has drawn `sun.max` for today and `sunrise` for tomorrow since

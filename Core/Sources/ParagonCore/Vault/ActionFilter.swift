@@ -49,6 +49,9 @@ public struct ActionFilter: Equatable, Sendable {
     /// A mark the task carries on its own line.
     public enum Mark: String, CaseIterable, Sendable, Identifiable, Codable {
         case next, important
+        /// Build 330: tasks put aside with `#someday`. They are left out of the list until
+        /// this box is ticked (`apply`), so the pile he looks at is the one he means to do.
+        case someday
 
         public var id: String { rawValue }
 
@@ -56,6 +59,7 @@ public struct ActionFilter: Equatable, Sendable {
             switch self {
             case .next: return "Next action"
             case .important: return "Important"
+            case .someday: return "Someday"
             }
         }
 
@@ -63,6 +67,7 @@ public struct ActionFilter: Equatable, Sendable {
             switch self {
             case .next: return task.tags.contains { NoteIndex.normalized($0) == Note.nextActionTag }
             case .important: return task.priority > 0
+            case .someday: return task.isSomeday
             }
         }
     }
@@ -92,7 +97,9 @@ public struct ActionFilter: Equatable, Sendable {
     }
 
     public func apply(to refs: [TaskRef], today: DateOnly) -> [TaskRef] {
-        isEmpty ? refs : refs.filter { matches($0, today: today) }
+        // Build 330: what is put aside for someday shows only when it is asked for.
+        let shown = marks.contains(.someday) ? refs : refs.filter { !$0.task.isSomeday }
+        return isEmpty ? shown : shown.filter { matches($0, today: today) }
     }
 
     /// The tags worth offering as boxes: the ones actually on these actions, plus any already
@@ -109,7 +116,7 @@ public struct ActionFilter: Equatable, Sendable {
                 let name = NoteIndex.normalized(tag)
                 // `#next` has its own box under Marks. Two boxes for one thing is the fault
                 // build 165 named: two words for one state, whichever is prettier.
-                if name != Note.nextActionTag { found.insert(name) }
+                if name != Note.nextActionTag, name != Someday.tag { found.insert(name) }
             }
         }
         return found.sorted()

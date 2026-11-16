@@ -372,8 +372,10 @@ struct StartDayView: View {
     private var counts: some View {
         WrappingHStack(spacing: 8, lineSpacing: 8) {
             if !overdue.isEmpty {
+                // Build 330 (the advisors' round): a count that informs and does not press —
+                // no exclamation mark, and the evening's calm colour, not orange.
                 CountPill(text: "\(overdue.count) overdue",
-                          markName: "exclamationmark.circle", tint: .orange)
+                          markName: "clock", tint: Theme.eveningTint)
             }
             CountPill(text: "\(dueToday.count) due today",
                       markName: "calendar", tint: tint)

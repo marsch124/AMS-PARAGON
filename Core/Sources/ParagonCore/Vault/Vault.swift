@@ -535,6 +535,18 @@ public final class Vault {
         try? url(for: relativePath).resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
     }
 
+    /// Build 330 (the advisors' data-safety finding): renaming, archiving and deleting write the
+    /// copy in hand somewhere else and then remove the file. When the file is newer than that
+    /// copy (another device's edit arrived a moment ago and the list has not been read again),
+    /// removing it would throw the newer words away without a word. So these three stop here
+    /// with `modifiedOnDisk`, exactly as `save` does, and the caller reads the note again.
+    func stopIfNewerOnDisk(_ note: Note) throws {
+        if let loaded = note.modifiedAt, let onDisk = modificationDate(of: note.relativePath),
+           onDisk.timeIntervalSince(loaded) > 1.0 {
+            throw VaultError.modifiedOnDisk(note.relativePath)
+        }
+    }
+
     // MARK: Writing
 
     /// Writes the note. When the file on disk is newer than the copy the note was loaded from
@@ -626,6 +638,7 @@ public final class Vault {
         guard !clean.isEmpty, note.kind != .inbox, note.kind != .daily else {
             throw VaultError.invalidTitle
         }
+        try stopIfNewerOnDisk(note)
         var renamed = note.headingRenamed(from: note.displayTitle, to: clean)
         renamed.frontmatter.set("title", clean)
 
@@ -709,6 +722,7 @@ public final class Vault {
 
     public func archive(_ note: Note) throws -> Note {
         guard note.kind != .archive, note.kind != .inbox, note.kind != .daily else { return note }
+        try stopIfNewerOnDisk(note)
         var archived = note
         // Build 272: an ending is a fact about the note, and archiving only puts it away. A
         // note that is Done, Missed or Dropped keeps its `status:` line (whatever spelling it

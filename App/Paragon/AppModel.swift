@@ -188,7 +188,7 @@ final class AppModel: ObservableObject {
         }
     }
     /// Build 294: the words read in the vault's pictures (path → words), for Search.
-    @Published var pictureText: [String: String] = [:]
+    @Published var pictureText: [String: String] = [:] { didSet { pictureGeneration &+= 1 } }
     var pictureReading: Task<Void, Never>?
     var picturesChangedWhileReading = false
     /// Rebuilt whenever `notes` changes, so views never build it during a redraw.
@@ -2282,6 +2282,8 @@ final class AppModel: ObservableObject {
         }
         // A rename can touch every note in the vault, so there is a copy to fall back on.
         _ = backUp(reason: "rename")
+        // Build 330: the copy as it is now, not as the screen that asked last saw it.
+        let note = newestCopy(of: note)
         do {
             let result = try vault.rename(note, to: clean, updating: notes)
             reload()
@@ -2293,9 +2295,35 @@ final class AppModel: ObservableObject {
                 log("renamed \(note.relativePath); still naming the old title: \(result.staleLinks)")
                 errorMessage = staleLinkMessage(count: result.staleLinks.count, oldTitle: oldTitle, newTitle: clean)
             }
+        } catch VaultError.modifiedOnDisk {
+            readAgainAndSay(note, "was not renamed")
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Build 330: the note as the list holds it now. A screen can hand over the copy it drew
+    /// with, from before the last save; its date would then be older than the file's.
+    private func newestCopy(of note: Note) -> Note {
+        notes.first { $0.relativePath == note.relativePath } ?? note
+    }
+
+    /// Build 330: a note being brought up to date from iCloud is not renamed, archived or
+    /// deleted from the older copy on this device. Says so and answers true when it stopped.
+    private func stopsWhileUpdating(_ note: Note, _ what: String) -> Bool {
+        guard notesBeingUpdated.contains(note.relativePath) else { return false }
+        errorMessage = "\u{201C}\(note.displayTitle)\u{201D} is being updated from iCloud, so it \(what). "
+            + "Try again in a moment."
+        return true
+    }
+
+    /// Build 330: the file was newer than the copy in hand (an edit from another device arrived
+    /// a moment ago). Nothing was removed; the notes are read again and he is told.
+    private func readAgainAndSay(_ note: Note, _ what: String) {
+        log("\(note.relativePath) \(what): the file was newer than the copy in hand")
+        reload()
+        errorMessage = "\u{201C}\(note.displayTitle)\u{201D} was changed on another device a moment ago, so it \(what). "
+            + "The newer version is here now. Look at it, then try again."
     }
 
     /// Told to the user when a rename could not reach every note that named the old title.
@@ -2308,10 +2336,14 @@ final class AppModel: ObservableObject {
     func archive(_ note: Note) {
         flushPendingEdits()
         guard let vault else { return }
+        let note = newestCopy(of: note)
+        if stopsWhileUpdating(note, "was not archived") { return }
         do {
             let archived = try vault.archive(note)
             reload()
             if selectedNotePath == note.relativePath { selectedNotePath = archived.relativePath }
+        } catch VaultError.modifiedOnDisk {
+            readAgainAndSay(note, "was not archived")
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -2322,6 +2354,8 @@ final class AppModel: ObservableObject {
     func trash(_ note: Note) {
         flushPendingEdits()
         guard let vault, note.kind != .inbox else { return }
+        let note = newestCopy(of: note)
+        if stopsWhileUpdating(note, "was not deleted") { return }
         do {
             try vault.trash(note)
             log("deleted \(note.relativePath)")
@@ -2331,6 +2365,8 @@ final class AppModel: ObservableObject {
             // Build 307 (hardening-12): its reminders used to stay for ever, with a warning
             // line on every sync. `note` is the note as it was before it moved.
             settleReminders(ofDeleted: note)
+        } catch VaultError.modifiedOnDisk {
+            readAgainAndSay(note, "was not deleted")
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -2387,8 +2423,15 @@ final class AppModel: ObservableObject {
     @Published private(set) var deletedNotes: [DeletedNote] = [] { didSet { stateGeneration &+= 1 } }
 
     func refreshDeleted() {
+        // Build 330: every file in Deleted used to be read in full at every re-read of the
+        // notes (63 places ask for one). The files there never change once written, so they
+        // are read again only when the names in the folder are not the ones read last time.
+        let names = vault?.deletedFileNames() ?? []
+        guard names != deletedNamesRead || names.count != deletedNotes.count else { return }
         deletedNotes = vault?.deletedNotes() ?? []
+        deletedNamesRead = names
     }
+    private var deletedNamesRead: [String] = []
 
     /// Clears out what has been deleted for more than a month. Runs at launch and on open.
     /// Clears out notes deleted more than thirty days ago. **Off the main thread since build
@@ -2647,6 +2690,26 @@ final class AppModel: ObservableObject {
         let changed = current.settingDeadline(day)
         guard changed != current, note.replace(task: changed) else { return }
         save(note)
+    }
+
+    /// Build 330: puts one task aside for someday (`#someday`), or takes it back.
+    func setSomeday(_ ref: TaskRef, _ on: Bool) {
+        flushPendingEdits()
+        guard var note = note(at: ref.notePath) else { return }
+        let task = ref.task.settingSomeday(on)
+        guard task != ref.task, note.replace(task: task) else { return }
+        if saveSettling(note), on { flash("Put aside for someday. Find it in All actions under Someday.") }
+    }
+
+    /// Build 330: drops one task from a row (the Weekly review's loose tasks): the line stays in
+    /// the note, crossed out, as **Cancel task** in the editor leaves it.
+    func dropTask(_ ref: TaskRef) {
+        flushPendingEdits()
+        guard var note = note(at: ref.notePath) else { return }
+        var task = ref.task
+        task.status = .cancelled
+        guard note.replace(task: task) else { return }
+        saveSettling(note)
     }
 
     func makeNextAction(_ ref: TaskRef) {
@@ -4573,7 +4636,20 @@ final class AppModel: ObservableObject {
 
     var searchQuery: SearchQuery { SearchQuery.parse(queryText) }
 
-    var searchHits: [SearchHit] { index.search(searchQuery, pictureText: pictureText) }
+    /// **Kept until the words or the notes change** (build 330, the advisors' speed finding).
+    /// This was worked out anew at every redraw of the Search page: every note's words put in
+    /// small letters and looked through again, whatever had made the page redraw.
+    var searchHits: [SearchHit] {
+        let stamp = SearchStamp(words: queryText, notes: stateGeneration, pictures: pictureGeneration,
+                                day: DateOnly.today())
+        if let kept = searchKept, kept.stamp == stamp { return kept.hits }
+        let hits = index.search(searchQuery, pictureText: pictureText)
+        searchKept = (stamp, hits)
+        return hits
+    }
+    private struct SearchStamp: Equatable { var words: String; var notes: Int; var pictures: Int; var day: DateOnly }
+    private var searchKept: (stamp: SearchStamp, hits: [SearchHit])?
+    private var pictureGeneration = 0
 
     /// Jumps to the Search section with a query, e.g. from a tag or a saved search.
     func search(_ text: String) {

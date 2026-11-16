@@ -490,12 +490,14 @@ public struct Note: Equatable, Identifiable, Sendable {
 
     /// `nextThing` over tasks already parsed, for a caller that has them in hand.
     public static func nextThing(in tasks: [TaskItem]) -> TaskItem? {
-        let open = tasks.filter { !$0.isDone && !$0.isSubtask && !$0.isWaiting }
+        // Build 330: a task put aside with `#someday` is never the next thing either.
+        let open = tasks.filter { !$0.isDone && !$0.isSubtask && !$0.isWaiting && !$0.isSomeday }
         if let tagged = open.first(where: { $0.tags.contains(nextActionTag) }) { return tagged }
         if let first = open.first { return first }
         let ticked = Set(tasks.filter { $0.status == .done }.map(\.lineIndex))
         return tasks.first { task in
-            guard task.isSubtask, !task.isDone, !task.isWaiting, let parent = task.parentLineIndex else { return false }
+            guard task.isSubtask, !task.isDone, !task.isWaiting, !task.isSomeday,
+                  let parent = task.parentLineIndex else { return false }
             return ticked.contains(parent)
         }
     }

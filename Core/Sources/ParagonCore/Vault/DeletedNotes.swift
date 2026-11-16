@@ -33,12 +33,25 @@ public extension Vault {
         return formatter
     }
 
+    /// Build 330 (the advisors' speed finding): the names in Deleted, in order. A file there is
+    /// written once and never changed, so the same names mean the same list — the app reads
+    /// the files again only when this differs from last time, not at every re-read of the notes.
+    func deletedFileNames() -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(atPath: deletedFolderURL.path)) ?? [])
+            .filter { $0.hasSuffix(".md") }.sorted()
+    }
+
     /// Deleted notes, most recently deleted first.
     func deletedNotes() -> [DeletedNote] {
         let formatter = Vault.deletedStampFormatter
         let names = (try? FileManager.default.contentsOfDirectory(atPath: deletedFolderURL.path)) ?? []
         return names.filter { $0.hasSuffix(".md") }.compactMap { name -> DeletedNote? in
-            guard let text = try? String(contentsOf: deletedFolderURL.appendingPathComponent(name), encoding: .utf8) else { return nil }
+            let fileURL = deletedFolderURL.appendingPathComponent(name)
+            guard let text = try? String(contentsOf: fileURL, encoding: .utf8) else { return nil }
+            // Build 330: a note in Deleted whose `deleted:` line cannot be read (edited by hand,
+            // or cut short) used to count as deleted "long ago" and went at the next clear-out.
+            // It now counts from the day its file was last written, so it gets its 30 days too.
+            let written = (try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
             let front = Frontmatter.parse(text).frontmatter
             let path = front.string("deleted-from") ?? ""
             let kind = front.string("type").flatMap(ParaKind.init(rawValue:)) ?? .resource
@@ -46,7 +59,7 @@ public extension Vault {
                                title: front.string("title") ?? String(name.dropLast(3)),
                                kind: kind,
                                originalPath: path,
-                               deletedAt: front.string("deleted").flatMap { formatter.date(from: $0) } ?? .distantPast)
+                               deletedAt: front.string("deleted").flatMap { formatter.date(from: $0) } ?? written ?? Date())
         }
         .sorted { $0.deletedAt > $1.deletedAt }
     }
@@ -54,6 +67,8 @@ public extension Vault {
     /// Moves a note into the Deleted folder. The file keeps its text; two keys are added so
     /// it knows when it went and where it came from.
     func moveToDeleted(_ note: Note, at date: Date = Date()) throws {
+        // Build 330: never the older copy into Deleted while a newer one is removed.
+        try stopIfNewerOnDisk(note)
         let manager = FileManager.default
         try manager.createDirectory(at: deletedFolderURL, withIntermediateDirectories: true)
         var deleted = note

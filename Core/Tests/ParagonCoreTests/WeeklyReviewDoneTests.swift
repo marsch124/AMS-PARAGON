@@ -14,7 +14,7 @@ final class WeeklyReviewDoneTests: XCTestCase {
         XCTAssertFalse(WeeklyReviewDone.isLate(last: nil, today: today))
         XCTAssertFalse(WeeklyReviewDone.isLate(last: DateOnly(year: 2026, month: 11, day: 20), today: today))
         XCTAssertEqual(WeeklyReviewDone.lateLine(last: DateOnly(year: 2026, month: 11, day: 4), today: today),
-                       "Last weekly review: 9 days ago")
+                       "Last weekly review: 9 days ago. Whenever you are ready.")
     }
 
     func testTheNewestDayInAnyWeeklyNoteIsTheLastReview() {

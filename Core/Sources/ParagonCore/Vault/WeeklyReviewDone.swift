@@ -58,7 +58,8 @@ public enum WeeklyReviewDone {
     /// The words of the line on Today.
     public static func lateLine(last: DateOnly, today: DateOnly, calendar: Calendar = .current) -> String {
         let days = daysSince(last: last, today: today, calendar: calendar) ?? 0
-        return "Last weekly review: \(days) days ago"
+        // Build 330 (the advisors' round): the fact, and no hurry with it.
+        return "Last weekly review: \(days) days ago. Whenever you are ready."
     }
 }
 

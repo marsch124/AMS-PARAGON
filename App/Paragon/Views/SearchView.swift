@@ -685,16 +685,27 @@ extension AppModel {
     func readPicturesSoon() {
         guard pictureReading == nil else { picturesChangedWhileReading = true; return }
         guard let root = vault?.rootURL else { return }
-        let paths = Set(notes.flatMap { note in
-            Pictures.matches(in: note.body, notePath: note.relativePath).map(\.path)
-        })
-        guard !paths.isEmpty else { return }
+        // Build 330 (the advisors' speed finding): looking through every note for its pictures
+        // was done here, on the main thread, at each save. It is now part of the background
+        // work, after the three seconds, from the notes as they were when it was asked.
+        let notes = notes
         pictureReading = Task { [weak self] in
             try? await Task.sleep(for: .seconds(3))
-            let words = await Task.detached(priority: .utility) {
-                PictureReader.read(paths: paths, root: root)
+            let words: [String: String]? = await Task.detached(priority: .utility) {
+                let paths = Set(notes.flatMap { note in
+                    Pictures.matches(in: note.body, notePath: note.relativePath).map(\.path)
+                })
+                return paths.isEmpty ? nil : PictureReader.read(paths: paths, root: root)
             }.value
             guard let self else { return }
+            guard let words else {
+                self.pictureReading = nil
+                if self.picturesChangedWhileReading {
+                    self.picturesChangedWhileReading = false
+                    self.readPicturesSoon()
+                }
+                return
+            }
             if words != self.pictureText { self.pictureText = words }
             self.pictureReading = nil
             if self.picturesChangedWhileReading {

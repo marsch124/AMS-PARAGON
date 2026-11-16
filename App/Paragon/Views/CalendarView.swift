@@ -230,6 +230,9 @@ struct MonthGrid: View {
             .padding(.horizontal, 12)
             .padding(.top, 8)
 
+            // Build 330: every day of the month from one walk through the tasks, not one walk
+            // for each of the 35 to 42 days.
+            let overviews = model.index.dayOverviews(for: rows.flatMap { $0 }.compactMap { $0 })
             Grid(horizontalSpacing: 2, verticalSpacing: 2) {
                 GridRow {
                     Text("")
@@ -250,7 +253,7 @@ struct MonthGrid: View {
                         ForEach(0..<7, id: \.self) { column in
                             if let date = rows[row][column] {
                                 MonthGridCell(date: date,
-                                              overview: model.index.dayOverview(for: date),
+                                              overview: overviews[date] ?? model.index.dayOverview(for: date),
                                               events: model.events(on: date).count,
                                               isSelected: date == selected)
                                     .onTapGesture { pick(date) }

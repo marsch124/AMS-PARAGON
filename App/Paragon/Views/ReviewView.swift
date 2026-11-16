@@ -37,7 +37,7 @@ struct ReviewView: View {
 
     /// Every part that folds, in the order they are drawn. The id is also the screen test's
     /// name for the heading: `review.part.<id>`.
-    static let parts = ["due", "1", "2", "3", "4", "5", "6", "7", "8", "noGoal"]
+    static let parts = ["due", "1", "2", "3", "4", "5", "6", "7", "8", "9", "noGoal"]
 
     /// The aspirations among the review's goals, and the dated goals. Two plain functions
     /// rather than work done inside the body: a `@ViewBuilder` takes views and nothing else
@@ -244,6 +244,7 @@ struct ReviewView: View {
             Group {
                 WeekLookStep(chosenWeek: $lookedWeek, isOpen: openBinding("7"))
                 WeekGoalStep(isOpen: openBinding("8"))
+                LooseTasksStep(isOpen: openBinding("9"))
                 // Round 8 (build 315): the walk has an end, and the end is recorded.
                 ReviewDoneStep()
             }
@@ -312,7 +313,10 @@ struct ReviewView: View {
          .init("4", toDo: datedGoals(report).filter(\.needsAttention).count),
          .init("5", toDo: report.projectsNeedingAttention.count),
          .init("6", toDo: report.areas.filter(\.needsAttention).count),
-         .init("7", toDo: nil), .init("8", toDo: nil), .init("noGoal", toDo: nil)]
+         .init("7", toDo: nil), .init("8", toDo: nil),
+         // Build 330: the loose tasks never open by themselves and never count as "to do" —
+         // they are an offer at the end of the review, not one more thing he is behind on.
+         .init("9", toDo: nil), .init("noGoal", toDo: nil)]
     }
 
     private func toDo(_ part: String, _ report: ReviewReport, _ due: Int) -> Int? {
@@ -446,6 +450,67 @@ struct ReviewPartHeading: View {
 /// and **Review done today** in the review's colour instead of the button. The press writes today into
 /// this week's note (`AppModel.markWeeklyReviewDone`); **Today** stops saying the review is late.
 /// Never folded: it is one row, and it is the thing the walk leads to.
+/// **Step 9: the loose tasks** (build 330, from the advisors' round). The open tasks nothing
+/// else in the week looks at (`NoteIndex.looseTasks`, Core): no date, not waiting, not put
+/// aside, not a project's next action. Ten at a time, from the notes left alone longest, each
+/// with three plain answers under it. Nothing here is counted against him: the heading says
+/// how many there are, and the line under it says a few at a time is enough.
+struct LooseTasksStep: View {
+    @EnvironmentObject private var model: AppModel
+    @Binding var isOpen: Bool
+
+    private var tint: Color { SidebarSection.review.tint }
+
+    var body: some View {
+        let loose = model.index.looseTasks(inboxPath: model.vault?.config.inboxFile)
+        Section {
+            if isOpen {
+                if loose.isEmpty {
+                    MarkLabel("No loose tasks", "checkmark.circle")
+                        .foregroundStyle(.soft)
+                } else {
+                    ForEach(loose.prefix(Someday.shownAtOnce)) { ref in
+                        VStack(alignment: .leading, spacing: 2) {
+                            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                            HStack(spacing: 14) {
+                                answer("Today", "loose.today.\(ref.task.title)") { model.setDueDate(ref, .today()) }
+                                answer("Someday", "loose.someday.\(ref.task.title)") { model.setSomeday(ref, true) }
+                                answer("Drop", "loose.drop.\(ref.task.title)") { model.dropTask(ref) }
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.leading, 30)
+                        }
+                        .tag(ref.notePath)
+                    }
+                }
+            }
+        } header: {
+            ReviewPartHeading(title: "9. Thin out the loose tasks", count: loose.count,
+                              isOpen: $isOpen, part: "9")
+        } footer: {
+            if isOpen, !loose.isEmpty {
+                Text(LooseTasksStep.footer(count: loose.count))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func answer(_ title: String, _ id: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .buttonStyle(.borderless)
+            .font(Txt.label.weight(.semibold))
+            .foregroundStyle(tint.ink)
+            .accessibilityIdentifier(id)
+    }
+
+    static func footer(count: Int) -> String {
+        let shown = min(count, Someday.shownAtOnce)
+        let first = "Tasks with no date that nothing else looks at, from the notes you left alone longest."
+        guard count > shown else { return first + " Give each a day, put it aside for someday, or drop it." }
+        return first + " \(shown) of \(count) are shown. A few each week is enough."
+    }
+}
+
 struct ReviewDoneStep: View {
     @EnvironmentObject private var model: AppModel
 
@@ -467,6 +532,12 @@ struct ReviewDoneStep: View {
                             .accessibilityIdentifier("review.done.last")
                     }
                     .foregroundStyle(tint.ink)
+                    // Build 330 (the advisors' round): the review ends with a sentence, not
+                    // only a tick.
+                    Text("That is enough for this week.")
+                        .font(Txt.label)
+                        .foregroundStyle(.soft)
+                        .accessibilityIdentifier("review.done.enough")
                 } else {
                     Button("Review done") { model.markWeeklyReviewDone() }
                         .buttonStyle(.filled(tint))

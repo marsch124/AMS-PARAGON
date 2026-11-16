@@ -154,7 +154,7 @@ struct CloseDayView: View {
             CountPill(text: pillText(finished.count, "finished today"),
                       markName: "checkmark.circle", tint: ParaKind.project.tint)
             if finished.isEmpty {
-                Text("No task was ticked off today")
+                Text("No task was ticked off today. That is a day too.")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
             } else {

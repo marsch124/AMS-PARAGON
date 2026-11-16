@@ -48,6 +48,44 @@ public extension NoteIndex {
                            undated: undated)
     }
 
+    /// Build 330 (the advisors' speed finding): the month grid asked `dayOverview` once for each
+    /// of its 35 to 42 days, and every one of those walked every task in every note. This gives
+    /// the same answers for many days from ONE walk: the open tasks are listed and sorted once
+    /// and shared out by their day, and so are the finished ones.
+    func dayOverviews(for dates: [DateOnly]) -> [DateOnly: DayOverview] {
+        let wanted = Set(dates)
+        guard !wanted.isEmpty else { return [:] }
+        var due: [DateOnly: [TaskRef]] = [:]
+        for ref in openTasks() {
+            guard let day = ref.task.dueDate, wanted.contains(day) else { continue }
+            due[day, default: []].append(ref)
+        }
+        var completed: [DateOnly: [TaskRef]] = [:]
+        var dailies: [DateOnly: Note] = [:]
+        for note in notes {
+            if note.kind == .daily, let day = note.dailyDate, wanted.contains(day), dailies[day] == nil {
+                dailies[day] = note
+            }
+            for task in note.tasks {
+                guard let day = task.doneDay, wanted.contains(day) else { continue }
+                completed[day, default: []].append(
+                    TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
+            }
+        }
+        var result: [DateOnly: DayOverview] = [:]
+        for date in wanted {
+            let daily = dailies[date]
+            let undated = daily.map { note in
+                note.openTasks.filter { $0.dueDate == nil }
+                    .map { TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: $0) }
+            } ?? []
+            result[date] = DayOverview(date: date, dailyNotePath: daily?.relativePath,
+                                       due: due[date] ?? [], completed: completed[date] ?? [],
+                                       undated: undated)
+        }
+        return result
+    }
+
     func weekOverview(for week: WeekRef) -> WeekOverview {
         WeekOverview(week: week, weeklyNotePath: weeklyNote(for: week)?.relativePath, days: week.days.map(dayOverview(for:)))
     }
