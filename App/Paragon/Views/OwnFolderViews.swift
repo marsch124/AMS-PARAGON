@@ -33,6 +33,8 @@ struct OwnFolderPageView: View {
         var good = false
         var cancel: String? = "Cancel"
         var action: String?
+        /// A quiet button beside the others: "Show in Files" / "Show in Finder".
+        var showsFolder = false
     }
 
     private static func count(_ n: Int, _ one: String, _ many: String) -> String { n == 1 ? "1 \(one)" : "\(n) \(many)" }
@@ -108,9 +110,30 @@ struct OwnFolderPageView: View {
             }
             return w
         case .failed(let title, let why):
-            return Words(title: title, notice: [why], cancel: nil, action: "OK")
+            // Build 325: a refusal names the folder, and a button shows it.
+            let holds = why.hasPrefix("The new place already holds")
+            let named = holds ? why.replacingOccurrences(of: "The new place", with: VaultMove.ownFolderWords) : why
+            var w = Words(title: title, notice: [named], cancel: nil, action: "OK")
+            w.showsFolder = holds
+            return w
         case .done(let title, let lines):
-            return Words(title: title, lead: lines, good: true, cancel: nil, action: "Done")
+            // Build 325: the finished page has the offer's headed parts, not five paragraphs.
+            guard title == "Your notes are in PARAGON\u{2019}s own folder", let first = lines.first else {
+                return Words(title: title, lead: lines, good: true, cancel: nil, action: "Done")
+            }
+            var w = Words(title: title, lead: [first], good: true, cancel: nil, action: "Done")
+            var where_: [String] = [], old: [String] = [], others: [String] = [], rest: [String] = []
+            for line in lines.dropFirst() {
+                if line.hasPrefix("They are now in") { where_.append(line) }
+                else if line.hasPrefix("Nothing was deleted.") { old.append(line.replacingOccurrences(of: "Nothing was deleted. ", with: "Nothing was deleted. ")) }
+                else if line.hasPrefix("On your other devices") { others.append(line) }
+                else { rest.append(line) }
+            }
+            if !where_.isEmpty { w.parts.append(Part(head: "Where your notes are", text: where_)) }
+            if !old.isEmpty { w.parts.append(Part(head: "Your old folder", text: old)) }
+            if !others.isEmpty { w.parts.append(Part(head: "Your other devices", text: others)) }
+            if !rest.isEmpty { w.parts.append(Part(text: rest)) }
+            return w
         case .moved(let moved):
             let stamp = moved.stamp
             let place = stamp.toOwnFolder ? VaultMove.ownFolderWords : "the folder \u{201C}\(stamp.placeName)\u{201D}"
@@ -187,9 +210,28 @@ struct OwnFolderPageView: View {
         }
     }
 
+    /// Opens PARAGON's own folder in Files (iPhone, iPad) or Finder (Mac).
+    private func showOwnFolder() {
+        guard let url = model.ownFolderCache else { return }
+        #if os(macOS)
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+        #else
+        var parts = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        parts?.scheme = "shareddocuments"
+        if let shared = parts?.url { UIApplication.shared.open(shared) }
+        #endif
+    }
+
+    private var isFailed: Bool {
+        if case .failed = model.ownFolder.page { return true }
+        return false
+    }
+
     private func cancel() {
         switch model.ownFolder.page {
-        case .working: model.cancelMove()
+        case .working:
+            stoppedByHim = true
+            model.cancelMove()
         case .oldChanges: model.notNowForOldChanges()
         default: model.closeOwnFolderPage()
         }
@@ -211,6 +253,10 @@ struct OwnFolderPageView: View {
     /// A page that opened at full height stays there while it works and when it has finished:
     /// the sheet never jumps under his finger.
     @State private var staysTall = false
+
+    /// Build 325: he pressed Stop. The page then closes and says so, instead of showing a
+    /// "not moved" warning for something he asked for.
+    @State private var stoppedByHim = false
 
     private var tint: Color { Theme.fallbackTint }
 
@@ -373,6 +419,17 @@ struct OwnFolderPageView: View {
                         .quietSheetButton()
                         .accessibilityIdentifier("ownFolder.cancel")
                 }
+                if words.showsFolder {
+                    #if os(macOS)
+                    Button("Show in Finder") { showOwnFolder() }
+                        .quietSheetButton()
+                        .accessibilityIdentifier("ownFolder.show")
+                    #else
+                    Button("Show in Files") { showOwnFolder() }
+                        .quietSheetButton()
+                        .accessibilityIdentifier("ownFolder.show")
+                    #endif
+                }
                 if let action = words.action {
                     Button(action) { act() }
                         .buttonStyle(.filled(tint))
@@ -395,6 +452,14 @@ struct OwnFolderPageView: View {
         .presentationBackground(Theme.canvas)
         #endif
         .interactiveDismissDisabled(isWorking)
+        .onChange(of: isFailed) { _, failed in
+            if failed, stoppedByHim {
+                stoppedByHim = false
+                model.closeOwnFolderPage()
+                model.flash("Stopped. Your notes are where they were.")
+            }
+        }
+        .onChange(of: isWorking) { _, working in if working { stoppedByHim = false } }
         // The page's parts keep their own names for the screen tests.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ownFolder.page")
@@ -494,21 +559,26 @@ struct OwnFolderSettingsRows: View {
     var body: some View {
         if model.vault != nil {
             if model.ownFolder.isOwn {
-                Text("PARAGON keeps your notes in its own folder, \(VaultMove.ownFolderWords), and opens it by itself on every device.")
-                    .font(Txt.label)
-                    .foregroundStyle(.soft)
-                    .fixedSize(horizontal: false, vertical: true)
                 #if os(iOS)
                 Button("Show in Files") { model.showVaultFolder() }
                     .accessibilityIdentifier("settings.vault.show")
                 #endif
-                if let old = model.ownFolder.previousName, model.ownFolder.canGoBack {
-                    Text("Your old folder \u{201C}\(old)\u{201D} is still there, as it was" + (model.ownFolder.movedOn.map { " on \(VaultMove.day($0))" } ?? "") + ". PARAGON only reads it.")
+                // Build 325: the words belong to the button, in one row; the date of the copy
+                // reads "Copied here on 2026-11-13".
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("PARAGON keeps your notes in its own folder, \(VaultMove.ownFolderWords), and opens it by itself on every device." + (model.ownFolder.movedOn.map { " Copied here on \(VaultMove.day($0))." } ?? ""))
                         .font(Txt.label)
                         .foregroundStyle(.soft)
                         .fixedSize(horizontal: false, vertical: true)
-                    Button("Go back to the old folder\u{2026}") { model.showGoBack(fromSettings: true) }
-                        .accessibilityIdentifier("settings.vault.goBack")
+                    if let old = model.ownFolder.previousName, model.ownFolder.canGoBack {
+                        Text("Your old folder \u{201C}\(old)\u{201D} is still there. PARAGON only reads it.")
+                            .font(Txt.label)
+                            .foregroundStyle(.soft)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("Go back to the old folder\u{2026}") { model.showGoBack(fromSettings: true) }
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("settings.vault.goBack")
+                    }
                 }
             } else {
                 #if os(iOS)
@@ -517,15 +587,20 @@ struct OwnFolderSettingsRows: View {
                 #endif
                 if case .moved(let moved)? = model.ownFolder.banner {
                     Button("Your notes are in a new place\u{2026}") { model.showOwnFolderPage(.moved(moved), fromSettings: true) }
+                        .buttonStyle(.filled(Theme.fallbackTint))
                         .accessibilityIdentifier("settings.vault.moved")
                 } else if model.ownFolder.reachable {
                     // Review of build 319: offered only where PARAGON's folder can be reached.
-                    Button("Copy to PARAGON\u{2019}s own folder\u{2026}") { model.showMoveOffer(fromSettings: true) }
-                        .accessibilityIdentifier("settings.vault.move")
-                    Text("PARAGON can copy the notes into a folder of its own in iCloud Drive and open it by itself on every device. Your old folder stays as it is. Nothing happens until you say so.")
-                        .font(Txt.label)
-                        .foregroundStyle(.soft)
-                        .fixedSize(horizontal: false, vertical: true)
+                    // Build 325: one row, the button full colour with its words under it.
+                    VStack(alignment: .leading, spacing: 6) {
+                        Button("Copy to PARAGON\u{2019}s own folder\u{2026}") { model.showMoveOffer(fromSettings: true) }
+                            .buttonStyle(.filled(Theme.fallbackTint))
+                            .accessibilityIdentifier("settings.vault.move")
+                        Text("PARAGON can copy the notes into a folder of its own in iCloud Drive and open it by itself on every device. Your old folder stays as it is. Nothing happens until you say so.")
+                            .font(Txt.label)
+                            .foregroundStyle(.soft)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }

@@ -1913,7 +1913,7 @@ Since build 317, on the iPhone, the iPad and the Mac. The search of the device i
 **Settings › System search** (after **Siri and Shortcuts**):
 
 - The switch **Show notes in system search**. It is on unless you turn it off. Off: every PARAGON note is taken out of the system search at once. On again: the list is built from nothing.
-- The row **Notes in it** shows the number, for example "1204". It says "Building…" during the first pass, "1204, updating…" during an update, "None" with the switch off, and "No vault open" with no vault.
+- The row **Notes in the search** shows the number, for example "1204". It says "Building…" during the first pass, "1204, updating…" during an update, "None" with the switch off, and "No vault open" with no vault.
 - The button **Build the list again** empties PARAGON's part of the system search and builds it anew.
 - The list is also built from nothing after every new version and when you open another vault. Closing the vault empties it.
 
@@ -2125,7 +2125,7 @@ The precise rules and names behind build 317, for reference. The words in `code 
 - **Names.** Setting `showNotesInSystemSearch` (on when never set). Apple's group name `com.schabbauer.amspara.notes`. A result's identity is `note:` and the note's path in the vault. Results never expire.
 - **A result that is gone.** "PARAGON could not find that note. It may have been moved or deleted."
 - **Test runs.** The test vault is never put into the system search of the machine, unless `PARAGON_SYSTEM_SEARCH_TEST` is 1.
-- **Settings.** `SystemSearchSection`, heading "System search": the switch `settings.systemSearch.switch`, the row **Notes in it** `settings.systemSearch.count` ("None", "No vault open", "Building…", "Not built yet", "1204", "1204, updating…"), the button **Build the list again** `settings.systemSearch.rebuild`. The grey line on the Mac: "With this on, Spotlight (⌘Space) on this Mac finds your notes by title, first words and tags, and a press on a result opens the note in PARAGON. The list stays on this device. Work notes are never in it." On the iPhone and the iPad the place is "the search on this device (swipe down on the Home Screen)".
+- **Settings.** `SystemSearchSection`, heading "System search": the switch `settings.systemSearch.switch`, the row **Notes in the search** `settings.systemSearch.count` ("None", "No vault open", "Building…", "Not built yet", "1204", "1204, updating…"), the button **Build the list again** `settings.systemSearch.rebuild`. The grey line on the Mac: "With this on, Spotlight (⌘Space) on this Mac finds your notes by title, first words and tags, and a press on a result opens the note in PARAGON. The list stays on this device. Work notes are never in it." On the iPhone and the iPad the place is "the search on this device (swipe down on the Home Screen)".
 
 **A tick on the widget**
 

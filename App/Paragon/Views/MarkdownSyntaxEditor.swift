@@ -380,7 +380,26 @@ enum MarkdownAttributes {
                 }
             }
         }
+        hideDashBeforePicture(in: storage, range: whole)
         storage.endEditing()
+    }
+
+    /// Build 325: a line that holds only a shared picture or PDF (after "- ") shows no dash.
+    /// The dash stays in the file; only its drawing steps out of sight.
+    static func hideDashBeforePicture(in storage: NSTextStorage, range: NSRange) {
+        let ns = storage.string as NSString
+        guard range.length > 0, NSMaxRange(range) <= ns.length else { return }
+        for (location, _) in PictureText.pictures(in: storage, range: range) {
+            let line = ns.lineRange(for: NSRange(location: location, length: 0))
+            guard location > line.location else { continue }
+            let before = ns.substring(with: NSRange(location: line.location, length: location - line.location))
+            let after = ns.substring(with: NSRange(location: location + 1, length: NSMaxRange(line) - location - 1))
+            guard after.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  before.range(of: #"^\s*[-*+]\s+$"#, options: .regularExpression) != nil else { continue }
+            storage.addAttributes([.foregroundColor: PlatformColor.clear,
+                                   .font: PlatformFont.systemFont(ofSize: 0.1)],
+                                  range: NSRange(location: line.location, length: location - line.location))
+        }
     }
 
     /// A note longer than this is left plain.
@@ -426,6 +445,7 @@ enum MarkdownAttributes {
                 }
             }
         }
+        hideDashBeforePicture(in: storage, range: block)
         storage.endEditing()
     }
     private static func attributes(for style: MarkdownStyle, tint: PlatformColor,

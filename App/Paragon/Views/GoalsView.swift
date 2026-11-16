@@ -661,25 +661,47 @@ struct DatedGoalRow: View {
                 }
                 // 1.0: one quiet second line — how far it has come, the target and how long is
                 // left, and the measure (build 163). Red only when the target has passed.
-                if let second = secondLine(health) {
-                    Text(second.text)
-                        .font(Txt.listSecond)
-                        .foregroundStyle(second.late ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
-                        .lineLimit(1)
-                }
-                // Build 318: the goal's own number, the bar only.
+                // Build 325: a goal with a number has one per cent only, the number's, and its
+                // bar and value stand at the right end of that line when both fit; when they do
+                // not, they take a line of their own.
+                let second = secondLine(health)
                 if let number = note.goalNumber {
-                    GoalNumberLine(number: number, tint: ChainTint.forGoal(note), barWidth: 72, compact: true)
+                    let tint = ChainTint.forGoal(note)
+                    if let second {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 8) {
+                                secondText(second).fixedSize(horizontal: true, vertical: false)
+                                Spacer(minLength: 4)
+                                GoalNumberLine(number: number, tint: tint, barWidth: 54, compact: true)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                secondText(second)
+                                GoalNumberLine(number: number, tint: tint, barWidth: 54, compact: true)
+                            }
+                        }
+                    } else {
+                        GoalNumberLine(number: number, tint: tint, barWidth: 54, compact: true)
+                    }
+                } else if let second {
+                    secondText(second)
                 }
             }
         }
         .padding(.vertical, 2)
     }
 
+    private func secondText(_ second: (text: String, late: Bool)) -> some View {
+        Text(second.text)
+            .font(Txt.listSecond)
+            .foregroundStyle(second.late ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
+            .lineLimit(1)
+    }
+
     private func secondLine(_ health: ChainGoal) -> (text: String, late: Bool)? {
         var parts: [String] = []
         var late = false
-        if let percent = health.progress.percent { parts.append("\(percent) %") }
+        // The number's per cent stands beside its bar; one per cent per row.
+        if note.goalNumber == nil, let percent = health.progress.percent { parts.append("\(percent) %") }
         if let target = note.targetDate {
             parts.append("\(DayWords.plain(target)) \u{00B7} \(target.timeLeftText(from: .today()))")
             if overdue(target) { late = true }

@@ -17,6 +17,8 @@ struct NoteEditorView: View {
     @FocusState private var addFieldFocused: Bool
     /// True while the find bar is up on the iPhone; the Add a task bar hides meanwhile.
     @State private var findBarUp = false
+    /// Build 325: a goal's number window is open; the Add a task bar steps away.
+    @State private var numberWindowOpen = false
     @State private var isDirty = false
     @State private var pendingSave: Task<Void, Never>?
     @State private var showTasks = true
@@ -486,10 +488,11 @@ struct NoteEditorView: View {
         // colour (build 111). Same tint, same rule as the Mac's right-hand panel.
         // Review round 4: the open note sits on the app's page, like the lists it came from.
         .phonePage()
+        .onPreferenceChange(NumberWindowOpenKey.self) { numberWindowOpen = $0 }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             // Build 315 polish: while Apple's find bar is up, this bar is away. Before, it
             // peeked out half hidden behind the find bar.
-            if !findBarUp {
+            if !findBarUp && !numberWindowOpen {
                 VStack(spacing: 0) {
                     Divider()
                     addTaskBar
@@ -1401,7 +1404,7 @@ struct GoalMeasureEditor: View {
                 Spacer()
                 Button("Cancel", action: cancel)
                     .accessibilityIdentifier("measure.cancel")
-                Button("Set", action: set)
+                Button("Save", action: set)
                     .keyboardShortcut(.defaultAction)
                     .disabled(cleaned.isEmpty)
                     .accessibilityIdentifier("measure.set")
@@ -1851,6 +1854,8 @@ struct TaskRow: View {
     var onAddSubtask: (() -> Void)? = nil
     let toggle: () -> Void
     @State private var pickingDate = false
+    /// Build 325: the circle shows filled for 0.1 s before the row leaves (it never showed filled).
+    @State private var tickShown = false
     /// **Who?** (build 279), opened by **Waiting for…** on the task menu.
     @State private var askingWho = false
     @State private var renaming = false
@@ -1882,6 +1887,18 @@ struct TaskRow: View {
             || ref.task.repeatRule != nil || showNote
     }
 
+    /// The press on the circle. Ticking a task first fills the circle, 0.1 s later the task is
+    /// ticked and the row leaves; unticking is at once.
+    private func pressTick() {
+        guard !ref.task.isDone, !Motion.isReduced else { toggle(); return }
+        tickShown = true
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            toggle()
+            tickShown = false
+        }
+    }
+
     /// The tick's state in words, for VoiceOver and the screen tests.
     private var tickState: String {
         if ref.task.status == .cancelled { return "cancelled" }
@@ -1900,12 +1917,12 @@ struct TaskRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Button(action: toggle) {
+            Button(action: pressTick) {
                 // 1.0: the circle is the size of the text (15) and sits in a 22-point box that
                 // takes the press anywhere inside it — a stroked ring alone only took a press on
                 // its line, which is what the first Mac run of build 280 found.
                 // Build 318: the circle fills over 0.2 s when the task is ticked (`TickMark`).
-                TickMark(isDone: ref.task.isDone, isCancelled: ref.task.status == .cancelled)
+                TickMark(isDone: ref.task.isDone || tickShown, isCancelled: ref.task.status == .cancelled)
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
                     .frame(width: 22, height: 22)
                     .contentShape(Rectangle())

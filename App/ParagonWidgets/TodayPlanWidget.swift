@@ -351,7 +351,7 @@ struct RulerBox: Identifiable {
     let height: CGFloat
 
     /// A name fits only in a box that is tall and wide enough to hold a line of small text.
-    var showsTitle: Bool { height >= 16 && width >= 36 }
+    var showsTitle: Bool { height >= 14 && width >= 36 }
 }
 
 struct HourMark: Identifiable {
@@ -441,7 +441,8 @@ struct PlanRuler: View {
 
     private func hourMarks(in geometry: RulerGeometry) -> [HourMark] {
         var marks: [HourMark] = []
-        var hour = geometry.window.lowerBound / 60
+        // The window starts on a quarter hour (build 325): the first mark is the next whole hour.
+        var hour = (geometry.window.lowerBound + 59) / 60
         let last = geometry.window.upperBound / 60
         while hour < last {
             marks.append(HourMark(id: hour, y: geometry.y(forMinute: hour * 60)))
@@ -486,7 +487,7 @@ struct PlanRuler: View {
     }
 
     /// The part of a span that falls inside the window, or nil when none of it does. A span is
-    /// at least a minute long, and a box is never drawn less than 4 points tall.
+    /// at least a minute long, and a box is never drawn less than 14 points tall.
     private func box(for span: WidgetSnapshot.Span, id: Int, isBlock: Bool,
                      in geometry: RulerGeometry) -> RulerBox? {
         let lower = geometry.window.lowerBound
@@ -495,7 +496,8 @@ struct PlanRuler: View {
         let end = min(max(span.end, span.start + 1), upper)
         guard end > start else { return nil }
         let top = geometry.y(forMinute: start)
-        let height = min(max(4, geometry.y(forMinute: end) - top), max(4, geometry.size.height - top))
+        // At least 14 points: a name needs a line of small text (build 325; a 30-minute block had none).
+        let height = min(max(14, geometry.y(forMinute: end) - top), max(14, geometry.size.height - top))
         return RulerBox(id: id,
                         title: span.title,
                         isBlock: isBlock,

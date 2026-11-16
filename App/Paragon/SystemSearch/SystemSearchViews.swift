@@ -96,7 +96,7 @@ struct SystemSearchSection: View {
             Toggle("Show notes in system search", isOn: $isOn)
                 .accessibilityIdentifier("settings.systemSearch.switch")
                 .onChange(of: isOn) { _, _ in indexer.settingChanged() }
-            LabeledContent("Notes in it") {
+            LabeledContent("Notes in the search") {
                 Text(countText)
                     .foregroundStyle(Theme.soft)
                     .monospacedDigit()

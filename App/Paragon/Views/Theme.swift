@@ -592,7 +592,7 @@ struct DateTimeChoiceView: View {
     init(current: DateOnly?, time: TimeOfDay? = nil, offersTime: Bool = true,
          clearTitle: String? = nil, cancel: (() -> Void)? = nil,
          title: String = "Date", header: AnyView? = nil,
-         confirmTitle: String = "Set", tint: Color = Theme.fallbackTint,
+         confirmTitle: String = "Save", tint: Color = Theme.fallbackTint,
          sheetHeight: CGFloat? = nil,
          choose: @escaping (DateOnly?, TimeOfDay?) -> Void) {
         self.title = title
@@ -817,7 +817,7 @@ struct DateTimeChoiceView: View {
 /// **Set** in the bar of the iPhone's date sheet: the app's own filled button, whole (never
 /// cut), without the round glass iOS 26 draws behind a bar button.
 struct DateSetItem: ToolbarContent {
-    var title = "Set"
+    var title = "Save"
     var tint: Color = Theme.fallbackTint
     let set: () -> Void
 

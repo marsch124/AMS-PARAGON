@@ -203,15 +203,16 @@ final class PlanGlanceTests: XCTestCase {
 
     // MARK: The ruler's window
 
-    func testTheWindowStartsAtTheHourOfNow() {
-        XCTAssertEqual(PlanGlance.window(at: minutes("09:05"), hours: 3), minutes("09:00")..<minutes("12:00"))
+    func testTheWindowStartsHalfAnHourBeforeNow() {
+        XCTAssertEqual(PlanGlance.window(at: minutes("09:05"), hours: 3), minutes("08:30")..<minutes("11:30"))
+        XCTAssertEqual(PlanGlance.window(at: minutes("09:50"), hours: 3), minutes("09:15")..<minutes("12:15"))
         XCTAssertEqual(PlanGlance.window(at: minutes("00:00"), hours: 3), 0..<180)
     }
 
     func testTheWindowNeverRunsPastMidnight() {
         XCTAssertEqual(PlanGlance.window(at: minutes("22:40"), hours: 3), minutes("21:00")..<1440)
         XCTAssertEqual(PlanGlance.window(at: minutes("23:59"), hours: 3), minutes("21:00")..<1440)
-        XCTAssertEqual(PlanGlance.window(at: minutes("21:00"), hours: 3), minutes("21:00")..<1440)
+        XCTAssertEqual(PlanGlance.window(at: minutes("21:00"), hours: 3), minutes("20:30")..<minutes("23:30"))
         // A window longer than the day is the whole day.
         XCTAssertEqual(PlanGlance.window(at: minutes("12:00"), hours: 30), 0..<1440)
     }

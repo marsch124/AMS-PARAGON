@@ -746,6 +746,23 @@ struct HealthRow: View {
 struct GoalHealthRow: View {
     @EnvironmentObject private var model: AppModel
     let health: GoalHealth
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    private var isPhone: Bool { sizeClass == .compact }
+    #else
+    private var isPhone: Bool { false }
+    #endif
+
+    @ViewBuilder
+    private var changedWords: some View {
+        if let days = health.daysSinceActivity {
+            Text(days == 0 ? "Changed today" : "Changed \(days)d ago")
+                .font(Txt.label)
+                .foregroundStyle(.soft)
+                .lineLimit(1)
+                .fixedSize()
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -768,13 +785,12 @@ struct GoalHealthRow: View {
                         .rowTint(health.note.tint.capsuleWords)
                 }
                 Spacer(minLength: 6)
-                if let days = health.daysSinceActivity {
-                    Text(days == 0 ? "Changed today" : "Changed \(days)d ago")
-                        .font(Txt.label)
-                        .foregroundStyle(.soft)
-                        .lineLimit(1)
-                        .fixedSize()
-                }
+                // Build 325: on the iPhone "Changed …" moves to the second line, so a title
+                // keeps the whole width ("Save 100 000 kr" broke inside the number).
+                if !isPhone { changedWords }
+            }
+            if isPhone, health.daysSinceActivity != nil {
+                HStack { changedWords; Spacer(minLength: 0) }
             }
             WrappingHStack(spacing: 8, lineSpacing: 3) {
                 // One item, so the bar and its per cent always move to a new line together.
@@ -785,15 +801,15 @@ struct GoalHealthRow: View {
                     GoalNumberLine(number: number, tint: ChainTint.forGoal(health.note))
                 }
                 if health.progress.projectsTotal > 0 {
-                    MarkLabel("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag", text: .footnote)
+                    MarkWords("\(health.progress.projectsDone) of \(health.progress.projectsTotal) \(health.progress.projectsTotal == 1 ? "project" : "projects") done", "flag")
                 } else {
-                    MarkLabel("no projects yet", "flag", text: .footnote)
+                    MarkWords("no projects yet", "flag")
                 }
-                MarkLabel("\(health.areas.count) areas", "circle.grid.2x2", text: .footnote)
-                MarkLabel("\(health.openTaskCount) open", "circle", text: .footnote)
-                MarkLabel("\(health.completedLast30Days) done in 30d", "checkmark", text: .footnote)
+                MarkWords("\(health.areas.count) areas", "circle.grid.2x2")
+                MarkWords("\(health.openTaskCount) open", "circle")
+                MarkWords("\(health.completedLast30Days) done in 30d", "checkmark")
                 if let target = health.note.targetDate {
-                    MarkLabel(target.description, "flag.checkered", text: .footnote)
+                    MarkWords(target.description, "flag.checkered")
                 }
             }
             .font(Txt.label)
