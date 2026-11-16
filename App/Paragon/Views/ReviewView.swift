@@ -19,6 +19,9 @@ struct ReviewView: View {
     /// opening a step on the phone does not open it on the Mac (build 161's pair).
     @AppStorage("reviewOpenParts") private var deskOpenText = ""
     @AppStorage("reviewOpenPartsPhone") private var phoneOpenText = ""
+    /// Build 331: the loose tasks became step 3 and old steps 3 to 8 became 4 to 9. True once
+    /// the two remembered texts above have been mapped to the new numbers (done once).
+    @AppStorage("reviewStepsRenumbered331") private var stepsRenumbered = false
     /// **Build 312: the first part with something to do opens by itself**, once per visit
     /// (`ReviewOpening`, Core, tested). False until that has been done. `@State`, so it lasts
     /// while this screen is alive — the phone's push into a note and back is the same visit —
@@ -118,6 +121,9 @@ struct ReviewView: View {
             // finished from one the app had decided not to show you. Build 100's rule: an
             // absence has to say it is an absence. Folded (build 266), a step is still its
             // heading, and the heading still counts what is in it.
+            // Build 331: the loose tasks are step 3. Wrapped with step 2 in a `Group` so this
+            // list stays at ten children.
+            Group {
             Section {
                 if isOpen("2") {
                     if report.overdueTasks.isEmpty {
@@ -134,6 +140,8 @@ struct ReviewView: View {
                 ReviewPartHeading(title: "2. Reschedule or drop overdue tasks", count: report.overdueTasks.count,
                                   toDo: report.overdueTasks.count, isOpen: openBinding("2"), part: "2")
             }
+            LooseTasksStep(isOpen: openBinding("3"))
+            }
 
             // **Build 175, both from his test.** He asked for two things here: steps 3 to 5
             // named what to *do*, the way 1 and 2 already were, and aspirations kept apart
@@ -141,7 +149,7 @@ struct ReviewView: View {
             // them?" They are two different questions, asked at different speeds (the review
             // rhythm says so: a year against a quarter), so they are two steps.
             Section {
-                if isOpen("3") {
+                if isOpen("4") {
                     if aspirations(report).isEmpty {
                         MarkLabel("No aspirations yet", ChainSymbol.aspiration)
                             .foregroundStyle(.soft)
@@ -153,19 +161,19 @@ struct ReviewView: View {
                     }
                 }
             } header: {
-                ReviewPartHeading(title: "3. Read the aspirations again", count: aspirations(report).count,
-                                  toDo: toDo("3", report, due.count), isOpen: openBinding("3"), part: "3")
+                ReviewPartHeading(title: "4. Read the aspirations again", count: aspirations(report).count,
+                                  toDo: toDo("4", report, due.count), isOpen: openBinding("4"), part: "4")
             } footer: {
                 // Build 176: the rule in one line, where the two kinds sit side by side.
                 // A title string and a footer cannot be given together (build 157).
-                if isOpen("3") {
+                if isOpen("4") {
                     Text(GoalWording.aspirationRule)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
             Section {
-                if isOpen("4") {
+                if isOpen("5") {
                     if datedGoals(report).isEmpty {
                         MarkLabel("No goals with a date yet", ChainSymbol.datedGoal)
                             .foregroundStyle(.soft)
@@ -177,17 +185,17 @@ struct ReviewView: View {
                     }
                 }
             } header: {
-                ReviewPartHeading(title: "4. Check the goals with a date are on course", count: datedGoals(report).count,
-                                  toDo: toDo("4", report, due.count), isOpen: openBinding("4"), part: "4")
+                ReviewPartHeading(title: "5. Check the goals with a date are on course", count: datedGoals(report).count,
+                                  toDo: toDo("5", report, due.count), isOpen: openBinding("5"), part: "5")
             } footer: {
-                if isOpen("4") {
+                if isOpen("5") {
                     Text(GoalWording.datedGoalRule)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
             Section {
-                if isOpen("5") {
+                if isOpen("6") {
                     ForEach(report.projects) { health in
                         HealthRow(health: health)
                             .tag(health.note.relativePath)
@@ -203,11 +211,11 @@ struct ReviewView: View {
                 // of breaking between words. The button keeps its own width and the heading
                 // takes what is left (build 138).
                 HStack(spacing: 8) {
-                    ReviewPartHeading(title: "5. Give every project a next action", count: report.projects.count,
-                                      toDo: toDo("5", report, due.count), isOpen: openBinding("5"), part: "5")
+                    ReviewPartHeading(title: "6. Give every project a next action", count: report.projects.count,
+                                      toDo: toDo("6", report, due.count), isOpen: openBinding("6"), part: "6")
                     // Only while the step is open: it stamps every project in it, and a folded
                     // step has not been looked at yet.
-                    if isOpen("5") {
+                    if isOpen("6") {
                         Button("I looked at all of them") { model.markAllReviewed() }
                             .font(Txt.label)
                             .fixedSize()
@@ -216,7 +224,7 @@ struct ReviewView: View {
             }
 
             Section {
-                if isOpen("6") {
+                if isOpen("7") {
                     if report.areas.isEmpty {
                         MarkLabel("No areas yet", SidebarSection.kind(.area).markName)
                             .foregroundStyle(.soft)
@@ -230,8 +238,8 @@ struct ReviewView: View {
                     }
                 }
             } header: {
-                ReviewPartHeading(title: "6. Look over the areas", count: report.areas.count,
-                                  toDo: toDo("6", report, due.count), isOpen: openBinding("6"), part: "6")
+                ReviewPartHeading(title: "7. Look over the areas", count: report.areas.count,
+                                  toDo: toDo("7", report, due.count), isOpen: openBinding("7"), part: "7")
             }
 
             // **Build 263: the review looks back as well as forward.** Steps 1 to 6 are all
@@ -242,9 +250,8 @@ struct ReviewView: View {
             // week about to start, in the same box as Calendar › Week. The two steps share a
             // `Group` so this list stays at ten children.
             Group {
-                WeekLookStep(chosenWeek: $lookedWeek, isOpen: openBinding("7"))
-                WeekGoalStep(isOpen: openBinding("8"))
-                LooseTasksStep(isOpen: openBinding("9"))
+                WeekLookStep(chosenWeek: $lookedWeek, isOpen: openBinding("8"))
+                WeekGoalStep(isOpen: openBinding("9"))
                 // Round 8 (build 315): the walk has an end, and the end is recorded.
                 ReviewDoneStep()
             }
@@ -256,7 +263,7 @@ struct ReviewView: View {
                 Section {
                     if isOpen("noGoal") {
                         // Buttons, not tagged HealthRows: these projects are listed again under
-                        // step 5, and two rows carrying the same selection tag is exactly
+                        // step 6, and two rows carrying the same selection tag is exactly
                         // what made the Inbox unselectable in builds 71 to 74.
                         ForEach(report.projectsWithoutGoal) { health in
                             Button {
@@ -302,21 +309,21 @@ struct ReviewView: View {
     // MARK: What opens by itself (build 312)
 
     /// Every part in the order drawn, with how many things in it still want doing. **To do, not
-    /// listed**: step 5 lists every project, and what is left to do there is the projects that
+    /// listed**: step 6 lists every project, and what is left to do there is the projects that
     /// need attention — the same number the orange pills count. Steps 7 and 8 and **Projects
     /// with no goal** count nothing to do (the last "never counts as needing attention").
     private func toDoParts(_ report: ReviewReport, due: Int) -> [ReviewOpening.Part] {
         [.init("due", toDo: due),
          .init("1", toDo: report.inboxOpenTasks),
          .init("2", toDo: report.overdueTasks.count),
-         .init("3", toDo: aspirations(report).filter(\.needsAttention).count),
-         .init("4", toDo: datedGoals(report).filter(\.needsAttention).count),
-         .init("5", toDo: report.projectsNeedingAttention.count),
-         .init("6", toDo: report.areas.filter(\.needsAttention).count),
-         .init("7", toDo: nil), .init("8", toDo: nil),
-         // Build 330: the loose tasks never open by themselves and never count as "to do" —
-         // they are an offer at the end of the review, not one more thing he is behind on.
-         .init("9", toDo: nil), .init("noGoal", toDo: nil)]
+         // Build 330 (step 9), moved to step 3 in build 331: the loose tasks never open by
+         // themselves and never count as "to do" — an offer, not one more thing he is behind on.
+         .init("3", toDo: nil),
+         .init("4", toDo: aspirations(report).filter(\.needsAttention).count),
+         .init("5", toDo: datedGoals(report).filter(\.needsAttention).count),
+         .init("6", toDo: report.projectsNeedingAttention.count),
+         .init("7", toDo: report.areas.filter(\.needsAttention).count),
+         .init("8", toDo: nil), .init("9", toDo: nil), .init("noGoal", toDo: nil)]
     }
 
     private func toDo(_ part: String, _ report: ReviewReport, _ due: Int) -> Int? {
@@ -325,6 +332,11 @@ struct ReviewView: View {
 
     /// Once per visit: the first part with something to do is open, the others folded.
     private func startVisit() {
+        if !stepsRenumbered {
+            deskOpenText = ReviewOpening.renumberedForLooseStepFirst(deskOpenText)
+            phoneOpenText = ReviewOpening.renumberedForLooseStepFirst(phoneOpenText)
+            stepsRenumbered = true
+        }
         guard !visitStarted else { return }
         let parts = toDoParts(model.index.review(config: model.config), due: model.dueForReview().count)
         let open = ReviewOpening.open(parts: parts, byHand: Self.ids(in: openText.wrappedValue),
@@ -394,7 +406,7 @@ struct ReviewPartHeading: View {
     let title: String
     let count: Int
     @Binding var isOpen: Bool
-    /// "due", "1" … "8", "noGoal" — the id the open set keeps.
+    /// "due", "1" … "9", "noGoal" — the id the open set keeps.
     let part: String
 
     /// How many things in the part still want doing; nil when the part counts none (build
@@ -450,7 +462,7 @@ struct ReviewPartHeading: View {
 /// and **Review done today** in the review's colour instead of the button. The press writes today into
 /// this week's note (`AppModel.markWeeklyReviewDone`); **Today** stops saying the review is late.
 /// Never folded: it is one row, and it is the thing the walk leads to.
-/// **Step 9: the loose tasks** (build 330, from the advisors' round). The open tasks nothing
+/// **Step 3: the loose tasks** (build 330, step 9 until build 331, from the advisors' round). The open tasks nothing
 /// else in the week looks at (`NoteIndex.looseTasks`, Core): no date, not waiting, not put
 /// aside, not a project's next action. Ten at a time, from the notes left alone longest, each
 /// with three plain answers under it. Nothing here is counted against him: the heading says
@@ -485,8 +497,8 @@ struct LooseTasksStep: View {
                 }
             }
         } header: {
-            ReviewPartHeading(title: "9. Thin out the loose tasks", count: loose.count,
-                              isOpen: $isOpen, part: "9")
+            ReviewPartHeading(title: "3. Thin out the loose tasks", count: loose.count,
+                              isOpen: $isOpen, part: "3")
         } footer: {
             if isOpen, !loose.isEmpty {
                 Text(LooseTasksStep.footer(count: loose.count))

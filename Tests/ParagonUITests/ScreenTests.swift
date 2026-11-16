@@ -1155,7 +1155,7 @@ final class ScreenTests: XCTestCase {
                       "The line does not count the finished tasks. It says: \(line.label)")
     }
 
-    /// Step 7 of the Weekly review (build 263): it is drawn at the foot of the review, says
+    /// Step 8 of the Weekly review (build 263): it is drawn at the foot of the review, says
     /// which week it shows, and its arrows move one week back and forward again. The week it
     /// opens on depends on the day the test runs (on Monday and Tuesday it is the week before),
     /// so the test only asks that ‹ changes the week and › brings the same one back. The step
@@ -1164,58 +1164,58 @@ final class ScreenTests: XCTestCase {
     /// opened first.
     func testTheWeekCanBeLookedBackAt() {
         go(to: .review)
-        openReviewPart("7")
+        openReviewPart("8")
         let title = reveal("review.lookBack")
-        XCTAssertTrue(title.exists, "The Weekly review has no step 7. On screen: \(visibleTexts())")
+        XCTAssertTrue(title.exists, "The Weekly review has no step 8. On screen: \(visibleTexts())")
         let first = words(of: title)
-        XCTAssertTrue(first.contains("Week"), "Step 7 does not say which week it shows. It says: \(first)")
+        XCTAssertTrue(first.contains("Week"), "Step 8 does not say which week it shows. It says: \(first)")
         XCTAssertTrue(element("review.lookBack.goal").exists,
-                      "Step 7 has no box for the week's goal. On screen: \(visibleTexts())")
+                      "Step 8 has no box for the week's goal. On screen: \(visibleTexts())")
         XCTAssertTrue(element("review.lookBack.days").exists,
-                      "Step 7 has no row of days. On screen: \(visibleTexts())")
+                      "Step 8 has no row of days. On screen: \(visibleTexts())")
 
         let earlier = app.buttons.matching(identifier: "review.lookBack.earlier").firstMatch
         XCTAssertTrue(earlier.waitForExistence(timeout: 10),
-                      "Step 7 has no arrow to an earlier week. On screen: \(visibleTexts())")
+                      "Step 8 has no arrow to an earlier week. On screen: \(visibleTexts())")
         pressInSight(earlier)
         XCTAssertTrue(becomes(within: 10) { self.words(of: title) != first },
                       "The arrow was pressed and the week stayed \(first). \(whereabouts(earlier))")
 
         let later = app.buttons.matching(identifier: "review.lookBack.later").firstMatch
         XCTAssertTrue(later.waitForExistence(timeout: 10),
-                      "Step 7 has no arrow to a later week. On screen: \(visibleTexts())")
+                      "Step 8 has no arrow to a later week. On screen: \(visibleTexts())")
         XCTAssertTrue(later.isEnabled, "One week back, the arrow to a later week is greyed out.")
         pressInSight(later)
         XCTAssertTrue(becomes(within: 10) { self.words(of: title) == first },
                       "The arrow back did not return to \(first). It says: \(words(of: title))")
     }
 
-    /// Step 8 of the Weekly review (build 264): the goal for the week about to start is written
+    /// Step 9 of the Weekly review (build 264): the goal for the week about to start is written
     /// in the same box as Calendar › Week. Pressed at its frame and found among buttons
     /// (build 249); the field closing is the sign Return was taken, and the box's own label —
     /// set explicitly, one sentence on both platforms — is the proof the words were kept. The
     /// review starts folded (build 266), so the step is opened first.
     func testTheComingWeeksGoalCanBeWrittenInTheReview() {
         go(to: .review)
-        openReviewPart("8")
+        openReviewPart("9")
         let box = reveal(app.buttons.matching(identifier: "review.nextGoal").firstMatch)
-        XCTAssertTrue(box.exists, "The Weekly review has no step 8. The heading: \(whereabouts(app.buttons.matching(identifier: "review.part.8").firstMatch)) On screen: \(visibleTexts())")
+        XCTAssertTrue(box.exists, "The Weekly review has no step 9. The heading: \(whereabouts(app.buttons.matching(identifier: "review.part.9").firstMatch)) On screen: \(visibleTexts())")
         let frame = box.frame
         guard Self.isOnScreen(frame) else {
-            XCTFail("The goal box in step 8 has no place on screen: \(frame)")
+            XCTFail("The goal box in step 9 has no place on screen: \(frame)")
             return
         }
         press(box, at: frame)
 
         let field = element("review.nextGoal.field")
         XCTAssertTrue(field.waitForExistence(timeout: 10),
-                      "Pressing the goal box in step 8 did not open a field. On screen: \(visibleTexts())")
+                      "Pressing the goal box in step 9 did not open a field. On screen: \(visibleTexts())")
         field.press()
         field.typeText("Rest and the garden\n")
 
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
-                       "The field in step 8 stayed open after Return. On screen: \(visibleTexts())")
+                       "The field in step 9 stayed open after Return. On screen: \(visibleTexts())")
         XCTAssertTrue(becomes(within: 10) { box.label.contains("Rest and the garden") },
                       "The goal was written and the box does not show it. It says: \(box.label)")
     }
@@ -1251,17 +1251,17 @@ final class ScreenTests: XCTestCase {
             .write(to: URL(fileURLWithPath: folder).appendingPathComponent("\(name).png"))
     }
 
-    /// Build 330: step 9 of the Weekly review lists the loose tasks (no date, nothing else
+    /// Build 330: step 3 of the Weekly review lists the loose tasks (no date, nothing else
     /// looks at them), each with **Today**, **Someday** and **Drop** under it, and **Someday**
     /// takes the task out of the step. Found by identifier, whatever the task is called.
     func testTheReviewThinsOutTheLooseTasks() {
         go(to: .review)
-        openReviewPart("9")
+        openReviewPart("3")
         let someday = reveal(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'loose.someday.'")).firstMatch)
         XCTAssertTrue(someday.exists,
-                      "Step 9 lists no loose task with a Someday answer. On screen: \(visibleTexts())")
+                      "Step 3 lists no loose task with a Someday answer. On screen: \(visibleTexts())")
         guard someday.exists else { return }
-        look("step9")
+        look("step3")
         let name = someday.identifier
         XCTAssertTrue(app.buttons.matching(identifier: name.replacingOccurrences(of: "loose.someday.", with: "loose.today.")).firstMatch.exists,
                       "The loose task has no Today answer.")
@@ -1294,7 +1294,7 @@ final class ScreenTests: XCTestCase {
             spot.scroll(byDeltaX: 0, deltaY: attempt < tries / 2 ? -300 : 300)
             #else
             // **Clear of the tab bar, not only on screen** (build 266's first CI run): with the
-            // review folded, step 8's box came to rest low on the screen, under the see-through
+            // review folded, step 9's box came to rest low on the screen, under the see-through
             // tab bar. `isHittable` said yes, the press landed on the **Actions** tab, and the
             // test failed for its own reasons (build 190). The middle of the element has to be
             // above the bar before it counts as revealed.
@@ -2306,35 +2306,35 @@ final class ScreenTests: XCTestCase {
     #endif
 
     /// The Weekly review folds step by step (build 266). His words: *"it's so many lines …
-    /// that is a bit scary."* Every part starts folded, so step 7's week bar is not there at
+    /// that is a bit scary."* Every part starts folded, so step 8's week bar is not there at
     /// first; its heading names the week it shows rather than "the week"; pressing the heading
     /// opens the step and pressing it again folds it; and **Open all** in the summary opens
-    /// every part. Since build 312 the first part with something to do opens by itself; step 7
+    /// every part. Since build 312 the first part with something to do opens by itself; step 8
     /// counts nothing to do, so it still starts folded. The test vault wipes the app's settings first, so "folded at first" is the
     /// default and not something an earlier test left behind. Everything pressed is found among
     /// buttons (build 249).
     func testTheReviewFoldsStepByStep() {
         go(to: .review)
 
-        let heading = reveal(app.buttons.matching(identifier: "review.part.7").firstMatch)
-        XCTAssertTrue(heading.exists, "The Weekly review has no heading for step 7. On screen: \(visibleTexts())")
+        let heading = reveal(app.buttons.matching(identifier: "review.part.8").firstMatch)
+        XCTAssertTrue(heading.exists, "The Weekly review has no heading for step 8. On screen: \(visibleTexts())")
         XCTAssertTrue(heading.label.contains("Look back at "),
-                      "Step 7's heading does not say what the step does. It says: \(heading.label)")
+                      "Step 8's heading does not say what the step does. It says: \(heading.label)")
         XCTAssertFalse(heading.label.contains("at the week"),
-                       "Step 7's heading does not name the week it shows. It says: \(heading.label)")
+                       "Step 8's heading does not name the week it shows. It says: \(heading.label)")
         XCTAssertFalse(element("review.lookBack").exists,
-                       "Step 7 is open the first time the review is shown. It counts nothing to do, so it should start folded.")
+                       "Step 8 is open the first time the review is shown. It counts nothing to do, so it should start folded.")
 
         if heading.isHittable { heading.press() } else { heading.pressCentre() }
         XCTAssertTrue(reveal("review.lookBack").exists,
-                      "Step 7's heading was pressed and the step did not open. On screen: \(visibleTexts())")
+                      "Step 8's heading was pressed and the step did not open. On screen: \(visibleTexts())")
 
-        let again = revealAbove(app.buttons.matching(identifier: "review.part.7").firstMatch)
-        XCTAssertTrue(again.exists, "Step 7's heading went away when the step opened. On screen: \(visibleTexts())")
+        let again = revealAbove(app.buttons.matching(identifier: "review.part.8").firstMatch)
+        XCTAssertTrue(again.exists, "Step 8's heading went away when the step opened. On screen: \(visibleTexts())")
         if again.isHittable { again.press() } else { again.pressCentre() }
         let folded = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: element("review.lookBack"))
         XCTAssertEqual(XCTWaiter().wait(for: [folded], timeout: 10), .completed,
-                       "Step 7's heading was pressed again and the step did not fold. On screen: \(visibleTexts())")
+                       "Step 8's heading was pressed again and the step did not fold. On screen: \(visibleTexts())")
 
         let all = revealAbove(app.buttons.matching(identifier: "review.openAll").firstMatch)
         XCTAssertTrue(all.exists, "The review's summary has no Open all button. On screen: \(visibleTexts())")
@@ -2344,7 +2344,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(becomes(within: 10) { all.label.contains("Close all") },
                       "Open all was pressed and the button does not offer to close them again. It says: \(all.label)")
         XCTAssertTrue(reveal("review.lookBack").exists,
-                      "Open all was pressed and step 7 stayed folded. On screen: \(visibleTexts())")
+                      "Open all was pressed and step 8 stayed folded. On screen: \(visibleTexts())")
     }
 
     /// Opens one part of the Weekly review, which starts folded (build 266). The heading is
@@ -2859,7 +2859,7 @@ final class ScreenTests: XCTestCase {
         let closeNote = element("note.close")
         if closeNote.exists { closeNote.press() }
         go(to: .review)
-        openReviewPart("6")
+        openReviewPart("7")
         let line = reveal("review.standard.Areas/Health.md")
         XCTAssertTrue(line.exists,
                       "Step 6 of the Weekly review does not show Health's standard. On screen: \(visibleTexts())")
@@ -2969,8 +2969,8 @@ final class ScreenTests: XCTestCase {
     }
     #endif
 
-    /// **How was the week?** (build 272): step 7's box writes one line into the shown week's
-    /// note. The week step 7 opens on depends on the day the test runs (build 263), so the test
+    /// **How was the week?** (build 272): step 8's box writes one line into the shown week's
+    /// note. The week step 8 opens on depends on the day the test runs (build 263), so the test
     /// does not ask which week; it asks that the words are kept. The box is pressed at its frame
     /// and found among buttons (build 249). **Done** is pressed rather than Return: a field with
     /// room for two lines may take Return as a new line on the phone, and **Done** sits above
@@ -2982,14 +2982,14 @@ final class ScreenTests: XCTestCase {
     /// for its own reasons (build 190).
     func testTheWeekCanBeGivenALine() {
         go(to: .review)
-        openReviewPart("7")
+        openReviewPart("8")
         let box = reveal(app.buttons.matching(identifier: "review.weekLine").firstMatch)
-        XCTAssertTrue(box.exists, "Step 7 has no box called How was the week? On screen: \(visibleTexts())")
+        XCTAssertTrue(box.exists, "Step 8 has no box called How was the week? On screen: \(visibleTexts())")
         XCTAssertTrue(words(of: box).contains("not written yet"),
                       "The box should start empty. It says: \(words(of: box))")
         let frame = box.frame
         guard Self.isOnScreen(frame) else {
-            XCTFail("The week box in step 7 has no place on screen: \(frame)")
+            XCTFail("The week box in step 8 has no place on screen: \(frame)")
             return
         }
         press(box, at: frame)
@@ -3013,12 +3013,12 @@ final class ScreenTests: XCTestCase {
         // the second press was needed, so a Done that never takes the first click is seen.
         if !field.waitForNonExistence(timeout: 5) {
             let again = app.buttons.matching(identifier: "review.weekLine.done").firstMatch
-            print("NOTE: Done in step 7 needed a second press. \(whereabouts(again))")
+            print("NOTE: Done in step 8 needed a second press. \(whereabouts(again))")
             if again.exists { pressInSight(again) }
         }
         #endif
         XCTAssertTrue(field.waitForNonExistence(timeout: 10),
-                      "The field in step 7 stayed open after Done. \(whereabouts(done)) The last words on screen: \(lastTexts())")
+                      "The field in step 8 stayed open after Done. \(whereabouts(done)) The last words on screen: \(lastTexts())")
         XCTAssertTrue(becomes(within: 10) { box.label.contains("A calm week") },
                       "The line was written and the box does not show it. It says: \(box.label)")
     }
