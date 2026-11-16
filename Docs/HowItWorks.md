@@ -2530,6 +2530,7 @@ The iPhone app is also an iPad app. Install it from TestFlight on the iPad in th
 
 The iPad shows the Mac's three columns, not the iPhone's tabs: the sidebar, the list, and the note. The build 314 changes to the Mac window (four sidebar groups, full-width lists, one toolbar search field) are for the Mac only. The iPad keeps its sidebar **Search** row and its list fields.
 
+- **Settings on the iPad (since build 323).** Two ways in, in both positions of the iPad: the gear at the top left of the left-hand list, beside the name **PARAGON**, and the row **Settings** at the end of the list, under **Tools**, above the version line. The sync ring at the foot of the list still opens Settings at the sync part. Before, on an iPad held upright, the sync ring was the only way in. The iPhone has **Browse › Settings**; the Mac has **PARAGON › Settings…** (⌘,).
 - **In landscape** (wider than tall), all three columns fit on the screen, side by side. On the iPad mini the note column is about as wide as an iPhone screen.
 - **In portrait** (taller than wide), iPadOS decides how the columns are shown. PARAGON is made for the iPad in landscape.
 

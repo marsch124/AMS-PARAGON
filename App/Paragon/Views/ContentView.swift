@@ -588,6 +588,22 @@ struct SidebarView: View {
                     row(.work)
                 }
             }
+            #if !os(macOS)
+            // Build 323, his word: "You cannot hide the app settings behind the sync button."
+            // On the iPad (he uses an iPad mini) the gear in the top bar was not found; Settings
+            // is now a named row of the list, as on the iPhone's Browse.
+            Section {
+                Button {
+                    model.activeSheet = .settings
+                } label: {
+                    MarkLabel("Settings", "gear", size: 16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("sidebar.settings")
+            }
+            #endif
             // 1.0: the version as he reads it, "1.0 (280)", as the last line of the list — it
             // scrolls with the rows, so it never lies over one. A bar at the foot did, and on a
             // small iPad in portrait the Areas row sat exactly under it (the iPad screen test of
@@ -603,6 +619,20 @@ struct SidebarView: View {
             }
         }
         .navigationTitle("PARAGON")
+        #if !os(macOS)
+        // Build 323: the gear is also at the top of the list, always in view. On an iPad mini
+        // held upright the detail's top bar has no gear, so the sync ring was the only way in.
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    model.activeSheet = .settings
+                } label: {
+                    MarkLabel("Settings", "gear", size: 16)
+                }
+                .accessibilityIdentifier("sidebar.gear")
+            }
+        }
+        #endif
         .safeAreaInset(edge: .bottom) {
             // Only the iCloud warning stays at the foot: it is deliberately hard to miss.
             // Build 285: the sync line is always here, under it.

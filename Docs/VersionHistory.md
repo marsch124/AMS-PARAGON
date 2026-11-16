@@ -1,6 +1,20 @@
 # Version history
 
-The version is shown as 1.0 (322) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (323) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 323 · 16 November 2026
+
+**iPad: Settings is easy to find.** Two ways in, always there. The iPhone and the Mac are unchanged.
+
+**Before (build 322).**
+- On an iPad held upright (you use an iPad mini) the top bar had no gear at all. The only way into **Settings** was the small sync ring at the foot of the left-hand list. You said: "You cannot hide the app settings behind the sync button."
+- On a wide iPad a gear sat at the top right of the page. On the upright iPad mini it was not there.
+
+**Now (build 323).**
+- 1 new way: a gear at the top left of the left-hand list, beside the name **PARAGON**. It is there in both positions of the iPad.
+- 1 new way: a row named **Settings** at the end of the list, under **Tools** and above the version line. It looks like the other rows and opens the same page.
+- The sync ring at the foot of the list still opens Settings at the sync part (**Sync settings…**). Nothing was removed.
+- iPhone: **Browse › Settings**, as before. Mac: **PARAGON › Settings…** (⌘,), as before.
 
 ## Build 322 · 16 November 2026
 
