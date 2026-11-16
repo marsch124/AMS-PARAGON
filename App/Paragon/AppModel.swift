@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 325
+    static let number = 326
 }
 
 @MainActor
@@ -326,6 +326,11 @@ final class AppModel: ObservableObject {
     @Published private(set) var lastOutsideBackup: Date?
     @Published private(set) var outsideBackupFolderName: String?
     @Published private(set) var outsideBackupProblem: String?
+    /// Settings › Safety (build 326): one line per thing looked at. Empty until the first look.
+    @Published private(set) var safetyLines: [SafetyCheck.Line] = []
+    private var lastSafetyLook = Date.distantPast
+    /// Something on the Safety list needs a look: the amber dot on the Settings gear.
+    var safetyNeedsALook: Bool { SafetyCheck.thingsToLookAt(safetyLines) > 0 }
     /// A folder he has just picked as his vault, being looked at before anything is written
     /// into it (build 308, hardening-16). Nil when no choice is waiting for his answer.
     @Published private(set) var folderChoice: FolderChoice?
@@ -1583,6 +1588,8 @@ final class AppModel: ObservableObject {
             unreadableNotes = vault.skippedFiles
             notesWaitingForCloud = vault.notesWaitingForCloud
             notesBeingUpdated = vault.notesBeingUpdated
+            // Build 326: the Safety lines are looked at again at most every five minutes.
+            if Date().timeIntervalSince(lastSafetyLook) > 300 { refreshSafety() }
             lookForParkedVersions(in: vault.notesReadAfresh)
             if waitingBefore.contains(where: { !notesWaitingForCloud.contains($0) }) {
                 // `afterUpdate`: a reload can run inside a view update. `drainOutbox` returns at
@@ -4742,6 +4749,48 @@ final class AppModel: ObservableObject {
         lastOutsideBackup = [made, newestOutsideCopySeen].compactMap { $0 }.max()
         outsideBackupFolderName = defaults.data(forKey: outsideBackupBookmarkKey) == nil
             ? nil : defaults.string(forKey: outsideBackupNameKey)
+        refreshSafety()
+    }
+
+    // MARK: Safety (build 326)
+
+    /// Looks again at what Settings › Safety shows. **Only looks**: nothing is written. The
+    /// small device files and the list of copies are read off the main thread; the rest is
+    /// already known here. The rule is Core's `SafetyCheck`.
+    func refreshSafety() {
+        guard let vault else {
+            if !safetyLines.isEmpty { safetyLines = [] }
+            return
+        }
+        lastSafetyLook = Date()
+        let root: URL = vault.rootURL
+        let config: VaultConfig = vault.config
+        let id = deviceID
+        let name = AppModel.deviceOwnName(kind: AppModel.deviceOwnKind)
+        let build = BuildStamp.number
+        let stamp = defaults.double(forKey: lastOutsideBackupKey)
+        let outside = [stamp > 0 ? Date(timeIntervalSince1970: stamp) : nil, newestOutsideCopySeen].compactMap { $0 }.max()
+        let paths = notes.map(\.relativePath)
+        let lastSync = lastReport.map { $0.finishedAt ?? $0.startedAt }
+        let conflicts = lastReport?.conflicts.count ?? 0
+        Task { [weak self] in
+            let found: SafetyLook = await AppModel.away {
+                guard let own = try? Vault(rootURL: root, config: config) else { return SafetyLook(devices: [], inside: nil) }
+                return SafetyLook(devices: own.devices(), inside: own.backups().map(\.date).max())
+            }
+            guard let self, self.vault?.rootURL == root else { return }
+            let lines = SafetyCheck.lines(SafetyCheck.Facts(
+                devices: found.devices, thisDeviceID: id, thisDeviceName: name, thisBuild: build,
+                newestInsideCopy: found.inside, newestOutsideCopy: outside, notePaths: paths,
+                lastSync: lastSync, syncConflicts: conflicts))
+            if self.safetyLines != lines { self.safetyLines = lines }
+        }
+    }
+
+    /// What `refreshSafety` reads from disk, off the main thread.
+    private struct SafetyLook: Sendable {
+        var devices: [VaultDevice]
+        var inside: Date?
     }
 
     // MARK: The second copy, outside the vault (build 308, hardening-13)
@@ -5378,6 +5427,7 @@ final class AppModel: ObservableObject {
             lastReport = report
             for warning in report.warnings { log("sync: \(warning)") }
             reload()
+            refreshSafety()
             await forgetDeletedListsKeptApart(in: vault)
         } catch {
             errorMessage = error.localizedDescription

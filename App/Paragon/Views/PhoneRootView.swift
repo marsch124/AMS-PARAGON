@@ -578,6 +578,7 @@ struct PhoneBrowseView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(value: PhoneRoute.settings) {
                     MarkImage("gear", size: 22)
+                        .safetyDot(model.safetyNeedsALook)
                         .accessibilityLabel("Settings and Help")
                 }
                 .accessibilityIdentifier("browse.settings")

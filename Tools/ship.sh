@@ -3,7 +3,8 @@
 #
 #   Tools/ship.sh 305            # the commit at HEAD, as 1.0.305 (305.1)
 #
-# **The launch check runs first and stops the upload when it fails** (Tools/launch-check.sh).
+# **The rule tests and the launch check run first and stop the upload when one fails**
+# (the Core package's tests, build 326; Tools/launch-check.sh, build 305).
 # Builds 301–303 went out hanging at start; this is the gate that would have stopped them.
 #
 # The App Store Connect key stays outside this public repository: ship.env next to the key
@@ -30,6 +31,15 @@ COMMIT=$(git -C "$R" rev-parse HEAD)
 git -C "$R" worktree add --detach "$W" "$COMMIT" >/dev/null
 trap 'git -C "$R" worktree remove --force "$W" 2>/dev/null || true' EXIT
 cd "$W"
+
+# Build 326: the rule tests (the Core package) run before every upload. One of them was red
+# from build 318 to 325 and nothing here noticed: the upload only asked the launch check.
+echo "== Rule tests"
+if ! swift test --package-path Core > "$OUT/rule-tests.log" 2>&1; then
+  grep -E "error: -\[|with [1-9][0-9]* failure" "$OUT/rule-tests.log" | sort -u | head -20
+  echo "NOT UPLOADED: a rule test failed (full log: $OUT/rule-tests.log)."; exit 1
+fi
+grep -E "Executed [0-9]+ tests" "$OUT/rule-tests.log" | tail -1
 
 echo "== Launch check"
 LAUNCH_CHECK_DD="$OUT/check" Tools/launch-check.sh || { echo "NOT UPLOADED: the launch check failed."; exit 1; }

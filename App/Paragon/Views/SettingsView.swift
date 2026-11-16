@@ -45,10 +45,13 @@ struct SettingsView: View {
         // Build 285: a press on the sync line opens Settings here, at Reminders sync.
         ScrollViewReader { proxy in
         Form {
-            Group {
             // Round 6 (build 312): help is needed when you are lost, so on the iPhone it is
             // the first thing in Settings. The Mac and the iPad keep it where it was.
             if phoneLook { helpSection }
+            // Build 326: is everything safe? At the top of Settings on every device (on the
+            // iPhone straight under Help).
+            SafetySection()
+            Group {
             Section("Vault") {
                 // Round 9 (build 316): the folder's name and where it is, in plain words.
                 // Before, the raw path. On the Mac the path is the row's hover tip, and
@@ -1124,3 +1127,137 @@ struct WorkdayEndRow: View {
         )
     }
 }
+
+// MARK: - Safety (build 326)
+
+/// **Is everything safe?** One line with a green tick, or how many things need a look in
+/// amber. What needs a look is always shown; the lines that are fine sit behind **Details**.
+/// Only looks, changes nothing. The lines are made by Core's `SafetyCheck`.
+struct SafetySection: View {
+    @EnvironmentObject private var model: AppModel
+    @State private var open = false
+
+    var body: some View {
+        let lines = model.safetyLines
+        let count = SafetyCheck.thingsToLookAt(lines)
+        Section("Safety") {
+            Button {
+                withAnimation(Motion.fold) { open.toggle() }
+            } label: {
+                HStack(spacing: 6) {
+                    if lines.isEmpty {
+                        Text(model.vault == nil ? "No notes folder chosen yet" : "Looking\u{2026}")
+                            .foregroundStyle(.soft)
+                    } else {
+                        SafetyMark(needsALook: count > 0)
+                        Text(SafetyCheck.summary(lines))
+                            .foregroundStyle(Color.primary)
+                    }
+                    Spacer()
+                    if !lines.isEmpty {
+                        Text("Details")
+                            .font(Txt.label)
+                            .foregroundStyle(.soft)
+                        MarkImage("chevron.right", text: .footnote)
+                            .foregroundStyle(.soft)
+                            .rotationEffect(.degrees(open ? 90 : 0))
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(lines.isEmpty)
+            .accessibilityLabel(lines.isEmpty ? "Safety" : SafetyCheck.summary(lines))
+            .accessibilityValue(open ? "open" : "folded")
+            .accessibilityIdentifier("settings.safety.summary")
+            ForEach(lines.filter { open || $0.needsALook }) { line in
+                // The words start under the line's name, not under its mark.
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    SafetyMark(needsALook: line.needsALook)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(line.kind.title)
+                        Text(line.words)
+                            .font(Txt.label)
+                            .foregroundStyle(line.needsALook ? AnyShapeStyle(Theme.attention.ink) : AnyShapeStyle(.soft))
+                            .fixedSize(horizontal: false, vertical: true)
+                        if open {
+                            ForEach(line.details, id: \.self) { detail in
+                                Text(detail)
+                                    .font(Txt.label)
+                                    .foregroundStyle(.soft)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("settings.safety.line.\(line.kind.rawValue)")
+            }
+        }
+        .onAppear { model.refreshSafety() }
+    }
+}
+
+/// A green tick when a Safety line is fine, an amber dot when it needs a look.
+struct SafetyMark: View {
+    let needsALook: Bool
+
+    var body: some View {
+        if needsALook {
+            Circle()
+                .fill(Theme.attention)
+                .frame(width: 8, height: 8)
+                .frame(width: 14)
+                .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 3 }
+        } else {
+            MarkImage("checkmark", text: .footnote)
+                .foregroundStyle(Color.green)
+                .frame(width: 14)
+                .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
+        }
+    }
+}
+
+extension View {
+    /// The amber dot on a Settings gear while something on the Safety list needs a look.
+    func safetyDot(_ shown: Bool) -> some View {
+        overlay(alignment: .topTrailing) {
+            if shown {
+                Circle()
+                    .fill(Theme.attention)
+                    .frame(width: 7, height: 7)
+                    .offset(x: 3, y: -2)
+                    .accessibilityIdentifier("safety.dot")
+            }
+        }
+    }
+}
+
+#if os(macOS)
+/// The Mac has no gear on screen, so the same news is one small line at the foot of the
+/// sidebar, only while something needs a look. A press opens Settings.
+struct SafetyNoticeBar: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.openSettings) private var openSettings
+
+    var body: some View {
+        Button {
+            openSettings()
+        } label: {
+            HStack(spacing: 6) {
+                SafetyMark(needsALook: true)
+                Text("Safety: \(SafetyCheck.summary(model.safetyLines).lowercased())")
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.attention.ink)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Open Settings \u{203A} Safety")
+        .accessibilityIdentifier("sidebar.safety")
+    }
+}
+#endif

@@ -1,6 +1,38 @@
 # Version history
 
-The version is shown as 1.0 (325) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (326) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 326 · 16 November 2026
+
+**Safety at a glance, a wide Today widget, tests that guard again.** One new place that tells you whether your notes are safe, a big Today widget for the iPad, and a repair of the automatic tests. Nothing you set changes, and your notes are not touched.
+
+**Before (build 325).**
+- To know whether your notes were safe you had to look in several places: the copies, the second copy, the conflict copies, the Reminders sync and the list of devices.
+- An older PARAGON on one device could go unnoticed. A device on an older build can rewrite a task line and drop things only the newer build knows (this happened with the new repeat rules in build 316).
+- The widgets came in the small, medium and large sizes. The iPad had no widget that shows tasks and plan side by side.
+- The automatic tests that run on GitHub after every change had been failing on every build since build 282 (2026-11-09), and nobody saw it.
+
+**Now (build 326).**
+- 1. **Safety, at the top of Settings (iPhone, iPad and Mac).** One line says **Everything is safe** with a green tick, or **N things to look at** in amber, for example "1 thing to look at". What needs a look is shown straight away, in amber. Press **Details** and you see one line each for:
+  - **Devices.** Every device that uses these notes, with its PARAGON build number and the day it was last seen. This device is marked. When all run the same build it says "All 3 devices run PARAGON 326". When one is behind it names it, for example "iPad mini runs PARAGON 325, the newest here is 326. Update iPad mini in TestFlight.", in amber. A device that has not been seen for 60 days is not counted.
+  - **Copies inside the notes folder.** When the newest was made. Amber when there is none, or when the newest is older than 2 days.
+  - **The second copy outside the notes folder.** When it was last made. Amber when it was never made or is older than 2 days.
+  - **Conflict copies.** "No conflict copies", or how many there are and their names. That means notes named like "Meeting (conflict 2026-11-16 0752)" and the doubled files iCloud makes, such as "Inbox 2" when "Inbox" also exists. Amber when there is any.
+  - **Reminders sync.** When it last ran. Amber when the last sync reported conflicts.
+  - Nothing on this page changes anything. It only looks.
+- 2. **A warning when devices run different builds.** A small amber dot sits on the Settings gear (iPhone and iPad) when Safety has something to look at. The Mac has no gear on screen, so there one small amber line, "Safety: 1 thing to look at", shows at the foot of the sidebar; a click opens Settings. The Safety line names the device to update, so you know which one to open in TestFlight.
+- 3. **A wide Today widget for the iPad: "Today, wide".** It is the extra-large widget size, and PARAGON also offers it on the Mac where that size exists. On the left are today's actions (what is due today or earlier, then your next actions), each with a circle that ticks it off, as in the other widgets. On the right is today's plan: the time block on now or next, and the next hours with your blocks and calendar events. Tapping a line opens its note, tapping the plan opens Time Blocks, tapping anywhere else opens Today.
+
+**Under the bonnet - tests that guard again.** An honest account of something that was wrong:
+- The automatic tests that run on GitHub after every change had been red on every build since build 282 (2026-11-09). It went unnoticed because nobody looked at those runs; the upload only asked the launch check. There were three causes, and all three are fixed:
+  - **A look rule.** A label in the goal number curve was drawn at a text size outside the app's one scale of text sizes (since build 318). It now uses the scale's smallest size. On the Mac it looks the same as before.
+  - **GitHub's test Mac was too old.** It could not build the iPhone and iPad screen tests (since build 300). It now uses a current one.
+  - **The Mac screen tests could not press the sidebar.** One test opens the Map in its own window; the Mac brought that window back at every later start, in front of the main window, and 47 tests failed on it. The tests now start without windows from last time, and two tests were corrected for the Mac window of build 314.
+- **The release script is stricter.** Before every upload to TestFlight it now runs the rule tests as well as the launch check, and it refuses to upload when one of them fails. Until now it only ran the launch check.
+- **A restore was tried.** On 2026-11-16 the newest copy inside the notes folder (made 10:21) was put into an empty throwaway folder and compared note by note with your live notes: 124 notes, 123 identical, 1 changed since the copy was made (the Inbox), none missing. The second copy outside the notes folder was not tried this time: on the Mac it sits in PARAGON's own private storage, which macOS guards from other programs.
+- **Tidied.** Old work copies of the code were removed from the code folder. This has no effect on the app.
+
+**Not changed.** Your notes, the copies, the Reminders sync, **Close the day**, the other widgets and every button's place.
 
 ## Build 325 · 16 November 2026
 

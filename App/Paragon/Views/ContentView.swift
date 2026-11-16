@@ -628,6 +628,7 @@ struct SidebarView: View {
                     model.activeSheet = .settings
                 } label: {
                     MarkLabel("Settings", "gear", size: 16)
+                        .safetyDot(model.safetyNeedsALook)
                 }
                 .accessibilityIdentifier("sidebar.gear")
             }
@@ -640,6 +641,10 @@ struct SidebarView: View {
                 if let warning = model.vaultWarning {
                     VaultWarningBar(text: warning) { model.fetchMissingNotes() }
                 }
+                #if os(macOS)
+                // Build 326: the Mac's amber dot — one small line, only when Safety has news.
+                if model.safetyNeedsALook { SafetyNoticeBar() }
+                #endif
                 SyncStatusBar()
             }
             .padding(.vertical, 4)

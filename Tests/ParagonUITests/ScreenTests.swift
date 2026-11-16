@@ -1728,6 +1728,29 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(help.isHittable, "How it works is not on the first screen of Settings.")
     }
 
+    /// Build 326: Settings has **Safety** at the top (on the iPhone straight under Help): one
+    /// line that says "Everything is safe" or how many things need a look
+    /// (`settings.safety.summary`). A press opens the lines behind it, the one about the
+    /// devices among them (`settings.safety.line.devices`).
+    func testSettingsHasTheSafetyLineAndItsDetails() throws {
+        let browse = element("tab.browse")
+        try XCTSkipUnless(browse.waitForExistence(timeout: appears), "The iPhone's way in to Settings; the iPad has its own.")
+        browse.press()
+        let gear = element("browse.settings")
+        XCTAssertTrue(gear.waitForExistence(timeout: 20),
+                      "Browse has no gear (browse.settings). On screen: \(visibleTexts())")
+        gear.press()
+        let summary = element("settings.safety.summary")
+        XCTAssertTrue(summary.waitForExistence(timeout: 20),
+                      "Settings has no Safety line (settings.safety.summary). On screen: \(visibleTexts())")
+        // The lines are read off the main thread; until they are there the line cannot be pressed.
+        expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: summary)
+        waitForExpectations(timeout: 20)
+        summary.press()
+        XCTAssertTrue(element("settings.safety.line.devices").waitForExistence(timeout: 20),
+                      "A press on the Safety line does not show the Devices line (settings.safety.line.devices). On screen: \(visibleTexts())")
+    }
+
     /// Build 324: a list opened from Browse has Apple's own search field, "Search in Projects".
     /// It hangs under the title (pull down); a word that matches nothing gives "Nothing found".
     func testAListOpenedFromBrowseHasItsOwnSearchField() {

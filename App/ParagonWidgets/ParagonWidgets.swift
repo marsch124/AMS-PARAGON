@@ -272,6 +272,9 @@ struct WidgetFoot: View {
 struct ActionsWidgetView: View {
     @Environment(\.widgetFamily) private var family
     var entry: ParagonEntry
+    /// One half of the wide **Today** widget (build 326): drawn as the large size, and the
+    /// place a press outside a line opens is set once, by the wide widget itself.
+    var insideWide = false
 
     /// How many lines, and whether each has its second row — what the size can hold
     /// (`WidgetRows`, build 317: four two-row lines pushed the heading and the foot off the
@@ -322,7 +325,7 @@ struct ActionsWidgetView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // Anywhere that is not a line: Today, where these actions are.
-        .widgetURL(URL(string: WidgetSnapshot.link(toList: .today)))
+        .widgetURL(insideWide ? nil : URL(string: WidgetSnapshot.link(toList: .today)))
     }
 
     private var header: some View {
@@ -573,6 +576,7 @@ struct ParagonWidgetBundle: WidgetBundle {
         CountsWidget()
         TodayPlanWidget()
         OneListWidget()
+        TodayWideWidget()
     }
     #else
     // Build 317: **Today's plan** on the iPhone too, the Lock Screen widgets, and the focus
@@ -584,6 +588,8 @@ struct ParagonWidgetBundle: WidgetBundle {
         TodayPlanWidget()
         LockWidget()
         FocusLiveActivityWidget()
+        // Build 326: the wide Today widget, for the iPad's largest size.
+        TodayWideWidget()
     }
     #endif
 }

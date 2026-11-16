@@ -1945,6 +1945,26 @@ Copies made by **Back up now** and before a restore count as daily or weekly, by
 
 Time Machine is a good third net on the Mac.
 
+## Safety
+
+Since build 326, the top of **Settings** (iPhone, iPad and Mac) is **Safety**. It answers one question: are my notes safe? It only looks. Nothing on it changes anything.
+
+One line says it:
+- **Everything is safe**, with a green tick, when nothing needs a look.
+- **N things to look at**, in amber, for example "2 things to look at", when something does.
+
+A line that needs a look is shown straight away, in amber, with an amber dot. Press **Details** to see one line each for all five things; the lines that are fine carry a green tick. On the iPhone **Safety** sits straight under **Help**.
+
+- **Devices.** Every device that uses these notes, with its PARAGON build number and the day it was last seen. This device is marked "this device". When every device runs the same build it says, for example, **All 3 devices run PARAGON 326**. When one is behind it says which, for example **iPad mini runs PARAGON 325, the newest here is 326. Update iPad mini in TestFlight.**, in amber. When the device in your hand is the one behind, it says **This device runs PARAGON 325, iPhone 17 Pro runs 326. Update this device in TestFlight.** A device that has not been seen for 60 days is not counted, so an old phone you stopped using does not keep the line amber.
+- **Copies inside the notes folder.** When the newest was made. Amber when there is none, or when the newest is older than 2 days.
+- **The second copy outside the notes folder.** When it was last made (see **Backups**). Amber when it was never made, or when it is older than 2 days.
+- **Conflict copies.** **No conflict copies**, or how many there are and their names. A conflict copy is a note named like "Meeting (conflict 2026-11-16 0752)", made when two devices changed a note at the same time. It also counts a doubled file that iCloud makes, such as "Inbox 2" when "Inbox" also exists. A note that only ends in a number, such as "Chapter 2" with no "Chapter" beside it, is an ordinary note and is not counted. Amber when there is any.
+- **Reminders sync.** When it last ran since PARAGON was opened. Amber when the last sync reported conflicts (see **Reminders sync**).
+
+**Why different builds matter.** A device on an older PARAGON can rewrite a task line and drop the parts that only the newer build knows. This happened with the new repeat rules in build 316. So when the devices run different builds, Safety says so and names the device to update. Update it in TestFlight. Until it is updated, avoid changing tasks on the old device.
+
+**The amber dot.** When Safety has something to look at, a small amber dot sits on the Settings gear (on the iPhone and the iPad). The Mac has no gear on screen, so there one small amber line, for example **Safety: 1 thing to look at**, shows at the foot of the sidebar; a click opens Settings. When all is safe neither is there. The lines are looked at again when Settings opens, after a sync, after a copy is made, and otherwise at most every five minutes.
+
 ## Exact safety rules (build 307)
 
 The precise rules behind the sync and the backups, for reference.
@@ -2539,7 +2559,7 @@ Since build 316 the toolbar over an open note has a **Find in note** button (a m
 
 ## Widgets
 
-Four widgets on the Mac. On the iPhone and the iPad, four for the Home Screen and one for the Lock Screen (since build 317; before, three, and none for the Lock Screen). Since build 317 **Today's plan** is on the iPhone and the iPad too, and you can tick a task on **Today's actions**.
+Four widgets on the Mac (five since build 326, with the wide **Today** widget where the Mac offers its size; the iPad has it too). On the iPhone and the iPad, four for the Home Screen and one for the Lock Screen (since build 317; before, three, and none for the Lock Screen). Since build 317 **Today's plan** is on the iPhone and the iPad too, and you can tick a task on **Today's actions**.
 
 **On the Mac**: click the date and time at the right of the menu bar to open Notification Centre, scroll to the bottom and click **Edit Widgets**. Search for **PARAGON** and drag one in. You can also right-click the desktop and choose **Edit Widgets**, which puts the widget on the desktop itself.
 
@@ -2580,6 +2600,13 @@ Four widgets on the Mac. On the iPhone and the iPad, four for the Home Screen an
 - If you add, move or remove a block in **Plan**, or an event changes in Apple Calendar, the widget follows after a few seconds.
 - The Calendar lane needs **Show the day's events in Today and in daily notes** to be on in Settings, and Calendar access to be allowed. If not, the lane says **Calendar not shown**, on the medium widget inside the lane and on the large one above it. The widget never asks for Calendar access: that question belongs to PARAGON itself.
 - On an iPhone that shows its widgets tinted or clear, the block's name and the plan blocks take the tint and the calendar's outlines stay plain. So the 2 lanes can still be told apart.
+
+**Today, wide** (since build 326) is a widget for the iPad, in the extra-large size. PARAGON also offers it on the Mac, where macOS has that size. It shows the two widgets you already know side by side: on the left **Today's actions** (what is due today or earlier, then your next actions, each with its tick circle), on the right **Today's plan** (the time block on now or next, and the next hours with your blocks and calendar events). Tapping a line opens its note, tapping the plan opens **Time Blocks**, tapping anywhere else opens **Today**.
+
+- **Left: today's tasks.** The tasks due today and the overdue ones (date or deadline, as in **Today's actions**). Each line starts with a tick circle that works exactly as on **Today's actions**: press it and the line is ticked at once, and PARAGON writes the tick into the note when it next runs (see above). Press the rest of the line and its note opens.
+- **Right: today's plan.** The day's time blocks, in order, with their times, as in **Today's plan**. Press a block and PARAGON opens on **Plan**, on today.
+- With no tasks the left side says so, and with no blocks the right side says **No blocks planned today**.
+- To add it: on the iPad, press and hold the Home Screen, press **+**, search for **PARAGON** and pick the wide one. On the Mac, **Edit Widgets**, as above.
 
 **Due today** (since build 317) is a widget for the Lock Screen of the iPhone and the iPad. It comes in 3 shapes.
 
@@ -2706,6 +2733,8 @@ To see which version you have, look at **Settings › About**: **Version** says,
 
 Since build 305, before every upload to TestFlight, the iPhone app (in the simulator) and the Mac app are started with a test vault and watched for 20 seconds. If either one is still busy (the processor working hard) or has stopped, the upload is stopped, so a build that hangs at start does not reach you. A screen test does the same check on the automatic test runs. You do not see it in the app.
 
+Since build 326 the same step also runs the rule tests (the tests of PARAGON's core, not the screens) before every upload. If one fails, nothing is uploaded.
+
 ## When something looks wrong
 
 Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: the build number, what was clicked, which section and note are open, and the window layout. Paste it into the chat with the developer. The version is also shown, as PARAGON 1.0 (315), at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, and as **Version** in **Settings › About**.
@@ -2720,3 +2749,17 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Devices list.** An iPhone or iPad writes its model name in its small file in `.ams-para/devices/`, for example "iPad mini".
 - **Own folder.** The folder **PARAGON** in iCloud Drive is made by **Copy my notes**, not when the page is opened.
 - **Note deleted before the copy.** It is not brought back by a device that follows late.
+
+## Exact details (build 326)
+
+- **Where.** **Settings › Safety**, the first group in Settings on the iPhone, the iPad and the Mac. It holds one summary line and, behind **Details**, five lines. It writes nothing and changes nothing.
+- **Summary line.** "Everything is safe" with a green tick when no line is amber. Otherwise "N things to look at" in amber, N being the number of amber lines (1 thing to look at when N is 1).
+- **Devices line.** It reads the small files in `.ams-para/devices/`, one per device: build number, model name and the day last seen. A device last seen more than 60 days ago is not counted. "All N devices run PARAGON B" when every counted device has the same build B. When a device has a lower build than the highest one, the line is amber and names it: "<device> runs PARAGON <build>, the newest here is <B>. Update <device> in TestFlight."; for this device "This device runs PARAGON <build>, <other> runs <B>. Update this device in TestFlight."; for two or more "N devices run an older PARAGON than <B>. Update them in TestFlight." With one device only: "Only this device uses these notes (PARAGON B)." This device always counts with the build that is running, whatever its own small file still says. The rule is `SafetyCheck` in Core (`SafetyCheckTests`).
+- **Inside copies line** ("Copies in the notes folder"). The newest copy in the notes folder's backups: "Newest copy: 2026-11-16 10:21." Amber when there is none ("No copy has been made yet.") or when it is more than 2 calendar days old ("The newest copy is 3 days old (…).").
+- **Outside copy line** ("Second copy, outside"). When this device last made its second copy outside the notes folder. Same words and the same 2-day rule.
+- **Conflict copies line.** Counts (a) notes whose name ends in "(conflict YYYY-MM-DD HHMM)" and (b) notes iCloud parked as "name 2" … "name 9" when a note "name" also exists in the same folder. Green with "No conflict copies" at 0. Amber with the number and the names otherwise.
+- **Reminders sync line.** "Last sync: 2026-11-16 12:36, no conflicts.", or "Not synced yet since PARAGON was opened." (not a fault). Amber when the last sync reported conflicts: "The last sync had 2 conflicts."
+- **The amber dot.** A 7-point amber dot on the Settings gear (iPhone Browse, iPad sidebar) whenever the summary line is amber; on the Mac the line `sidebar.safety` at the foot of the sidebar. Identifiers: `settings.safety.summary`, `settings.safety.line.devices` / `.insideCopy` / `.outsideCopy` / `.conflictCopies` / `.sync`, `safety.dot`. One screen test: `testSettingsHasTheSafetyLineAndItsDetails`.
+- **Today, wide widget.** The extra-large widget size (`systemExtraLarge`), on the iPad, and on the Mac where macOS offers it. Kind `ParagonTodayWide`, name "Today, wide". Left column: **Today's actions** at its large size, each line with its tick circle. Right column: **Today's plan** at its large size, with the ruler of the next 6 hours. It reads the same small summary file as the other widgets and decides nothing of its own. A line opens its note, the plan opens **Time Blocks**, anywhere else opens **Today**.
+- **Release script.** `Tools/ship.sh` now runs the Core package tests (the rule tests) before every upload, in addition to the launch check. If one fails, it prints that nothing was uploaded and stops.
+- **Automatic tests.** The runs on GitHub use the macOS 26 test Mac (`macos-26`). The goal number curve's label uses the smallest size of the type scale. The Mac screen tests start without the windows of the run before (`-ApplePersistenceIgnoreState YES`): a Map window brought back by macOS had covered the sidebar.

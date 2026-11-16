@@ -120,14 +120,96 @@ enum PlanSize {
     case small, medium, large
 }
 
+// MARK: - Today, wide (build 326)
+
+/// **Today, wide**: the iPad's largest widget size (and the Mac's, where it has one). On the
+/// left today's actions, each with its tick circle; on the right today's plan with its ruler.
+/// Nothing new is drawn or decided here: the two halves are the two widgets that already
+/// exist, at their large size, side by side, reading the same one file.
+///
+/// A press on a line opens that line's note, a press on the plan opens Time Blocks, and a
+/// press anywhere else opens Today.
+struct TodayWideProvider: TimelineProvider {
+    func placeholder(in context: Context) -> ParagonEntry { TodayWideProvider.exampleEntry() }
+
+    func getSnapshot(in context: Context, completion: @escaping (ParagonEntry) -> Void) {
+        completion(context.isPreview ? TodayWideProvider.exampleEntry() : ParagonEntry.read(at: Date()))
+    }
+
+    /// The plan's moments (so "in 25 min" counts down), each carrying the ticks not yet
+    /// written into their notes (so a ticked line stays struck through).
+    func getTimeline(in context: Context, completion: @escaping (Timeline<ParagonEntry>) -> Void) {
+        let now = Date()
+        let fresh = ParagonEntry.read(at: now)
+        guard let snapshot = fresh.snapshot else {
+            completion(Timeline(entries: [fresh], policy: .after(now.addingTimeInterval(15 * 60))))
+            return
+        }
+        let entries = PlanGlance.entryDates(from: now, snapshot: snapshot).map { moment in
+            ParagonEntry(date: moment, snapshot: snapshot, folderFound: true, ticks: fresh.ticks)
+        }
+        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
+    }
+
+    /// The gallery's picture: the example actions beside the example morning.
+    static func exampleEntry() -> ParagonEntry {
+        var entry = TodayPlanProvider.exampleEntry()
+        if var snapshot = entry.snapshot {
+            snapshot.items = ParagonProvider.example.items
+            snapshot.dueToday = ParagonProvider.example.dueToday
+            snapshot.overdue = ParagonProvider.example.overdue
+            entry.snapshot = snapshot
+        }
+        return entry
+    }
+}
+
+struct TodayWideView: View {
+    var entry: ParagonEntry
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ActionsWidgetView(entry: entry, insideWide: true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            Rectangle()
+                .fill(Color.secondary.opacity(0.25))
+                .frame(width: 1)
+                .padding(.vertical, 2)
+            if let link = URL(string: WidgetSnapshot.planLink) {
+                Link(destination: link) {
+                    TodayPlanView(entry: entry, insideWide: true)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
+        .widgetURL(URL(string: WidgetSnapshot.link(toList: .today)))
+    }
+}
+
+struct TodayWideWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "ParagonTodayWide", provider: TodayWideProvider()) { entry in
+            TodayWideView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("Today, wide")
+        .description("Today's actions with their tick circles, beside today's plan. For the largest widget size.")
+        .supportedFamilies([.systemExtraLarge])
+    }
+}
+
 struct TodayPlanView: View {
     @Environment(\.widgetFamily) private var family
     var entry: ParagonEntry
+    /// One half of the wide **Today** widget (build 326): drawn as the large size, and the
+    /// wide widget wraps it in its own link to Time Blocks.
+    var insideWide = false
 
     /// The three sizes this widget has, whatever the family says: anything that is not small or
     /// large is drawn as medium, so a family added later cannot leave a blank. A plain property,
     /// not a `switch` inside the view builder.
     private var size: PlanSize {
+        if insideWide { return .large }
         switch family {
         case .systemSmall: return .small
         case .systemLarge: return .large
@@ -150,7 +232,7 @@ struct TodayPlanView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // The existing scheme, `amspara://`, with an empty host and the path /plan: the app
         // opens Time Blocks on today. A link to a note has the note's title as its host.
-        .widgetURL(URL(string: WidgetSnapshot.planLink))
+        .widgetURL(insideWide ? nil : URL(string: WidgetSnapshot.planLink))
     }
 
     private var header: some View {
