@@ -752,8 +752,11 @@ extension EnvironmentValues {
 /// Apple's own card, so the iPad is as it was.
 struct PhoneCardFill: View {
     let tint: Color?
+    /// False for the patch that stands in for a leaving row (build 327): it is not a row.
+    var isARow = true
     @Environment(\.colorScheme) private var scheme
     @Environment(\.phoneLook) private var phoneLook
+    @State private var id = UUID()
 
     var body: some View {
         if phoneLook {
@@ -762,9 +765,99 @@ struct PhoneCardFill: View {
                 // Only drawn inside the iPhone layout, so the iPhone's share.
                 if let tint { tint.opacity(Theme.tintShare(scheme, phone: true)) }
             }
+            // Build 327: each card row says where it is, so a row that leaves can be covered.
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
+                if isARow { PhoneCardRows.shared.note(id, frame: frame, tint: tint) }
+            }
+            .onDisappear { PhoneCardRows.shared.forget(id) }
         } else {
             Color(UIColor.secondarySystemGroupedBackground)
         }
+    }
+}
+
+/// **Where the iPhone's card rows are on the screen** (build 327). Plain memory, not
+/// published: writing here redraws nothing. Each row's fill notes its own frame; a fill that
+/// is gone forgets it, and a newer fill in the same place pushes an old one out, so a row
+/// that was reused without saying goodbye does not linger.
+@MainActor
+final class PhoneCardRows {
+    static let shared = PhoneCardRows()
+    struct Row { var frame: CGRect; var tint: Color?; var noted: Date }
+    private(set) var rows: [UUID: Row] = [:]
+
+    func note(_ id: UUID, frame: CGRect, tint: Color?) {
+        for (other, row) in rows where other != id && LeavingRowRule.isLeftover(row.frame, under: frame) {
+            rows[other] = nil
+        }
+        rows[id] = Row(frame: frame, tint: tint, noted: Date())
+    }
+
+    func forget(_ id: UUID) { rows[id] = nil }
+
+    /// The cover for the row that holds this point (Core's `LeavingRowRule`), with its tint.
+    func cover(at point: CGPoint) -> (cover: LeavingRowRule.Cover, tint: Color?)? {
+        let all = Array(rows.values)
+        guard let cover = LeavingRowRule.cover(at: point, rows: all.map { .init(frame: $0.frame, noted: $0.noted) }) else { return nil }
+        return (cover, all[cover.index].tint)
+    }
+}
+
+/// **The card keeps its fill while a row leaves** (build 327; the designer's point 9 of build
+/// 318). When a ticked row left a card, the list faded the whole row, fill and all, and for
+/// about a quarter of a second the page showed through as a pale band across the card until
+/// the rows below had closed up. Now the same fill is drawn *behind the list* in the leaving
+/// row's place for that moment: the row's words fade, the card stays whole, the rows close up.
+///
+/// Not for the last row of a card: there the card really ends higher afterwards, and the
+/// fade is the right picture. The patch sits under the rows, so it can never cover anything.
+@MainActor
+final class LeavingRowPatch: ObservableObject {
+    static let shared = LeavingRowPatch()
+    struct Patch: Equatable {
+        var id = UUID()
+        var frame: CGRect
+        var tint: Color?
+        var roundsTop: Bool
+    }
+    @Published private(set) var patch: Patch?
+    /// How long the patch stays: longer than the list takes to close up.
+    static let seconds = 0.6
+
+    func cover(rowAt point: CGPoint) {
+        guard let found = PhoneCardRows.shared.cover(at: point) else { return }
+        let new = Patch(frame: found.cover.frame, tint: found.tint, roundsTop: found.cover.roundsTop)
+        patch = new
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(Self.seconds * 1_000_000_000))
+            if self.patch?.id == new.id { self.patch = nil }
+        }
+    }
+}
+
+/// Draws `LeavingRowPatch` behind a list. Part of `phonePage()`.
+struct LeavingRowPatchLayer: View {
+    @ObservedObject private var store = LeavingRowPatch.shared
+
+    /// The corner of a card, for a leaving first row.
+    private var corner: CGFloat {
+        if #available(iOS 26, *) { return 26 }
+        return 10
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            if let patch = store.patch {
+                let origin = proxy.frame(in: .global).origin
+                PhoneCardFill(tint: patch.tint, isARow: false)
+                    .clipShape(UnevenRoundedRectangle(topLeadingRadius: patch.roundsTop ? corner : 0,
+                                                      topTrailingRadius: patch.roundsTop ? corner : 0))
+                    .frame(width: patch.frame.width, height: patch.frame.height)
+                    .offset(x: patch.frame.minX - origin.x, y: patch.frame.minY - origin.y)
+                    .accessibilityHidden(true)
+            }
+        }
+        .allowsHitTesting(false)
     }
 }
 
@@ -783,6 +876,8 @@ private struct PhonePage: ViewModifier {
     func body(content: Content) -> some View {
         content
             .scrollContentBackground(phoneLook ? .hidden : .automatic)
+            // Build 327: under the rows and over the page, the fill of a row that is leaving.
+            .background { if phoneLook { LeavingRowPatchLayer() } }
             .background(phoneLook ? Theme.canvas : Color.clear)
     }
 }
@@ -805,7 +900,34 @@ struct PhoneBand: View {
 }
 #endif
 
+/// Where a list row is on the screen (build 327). A box, not a `@State` value: a row that
+/// scrolls must not redraw itself only to remember where it is.
+final class RowSpot {
+    var mid: CGPoint = .zero
+}
+
+enum LeavingRow {
+    /// Call just before a row leaves an iPhone card: the card keeps its fill meanwhile.
+    @MainActor static func cover(_ spot: RowSpot) {
+        #if os(iOS)
+        LeavingRowPatch.shared.cover(rowAt: spot.mid)
+        #endif
+    }
+}
+
 extension View {
+    /// Keeps `spot` at the middle of this row. Nothing on the Mac.
+    func tracksRowSpot(_ spot: RowSpot) -> some View {
+        #if os(iOS)
+        onGeometryChange(for: CGPoint.self) { proxy in
+            let frame = proxy.frame(in: .global)
+            return CGPoint(x: frame.midX, y: frame.midY)
+        } action: { spot.mid = $0 }
+        #else
+        self
+        #endif
+    }
+
     /// The iPhone's page: `Theme.canvas` behind a list or a scrolling screen, in place of
     /// Apple's grouped grey. Nothing on the Mac or the iPad.
     func phonePage() -> some View {

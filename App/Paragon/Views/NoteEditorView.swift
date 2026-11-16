@@ -1856,6 +1856,9 @@ struct TaskRow: View {
     @State private var pickingDate = false
     /// Build 325: the circle shows filled for 0.1 s before the row leaves (it never showed filled).
     @State private var tickShown = false
+    /// Build 327: where this row is, so its card keeps its fill while the row leaves.
+    @State private var spot = RowSpot()
+    @Environment(\.phoneLook) private var phoneLook
     /// **Who?** (build 279), opened by **Waiting for…** on the task menu.
     @State private var askingWho = false
     @State private var renaming = false
@@ -1894,9 +1897,20 @@ struct TaskRow: View {
         tickShown = true
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 100_000_000)
-            toggle()
+            leave()
             tickShown = false
         }
+    }
+
+    /// Ticks the task. On an iPhone card the card keeps its fill while the row leaves (build
+    /// 327): before, the page showed through as a pale band until the rows had closed up.
+    private func leave() {
+        coverIfLeaving()
+        toggle()
+    }
+
+    private func coverIfLeaving() {
+        if phoneLook, !ref.task.isDone, !Motion.isReduced { LeavingRow.cover(spot) }
     }
 
     /// The tick's state in words, for VoiceOver and the screen tests.
@@ -2045,9 +2059,10 @@ struct TaskRow: View {
         // edge does what the circle does — the same `toggle`, so the same gentle tap (build 303)
         // and the same repeat rule. A full swipe ticks at once. Only inside a list (SwiftUI
         // shows swipe actions in `List` rows only); the circle stays for everywhere else.
+        .tracksRowSpot(spot)
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             if ref.task.status != .cancelled {
-                Button(action: toggle) {
+                Button(action: leave) {
                     Label {
                         Text(ref.task.isDone ? "Not done" : "Done")
                     } icon: {
@@ -2067,6 +2082,7 @@ struct TaskRow: View {
                 Button {
                     // Build 306: through `moveTasks`, so the message carries an Undo that
                     // gives the old date back. The time of day stays, as before.
+                    coverIfLeaving()
                     model.moveTasks([ref], to: DateOnly.today().adding(days: 1),
                                     offersUndo: true, message: "Moved to tomorrow.")
                 } label: {

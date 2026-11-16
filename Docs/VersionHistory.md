@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (326) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (327) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 327 · 16 November 2026
+
+**The card stays whole when you tick a task.** On the iPhone, a coloured card no longer shows a pale band for a moment when you tick a task. iPad and Mac are unchanged, and your notes are not touched.
+
+**Before (builds 318 to 326).**
+- When you ticked a task in a list on the iPhone, most visibly on Today, the row faded away together with its part of the coloured card. For about a quarter of a second (0.25) the page behind showed through as a pale band across the card, until the rows below had closed up.
+
+**Now (build 327).**
+- Only the words of the row fade. The card keeps its colour the whole time and the rows below close up over it. The same holds when a row leaves by a swipe: **Done** from the left, **Tomorrow** from the right.
+- It works in every iPhone list that shows tasks on cards: **Today**, **Actions**, the **Inbox** and the lists you open from **Browse**.
+- This was point 9 on the designer's list of build 318. Build 325 did the first half (the circle shows filled for a tenth of a second before the row leaves); this build does the second half.
+
+**Not changed, on purpose.**
+- When the last row of a card is ticked, the card really gets shorter, so that row fades away as before.
+- With **Reduce Motion** switched on in the iPhone's settings nothing moves, as before.
+- The iPad and the Mac look and behave as in build 326.
+
+**How it was checked.** I filmed the iPhone simulator and looked at the film picture by picture (60 pictures a second), before and after, for a row in the middle of a card and for the first row of a card (its rounded top corners stay round). Not filmed: the last row, night mode, a swipe, and a real iPhone.
 
 ## Build 326 · 16 November 2026
 

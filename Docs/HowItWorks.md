@@ -55,7 +55,7 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 
 Since build 318. PARAGON moves only to show what changed: a ticked task fades and the list closes up, a group folds under its heading, a bar fills. Nothing bounces, glows or celebrates. Every movement takes between 0.15 and 0.35 seconds. The note is always written first, at once; the movement only draws what has already happened.
 
-- **Ticking a task.** The row fades out and the list closes up in 0.25 seconds. Where a ticked task stays on the screen (a note's **Tasks** box, **Done**), the circle fills in 0.2 seconds and the words go grey in 0.2 seconds. A second press on a row that is fading away does nothing.
+- **Ticking a task.** The row fades out and the list closes up in 0.25 seconds. Where a ticked task stays on the screen (a note's **Tasks** box, **Done**), the circle fills in 0.2 seconds and the words go grey in 0.2 seconds. A second press on a row that is fading away does nothing. Since build 327, on the iPhone, only the words of the row fade; the coloured card behind keeps its colour while the rows below close up over it, also when a row leaves by a swipe. Before, the page showed through as a pale band for about a quarter of a second. The last row of a card still fades with the card, because the card really gets shorter. With **Reduce Motion** on, nothing moves. The iPad and the Mac are unchanged.
 - **A row that leaves or moves** (a task moved to another day or another note, a deleted Inbox line, **Next action** on and off): it fades out where it was and the list closes up, in 0.25 seconds. If it moves to another group on the same screen, it fades in there.
 - **A new line** (**Quick capture**, **Add to Inbox**, a new task or sub-task in a note): the list makes room and the line fades in, in 0.25 seconds.
 - **Folding a group.** A group opens and closes in 0.2 seconds, and its small arrow turns with it.
@@ -2763,3 +2763,13 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Today, wide widget.** The extra-large widget size (`systemExtraLarge`), on the iPad, and on the Mac where macOS offers it. Kind `ParagonTodayWide`, name "Today, wide". Left column: **Today's actions** at its large size, each line with its tick circle. Right column: **Today's plan** at its large size, with the ruler of the next 6 hours. It reads the same small summary file as the other widgets and decides nothing of its own. A line opens its note, the plan opens **Time Blocks**, anywhere else opens **Today**.
 - **Release script.** `Tools/ship.sh` now runs the Core package tests (the rule tests) before every upload, in addition to the launch check. If one fails, it prints that nothing was uploaded and stops.
 - **Automatic tests.** The runs on GitHub use the macOS 26 test Mac (`macos-26`). The goal number curve's label uses the smallest size of the type scale. The Mac screen tests start without the windows of the run before (`-ApplePersistenceIgnoreState YES`): a Map window brought back by macOS had covered the sidebar.
+
+## Exact details (build 327)
+
+- **Where.** iPhone only, in every list that draws tasks on coloured cards: **Today**, **Actions**, **Inbox** and the lists opened from **Browse**. The iPad and the Mac are unchanged.
+- **What you see.** When a row is ticked, or leaves by a swipe (**Done** from the left, **Tomorrow** from the right), only its words fade. The card keeps its colour for 0.6 seconds, and the rows below close up over it. Before (builds 318 to 326) the row faded together with its part of the card and the page showed through as a pale band for about 0.25 seconds.
+- **The tick.** The circle shows filled for 0.1 seconds (build 325), then the row leaves and the card is held.
+- **The first row of a card.** The rounded top corners stay round (26 points on iOS 26, 10 points before).
+- **The last row of a card.** Nothing is held: the card really ends higher afterwards, so the row fades as before.
+- **Reduce Motion.** With it switched on in the iPhone's settings nothing moves, as before.
+- **Checked.** Filmed on the iPhone simulator at 60 pictures a second, before and after, for a middle row and for a first row. Not filmed: the last row, night mode, a swipe, a real iPhone.
