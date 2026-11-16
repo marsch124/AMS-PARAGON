@@ -44,6 +44,13 @@ final class ScreenTests: XCTestCase {
         continueAfterFailure = false
         app = XCUIApplication()
         app.launchArguments += ["-paragon-test-vault", "-paragon-settings-block-open"]
+        #if os(macOS)
+        // Build 326: the Mac does not bring back the windows the last launch left open. Since
+        // build 285 the Map is a window of its own; one test opens it, and the next launch
+        // restored it, full size (1200 x 684) and in front of the main window, so every later
+        // click on the sidebar found "no hit point" (47 of the Mac's 50 red tests, CI of 16 Nov).
+        app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]
+        #endif
         app.launch()
     }
 
@@ -439,12 +446,24 @@ final class ScreenTests: XCTestCase {
                       "The aspiration's box is on the Map but not on screen at this size, so it cannot be pressed. Box \(box.frame), window \(window). On screen: \(visibleTexts())")
         box.pressCentre()
 
+        #if os(macOS)
+        // Build 326: on the Mac the Map is its own window and a box opens the note in the main
+        // window behind it, where an aspiration is drawn as its page (title, facts, reason),
+        // not as an editor: the page's title says which note opened.
+        let title = element("note.title")
+        XCTAssertTrue(title.waitForExistence(timeout: 20),
+                      "The box was tapped and its note did not open in the main window. On screen: \(visibleTexts())")
+        let named = title.label.isEmpty ? (title.value as? String ?? "") : title.label
+        XCTAssertTrue(named.contains("Be strong and steady at seventy"),
+                      "A note opened, but not the one whose box was tapped. Its title says: \(named.prefix(200))")
+        #else
         let editor = element("note.editor")
         XCTAssertTrue(editor.waitForExistence(timeout: 20),
                       "The box was tapped and its note did not open. On screen: \(visibleTexts())")
         let shown = editor.value as? String ?? ""
         XCTAssertTrue(shown.contains("Be strong and steady at seventy"),
                       "A note opened, but not the one whose box was tapped. It shows: \(shown.prefix(200))")
+        #endif
     }
 
     /// **The All actions filter really narrows the list** (build 211). The boxes are the one
@@ -3330,7 +3349,16 @@ final class ScreenTests: XCTestCase {
                       "\(Self.home) never appeared. The app is probably on the welcome screen. On screen: \(visibleTexts())")
         // Round 7 (build 314): no Search row in the Mac's sidebar; ⇧⌘F opens the page.
         XCTAssertFalse(element("sidebar.Search").exists, "The Mac's sidebar still has a Search row.")
-        XCTAssertTrue(element("sidebar.fold.Tools").exists, "The sidebar's Tools heading (sidebar.fold.Tools) is missing.")
+        // Tools is the sidebar's last group, below a 450-point window's edge, and a list draws
+        // only the rows in view: the left strip is scrolled, one way and then the other, until
+        // its heading is drawn (build 326).
+        let tools = element("sidebar.fold.Tools")
+        let window = app.windows.firstMatch
+        for attempt in 0..<12 where !tools.exists {
+            window.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
+                .scroll(byDeltaX: 0, deltaY: attempt < 4 ? -400 : 400)
+        }
+        XCTAssertTrue(tools.waitForExistence(timeout: 10), "The sidebar's Tools heading (sidebar.fold.Tools) is missing. On screen: \(visibleTexts())")
         app.typeKey("f", modifierFlags: [.command, .shift])
 
         let box = app.buttons.matching(identifier: "search.box.is:open").firstMatch
