@@ -2773,3 +2773,11 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **The last row of a card.** Nothing is held: the card really ends higher afterwards, so the row fades as before.
 - **Reduce Motion.** With it switched on in the iPhone's settings nothing moves, as before.
 - **Checked.** Filmed on the iPhone simulator at 60 pictures a second, before and after, for a middle row and for a first row. Not filmed: the last row, night mode, a swipe, a real iPhone.
+
+## Exact details (build 328)
+
+- **Where.** The Map (**Browse › Map**) on the iPhone and the iPad. The Mac's Map is unchanged.
+- **What you see.** The Map opens at once and shows the whole map. Before (builds 316 to 327) it could freeze the app. On the iPhone the map sits in the middle of the page, not at the top.
+- **Seen.** On the iPhone simulator with the small set of test notes. Not known: whether it also froze with real notes on a real iPhone.
+- **Automatic tests.** The iPhone screen tests run to the end (59 tests, about 30 minutes here). The iPad walk-throughs pass. On the Mac 43 of 65 screen tests pass; 22 still fail on GitHub, most because the app is not the front window when the test clicks. The time limits of the test jobs are 90 minutes (iPhone) and 75 minutes (Mac).
+- **Unchanged:** every note, copy and sync rule.

@@ -5252,3 +5252,14 @@ Eight changes in one release; docs in `Docs/VersionHistory.md`, `HowItWorks.md`,
 - **Filmed three times** (scratchpad films, not kept): before (band from the 6th frame on, ~0.2 s), after for a middle row and for the first row, and once more for the final code (third row of four). The band is gone in all three.
 - **GitHub at the time of this build:** the run of 4ecf4e9 on `macos-26` had Core and the app build GREEN for the first time since build 281. Still red there: `IPadScreens` (landscape step "12 Areas": the middle column is not titled Areas; portrait step "11 A project open": opened without its editor) and the iPhone screen tests were cancelled at their 45-minute limit. These tests had not run since build 300 — repair them next, on the simulators here, before anything else.
 
+
+
+## Build 328 (16 November 2026)
+
+"The Map no longer freezes on the iPhone" (iPhone and iPad; the Mac's Map unchanged). Docs in `Docs/VersionHistory.md` and `HowItWorks.md` (**Exact details (build 328)**). `BuildStamp.number` = 328.
+
+- **Cause** (`App/Paragon/Views/MapView.swift`, ~line 70; grep "328"): `.frame(minWidth: page.size.width, minHeight: page.size.height, alignment: .top)` inside the GeometryReader sent the iPhone's main thread into a layout loop (in with the Map changes of builds 316 and 324). **Fix:** minHeight is the page's height on the Mac only (`#if os(macOS)`), 0 on iOS. Seen after the fix: the Map opens whole, app at 0 % CPU. The map now sits in the middle of the page on the iPhone (not at the top). Reproduced only on the simulator with the small test notes; real notes on a real iPhone not known.
+- **`App/Paragon/Views/PhoneRootView.swift`, `PhoneSectionScreen`:** `.accessibilityIdentifier("section.search")` on the searchable list (build 324) replaced the identifiers of every child without one of its own (`done.squares`, `done.squares.fold`). Removed.
+- **Tests:** `testATaskCanBeGivenATime` (iOS) drags the list to put the keyboard away. `IPadScreens`: `visibleBottom()` counts a row under `sync.status` as off screen; `hideTheSidebar()` before the project step in landscape. Local full iPhone run: 59 tests, 30 min 21 s; slowest honest test `testAFocusTimerStartsPausesAndStops` 156 s. The Map test went from 5 min 30 s (failed) to 19 s.
+- **GitHub:** Core and the app build green on `macos-26` since 16 Nov (first time since 281). iPhone screen tests ran to the end for the first time since 300: 3 red, all repaired here. iPad: both walk-throughs pass (twice in a row locally). Mac screen tests: 43 of 65 pass (15 of 65 that morning); 22 still fail on GitHub, most because the app is not the front window when the test clicks. NOT finished: repair these next. Job time limits raised: iPhone 45 to 90 min, Mac 30 to 75.
+- **TRAP:** the screen tests found a freeze that four releases (324 to 327) carried. A red or unread GitHub run is not noise.

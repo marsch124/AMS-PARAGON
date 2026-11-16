@@ -1,6 +1,31 @@
 # Version history
 
-The version is shown as 1.0 (327) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (328) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 328 · 16 November 2026
+
+**The Map no longer freezes on the iPhone.** On the iPhone and the iPad, opening the Map (**Browse › Map**) could freeze PARAGON. Now it opens at once and shows the whole map. Your notes are not touched.
+
+**Before (builds 316 to 327).**
+- Opening the Map on the iPhone or iPad could freeze PARAGON: the screen stopped answering and the app worked at full power in the background.
+- It was found on 16 November by the automatic screen tests, the first time they could run again since build 300. The Map test took 5 and a half minutes and then failed.
+- The fault came in with the Map changes of builds 316 and 324 ("the Map opens whole").
+- An honest note: I saw it on the iPhone simulator with the small set of test notes. Whether it also froze with your own notes on your own iPhone, I do not know.
+
+**Now (build 328).**
+- The Map opens at once and shows the whole map. The same test now takes 19 seconds instead of 5 and a half minutes.
+- On the iPhone the map sits in the middle of the page, not at the top.
+
+**Under the bonnet: the automatic tests (continuing build 326).**
+- GitHub's tests run on the newer test Mac since build 326. On 16 November the rule tests and the app build passed there for the first time since build 281.
+- iPhone screen tests: they ran to the end for the first time since build 300. Three failed, and all three are repaired in this build: the Map freeze above (a real fault); the Done page's squares could not be found by the tests, because a label meant for the search field of a Browse list was handed to everything inside the list (nothing a person sees; removed); and the "give a task a time" test pressed a button hidden behind the keyboard (the test now puts the keyboard away first).
+- iPad screen tests: both walk-throughs are repaired. They pressed rows hidden under the sync line at the foot of the sidebar, and in landscape the sidebar covered the list after the Map. They passed twice in a row on the simulator.
+- Mac screen tests: 43 of 65 pass (this morning 15 of 65). 22 still fail on GitHub, most because the app is not the front window when the test clicks. Being worked on, not finished in this build.
+- The time limits of the test jobs were raised (iPhone 45 to 90 minutes, Mac 30 to 75), because the tests now run to the end instead of failing at once.
+
+**Not changed, on purpose.**
+- The Map on the Mac looks and works as before.
+- Every note, copy and sync rule.
 
 ## Build 327 · 16 November 2026
 
