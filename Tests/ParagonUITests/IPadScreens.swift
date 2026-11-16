@@ -92,12 +92,21 @@ final class IPadScreens: XCTestCase {
         }
         for section in Self.sections {
             let name = next(section)
-            hideTheKeyboard()
-            press(reveal("sidebar.\(section)", name))
             // The middle column is titled with the row's name (`NoteListView.navigationTitle`),
             // so this also proves the press landed on the right row (CI 362).
             let title = Self.titles[section] ?? section
-            check(showsTitle(title, within: 20),
+            // **Up to three presses** (run 43893159835, on its side, All actions after the Map):
+            // the sidebar had just come out over the Map, the row was drawn, and the one press
+            // changed nothing — on a slow runner the press can arrive while the sidebar is still
+            // settling. A press that did nothing is made again, and the log says so.
+            var landed = false
+            for attempt in 1...3 where !landed {
+                hideTheKeyboard()
+                press(reveal("sidebar.\(section)", name))
+                landed = showsTitle(title, within: attempt == 3 ? 20 : 8)
+                if !landed { print("NOTE \(name): press \(attempt) on \(section) changed nothing.") }
+            }
+            check(landed,
                   "\(section) was pressed, but the middle column is not titled \(title). On screen: \(visibleTexts())",
                   name)
             settle()
