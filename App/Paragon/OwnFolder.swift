@@ -150,9 +150,10 @@ extension AppModel {
         #endif
         guard fm.ubiquityIdentityToken != nil,
               let container = fm.url(forUbiquityContainerIdentifier: VaultMove.containerID) else { return nil }
-        let documents = container.appendingPathComponent("Documents", isDirectory: true)
-        try? fm.createDirectory(at: documents, withIntermediateDirectories: true)
-        return documents
+        // Build 325: only looked at, never made here. Making it on every look put an empty
+        // "PARAGON" folder in iCloud Drive before anyone asked for one; the copy makes it
+        // (`VaultMove.checkDestination`) when **Copy my notes** is pressed.
+        return container.appendingPathComponent("Documents", isDirectory: true)
     }
 
     func ownFolderURL() async -> URL? {
@@ -186,7 +187,14 @@ extension AppModel {
         #if os(macOS)
         return Host.current().localizedName ?? kind
         #else
-        return kind
+        // Build 325: the model ("iPad mini", "iPhone 17 Pro"), so two devices can be told
+        // apart. iOS hands apps only "iPhone"/"iPad" as the device's own name.
+        var info = utsname()
+        uname(&info)
+        let machine = withUnsafeBytes(of: &info.machine) { raw in
+            String(decoding: raw.prefix(while: { $0 != 0 }), as: UTF8.self)
+        }
+        return DeviceModelName.friendly(machine: machine, kind: kind)
         #endif
     }
 

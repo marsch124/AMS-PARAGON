@@ -123,7 +123,7 @@ public extension NoteIndex {
 
     func health(of note: Note, today: DateOnly, config: VaultConfig, calendar: Calendar = .current) -> ProjectHealth {
         let open = note.openTasks
-        let overdue = open.filter { ($0.dueDate.map { $0 < today }) ?? false }
+        let overdue = open.filter { $0.isOverdue(on: today) }
         // Today and the six days before it: seven days, not eight (review of 263).
         let weekAgo = today.adding(days: -6, calendar: calendar)
         let completed = note.tasks.filter { task in

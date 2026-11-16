@@ -97,7 +97,7 @@ You can open the same folder in NotePlan, Obsidian or any text editor. If the fo
 
 Since build 319. PARAGON has a folder of its own in iCloud Drive. Files and Finder show it as **PARAGON**, and PARAGON writes it as "iCloud Drive › PARAGON". A device that uses this folder opens it by itself at every start. There is no folder to choose and no folder to lose.
 
-**Nothing is copied by itself.** Your notes stay in the folder you chose until you press **Copy my notes**. You copy them 1 time, on 1 device. The other devices follow.
+**Nothing is copied by itself.** Your notes stay in the folder you chose until you press **Copy my notes**. You copy them 1 time, on 1 device. The other devices follow. Since build 325 PARAGON does not even make the empty **PARAGON** folder in iCloud Drive when you only look at this page. The folder is made when you press **Copy my notes**. A note you deleted before the copy does not come back when a device that was offline for a long time follows. <!--CHECK-->
 
 **It is a copy, and the old folder is always kept.** PARAGON copies your notes, checks every file, and then uses the copy. Your old folder stays as it is. PARAGON never deletes the old folder and never deletes a note in it. You delete it yourself, when you are sure.
 
@@ -107,7 +107,7 @@ Since build 319. PARAGON has a folder of its own in iCloud Drive. Files and Find
 - what happens: "PARAGON copies your notes, checks every file, and then uses the copy. Your old folder stays as it is." Then the steps: a backup copy is made and checked, then your notes, pictures and settings are copied, and every file is compared with its original; only then does PARAGON switch;
 - that your old folder stays as it is, with 1 small text file added that says where the notes went;
 - that Reminders sync is paused while the notes are copied and goes on afterwards;
-- which devices use your notes, 1 line each, for example "Martin's Mac: PARAGON 319, this device" and "iPhone: PARAGON 319, seen 2026-11-14".
+- which devices use your notes, 1 line each, for example "Martin's Mac: PARAGON 319, this device" and "iPhone: PARAGON 319, seen 2026-11-14". Since build 325 an iPhone or iPad shows its model name, for example "iPad mini" or "iPhone 17 Pro", not just "iPhone" or "iPad".
 
 The buttons are **Cancel** and **Copy my notes**. On the Mac, Escape is **Cancel**.
 
@@ -403,7 +403,7 @@ Open an area, for example Health. Above its text there is a part that shows what
 - **Weekly bars**: eight small pink bars, the tasks finished in each of the last eight weeks, in the area itself and in every project in it. Beside them, for example, "14 tasks finished in 8 weeks · 2 this week". A week is Monday to Sunday. When no finished task carries a date, no bars are shown. When the last finished task is older than eight weeks, the bars are left out too, and one grey line says when it was, for example "last task finished about 3 months ago".
 - **Projects in this area**: every project whose **In area…** names this area, in the order you arranged them in the **Projects** list. The number beside the heading says how many.
 - Each project shows its tile with its icon, its name and what it needs, in the same words as its row in the **Projects** list: **Next:** and the task to do next, **All 3 finished** and a grey **No next action**, **All 2 open tasks are waiting for others** and a grey **No next action**, or **No tasks yet**.
-- "2 overdue" is red: open tasks in the project whose date has passed. The deadline is red once it has passed, and grey before that. A project on hold says **On hold**.
+- "2 overdue" is red: open tasks in the project whose date or deadline has passed (deadline since build 325). The deadline is red once it has passed, and grey before that. A project on hold says **On hold**.
 - Projects that are done, missed, dropped or archived are not listed. One line under the list says how many there are.
 - **Press a project** to open it. To come back to the area, press ⌃⌘← on the Mac, or the back arrow at the top on the iPhone.
 - **Right-click** a project (press and hold on the iPhone) for **Serves**, **In area**, **Set active**, **Mark done**, **Mark missed**, **Mark dropped** and **Put on hold** — the same lines as in the **Projects** list.
@@ -578,7 +578,7 @@ Since build 316 a task can have 2 days. Its **date** is the day you plan to do i
 - **A repeating task** keeps the same number of days between its date and its deadline when you tick it. With only a deadline, the next task gets the next deadline.
 - **In the file** it is `@deadline(2026-11-20)` on the task's line.
 - **Apple Reminders** does not get the deadline. The reminder's date is the task's date, as before. A change in Reminders never removes the deadline.
-- **Not changed**: **Overdue** on **Today**, the **Weekly review** and the widgets go by the task's date, not by the deadline.
+- **A deadline counts since build 325.** A task is overdue when its date **or** its deadline has passed. A task whose deadline is today shows under **Due today** on **Today**, even when its date is later or missing. The same rule holds in the widgets, the **Weekly review**, a project's health, the shortcut **What Is Due Today?**, **Start Focus** and **Plan**. Before build 325 only the date counted, and a passed deadline showed only the red flag. **Close the day** still moves only tasks whose date is today or earlier, because moving a task never changes its deadline.
 - On build 315 and older the deadline is not lost, but it shows as the text "@deadline(2026-11-20)" in the task's title.
 
 ### Repeat: the choices
@@ -948,7 +948,7 @@ The per cent never says 100 until everything really is finished, and never says 
 
 ## Today, Calendar, daily and weekly notes
 
-- **Today** shows the day's calendar events, one next action per active project (a line you are waiting on somebody else for is never one), overdue tasks, tasks due today, and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it (a small capsule in the heading's colour) still says how many there are, and pressing it again brings them back. **Next actions**, **Overdue** and **Due today** fold the same way (since build 291), and the app remembers which are folded. The big "0 due today" number is no longer in the purple band: the **Due today** list says it. Instead the band carries a small round white calendar button (since build 304): it opens today's note, or creates it while there is none (hold the pointer over it on the Mac to read **Today's note** or **Create today's note**). Tasks written in today's note still show under **From today's note**, but only when there are some. In a calendar row, the "open in Calendar" mark is a small round button tinted in the event's calendar colour. The day's date is in the band, in small white words, written like **Thursday 2026-11-12** (since build 309; before, "Thursday, 12 November"). On the Mac it has a line of its own under the title and the three round buttons, the whole width of the band, so it is never cut off. On the iPhone it is in one row beside the buttons. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot, and nothing is asked first. A short message says how many moved, and it has an **Undo** button for about eight seconds: each task gets back the date it had before (see **Undo for one-press changes**). Since build 304 the buttons are in one row: at the top are three small round buttons, the same size, in this order: today's note (a calendar), **Start the day** (an orange cup) and **Close the day** (a lilac moon): the note, the morning step and the evening step. Since build 312 each has one tiny word under it: **Note**, **Start** and **Close**. The pictures and the places are unchanged, and the band is about 13 points taller. Before, they were pictures only. On the Mac, hold the pointer over one and its full name appears. The band is one row shorter than in build 303, so the lists start higher.
+- **Today** shows the day's calendar events, one next action per active project (a line you are waiting on somebody else for is never one), overdue tasks (date or deadline passed, since build 325), tasks due today (date or deadline is today), and undated tasks marked `!!` or more. The events are kept short here — one line each, with the place after the name — because they share the screen with everything else. Press the word **Calendar** in that heading to fold the events away; the number beside it (a small capsule in the heading's colour) still says how many there are, and pressing it again brings them back. **Next actions**, **Overdue** and **Due today** fold the same way (since build 291), and the app remembers which are folded. The big "0 due today" number is no longer in the purple band: the **Due today** list says it. Instead the band carries a small round white calendar button (since build 304): it opens today's note, or creates it while there is none (hold the pointer over it on the Mac to read **Today's note** or **Create today's note**). Tasks written in today's note still show under **From today's note**, but only when there are some. In a calendar row, the "open in Calendar" mark is a small round button tinted in the event's calendar colour. The day's date is in the band, in small white words, written like **Thursday 2026-11-12** (since build 309; before, "Thursday, 12 November"). On the Mac it has a line of its own under the title and the three round buttons, the whole width of the band, so it is never cut off. On the iPhone it is in one row beside the buttons. The **Overdue** heading carries two small buttons: a **sun** moves every overdue task to today, a **sunrise** moves them all to tomorrow. They are the same two pictures the Inbox uses for those dates. One press does the lot, and nothing is asked first. A short message says how many moved, and it has an **Undo** button for about eight seconds: each task gets back the date it had before (see **Undo for one-press changes**). Since build 304 the buttons are in one row: at the top are three small round buttons, the same size, in this order: today's note (a calendar), **Start the day** (an orange cup) and **Close the day** (a lilac moon): the note, the morning step and the evening step. Since build 312 each has one tiny word under it: **Note**, **Start** and **Close**. The pictures and the places are unchanged, and the band is about 13 points taller. Before, they were pictures only. On the Mac, hold the pointer over one and its full name appears. The band is one row shorter than in build 303, so the lists start higher.
 
 - **Now and Then** on **Today**: on a day with a plan, two short lines under the date say where you are in it. The first starts with **Now** and names the plan block you are in, for example **Now 09:30 – 11:00 Write the offer**. On its right is a small orange button with a clock. Press it and the focus timer starts on that block, and the bar appears at the bottom, as usual. If exactly one open task has the same name as the block, the timer can tick that task off when you stop it (see **The focus timer**). While the focus timer runs on that block, a small dot is shown in place of the button: orange while the clock runs, grey while it is paused. The dot also shows when the clock runs on a task with the same name as the block, such as the task the block was made from. The second line is grey and starts with **Then**: the next block and when it starts, for example **Then 11:00 Call Anna**. It has no button. The lines change by themselves when a block starts or ends. When nothing is on now, only the **Then** line is shown. When the day has no plan, or the last block is over, nothing is shown, and **Today** is as short as before. Only plan blocks are shown here; your calendar events are under **Calendar** further down. On the Mac, hold the pointer over the clock button and its name appears.
 
@@ -1338,7 +1338,7 @@ Work that is over is never asked about: a project you dropped, a goal you missed
 Every step's heading is always on screen, even when the step is empty. Open a step you have finished and it says "Inbox is empty" or "Nothing is overdue" rather than disappearing. A step that vanished was impossible to tell from one the app had decided not to show you.
 
 1. **Empty the inbox.** How many loose items are waiting. Press it to go to the Inbox and file them.
-2. **Reschedule or drop overdue tasks.** Every task whose date has passed, with the note it lives in. Tick it, move it, or drop it, straight from the row.
+2. **Reschedule or drop overdue tasks.** Every task whose date or deadline has passed (deadline since build 325), with the note it lives in. Tick it, move it, or drop it, straight from the row.
 3. **Read the aspirations again.** One row per aspiration — what you are becoming, with no date. Is each one still true?
 4. **Check the goals with a date are on course.** One row per goal with a date: how far the work under it has come, how many projects and areas serve it, and its flags.
 5. **Give every project a next action.** One row per active project, with its flags, the open and overdue counts, and when you last looked at it. **I looked at all of them** in the heading stamps today's date on every one. It is there while the step is open.
@@ -1388,7 +1388,7 @@ Right-click any goal, project or area row (long-press on the phone):
 
 ### The flags
 
-A project is flagged when it has no next action, has overdue tasks, is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, is **Due for a look** (not looked at within its rhythm), or is on hold.
+A project is flagged when it has no next action, has overdue tasks (date or deadline passed), is past its due date, is due after the goal it serves, has not changed for the number of days set in Settings, is **Due for a look** (not looked at within its rhythm), or is on hold.
 
 An area gets the same flags, but **No next action** is judged in another way. The work of an area normally lives in its projects, so the area's own text is not the only place that counts. An area is flagged **No next action** only when nothing is left to do anywhere in it: not in its own text, not in a project in it that is running or on hold, and not in a sub-area (its text or its projects). A project that is done, missed, dropped or archived does not count. So an area whose projects have something to do is not flagged. It does not matter that the area's own text has no task. A line you are waiting on somebody else for counts as something to do here: a project of nothing but waiting lines is not flagged **No next action** in step 5, and an area whose only work is such a project is not flagged in step 6.
 
@@ -1875,7 +1875,7 @@ Each phrase must have the name PARAGON in it. That is Apple's rule: the name is 
 
 ### What Is Due Today?
 
-- It says 1 sentence and shows a short card. It uses the same tasks as **Due today** and **Overdue** on **Today**. Tasks in work notes are never in it.
+- It says 1 sentence and shows a short card. It uses the same tasks as **Due today** and **Overdue** on **Today**, so since build 325 a task with a deadline today is in it. Tasks in work notes are never in it.
 - "Nothing is due today." · "One thing is due today: Call the bank at 14:00." · "3 things are due today: A, B and C." · with more than 3: "7 things are due today: A, B, C, and 4 more."
 - A task with a time is read with "at 14:00". `#tags` are not read out.
 - Overdue tasks add "One more is overdue." or "2 more are overdue." With nothing due today it is "One thing is overdue." or "2 things are overdue."
@@ -2563,7 +2563,7 @@ Four widgets on the Mac. On the iPhone and the iPad, four for the Home Screen an
 - If the note is still coming from iCloud, or iCloud holds a newer copy of it, the tick waits.
 - After an update from an older build, the tick circles show once you have opened PARAGON one time.
 
-**What is waiting** is four numbers: due today, overdue, waiting in the Inbox, and due for a look. A zero is grey and a number that wants you is in its own colour, so the one to read finds you first. The Inbox number is leaf green (since build 310; before, amber).
+**What is waiting** is four numbers (since build 325 the date or the deadline counts for due today and overdue): due today, overdue, waiting in the Inbox, and due for a look. A zero is grey and a number that wants you is in its own colour, so the one to read finds you first. The Inbox number is leaf green (since build 310; before, amber).
 
 **One list** (since build 316) is a small widget for one list. It shows the list's name and mark, one big number, and a few words, like "3 due today" or "Nothing overdue". A press opens that list. Choose the list with the widget's own **Edit Widget** (hold the widget on the iPhone, right-click it on the Mac): **Today**, **Overdue**, **Inbox** or **Review**. It starts as **Today**. You can place one for each list. A zero is grey, as on **What is waiting**; the words at zero are "Nothing due today", "Nothing overdue", "The Inbox is empty" and "Nothing for a look". **Today** and **Overdue** open **Today**, **Inbox** opens the **Inbox**, and **Review** opens the **Weekly review**. It comes in the small size only.
 
@@ -2583,7 +2583,7 @@ Four widgets on the Mac. On the iPhone and the iPad, four for the Home Screen an
 
 **Due today** (since build 317) is a widget for the Lock Screen of the iPhone and the iPad. It comes in 3 shapes.
 
-- Round: the number of open tasks due today or earlier, with the word "due" under it. At zero it shows a drawn tick.
+- Round: the number of open tasks due today or earlier (date or deadline, since build 325), with the word "due" under it. At zero it shows a drawn tick.
 - Wide: 1 line in words, for example "3 due today", and under it your next 2 actions (the first 2 lines of **Today's actions**). With no actions it says "Nothing due, nothing waiting".
 - The line above the clock: words only, for example "3 due today".
 - The words are "3 due today", "3 due today, 1 overdue", "2 overdue" or "Nothing due today".
@@ -2709,3 +2709,14 @@ Since build 305, before every upload to TestFlight, the iPhone app (in the simul
 ## When something looks wrong
 
 Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: the build number, what was clicked, which section and note are open, and the window layout. Paste it into the chat with the developer. The version is also shown, as PARAGON 1.0 (315), at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, and as **Version** in **Settings › About**.
+
+## Exact details (build 325)
+
+- **Overdue.** A task is overdue when min(do-day, deadline) is before today. With only 1 of the two, that one is used. With none, the task is never overdue.
+- **Due today.** A task is due today when min(do-day, deadline) is today.
+- **Where it applies.** **Today** (**Overdue** and **Due today**), the widgets (counts and red rows, including the Lock Screen widget), the **Weekly review** step "2. Reschedule or drop overdue tasks", a project's health and its "overdue" count, the shortcut answer **What Is Due Today?**, the suggestions of **Start Focus**, and the actions in **Plan**.
+- **Close the day.** It goes by the do-day only: it moves tasks whose do-day is today or earlier. Moving a task never changes its deadline, so a task kept by its deadline can show again as overdue or due today.
+- **Before build 325.** Everything went by the do-day only. A passed deadline made only the red flag on the row.
+- **Devices list.** An iPhone or iPad writes its model name in its small file in `.ams-para/devices/`, for example "iPad mini". <!--CHECK-->
+- **Own folder.** The folder **PARAGON** in iCloud Drive is made by **Copy my notes**, not when the page is opened.
+- **Note deleted before the copy.** It is not brought back by a device that follows late. <!--CHECK-->

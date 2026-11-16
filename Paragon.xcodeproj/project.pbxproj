@@ -871,7 +871,7 @@
 			repositoryURL = "https://github.com/marsch124/AMS-Icons";
 			requirement = {
 				kind = revision;
-				revision = 94ea073;
+				revision = 2b83636;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 324
+    static let number = 325
 }
 
 @MainActor
@@ -319,6 +319,8 @@ final class AppModel: ObservableObject {
     @Published var actionFilter = ActionFilter()
     /// Saved copies of the vault, newest first.
     @Published private(set) var backups: [VaultBackup] = []
+    private var lastBackupFetch = Date.distantPast
+    private var lastPublishSample = Date.distantPast
     /// The second copy, outside the vault (build 308): when it was last made, the folder he
     /// chose for it (nil: this device's own storage), and what went wrong with it, if anything.
     @Published private(set) var lastOutsideBackup: Date?
@@ -474,13 +476,21 @@ final class AppModel: ObservableObject {
         #endif
         // Reports our own frames whenever a change is published while SwiftUI is mid-update,
         // which is what "Publishing changes from within view updates" complains about.
+        //
+        // Build 325: at most once every 5 seconds. `Thread.callStackSymbols` is slow (it names
+        // every frame), and it ran on EVERY change of the model — hundreds right after a start
+        // with a big vault, all on the main thread. That load is a suspect for the iPad that
+        // "crashed every time" after updating to 322 (the system stops an app whose start
+        // keeps the main thread busy too long). One sample still finds the code at fault.
         publishWatch = objectWillChange.sink { [weak self] _ in
+            guard let self, Date().timeIntervalSince(self.lastPublishSample) > 5 else { return }
+            self.lastPublishSample = Date()
             let frames = Thread.callStackSymbols
             guard frames.contains(where: { $0.contains("AG::") || $0.contains("AttributeGraph") || $0.contains("ViewGraph") }) else { return }
             // Case-insensitive: the app's module is PARAGON (PRODUCT_NAME) and the
             // package's is ParagonCore, so one spelling would miss half the frames.
             let ours = frames.filter { $0.range(of: "paragon", options: .caseInsensitive) != nil }.prefix(8)
-            self?.log("PUBLISH during view update:\n" + ours.joined(separator: "\n"))
+            self.log("PUBLISH during view update:\n" + ours.joined(separator: "\n"))
         }
     }
 
@@ -4716,6 +4726,12 @@ final class AppModel: ObservableObject {
 
     func refreshBackups() {
         backups = vault?.backups() ?? []
+        // Build 325: inside backups another device made are fetched from iCloud, at most once
+        // an hour, off the main thread, so a restore from them can start on this device.
+        if let folder = vault?.backupsURL, Date().timeIntervalSince(lastBackupFetch) > 3600 {
+            lastBackupFetch = Date()
+            Task.detached(priority: .utility) { CloudFiles.fetchAll(under: folder) }
+        }
         noteFirstUseDay()
         lastOutsideRestoreLine = defaults.string(forKey: lastOutsideRestoreVaultKey) == vault?.rootURL.path
             ? defaults.string(forKey: lastOutsideRestoreLineKey) : nil

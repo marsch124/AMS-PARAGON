@@ -1116,6 +1116,15 @@ public enum VaultMove {
             guard let movedAt, let date = (try? fm.attributesOfItem(atPath: old.appendingPathComponent(path).path))?[.modificationDate] as? Date else { return false }
             return date > movedAt
         }
+        // Build 325: a file "new in the old folder" that is OLDER than the move was not made
+        // after it. It is a note deleted before the copy that a long-offline device still held
+        // and iCloud put back in the old folder. Bringing it over would make a deleted note come
+        // back; it stays in the old folder, nothing is lost.
+        func madeBeforeTheMove(_ path: String) -> Bool {
+            guard let movedAt, let date = (try? fm.attributesOfItem(atPath: old.appendingPathComponent(path).path))?[.modificationDate] as? Date else { return false }
+            return date < movedAt
+        }
+        let added = Set(changes.added)
         result.deletedInOld = changes.deleted.filter { CloudFiles.exists(new.appendingPathComponent($0)) }
         for path in changes.added + changes.changed {
             let target = new.appendingPathComponent(path)
@@ -1129,7 +1138,9 @@ public enum VaultMove {
             }
             do {
                 if here == oldHashes[path] { continue }
-                if here == nil {
+                if here == nil, added.contains(path), !path.hasPrefix(statePrefix), madeBeforeTheMove(path) {
+                    result.leftAlone.append(path)
+                } else if here == nil {
                     try copyFile(path, from: old, to: new, wait: wait)
                     result.copied.append(path)
                 } else if let was = before[path], here == was, path.hasPrefix(statePrefix) || changedAfterTheMove(path) {

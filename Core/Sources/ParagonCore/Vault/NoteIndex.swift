@@ -194,18 +194,25 @@ public struct NoteIndex: Sendable {
     }
 
     /// Open tasks across the vault, optionally limited to those due on or before a date.
-    public func openTasks(dueOnOrBefore limit: DateOnly? = nil, includeArchived: Bool = false) -> [TaskRef] {
+    ///
+    /// **Build 325: by the day that presses first** (`TaskItem.pressingDay`, the earlier of
+    /// do-day and deadline), so a task whose deadline has come is in, whatever its do-day.
+    /// `byDeadlineToo: false` asks for the do-day alone: **Close the day** moves do-days, and a
+    /// task it cannot clear by moving (its deadline has passed) must not come back every evening.
+    /// The order is by the same day.
+    public func openTasks(dueOnOrBefore limit: DateOnly? = nil, includeArchived: Bool = false,
+                          byDeadlineToo: Bool = true) -> [TaskRef] {
         var refs: [TaskRef] = []
         for note in notes where includeArchived || !note.isArchived {
             for task in note.openTasks {
                 if let limit {
-                    guard let due = task.dueDate, due <= limit else { continue }
+                    guard let due = byDeadlineToo ? task.pressingDay : task.dueDate, due <= limit else { continue }
                 }
                 refs.append(TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: task))
             }
         }
         return refs.sorted { a, b in
-            switch (a.task.dueDate, b.task.dueDate) {
+            switch (byDeadlineToo ? a.task.pressingDay : a.task.dueDate, byDeadlineToo ? b.task.pressingDay : b.task.dueDate) {
             case let (x?, y?):
                 if x != y { return x < y }
                 switch (a.task.dueTime, b.task.dueTime) {

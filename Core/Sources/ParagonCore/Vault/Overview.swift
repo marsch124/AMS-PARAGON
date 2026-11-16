@@ -12,7 +12,7 @@ public struct DayOverview: Identifiable, Equatable, Sendable {
     public var undated: [TaskRef]
 
     public var id: DateOnly { date }
-    public var overdueCount: Int { due.filter { $0.task.dueDate.map { $0 < .today() } ?? false }.count }
+    public var overdueCount: Int { due.filter { $0.task.isOverdue(on: .today()) }.count }
     public var isEmpty: Bool { dailyNotePath == nil && due.isEmpty && completed.isEmpty && undated.isEmpty }
 }
 

@@ -47,8 +47,9 @@ struct TodayView: View {
         let index = model.index
         let today = DateOnly.today()
         let dated = index.openTasks(dueOnOrBefore: today)
-        let overdue = dated.filter { ($0.task.dueDate ?? today) < today }
-        let dueToday = dated.filter { $0.task.dueDate == today }
+        // Build 325: by the earlier of do-day and deadline (`TaskItem.pressingDay`).
+        let overdue = dated.filter { $0.task.isOverdue(on: today) }
+        let dueToday = dated.filter { $0.task.isDue(on: today) }
         let important = index.openTasks().filter { $0.task.dueDate == nil && $0.task.priority >= 2 }
         let shown = Set((dated + important).map(\.id))
         let nextActions = index.nextActions().filter { !shown.contains($0.id) }

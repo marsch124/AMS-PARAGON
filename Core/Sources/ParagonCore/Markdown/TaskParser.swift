@@ -423,6 +423,27 @@ public enum TaskDeadline {
 }
 
 public extension TaskItem {
+    /// **The day that presses first** (build 325, his yes 2026-11-16): the do-day or the
+    /// deadline, whichever is earlier. Overdue, **Due today**, the widgets, the weekly review
+    /// and the shortcut answers all go by this day, so a passed deadline makes a task overdue
+    /// even when its do-day is later, and a deadline today puts it under **Due today**.
+    var pressingDay: DateOnly? {
+        switch (dueDate, deadline) {
+        case let (day?, last?): return min(day, last)
+        case let (day?, nil): return day
+        case let (nil, last?): return last
+        default: return nil
+        }
+    }
+
+    /// Overdue on `today`: the do-day or the deadline has passed.
+    func isOverdue(on today: DateOnly) -> Bool { pressingDay.map { $0 < today } ?? false }
+
+    /// Due on `day` itself (and not before): the earlier of do-day and deadline is that day.
+    func isDue(on day: DateOnly) -> Bool { pressingDay == day }
+}
+
+public extension TaskItem {
     /// This task with another deadline, or none. The do-day and everything else stay.
     func settingDeadline(_ day: DateOnly?) -> TaskItem {
         var copy = self

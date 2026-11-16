@@ -530,6 +530,22 @@ final class VaultMoveTests: XCTestCase {
         XCTAssertEqual(text(".ams-para/Set aside by a move/" + kept[0], in: new), "# Gamma\n")
     }
 
+    func testANoteDeletedBeforeTheMoveDoesNotComeBackFromALateDevice() throws {
+        let old = try oldVault(), new = try emptyFolder()
+        try VaultMove.run(request(from: old, to: new))
+        // A long-offline phone still held "Old idea", deleted before the copy; iCloud puts it back.
+        try write("# Old idea\n", "Projects/Old idea.md", in: old)
+        try fm.setAttributes([.modificationDate: Date().addingTimeInterval(-3 * 86_400)],
+                             ofItemAtPath: old.appendingPathComponent("Projects/Old idea.md").path)
+        try write("# Made after the move\n", "Projects/Fresh.md", in: old)
+        try fm.setAttributes([.modificationDate: Date().addingTimeInterval(60)],
+                             ofItemAtPath: old.appendingPathComponent("Projects/Fresh.md").path)
+        let result = try VaultMove.bringOver(from: old, to: new, deviceID: "PHONE")
+        XCTAssertEqual(result.copied, ["Projects/Fresh.md"])
+        XCTAssertFalse(fm.fileExists(atPath: new.appendingPathComponent("Projects/Old idea.md").path))
+        XCTAssertTrue(fm.fileExists(atPath: old.appendingPathComponent("Projects/Old idea.md").path), "left where it was")
+    }
+
     func testManyListedFilesNotThereMeansStillArrivingNotDeleted() {
         var look = PlaceLook()
         look.standing = .vault(MoveStamp(moveID: "m", generation: 1, vaultID: "v", at: Date(), deviceName: "Mac", deviceID: "MAC",

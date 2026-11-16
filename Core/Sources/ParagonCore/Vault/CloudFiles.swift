@@ -42,6 +42,30 @@ public enum CloudFiles {
         try? FileManager.default.startDownloadingUbiquitousItem(at: url)
     }
 
+    /// Asks iCloud to fetch every file under a folder that is not on this device yet (build
+    /// 325). For the inside backups another device made: PARAGON never reads them until a
+    /// restore, so iCloud left them "not downloaded" on the Mac and a restore from them could
+    /// not start. Returns how many were asked for. Never waits.
+    @discardableResult
+    public static func fetchAll(under folder: URL) -> Int {
+        guard let walker = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil) else { return 0 }
+        var asked = 0
+        for case let url as URL in walker {
+            let name = url.lastPathComponent
+            if name.hasPrefix("."), name.hasSuffix(".icloud") {
+                // The placeholder of a file not here: ".Inbox.md.icloud" stands for "Inbox.md".
+                let real = url.deletingLastPathComponent()
+                    .appendingPathComponent(String(name.dropFirst().dropLast(".icloud".count)))
+                startDownload(real)
+                asked += 1
+            } else if isMissing(url) {
+                startDownload(url)
+                asked += 1
+            }
+        }
+        return asked
+    }
+
     // MARK: Where a file's contents are (build 261)
 
     /// Whether a file's contents are on this device.

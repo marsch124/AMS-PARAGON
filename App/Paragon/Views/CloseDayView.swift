@@ -47,7 +47,7 @@ struct CloseDayView: View {
 
     /// Still open and dated today or earlier. Undated tasks are deliberately left out: a task
     /// with no date was never promised to this day, so it did not "not happen".
-    private var leftovers: [TaskRef] { model.index.openTasks(dueOnOrBefore: day) }
+    private var leftovers: [TaskRef] { model.index.openTasks(dueOnOrBefore: day, byDeadlineToo: false) }
 
     private var tomorrow: DateOnly { day.adding(days: 1) }
 

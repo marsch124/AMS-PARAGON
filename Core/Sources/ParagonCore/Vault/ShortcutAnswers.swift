@@ -33,8 +33,8 @@ public struct DueTodayAnswer: Equatable, Sendable {
     public init(index: NoteIndex, today: DateOnly) {
         let dated = index.openTasks(dueOnOrBefore: today)
         self.day = today
-        self.due = dated.filter { $0.task.dueDate == today }.map(Self.line)
-        self.overdueCount = dated.filter { ($0.task.dueDate ?? today) < today }.count
+        self.due = dated.filter { $0.task.isDue(on: today) }.map(Self.line)
+        self.overdueCount = dated.filter { $0.task.isOverdue(on: today) }.count
     }
 
     public init(day: DateOnly, due: [Line], overdueCount: Int) {
