@@ -123,7 +123,7 @@ struct GoalNumberCurve: View {
                 // Build 325: the target in words ("82 kg") at the right end of the dashed line,
                 // above it; under it where there is no room above or the curve passes there.
                 let label = Text(number.valueWords(number.target))
-                    .font(.system(size: 10))
+                    .font(Txt.tiny)
                     .foregroundStyle(Theme.soft)
                 let endY = points.last?.y ?? targetY
                 let curveNear = endY < targetY && targetY - endY < 14

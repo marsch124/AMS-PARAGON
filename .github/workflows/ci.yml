@@ -7,7 +7,7 @@ on:
 jobs:
   core-tests:
     name: Core package tests (macOS)
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Toolchain
@@ -21,7 +21,7 @@ jobs:
 
   app-build:
     name: App build (macOS + iOS Simulator)
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Install XcodeGen
@@ -67,7 +67,7 @@ jobs:
 
   screen-tests:
     name: Screen tests (iPhone Simulator)
-    runs-on: macos-15
+    runs-on: macos-26
     # A stuck simulator would otherwise hold the job for GitHub's six-hour default. The
     # slowest honest run so far took fourteen minutes (build 194, a slow runner, every test
     # two to seven times its usual time); thirty left room for that and stopped a hang.
@@ -132,7 +132,7 @@ jobs:
 
   screen-tests-ipad:
     name: Screen tests (iPad mini)
-    runs-on: macos-15
+    runs-on: macos-26
     # The iPad draws the Mac's three columns, not the phone's tabs, so it is a third layout and
     # neither suite above sees it (2 November 2026). Only `IPadScreens` runs here: it presses
     # every sidebar row upright and on its side and keeps a picture of each screen, uploaded as
@@ -267,7 +267,7 @@ jobs:
 
   screen-tests-mac:
     name: Screen tests (Mac)
-    runs-on: macos-15
+    runs-on: macos-26
     # The runner is a Mac, so no simulator: the app itself is started and clicked. Build 195.
     # The faults that cost this project the most were the Mac's — the Inbox list of builds
     # 71-74 and the Map canvas of build 85 — and the phone suite cannot see either.
@@ -310,7 +310,7 @@ jobs:
 
   commit-project:
     name: Commit generated Xcode project
-    runs-on: macos-15
+    runs-on: macos-26
     needs: [core-tests, app-build, screen-tests, screen-tests-mac]
     # Only when the project definition itself changed, so a developer's local
     # signing settings in Paragon.xcodeproj are never overwritten by a pull.
