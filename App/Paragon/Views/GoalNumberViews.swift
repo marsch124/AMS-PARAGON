@@ -11,6 +11,15 @@ import ParagonCore
 // - `GoalNumberChip`   the goal's header: **Set a number…**, or **Edit number…** once it has one.
 // - `GoalNumberEditor` what both open: one field to update, or the four fields to set it up.
 
+// MARK: - Window open
+
+/// True while a number window (**Update…**, **Set a number…**) is open. The note's **Add a task…**
+/// bar reads it and steps away, so the bar and the curve are not hidden behind it (build 325).
+struct NumberWindowOpenKey: PreferenceKey {
+    static var defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
+}
+
 // MARK: - The bar
 
 /// A calm bar: a soft track in the goal's gold and the part that is done, in full gold. Drawn
@@ -56,6 +65,7 @@ struct GoalNumberLine: View {
             if compact {
                 Text(Self.compactWords(number))
                     .foregroundStyle(.soft)
+                    .fixedSize()
             } else {
                 Text(number.words())
                     .foregroundStyle(.soft)
@@ -74,9 +84,13 @@ struct GoalNumberLine: View {
         .accessibilityIdentifier("goal.number.line")
     }
 
-    /// "86.5 kg": the row already says the target in its measure, and has little room.
+    /// "285 km · 65 %", or "285 km · Reached": the row has little room (build 325: the
+    /// number's per cent, never a second one from the projects).
     private static func compactWords(_ number: GoalNumber) -> String {
-        number.valueWords(number.current)
+        let value = number.valueWords(number.current)
+        if number.isReached { return "\(value) \u{00B7} Reached" }
+        guard let percent = number.percent else { return value }
+        return "\(value) \u{00B7} \(percent) %"
     }
 }
 
@@ -106,6 +120,18 @@ struct GoalNumberCurve: View {
                 .stroke(tint.opacity(0.55), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [3, 4]))
                 Self.line(points)
                     .stroke(tint, style: StrokeStyle(lineWidth: 1.9, lineCap: .round, lineJoin: .round))
+                // Build 325: the target in words ("82 kg") at the right end of the dashed line,
+                // above it; under it where there is no room above or the curve passes there.
+                let label = Text(number.valueWords(number.target))
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.soft)
+                let endY = points.last?.y ?? targetY
+                let curveNear = endY < targetY && targetY - endY < 14
+                let above = targetY >= 13 && !curveNear
+                label
+                    .fixedSize()
+                    .position(x: geo.size.width - 4 - labelHalfWidth(number), y: above ? targetY - 7 : targetY + 7)
+                    .accessibilityHidden(true)
                 if let last = points.last {
                     Circle()
                         .fill(tint)
@@ -116,6 +142,12 @@ struct GoalNumberCurve: View {
         }
         .frame(height: height)
         .accessibilityHidden(true)
+    }
+
+    /// Half the width of the target's words, to keep them inside the right edge. About 5.5 points
+    /// a character at 10 points.
+    private func labelHalfWidth(_ number: GoalNumber) -> CGFloat {
+        CGFloat(number.valueWords(number.target).count) * 5.5 / 2
     }
 
     /// Where a value sits between the top and the bottom, the dot and the stroke kept inside.
@@ -195,8 +227,11 @@ struct GoalNumberPanel: View {
                     }
                 }
                 if number.curve.count > 1 {
+                    // Build 325: 10 points between the bar and the curve (6 before; with an up
+                    // target the dashed line sat right under the bar).
                     GoalNumberCurve(number: number, tint: tint)
                         .frame(maxWidth: 360)
+                        .padding(.top, 4)
                 }
                 Text(Self.caption(number))
                     .font(Txt.listSecond)
@@ -226,6 +261,7 @@ struct GoalNumberPanel: View {
             #endif
             .fixedSize()
             .accessibilityIdentifier("goal.number.update")
+            .preference(key: NumberWindowOpenKey.self, value: updating)
             // Above the button, so the bar and its words stay in view while typing.
             .popover(isPresented: $updating, arrowEdge: .bottom) {
                 GoalNumberEditor(number: number, setup: false, tint: tint,
@@ -269,7 +305,7 @@ struct GoalNumberChip: View {
         let number = current.goalNumber
         let tint = ChainTint.forGoal(current)
         Button { editing = true } label: {
-            MarkLabel(number == nil ? "Set a number\u{2026}" : "Edit number\u{2026}", "chart.line")
+            MarkLabel(number.map { "Number: \($0.words())" } ?? "Set a number\u{2026}", "chart.line")
                 .lineLimit(1)
                 .foregroundStyle(number == nil ? Theme.soft : tint.ink)
                 .helpWhenClosed("A number this goal is tracked by: where you started, where you want to be, and where you are now.", open: editing)
@@ -277,6 +313,7 @@ struct GoalNumberChip: View {
         .buttonStyle(.bordered)
         .accessibilityLabel(Text(number == nil ? "Set a number" : "Edit number"))
         .accessibilityIdentifier("goal.number")
+        .preference(key: NumberWindowOpenKey.self, value: editing)
         .popover(isPresented: $editing) {
             GoalNumberEditor(number: number, setup: true, tint: tint, cancel: { editing = false }) { draft in
                 model.setGoalNumber(draft, on: current)

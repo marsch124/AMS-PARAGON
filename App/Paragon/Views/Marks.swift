@@ -292,6 +292,30 @@ struct MarkLabel: View {
     }
 }
 
+/// A mark and its words as one row, 4 points apart (build 325). A `Label` in a list takes the
+/// list's own spacing, about 16 points, which parted the mark from its words in the weekly
+/// review. The words stay on one line.
+struct MarkWords: View {
+    let title: String
+    let name: String
+    var text: MarkRule.TextStyle = .footnote
+
+    init(_ title: String, _ name: String, text: MarkRule.TextStyle = .footnote) {
+        self.title = title
+        self.name = name
+        self.text = text
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            MarkImage(name, text: text)
+            Text(title).lineLimit(1)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+    }
+}
+
 #if canImport(UIKit)
 import UIKit
 

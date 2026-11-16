@@ -245,15 +245,25 @@ struct WidgetFoot: View {
         return "written " + DayWords.time(snapshot.written)
     }
 
+    /// Build 325: the line is for finding faults, so it shows only when something is wrong:
+    /// no shared folder, no file, or a file from another day.
+    private var somethingIsWrong: Bool {
+        guard entry.folderFound, let snapshot = entry.snapshot else { return true }
+        return snapshot.day != DateOnly(entry.date)
+    }
+
+    @ViewBuilder
     var body: some View {
-        Text("PARAGON \(WidgetBuild.number) · \(state)")
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
-            // Keeps its row when the card is full: without this the message above it wins the
-            // space and the line that explains the message is the part that disappears.
-            .layoutPriority(1)
+        if somethingIsWrong {
+            Text("PARAGON \(WidgetBuild.number) · \(state)")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                // Keeps its row when the card is full: without this the message above it wins the
+                // space and the line that explains the message is the part that disappears.
+                .layoutPriority(1)
+        }
     }
 }
 
@@ -319,15 +329,10 @@ struct ActionsWidgetView: View {
         HStack(spacing: 5) {
             // Build 317: where the lines begin with a tick circle, the heading has Today's
             // sun in Today's colour — a circle here looked like one more thing to tick.
-            if family == .systemSmall {
-                WidgetMark(name: "circle")
-                    .foregroundStyle(WidgetLook.project)
-            } else {
-                // 15 points, the size of the tick circles under it, so the words line up.
-                WidgetMark(name: "sun.max", size: 15)
-                    .foregroundStyle(WidgetLook.calendar)
-                    .widgetAccentable()
-            }
+            // Build 325: the small size has the sun too, not the green circle.
+            WidgetMark(name: "sun.max", size: family == .systemSmall ? 13 : 15)
+                .foregroundStyle(WidgetLook.calendar)
+                .widgetAccentable()
             Text(family == .systemSmall ? "Actions" : "Today's actions")
                 .font(.caption.weight(.semibold))
             Spacer(minLength: 0)

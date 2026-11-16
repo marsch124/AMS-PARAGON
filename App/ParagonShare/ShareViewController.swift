@@ -352,7 +352,7 @@ struct ShareCaptureView: View {
             Form {
                 Section {
                     TextField(wordsPrompt, text: $model.text, axis: .vertical)
-                        .lineLimit(2...8)
+                        .lineLimit(1...8)
                         .accessibilityIdentifier("share.words")
                     if let url = model.url {
                         Text(url.absoluteString)
@@ -406,7 +406,7 @@ struct ShareCaptureView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("PARAGON").font(.headline)
             TextField(wordsPrompt, text: $model.text, axis: .vertical)
-                .lineLimit(2...5)
+                .lineLimit(1...8)
                 .textFieldStyle(.roundedBorder)
                 .accessibilityIdentifier("share.words")
             if let url = model.url {

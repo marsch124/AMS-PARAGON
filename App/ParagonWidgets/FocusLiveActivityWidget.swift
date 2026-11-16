@@ -94,16 +94,8 @@ struct FocusBanner: View {
                     Text(title)
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
-                    HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        FocusClock(state: state)
-                            .font(.title2.weight(.bold).monospacedDigit())
-                        if let note = state.note {
-                            Text(note)
-                                .font(.footnote)
-                                .opacity(0.72)
-                                .lineLimit(1)
-                        }
-                    }
+                    FocusClock(state: state)
+                        .font(.title2.weight(.bold).monospacedDigit())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
@@ -111,7 +103,18 @@ struct FocusBanner: View {
                     FocusButtons(state: state, worded: false)
                 }
             }
-            FocusProgress(state: state)
+            // Build 325: "of 45 min" stands at the right end of the bar's row, under the
+            // buttons, so no gap can show beside the clock in the first minutes.
+            HStack(spacing: 8) {
+                FocusProgress(state: state)
+                if let note = state.note {
+                    Text(note)
+                        .font(.footnote)
+                        .opacity(0.72)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+            }
             if state.awaitingAnswer {
                 Text(FocusGlance.answerHint)
                     .font(.footnote)

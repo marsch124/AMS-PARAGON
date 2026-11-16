@@ -138,12 +138,14 @@ public struct PlanGlance: Equatable, Sendable {
 
     // MARK: The ruler and the timeline
 
-    /// The stretch of the day the ruler draws, in minutes since midnight: it starts at the
-    /// hour of `minute`, and is moved earlier when that would run past 24:00, so it never
-    /// draws hours that do not exist. At 22:40 with 3 hours it is 21:00 to 24:00.
+    /// The stretch of the day the ruler draws, in minutes since midnight: it starts half an
+    /// hour before `minute` (build 325; a block that is over no longer takes the first row),
+    /// on a quarter hour, and is moved earlier when that would run past 24:00, so it never
+    /// draws hours that do not exist. At 09:05 with 3 hours it is 08:30 to 11:30; at 22:40
+    /// it is 21:00 to 24:00.
     public static func window(at minute: Int, hours: Int) -> Range<Int> {
         let length = min(max(hours, 1), 24) * 60
-        var start = (min(max(minute, 0), 24 * 60 - 1) / 60) * 60
+        var start = (max(min(max(minute, 0), 24 * 60 - 1) - 30, 0) / 15) * 15
         if start + length > 24 * 60 { start = 24 * 60 - length }
         return start..<(start + length)
     }
