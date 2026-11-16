@@ -65,11 +65,28 @@ final class ScreenTests: XCTestCase {
     /// after a minute of waiting). A launch that is not in front is asked to come forward and,
     /// if it will not, is launched again, twice at most. Nothing is asserted here: a test whose
     /// app never comes forward fails on its first click as before.
+    ///
+    /// **16 Nov 2026, the runs of 016dc20 and 60ff35d (16 and 15 red, 14 of each this way):
+    /// "in front" is not the test.** In every one of those launches the app WAS "Running
+    /// Foreground" two seconds after the launch, so the loop above returned at once; what was
+    /// missing is the launch's own step "Wait for accessibility to load" (every good launch
+    /// has it, about four seconds in). Such a launch can be read but not clicked: each click
+    /// finds "1 interrupting element: Window … from Target Application" — the app's own
+    /// window, because the click's place is answered by the window and not by the row in it —
+    /// and ends a minute later as "not foreground". So the launch is now tried the way a
+    /// click tries it: the first row of the sidebar must be there AND be hittable. If it is
+    /// not, the app is ended and launched again, twice at most. A line starting with NOTE in
+    /// the log says so each time.
     private func bringTheAppToTheFront() {
-        for _ in 0..<3 {
-            if app.wait(for: .runningForeground, timeout: 6) { return }
-            app.activate()
-            if app.wait(for: .runningForeground, timeout: 8) { return }
+        for attempt in 0..<3 {
+            if !app.wait(for: .runningForeground, timeout: 6) {
+                app.activate()
+                _ = app.wait(for: .runningForeground, timeout: 8)
+            }
+            let home = element(Self.home)
+            if home.waitForExistence(timeout: 20), home.isHittable { return }
+            print("NOTE: launch \(attempt + 1) of this test cannot be clicked (home \(home.exists ? "is there but not hittable" : "is not there"), state \(app.state.rawValue)); the app is launched again.")
+            app.terminate()
             app.launch()
         }
     }
