@@ -111,6 +111,12 @@ final class SyncEngineTests: XCTestCase {
         var note = try inbox()
         note.removeTask(at: 0)
         try vault.save(note)
+        // Build 331: the first sync that finds the line gone only writes the time down (the
+        // task may be on its way to another note); the next one, the wait over, deletes.
+        engine.goneGrace = 0
+        let first = try await engine.run()
+        XCTAssertEqual(first.remindersDeleted, 0)
+        XCTAssertEqual(first.remindersWaitingToGo, 1)
         let report = try await engine.run()
         XCTAssertEqual(report.remindersDeleted, 1)
         let actual2 = try await store.reminders(inList: "Inbox").map(\.title)

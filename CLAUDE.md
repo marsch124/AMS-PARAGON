@@ -5322,3 +5322,13 @@ password. They stay on GitHub; faults are tried by hand in the Debug copy as abo
   - (c) `refreshDeleted` re-reads only when the names changed: anything that rewrites a file in Deleted in place must reset `deletedNamesRead`.
   - (d) `searchHits` is kept per (words, `stateGeneration`, `pictureGeneration`, day): a new input to search must go into `SearchStamp`.
   - (e) The screen test for "Review done today" compares the exact words, so the "enough" sentence is a line of its own (`review.done.enough`).
+
+## Build 331 (16 November 2026)
+
+His three picks after the advisors' round: quicker filing, the loose tasks step earlier, a careful look at two sync suspicions.
+
+- **Filing.** Core `FilingOrder` (`offer(for:places:recentPaths:shortList:)`, `remembering`): Suggested (2, by shared telling words), Recent (3, per device, `AppModel.recentFilingPaths`, UserDefaults `filing.recentPlaces`, written by `moveTask`), then the whole list; no groups with 6 places or fewer. One view, `FilingPlaces` (InboxView.swift), for the phone's **File it** and the long press's **Move to**. The test notes have two places, so `AppModel.filingOffer` passes `shortList: 0` when `TestVault.isWanted` (DEBUG only). Screen test `testFileItOffersSuggestedAndRecentPlacesFirst` (iPhone; skipped on the iPad).
+- **A reminder is not deleted at the first sync that misses its task.** `SyncState.goneSince` (task id → first seen gone), `SyncEngine.goneGrace` (120 s), `hasBeenGoneLongEnough`; step 3's `(nil, reminder?)` branch and the brake (2d) both ask it. `SyncReport.remindersWaitingToGo` → `AppModel.goneFollowUp` plans ONE quiet sync at the end of the wait. Proven by `MovedTaskAcrossNotesTests` (red before the change): device B got note X (task gone) before note Y (task arrived), deleted the reminder and made a new one. A test that wants the delete in one go sets `engine.goneGrace = 0` and runs twice.
+- **"Name 2" twin:** `ICloudDuplicateFileSyncTests` green without a change — `idOwners` and the both-map-to-one-list check keep the copy out.
+- **Weekly review:** "Thin out the loose tasks" is step 3; the old 3–8 are 4–9.
+- The screen tests run with `-scheme ParagonUITests` (the `Paragon` scheme has no test action).

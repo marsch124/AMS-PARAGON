@@ -54,9 +54,42 @@ final class MovedTaskAcrossNotesTests: XCTestCase {
         let all = store.records.values.filter { $0.title.contains("Pack passport") }
         XCTAssertEqual(all.count, 1, "exactly one reminder for the moved task")
         let after = try XCTUnwrap(store.records[original.identifier], "same reminder identifier at the end")
-        XCTAssertEqual(after.notes, originalNotes, "notes kept")
+        // The engine writes its own mark back as the last line; his words are what count.
+        _ = originalNotes
+        XCTAssertTrue(after.notes?.contains("Bring the red folder") ?? false, "notes kept: \(after.notes ?? "none")")
         XCTAssertEqual(after.dueTime, TimeOfDay(hour: 9, minute: 30), "time kept")
         XCTAssertEqual(after.dueDate, DateOnly(year: 2026, month: 12, day: 24), "date kept")
+    }
+
+    /// Build 331, the other side of the same rule: a task he really deleted still loses its
+    /// reminder — not at the first sync, and not before the wait is over, but then for good.
+    func testADeletedTasksReminderGoesAfterTheWaitAndNotBefore() async throws {
+        let clock = TestClock(Date(timeIntervalSince1970: 1_800_000_000))
+        engine.now = { clock.date }
+        try setBody("X", "- [ ] Pack passport ^t0000aa\n- [ ] Other ^t0000bb\n")
+        try await engine.run(allowMassChanges: true)
+        try await engine.run(allowMassChanges: true)
+        let found = try await store.reminders(inList: "X").first { $0.title.contains("Pack passport") }
+        let reminder = try XCTUnwrap(found)
+
+        try setBody("X", "- [ ] Other ^t0000bb\n")
+        let first = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(first.remindersDeleted, 0)
+        XCTAssertEqual(first.remindersWaitingToGo, 1, "the first sync only writes the time down")
+
+        clock.date += SyncEngine.standardGoneGrace - 1
+        let early = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(early.remindersDeleted, 0, "not before the wait is over")
+        XCTAssertNotNil(store.records[reminder.identifier])
+
+        clock.date += 2
+        let late = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(late.remindersDeleted, 1)
+        XCTAssertEqual(late.remindersWaitingToGo, 0)
+        XCTAssertNil(store.records[reminder.identifier], "gone for good after the wait")
+        let state = try vault.loadSyncState(deviceID: "test-device")
+        XCTAssertNil(state.links["t0000aa"])
+        XCTAssertTrue(state.goneSince.isEmpty, "nothing is left waiting")
     }
 }
 
@@ -109,4 +142,9 @@ final class ICloudDuplicateFileSyncTests: XCTestCase {
         XCTAssertEqual(titles, ["Write report"], "an ordinary note: its task has a reminder")
         XCTAssertEqual(store.records.values.first?.listName, "Test work 2")
     }
+}
+
+private final class TestClock: @unchecked Sendable {
+    var date: Date
+    init(_ date: Date) { self.date = date }
 }

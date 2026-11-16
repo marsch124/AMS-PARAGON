@@ -34,6 +34,12 @@ public struct SyncState: Codable, Equatable, Sendable {
     /// another device, whose reminder may still be on its way: a reminder is made for them
     /// only when the next sync still finds none.
     public var waitingForReminder: Set<String> = []
+    /// Build 331: task id → when a sync first found the task's line gone from a note it had
+    /// read. The reminder is NOT deleted then: a task moved to another note on another device
+    /// looks exactly like this for as long as iCloud has brought the note it left and not yet
+    /// the note it went to. It is deleted when a later sync, at least `SyncEngine.goneGrace`
+    /// on, still finds the task nowhere; a task that turns up again is simply forgotten here.
+    public var goneSince: [String: Date] = [:]
 
     public init() {}
 
@@ -45,6 +51,7 @@ public struct SyncState: Codable, Equatable, Sendable {
         lastRun = try c.decodeIfPresent(Date.self, forKey: .lastRun)
         listIDs = try c.decodeIfPresent([String: String].self, forKey: .listIDs) ?? [:]
         waitingForReminder = try c.decodeIfPresent(Set<String>.self, forKey: .waitingForReminder) ?? []
+        goneSince = try c.decodeIfPresent([String: Date].self, forKey: .goneSince) ?? [:]
     }
 
     public static let encoder: JSONEncoder = {
@@ -196,6 +203,9 @@ public struct SyncReport: Equatable, Sendable {
     public var tasksCreated = 0
     public var tasksUpdated = 0
     public var tasksCancelled = 0
+    /// Build 331: reminders whose task line is gone and that wait out `SyncEngine.goneGrace`
+    /// before they are deleted. Not a change; the app plans one more quiet sync for them.
+    public var remindersWaitingToGo = 0
     public var idsAssigned = 0
     public var notesSynced = 0
     public var conflicts: [String] = []

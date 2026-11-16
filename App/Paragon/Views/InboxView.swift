@@ -418,6 +418,48 @@ struct InboxRow: View {
 
 }
 
+/// Build 331: the places a line can be filed to, as the rows of a menu. **Suggested** (places
+/// whose name shares a telling word with the line) and **Recent** (where he last filed) come
+/// first; the whole list follows in its usual order, so nothing is ever hidden. With six
+/// places or fewer there are no groups (`FilingOrder`). One view for the phone's **File it**
+/// and the long press's **Move to**, so the two cannot come to differ.
+struct FilingPlaces: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    let places: [Note]
+
+    var body: some View {
+        let offer = model.filingOffer(for: ref, among: places)
+        if !offer.suggested.isEmpty {
+            Section("Suggested") {
+                ForEach(offer.suggested, id: \.path) { place in
+                    Button(place.title) { model.moveTask(ref, to: place.path) }
+                        .accessibilityIdentifier("file.suggested.\(place.title)")
+                }
+            }
+        }
+        if !offer.recent.isEmpty {
+            Section("Recent") {
+                ForEach(offer.recent, id: \.path) { place in
+                    Button(place.title) { model.moveTask(ref, to: place.path) }
+                        .accessibilityIdentifier("file.recent.\(place.title)")
+                }
+            }
+        }
+        if offer.isEmpty {
+            all
+        } else {
+            Section("All projects and areas") { all }
+        }
+    }
+
+    private var all: some View {
+        ForEach(places) { note in
+            Button(note.displayTitle) { model.moveTask(ref, to: note.relativePath) }
+        }
+    }
+}
+
 /// Everything else a line can have done to it. **One list, two callers** — the line's own
 /// context menu and the quadrant's **File it** button — so the two can never come to offer
 /// different things (build 168's rule about one thing drawn in two places).
@@ -433,9 +475,7 @@ struct InboxLineMenu: View {
 
     var body: some View {
         Menu("Move to") {
-            ForEach(projects) { note in
-                Button(note.displayTitle) { model.moveTask(ref, to: note.relativePath) }
-            }
+            FilingPlaces(ref: ref, places: projects)
         }
         .disabled(projects.isEmpty)
         Menu("Turn into a note") {
@@ -517,9 +557,7 @@ struct InboxQuadrant: View {
                         // An empty menu opens as nothing at all (build 100): say why.
                         Text("No project or area yet")
                     } else {
-                        ForEach(destinations) { note in
-                            Button(note.displayTitle) { model.moveTask(ref, to: note.relativePath) }
-                        }
+                        FilingPlaces(ref: ref, places: destinations)
                     }
                 } label: {
                     face("tray.and.arrow.down", "File it", isOn: false, dashed: false)

@@ -2739,6 +2739,7 @@ final class AppModel: ObservableObject {
             let move = try vault.move(task: ref.task, from: source, to: target)
             reloadSettling()
             log("moved task \"\(ref.task.title)\" \(ref.notePath) -> \(path)")
+            rememberFiledPlace(path)
             if move.leftInSource {
                 errorMessage = "\u{201C}\(ref.task.title)\u{201D} was added to \(move.target.displayTitle), but "
                     + "\(source.displayTitle) changed at the same moment and still has it. Delete the one you do not want."
@@ -2748,6 +2749,30 @@ final class AppModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Build 331: the places a task was last moved to on this device, newest first. **File it**
+    /// in the Inbox shows the first three on top (`FilingOrder`). Kept per device, like the
+    /// recent notes: what he files on the phone says little about the Mac.
+    @Published private(set) var recentFilingPaths: [String] =
+        UserDefaults.standard.stringArray(forKey: AppModel.recentFilingKey) ?? []
+    static let recentFilingKey = "filing.recentPlaces"
+
+    private func rememberFiledPlace(_ path: String) {
+        recentFilingPaths = FilingOrder.remembering(path, in: recentFilingPaths)
+        UserDefaults.standard.set(recentFilingPaths, forKey: Self.recentFilingKey)
+    }
+
+    /// What **File it** offers before the whole list, for this line.
+    func filingOffer(for ref: TaskRef, among places: [Note]) -> FilingOrder.Offer {
+        var shortList = FilingOrder.shortList
+        #if DEBUG
+        // The screen tests' notes have two places only; they must still see the groups.
+        if TestVault.isWanted { shortList = 0 }
+        #endif
+        return FilingOrder.offer(for: ref.task.title,
+                                 places: places.map { FilingOrder.Place(path: $0.relativePath, title: $0.displayTitle) },
+                                 recentPaths: recentFilingPaths, shortList: shortList)
     }
 
     /// Opens the Time Blocks section with a block prepared for this task.
@@ -5538,6 +5563,19 @@ final class AppModel: ObservableObject {
             guard self.vault === vault else { return }
             lastReport = report
             for warning in report.warnings { log("sync: \(warning)") }
+            // Build 331: a reminder whose task line is gone waits two minutes before it is
+            // deleted (the task may be on its way to another note). One quiet sync is planned
+            // for the end of that wait, so a task he deleted does not keep its reminder until
+            // something else happens to start a sync.
+            goneFollowUp?.cancel()
+            if report.remindersWaitingToGo > 0 {
+                log("sync: \(report.remindersWaitingToGo) reminder(s) wait before they are deleted")
+                goneFollowUp = Task { [weak self] in
+                    try? await Task.sleep(for: .seconds(SyncEngine.standardGoneGrace + 5))
+                    guard !Task.isCancelled else { return }
+                    await self?.syncNow(quietly: true)
+                }
+            }
             reload()
             refreshSafety()
             await forgetDeletedListsKeptApart(in: vault)
@@ -5563,6 +5601,9 @@ final class AppModel: ObservableObject {
         config = changed
         log("kept apart no longer (list deleted in Reminders): \(gone)")
     }
+
+    /// Build 331: the one quiet sync planned for reminders that wait before they are deleted.
+    private var goneFollowUp: Task<Void, Never>?
 
     private func scheduleAutoSync() {
         autoSyncTask?.cancel()

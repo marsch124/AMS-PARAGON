@@ -649,6 +649,61 @@ final class ScreenTests: XCTestCase {
                       "Tomorrow was pressed and no message said so. On screen: \(visibleTexts())")
     }
 
+    /// **Build 331:** on the iPhone **File it** puts the likely places first. A line that
+    /// shares a telling word with a project is offered that project under **Suggested**; once
+    /// a line was filed there, the next line is offered it under **Recent**; and the whole
+    /// list still follows, so the project is in the menu twice.
+    func testFileItOffersSuggestedAndRecentPlacesFirst() throws {
+        try XCTSkipIf(UIDevice.current.userInterfaceIdiom == .pad, "The iPad files from its own column.")
+        go(to: .today)
+        let open = element("capture.open")
+        XCTAssertTrue(open.waitForExistence(timeout: 20), "There is no Quick capture button.")
+        open.press()
+        let field = element("capture.text")
+        XCTAssertTrue(field.waitForExistence(timeout: 20), "The capture screen did not open.")
+        field.press()
+        field.typeText("Pack for the Kungsleden trip")
+        let save = element("capture.save")
+        XCTAssertTrue(save.waitForExistence(timeout: 10), "The capture screen has no Save button.")
+        save.press()
+        let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 30), .completed,
+                       "The capture screen did not close itself. On screen: \(visibleTexts())")
+
+        go(to: .inbox)
+        let project = "Plan the Kungsleden trip"
+        let places = app.buttons.matching(NSPredicate(format: "label == %@", project))
+        func heading(_ word: String) -> XCUIElement {
+            app.staticTexts.matching(NSPredicate(format: "label ==[c] %@", word)).firstMatch
+        }
+        func openFileIt(for title: String) {
+            let line = element("inbox.\(title)")
+            XCTAssertTrue(line.waitForExistence(timeout: 20),
+                          "The Inbox does not show \(title). On screen: \(visibleTexts())")
+            line.press()
+            let file = element("inbox.quad.file")
+            XCTAssertTrue(file.waitForExistence(timeout: 10),
+                          "The picked line shows no File it button. On screen: \(visibleTexts())")
+            file.press()
+        }
+
+        openFileIt(for: "Pack for the Kungsleden trip")
+        XCTAssertTrue(heading("Suggested").waitForExistence(timeout: 10),
+                      "File it shows no Suggested group for a line that names the project. On screen: \(visibleTexts())")
+        look("331-file-it-suggested")
+        XCTAssertEqual(places.count, 2, "The project should be there twice: suggested, and in the whole list.")
+        places.firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["Moved to \(project)"].waitForExistence(timeout: 10),
+                      "A place was pressed and no message said the line was moved. On screen: \(visibleTexts())")
+
+        openFileIt(for: "Call the bank about the ferry")
+        XCTAssertTrue(heading("Recent").waitForExistence(timeout: 10),
+                      "File it shows no Recent group after a line was filed. On screen: \(visibleTexts())")
+        look("331-file-it-recent")
+        XCTAssertFalse(heading("Suggested").exists, "The bank line shares no telling word with any place.")
+        XCTAssertEqual(places.count, 2, "The project should be there twice: recent, and in the whole list.")
+    }
+
     /// **Build 306:** an Inbox line swiped from the right goes to tomorrow, and the message's
     /// **Undo** takes the date off again (the test line has none). The date is read off the
     /// line itself, so this proves the file was written and then put back.

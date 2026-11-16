@@ -14,8 +14,21 @@ public final class SyncEngine {
     public let deviceID: String
     public var config: VaultConfig
     public var now: () -> Date = { Date() }
+    /// Build 331: how long a task's line must have been gone before its reminder is deleted.
+    /// Long enough for iCloud to bring the second of two notes a task was moved between
+    /// (they are written within a second of each other and arrive seconds apart), short
+    /// enough that a task he really deleted loses its reminder while he still remembers it.
+    public var goneGrace: TimeInterval = SyncEngine.standardGoneGrace
+    public static let standardGoneGrace: TimeInterval = 120
     /// The identity of each list PARAGON is linked to, by name, for the run in progress.
     private var knownListIDs: [String: String] = [:]
+
+    /// Build 331: true when an earlier sync already found this task's line gone, at least
+    /// `goneGrace` ago.
+    private func hasBeenGoneLongEnough(_ taskID: String, in state: SyncState) -> Bool {
+        guard let since = state.goneSince[taskID] else { return false }
+        return now().timeIntervalSince(since) >= goneGrace
+    }
 
     public init(vault: Vault, store: RemindersStore, deviceID: String, config: VaultConfig? = nil) {
         self.vault = vault
@@ -357,6 +370,8 @@ public final class SyncEngine {
                     cancelTitles.append(location.task.title)
                 } else if let reminder {
                     guard !reminder.isCompleted, !allTaskIDs.contains(taskID), loadedPaths.contains(link.notePath) else { continue }
+                    // Build 331: only what this run would really delete (see `goneSince`).
+                    guard hasBeenGoneLongEnough(taskID, in: state) else { continue }
                     summary.remindersToDelete += 1
                     deleteTitles.append(reminder.title)
                 } else {
@@ -464,7 +479,15 @@ public final class SyncEngine {
                         // The task moved to a note that is not synced (archived, sync: false). Leave the reminder alone.
                         state.links[taskID] = nil
                     } else if loadedPaths.contains(link.notePath) {
-                        // The note was read and the task line is gone: the user deleted it.
+                        // The note was read and the task line is gone: deleted — or moved to a
+                        // note whose new text iCloud has not brought yet (build 331). The first
+                        // sync that sees it only writes the time down; the reminder goes when a
+                        // later sync, `goneGrace` on, still finds the task nowhere.
+                        guard hasBeenGoneLongEnough(taskID, in: state) else {
+                            if state.goneSince[taskID] == nil { state.goneSince[taskID] = now() }
+                            report.remindersWaitingToGo += 1
+                            continue
+                        }
                         try await store.delete(identifier: reminder.identifier)
                         report.remindersDeleted += 1
                         state.links[taskID] = nil
@@ -615,6 +638,10 @@ public final class SyncEngine {
         indexTasks()
         state.waitingForReminder = state.waitingForReminder.filter { taskID in
             state.links[taskID] == nil && taskLocations[taskID].map { !$0.task.isDone } ?? false
+        }
+        // Build 331: a task that turned up again, or whose link is settled, is no longer "gone".
+        state.goneSince = state.goneSince.filter { taskID, _ in
+            state.links[taskID] != nil && taskLocations[taskID] == nil
         }
         // Remember each mapped list by its own identity (hardening-14). When two share the name,
         // the one a linked reminder is in.
