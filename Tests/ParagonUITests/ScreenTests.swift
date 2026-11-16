@@ -1199,7 +1199,7 @@ final class ScreenTests: XCTestCase {
             recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
         }
         XCTAssertTrue(recorded,
-                      "Review done was pressed and the line says: \(words(of: element("review.done.last"))). The button is \(again.exists ? "still" : "no longer") on screen. On screen: \(visibleTexts())")
+                      "Review done was pressed and the line says: \(words(of: element("review.done.last"))). The button is \(again.exists ? "still" : "no longer") on screen. \(whereabouts(again)) On screen: \(visibleTexts())")
         XCTAssertFalse(app.buttons.matching(identifier: "review.done").firstMatch.exists,
                        "Review done can be pressed twice on one day.")
     }
