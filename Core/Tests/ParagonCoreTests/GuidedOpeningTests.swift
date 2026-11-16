@@ -30,4 +30,10 @@ final class GuidedOpeningTests: XCTestCase {
         XCTAssertEqual(shown, [true, true, true, false, false])
         XCTAssertEqual(opens, 4, "The counter stops one past the limit.")
     }
+
+    /// Build 331: the loose tasks became step 3, so a remembered old number opens the same step.
+    func testRememberedOpenPartsFollowTheRenumberedSteps() {
+        XCTAssertEqual(ReviewOpening.renumberedForLooseStepFirst("due\n2\n3\n8\n9\nnoGoal"),
+                       "due\n2\n4\n9\n3\nnoGoal")
+    }
 }

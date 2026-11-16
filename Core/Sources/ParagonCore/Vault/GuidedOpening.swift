@@ -30,6 +30,15 @@ public enum ReviewOpening {
         return firstToDo(parts).map { [$0] } ?? []
     }
 
+    /// **Build 331: the loose tasks moved from step 9 to step 3**, so old steps 3 to 8 became 4
+    /// to 9. The remembered open parts keep the step number as their id; this maps one such
+    /// text (ids one per line) once, so a remembered old number opens the same step as before.
+    /// `due`, `1`, `2` and `noGoal` do not move. Run it once, guarded by a flag, never twice.
+    public static func renumberedForLooseStepFirst(_ text: String) -> String {
+        let map = ["3": "4", "4": "5", "5": "6", "6": "7", "7": "8", "8": "9", "9": "3"]
+        return text.split(separator: "\n").map { map[String($0)] ?? String($0) }.joined(separator: "\n")
+    }
+
     /// A tick in the heading: the part counts things to do, and none is left.
     public static func isTicked(toDo: Int?) -> Bool {
         toDo == 0

@@ -1,7 +1,7 @@
 import SwiftUI
 import ParagonCore
 
-/// Step 7 of the Weekly review, **Look back at the week** (build 263). He chose it from the
+/// Step 8 of the Weekly review, **Look back at the week** (build 263). He chose it from the
 /// plan page (https://claude.ai/artifact/RyZxairjYDdB7KoxiuGZ3S): the week's goal, the tasks
 /// finished each day, the lines written in **Close the day**, the time on the focus timer, the
 /// projects that ended, and what the work served. Every part of it was already in his notes;
@@ -14,9 +14,9 @@ import ParagonCore
 /// their click (builds 71–74), and an untagged one also never takes the selection fill, so the
 /// explicit colours below stay readable (build 201).
 ///
-/// **Build 266: the heading names the week the step shows.** It said "7. Look back at the
+/// **Build 266: the heading names the week the step shows.** It said "8. Look back at the
 /// week" while, on a Monday, the summary above it said "9 tasks finished in the last 7 days" —
-/// and he could not tell which week the step was about. It now says "7. Look back at last week"
+/// and he could not tell which week the step was about. It now says "8. Look back at last week"
 /// (or "this week", or "week 41"), through `WeekLook.weekName`, the one place a week is named
 /// in a sentence (build 264), and it follows the arrows. The step folds like every other part
 /// of the review; folded, nothing below the heading is worked out at all.
@@ -37,10 +37,10 @@ struct WeekLookStep: View {
     /// contradict the heading above it (review of 263).
     private var weekWords: String { shownWeek == thisWeek ? "this week" : "that week" }
 
-    /// "7. Look back at last week" — the week shown, named the way step 8 and **Calendar ›
+    /// "8. Look back at last week" — the week shown, named the way step 9 and **Calendar ›
     /// Week** name a week, so it changes with the arrows.
     private var heading: String {
-        "7. Look back at " + WeekLook.weekName(shownWeek, today: DateOnly.today())
+        "8. Look back at " + WeekLook.weekName(shownWeek, today: DateOnly.today())
     }
 
     var body: some View {
@@ -49,7 +49,7 @@ struct WeekLookStep: View {
                 content(model.index.weekLook(for: shownWeek))
             }
         } header: {
-            ReviewPartHeading(title: heading, isOpen: $isOpen, part: "7")
+            ReviewPartHeading(title: heading, isOpen: $isOpen, part: "8")
         } footer: {
             if isOpen {
                 Text("Press a day's line to open that day's note. The arrows show earlier weeks. **How was the week?** keeps one line about the week in that week's note.")
@@ -247,13 +247,13 @@ struct WeekLookStep: View {
     }
 }
 
-/// **How was the week?** (build 272), the box under the evening lines in step 7. He said yes
+/// **How was the week?** (build 272), the box under the evening lines in step 8. He said yes
 /// on the plan page (https://claude.ai/artifact/RyZxairjYDdB7KoxiuGZ3S, question 3): the words
 /// go into that week's note under `## Looking back`, the heading **Close the day** uses for a
 /// day, and not under the template's own `## Review`, whose two questions then can never be
 /// taken for his words.
 ///
-/// Edited in place like the goal box in step 8 and **Calendar › Week**: press it, write, press
+/// Edited in place like the goal box in step 9 and **Calendar › Week**: press it, write, press
 /// **Done**. `DayLog` (Core, tested) owns the section, `AppModel.saveLookingBack(_:forWeek:
 /// shown:)` the three rules of writing it.
 ///
@@ -421,15 +421,15 @@ struct WeekLineBox: View {
     }
 }
 
-/// Step 8 of the Weekly review, **Write the goal for …** (build 264): the week's goal box, for
+/// Step 9 of the Weekly review, **Write the goal for …** (build 264): the week's goal box, for
 /// the week you are about to work in (`WeekLook.goalWeek`, Core, tested). **The same
 /// `WeekGoalBox` as Calendar › Week**, not a copy, so the two can never disagree about what the
-/// goal is or how it is written (build 168). It does not follow step 7's arrows: looking at an
+/// goal is or how it is written (build 168). It does not follow step 8's arrows: looking at an
 /// old week must not move what you are about to plan.
 struct WeekGoalStep: View {
     /// Not read, but watched: it is what makes the body run again when the model publishes —
     /// at midnight among other times — so a review left open from Tuesday to Wednesday moves on
-    /// to next week like step 7 does. A view with nothing to watch is drawn once (review of 264).
+    /// to next week like step 8 does. A view with nothing to watch is drawn once (review of 264).
     @EnvironmentObject private var model: AppModel
     /// Whether the step is open, kept by `ReviewView` with the rest of the review (build 266).
     @Binding var isOpen: Bool
@@ -446,8 +446,8 @@ struct WeekGoalStep: View {
                     .buttonStyle(.borderless)
             }
         } header: {
-            ReviewPartHeading(title: "8. Write the goal for \(WeekLook.weekName(week, today: today))",
-                              isOpen: $isOpen, part: "8")
+            ReviewPartHeading(title: "9. Write the goal for \(WeekLook.weekName(week, today: today))",
+                              isOpen: $isOpen, part: "9")
         } footer: {
             if isOpen {
                 Text("It is shown on **Today** during that week, and at the top of **Calendar \u{203A} Week**.")

@@ -155,13 +155,13 @@ The steps:
 
 1. **Empty the inbox.**
 2. **Reschedule or drop overdue tasks.**
-3. **Read the aspirations again.** Is each still true?
-4. **Check the goals with a date are on course.**
-5. **Give every project a next action.**
-6. **Look over the areas.** An area's **Standard** shows here: your words for what good looks like.
-7. **Look back at last week.** Your days, the lines from Close the day, time worked, what ended, and a box, **How was the week?**
-8. **Write the goal for the week.** One line; it shows under the date on Today.
-9. **Thin out the loose tasks.** The open tasks nothing else looks at: no date, not waiting, not put aside, not a project's next action. Ten are shown at a time, from the notes you left alone longest. Under each are three answers: **Today**, **Someday** or **Drop**. A few each week is enough.
+3. **Thin out the loose tasks.** The open tasks nothing else looks at: no date, not waiting, not put aside, not a project's next action. Ten are shown at a time, from the notes you left alone longest. Under each are three answers: **Today**, **Someday** or **Drop**. A few each week is enough.
+4. **Read the aspirations again.** Is each still true?
+5. **Check the goals with a date are on course.**
+6. **Give every project a next action.**
+7. **Look over the areas.** An area's **Standard** shows here: your words for what good looks like.
+8. **Look back at last week.** Your days, the lines from Close the day, time worked, what ended, and a box, **How was the week?**
+9. **Write the goal for the week.** One line; it shows under the date on Today.
 
 Press **Review done** at the end. That is enough for the week. Settings can remind you: **Remind me to do the weekly review**.
 
