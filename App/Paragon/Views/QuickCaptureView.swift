@@ -230,7 +230,7 @@ struct QuickCaptureView: View {
             }
             caughtToday
             if model.vault == nil {
-                Text("No vault is open. Captures are kept and filed the next time the app opens a vault.")
+                Text("No notes folder is open. What you capture is kept and filed the next time one is open.")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
             }

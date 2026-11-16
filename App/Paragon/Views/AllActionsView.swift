@@ -339,7 +339,7 @@ struct AllActionsView: View {
         if total == 0 {
             EmptyStateView(title: "Nothing open",
                            markName: "checkmark.circle",
-                           message: "No open action anywhere in the vault. Capture something in the Inbox, and it will show up here.",
+                           message: "No open action anywhere in your notes. Capture something in the Inbox, and it will show up here.",
                            tint: tint,
                            actionTitle: "Capture an action\u{2026}",
                            action: { model.activeSheet = .quickCapture },

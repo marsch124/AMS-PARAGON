@@ -749,7 +749,7 @@ struct NoteEditorView: View {
                 // `copyItem` never writes over a file that is there.
                 try fm.copyItem(at: url, to: folderURL.appendingPathComponent(name))
             } catch {
-                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be saved: \(error.localizedDescription)"
+                model.errorMessage = "\u{201C}\(url.lastPathComponent)\u{201D} could not be saved. Check that your notes folder is reachable and try again. (\(error.localizedDescription))"
                 continue
             }
             names.insert(name)
@@ -772,7 +772,7 @@ struct NoteEditorView: View {
         do {
             try vault.writeFile(data, at: Pictures.droppedFolder + "/" + name)
         } catch {
-            model.errorMessage = "The picture could not be saved: \(error.localizedDescription)"
+            model.errorMessage = "The picture could not be saved. Check that your notes folder is reachable and try again. (\(error.localizedDescription))"
             return
         }
         let link = Sketches.link(toFile: name, fromNote: path, folder: Pictures.droppedFolder, alt: "Picture")
@@ -795,7 +795,7 @@ struct NoteEditorView: View {
         do {
             try vault.writeFile(jpeg, at: Pictures.photoFolder + "/" + fileName)
         } catch {
-            model.errorMessage = "The photo could not be saved: \(error.localizedDescription)"
+            model.errorMessage = "The photo could not be saved. Check that your notes folder is reachable and try again. (\(error.localizedDescription))"
             return
         }
         let link = Sketches.link(toFile: fileName, fromNote: path, folder: Pictures.photoFolder, alt: "Photo")
@@ -812,7 +812,7 @@ struct NoteEditorView: View {
             try vault.writeFile(png, at: picture)
             try vault.writeFile(drawing, at: Sketches.drawingPath(for: picture))
         } catch {
-            model.errorMessage = "The sketch could not be saved: \(error.localizedDescription)"
+            model.errorMessage = "The sketch could not be saved. Check that your notes folder is reachable and try again. (\(error.localizedDescription))"
             return
         }
         sketchVersion += 1

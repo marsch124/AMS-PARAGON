@@ -458,7 +458,7 @@ final class AppModel: ObservableObject {
             if let url = try? TestVault.make() {
                 openVault(at: url)
             } else {
-                vaultProblem = "The test vault could not be made."
+                vaultProblem = "The test notes folder could not be made."
             }
         } else {
             Self.foldSettingsBlockOnce()
@@ -1335,7 +1335,7 @@ final class AppModel: ObservableObject {
         let updating = notesBeingUpdated.count
         if waiting > 0 {
             return "\(waiting) note\(waiting == 1 ? " is" : "s are") still coming from iCloud, so \(what): "
-                + "it would only reach part of your vault. Try again in a moment."
+                + "it would only reach part of your notes. Try again in a moment."
         }
         if updating > 0 {
             return "\(updating) note\(updating == 1 ? " is" : "s are") being updated from iCloud, so \(what): "
@@ -1472,7 +1472,7 @@ final class AppModel: ObservableObject {
             return
         }
         guard let url = resolveBookmark(data) else {
-            vaultProblem = "PARAGON could not open \(lastVaultName ?? "your vault folder"). The folder may have been renamed or moved, or iCloud may not have it on this device yet."
+            vaultProblem = "PARAGON could not open \(lastVaultName ?? "your notes folder"). The folder may have been renamed or moved, or iCloud may not have it on this device yet."
             log("vault bookmark did not resolve")
             lookInOwnFolder()
             return
@@ -1496,7 +1496,7 @@ final class AppModel: ObservableObject {
                 self.purgeOldDeleted()
             }
         } catch {
-            vaultProblem = "PARAGON could not open \(lastVaultName ?? "your vault folder"): \(error.localizedDescription)"
+            vaultProblem = "PARAGON could not open \(lastVaultName ?? "your notes folder"): \(error.localizedDescription)"
             log("vault did not open: \(error.localizedDescription)")
         }
     }
@@ -4151,7 +4151,7 @@ final class AppModel: ObservableObject {
             var kept = running
             kept.pause(at: now)
             focus = kept
-            errorMessage = problem + " The vault was not changed, so the clock\u{2019}s time is not lost. Stop the clock first."
+            errorMessage = problem + " Your notes were not changed, so the clock\u{2019}s time is not lost. Stop the clock first."
             return false
         }
         focus = nil
@@ -4167,7 +4167,7 @@ final class AppModel: ObservableObject {
     @discardableResult
     private func writeWorked(_ session: FocusSession, at now: Date) -> (minutes: Int, problem: String?) {
         flushPendingEdits()
-        guard let vault else { return (0, "No vault is open.") }
+        guard let vault else { return (0, "No notes folder is open.") }
         let dated = WorkLog.spans(from: session.allRuns(endingAt: now), title: session.title)
         var written = 0
         var problem: String?
@@ -4408,7 +4408,7 @@ final class AppModel: ObservableObject {
     func capture(_ item: CaptureItem) {
         guard let vault else {
             try? CaptureOutbox(fileURL: Self.outboxURL).append(item)
-            lastCaptureMessage = "Saved, will be filed when a vault is open"
+            lastCaptureMessage = "Saved, will be filed when a notes folder is open"
             return
         }
         flushPendingEdits()
@@ -4867,7 +4867,7 @@ final class AppModel: ObservableObject {
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         let chosen = url.standardizedFileURL.resolvingSymlinksInPath().path
         if let vault, chosen == vault.rootURL.path || chosen.hasPrefix(vault.rootURL.path + "/") {
-            errorMessage = "Choose a folder outside your vault. A copy kept inside it would be lost together with it."
+            errorMessage = "Choose a folder outside your notes folder. A copy kept inside it would be lost together with it."
             return
         }
         #if os(macOS)

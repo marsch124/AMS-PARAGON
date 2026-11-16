@@ -79,7 +79,7 @@ struct SystemSearchSection: View {
 
     private var countText: String {
         if !isOn { return "None" }
-        if model.vault == nil { return "No vault open" }
+        if model.vault == nil { return "No notes folder open" }
         guard let count = indexer.count else { return indexer.isWorking ? "Building\u{2026}" : "Not built yet" }
         return indexer.isWorking ? "\(count), updating\u{2026}" : "\(count)"
     }

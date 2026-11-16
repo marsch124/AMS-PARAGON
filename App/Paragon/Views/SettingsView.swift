@@ -52,13 +52,13 @@ struct SettingsView: View {
             // iPhone straight under Help).
             SafetySection()
             Group {
-            Section("Vault") {
+            Section("Notes folder") {
                 // Round 9 (build 316): the folder's name and where it is, in plain words.
                 // Before, the raw path. On the Mac the path is the row's hover tip, and
                 // **Show in Finder** opens the place itself.
                 LabeledContent("Folder") {
                     Text(model.vaultPath.map { VaultPlaceWords.line(path: $0, device: AppModel.thisDevice) }
-                         ?? "No vault selected")
+                         ?? "No notes folder chosen")
                         .foregroundStyle(.soft)
                         .lineLimit(2)
                         .truncationMode(.middle)
@@ -81,7 +81,7 @@ struct SettingsView: View {
                 #endif
                 // On a line of its own (round 3): the red word sat right beside Choose folder.
                 if model.vault != nil {
-                    Button("Close vault", role: .destructive) { model.closeVault() }
+                    Button("Close notes folder", role: .destructive) { model.closeVault() }
                 }
             }
 
@@ -177,7 +177,7 @@ struct SettingsView: View {
             }
 
             Section("Backups") {
-                Toggle("Save a copy of the vault before each sync", isOn: Binding(
+                Toggle("Save a copy of your notes before each sync", isOn: Binding(
                     get: { model.backsUpBeforeSync },
                     set: { model.backsUpBeforeSync = $0 }
                 ))
@@ -216,7 +216,7 @@ struct SettingsView: View {
 
             // Build 308 (hardening-13): the backups above sit inside the vault folder, so they
             // are lost with it. This one is kept somewhere else, and holds the pictures too.
-            Section("Second copy, outside the vault") {
+            Section("Second copy, outside your notes folder") {
                 LabeledContent("Kept") {
                     Text(model.outsideBackupFolderName.map { "in the folder \u{201C}\($0)\u{201D}" } ?? "on \(AppModel.thisDevice)")
                         .foregroundStyle(.soft)
@@ -278,7 +278,7 @@ struct SettingsView: View {
                             .accessibilityIdentifier("settings.outsideBackup.restored")
                     }
                 }
-                Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside the vault, so they are still there if the vault folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
+                Text("Once a day, and with Back up now, your notes, pictures and sketches are also copied to a place outside your notes folder, so they are still there if the notes folder is lost. Choose a folder, for example in Dropbox, to keep this copy somewhere other than \(AppModel.thisDevice).")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
             }
@@ -429,7 +429,7 @@ struct SettingsView: View {
                             .minimumScaleFactor(0.6)
                             .textSelection(.enabled)
                     }
-                    Text("Sync state is stored per device in the vault's .ams-para folder. Task ids (^t…) in your notes and the ams-para marker in reminder notes are what keep both sides linked.")
+                    Text("PARAGON remembers on each device what it has synced, and marks each task with a small hidden code so a task and its reminder stay linked.")
                         .font(Txt.label)
                         .foregroundStyle(.soft)
                 }
@@ -466,7 +466,7 @@ struct SettingsView: View {
                             presenting: backupToRestore) { backup in
             Button("Restore", role: .destructive) { model.restore(backup) }
         } message: { backup in
-            Text("\(backup.noteCount) notes are written back into the vault, replacing the current versions. What you have now is saved as a backup first.")
+            Text("\(backup.noteCount) notes are written back into your notes folder, replacing the current versions. What you have now is saved as a backup first.")
         }
         .onAppear {
             model.refreshBackups()
@@ -507,17 +507,17 @@ struct OutsideRestoreView: View {
             return ("Looking for the outside copy\u{2026}", ["Nothing is changed."], false, true)
         case .some(.none):
             return ("There is no outside copy yet.",
-                    ["PARAGON looked \(place) and found no copy of the vault \(vault). One is made once a day, and with Back up now. Nothing was changed."], false, false)
+                    ["PARAGON looked \(place) and found no copy of the notes folder \(vault). One is made once a day, and with Back up now. Nothing was changed."], false, false)
         case .copies(let copies):
             guard let copy = model.outsideRestoreChoice?.selectedCopy else { return ("", [], false, false) }
-            let which = copies.count == 1 ? "It is the only outside copy of the vault \(vault)"
-                : (copy.id == copies.first?.id ? "It is the newest of \(copies.count) outside copies of the vault \(vault)"
-                   : "It is one of \(copies.count) outside copies of the vault \(vault)")
+            let which = copies.count == 1 ? "It is the only outside copy of the notes folder \(vault)"
+                : (copy.id == copies.first?.id ? "It is the newest of \(copies.count) outside copies of the notes folder \(vault)"
+                   : "It is one of \(copies.count) outside copies of the notes folder \(vault)")
             var details = ["\(which), kept \(place). It holds \(FolderChoiceView.notes(copy.backup.noteCount)), with their pictures and sketches."]
             if !copy.isMarked {
-                details.append("This copy was made before build 315, so it does not say which vault it is of. Check its folders before you restore it.")
+                details.append("This copy was made before build 315, so it does not say which notes folder it is of. Check its folders before you restore it.")
             }
-            details += ["Restoring puts those notes, pictures and sketches back into the vault \(vault), over the versions you have now.",
+            details += ["Restoring puts those notes, pictures and sketches back into the notes folder \(vault), over the versions you have now.",
                         "What you have now is saved as a backup first, so you can go back. Notes you made since that copy are left alone. Nothing is deleted."]
             return ("Restore the outside copy from \(DayWords.plainWithTime(copy.backup.date))?", details, true, false)
         case .restoring(let copy):
@@ -881,7 +881,7 @@ struct WidgetStatusSection: View {
             return "The widget reads a small file that the app and the widget share. PARAGON cannot reach that shared folder here, so the widget has nothing to read. That is not something you can mend yourself — tell me and I will fix it in the build."
         }
         if snapshot == nil {
-            return "Nothing has been written yet. Open a vault, or press Write it again now."
+            return "Nothing has been written yet. Open a notes folder, or press Write it again now."
         }
         return "The widget reads this file. It is written again a few seconds after a change that the widget would show. Last written is the time of the last such change, so an old time does not mean the widget is not working."
     }
@@ -914,7 +914,7 @@ struct WidgetStatusSection: View {
             .disabled(!folderFound)
             if !model.notesWaitingForCloud.isEmpty {
                 // Build 261: the widget is not written from part of the vault.
-                Text("Not written while \(model.notesWaitingForCloud.count) notes are still coming from iCloud: it would show only part of your vault.")
+                Text("Not written while \(model.notesWaitingForCloud.count) notes are still coming from iCloud: it would show only part of your notes.")
                     .font(Txt.label)
                     .foregroundStyle(Theme.attention.ink)
                     .fixedSize(horizontal: false, vertical: true)

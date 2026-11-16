@@ -47,7 +47,7 @@ extension AppModel {
     func setStandard(_ text: String, on note: Note, startedFrom: String?) -> StandardWrite {
         flushPendingEdits()
         guard let live = self.note(at: note.relativePath) else {
-            errorMessage = "\u{201C}\(note.displayTitle)\u{201D} is not in the vault any more, so its standard was not saved."
+            errorMessage = "\u{201C}\(note.displayTitle)\u{201D} is not in your notes any more, so its standard was not saved."
             return .notWritten
         }
         let clean = AreaStandard.cleaned(text)
