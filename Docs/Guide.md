@@ -28,6 +28,8 @@ Under the capture field, small dashed chips show what PARAGON understood: a date
 
 Pick a line and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it** (into a project or area). Captured notes sit under **Notes**, where **Make task** turns one into a task. When nothing is left, the screen says **Inbox zero**.
 
+On the iPhone, **File it** lists the likely places first (since build 331). **Suggested** has up to 2 places whose name shares a telling word with the line. **Recent** has up to 3 places you last moved a task to on this phone. Under them, **All projects and areas** is the whole list, so nothing is hidden. With 6 places or fewer there are no groups. **Move to** on a line's menu has the same groups.
+
 ## 3. Today
 
 **Today** is the screen you live in. It shows the day's calendar events, then what needs you now: overdue tasks, tasks due today, the one next action of each active project, and undated tasks marked important.
@@ -189,6 +191,8 @@ What goes across:
 Sync runs by itself every few minutes. Press the **sync ring** (foot of the sidebar on the Mac, top right of the screens on the iPhone) for **Sync now**, **Show me what would change…** and the last report. The ring is a small clock: green when the last sync is recent, yellow after a while, red after conflicts, grey before any sync. On the Mac, Shift-Command-R also syncs.
 
 If a task changed on both sides, **Settings › Reminders sync** decides who wins: the note or the reminder.
+
+When you delete a task, its reminder goes about 2 minutes later, not at once (since build 331). The first sync only notes that the task is gone; a later sync, at least 2 minutes on, deletes the reminder if the task is still in no note. This is why a task you move from one note to another keeps its reminder, even when iCloud brings the two notes in a different order.
 
 ### The questions PARAGON asks
 

@@ -1,6 +1,36 @@
 # Version history
 
-The version is shown as 1.0 (330) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (331) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 331 · 16 November 2026
+
+**Filing is quicker, the loose tasks come earlier, a moved task keeps its reminder.** This build has three things from the advisors' round, and one fault that a new test found.
+
+**New.**
+- **Quicker filing from the Inbox.** Before: on the iPhone, **File it** opened one flat list of every project and every area, so with 50 places you scrolled to find the one you wanted. Now: two short groups come first, and the whole list follows.
+  - **Suggested** has up to 2 places whose name shares a telling word with the line. Little words such as "the", "for" and "and" do not count, and a plural counts as its word ("trips" and "trip" are the same). The place with the most shared words comes first. Example: the line "Book the ferry for the Kungsleden trip" suggests the project "Plan the Kungsleden trip".
+  - **Recent** has up to 3 places a task was last moved to on this device, newest first. A place that is already under **Suggested** is not shown again here. The device remembers the last 8 places, so the group stays full when one of them is archived.
+  - **All projects and areas** is the whole list in its usual order. Nothing is hidden.
+  - With 6 places or fewer there are no groups. A list that short is its own shortcut.
+  - The same groups are in **Move to** on a line's menu: hold the line on the iPhone and the iPad, right-click it on the Mac.
+  - **Recent** is kept on each device on its own. It is not synced.
+
+**Changed.**
+- **Weekly review: "Thin out the loose tasks" is now step 3.** Before, it was step 9, after everything else, and it was easy to reach the end of the review without it. Now it comes right after "2. Reschedule or drop overdue tasks". The old steps 3 to 8 are now steps 4 to 9. A part you had left open stays open: the app carries your remembered step numbers over once. Loose tasks still never count as something left to do.
+- **A task's reminder after you delete the task.** Before: when a task's line was gone from your notes, the next sync deleted its reminder at once. Now: the first sync that finds the line gone only writes the time down. The reminder is deleted when a later sync, at least 2 minutes on, still finds the task in no note. What you will see: after you delete a task, its reminder goes after about 2 minutes, not at once. The app plans that one quiet extra sync by itself.
+- **The big-change brake counts what would really be deleted.** Before, a reminder whose task line had just gone counted at once. Now only reminders that would really be deleted in that sync count, so a few tasks you moved are not mistaken for a big change.
+
+**Fixed.**
+- **A task moved from one note to another could lose its reminder.** Found by a new test. Before: when you moved a task from one note to another on one device (for example filed from the Inbox into a project), another device could get the note the task left from iCloud before the note it went to. A sync in that moment took the task for deleted and deleted its reminder, and made a new one later. Anything you had set only in Reminders, such as its notes or an alert, was lost. Now: the task is not taken for deleted until it has been in no note for at least 2 minutes, and a task that turns up in another note keeps the same reminder.
+
+**Looked at, left as it is, on purpose.**
+- **An iCloud copy of a note.** Build 330 listed this as a suspicion: a copy named "Name 2" beside "Name" might double reminders, steal them or delete them. Two new tests show that the guards already in the app hold, so nothing was changed. A note of your own that simply ends in " 2" stays an ordinary note.
+
+**Not seen, not tried.**
+- The case with two real devices, and a moved task arriving in the other order, was tested in the sync tests only, not on two devices.
+- The new **Suggested** and **Recent** groups were checked by a screen test on the iPhone. They were not looked at on a real iPhone, on the Mac or on the iPad.
+
+Tested: 6 new rule tests (2 for the filing order, 2 for a task moved between notes, 2 for the iCloud copy) and 1 new screen test for the filing groups on the iPhone. Rule tests in all: «RULE-TESTS».
 
 ## Build 330 · 16 November 2026
 

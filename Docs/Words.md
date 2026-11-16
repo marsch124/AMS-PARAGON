@@ -117,6 +117,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Getting things in
 
 - **Inbox** — where new things land before you decide where they belong.
+- **Suggested** and **Recent** — two short groups at the top of **File it** and **Move to**, when there are more than 6 places. **Suggested** has up to 2 places whose name shares a telling word with the line. **Recent** has up to 3 places you last moved a task to on this device. **All projects and areas** follows, with nothing hidden.
 - **Key from any app** — in **Settings › Quick capture** on the Mac: a key that opens a small capture panel while you are in another app. It is **Off** until you choose one.
 - **Capture** — writing something down quickly, to sort later. It goes to the Inbox. On the iPhone it starts with the round **+** button at the bottom right of **Today**, **Actions** and **Inbox**, just above the tab bar. In **New**, the button for it is called **Inbox**, because that is where the line lands.
 - **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
