@@ -286,11 +286,14 @@ jobs:
       # foot of the app's window. A press on a button down there landed on the Dock, took five
       # seconds and left the app behind another one (the Mac run of build 329). The Dock is
       # hidden, and the screen's size is printed for the next time a press goes astray.
-      - name: Hide the Dock
+      # 16 Nov 2026, later the same day: the run with the Dock hidden (016dc20) had 16 red
+      # tests, 14 of them "is not foreground" — one launch in five never came to the front,
+      # the very fault the set-up's relaunch had cured in the run before (8 red, none of this
+      # kind). Restarting the Dock is the one thing that changed on the runner, so it is no
+      # longer restarted. The tests keep their presses clear of the Dock by themselves
+      # (`clickableRoom()` reads the screen's visible frame). Only the size is printed.
+      - name: Print the screen's size
         run: |
-          defaults write com.apple.dock autohide -bool true
-          killall Dock || true
-          sleep 3
           system_profiler SPDisplaysDataType | grep -i "resolution" || true
       - name: Press the buttons
         run: |
