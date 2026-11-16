@@ -74,7 +74,9 @@ jobs:
     # Build 279: the suite has grown to over fifty tests, and run 368 took 29 of the 30
     # minutes with every test passing. Forty-five keeps a slow runner from failing a green
     # suite, and still stops a hang.
-    timeout-minutes: 45
+    # Build 327: on the macos-26 runner the suite (now well over a hundred tests) no longer
+    # fits: two runs were cut off at 45 minutes with no test failing. Ninety.
+    timeout-minutes: 90
     # A job of its own, so a red light says "a screen is broken" and not "the app does not
     # compile". Build 190: until now CI compiled this app and never opened a screen in it,
     # which is why builds 71-74, 85 and 114-128 all shipped green.
@@ -271,7 +273,9 @@ jobs:
     # The runner is a Mac, so no simulator: the app itself is started and clicked. Build 195.
     # The faults that cost this project the most were the Mac's — the Inbox list of builds
     # 71-74 and the Map canvas of build 85 — and the phone suite cannot see either.
-    timeout-minutes: 30
+    # Build 327: with the sidebar reachable again the tests run to the end instead of failing
+    # at once, and thirty minutes cut the run off. Seventy-five.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - name: Install XcodeGen
