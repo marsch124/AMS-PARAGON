@@ -108,6 +108,10 @@ final class IPadScreens: XCTestCase {
             // picture shows where a note goes on the iPad: the third column.
             if section == "Projects" {
                 let name = next("A project open")
+                // On its side the sidebar comes out over the list (iPadOS keeps it out after
+                // a row is pressed), so the project row lies under it: put it away first,
+                // as a person would, with the bar's own **Hide Sidebar** button.
+                hideTheSidebar()
                 press(reveal(Self.project, name))
                 check(element("note.editor").waitForExistence(timeout: 20),
                       "The test project opened without its editor.", name)
@@ -247,7 +251,14 @@ final class IPadScreens: XCTestCase {
     private func visibleBottom() -> CGFloat {
         let keyboard = app.keyboards.firstMatch
         if keyboard.exists, !keyboard.frame.isEmpty { return keyboard.frame.minY }
-        return app.frame.isEmpty ? .greatestFiniteMagnitude : app.frame.maxY
+        var bottom = app.frame.isEmpty ? CGFloat.greatestFiniteMagnitude : app.frame.maxY
+        // Build 285+: the sync line is a bar over the foot of the sidebar, and a row whose
+        // middle lies under it is not pressable — the press opens the sync menu instead
+        // (iPad mini upright: Search sat under it). Such a row is scrolled up first.
+        let bar = app.descendants(matching: .any).matching(identifier: "sync.status")
+            .allElementsBoundByIndex.first { !$0.frame.isEmpty }
+        if let bar, bar.frame.minY > bottom / 2 { bottom = min(bottom, bar.frame.minY - 4) }
+        return bottom
     }
 
     /// A tap at the element's middle, measured from the app's corner — the phone's way in
@@ -278,6 +289,19 @@ final class IPadScreens: XCTestCase {
     private func showSidebarButton() -> XCUIElement? {
         let button = app.buttons.matching(NSPredicate(format: "label == 'Show Sidebar'")).firstMatch
         return button.exists && button.isHittable ? button : nil
+    }
+
+    /// The bar's **Hide Sidebar** button, when the sidebar is out (the opposite of
+    /// `showSidebarButton`). Nothing happens when it is not there.
+    private func hideTheSidebar() {
+        // Two such buttons exist while the sidebar covers the list: one belongs to the list's
+        // own bar and lies **under** the sidebar's gear; the one that is drawn on top is the
+        // right-most (iPad mini landscape: x 14 and x 224). Press that one.
+        let buttons = app.buttons.matching(NSPredicate(format: "label == 'Hide Sidebar'"))
+            .allElementsBoundByIndex.filter { !$0.frame.isEmpty }
+        guard let button = buttons.max(by: { $0.frame.minX < $1.frame.minX }) else { return }
+        press(button)
+        Thread.sleep(forTimeInterval: 1.5)
     }
 
     private func swipeInFromTheLeft() {
