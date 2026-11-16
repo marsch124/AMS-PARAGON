@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (328) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (329) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 329 · 16 November 2026
+
+**A start screen that waits for you.** At every fresh start, on the iPhone, the iPad and the Mac, PARAGON now shows a calm start screen first, and it stays until you tap it.
+
+**New.**
+- **The start screen.** It has the dark slate ground of the app icon (the same by day and by night) and the icon's white hand-drawn drawing, a tick and three squares. Under it: the name **PARAGON**, the day ("Monday 2026-11-16"), one line of what is waiting ("3 due today · 1 in the Inbox"), the words **Tap to start** (on the Mac: **Click or press a key to start**) and the version ("1.0 (329)").
+- **It waits for you.** It does not go away by itself. Tap it (on the Mac: click it or press any key) and you are in. This was your own choice on 16 November: "Only when I tap".
+- **What the line counts.** **Due today** counts open tasks due today or earlier, deadlines included, the archive left out. It is the same number the **Today** row uses for what is due. The Inbox number is the open tasks in the Inbox note. A zero is said in words: "Nothing due today", "Inbox empty". Both numbers appear as soon as your notes have opened; until then only the day shows.
+- **It never stands in the way of a place you asked for by name.** It is not shown, or leaves at once, when PARAGON is opened by a line or number on a widget, a note link, a Siri or Shortcuts action that opens the app (**Open Today**, **Start the day**, **Close the day**), a press on one of PARAGON's reminders (evening, morning, weekly review), or a note pressed in the iPhone's own search. Coming back to PARAGON from another app does not show it again; only a fresh start does.
+
+**Fixed.**
+- Since your notes live in PARAGON's own iCloud folder (the copy of 16 November), the old welcome page flashed past for a moment at every start: four coloured squares, "PARAGON" and the text about choosing a folder. The folder takes a moment to open. Now only one quiet line shows while the notes open ("Opening your notes…"), and the welcome page shows only when there really is no notes folder. That page now carries the app icon too: the four squares were the old logo from before the app icon changed in build 311, and they are gone.
+
+**Under the bonnet: the automatic tests.**
+- The rule has its own tests. The screen tests start without the start screen; one new screen test asks for it and taps it away.
+- The iPad walk-through on its side now presses a sidebar row up to three times when a press changed nothing (a GitHub run on 16 November failed at "landscape 07 All actions").
+
+**Not changed, on purpose.**
+- Every note, copy and sync rule.
+- Where widgets, Siri actions, reminders and links take you.
 
 ## Build 328 · 16 November 2026
 

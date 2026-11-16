@@ -625,7 +625,7 @@ extension View {
 enum AppVersion {
     static var text: String {
         let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-        return "\(short) (\(BuildStamp.number))"
+        return StartScreenRule.versionLine(version: short, build: BuildStamp.number)
     }
 }
 

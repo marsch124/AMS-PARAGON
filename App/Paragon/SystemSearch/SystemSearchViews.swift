@@ -20,6 +20,8 @@ enum SystemSearchOpening {
         // The Mac may hand one press over twice (the window and the app each hear it).
         if let last, last.identifier == identifier, Date().timeIntervalSince(last.at) < 1.5 { return }
         last = (identifier, Date())
+        // Build 329: a note pressed in the system search goes straight to it.
+        model.arrived(by: .systemSearch)
         let path = String(identifier.dropFirst(SystemSearchIndexer.identifierPrefix.count))
         // `afterUpdate`: the press may arrive while the window it opened is still being drawn.
         model.afterUpdate {

@@ -140,12 +140,41 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 328
+    static let number = 329
 }
 
 @MainActor
 final class AppModel: ObservableObject {
     @Published private(set) var vault: Vault?
+    /// Build 329: the start screen is up from a fresh start until he taps it (`StartScreen`),
+    /// or until something sends him to a place by name (`arrived(by:)`). Whether it shows at
+    /// all is `StartScreenRule`'s answer (Core, tested).
+    @Published private(set) var startScreenUp = AppModel.startScreenWantedAtLaunch
+
+    /// A start by hand shows it. The screen tests and the launch check have nobody to tap, so
+    /// the test vault starts without it unless a test asks for it by name.
+    static var startScreenWantedAtLaunch: Bool {
+        #if DEBUG
+        if TestVault.isWanted {
+            let asked = ProcessInfo.processInfo.arguments.contains(TestVault.startScreenArgument)
+            return asked || StartScreenRule.shows(.test)
+        }
+        #endif
+        return StartScreenRule.shows(.byHand)
+    }
+
+    /// His tap (the Mac: a click or any key).
+    func leaveStartScreen() {
+        guard startScreenUp else { return }
+        withAnimation(Motion.fade) { startScreenUp = false }
+    }
+
+    /// A widget line, a Siri action, a reminder or a note from the system search arrived: the
+    /// start screen steps aside at once, so it never stands before the place he asked for.
+    func arrived(by opening: StartScreenRule.Opening) {
+        guard startScreenUp, !StartScreenRule.shows(opening) else { return }
+        startScreenUp = false
+    }
     @Published private(set) var notes: [Note] = [] {
         didSet {
             stateGeneration &+= 1
@@ -4487,6 +4516,8 @@ final class AppModel: ObservableObject {
 
     /// Handles `amspara://capture?...` and `amspara://<note title>` links.
     func handle(url: URL) {
+        // Build 329: a link names a place, so the start screen steps aside.
+        arrived(by: .link)
         // The **Today's plan** widget (build 273): Time Blocks, on today. Checked before anything
         // else, and with an empty host: a note link has the note's title as its host.
         if WidgetSnapshot.opensPlan(url) {

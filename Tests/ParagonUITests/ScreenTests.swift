@@ -1819,6 +1819,29 @@ final class ScreenTests: XCTestCase {
                       "A press on the Safety line does not show the Devices line (settings.safety.line.devices). On screen: \(visibleTexts())")
     }
 
+    /// Build 329: a fresh start shows the start screen (`start.screen`) — the icon's slate page
+    /// with the name, the day and what is waiting — and **it waits**: nothing takes it away but
+    /// a tap (the Mac: a click). Every other test starts without it (the test vault has nobody
+    /// to tap), so this one starts the app again and asks for it by name.
+    func testTheStartScreenWaitsForATapAndThenGivesWay() {
+        app.terminate()
+        app.launchArguments += ["-paragon-start-screen"]
+        app.launch()
+        #if os(macOS)
+        bringTheAppToTheFront()
+        #endif
+        let start = element("start.screen")
+        XCTAssertTrue(start.waitForExistence(timeout: appears),
+                      "A fresh start shows no start screen (start.screen). On screen: \(visibleTexts())")
+        XCTAssertTrue(start.label.contains("PARAGON"), "The start screen does not say PARAGON: \(start.label)")
+        // It waits: still there four seconds on, nobody having touched it.
+        Thread.sleep(forTimeInterval: 4)
+        XCTAssertTrue(start.exists, "The start screen went away by itself; it must wait for a tap.")
+        start.press()
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: start)
+        waitForExpectations(timeout: 10)
+    }
+
     /// Build 324: a list opened from Browse has Apple's own search field, "Search in Projects".
     /// It hangs under the title (pull down); a word that matches nothing gives "Nothing found".
     func testAListOpenedFromBrowseHasItsOwnSearchField() {

@@ -171,6 +171,26 @@ struct ContentView: View {
         // lists draw the app's page and cards (`phonePage`, `phoneCard`). After `.sheet`, so
         // the sheets read it too.
         .environment(\.phoneLook, isCompact && model.vault != nil)
+        // Build 329: the start screen lies over the whole window until he taps it. An overlay,
+        // so the window under it is built and ready, and the split view stays the first
+        // subview (`MainWindowMarker` counts on that).
+        .overlay {
+            if model.startScreenUp {
+                StartScreen()
+                    .environmentObject(model)
+                    .transition(.opacity)
+            }
+        }
+        #if os(iOS)
+        // The clock and battery are black by day, and black on slate cannot be read: no status
+        // bar while the start screen is up. It comes back with the tap.
+        .statusBarHidden(model.startScreenUp)
+        #endif
+        #if os(macOS)
+        // The Mac draws the toolbar in the window's own bar, above any overlay: away with it
+        // while the start screen is up, or its buttons would sit on the slate.
+        .toolbar(model.startScreenUp ? .hidden : .automatic, for: .windowToolbar)
+        #endif
         .onOpenURL { url in
             model.handle(url: url)
             #if os(macOS)
@@ -188,16 +208,19 @@ struct ContentView: View {
         // (build 238), and the count is the one handed in, never read back (build 242).
         .onReceive(EveningReminder.shared.$openRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(.evening, upTo: count) else { return }
+            model.arrived(by: .reminder)
             answerReminder(opening: .closeDay)
         }
         .onReceive(EveningReminder.shared.$morningRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(.morning, upTo: count) else { return }
+            model.arrived(by: .reminder)
             answerReminder(opening: .startDay)
         }
         // The weekly review's reminder (round 8, build 315) opens the review itself: a place,
         // not a sheet, so nothing typed in an open sheet is lost by going there.
         .onReceive(EveningReminder.shared.$reviewRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(.weeklyReview, upTo: count) else { return }
+            model.arrived(by: .reminder)
             model.afterUpdate {
                 guard model.vault != nil else { return }
                 model.openSection(.review)
@@ -497,14 +520,22 @@ struct WelcomeView: View {
     }
 
     var body: some View {
+        // Build 329: while PARAGON is finding its own folder at a start, nothing but a quiet
+        // line. The whole welcome page used to flash past here at every start, once the notes
+        // lived in PARAGON's own iCloud folder (that folder takes a moment to open).
+        if model.ownFolder.opening {
+            ProgressView("Opening your notes\u{2026}")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityIdentifier("welcome.opening")
+        } else {
+            page
+        }
+    }
+
+    private var page: some View {
         VStack(spacing: 16) {
-            HStack(spacing: 10) {
-                ForEach([ParaKind.project, .area, .resource, .archive], id: \.self) { kind in
-                    RoundedRectangle(cornerRadius: 9)
-                        .fill(kind.tint)
-                        .frame(width: 38, height: 38)
-                }
-            }
+            // Build 329: the app icon, not the four coloured squares of the logo before 311.
+            AppIconTile(side: 64)
             Text("PARAGON")
                 .font(Txt.pageTitle.bold())
             Text(explanation)

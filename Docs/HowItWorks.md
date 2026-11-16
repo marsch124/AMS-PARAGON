@@ -8,6 +8,15 @@ If a word is unclear, **Words in PARAGON** explains each of the app's own words 
 
 Throughout: **right-click** on the Mac is **hold** (a long press) on the iPhone. Where this page says one, the other works on the other device. The app itself shows only the words of the device you use (since build 309): **Tap** and **Hold** on the iPhone and the iPad, **Click** and **Right-click** on the Mac.
 
+## The start screen
+
+At every fresh start, PARAGON shows a calm start screen first, on the iPhone, the iPad and the Mac (since build 329). It has the dark slate ground of the app icon, the same by day and by night, with the icon's white drawing, the name **PARAGON**, the day, one line of what is waiting, the words **Tap to start**, and the version at the foot.
+
+- **It waits for you.** It does not go away by itself. On the iPhone and the iPad, tap it. On the Mac, click it or press any key.
+- **What is waiting.** One line such as "3 due today · 1 in the Inbox". **Due today** counts open tasks due today or earlier, deadlines included, the archive left out: the same number as the **Today** row. The Inbox number is the open tasks in the Inbox note. A zero is said in words: "Nothing due today", "Inbox empty". The numbers appear as soon as your notes have opened; until then only the day shows.
+- **It never blocks a place you asked for.** When PARAGON is opened from a widget line or number, a note link, a Siri or Shortcuts action (**Open Today**, **Start the day**, **Close the day**), one of PARAGON's reminders, or a note pressed in the iPhone's own search, you go straight there and the start screen is not shown. Coming back to PARAGON from another app does not show it again.
+- **While your notes open.** One quiet line shows: "Opening your notes…". The welcome page, with the text about choosing a folder, shows only when there really is no notes folder.
+
 ## The idea
 
 - **Goals** say what you want in life. They sit above everything else.
@@ -2781,3 +2790,12 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Seen.** On the iPhone simulator with the small set of test notes. Not known: whether it also froze with real notes on a real iPhone.
 - **Automatic tests.** The iPhone screen tests run to the end (59 tests, about 30 minutes here). The iPad walk-throughs pass. On the Mac 43 of 65 screen tests pass; 22 still fail on GitHub, most because the app is not the front window when the test clicks. The time limits of the test jobs are 90 minutes (iPhone) and 75 minutes (Mac).
 - **Unchanged:** every note, copy and sync rule.
+
+## Exact details (build 329)
+
+- **Rule.** `StartScreenRule` (Core, `Model/StartScreenRule.swift`). `Opening`: `byHand`, `link`, `shortcut`, `reminder`, `systemSearch`, `test`. `shows(_:)` is true only for `byHand`. `dayLine` is "Monday 2026-11-16" (`DayWords.withWeekday`). `waitingLine(due:inbox:)` is "3 due today  ·  1 in the Inbox"; a zero reads "Nothing due today" and "Inbox empty". `hint(mac:)` is "Tap to start" or "Click or press a key to start". `versionLine` is "1.0 (329)". Tests: `StartScreenRuleTests`.
+- **Numbers.** Due is `SidebarCounts.dueByToday`: open tasks due today or earlier, deadlines included, archive left out. Inbox is the open tasks in the Inbox note. Both are shown once the notes have opened; until then only the day.
+- **View.** `StartScreen` in `App/Paragon/Views/StartScreen.swift`, identifier `start.screen`. `AppModel.startScreenUp` and `leaveStartScreen(_:)`. It stays until a tap (Mac: a click or any key). It does not time out. A widget line, a note link, a Siri or Shortcuts action, a reminder press or a system-search note leaves it at once or never shows it. Coming back from the background does not show it again.
+- **Welcome page.** While PARAGON finds its own folder at a start (`ownFolder.opening`), `WelcomeView` draws only a `ProgressView` "Opening your notes…" (`welcome.opening`). The welcome page itself ("PARAGON", the text about choosing a folder) shows only when there is no notes folder, and it carries the app icon as a tile (`AppIconTile`, 64 pt) in place of the four coloured squares of the logo before build 311. `IconDrawing` draws the icon's tick and three squares from the numbers in `Tools/make_icon.py`.
+- **Screen tests.** They start without the start screen (the test vault counts as `.test`). One new screen test asks for it with the launch argument `-paragon-start-screen` and taps it away.
+- **iPad walk-through.** On its side it presses a sidebar row up to three times when a press changed nothing (GitHub run 43893159835, step "landscape 07 All actions"). Tests only.

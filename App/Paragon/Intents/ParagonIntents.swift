@@ -57,6 +57,8 @@ struct OpenTodayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         let model = AppModel.shared
+        // Build 329: Siri named the place, so the start screen steps aside.
+        model.arrived(by: .shortcut)
         await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         #if os(macOS)
@@ -78,6 +80,8 @@ struct StartTheDayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         let model = AppModel.shared
+        // Build 329: Siri named the place, so the start screen steps aside.
+        model.arrived(by: .shortcut)
         await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         #if os(macOS)
@@ -99,6 +103,8 @@ struct CloseTheDayIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         let model = AppModel.shared
+        // Build 329: Siri named the place, so the start screen steps aside.
+        model.arrived(by: .shortcut)
         await model.vaultOnceOpen()
         guard model.vault != nil else { throw ShortcutProblem.noVault }
         #if os(macOS)
