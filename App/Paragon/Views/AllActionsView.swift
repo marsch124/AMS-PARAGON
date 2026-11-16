@@ -381,6 +381,7 @@ struct TwoPartSwitch: View {
         .labelsHidden()
         .fixedSize()
         .tint(tint)
+        .accessibilityIdentifier("actions.switch")
         #endif
     }
 

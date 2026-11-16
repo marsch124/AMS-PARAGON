@@ -52,7 +52,28 @@ final class ScreenTests: XCTestCase {
         app.launchArguments += ["-ApplePersistenceIgnoreState", "YES"]
         #endif
         app.launch()
+        #if os(macOS)
+        bringTheAppToTheFront()
+        #endif
     }
+
+    #if os(macOS)
+    /// Build 328. On the macos-26 runner about one launch in five leaves the app behind
+    /// (CI of 16 Nov: the app state was "running in the background", the log of those launches
+    /// lacks the line "Wait for accessibility to load" that every good launch has, and every
+    /// click then failed with "not foreground and does not allow background interaction"
+    /// after a minute of waiting). A launch that is not in front is asked to come forward and,
+    /// if it will not, is launched again, twice at most. Nothing is asserted here: a test whose
+    /// app never comes forward fails on its first click as before.
+    private func bringTheAppToTheFront() {
+        for _ in 0..<3 {
+            if app.wait(for: .runningForeground, timeout: 6) { return }
+            app.activate()
+            if app.wait(for: .runningForeground, timeout: 8) { return }
+            app.launch()
+        }
+    }
+    #endif
 
     // MARK: Both platforms
 
@@ -83,6 +104,19 @@ final class ScreenTests: XCTestCase {
             XCTAssertTrue(screenIsDrawn(timeout: 20),
                           "\(name) opened without drawing a screen. On screen: \(visibleTexts())")
             XCTAssertEqual(app.state, .runningForeground, "The app stopped running on \(name).")
+            #if os(macOS)
+            // Build 328: the Map is a window of its own (build 285), full size and in front.
+            // `windows.firstMatch` then is the Map, the sidebar scrolls went to it, and the
+            // next row had "no hit point" (CI of 16 Nov). Closed with ⌘W, as a person would.
+            if name == "sidebar.Map" {
+                let map = app.windows["map"]
+                if map.waitForExistence(timeout: 5) {
+                    app.typeKey("w", modifierFlags: .command)
+                    XCTAssertTrue(map.waitForNonExistence(timeout: 10),
+                                  "The Map window did not close with Command-W.")
+                }
+            }
+            #endif
         }
         XCTAssertTrue(element(Self.home).exists, "\(Self.home) is gone after visiting every section.")
     }
@@ -591,6 +625,11 @@ final class ScreenTests: XCTestCase {
     private func switchPart(_ words: String) -> XCUIElement {
         let named = NSPredicate(format: "label BEGINSWITH %@ OR title BEGINSWITH %@ OR value BEGINSWITH %@", words, words, words)
         #if os(macOS)
+        // Build 328: asked of the switch alone (`actions.switch`), not of every radio button in
+        // the app. On macos-26 the wide question timed out for 100 s ("Timed out while
+        // evaluating UI query", both Waiting-for tests in CI of 16 Nov).
+        let group = element("actions.switch")
+        if group.exists { return group.descendants(matching: .any).matching(named).firstMatch }
         return app.radioButtons.matching(named).firstMatch
         #else
         return app.segmentedControls.buttons.matching(named).firstMatch
@@ -1104,8 +1143,16 @@ final class ScreenTests: XCTestCase {
         let last = element("review.done.last")
         XCTAssertTrue(last.exists, "No line says when the review was last done. On screen: \(visibleTexts())")
         if done.isHittable { done.press() } else { done.pressCentre() }
-        XCTAssertTrue(becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" },
-                      "Review done was pressed and the line says: \(words(of: element("review.done.last")))")
+        var recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
+        // Build 328: a first click that only woke the window (CI of 16 Nov, macos-26) is
+        // pressed once more while the button is still there. A button that did its work is gone.
+        let again = app.buttons.matching(identifier: "review.done").firstMatch
+        if !recorded, again.exists {
+            if again.isHittable { again.press() } else { again.pressCentre() }
+            recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
+        }
+        XCTAssertTrue(recorded,
+                      "Review done was pressed and the line says: \(words(of: element("review.done.last"))). The button is \(again.exists ? "still" : "no longer") on screen. On screen: \(visibleTexts())")
         XCTAssertFalse(app.buttons.matching(identifier: "review.done").firstMatch.exists,
                        "Review done can be pressed twice on one day.")
     }
@@ -1889,8 +1936,14 @@ final class ScreenTests: XCTestCase {
     /// drawn inside the window, so a test that was green keeps its exact steps. Otherwise the
     /// left strip of the window, where the sidebar is, is scrolled one way for four tries and
     /// then the other way, and the row is looked at again after every step.
+    /// The main window by its name, so a Map window in front is never taken for it (build 328).
+    private var mainWindow: XCUIElement {
+        let named = app.windows["main-AppWindow-1"]
+        return named.exists ? named : app.windows.firstMatch
+    }
+
     private func bringIntoView(_ row: XCUIElement) {
-        let window = app.windows.firstMatch
+        let window = mainWindow
         for attempt in 0..<12 {
             let frame = row.frame
             if !frame.isEmpty && window.frame.contains(frame) { return }
@@ -2576,7 +2629,11 @@ final class ScreenTests: XCTestCase {
                                  "The standard runs into the note's text: \(shown.frame) against the editor at \(editor.frame).")
         expectNoOverflow(after: "an area's standard was written")
 
-        // Step 6 of the Weekly review shows it under Health.
+        // Step 6 of the Weekly review shows it under Health. Build 328: the area's note is
+        // closed first (× in the toolbar, build 314); open beside the review it was still on
+        // screen when the line was looked for.
+        let closeNote = element("note.close")
+        if closeNote.exists { closeNote.press() }
         go(to: .review)
         openReviewPart("6")
         let line = reveal("review.standard.Areas/Health.md")
@@ -2725,6 +2782,14 @@ final class ScreenTests: XCTestCase {
         if done.isHittable { done.press() } else { done.pressCentre() }
 
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: field)
+        #if os(macOS)
+        // Build 328: as with Review done, a first click that only woke the window is pressed
+        // once more while Done is still there.
+        if XCTWaiter().wait(for: [gone], timeout: 5) != .completed {
+            let again = app.buttons.matching(identifier: "review.weekLine.done").firstMatch
+            if again.exists { if again.isHittable { again.press() } else { again.pressCentre() } }
+        }
+        #endif
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 10), .completed,
                        "The field in step 7 stayed open after Done. On screen: \(visibleTexts())")
         XCTAssertTrue(becomes(within: 10) { box.label.contains("A calm week") },
@@ -3486,6 +3551,14 @@ final class ScreenTests: XCTestCase {
 
     // MARK: Share a note (review round 8, build 315)
 
+    /// Build 328: what the window's toolbar holds, by identifier or label, for a message that
+    /// says whether an item was pushed into the toolbar's overflow menu by a narrow window.
+    private func toolbarNames() -> String {
+        app.windows.firstMatch.toolbars.firstMatch.descendants(matching: .any).allElementsBoundByIndex
+            .prefix(40).map { $0.identifier.isEmpty ? $0.label : $0.identifier }
+            .filter { !$0.isEmpty }.joined(separator: ", ")
+    }
+
     /// **An open note has Share…** (`note.share`) in the window's toolbar, and the menu under
     /// it offers the three ways out and Show in Finder. Nothing is pressed in the menu: the
     /// Mac's share list and Finder are not the app's to test.
@@ -3498,7 +3571,7 @@ final class ScreenTests: XCTestCase {
 
         let share = element("note.share")
         XCTAssertTrue(share.waitForExistence(timeout: 20),
-                      "The open note has no Share button (note.share). On screen: \(visibleTexts())")
+                      "The open note has no Share button (note.share). The toolbar holds: \(toolbarNames()). On screen: \(visibleTexts())")
         share.press()
         for name in ["note.share.pdf", "note.share.text", "note.share.file", "note.showInFinder"] {
             XCTAssertTrue(element(name).waitForExistence(timeout: 10),
