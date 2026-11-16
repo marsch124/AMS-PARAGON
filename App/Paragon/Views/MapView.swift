@@ -64,7 +64,13 @@ struct MapView: View {
                               })
                     .frame(width: layout.size.width, height: layout.size.height)
                     .padding(28)
+                    // Build 328: the page's height is a minimum on the Mac only. On the iPhone it
+                    // sent the main thread into a loop of its own (the Map froze, build 316).
+                    #if os(macOS)
                     .frame(minWidth: page.size.width, minHeight: page.size.height, alignment: .top)
+                    #else
+                    .frame(minWidth: page.size.width, minHeight: 0, alignment: .top)
+                    #endif
                 }
                 .onAppear {
                     guard phoneLook, !fitted, page.size.width > 0 else { return }

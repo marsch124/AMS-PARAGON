@@ -672,7 +672,10 @@ struct PhoneSectionScreen: View {
                 .searchable(text: $query,
                             placement: .navigationBarDrawer(displayMode: .automatic),
                             prompt: "Search in \(section.title)")
-                .accessibilityIdentifier("section.search")
+                // Build 328: no identifier on the whole list. `section.search` here was handed
+                // to every element inside it that had none of its own (Done's squares, their
+                // fold button, the caption), so a test could not find them by their own names.
+                // The field is found by its words, "Search in <list>".
         } else {
             NoteListView(fixed: section)
                 .onAppear { if model.section != section { model.section = section } }
