@@ -80,7 +80,7 @@ struct OwnFolderPageView: View {
                      after: ["Reminders sync is paused while the notes are copied and goes on afterwards."]),
                 Part(head: "Nothing is deleted",
                      text: ["Your old folder \u{201C}\(offer.oldName)\u{201D} stays as it is. PARAGON only adds one small text file to it that says where the notes went. You decide later when to delete it.",
-                            "You can go back: Settings \u{203A} Vault \u{203A} Go back to the old folder\u{2026}"]),
+                            "You can go back: Settings \u{203A} Notes folder \u{203A} Go back to the old folder\u{2026}"]),
             ]
             if offer.otherMove != nil {
                 w.action = "Check again"
@@ -144,7 +144,7 @@ struct OwnFolderPageView: View {
             if !moved.reachable {
                 w.notice = [stamp.toOwnFolder
                     ? "PARAGON cannot reach iCloud Drive on \(AppModel.thisDevice). Check that you are signed in to iCloud and that iCloud Drive is on for PARAGON."
-                    : "PARAGON cannot find that folder on \(AppModel.thisDevice). Choose it in Settings \u{203A} Vault \u{203A} Choose folder\u{2026}"]
+                    : "PARAGON cannot find that folder on \(AppModel.thisDevice). Choose it in Settings \u{203A} Notes folder \u{203A} Choose folder\u{2026}"]
                 w.cancel = "Close"
             } else if moved.ready {
                 w.lead.append("Everything has arrived: \(Self.count(moved.here, "file", "files")). What you changed on \(AppModel.thisDevice) since then comes along.")

@@ -58,7 +58,7 @@ extension AppModel {
     func setReason(_ text: String, on note: Note, startedFrom: String?) -> ReasonWrite {
         flushPendingEdits()
         guard let live = self.note(at: note.relativePath) else {
-            errorMessage = "\u{201C}\(note.displayTitle)\u{201D} is not in the vault any more, so its reason was not saved."
+            errorMessage = "\u{201C}\(note.displayTitle)\u{201D} is not in your notes any more, so its reason was not saved."
             return .notWritten
         }
         // A work note has no aspiration page, so this cannot be reached from the screen; the

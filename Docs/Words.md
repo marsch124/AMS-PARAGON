@@ -133,7 +133,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Look back at last week** — step 7 of the **Weekly review**. It shows a whole week from your notes: its goal, the tasks you finished each day, your evening lines from **Close the day**, the time on the focus timer, and the projects that ended. On Monday and Tuesday it shows the week that has just ended. The heading names the week it shows: **last week**, **this week**, or a week number.
 - **How was the week?** — a box in step 7 of the **Weekly review**. You write a line or two about the week, and it is kept in that week's note under **Looking back**. It is not the same as the two questions under **Review** that a weekly note already has.
 - **Map** — a drawing of what serves what: aspirations at the top, then goals, areas and projects.
-- **All actions** — every open task in the vault, with tick boxes to narrow the list. The switch at the top, like **Actions 3 | Waiting for**, changes between your own actions and the lines you are waiting on. The number is how many there are.
+- **All actions** — every open task in your notes, with tick boxes to narrow the list. The switch at the top, like **Actions 3 | Waiting for**, changes between your own actions and the lines you are waiting on. The number is how many there are.
 - **Filter** — the button beside that switch. It shows the tick boxes that narrow the list, and folds them away again. It is there only on the **Actions** half.
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks. On the iPhone it opens from the field **Search notes** at the very top of **Browse**.
 - **Saved search** — a search you kept, shown as a chip on the **Search** screen.
@@ -148,21 +148,21 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 - **Template** — the starting text for a new note of one kind.
 - **Snippet** — a short block of text you can put into any note. The **Snippets** list shows each one in plain words, like "Ask (who) to (what), tomorrow": a word in round brackets is a question PARAGON asks you when you use the snippet.
-- **Tags** — the list of every tag, with how much of the vault uses it. You can rename, delete or add a tag here.
+- **Tags** — the list of every tag, with how much of your notes use it. You can rename, delete or add a tag here.
 
 ## Behind the scenes
 
-- **Vault** — the folder on your disk or in iCloud that holds all your notes as plain text files.
+- **Notes folder** — the folder on your device or in iCloud that holds all your notes as plain text files.
 - **Not synced** — the words at the sync ring before the first sync. Before build 312 it said "Not synced yet".
 - **Synced … ago** — the words at the sync ring after a sync: **Synced just now** (under 1 minute), **Synced 5 min ago**, **Synced 3 h ago** (under 24 hours), then the date, like **Synced 2026-11-09**. One tap on the ring (one click on the Mac) shows its choices, with **Sync now** first. The ring in the Mac menu bar keeps its short words, like "10:55".
 - **Reminders list:** — at the top of a project or an area: the list in Apple Reminders its tasks go to.
 - **Reminders sync** — tasks are copied both ways between PARAGON and Apple Reminders. Goals and aspirations never sync.
-- **Backup** — a dated copy of the whole vault, made every day and before each sync, kept in tiers (last 5 before-sync copies, one per day for 14 days, one per week for 2 months). Since build 308 a second copy, with pictures and sketches, is made once a day outside the vault: on this device, or in a folder you choose.
+- **Backup** — a dated copy of all your notes, made every day and before each sync, kept in tiers (last 5 before-sync copies, one per day for 14 days, one per week for 2 months). Since build 308 a second copy, with pictures and sketches, is made once a day outside the vault: on this device, or in a folder you choose.
 - **Conflict copy** — a file named "… (conflict date time).md" beside a note. It holds a second version of the note that PARAGON would not throw away: your text when both devices changed the same line, or a version iCloud had parked.
 - **Waiting for iCloud** — notes that iCloud has not put on this device yet. The app says so rather than showing them as missing, with the words **still coming from iCloud** and a button, **Ask iCloud again**. PARAGON fetches them in the background and never waits for them while it starts.
 - **Build number** — the number in **Settings › About** (since build 315), at the foot of the Mac sidebar and at the foot of **Browse** on the iPhone, like 1.0 (315). It tells you which version of the app you have.
 - **What's new** — the page that lists every version, newest first, and says what each one changed. It is in **Settings › Help** and, on the Mac, in the **Help** menu. Before build 315 it was called "Version history".
 - **Keep them apart** — an answer when the sync asks about a Reminders list with the same name as a note. PARAGON leaves both alone and does not ask again. The note's tasks do not go to Reminders while its list is kept apart. Undo it with **Connect again** in **Settings**, in the group **Lists kept apart**.
 - **Connect again** — beside a list in **Lists kept apart**. It forgets that you keep the list apart. Nothing is joined by the press; the next sync asks you about the list once more.
-- **Outside copy** — the second copy of your vault, kept outside the vault folder: on this device, or in a folder you choose. It holds your notes, pictures and sketches.
-- **Restore from the outside copy…** — a button in **Settings › Second copy, outside the vault**. It puts an outside copy of this vault back into the vault (the newest, unless you choose another in the list), after saving what you have now. Nothing is deleted.
+- **Outside copy** — the second copy of your notes, kept outside your notes folder: on this device, or in a folder you choose. It holds your notes, pictures and sketches.
+- **Restore from the outside copy…** — a button in **Settings › Second copy, outside your notes folder**. It puts an outside copy of this notes folder back into your notes folder (the newest, unless you choose another in the list), after saving what you have now. Nothing is deleted.

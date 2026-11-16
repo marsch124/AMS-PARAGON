@@ -38,7 +38,7 @@ struct TemplatesView: View {
             if model.templates.isEmpty {
                 EmptyStateView(title: "No templates",
                                markName: SidebarSection.templates.markName,
-                               message: "They live in the Templates folder inside your vault. Open a vault to see them.",
+                               message: "They live in the Templates folder inside your notes folder. Open a notes folder to see them.",
                                tint: SidebarSection.templates.tint,
                                actionTitle: "New template\u{2026}",
                                action: {

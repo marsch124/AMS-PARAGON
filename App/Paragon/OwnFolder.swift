@@ -617,7 +617,7 @@ extension AppModel {
                         return .failed("The backup copy could not be confirmed, so nothing was copied. \(check.problem ?? "")")
                     }
                     guard let identity = own.identity(creating: true) else {
-                        return .failed("The vault\u{2019}s id is still coming from iCloud, so nothing was copied. Try again in a minute.")
+                        return .failed("The notes folder\u{2019}s id is still coming from iCloud, so nothing was copied. Try again in a minute.")
                     }
                     var hooks = MoveHooks()
                     hooks.progress = report

@@ -511,7 +511,7 @@ struct WelcomeView: View {
     /// the body (the `@ViewBuilder` rule, build 58).
     private var explanation: String {
         if let problem = model.vaultProblem { return problem }
-        return "Projects, Areas, Resources and Archive as plain markdown files, with tasks that stay in sync with Apple Reminders."
+        return "Projects, Areas, Resources and Archive as plain text files, with tasks that stay in sync with Apple Reminders."
     }
 
     private var backTitle: String {
@@ -555,10 +555,10 @@ struct WelcomeView: View {
                     .buttonStyle(.filled(Theme.fallbackTint))
                 Button("Choose a different folder…") { showingImporter = true }
             } else {
-                Button("Choose a vault folder…") { showingImporter = true }
+                Button("Choose your notes folder…") { showingImporter = true }
                     .buttonStyle(.filled(Theme.fallbackTint))
             }
-            Text("Pick your vault folder, an empty folder or an existing NotePlan style folder. PARAGON shows what it found first and writes nothing until you say so.")
+            Text("Pick the folder that holds your notes, or an empty folder to start in. PARAGON shows what it found first and writes nothing until you say so.")
                 .font(Txt.label)
                 .foregroundStyle(.faint)
                 .multilineTextAlignment(.center)
@@ -1043,7 +1043,7 @@ struct NoteListView: View {
                 model.createWorkNote(title: title)
             }
         } message: {
-            Text("It is kept in the vault's Work folder, out of the rest of the app.")
+            Text("It is kept in the Work folder of your notes, out of the rest of the app.")
         }
         .alert("Rename \u{201C}\(noteToRename?.displayTitle ?? "")\u{201D}",
                isPresented: Binding(get: { noteToRename != nil }, set: { if !$0 { noteToRename = nil } })) {
@@ -1091,7 +1091,7 @@ struct NoteListView: View {
             // frightening one: it looks exactly like losing everything (build 100).
             EmptyStateView(title: "Not everything is here yet",
                            markName: "icloud.and.arrow.down",
-                           message: "\(warning). Your notes are in the vault folder; this Mac has "
+                           message: "\(warning). Your notes are in your notes folder; this Mac has "
                                   + "their names but not their contents yet. They appear as they arrive.",
                            tint: .orange,
                            actionTitle: "Ask iCloud again") { model.fetchMissingNotes() }
@@ -1736,7 +1736,7 @@ struct FolderChoiceView: View {
         case .unreadable:
             return ("PARAGON cannot read this folder.", ["Nothing was written. Choose another folder."], nil)
         case .vault(let count):
-            var details = ["It is a PARAGON vault."]
+            var details = ["It holds PARAGON notes."]
             if model.folderChoice?.mayBeIncomplete == true { details.append(caution) }
             return ("This folder has \(Self.notes(count)).", details, "Open it")
         case .notAVault(let count):
@@ -1744,7 +1744,7 @@ struct FolderChoiceView: View {
             if count > 0 { details.append("It has \(Self.notes(count)) of its own. They stay as they are.") }
             details.append("Setting it up adds the PARAGON folders, an Inbox note and templates.")
             if model.folderChoice?.mayBeIncomplete == true { details.append(caution) }
-            return ("This folder is not a PARAGON vault.", details, "Set it up here")
+            return ("This folder does not hold PARAGON notes.", details, "Set it up here")
         }
     }
 

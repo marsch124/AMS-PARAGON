@@ -36,7 +36,7 @@ enum AttachmentFiles {
         let named = !label.isEmpty && label != fileName && label != plainName
         switch presence(of: url) {
         case .coming: return (named ? label : plainName, "On its way from iCloud")
-        case .missing: return (named ? label : plainName, "This file is not in the vault")
+        case .missing: return (named ? label : plainName, "This file is not in your notes")
         case .here:
             let pages = SharedFiles.pagesWords(pageCount(of: url))
             return (named ? label : plainName, named ? pages + " · " + fileName : pages)
@@ -224,12 +224,12 @@ private struct AttachmentPreview: ViewModifier {
             CloudFiles.startDownload(url)
             model.errorMessage = "\u{201C}\(name)\u{201D} is still on its way from iCloud. Try again in a moment."
         case .missing:
-            model.errorMessage = "\u{201C}\(name)\u{201D} is not in the vault any more."
+            model.errorMessage = "\u{201C}\(name)\u{201D} is not in your notes any more."
         case .here:
             if let copy = AttachmentFiles.previewCopy(of: url) {
                 shown = copy
             } else {
-                model.errorMessage = "\u{201C}\(name)\u{201D} could not be opened."
+                model.errorMessage = "\u{201C}\(name)\u{201D} could not be opened. Check that it is still in your notes folder, or try again in a moment."
             }
         }
     }
@@ -348,7 +348,7 @@ struct AttachmentBlock: View {
     }
 
     private var waitingBox: some View {
-        Text(coming ? "On its way from iCloud" : "This picture is not in the vault")
+        Text(coming ? "On its way from iCloud" : "This picture is not in your notes")
             .font(Txt.label).foregroundStyle(.soft)
             .padding(.horizontal, 12).padding(.vertical, 10)
             .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))

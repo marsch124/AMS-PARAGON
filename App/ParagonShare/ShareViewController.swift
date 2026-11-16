@@ -299,8 +299,8 @@ struct ShareCaptureView: View {
 
     private var footnote: String {
         model.files.isEmpty
-            ? "Filed into your vault the next time PARAGON opens. Add >2026-09-10 for a date, !! for priority, #tags as usual."
-            : "Filed into your vault the next time PARAGON opens: pictures into the Pictures folder, PDFs into Attachments, with a line in the note. Until then they wait on this device."
+            ? "Filed into your notes the next time PARAGON opens. Add >2026-09-10 for a date, !! for priority, #tags as usual."
+            : "Filed into your notes the next time PARAGON opens: pictures into the Pictures folder, PDFs into Attachments, with a line in the note. Until then they wait on this device."
     }
 
     @ViewBuilder private var fileRows: some View {

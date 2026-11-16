@@ -206,14 +206,14 @@ struct MapView: View {
     /// The Mac asks where to put the file; the phone hands it to the share sheet.
     private func export(_ data: Data?, extension ext: String) {
         guard let data else {
-            model.errorMessage = "The map could not be drawn into a \(ext.uppercased())."
+            model.errorMessage = "The Map could not be saved as a picture. Try again, or choose another place to save it."
             return
         }
         #if os(macOS)
         MapExport.save(data, extension: ext)
         #else
         guard let url = MapExport.temporaryFile(data, extension: ext) else {
-            model.errorMessage = "The \(ext.uppercased()) could not be written."
+            model.errorMessage = "The Map could not be saved as a picture. Try again, or choose another place to save it."
             return
         }
         shared = SharedFile(url: url)

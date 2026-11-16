@@ -96,7 +96,7 @@ struct SearchView: View {
             Button("Save") { model.saveCurrentSearch(named: savingName) }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("It is saved as the words and boxes you have set, not as the results, so it answers for the vault as it is each time you run it.")
+            Text("It is saved as the words and boxes you have set, not as the results, so it answers for your notes as they are each time you run it.")
         }
         .alert("Rename saved search", isPresented: Binding(
             get: { renaming != nil },
@@ -313,7 +313,7 @@ struct SearchView: View {
     @ViewBuilder
     private func tagGroup(_ query: SearchQuery) -> some View {
         let tags = model.allTagNames
-        group("Tags", tint: SidebarSection.tags.tint, note: tags.isEmpty ? "No tags in the vault yet" : nil) {
+        group("Tags", tint: SidebarSection.tags.tint, note: tags.isEmpty ? "No tags in your notes yet" : nil) {
             ForEach(tags, id: \.self) { tag in
                 FilterBox(title: "#\(tag)",
                           isOn: query.tags.contains(tag.lowercased()),
