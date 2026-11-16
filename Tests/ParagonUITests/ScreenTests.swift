@@ -1,5 +1,8 @@
 import XCTest
 #if os(macOS)
+import ApplicationServices
+#endif
+#if os(macOS)
 import AppKit
 #endif
 
@@ -84,11 +87,47 @@ final class ScreenTests: XCTestCase {
                 _ = app.wait(for: .runningForeground, timeout: 8)
             }
             let home = element(Self.home)
-            if home.waitForExistence(timeout: 20), home.isHittable { return }
-            print("NOTE: launch \(attempt + 1) of this test cannot be clicked (home \(home.exists ? "is there but not hittable" : "is not there"), state \(app.state.rawValue)); the app is launched again.")
+            // The run of fe563e3: `isHittable` says yes on a launch no click can reach (13 red,
+            // no NOTE line). So the question is asked the way the click asks it: what does
+            // the screen answer at the row's middle? On a bad launch it answers "the window".
+            if home.waitForExistence(timeout: 20), home.isHittable, aClickWouldReach(home) { return }
+            print("NOTE: launch \(attempt + 1) of this test cannot be clicked (home \(home.exists ? "is there" : "is not there"), state \(app.state.rawValue)); the app is launched again.")
             app.terminate()
+            _ = app.wait(for: .notRunning, timeout: 10)
             app.launch()
         }
+    }
+
+    /// False when the screen, asked what lies at the element's middle, answers with a window
+    /// and not with something in it. True when it cannot be asked (the answer is printed once
+    /// a launch, so the log says whether this question works on the runner at all).
+    private func aClickWouldReach(_ target: XCUIElement) -> Bool {
+        let frame = target.frame
+        guard frame.width > 0, frame.height > 0 else { return false }
+        var found: AXUIElement?
+        let result = AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(),
+                                                      Float(frame.midX), Float(frame.midY), &found)
+        guard result == .success, let found else {
+            print("NOTE: the screen could not be asked what lies at \(frame.midX), \(frame.midY) (answer \(result.rawValue)).")
+            return true
+        }
+        var role: CFTypeRef?
+        AXUIElementCopyAttributeValue(found, kAXRoleAttribute as CFString, &role)
+        let name = (role as? String) ?? "?"
+        if name == (kAXWindowRole as String) || name == (kAXApplicationRole as String) {
+            print("NOTE: at the middle of \(Self.home) the screen answers \(name), not the row.")
+            return false
+        }
+        return true
+    }
+
+    /// 16 Nov 2026: the app is ended at the end of each test, and the test waits until it is
+    /// gone. Until now the NEXT test's launch ended it ("Launch … Terminate … :pid") and
+    /// launched the new one in the same breath; every bad launch in the log is one of those,
+    /// and it is the one thing the launches have in common. Unproven: the run after this says.
+    override func tearDownWithError() throws {
+        app.terminate()
+        _ = app.wait(for: .notRunning, timeout: 10)
     }
     #endif
 
