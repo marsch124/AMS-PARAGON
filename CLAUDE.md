@@ -5403,3 +5403,19 @@ A deleted task's reminder goes within seconds; three small look and word points.
 - **Tests.** No new test. Two Mac screen tests repaired (Review done; giving a task a time while picking), tests only; their proof on GitHub's Mac is open.
 - **Not seen / not tried.** The iPad; night on the Mac; Escape leaving picking on the Mac is still not proven (a key cannot be sent to a background window).
 - **Docs.** VersionHistory, HowItWorks (the foot), the tour (build numbers only). Look.md does not describe the foot, so it is unchanged.
+
+## Build 337 (17 November 2026)
+
+**Tidier picking row, Escape is Done on the Mac, a shorter hint, notes read only when changed.** Plus guide fixes and test repairs.
+
+- **Picking row.** Before: a task with no time showed the dashed How long? at the right while picking, and titles wrapped to 2-3 lines. Now: Core `TaskTimePill` (`Core/Sources/ParagonCore/Model/QuietRules.swift`) shows nothing for a task with no time while picking; a task with a time keeps its pill; Plan the day unchanged. The Mac's hover "Focus on this" button is not drawn on picking rows. Test: `QuietRulesTests`.
+- **Hint.** `StartDay.instructions` (`App/Paragon/Views/StartDayView.swift`): 22 words with task times on, 20 off (before 55 and 46). Still shown by itself 3 times, then behind the info mark.
+- **Escape.** Done on the strip has `.keyboardShortcut(.cancelAction)`, so Escape works wherever the keyboard is in the main window. NOT tried with a real key press on a Mac.
+- **Speed.** Core `FilesStamp` (`Core/Sources/ParagonCore/Vault/FilesStamp.swift`, `FilesStampTests`, 2): templates, snippets, unused tags and Work notes are re-read only when a file's date or size changed or a file came or went.
+- **Trap.** FilesStamp is taken BEFORE the files are read, never after: a save during the read must show as a change next time.
+- **Trap.** `refreshSnippets()` and `refreshWorkNotes()` still force a read; only `reload()` goes through the `...IfChanged` variants.
+- **Guide.** Weekly review capsule named by its words (Nothing needs attention); round + on the iPhone described as opening New set to Inbox; picking paragraph without the dashed How long?; stray bullet (section 7) and blank lines (section 4) removed; Words entries "How long?" and "Task time".
+- **Tests.** One thing and start-screen tests also run on the Mac on GitHub; Review-done on the Mac waits until the list stops moving; the "can a click reach it" probe is gone. Mac proof: GitHub's run after this build, not yet seen.
+- **Seen / not seen.** Seen: picking row on the iPhone simulator, by day. Not seen: night, iPad, Mac with a real Escape key, real devices.
+- **Docs.** VersionHistory, HowItWorks (lines on How long?, picking, the hint; new block "Exact details (build 337)"), Guide and Words (already done). Look.md and the tour do not describe the dashed button while picking: unchanged.
+

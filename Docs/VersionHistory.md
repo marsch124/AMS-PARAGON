@@ -1,6 +1,32 @@
 # Version history
 
-The version is shown as 1.0 (336) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (337) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 337 · 17 November 2026
+
+**The final stretch: a tidier picking row, Escape on the Mac, and the guide put right.** Small things, and mostly how picking looks and reads.
+
+**Changed.**
+- **The picking row (the main change).** Before (builds 335 and 336): while you picked on Today, a task with no time showed a dashed **How long?** button at the right of its row, although **Pick** on such a task already asks "How long?" first. With **Pick**, the circle, the title and the dashed button, a title such as "Water the plants" wrapped to 2 lines on the iPhone and a long one to 3, also in the Mac's 300-point column. Now: while you pick, a task with no time shows nothing at the right. **Pick** asks "How long?" and then picks it, as before. A task that has a time keeps its time pill. **Plan the day** is unchanged: the dashed **How long?** stays there. On the Mac the small **Focus on this** button that appears under the pointer is not drawn on picking rows either.
+- **The explanation under the field while picking.** Before: four to five sentences, 55 words with task times on and 46 with them off, shown by itself the first 3 times, about half an iPhone screen. Now, with task times on: "Press Pick on what matters today. Each pick becomes a block in today's plan; a task with no time asks how long first." (22 words). With task times off: "Press Pick on the two or three that matter most today. Each pick becomes a one-hour block in today's plan." (20 words). It is still shown by itself the first 3 times, then behind the small info mark.
+- **Escape leaves picking on the Mac.** Before: Escape left picking only when something in Today held the keyboard, after a click into the list or the field; otherwise nothing happened. Now: Escape presses **Done** on the dark strip wherever the keyboard is in the main window. Nothing is planned, and the picks are kept for the day, as before.
+- **Speed, nothing to see.** Before: every re-read of the notes, after each save and in the look for changes from other devices every 10 seconds, also read every template in full three times, the snippets, the saved-but-unused tags and every Work note. Now: those are read again only when one of their files has another date or size, or a file came or went. With 124 notes you will not feel a difference; it matters as the notes grow.
+
+**Fixed.** The guide (How it works) said some things that were not true. Now:
+- The Weekly review's green capsule is named by its words, **Nothing needs attention**.
+- The round + on the iPhone is described as what it does: it opens **New**, already set to **Inbox**.
+- The picking paragraph no longer speaks of a dashed **How long?** button.
+- A stray empty bullet in section 7 and extra blank lines in section 4 are gone.
+- In Words, the entries "How long?" and "Task time" follow the change.
+
+**Tests.** The One thing test and the start-screen test now also run on the Mac on GitHub. The Review-done test on the Mac presses only once the list has stopped moving; it was the one red Mac test of build 336, and the app itself was fine. The useless "can a click reach it" probe is gone. New rules: one for the time pill, and 2 for the re-reading of the notes. The Mac proof is GitHub's run after this build, not yet seen.
+
+**Unchanged.** Everything else of build 336.
+
+**Seen / not seen.**
+- **Seen:** the picking row on the iPhone simulator, by day.
+- **Not seen:** night, the iPad, real devices.
+- **Not proven:** **Escape** leaving picking on the Mac, with a real key press.
 
 ## Build 336 · 17 November 2026
 
