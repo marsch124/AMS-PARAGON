@@ -121,11 +121,12 @@ struct FocusBar: View {
         .accessibilityIdentifier("focus.clock")
     }
 
-    /// Build 334: the main button (Pause / Go on) is full colour, the plan orange with dark ink,
-    /// as on the Lock Screen; Stop stays the quiet one.
+    /// Build 334: the main button (Pause / Go on) is full colour, the plan orange, as on the
+    /// Lock Screen; Stop stays the quiet one. The mark keeps the bar's own ink, the page's
+    /// colour: white on the deep day orange (4.4 to 1), near black on the light night orange
+    /// (9 to 1). Not `planBlockTint.ink`: that is the orange as words, orange on orange here.
     private func round(_ symbol: String, main: Bool = false) -> some View {
         MarkImage(symbol, size: 16)
-            .foregroundStyle(main ? AnyShapeStyle(Theme.planBlockTint.ink) : AnyShapeStyle(.background))
             .frame(width: 28, height: 28)
             .background(main ? AnyShapeStyle(Theme.planBlockTint) : AnyShapeStyle(.background.opacity(0.18)), in: Circle())
             .contentShape(Circle())

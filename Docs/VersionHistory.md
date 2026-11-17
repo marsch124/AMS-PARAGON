@@ -1,6 +1,29 @@
 # Version history
 
-The version is shown as 1.0 (333) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (334) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 334 · 17 November 2026
+
+**A deleted task's reminder goes within seconds.** Four small changes. The main one: when you delete a task, PARAGON now starts a quiet sync by itself, so the reminder in Apple Reminders goes within seconds. The other three: a clearer Pause button on the focus bar, a clearer name in the list of devices, and a hint while the notes are sent to iCloud.
+
+**Changed.**
+- **A deleted task's reminder.** Before (builds 332 and 333): when you deleted a task on this device, its reminder in Apple Reminders stayed until the next timed sync or until you pressed **Sync now**. Now: PARAGON starts one quiet sync by itself shortly after the delete.
+  - **After 12 seconds** when you delete with a button, a menu or a swipe. The **Undo** offer lasts about 8 seconds. It is over by then, so **Undo** never finds the reminder already gone.
+  - **After 60 seconds** when a task line is taken out by typing in a note. That may be a line you cut to paste into another note. Pasted within the minute, it keeps its reminder and nothing is deleted.
+  - **Several deletes in a row make one sync**, counted from the last delete. A delete by button never cuts short the minute of a typed line.
+  - **Quiet.** No message at the foot of the window. If a sync is already running, the quiet one runs once right after it.
+  - **Not started** when the timed sync is switched off (set to never), or when PARAGON may not use Reminders.
+  - **Undo** brings the task back and its reminder is left alone. **Undo** also takes the task off the list of tasks removed here.
+- **Pause button on the focus bar.** Before: on the bar that shows a running focus timer, the **Pause** / **Go on** button was a pale grey circle (28 points, 18 % see-through). Now: full plan orange (the mark on it is white by day and dark at night), like on the Lock Screen. **Stop** stays the quiet one. The size is the same, 28 points.
+- **Devices list** (Settings, Safety, notes folder devices). Before: a device that had synced but had not yet opened a new enough PARAGON was called "Another device". Now: "A device with an older PARAGON". The second line is unchanged.
+- **Copying to PARAGON's own folder.** Before: while the step "Sending to iCloud" was at work, the page gave no hint, so a long wait looked like a hang. Now: the page adds the line "This can take some minutes on a slow connection."
+
+**Not seen, not tried.**
+- **Not tried on two real devices:** the quiet sync after a delete.
+- **Limit:** a line cut and pasted into another note more than a minute later gets a new reminder.
+
+Tested:
+- New rule test: `QuietSyncAfterRemovalTests`.
 
 ## Build 333 · 17 November 2026
 

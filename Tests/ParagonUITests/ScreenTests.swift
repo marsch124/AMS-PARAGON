@@ -1821,10 +1821,12 @@ final class ScreenTests: XCTestCase {
 
         let pause = app.buttons.matching(identifier: "focus.pause").firstMatch
         XCTAssertTrue(pause.waitForExistence(timeout: 10), "The timer bar has no Pause button.")
+        look("focus-bar-running")
         if pause.isHittable { pause.press() } else { pause.pressCentre() }
         let paused = expectation(for: NSPredicate(format: "label == %@", "Go on"), evaluatedWith: pause)
         XCTAssertEqual(XCTWaiter().wait(for: [paused], timeout: 10), .completed,
                        "Pause was pressed and the button did not turn into Go on. It says: \(pause.label)")
+        look("focus-bar-paused")
         if pause.isHittable { pause.press() } else { pause.pressCentre() }
         let going = expectation(for: NSPredicate(format: "label == %@", "Pause"), evaluatedWith: pause)
         XCTAssertEqual(XCTWaiter().wait(for: [going], timeout: 10), .completed,

@@ -143,7 +143,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 333
+    static let number = 334
 }
 
 @MainActor
@@ -2151,7 +2151,7 @@ final class AppModel: ObservableObject {
         if let base, note.text != base {
             // The note was reloaded under the editor: it holds the other side's change.
             let result = settle(typed: text, startedFrom: base, other: note, in: vault)
-            if result != .failed { rememberRemovedHere(before: typedFrom, after: typed) }
+            if result != .failed { rememberRemovedHere(before: typedFrom, after: typed, byTyping: true) }
             return result
         }
         note.text = text
@@ -2161,13 +2161,13 @@ final class AppModel: ObservableObject {
             // From the dates the notes were read with, not from the files (review round 3, as in
             // `reload()`): asking the files here signed off another note's outside change unseen.
             vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
-            rememberRemovedHere(before: typedFrom, after: typed)
+            rememberRemovedHere(before: typedFrom, after: typed, byTyping: true)
             return .saved
         } catch VaultError.modifiedOnDisk {
             // The file is newer than the copy in `notes` (the reload has not happened yet).
             if let base, let onDisk = try? vault.loadNote(relativePath: path) {
                 let result = settle(typed: text, startedFrom: base, other: onDisk, in: vault)
-                if result != .failed { rememberRemovedHere(before: typedFrom, after: typed) }
+                if result != .failed { rememberRemovedHere(before: typedFrom, after: typed, byTyping: true) }
                 return result
             }
             return keepAsConflictCopy(note, other: nil, in: vault)
@@ -2234,7 +2234,7 @@ final class AppModel: ObservableObject {
 
     /// Called after every save made here, with the note as it was and as it is now. Cheap
     /// when no task line went: the other notes are only looked through when one did.
-    private func rememberRemovedHere(before: Note, after: Note) {
+    private func rememberRemovedHere(before: Note, after: Note, byTyping: Bool = false) {
         let now = Set(after.tasks.compactMap(\.id))
         let gone = Set(before.tasks.compactMap(\.id)).subtracting(now)
         guard !gone.isEmpty || !removedHere.isDisjoint(with: now) else { return }
@@ -2250,16 +2250,18 @@ final class AppModel: ObservableObject {
         }
         setRemovedHere(RemovedHere.remembered(removedHere, adding: fresh, nowInNotes: present))
         if !fresh.isEmpty {
-            log("removed here: \(fresh.count) task(s); their reminders go in a quiet sync a few seconds on")
-            lastRemovalHere = Date()
+            log("removed here: \(fresh.count) task(s)\(byTyping ? " by typing" : ""); their reminders go in a quiet sync shortly")
+            removalSyncDue = QuietSyncAfterRemoval.due(removalAt: Date(), byTyping: byTyping, plannedFor: removalSyncDue)
             planQuietSyncAfterRemoval()
         }
     }
 
-    /// Build 334: the time of the last delete made here, and the one quiet sync planned from it
-    /// (`QuietSyncAfterRemoval`: 8 seconds after the LAST removal, so ticking through a list
-    /// makes one sync). Planned afresh by every further delete.
-    private var lastRemovalHere: Date?
+    /// Build 334: when the one quiet sync after a delete made here is due, and the task that
+    /// waits for it (`QuietSyncAfterRemoval`: 12 seconds after the LAST delete by a button, so
+    /// the Undo offer is over and deleting through a list makes one sync; 60 seconds after a
+    /// line taken out by typing, which may be a cut on its way to another note). Planned
+    /// afresh by every further delete.
+    private var removalSyncDue: Date?
     private var removalSync: Task<Void, Never>?
 
     /// Not when sync is off (the timed sync is set to never) or Reminders access is missing:
@@ -2270,7 +2272,8 @@ final class AppModel: ObservableObject {
         removalSync = nil
         guard vault != nil, autoSyncMinutes > 0,
               EKEventStore.authorizationStatus(for: .reminder) == .fullAccess else { return }
-        guard case .run(let at) = QuietSyncAfterRemoval.plan(lastRemoval: lastRemovalHere,
+        if removedHere.isEmpty { removalSyncDue = nil }
+        guard case .run(let at) = QuietSyncAfterRemoval.plan(due: removalSyncDue,
                                                              removedHereIsEmpty: removedHere.isEmpty,
                                                              syncRunning: syncRunning ?? isSyncing) else { return }
         removalSync = Task { [weak self] in
