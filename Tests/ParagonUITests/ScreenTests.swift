@@ -1466,7 +1466,11 @@ final class ScreenTests: XCTestCase {
     /// line beside it says so, and the button rests until tomorrow. Found by identifier.
     func testTheReviewEndsWithReviewDone() {
         go(to: .review)
-        let done = reveal(app.buttons.matching(identifier: "review.done").firstMatch)
+        // 17 Nov 2026 (the Mac run of build 334): the button had no frame — the Mac's list had
+        // let its last row go — and `reveal` scrolled blind. `showInReview` nudges the list
+        // until the row has a frame, as for step 9's box.
+        let done = app.buttons.matching(identifier: "review.done").firstMatch
+        showInReview(done)
         XCTAssertTrue(done.exists, "The Weekly review has no Review done button. On screen: \(visibleTexts())")
         let last = element("review.done.last")
         XCTAssertTrue(last.exists, "No line says when the review was last done. On screen: \(visibleTexts())")
