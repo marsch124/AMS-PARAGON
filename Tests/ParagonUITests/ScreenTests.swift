@@ -87,38 +87,12 @@ final class ScreenTests: XCTestCase {
                 _ = app.wait(for: .runningForeground, timeout: 8)
             }
             let home = element(Self.home)
-            // The run of fe563e3: `isHittable` says yes on a launch no click can reach (13 red,
-            // no NOTE line). So the question is asked the way the click asks it: what does
-            // the screen answer at the row's middle? On a bad launch it answers "the window".
-            if home.waitForExistence(timeout: 20), home.isHittable, aClickWouldReach(home) { return }
+            if home.waitForExistence(timeout: 20), home.isHittable { return }
             print("NOTE: launch \(attempt + 1) of this test cannot be clicked (home \(home.exists ? "is there" : "is not there"), state \(app.state.rawValue)); the app is launched again.")
             app.terminate()
             _ = app.wait(for: .notRunning, timeout: 10)
             app.launch()
         }
-    }
-
-    /// False when the screen, asked what lies at the element's middle, answers with a window
-    /// and not with something in it. True when it cannot be asked (the answer is printed once
-    /// a launch, so the log says whether this question works on the runner at all).
-    private func aClickWouldReach(_ target: XCUIElement) -> Bool {
-        let frame = target.frame
-        guard frame.width > 0, frame.height > 0 else { return false }
-        var found: AXUIElement?
-        let result = AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(),
-                                                      Float(frame.midX), Float(frame.midY), &found)
-        guard result == .success, let found else {
-            print("NOTE: the screen could not be asked what lies at \(frame.midX), \(frame.midY) (answer \(result.rawValue)).")
-            return true
-        }
-        var role: CFTypeRef?
-        AXUIElementCopyAttributeValue(found, kAXRoleAttribute as CFString, &role)
-        let name = (role as? String) ?? "?"
-        if name == (kAXWindowRole as String) || name == (kAXApplicationRole as String) {
-            print("NOTE: at the middle of \(Self.home) the screen answers \(name), not the row.")
-            return false
-        }
-        return true
     }
 
     /// 16 Nov 2026: the app is ended at the end of each test, and the test waits until it is
@@ -321,20 +295,21 @@ final class ScreenTests: XCTestCase {
         // popover — and `firstMatch` over every kind of element picked that one.
         // Build 335: the new task is a row of Today's own list now, under Due today, and a list
         // draws only the rows in view: it is scrolled to first.
-        let time = reveal(app.buttons.matching(identifier: "task.time.Water the plants").firstMatch)
-        XCTAssertTrue(time.waitForExistence(timeout: 20),
-                      "Picking does not ask How long? on a task without a time. On screen: \(visibleTexts())")
+        // Build 337: no dashed "How long?" button while picking. Pick on a task without a time
+        // opens the same choices; choosing one sets the time AND picks the task.
+        let pick = reveal(app.buttons.matching(identifier: "startDay.pick.Water the plants").firstMatch)
+        XCTAssertTrue(pick.waitForExistence(timeout: 20),
+                      "The added action did not appear in the list. On screen: \(visibleTexts())")
+        XCTAssertFalse(app.buttons.matching(identifier: "task.time.Water the plants").firstMatch.exists,
+                       "Picking still draws a How long? button on a task without a time (build 337 took it away).")
         #if os(macOS)
-        // 16 Nov 2026 (the Mac run of build 329): the new task's row lay below what the
-        // window shows, so the press at its
-        // middle landed outside the list. By hand the list is scrolled first; so here.
-        // Build 335: and the row may have lost its frame meanwhile (the Mac run of 335).
-        giveItAFrame(time)
-        bringIntoSight(time)
+        giveItAFrame(pick)
+        bringIntoSight(pick)
         #endif
+        let time = pick
         let timeFrame = time.frame
         guard Self.isOnScreen(timeFrame) else {
-            XCTFail("The time button has no place on screen: \(timeFrame)")
+            XCTFail("The Pick button has no place on screen: \(timeFrame)")
             return
         }
         press(time, at: timeFrame)
@@ -342,7 +317,7 @@ final class ScreenTests: XCTestCase {
         let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
         let opened = choice.waitForExistence(timeout: 10)
         XCTAssertTrue(opened,
-                      "Pressing the time button did not show the choices. \(whereabouts(time)) On screen: \(visibleTexts())")
+                      "Pressing Pick on a task without a time did not show the choices. \(whereabouts(time)) On screen: \(visibleTexts())")
         guard opened else { return }
         // Measured once and used once (build 249's third run): reading `frame` twice asks the
         // app twice, and a popover can answer differently the second time.
@@ -785,6 +760,8 @@ final class ScreenTests: XCTestCase {
                       "Cancel was pressed and the line left the Inbox. On screen: \(visibleTexts())")
     }
 
+    #endif
+
     /// **Build 332:** the Today band's fourth button opens **One thing**: one task, **Done**
     /// and **Not now**. Not now sets it aside and shows the next; when none is left the page
     /// says so and **Show them again** brings them back. Set-aside tasks are kept for the day,
@@ -795,7 +772,7 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(one.waitForExistence(timeout: 20),
                       "The Today band has no One thing button. On screen: \(visibleTexts())")
         look("332-today-band")
-        one.press()
+        pressInSight(one)
         XCTAssertTrue(element("one.heading").waitForExistence(timeout: 10),
                       "The One thing button was pressed and no page opened. On screen: \(visibleTexts())")
         XCTAssertTrue(element("one.close").exists, "The One thing page has no Close button.")
@@ -805,7 +782,7 @@ final class ScreenTests: XCTestCase {
             title.label.isEmpty ? ((title.value as? String) ?? "") : title.label
         }
         if !title.exists && nothing.exists && element("one.again").exists {
-            element("one.again").press()
+            pressInSight(element("one.again"))
         }
         XCTAssertTrue(title.waitForExistence(timeout: 10),
                       "One thing shows no task though the test notes have a next action. On screen: \(visibleTexts())")
@@ -816,7 +793,7 @@ final class ScreenTests: XCTestCase {
 
         let first = titleWords()
         XCTAssertFalse(first.isEmpty, "The task on One thing has no words.")
-        element("one.notNow").press()
+        pressInSight(element("one.notNow"))
         XCTAssertTrue(becomes(within: 10) {
             (title.exists && titleWords() != first) || (nothing.exists && self.element("one.again").exists)
         }, "Not now was pressed and the page still shows \"\(first)\". On screen: \(visibleTexts())")
@@ -826,7 +803,7 @@ final class ScreenTests: XCTestCase {
         while !nothing.exists && presses < 30 {
             let words = titleWords()
             guard element("one.notNow").exists else { break }
-            element("one.notNow").press()
+            pressInSight(element("one.notNow"))
             _ = becomes(within: 5) { nothing.exists || (title.exists && titleWords() != words) }
             presses += 1
         }
@@ -834,19 +811,20 @@ final class ScreenTests: XCTestCase {
         look("332-one-nothing")
         let again = element("one.again")
         XCTAssertTrue(again.exists, "The empty page has no Show them again button. On screen: \(visibleTexts())")
-        again.press()
+        pressInSight(again)
         XCTAssertTrue(becomes(within: 10) { title.exists && titleWords() == first },
                       "Show them again was pressed and the first task \"\(first)\" is not back. On screen: \(visibleTexts())")
 
-        element("one.done").press()
+        pressInSight(element("one.done"))
         XCTAssertTrue(becomes(within: 10) { nothing.exists || (title.exists && titleWords() != first) },
                       "Done was pressed and \"\(first)\" is still the task. On screen: \(visibleTexts())")
         let close = element("one.close").exists ? element("one.close") : element("one.nothing.close")
-        close.press()
+        pressInSight(close)
         XCTAssertTrue(element("today.one").waitForExistence(timeout: 10),
                       "The One thing page was closed and Today shows no One thing button. On screen: \(visibleTexts())")
     }
 
+    #if os(iOS)
     /// **Build 306:** an Inbox line swiped from the right goes to tomorrow, and the message's
     /// **Undo** takes the date off again (the test line has none). The date is read off the
     /// line itself, so this proves the file was written and then put back.
@@ -1449,7 +1427,11 @@ final class ScreenTests: XCTestCase {
             XCTFail("The goal box in step 9 has no place on screen: \(whereabouts(box))")
             return
         }
+        #if os(macOS)
+        pressWhenSteady(box) { self.element("review.nextGoal.field").exists }
+        #else
         pressInSight(box)
+        #endif
 
         let field = element("review.nextGoal.field")
         XCTAssertTrue(field.waitForExistence(timeout: 10),
@@ -1479,16 +1461,16 @@ final class ScreenTests: XCTestCase {
         // 17 Nov 2026: pressed the way the other review tests press (`pressInSight`: brought
         // clear of the window's rim first, and the app brought forward again if the press
         // left it behind). Red on GitHub's Mac in three runs with the button on the rim.
+        func isRecorded() -> Bool { self.words(of: self.element("review.done.last")) == "Review done today" }
+        look("review-done-before-press")
+        #if os(macOS)
+        pressWhenSteady(done, worked: isRecorded)
+        let recorded = becomes(within: 10, isRecorded)
+        #else
         pressInSight(done)
-        var recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
-        // Build 328: a first click that only woke the window (CI of 16 Nov, macos-26) is
-        // pressed once more while the button is still there. A button that did its work is gone.
+        let recorded = becomes(within: 10, isRecorded)
+        #endif
         let again = app.buttons.matching(identifier: "review.done").firstMatch
-        if !recorded, again.exists {
-            print("NOTE: Review done needed a second press. \(whereabouts(again))")
-            pressInSight(again)
-            recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
-        }
         // A picture of the screen when it still did not work: GitHub keeps it with the log
         // (`screen-test-pictures-mac`), so the next red run shows what lay under the press.
         if !recorded { look("review-done-not-recorded") }
@@ -1721,6 +1703,38 @@ final class ScreenTests: XCTestCase {
         if target.isHittable { target.press() } else { target.pressCentre() }
         #endif
     }
+
+    #if os(macOS)
+    /// Build 337 (Review done, run 44095242918): the frame read is not where the button is when
+    /// the click lands, because the Mac's lazy list is still settling after a scroll. So the
+    /// frame is read twice half a second apart and the click is made only when both readings
+    /// agree and lie wholly inside the room a click can reach. After the click `worked()` is
+    /// waited for; an app left behind is brought forward and the round goes again.
+    private func pressWhenSteady(_ target: XCUIElement, worked: () -> Bool) {
+        let name = target.identifier
+        for attempt in 1...6 {
+            giveItAFrame(target)
+            bringIntoSight(target)
+            let first = target.exists ? target.frame : .zero
+            Thread.sleep(forTimeInterval: 0.5)
+            let second = target.exists ? target.frame : .zero
+            let same = abs(first.minX - second.minX) <= 1 && abs(first.minY - second.minY) <= 1
+                && abs(first.width - second.width) <= 1 && abs(first.height - second.height) <= 1
+            let room = clickableRoom()
+            guard same, !second.isEmpty, room.contains(second) else {
+                print("NOTE: \(name) not steady: \(first) then \(second) (room \(room))")
+                continue
+            }
+            print("NOTE: pressed \(name) at \(second), attempt \(attempt)")
+            if target.isHittable { target.click() } else { target.pressCentre() }
+            if becomes(within: 6, worked) { return }
+            if app.state != .runningForeground {
+                app.activate()
+                _ = app.wait(for: .runningForeground, timeout: 8)
+            }
+        }
+    }
+    #endif
 
     /// Where an element and the window are, for a message that can be read without the screen.
     private func whereabouts(_ target: XCUIElement) -> String {
@@ -2352,6 +2366,8 @@ final class ScreenTests: XCTestCase {
                       "A press on the Safety line does not show the Devices line (settings.safety.line.devices). On screen: \(visibleTexts())")
     }
 
+    #endif
+
     /// Build 329: a fresh start shows the start screen (`start.screen`) — the icon's slate page
     /// with the name, the day and what is waiting — and **it waits**: nothing takes it away but
     /// a tap (the Mac: a click). Every other test starts without it (the test vault has nobody
@@ -2370,11 +2386,16 @@ final class ScreenTests: XCTestCase {
         // It waits: still there four seconds on, nobody having touched it.
         Thread.sleep(forTimeInterval: 4)
         XCTAssertTrue(start.exists, "The start screen went away by itself; it must wait for a tap.")
+        #if os(macOS)
+        start.pressCentre()
+        #else
         start.press()
+        #endif
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: start)
         waitForExpectations(timeout: 10)
     }
 
+    #if os(iOS)
     /// Build 324: a list opened from Browse has Apple's own search field, "Search in Projects".
     /// It hangs under the title (pull down); a word that matches nothing gives "Nothing found".
     func testAListOpenedFromBrowseHasItsOwnSearchField() {
