@@ -328,6 +328,8 @@ final class ScreenTests: XCTestCase {
         // 16 Nov 2026 (the Mac run of build 329): the new task's row lay below what the
         // window shows, so the press at its
         // middle landed outside the list. By hand the list is scrolled first; so here.
+        // Build 335: and the row may have lost its frame meanwhile (the Mac run of 335).
+        giveItAFrame(time)
         bringIntoSight(time)
         #endif
         let timeFrame = time.frame
@@ -1502,22 +1504,29 @@ final class ScreenTests: XCTestCase {
     /// `bringIntoSight` puts it clear of the rim. On the phone it is `reveal`.
     private func showInReview(_ target: XCUIElement) {
         #if os(macOS)
-        for attempt in 0..<14 {
-            if target.exists, !target.frame.isEmpty {
-                bringIntoSight(target)
-                return
-            }
-            let list = element("review.list")
-            let spot = list.exists
-                ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                : app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.6))
-            let reach = CGFloat(120 + 40 * (attempt / 2))
-            spot.scroll(byDeltaX: 0, deltaY: attempt % 2 == 0 ? -reach : reach)
-        }
+        giveItAFrame(target)
+        bringIntoSight(target)
         #else
         _ = reveal(target)
         #endif
     }
+
+    #if os(macOS)
+    /// The Mac's lists keep only the rows near the window; a row out of reach is still found,
+    /// with an empty frame ("(0, 768, 0, 0)"). The list is scrolled a little, to one side and
+    /// the other in turn and further each time, until the row has a frame again.
+    private func giveItAFrame(_ target: XCUIElement) {
+        for attempt in 0..<14 {
+            if target.exists, !target.frame.isEmpty { return }
+            let list = element("review.list")
+            let spot = list.exists
+                ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                : mainWindow.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5))
+            let reach = CGFloat(120 + 40 * (attempt / 2))
+            spot.scroll(byDeltaX: 0, deltaY: attempt % 2 == 0 ? -reach : reach)
+        }
+    }
+    #endif
 
     /// A picture for the person shipping, only when a folder is named (`TEST_RUNNER_LOOK_DIR`).
     private func look(_ name: String) {
@@ -1584,7 +1593,9 @@ final class ScreenTests: XCTestCase {
         for attempt in 0..<tries {
             #if os(macOS)
             let window = app.windows.firstMatch
-            if target.exists && window.frame.contains(target.frame) {
+            // 17 Nov 2026: a row the list let go has an empty frame, and an empty frame counted
+            // as inside the window.
+            if target.exists && !target.frame.isEmpty && window.frame.contains(target.frame) {
                 bringIntoSight(target)
                 return target
             }
@@ -1628,7 +1639,16 @@ final class ScreenTests: XCTestCase {
             let cut = room.intersection(seen)
             if !cut.isNull && cut.height > 80 { room = cut }
         }
-        return CGRect(x: room.minX, y: room.minY + 60, width: room.width, height: max(room.height - 74, 40))
+        var clear = CGRect(x: room.minX, y: room.minY + 60, width: room.width, height: max(room.height - 74, 40))
+        // Build 335: while something is picked, Today has a foot (does it fit, the plan button)
+        // over the end of the window; a row under it cannot be clicked.
+        for name in ["startDay.fit", "picking.plan"] {
+            let foot = element(name)
+            if foot.exists, !foot.frame.isEmpty, foot.frame.minY - 6 > clear.minY + 40 {
+                clear.size.height = min(clear.height, foot.frame.minY - 6 - clear.minY)
+            }
+        }
+        return clear
     }
 
     /// Scrolls what lies under the element until the whole of it is where a click can land.
@@ -1691,6 +1711,10 @@ final class ScreenTests: XCTestCase {
             print("NOTE: a press left the app behind; brought forward and pressed again. \(whereabouts(target))")
             app.activate()
             _ = app.wait(for: .runningForeground, timeout: 8)
+            // 17 Nov 2026 (Review done, the Mac run of build 335): coming forward again, the
+            // list had let the row go, and the second press went to a frame of nothing.
+            giveItAFrame(target)
+            bringIntoSight(target)
             if target.exists { if target.isHittable { target.click() } else { target.pressCentre() } }
         }
         #else

@@ -313,6 +313,11 @@ struct PickingFoot: View {
     /// The picked tasks in the list's order (`TodayPicking.chosen`).
     let refs: [TaskRef]
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
+    @Environment(\.phoneLook) private var phoneLook
+
+    /// Seen on the Mac 17 Nov 2026: with no note open Today fills the window, and the button
+    /// ran 1,060 points wide. Off the iPhone the foot is at most this wide, at the left.
+    static let deskWidth: CGFloat = 420
 
     var body: some View {
         if let title = TodayPicking.planTitle(picked: refs.count) {
@@ -322,6 +327,8 @@ struct PickingFoot: View {
                     .buttonStyle(.main(Theme.morningTint))
                     .accessibilityIdentifier("picking.plan")
             }
+            .frame(maxWidth: phoneLook ? .infinity : PickingFoot.deskWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Theme.gutter + 6)
             .padding(.top, 8)
             .padding(.bottom, 10)
