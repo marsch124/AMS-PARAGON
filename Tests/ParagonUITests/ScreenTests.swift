@@ -1455,7 +1455,18 @@ final class ScreenTests: XCTestCase {
         // let its last row go — and `reveal` scrolled blind. `showInReview` nudges the list
         // until the row has a frame, as for step 9's box.
         let done = app.buttons.matching(identifier: "review.done").firstMatch
+        #if os(macOS)
+        // 17 Nov 2026, build 337's Mac run: after every wheel scroll the test made, the button's
+        // frame read as there and half a second later as nothing, six rounds running — on
+        // GitHub's Mac a frame read right after a synthetic scroll is not to be trusted. By hand
+        // the end of the review is steady (watched 30 s, the app idle) and the **End** key puts
+        // the last row in sight in one step. So: the keyboard goes to the list, End, and only
+        // if that leaves no frame the old nudging.
+        endOfTheReviewByKey()
+        if !done.exists || done.frame.isEmpty { showInReview(done) }
+        #else
         showInReview(done)
+        #endif
         XCTAssertTrue(done.exists, "The Weekly review has no Review done button. On screen: \(visibleTexts())")
         let last = element("review.done.last")
         XCTAssertTrue(last.exists, "No line says when the review was last done. On screen: \(visibleTexts())")
@@ -1495,6 +1506,24 @@ final class ScreenTests: XCTestCase {
     }
 
     #if os(macOS)
+    /// The end of the Weekly review without one wheel scroll: a click on the empty right end of
+    /// the list's first row (the date) gives the list the keyboard, and **End** sends it to its
+    /// last row. Tried by hand on the Mac test copy (17 Nov 2026): Review done lies wholly in
+    /// sight after it, and Home takes the list back.
+    private func endOfTheReviewByKey() {
+        let list = element("review.list")
+        guard list.waitForExistence(timeout: 10), !list.frame.isEmpty else {
+            print("NOTE: the review list was not there for the End key.")
+            return
+        }
+        list.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0))
+            .withOffset(CGVector(dx: 0, dy: 14)).click()
+        app.typeKey(.end, modifierFlags: [])
+        Thread.sleep(forTimeInterval: 1.5)
+        let done = app.buttons.matching(identifier: "review.done").firstMatch
+        print("NOTE: after End, Review done is at \(done.exists ? "\(done.frame)" : "nowhere") (room \(clickableRoom())).")
+    }
+
     /// The Mac's lists keep only the rows near the window; a row out of reach is still found,
     /// with an empty frame ("(0, 768, 0, 0)"). The list is scrolled a little, to one side and
     /// the other in turn and further each time, until the row has a frame again.
