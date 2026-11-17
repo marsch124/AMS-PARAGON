@@ -179,7 +179,7 @@ The steps:
 8. **Look back at last week.** Your days, the lines from Close the day, time worked, what ended, and a box, **How was the week?**
 9. **Write the goal for the week.** One line; it shows under the date on Today.
 
-Press **Review done** at the end. That is enough for the week. Settings can remind you: **Remind me to do the weekly review**.
+On the Mac, the headings scroll with the list and none sticks to the top (since build 333). Press **Review done** at the end; on the Mac it has room under it. That is enough for the week. Settings can remind you: **Remind me to do the weekly review**.
 
 ## 9. Finding things
 

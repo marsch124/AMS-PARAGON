@@ -1,6 +1,28 @@
 # Version history
 
-The version is shown as 1.0 (332) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (333) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 333 · 17 November 2026
+
+**On the Mac, the Weekly review's headings no longer lie over each other, and Review done has room under it.** A small build. It changes only the Mac's Weekly review. The iPhone and the iPad are unchanged.
+
+**Changed.**
+- **Headings (Mac only).** Before: in the Weekly review on the Mac, the heading of the part you were in stayed stuck at the top of the list while you scrolled, and the next heading slid under it. For a moment one heading lay over the top half of the next, for example "2. Reschedule or drop overdue tasks" over "3. Thin out the loose tasks". With the review folded, as it starts, every heading is followed by another one, so you saw it at almost every scroll. Now: the headings scroll with the list like every other row. None sticks to the top, none lies over another.
+  - **The price.** Inside a long open step, the step's heading no longer stays in view while you scroll through its rows.
+  - **iPhone and iPad:** unchanged. Their headings never stuck.
+- **Room under Review done (Mac only).** Before: scrolled to its end, the button **Review done** sat 16 points above the window's lower edge. Now: there are 42 points of room under it, so it ends 56 points above the edge. iPhone and iPad unchanged.
+- **Tests (not visible in the app).** The Mac screen tests on GitHub were red in one test per run for three runs. Each time a press in the last rows of the Weekly review failed (**Review done** twice, the goal box of step 9 once). The test helper that scrolls a button into reach no longer turns round when the list is at its end, because that scrolled the last rows out of the list. The **Review done** test presses the sturdy way. A failing Mac test now leaves a picture of the screen on GitHub (artifact `screen-test-pictures-mac`).
+
+**Not seen, not tried.**
+- **Not known when this was written:** whether GitHub's Mac test run is green with this build.
+- **Seen by me:** by hand in the Mac test copy (window 900 x 450, by day): I scrolled the folded review from top to end in steps. No heading stuck and none lay over another. **Review done** was 56 points above the edge.
+- **Not seen:** an open long step on the Mac, and night.
+- **Not tried:** a real mouse click on **Review done** (it was pressed the way assistive software presses).
+- No new screen test guards the headings; the Mac screen tests run only on GitHub.
+
+Tested:
+- No new rule, so no new rule test. The Mac screen tests were repaired as described above.
+- Rule tests in all: 1,145 (unchanged).
 
 ## Build 332 · 17 November 2026
 
