@@ -5332,3 +5332,17 @@ His three picks after the advisors' round: quicker filing, the loose tasks step 
 - **"Name 2" twin:** `ICloudDuplicateFileSyncTests` green without a change — `idOwners` and the both-map-to-one-list check keep the copy out.
 - **Weekly review:** "Thin out the loose tasks" is step 3; the old 3–8 are 4–9.
 - The screen tests run with `-scheme ParagonUITests` (the `Paragon` scheme has no test action).
+
+## Build 332 (17 November 2026)
+
+Part 1 of three: a task deleted on this device loses its reminder at the next sync, not 2 minutes later.
+
+- **Removed here.** Core `RemovedHere` (`Core/Sources/ParagonCore/Sync/RemovedHere.swift`): `ids(before:after:elsewhere:)`, `ids(before:after:all:)`, `remembered(_:adding:nowInNotes:limit:)` (limit 500). A task that is in a note before a save made here and in NO note after it was removed here; a moved task is still in a note. A task that is back (Undo after Delete, a pasted line) is forgotten again.
+- **Wiring.** `AppModel.removedHere` (set of task ids, UserDefaults key `sync.removedHere`, so closing the app before the sync loses nothing). `AppModel.rememberRemovedHere(before:after:)` is called from `save(_:)` and from `saveText(_:forNoteAt:startedFrom:)`; the editor path compares what the editor STARTED from with what it holds, so a line the other device removed is never counted as his. Covers Inbox Delete, Turn into a note, and a line typed away in the editor. `syncNow` hands the set to `SyncEngine.removedHere` and clears it.
+- **Engine.** `SyncEngine.removedHere`: `hasBeenGoneLongEnough` is true at once for those ids. The other tests stay: the id is in no note, and the note it was in was read. Anything gone another way (a change from another device or iCloud) still waits `goneGrace` (120 s) as in 331. The brake (more than 5) and Undo are unchanged.
+- **Limits.** A delete does not start a sync; the reminder goes at the next one (timed, Sync now, back to the app). A line CUT from one note and pasted into another counts as removed if a sync runs between the cut and the paste (reminder made new, Reminders-only edits lost); Move to does not. Not tried on two real devices.
+- **Tests.** 4 new in `MovedTaskAcrossNotesTests` (`Core/Tests/ParagonCoreTests/SyncSuspicions331Tests.swift`): `testATaskDeletedOnThisDeviceLosesItsReminderInTheFirstSync`, `testATaskGoneByAnotherDevicesChangeStillWaits`, `testATaskMovedOnThisDeviceIsNeverTakenForADelete`, `testWhatWasRemovedHereIsForgottenWhenItComesBack`. The 2 tests of 331 stay green (6 in that class).
+
+<!-- 332 PART 2: search in File it -->
+
+<!-- 332 PART 3: One thing -->

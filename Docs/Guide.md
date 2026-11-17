@@ -192,7 +192,7 @@ Sync runs by itself every few minutes. Press the **sync ring** (foot of the side
 
 If a task changed on both sides, **Settings › Reminders sync** decides who wins: the note or the reminder.
 
-When you delete a task, its reminder goes about 2 minutes later, not at once (since build 331). The first sync only notes that the task is gone; a later sync, at least 2 minutes on, deletes the reminder if the task is still in no note. This is why a task you move from one note to another keeps its reminder, even when iCloud brings the two notes in a different order.
+When you delete a task on this device, its reminder goes at the next sync (since build 332). That means the timed sync, **Sync now**, or coming back to the app. Before, in build 331, it went about 2 minutes later. This covers **Delete** in the Inbox, **Turn into a note**, and a line you take out by typing in a note. If a task disappears any other way, for example through a change that came from another device, its reminder still goes about 2 minutes later (since build 331): the first sync only notes that the task is gone, and a later sync, at least 2 minutes on, deletes the reminder if the task is still in no note. This is why a task you move from one note to another keeps its reminder, even when iCloud brings the two notes in a different order. A line you cut from one note and paste into another can lose its reminder if a sync runs in between; **Move to** does not.
 
 ### The questions PARAGON asks
 
