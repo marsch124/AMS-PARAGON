@@ -5335,7 +5335,7 @@ His three picks after the advisors' round: quicker filing, the loose tasks step 
 
 ## Build 332 (17 November 2026)
 
-Part 1 of three: a task deleted on this device loses its reminder at the next sync, not 2 minutes later.
+Three parts: (1) a task deleted on this device loses its reminder at the next sync, not 2 minutes later; (2) a search field in File it; (3) the page One thing.
 
 - **Removed here.** Core `RemovedHere` (`Core/Sources/ParagonCore/Sync/RemovedHere.swift`): `ids(before:after:elsewhere:)`, `ids(before:after:all:)`, `remembered(_:adding:nowInNotes:limit:)` (limit 500). A task that is in a note before a save made here and in NO note after it was removed here; a moved task is still in a note. A task that is back (Undo after Delete, a pasted line) is forgotten again.
 - **Wiring.** `AppModel.removedHere` (set of task ids, UserDefaults key `sync.removedHere`, so closing the app before the sync loses nothing). `AppModel.rememberRemovedHere(before:after:)` is called from `save(_:)` and from `saveText(_:forNoteAt:startedFrom:)`; the editor path compares what the editor STARTED from with what it holds, so a line the other device removed is never counted as his. Covers Inbox Delete, Turn into a note, and a line typed away in the editor. `syncNow` hands the set to `SyncEngine.removedHere` and clears it.
@@ -5343,6 +5343,18 @@ Part 1 of three: a task deleted on this device loses its reminder at the next sy
 - **Limits.** A delete does not start a sync; the reminder goes at the next one (timed, Sync now, back to the app). A line CUT from one note and pasted into another counts as removed if a sync runs between the cut and the paste (reminder made new, Reminders-only edits lost); Move to does not. Not tried on two real devices.
 - **Tests.** 4 new in `MovedTaskAcrossNotesTests` (`Core/Tests/ParagonCoreTests/SyncSuspicions331Tests.swift`): `testATaskDeletedOnThisDeviceLosesItsReminderInTheFirstSync`, `testATaskGoneByAnotherDevicesChangeStillWaits`, `testATaskMovedOnThisDeviceIsNeverTakenForADelete`, `testWhatWasRemovedHereIsForgottenWhenItComesBack`. The 2 tests of 331 stay green (6 in that class).
 
-<!-- 332 PART 2: search in File it -->
+### Part 2: Search in File it (his pick 17 Nov, option 1: the menu stays, one new row on top)
 
-<!-- 332 PART 3: One thing -->
+- **Row.** `FilingPlaces` (InboxView.swift) draws **Search…** first when `AppModel.filingOffersSearch(among:)` (more places than `FilingOrder.shortList` = 6; `shortList: 0` under `TestVault.isWanted`, DEBUG only). It sets `AppModel.filingSearch` (`TaskRef?`); `ContentView` has a SECOND `.sheet(item: $model.filingSearch)` for it (the one-sheet `AppSheet` enum does not carry a `TaskRef`). Id `file.search.open`.
+- **Page.** `FilingPlaces`-shaped groups in `FilingSearchPage` (Suggested, Recent, All projects and areas), cursor in the field at once. Ids `file.search.field`, `.task` (the line's title, small grey), `.cancel` (Escape on the Mac), `.none` ("No project or area with these words."), `.suggested.<title>`, `.recent.<title>`, `.row.<title>`. A row tap = `AppModel.moveTask` + dismiss (so Recent is updated); Return files to the first row shown.
+- **Rule.** Core `FilingOrder.matching(_:_:)` and `Offer.matching(_:)`: diacritic- and case-insensitive; EVERY typed word contained in the name; names where a word BEGINS with the first typed word first; the given order inside each part; empty query = unchanged.
+- **Tests.** Core `FilingSearchTests` (5); screen `testFileItHasASearchPageThatFilesTheLine`.
+
+### Part 3: One thing (his pick 17 Nov, option 3: a page of its own, a fourth small button on Today's band; no start-screen change)
+
+- **Button.** `TodayView.dayButtons`: a 4th `HeaderActionButton` "One" (mark `one.thing`, `Marks.oneThingPath`, id `today.one`), LEFT of Note, Start, Close, which keep their places. It sets `model.activeSheet = .oneThing` (`AppSheet.oneThing`).
+- **Page.** `OneThingView`: ids `one.heading`, `one.title`, `one.why` ("<words> · <note title>"), `one.done` (full colour, `AppModel.toggle`), `one.notNow`, `one.focus` (only `model.canFocus(on:)`; closes the sheet then `startFocus(on:)`), `one.more` ("N more after this" / "1 more after this" / "The last one for now"), `one.close` (Escape). Empty: `one.nothing`, `one.nothing.why` (nothing due, or "You set N tasks aside for today."), `one.nothing.close`, `one.again` (label "Show them again", "Show it again" when N is 1).
+- **Rule.** Core `OneNextThing` (`Vault/OneNextThing.swift`): `queue(in:today:)` = overdue (longest first; same day timed before untimed, earlier time first) + due today (timed first) + `NoteIndex.nextActions()` (Today's own; undated, not in the first two); never done/cancelled/someday/waiting/future. Day = `TaskItem.pressingDay`. `words(for:today:)`: "Overdue since yesterday" (<=1 day), "Overdue since <weekday>" (2-6), "Overdue since <date>" (7+), "Due today at HH:mm" / "Due today", "Next action". `key(for:)` = `^t` id else path + title.
+- **Not now.** `AppModel.oneThingQueue`, `setAsideOneThing(_:)`, `clearOneThingAside()`; UserDefaults `oneThing.setAside` (keys) + `oneThing.setAsideDay`; `OneNextThing.setAside(_:writtenOn:today:)` reads a list from another day as empty. Per device, nothing written into a note.
+- **Tests.** Core `OneNextThingTests` (8); screen `testOneThingShowsOneTaskAndNotNowBringsTheNext`.
+- **Not seen.** Search… row and page on the iPad and the Mac right-click menu; One thing on a real phone; night; VoiceOver; the band's four buttons at the largest text size.

@@ -4,14 +4,21 @@ The version is shown as 1.0 (332) in Settings › About, at the foot of the Mac 
 
 ## Build 332 · 17 November 2026
 
-**A task you delete here loses its reminder at the next sync, not 2 minutes later.** This is part 1 of the build. The other parts follow below.
-
-<!-- 332 PART 2: search in File it -->
-
-<!-- 332 PART 3: One thing -->
+**A search field in File it, a calm page with one task, and a deleted task loses its reminder at the next sync.** This build has three parts. Part 1: a task you delete here loses its reminder at the next sync, not 2 minutes later. Part 2: **File it** has a **Search…** row. Part 3: a new page, **One thing**, shows only the one next task.
 
 **Changed.**
-- **A task deleted on this device.** Before (build 331): a reminder whose task line was gone waited about 2 minutes (120 seconds). The first sync only wrote the time down, a later sync at least 2 minutes on deleted the reminder, and the app planned one quiet extra sync 125 seconds later. That wait was there so that a task moved between two notes on another device keeps its reminder when iCloud brings the note it left before the note it went to. Now: the app writes down which tasks you removed on this device. The next sync deletes their reminders in that same sync. That is 0 minutes of waiting instead of about 2.
+- **Search in File it (part 2).** Before: **File it** on the iPhone (and **Move to** on a line's menu, held on the iPhone and the iPad, right-clicked on the Mac) was a menu: **Suggested** (up to 2), **Recent** (up to 3), then **All projects and areas**. With many places that is a long scroll, and a menu cannot hold a field to type in. Now: the menu is as it was, with one new row on top, **Search…**. It is there when you have more than 6 places, the same limit from which the groups show. With 6 places or fewer the menu is as before, with no **Search…**.
+  - **The page.** **Search…** opens a small page, **File it**. It shows the words of the line in one small grey line, a search field with the cursor in it at once, and under it the same three groups, **Suggested**, **Recent** and **All projects and areas**, cut down as you type.
+  - **The rule.** Every word you type must be somewhere in the place's name. Capitals and accents do not count: "norrkop" finds "Norrköping". Places where a word of the name begins with the first word you typed come first. Example: with "ferry" typed, "Ferry to Gotland" comes before "Plan the ferry trip".
+  - **Filing.** A tap on a row files the line and closes the page. **Return** files it to the first row shown. **Cancel** (Escape on the Mac) closes the page and files nothing.
+  - **No match.** The page says "No project or area with these words."
+- **One thing (part 3).** Before: every screen was a list, and nothing showed only the one next task. Today's purple band had 3 small buttons: **Note**, **Start** and **Close**. Now: the band has a fourth small button, **One** (a ring with the figure 1), to the left of the three. The three keep their places. It opens the page **One thing**. You asked for a page of its own and for nothing on the start screen, so there is nothing there.
+  - **The page.** The heading **One thing**, then one task in large type. Under it one small line says why it is the one and which note it is in, for example "Overdue since Friday · Car". Then three buttons: **Done** (full colour; it ticks the task and the next one comes), **Not now** (sets it aside for today and the next one comes) and **Start focus** (starts the focus timer on it and closes the page; it is not shown where a task cannot be focused on). At the foot is a tiny line: "3 more after this", "1 more after this" or "The last one for now". **Close** is top left (Escape on the Mac).
+  - **The small line.** "Overdue since yesterday"; "Overdue since Friday" for 2 to 6 days; "Overdue since 2026-11-03" from 7 days on; "Due today at 14:00"; "Due today"; "Next action".
+  - **Which task, in this order.** 1. Overdue: the one overdue longest first; on the same day a task with a time comes before one without, and the earlier time first. 2. Due today: tasks with a time first, by time, then those without. 3. The next actions, exactly as **Today** lists them (one per project). Never offered: done or cancelled tasks, tasks you made wait for someone, someday tasks, and anything dated in the future. "Overdue" and "due" go by the same day **Today** uses: the earlier of the do-day and the deadline.
+  - **Not now.** It sets the task aside for today, on this device only. Nothing is written into the note. The next day it is forgotten and the task is offered again.
+  - **Nothing left.** The page says "Nothing for now." Under it, either "Nothing is overdue, nothing is due today, and no project has a next action waiting." or, when you set tasks aside, "You set 2 tasks aside for today." with a button **Show them again** that brings them back. The main button is **Close**.
+- **A task deleted on this device (part 1).** Before (build 331): a reminder whose task line was gone waited about 2 minutes (120 seconds). The first sync only wrote the time down, a later sync at least 2 minutes on deleted the reminder, and the app planned one quiet extra sync 125 seconds later. That wait was there so that a task moved between two notes on another device keeps its reminder when iCloud brings the note it left before the note it went to. Now: the app writes down which tasks you removed on this device. The next sync deletes their reminders in that same sync. That is 0 minutes of waiting instead of about 2.
   - **What counts as removed here:** **Delete** in the Inbox (hold the line, or right-click it, then **Delete**), **Turn into a note**, and a task line you take out by typing in a note's editor.
   - **How the app tells a delete from a move.** After each save made on this device, the app compares the note's tasks before and after. A task that is afterwards in no note at all was removed here. A task moved to another note is still in a note, so it is not a delete and keeps its reminder.
   - **If it comes back** (**Undo** after **Delete**, or a line pasted back), the app forgets it was removed, and the reminder stays.
@@ -23,8 +30,15 @@ The version is shown as 1.0 (332) in Settings › About, at the foot of the Mac 
 - A delete does not start a sync by itself. The reminder goes at the next sync: the timed one, **Sync now**, or when you come back to the app. That is as before build 331.
 - A line you cut from one note and paste into another counts as removed if a sync runs between the cut and the paste. Then the reminder is made new, and anything you set only in Reminders is lost. **Move to** does not have this.
 - Not tried on two real devices.
+- **Not seen:** the **Search…** row and its page on the iPad and in the Mac's right-click menu.
+- **Not seen:** **One thing** on a real phone.
+- **Not seen:** either new page at night, and with VoiceOver.
+- **Not seen:** the band's four buttons with the largest text size.
 
-Tested: 4 new rule tests (a task deleted here loses its reminder in the first sync; a task gone by another device's change still waits; a task moved here is never taken for a delete; what was removed here is forgotten when it comes back). The 2 tests of build 331 for moved tasks stay green: 6 in that group.
+Tested:
+- Part 1: 4 new rule tests (a task deleted here loses its reminder in the first sync; a task gone by another device's change still waits; a task moved here is never taken for a delete; what was removed here is forgotten when it comes back). The 2 tests of build 331 for moved tasks stay green: 6 in that group.
+- Part 2: 5 new rule tests (an empty search keeps everything in order; every word must match; capitals and accents are ignored; a name where a word begins with what you typed comes first; both groups are filtered) and 1 new screen test (the search page files the line).
+- Part 3: 8 new rule tests (the longest overdue beats due today; due today goes by time, timed before untimed; a next action comes only after everything due; done, someday, waiting-for and future tasks are never picked; a task set aside is skipped and the next comes; nothing left gives nothing; Today's next actions are the third group; what was set aside counts for one day) and 1 new screen test (One thing shows one task and Not now brings the next).
 
 <!-- 332 FOOT -->
 

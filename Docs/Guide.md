@@ -30,11 +30,25 @@ Pick a line and four buttons appear: **Today**, **Tomorrow**, **Pick a date** an
 
 On the iPhone, **File it** lists the likely places first (since build 331). **Suggested** has up to 2 places whose name shares a telling word with the line. **Recent** has up to 3 places you last moved a task to on this phone. Under them, **All projects and areas** is the whole list, so nothing is hidden. With 6 places or fewer there are no groups. **Move to** on a line's menu has the same groups.
 
+**Search in File it (since build 332).** Before, with many places, **File it** was a long scroll, and a menu cannot hold a field to type in. Now, with more than 6 places, the menu has one new row on top, **Search…**. It opens a small page, **File it**. It shows the words of the line in one small grey line, a search field with the cursor in it, and under it the same three groups. Type a word or two and the places are cut down: every word you type must be somewhere in the name, capitals and accents do not matter ("norrkop" finds "Norrköping"), and names where a word begins with what you typed come first. Tap a row to file the line and close the page. **Return** files it to the first row shown. **Cancel** (Escape on the Mac) closes the page and files nothing. If nothing fits it says "No project or area with these words." With 6 places or fewer there is no **Search…** row.
+
 ## 3. Today
 
 **Today** is the screen you live in. It shows the day's calendar events, then what needs you now: overdue tasks, tasks due today, the one next action of each active project, and undated tasks marked important.
 
-Three round buttons sit at the top: **Note** opens today's note, **Start** opens Start the day, **Close** opens Close the day. 
+Four round buttons sit at the top (since build 332; before, three): **One** opens the page One thing, **Note** opens today's note, **Start** opens Start the day, **Close** opens Close the day.
+
+### One thing
+
+A list asks you to choose. **One** shows only one task and nothing else. It is the small button with a ring and the figure 1, left of **Note**. It opens the page **One thing**: one task in large type, a small line that says why it is the one and which note it is in (for example "Overdue since Friday · Car"), and three buttons.
+
+- **Done** ticks the task, and the next one comes.
+- **Not now** sets the task aside for today, and the next one comes. It is only on this device and nothing is written into the note. The next day the task is offered again.
+- **Start focus** starts the focus timer on the task and closes the page. It is not there where a task cannot be focused on.
+
+A tiny line at the foot says "3 more after this", "1 more after this" or "The last one for now". **Close** (top left, Escape on the Mac) leaves everything as it is.
+
+Which task: first the one overdue longest. Then what is due today, with a time first. Then the next action of each project, as **Today** lists them. A task that is done, someday, waiting for someone or dated in the future is never shown. When nothing is left the page says "Nothing for now." If you set tasks aside it says how many and has **Show them again**.
 
 ## 4. Start the day, Plan, Focus, Close the day
 
