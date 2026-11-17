@@ -23,9 +23,16 @@ public final class SyncEngine {
     /// The identity of each list PARAGON is linked to, by name, for the run in progress.
     private var knownListIDs: [String: String] = [:]
 
+    /// Build 332: the ids of tasks a change made on THIS device removed since the last sync
+    /// (`RemovedHere`). The app saw them go, so nothing is in transit: their reminders are
+    /// deleted in this run, without the wait. The other tests still hold — the id must be in
+    /// no note at all and the note it was in must have been read.
+    public var removedHere: Set<String> = []
+
     /// Build 331: true when an earlier sync already found this task's line gone, at least
-    /// `goneGrace` ago.
+    /// `goneGrace` ago. Build 332: or when the task was removed on this device.
     private func hasBeenGoneLongEnough(_ taskID: String, in state: SyncState) -> Bool {
+        if removedHere.contains(taskID) { return true }
         guard let since = state.goneSince[taskID] else { return false }
         return now().timeIntervalSince(since) >= goneGrace
     }

@@ -91,6 +91,79 @@ final class MovedTaskAcrossNotesTests: XCTestCase {
         XCTAssertNil(state.links["t0000aa"])
         XCTAssertTrue(state.goneSince.isEmpty, "nothing is left waiting")
     }
+
+    /// Build 332: a task deleted on THIS device does not wait. The app tells the engine
+    /// which ids a change made here removed, and the first sync deletes their reminders.
+    func testATaskDeletedOnThisDeviceLosesItsReminderInTheFirstSync() async throws {
+        try setBody("X", "- [ ] Pack passport ^t0000aa\n- [ ] Other ^t0000bb\n")
+        try await engine.run(allowMassChanges: true)
+        try await engine.run(allowMassChanges: true)
+        let found = try await store.reminders(inList: "X").first { $0.title.contains("Pack passport") }
+        let reminder = try XCTUnwrap(found)
+        let before = try vault.loadNote(relativePath: "Projects/X.md")
+
+        try setBody("X", "- [ ] Other ^t0000bb\n")
+        let after = try vault.loadNote(relativePath: "Projects/X.md")
+        engine.removedHere = RemovedHere.ids(before: before, after: after, all: try vault.allNotes())
+        XCTAssertEqual(engine.removedHere, ["t0000aa"])
+
+        let first = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(first.remindersDeleted, 1, "deleted here: gone in the first sync")
+        XCTAssertEqual(first.remindersWaitingToGo, 0)
+        XCTAssertNil(store.records[reminder.identifier])
+        let state = try vault.loadSyncState(deviceID: "test-device")
+        XCTAssertNil(state.links["t0000aa"])
+        XCTAssertTrue(state.goneSince.isEmpty)
+    }
+
+    /// Build 332: the wait of build 331 stays for a line that went by ANOTHER device's
+    /// change — the engine was told nothing, so the first sync only writes the time down.
+    func testATaskGoneByAnotherDevicesChangeStillWaits() async throws {
+        try setBody("X", "- [ ] Pack passport ^t0000aa\n- [ ] Other ^t0000bb\n")
+        try await engine.run(allowMassChanges: true)
+        try await engine.run(allowMassChanges: true)
+        let found = try await store.reminders(inList: "X").first { $0.title.contains("Pack passport") }
+        let reminder = try XCTUnwrap(found)
+
+        try setBody("X", "- [ ] Other ^t0000bb\n")
+        engine.removedHere = ["t0000zz"] // something else was deleted here; this task was not
+        let first = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(first.remindersDeleted, 0)
+        XCTAssertEqual(first.remindersWaitingToGo, 1)
+        XCTAssertNotNil(store.records[reminder.identifier])
+    }
+
+    /// Build 332: a task MOVED here is not a delete, even if the app wrongly named it: its
+    /// id is still in a note, so the reminder stays and follows the task.
+    func testATaskMovedOnThisDeviceIsNeverTakenForADelete() async throws {
+        try setBody("X", "- [ ] Pack passport ^t0000aa\n- [ ] Other ^t0000bb\n")
+        try setBody("Y", "- [ ] Something ^t0000cc\n")
+        try await engine.run(allowMassChanges: true)
+        try await engine.run(allowMassChanges: true)
+        let found = try await store.reminders(inList: "X").first { $0.title.contains("Pack passport") }
+        let reminder = try XCTUnwrap(found)
+        let before = try vault.loadNote(relativePath: "Projects/X.md")
+
+        try setBody("Y", "- [ ] Something ^t0000cc\n- [ ] Pack passport ^t0000aa\n")
+        try setBody("X", "- [ ] Other ^t0000bb\n")
+        let after = try vault.loadNote(relativePath: "Projects/X.md")
+        XCTAssertTrue(RemovedHere.ids(before: before, after: after, all: try vault.allNotes()).isEmpty,
+                      "moved to another note: not removed")
+
+        engine.removedHere = ["t0000aa"] // even when named by mistake
+        let report = try await engine.run(allowMassChanges: true)
+        XCTAssertEqual(report.remindersDeleted, 0)
+        XCTAssertEqual(store.records.values.filter { $0.title.contains("Pack passport") }.count, 1)
+        _ = reminder
+    }
+
+    /// Build 332: an id that is back in a note (Undo) is forgotten, and the list has an end.
+    func testWhatWasRemovedHereIsForgottenWhenItComesBack() {
+        let kept = RemovedHere.remembered(["t1", "t2"], adding: ["t3"], nowInNotes: ["t2", "t9"])
+        XCTAssertEqual(kept, ["t1", "t3"])
+        let many = Set((0..<600).map { "t\($0)" })
+        XCTAssertEqual(RemovedHere.remembered(many, adding: [], nowInNotes: []).count, RemovedHere.limit)
+    }
 }
 
 /// An iCloud duplicate "Name 2.md" is made when two devices write "Name.md" at once.

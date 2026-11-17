@@ -2079,6 +2079,7 @@ final class AppModel: ObservableObject {
     func save(_ note: Note) -> Bool {
         guard let vault else { return false }
         do {
+            let before = self.note(at: note.relativePath)
             let saved = try vault.save(note)
             if let i = notes.firstIndex(where: { $0.relativePath == note.relativePath }) {
                 notes[i] = saved
@@ -2088,6 +2089,7 @@ final class AppModel: ObservableObject {
                 reload()
             }
             vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
+            if let before { rememberRemovedHere(before: before, after: saved) }
             return true
         } catch VaultError.modifiedOnDisk {
             log("save refused, changed on disk: \(note.relativePath)")
@@ -2137,9 +2139,17 @@ final class AppModel: ObservableObject {
             return .failed
         }
         guard note.text != text else { return .saved }
+        // Build 332: the task lines his typing took out — what the editor started from against
+        // what it holds now, so a line the OTHER device removed is never counted as his.
+        var typedFrom = note
+        if let base { typedFrom.text = base }
+        var typed = note
+        typed.text = text
         if let base, note.text != base {
             // The note was reloaded under the editor: it holds the other side's change.
-            return settle(typed: text, startedFrom: base, other: note, in: vault)
+            let result = settle(typed: text, startedFrom: base, other: note, in: vault)
+            if result != .failed { rememberRemovedHere(before: typedFrom, after: typed) }
+            return result
         }
         note.text = text
         note.modifiedAt = note.modifiedAt ?? Date()
@@ -2148,11 +2158,14 @@ final class AppModel: ObservableObject {
             // From the dates the notes were read with, not from the files (review round 3, as in
             // `reload()`): asking the files here signed off another note's outside change unseen.
             vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
+            rememberRemovedHere(before: typedFrom, after: typed)
             return .saved
         } catch VaultError.modifiedOnDisk {
             // The file is newer than the copy in `notes` (the reload has not happened yet).
             if let base, let onDisk = try? vault.loadNote(relativePath: path) {
-                return settle(typed: text, startedFrom: base, other: onDisk, in: vault)
+                let result = settle(typed: text, startedFrom: base, other: onDisk, in: vault)
+                if result != .failed { rememberRemovedHere(before: typedFrom, after: typed) }
+                return result
             }
             return keepAsConflictCopy(note, other: nil, in: vault)
         } catch {
@@ -2204,6 +2217,42 @@ final class AppModel: ObservableObject {
             errorMessage = error.localizedDescription
             return .failed
         }
+    }
+
+    // MARK: Removed here (build 332)
+
+    /// Build 332: the ids of tasks a change made on this device took away since the last
+    /// sync (`RemovedHere`). The next sync is handed them and deletes their reminders at
+    /// once; everything that goes any other way still waits two minutes (build 331). Kept
+    /// in the device's settings, so closing the app before the sync does not lose them.
+    private(set) var removedHere: Set<String> =
+        Set(UserDefaults.standard.stringArray(forKey: AppModel.removedHereKey) ?? [])
+    static let removedHereKey = "sync.removedHere"
+
+    /// Called after every save made here, with the note as it was and as it is now. Cheap
+    /// when no task line went: the other notes are only looked through when one did.
+    private func rememberRemovedHere(before: Note, after: Note) {
+        let now = Set(after.tasks.compactMap(\.id))
+        let gone = Set(before.tasks.compactMap(\.id)).subtracting(now)
+        guard !gone.isEmpty || !removedHere.isDisjoint(with: now) else { return }
+        var fresh = Set<String>()
+        var present = now
+        if !gone.isEmpty {
+            // What the screens hold, the changed note in its new form: a line put together
+            // with the other device's change may still have the task.
+            let all = notes + workNotes
+            fresh = RemovedHere.ids(before: before, after: after, all: all)
+            for note in all { present.formUnion(note.tasks.compactMap(\.id)) }
+            fresh.subtract(present)
+        }
+        setRemovedHere(RemovedHere.remembered(removedHere, adding: fresh, nowInNotes: present))
+        if !fresh.isEmpty { log("removed here: \(fresh.count) task(s); their reminders go at the next sync") }
+    }
+
+    private func setRemovedHere(_ ids: Set<String>) {
+        guard ids != removedHere else { return }
+        removedHere = ids
+        UserDefaults.standard.set(ids.sorted(), forKey: Self.removedHereKey)
     }
 
     /// Puts a saved note in whichever list holds it.
@@ -5544,10 +5593,16 @@ final class AppModel: ObservableObject {
             // what the screen shows afterwards comes from `reload()`, on the main actor, from the app's own.
             let engine = SyncEngine(vault: try Vault(rootURL: vault.rootURL, config: vault.config), store: remindersStore,
                                     deviceID: deviceID, config: vault.config)
+            // Build 332: what was deleted on this device goes without the two-minute wait.
+            let toldRemoved = removedHere
+            engine.removedHere = toldRemoved
             let report: SyncReport
             switch try await engine.sync(allowMassChanges: allowMassChanges) {
             case .finished(let finished):
                 report = finished
+                // Handled, whatever became of each: the reminder is gone, or the task was
+                // in a note after all. What he removed while the sync ran stays for the next.
+                setRemovedHere(removedHere.subtracting(toldRemoved))
             case .needsConfirmation(let summary):
                 // The brake (build 307): nothing was changed. A sync he started asks at once;
                 // the timed one never does it by itself — it says so and waits for **Sync now**.
