@@ -1,6 +1,32 @@
 # Version history
 
-The version is shown as 1.0 (331) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (332) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 332 · 17 November 2026
+
+**A task you delete here loses its reminder at the next sync, not 2 minutes later.** This is part 1 of the build. The other parts follow below.
+
+<!-- 332 PART 2: search in File it -->
+
+<!-- 332 PART 3: One thing -->
+
+**Changed.**
+- **A task deleted on this device.** Before (build 331): a reminder whose task line was gone waited about 2 minutes (120 seconds). The first sync only wrote the time down, a later sync at least 2 minutes on deleted the reminder, and the app planned one quiet extra sync 125 seconds later. That wait was there so that a task moved between two notes on another device keeps its reminder when iCloud brings the note it left before the note it went to. Now: the app writes down which tasks you removed on this device. The next sync deletes their reminders in that same sync. That is 0 minutes of waiting instead of about 2.
+  - **What counts as removed here:** **Delete** in the Inbox (hold the line, or right-click it, then **Delete**), **Turn into a note**, and a task line you take out by typing in a note's editor.
+  - **How the app tells a delete from a move.** After each save made on this device, the app compares the note's tasks before and after. A task that is afterwards in no note at all was removed here. A task moved to another note is still in a note, so it is not a delete and keeps its reminder.
+  - **If it comes back** (**Undo** after **Delete**, or a line pasted back), the app forgets it was removed, and the reminder stays.
+  - **If you close the app before the sync,** nothing is lost. The list is kept on the device, up to 500 tasks.
+  - **Everything else is as in build 331.** A task that disappears any other way, for example through a change that came from another device or from iCloud, still waits the 2 minutes.
+  - **Unchanged:** the brake that asks before a sync deletes more than 5 reminders. **Undo** right after **Delete** still puts back the task and its mark.
+
+**Not seen, not tried.**
+- A delete does not start a sync by itself. The reminder goes at the next sync: the timed one, **Sync now**, or when you come back to the app. That is as before build 331.
+- A line you cut from one note and paste into another counts as removed if a sync runs between the cut and the paste. Then the reminder is made new, and anything you set only in Reminders is lost. **Move to** does not have this.
+- Not tried on two real devices.
+
+Tested: 4 new rule tests (a task deleted here loses its reminder in the first sync; a task gone by another device's change still waits; a task moved here is never taken for a delete; what was removed here is forgotten when it comes back). The 2 tests of build 331 for moved tasks stay green: 6 in that group.
+
+<!-- 332 FOOT -->
 
 ## Build 331 · 16 November 2026
 
