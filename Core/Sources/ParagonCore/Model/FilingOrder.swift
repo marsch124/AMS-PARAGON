@@ -33,6 +33,14 @@ public enum FilingOrder {
             self.suggested = suggested
             self.recent = recent
         }
+
+        /// Build 332: the same filter rule as `FilingOrder.matching`, applied to both groups.
+        /// An empty search gives the offer back unchanged.
+        public func matching(_ query: String) -> Offer {
+            guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return self }
+            return Offer(suggested: FilingOrder.matching(suggested, query),
+                         recent: FilingOrder.matching(recent, query))
+        }
     }
 
     public static let suggestedLimit = 2
@@ -42,6 +50,33 @@ public enum FilingOrder {
     public static let rememberedLimit = 8
     /// A list this short gets no groups.
     public static let shortList = 6
+    /// Build 332: a list with at least this many places gets a search field.
+    public static let searchFrom = 12
+
+    /// Build 332: the places whose name holds EVERY word typed in the search field.
+    /// Capitals and accents do not count ("norrkop" finds "Norrköping"). An empty search
+    /// gives the places back unchanged. Places where a word of the name BEGINS with the
+    /// first typed word come first, then the other matches; inside each group the order of
+    /// `places` is kept.
+    public static func matching(_ places: [Place], _ query: String) -> [Place] {
+        let typed = plain(query).split(whereSeparator: \.isWhitespace).map(String.init)
+        guard let first = typed.first else { return places }
+        var starts: [Place] = []
+        var others: [Place] = []
+        for place in places {
+            let title = plain(place.title)
+            guard typed.allSatisfy({ title.contains($0) }) else { continue }
+            let begins = title.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+                .contains { $0.hasPrefix(first) }
+            if begins { starts.append(place) } else { others.append(place) }
+        }
+        return starts + others
+    }
+
+    private static func plain(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+    }
 
     /// - Parameters:
     ///   - places: every place a line can go, in the order the whole list shows them.
