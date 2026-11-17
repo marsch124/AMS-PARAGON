@@ -1558,16 +1558,30 @@ final class ScreenTests: XCTestCase {
         var lastY: CGFloat?
         var still = 0
         var turned = false
+        /// The last scroll made, to be taken back when it moved the element out of the list.
+        var undo: (() -> Void)?
         for _ in 0..<16 {
             guard target.exists else { return }
             let frame = target.frame
             let room = clickableRoom()
-            guard !frame.isEmpty, frame.midY.isFinite, room.height > 40 else { return }
+            guard !frame.isEmpty, frame.midY.isFinite, room.height > 40 else {
+                // 17 Nov 2026: the last step scrolled it out of the rows the list keeps (its
+                // frame is then empty, "(0, 768, 0, 0)" in GitHub's Mac run of build 332).
+                // One step back, and no further.
+                if frame.isEmpty, let undo { print("NOTE: a scroll moved the element out of the list; one step back."); undo() }
+                return
+            }
             let fits = frame.height <= room.height - 8
             if fits ? (frame.minY >= room.minY && frame.maxY <= room.maxY)
                     : (frame.midY >= room.minY && frame.midY <= room.maxY) { return }
             if let lastY, abs(lastY - frame.midY) < 1 { still += 1 } else { still = 0 }
-            if still >= 2 { turned.toggle(); still = 0 }
+            if still >= 2 {
+                // 17 Nov 2026: two steps moved nothing — the list is at its end. When the
+                // element's middle can be clicked where it is, that is enough: turning round
+                // scrolled the last rows of the review out of the list altogether.
+                if frame.midY >= room.minY && frame.midY <= room.maxY { return }
+                turned.toggle(); still = 0
+            }
             lastY = frame.midY
             let below = frame.midY > room.midY
             var step = min(max(abs(frame.midY - room.midY), 30), 220) * (below ? -1 : 1)
@@ -1577,9 +1591,10 @@ final class ScreenTests: XCTestCase {
             let hostFrame = host.frame
             guard hostFrame.width > 0, hostFrame.height > 0 else { return }
             let x = min(max(frame.midX, room.minX + 20), room.maxX - 20)
-            host.coordinate(withNormalizedOffset: CGVector(dx: (x - hostFrame.minX) / hostFrame.width,
-                                                           dy: (room.midY - hostFrame.minY) / hostFrame.height))
-                .scroll(byDeltaX: 0, deltaY: step)
+            let spot = host.coordinate(withNormalizedOffset: CGVector(dx: (x - hostFrame.minX) / hostFrame.width,
+                                                                      dy: (room.midY - hostFrame.minY) / hostFrame.height))
+            spot.scroll(byDeltaX: 0, deltaY: step)
+            undo = { spot.scroll(byDeltaX: 0, deltaY: -step) }
         }
     }
     #endif
