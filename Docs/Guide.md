@@ -18,7 +18,7 @@ When PARAGON opens, a calm start screen shows the day and what is waiting. Tap i
 
 Capture is for getting something down in seconds without deciding where it belongs. It lands in the **Inbox**, to be sorted later.
 
-- **iPhone:** the round **+** button at the bottom right of Today, Actions and Inbox.
+- **iPhone:** the round **+** button at the bottom right of Today, Actions and Inbox. It opens the **New** page already set to **Inbox**.
 - **Mac:** Shift-Command-N, or **Inbox** in **New** (Command-N). A capture panel also sits in the menu bar. Under **Settings › Quick capture** you can choose a key that opens a small capture panel over any app. It is off until you choose one.
 - **Siri** ("Add to PARAGON") and **Share** are in section 12.
 
@@ -60,11 +60,9 @@ This is for deciding each morning what matters most. There is no second page. Pr
 
 At the top, a card, **This morning**, shows what you wrote last evening and the goal for the week. Under it is **Add an action for today**, which puts a new thought into the Inbox, dated today, already picked. Anything you marked **First** the evening before comes first, under **Marked first last evening**. Below are the tasks Today already shows: from today's note, next actions, overdue, due today and important with no date. Every one has **Pick** in front of it.
 
-Press **Pick** beside the two or three that matter most. When one is picked, a button appears at the foot, such as **Plan 2 actions**. Each pick becomes a block in today's plan, as long as the task's own time. A task with no time has a dashed **How long?** button. A task already in the plan says **In plan** and its time.
+Press **Pick** beside the two or three that matter most. When one is picked, a button appears at the foot, such as **Plan 2 actions**. Each pick becomes a block in today's plan, as long as the task's own time. A task with no time shows nothing at the right; pressing **Pick** on it asks **How long?** first and then picks it. A task that has a time keeps its time pill. A task already in the plan says **In plan** and its time.
 
 To leave without planning, press **Done** on the strip, press **Start** again, or press Escape on the Mac. The plan button plans and leaves. While you pick, the round + button on the iPhone steps aside and swipes on a task are off.
-
-
 
 ### Plan
 
@@ -161,7 +159,6 @@ A picture in a note shows in the text. On the iPhone and iPad, bar buttons open 
 
 - On an **aspiration**, write **Reason…**, why it matters to you. **Add a goal…** makes a goal that serves it.
 - On a **goal**, press **Set a target date…** and **Set a measure…**, one line saying how you will know it is reached, like "All 440 km in 30 days". It also says whether it reaches **This year** or is **Long term**. **Add a project…** makes a project that already serves it.
-- 
 
 A project or goal can be **Active**, **On hold**, **Done**, **Missed** (the date passed) or **Dropped** (you chose not to).
 
@@ -171,7 +168,7 @@ For goals about a number, like weight or distance: **Set a number…** asks for 
 
 ## 8. Weekly review
 
-A walk down one screen, once a week. The top says how many tasks you finished in the last seven days, with one capsule for each thing that wants a look, or one green capsule when nothing does. **Due for a look** lists notes whose review rhythm has come round: aspirations every 6 months, goals with a date every 3 months, projects every week, areas every month (changeable in **Settings › Review rhythm**). Right-click a row for **I looked at it today**, **Put on hold**, **Mark done**, **Mark missed**, **Mark dropped** or **Archive**.
+A walk down one screen, once a week. The top says how many tasks you finished in the last seven days, with one capsule for each thing that wants a look, or one green capsule, **Nothing needs attention**, when nothing does. **Due for a look** lists notes whose review rhythm has come round: aspirations every 6 months, goals with a date every 3 months, projects every week, areas every month (changeable in **Settings › Review rhythm**). Right-click a row for **I looked at it today**, **Put on hold**, **Mark done**, **Mark missed**, **Mark dropped** or **Archive**.
 
 The steps:
 
