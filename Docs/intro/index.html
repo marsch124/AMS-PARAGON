@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* PARAGON Tour: chapter rail on the left, coach card + a pretend iPhone on the right. Same engine as the other AMS tours.
-   Based on PARAGON 1.0 (335). Update this tour in the release that changes a taught screen. */
+   Based on PARAGON 1.0 (336). Update this tour in the release that changes a taught screen. */
 :root {
   --bg: #F7F5FA; --panel: #FFFFFF; --fg: #231C33; --muted: #6D6580; --line: #E3DDEE;
   --accent: #6B4EA8; --accent-soft: #EEE9F8; --good: #2F7D32; --good-soft: #E6F3E6; --warn: #A8431A;
@@ -558,7 +558,7 @@ function browseHTML() {
     <div class="grp">Plan</div><div class="card">${R('calendar', 'note', 'Calendar', '--c-today', 0)}${R('review', 'review', 'Weekly review', '--c-rev', 0)}${R('map', 'map', 'Map', '--c-goal', 0)}${R('done', 'done', 'Done', '--c-rev', 0)}${R('deleted', 'trash', 'Deleted', '--c-arch', 0)}</div>
     <div class="grp">Tools</div><div class="card">${R('templates', 'tmpl', 'Templates', '--c-res', 0)}${R('snippets', 'snip', 'Snippets', '--c-inbox', 0)}${R('tags', 'tag', 'Tags', '--c-area', 0)}</div></div>
     <div class="card" style="margin-top:12px"><button class="lrow" data-act="settings-open"><span style="color:var(--c-set)">${icon('nut')}</span><span>Settings and Help</span><span class="sp"></span></button></div>
-    <div class="sub" style="margin:12px 4px" data-t="version">PARAGON 1.0 (335)</div></div>${tabBar()}`;
+    <div class="sub" style="margin:12px 4px" data-t="version">PARAGON 1.0 (336)</div></div>${tabBar()}`;
 }
 
 /* ---------- Pages pushed from Browse ---------- */
@@ -627,13 +627,13 @@ function calHTML() {
 }
 function settingsHTML() {
   const help = ['How it works', 'Words in PARAGON', 'What\u2019s new', 'Every detail'].map(x => `<button class="lrow" data-act="soon"><span>${x}</span><span class="sp"></span>${icon('chevR')}</button>`).join('');
-  const lines = [['Devices', 'All 2 devices run PARAGON 335.'], ['Copies in the notes folder', 'The newest copy is from today.'], ['Second copy, outside', 'The newest copy is from today.'], ['Conflict copies', 'None.'], ['Reminders sync', 'Last ran at ' + S.syncT + '.']];
+  const lines = [['Devices', 'All 2 devices run PARAGON 336.'], ['Copies in the notes folder', 'The newest copy is from today.'], ['Second copy, outside', 'The newest copy is from today.'], ['Conflict copies', 'None.'], ['Reminders sync', 'Last ran at ' + S.syncT + '.']];
   return `<div class="scr" data-keep="scr">${backBtn('Browse')}<div class="nav"><h1 style="color:var(--c-set)">Settings</h1></div>
     <div class="grp">Help</div><div class="card" data-t="help">${help}</div>
     <div class="grp">Safety</div><div class="card" data-t="safety"><button class="lrow" data-act="safety" data-t="safety-sum"><span style="color:var(--c-green)">${icon('check')}</span><span>Everything is safe</span><span class="sp"></span><span class="sub">Details</span><span style="transform:rotate(${S.safetyOpen ? 90 : 0}deg)">${icon('chevR')}</span></button>
       ${S.safetyOpen ? lines.map(([a, b]) => `<div class="kt" style="display:block"><div>${a}</div><div class="sub">${b}</div></div>`).join('') : ''}</div>
     <div class="grp">Reminders sync</div><div class="card"><button class="lrow" data-act="sync-now" data-t="sync-now-row"><span style="color:var(--c-set)">${icon('sync')}</span><span>Sync now</span></button><div class="lrow" style="cursor:default"><span>Sync automatically</span><span class="sp"></span><span class="sub">Every 5 minutes</span></div><div class="lrow" style="cursor:default"><span>If both changed</span><span class="sp"></span><span class="sub">Note wins</span></div></div>
-    <div class="sub" style="margin:14px 4px">PARAGON 1.0 (335)</div></div>${tabBar()}`;
+    <div class="sub" style="margin:14px 4px">PARAGON 1.0 (336)</div></div>${tabBar()}`;
 }
 function remHTML() {
   const mine = S.tasks.filter(t => t.note === 'prj2');
@@ -731,7 +731,7 @@ function renderStage() {
   else if (S.page) { const p = S.page; body = p.k === 'list' ? listHTML(p.id) : p.k === 'note' ? noteHTML(p.id) : p.k === 'review' ? reviewHTML() : p.k === 'cal' ? calHTML() : settingsHTML(); }
   else body = S.tab === 'today' ? todayHTML() : S.tab === 'plan' ? planHTML() : S.tab === 'actions' ? actionsHTML() : S.tab === 'inbox' ? inboxHTML() : browseHTML();
   const over = S.sheet === 'new' ? newHTML() : S.sheet === 'one' ? oneHTML() : S.sheet === 'close' ? closeHTML() : S.sheet === 'who' ? whoHTML() : S.sheet === 'fs' ? fsHTML() : S.sheet === 'mac' ? macHTML() : '';
-  const startScr = S.start ? `<button class="startscr" data-act="enter" data-t="start"><span class="ic">${icon('check', 'g').replace('class="g"', 'class="g"')}</span><b>PARAGON</b><span class="d">${withWd(TODAY)}</span><span class="w">3 due today &nbsp;\u00B7&nbsp; 3 in the Inbox</span><span class="h">Tap to start</span><span class="v">1.0 (335)</span></button>` : '';
+  const startScr = S.start ? `<button class="startscr" data-act="enter" data-t="start"><span class="ic">${icon('check', 'g').replace('class="g"', 'class="g"')}</span><b>PARAGON</b><span class="d">${withWd(TODAY)}</span><span class="w">3 due today &nbsp;\u00B7&nbsp; 3 in the Inbox</span><span class="h">Tap to start</span><span class="v">1.0 (336)</span></button>` : '';
   st.innerHTML = `<div class="sbar"><span>9:41</span><span class="bat"></span></div>${body}${over}${popups()}${startScr}${S.toast ? `<div class="toast">${esc(S.toast)}</div>` : ''}`;
   renderStage.keys = {};
   st.querySelectorAll('[data-keep]').forEach(e => { const k = keyOf(e); e.dataset.k = k; renderStage.keys[k] = 1; e.scrollTop = prevKeys[k] ? (scrolls[k] || 0) : 0; });
@@ -969,7 +969,7 @@ function renderRail() {
     ${LESSONS.map((l, i) => `<button class="chap ${i === ci ? 'cur' : ''} ${doneChapters.has(i) ? 'done' : ''}" data-ch="${i}">${icon(l.icon)}<span>${l.title}</span><span class="n">${doneChapters.has(i) ? '\u2713' : l.steps.length + ' steps'}</span></button>`).join('')}
     <button class="chap ${ci === LESSONS.length ? 'cur' : ''}" data-ch="${LESSONS.length}">${icon('phone')}<span>Now on your iPhone</span></button>
     <div class="bar"><i style="width:${Math.round(100 * Math.min(before, total) / total)}%"></i></div>
-    <p class="railnote">Practice copy, nothing changes in your real app. Based on PARAGON 1.0 (335).</p>`;
+    <p class="railnote">Practice copy, nothing changes in your real app. Based on PARAGON 1.0 (336).</p>`;
 }
 document.getElementById('rail').addEventListener('click', e => { const b = e.target.closest('[data-ch]'); if (b) goChapter(+b.dataset.ch); });
 

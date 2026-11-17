@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (335) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (336) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 336 · 17 November 2026
+
+**The plan button is narrower on the Mac.** One change, and it is only how it looks. It is the bar at the foot of Today while you pick, the one that appears once a task is picked.
+
+**Changed.**
+- **The foot on the Mac and the iPad (the main change).** Before (build 335): the foot ran the whole width of Today. With no note open beside it, Today fills the window, so on a large Mac window the orange button **Plan 1 action** was about 1,060 points wide, and the times on the right of the lines "Picked", "Free until 16:00" and "It fits before 16:00." sat far away from their words. Now: on the Mac and the iPad the foot is at most 420 points wide and sits at the left. The button, **Plan 1 action** or **Plan 2 actions**, is at most 420 points wide, and the times are close to their words.
+- **With a note open beside Today (Mac and iPad).** Nothing changes. Today is then a column of about 300 points, and the foot is as wide as the column, as before.
+- **On the iPhone.** Nothing changes. The button stays as wide as the screen.
+
+**Found by looking.** I looked at build 335 on a Mac test copy on 17 November. Picking was walked through there from **Start** to **Plan 2 actions** and **Done**, and it worked. The wide button was the one thing that looked wrong.
+
+**Tests.** No new rule, because this is only a width. Two Mac screen tests were repaired: the one for **Review done**, and the one for giving a task a time while picking. These are test changes only, nothing in the app changed for them. Their proof on GitHub's Mac is still open.
+
+**Unchanged.** Everything else of build 335.
+
+**Not seen, not tried.**
+- **Not seen:** the iPad, and night on the Mac.
+- **Not proven:** **Escape** leaving picking on the Mac. A key cannot be sent to a window that is in the background, so this is still untried.
 
 ## Build 335 · 17 November 2026
 

@@ -5393,3 +5393,13 @@ A deleted task's reminder goes within seconds; three small look and word points.
 - **Docs.** VersionHistory, HowItWorks (the block "Picking for today", its exact details), Guide, Words (new word Picking), Look, the tour.
 - **Not tried.** A real device; Siri's Start the Day and the morning reminder on a real phone.
 - **Tests.** Core `TodayPickingTests` (4); the screen tests of Start the day follow the picking list, plus one new screen test; a Mac test for step 9 of the Weekly review was repaired (tests only).
+
+## Build 336 (17 November 2026)
+
+**The picking foot is narrower on the Mac and the iPad.** Look only, one width, no new rule.
+
+- **What changed.** Before (335): on the Mac and the iPad the foot of Today while picking (the lines "Picked", "Free until", "It fits" and the button **Plan N actions**) ran the full width of Today; with no note open that was about 1,060 points on a large Mac window. Now: at most 420 points, at the left. With a note open beside Today (a column of about 300 points) it is as wide as the column; the iPhone is unchanged (full width).
+- **Found by.** Looking at build 335 on a Mac test copy, 17 November: picking walked from Start to "Plan 2 actions" and Done; it worked.
+- **Tests.** No new test. Two Mac screen tests repaired (Review done; giving a task a time while picking), tests only; their proof on GitHub's Mac is open.
+- **Not seen / not tried.** The iPad; night on the Mac; Escape leaving picking on the Mac is still not proven (a key cannot be sent to a background window).
+- **Docs.** VersionHistory, HowItWorks (the foot), the tour (build numbers only). Look.md does not describe the foot, so it is unchanged.
