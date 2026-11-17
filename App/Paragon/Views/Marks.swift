@@ -54,6 +54,8 @@ enum Marks {
         // Round 9 (build 316): a task's deadline has a mark of its own — a pennant on its pole,
         // standing on the finish line. The project keeps the waving flag.
         "deadline": .init(kind: .drawn(Marks.deadlinePath)),
+        // Build 332: One thing — a ring with the figure 1 in it.
+        "one.thing": .init(kind: .drawn(Marks.oneThingPath)),
         "circle.grid.2x2": .init(kind: .app(.area)),
         "books.vertical": .init(kind: .app(.resource)),
         "archivebox": .init(kind: .app(.archive)),
@@ -149,6 +151,9 @@ enum Marks {
 
     /// The deadline's mark: a pole, a three-cornered pennant and the finish line under it.
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
+
+    /// One thing (build 332): a ring with the figure 1 in it.
+    static let oneThingPath = "M12 3.5A8.5 8.5 0 1 0 12 20.5A8.5 8.5 0 1 0 12 3.5Z M10 9.8L12.6 8V16"
 
     /// A goal's number: two axes and a line that climbs.
     static let chartPath = "M4.5 4.5V19.5H20 M8 15.5L11.5 11.5L14.5 13.5L19.5 7.5"

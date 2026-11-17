@@ -155,6 +155,11 @@ struct ContentView: View {
                 // Build 319: the notes have moved, or files wait in the old folder.
                 OwnFolderPageView()
                     .environmentObject(model)
+            case .oneThing:
+                // Build 332: only the one next task.
+                OneThingView()
+                    .environmentObject(model)
+                    .environment(\.focusBarShown, false)
             case .settings:
                 NavigationStack {
                     SettingsView()
@@ -166,6 +171,13 @@ struct ContentView: View {
                         }
                 }
             }
+        }
+        // Build 332: **Search…** in File it. A second sheet of the window, because a menu
+        // cannot hold a field; it is never up together with the one above (the menu that
+        // opens it is in the Inbox, behind no sheet).
+        .sheet(item: $model.filingSearch) { ref in
+            FilingSearchPage(ref: ref, places: InboxItems.destinations(model))
+                .environmentObject(model)
         }
         // Review round 4: the iPhone layout, and every sheet over it, knows it is one — its
         // lists draw the app's page and cards (`phonePage`, `phoneCard`). After `.sheet`, so

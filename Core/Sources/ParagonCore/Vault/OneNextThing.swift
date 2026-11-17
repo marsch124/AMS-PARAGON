@@ -29,7 +29,12 @@ public enum OneNextThing {
     }
 
     /// Every candidate, in the order they would be shown one after another.
-    public static func queue(from refs: [TaskRef], today: DateOnly) -> [Pick] {
+    ///
+    /// `nextActions` are the lines Today lists under **Next actions** (`NoteIndex.nextActions()`:
+    /// one per project, the `#next` line or else the project's first open line). When they are
+    /// handed in, group 3 is exactly those, so this page and Today never name different next
+    /// actions; without them, group 3 is every line that carries `#next`.
+    public static func queue(from refs: [TaskRef], nextActions given: [TaskRef]? = nil, today: DateOnly) -> [Pick] {
         let usable = refs.enumerated().filter { _, ref in
             let t = ref.task
             guard !t.isDone, !t.isSomeday, !t.isWaiting else { return false }
@@ -45,20 +50,59 @@ public enum OneNextThing {
         let dueToday = usable.filter { $0.element.task.isDue(on: today) }.sorted { a, b in
             timedFirst(a.element.task, b.element.task) ?? (a.offset < b.offset)
         }
-        let nextActions = usable.filter { item in
-            let t = item.element.task
-            return t.pressingDay == nil
-                && t.tags.contains { NoteIndex.normalized($0) == Note.nextActionTag }
+        let nextActions: [TaskRef]
+        if let given {
+            let shown = Set((overdue + dueToday).map { key(for: $0.element) })
+            nextActions = given.filter { ref in
+                let t = ref.task
+                return !t.isDone && !t.isSomeday && !t.isWaiting && t.pressingDay == nil
+                    && !shown.contains(key(for: ref))
+            }
+        } else {
+            nextActions = usable.map(\.element).filter { ref in
+                ref.task.pressingDay == nil
+                    && ref.task.tags.contains { NoteIndex.normalized($0) == Note.nextActionTag }
+            }
         }
 
         return overdue.map { Pick(ref: $0.element, reason: .overdue(days: days(from: $0.element.task.pressingDay, to: today))) }
             + dueToday.map { Pick(ref: $0.element, reason: .dueToday) }
-            + nextActions.map { Pick(ref: $0.element, reason: .nextAction) }
+            + nextActions.map { Pick(ref: $0, reason: .nextAction) }
+    }
+
+    /// The queue over all notes, with Today's own next actions.
+    public static func queue(in index: NoteIndex, today: DateOnly) -> [Pick] {
+        queue(from: index.openTasks(), nextActions: index.nextActions(), today: today)
     }
 
     /// The one to show now: the first of the queue that is not set aside. nil = nothing left.
-    public static func pick(from refs: [TaskRef], today: DateOnly, setAside: Set<String> = []) -> Pick? {
-        queue(from: refs, today: today).first { !setAside.contains(key(for: $0.ref)) }
+    public static func pick(from refs: [TaskRef], nextActions: [TaskRef]? = nil, today: DateOnly,
+                            setAside: Set<String> = []) -> Pick? {
+        queue(from: refs, nextActions: nextActions, today: today).first { !setAside.contains(key(for: $0.ref)) }
+    }
+
+    /// The one small line under the task that says why it is the one.
+    /// "Overdue since yesterday", "Overdue since Friday" (up to six days), "Overdue since
+    /// 2026-11-03" (a week or more), "Due today at 14:00", "Due today", "Next action".
+    public static func words(for pick: Pick, today: DateOnly) -> String {
+        switch pick.reason {
+        case .overdue(let days):
+            guard let day = pick.ref.task.pressingDay else { return "Overdue" }
+            if days <= 1 { return "Overdue since yesterday" }
+            if days < 7 { return "Overdue since \(DayWords.weekday(day))" }
+            return "Overdue since \(DayWords.plain(day))"
+        case .dueToday:
+            if let time = pick.ref.task.dueTime { return "Due today at \(time)" }
+            return "Due today"
+        case .nextAction:
+            return "Next action"
+        }
+    }
+
+    /// What was set aside with **Not now** counts for one day only: a list written on another
+    /// day is empty today.
+    public static func setAside(_ keys: [String], writtenOn day: String?, today: DateOnly) -> Set<String> {
+        day == today.description ? Set(keys) : []
     }
 
     /// true = `x` first, false = `y` first, nil = no difference (keep the incoming order).

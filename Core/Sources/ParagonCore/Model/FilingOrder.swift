@@ -50,8 +50,6 @@ public enum FilingOrder {
     public static let rememberedLimit = 8
     /// A list this short gets no groups.
     public static let shortList = 6
-    /// Build 332: a list with at least this many places gets a search field.
-    public static let searchFrom = 12
 
     /// Build 332: the places whose name holds EVERY word typed in the search field.
     /// Capitals and accents do not count ("norrkop" finds "Norrköping"). An empty search

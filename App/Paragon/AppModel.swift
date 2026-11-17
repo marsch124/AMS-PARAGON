@@ -134,6 +134,8 @@ enum AppSheet: String, Identifiable {
     /// Build 319: a page about PARAGON's own folder (the notes have moved; changes waiting in
     /// the old folder).
     case ownFolder
+    /// Build 332: **One thing** — a calm page with only the one next task.
+    case oneThing
 
     var id: String { rawValue }
 }
@@ -2822,6 +2824,56 @@ final class AppModel: ObservableObject {
         return FilingOrder.offer(for: ref.task.title,
                                  places: places.map { FilingOrder.Place(path: $0.relativePath, title: $0.displayTitle) },
                                  recentPaths: recentFilingPaths, shortList: shortList)
+    }
+
+    /// Build 332: the line **Search…** in **File it** was pressed for: the search page is up.
+    @Published var filingSearch: TaskRef?
+
+    /// Whether **File it** offers **Search…**: with the groups, from seven places on.
+    func filingOffersSearch(among places: [Note]) -> Bool {
+        var shortList = FilingOrder.shortList
+        #if DEBUG
+        if TestVault.isWanted { shortList = 0 }
+        #endif
+        return places.count > shortList
+    }
+
+    // MARK: One thing (build 332)
+
+    /// Build 332: what **Not now** set aside on the **One thing** page, for today only
+    /// (`OneNextThing.setAside`). Kept per device: it is a mood of the moment, not a fact
+    /// about the task, and nothing is written into a note.
+    @Published private(set) var oneThingAside: Set<String> = OneNextThing.setAside(
+        UserDefaults.standard.stringArray(forKey: AppModel.oneThingAsideKey) ?? [],
+        writtenOn: UserDefaults.standard.string(forKey: AppModel.oneThingDayKey), today: .today())
+    static let oneThingAsideKey = "oneThing.setAside"
+    static let oneThingDayKey = "oneThing.setAsideDay"
+
+    /// Every task the page would show, one after another (`OneNextThing`): overdue, the one
+    /// longest ago first; then due today by time; then Today's own next actions.
+    var oneThingQueue: [OneNextThing.Pick] {
+        let today = DateOnly.today()
+        let aside = OneNextThing.setAside(Array(oneThingAside),
+                                          writtenOn: UserDefaults.standard.string(forKey: Self.oneThingDayKey), today: today)
+        return OneNextThing.queue(in: index, today: today).filter { !aside.contains(OneNextThing.key(for: $0.ref)) }
+    }
+
+    /// **Not now**: this task is not shown again on the page today.
+    func setAsideOneThing(_ ref: TaskRef) {
+        let today = DateOnly.today()
+        var aside = OneNextThing.setAside(Array(oneThingAside),
+                                          writtenOn: UserDefaults.standard.string(forKey: Self.oneThingDayKey), today: today)
+        aside.insert(OneNextThing.key(for: ref))
+        writeOneThingAside(aside, today)
+    }
+
+    /// **Show them again**: what was set aside today comes back.
+    func clearOneThingAside() { writeOneThingAside([], .today()) }
+
+    private func writeOneThingAside(_ aside: Set<String>, _ today: DateOnly) {
+        oneThingAside = aside
+        UserDefaults.standard.set(aside.sorted(), forKey: Self.oneThingAsideKey)
+        UserDefaults.standard.set(today.description, forKey: Self.oneThingDayKey)
     }
 
     /// Opens the Time Blocks section with a block prepared for this task.

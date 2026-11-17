@@ -307,6 +307,16 @@ struct TodayView: View {
         // Close — drawn the way the sync ring's word is (the same small size, one point under
         // the mark), in the band's own white. The pills and their places are unchanged.
         HStack(alignment: .top, spacing: 6) {
+            // Build 332 (his pick 3): a fourth small button, left of the three he placed, opens
+            // the calm page with only the one next task.
+            HeaderActionButton(title: nil,
+                               spokenTitle: "One thing: only the one next task",
+                               markName: OneThingView.symbol,
+                               tint: SidebarSection.today.tint,
+                               onBand: true, caption: "One",
+                               identifier: "today.one") {
+                model.activeSheet = .oneThing
+            }
             HeaderActionButton(title: nil,
                                spokenTitle: model.todayNote == nil ? "Create today's note" : "Open today's note",
                                markName: "calendar",

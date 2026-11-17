@@ -430,6 +430,12 @@ struct FilingPlaces: View {
 
     var body: some View {
         let offer = model.filingOffer(for: ref, among: places)
+        // Build 332 (his pick 1): the menu stays as it was; one row on top opens the page
+        // with the search field (`FilingSearchPage`). Only with a list long enough to search.
+        if model.filingOffersSearch(among: places) {
+            Button { model.filingSearch = ref } label: { MarkLabel("Search\u{2026}", "magnifyingglass") }
+                .accessibilityIdentifier("file.search.open")
+        }
         if !offer.suggested.isEmpty {
             Section("Suggested") {
                 ForEach(offer.suggested, id: \.path) { place in
