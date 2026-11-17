@@ -65,7 +65,7 @@ public enum VaultDevices {
         let limit = now.addingTimeInterval(-Double(recentDays) * 86_400)
         for state in syncStates where lines[state.deviceID] == nil && state.deviceID != thisDeviceID {
             guard let modified = state.modifiedAt, modified >= limit else { continue }
-            lines[state.deviceID] = Line(id: state.deviceID, name: "Another device", build: nil, lastSeen: modified,
+            lines[state.deviceID] = Line(id: state.deviceID, name: "A device with an older PARAGON", build: nil, lastSeen: modified,
                                          isReady: false, isThisDevice: false)
         }
         return lines.values.sorted {
