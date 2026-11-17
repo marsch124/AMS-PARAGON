@@ -52,7 +52,7 @@ struct OneThingView: View {
         .background(tint.opacity(0.07))
         .tint(tint)
         #if os(macOS)
-        .frame(minWidth: 420, idealWidth: 460, minHeight: 440, idealHeight: 480)
+        .frame(minWidth: 420, idealWidth: 460, minHeight: 400, idealHeight: 440)
         #endif
     }
 
