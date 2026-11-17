@@ -1,6 +1,23 @@
 # Version history
 
-The version is shown as 1.0 (337) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (338) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 338 · 17 November 2026
+
+**While you pick, the explanation waits behind its info mark.** One change, and it is only about how much text you see when you start picking.
+
+**Changed.**
+- **The explanation under "Add an action for today" (the main change).** It is the two lines on Today after you press **Start**: "Press Pick on what matters today. Each pick becomes a block in today's plan; a task with no time asks how long first." (22 words; 20 with task times off). Before (build 337): they were shown by themselves the first 3 times you started picking on a device, and only from the 4th time were they folded behind the small info mark. Now: they are behind the small info mark from the very first time. The list of tasks starts about 2 lines of text higher on the iPhone. A press on the mark shows the lines, another press folds them. The words themselves are unchanged.
+- **An honest note.** On a device where you have already started picking (or opened the old Start the day page) more than 3 times, the lines were already folded, so you will see no difference there. The change shows on a newly set-up device, or on one where picking was used fewer than 4 times.
+- **Close the day** is unchanged: its explanation is still shown by itself the first 3 times, then behind its info mark.
+
+**Tests.** One new data test for the rule: while picking the explanation is never shown by itself, and in Close the day it is shown by itself the first 3 times. The Review-done test on the Mac (the end of the Weekly review) was the one test that GitHub's Mac could not get through. Since build 337 I looked at it by hand on the Mac: the screen is steady and the button records the review, so the fault is in what GitHub's Mac reports about that one button. Before: the test waited for the list to stop moving and then pressed. Now: it makes one direct press at the place where the button is read right after the End key; where that Mac still cannot say where the button is, the test is skipped there, with the reason written in it. On the iPhone and the iPad it runs as before.
+
+**Unchanged.** Everything else of build 337.
+
+**Seen / not seen.**
+- **Seen:** the folded explanation while picking on the iPhone simulator, by day.
+- **Not seen:** night, the iPad, the Mac, real devices.
 
 ## Build 337 · 17 November 2026
 
