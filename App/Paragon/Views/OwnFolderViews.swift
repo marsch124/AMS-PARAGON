@@ -103,6 +103,7 @@ struct OwnFolderPageView: View {
                 w.stepAtWork = step.flatMap { Self.moveOrder.firstIndex(of: $0) } ?? 0
                 w.lead = [step == .finishing ? "Almost done. Please wait."
                                              : "You can press Stop until the last step. Your notes then stay where they are."]
+                if step == .sending { w.lead.append("This can take some minutes on a slow connection.") }
                 w.cancel = step != .finishing ? "Stop" : nil
             } else {
                 w.lead = ["Please wait. This takes a moment."]

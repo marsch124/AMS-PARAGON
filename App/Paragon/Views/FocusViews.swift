@@ -73,7 +73,7 @@ struct FocusBar: View {
             Button {
                 if session.isPaused { model.resumeFocus() } else { model.pauseFocus() }
             } label: {
-                round(session.isPaused ? "play.fill" : "pause.fill")
+                round(session.isPaused ? "play.fill" : "pause.fill", main: true)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(session.isPaused ? "Go on" : "Pause")
@@ -121,10 +121,13 @@ struct FocusBar: View {
         .accessibilityIdentifier("focus.clock")
     }
 
-    private func round(_ symbol: String) -> some View {
+    /// Build 334: the main button (Pause / Go on) is full colour, the plan orange with dark ink,
+    /// as on the Lock Screen; Stop stays the quiet one.
+    private func round(_ symbol: String, main: Bool = false) -> some View {
         MarkImage(symbol, size: 16)
+            .foregroundStyle(main ? AnyShapeStyle(Theme.planBlockTint.ink) : AnyShapeStyle(.background))
             .frame(width: 28, height: 28)
-            .background(.background.opacity(0.18), in: Circle())
+            .background(main ? AnyShapeStyle(Theme.planBlockTint) : AnyShapeStyle(.background.opacity(0.18)), in: Circle())
             .contentShape(Circle())
     }
 }
