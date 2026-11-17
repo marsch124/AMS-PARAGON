@@ -30,17 +30,17 @@ The version is shown as 1.0 (332) in Settings › About, at the foot of the Mac 
 - A delete does not start a sync by itself. The reminder goes at the next sync: the timed one, **Sync now**, or when you come back to the app. That is as before build 331.
 - A line you cut from one note and paste into another counts as removed if a sync runs between the cut and the paste. Then the reminder is made new, and anything you set only in Reminders is lost. **Move to** does not have this.
 - Not tried on two real devices.
-- **Not seen:** the **Search…** row and its page on the iPad and in the Mac's right-click menu.
-- **Not seen:** **One thing** on a real phone.
-- **Not seen:** either new page at night, and with VoiceOver.
-- **Not seen:** the band's four buttons with the largest text size.
+- **Seen by me:** on the iPhone simulator by day: Today's band with its four buttons, the **File it** menu with **Search…** on top, the search page empty and with letters typed, and **One thing** with a task, after **Not now**, and with nothing left. On the Mac's test copy at night: the band with four buttons, and **One thing** with a task, after **Not now**, **Show it again** and **Close**.
+- **Not seen:** the **Search…** row in the Mac's right-click menu and on the iPad, and the search page on the Mac and the iPad.
+- **Not seen:** **One thing** on the iPad, the iPhone at night, and any real device.
+- **Not tried:** Escape on the Mac's two new pages (the **Close** button was pressed instead), VoiceOver, and the band's four buttons with the largest text size.
 
 Tested:
 - Part 1: 4 new rule tests (a task deleted here loses its reminder in the first sync; a task gone by another device's change still waits; a task moved here is never taken for a delete; what was removed here is forgotten when it comes back). The 2 tests of build 331 for moved tasks stay green: 6 in that group.
 - Part 2: 5 new rule tests (an empty search keeps everything in order; every word must match; capitals and accents are ignored; a name where a word begins with what you typed comes first; both groups are filtered) and 1 new screen test (the search page files the line).
 - Part 3: 8 new rule tests (the longest overdue beats due today; due today goes by time, timed before untimed; a next action comes only after everything due; done, someday, waiting-for and future tasks are never picked; a task set aside is skipped and the next comes; nothing left gives nothing; Today's next actions are the third group; what was set aside counts for one day) and 1 new screen test (One thing shows one task and Not now brings the next).
 
-<!-- 332 FOOT -->
+Rule tests in all: 1,145 (17 more than build 331).
 
 ## Build 331 · 16 November 2026
 
