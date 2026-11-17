@@ -358,7 +358,8 @@ struct TodayView: View {
                 .phoneCard(SidebarSection.today.tint)
             if somethingToPick {
                 HintParagraph(text: StartDay.instructions(usesTaskTimes: useTaskTimes),
-                              opens: hintOpens, tint: Theme.morningTint, identifier: "startDay.how")
+                              opens: hintOpens, tint: Theme.morningTint, identifier: "startDay.how",
+                              place: .picking)
                     .listRowSeparator(.hidden)
                     .phoneCard(SidebarSection.today.tint)
             }

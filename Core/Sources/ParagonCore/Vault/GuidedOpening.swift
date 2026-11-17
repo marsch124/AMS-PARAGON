@@ -64,9 +64,20 @@ public enum HintRule {
         min(max(opensSoFar, 0) + 1, timesShown + 1)
     }
 
+    /// Where the explanation stands.
+    public enum Place: Sendable {
+        /// **Close the day**: by itself the first three times.
+        case closeDay
+        /// Picking on Today (build 338, his pick): never by itself. The two lines are behind
+        /// the small info mark from the first start, so the list begins higher; a press on the
+        /// mark shows them.
+        case picking
+    }
+
     /// `opens` counts this opening too: 1, 2 and 3 show the explanation, 4 and later fold it.
-    public static func showsByItself(opens: Int) -> Bool {
-        opens <= timesShown
+    /// While picking it is folded from the first time (build 338).
+    public static func showsByItself(opens: Int, place: Place = .closeDay) -> Bool {
+        place == .picking ? false : opens <= timesShown
     }
 }
 

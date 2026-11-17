@@ -31,6 +31,17 @@ final class GuidedOpeningTests: XCTestCase {
         XCTAssertEqual(opens, 4, "The counter stops one past the limit.")
     }
 
+    /// Build 338: while picking on Today the explanation is behind its info mark from the first
+    /// time; Close the day keeps its three showings.
+    func testWhilePickingTheExplanationIsNeverShownByItself() {
+        for opens in 1...5 {
+            XCTAssertFalse(HintRule.showsByItself(opens: opens, place: .picking),
+                           "Start number \(opens) shows the picking explanation by itself.")
+        }
+        XCTAssertTrue(HintRule.showsByItself(opens: 1, place: .closeDay))
+        XCTAssertFalse(HintRule.showsByItself(opens: 4, place: .closeDay))
+    }
+
     /// Build 331: the loose tasks became step 3, so a remembered old number opens the same step.
     func testRememberedOpenPartsFollowTheRenumberedSteps() {
         XCTAssertEqual(ReviewOpening.renumberedForLooseStepFirst("due\n2\n3\n8\n9\nnoGoal"),

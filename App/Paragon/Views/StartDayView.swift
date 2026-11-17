@@ -502,7 +502,10 @@ struct HintParagraph: View {
     let identifier: String
     @State private var asked = false
 
-    private var byItself: Bool { HintRule.showsByItself(opens: opens) }
+    /// Build 338: while picking the explanation is never shown by itself.
+    var place: HintRule.Place = .closeDay
+
+    private var byItself: Bool { HintRule.showsByItself(opens: opens, place: place) }
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
