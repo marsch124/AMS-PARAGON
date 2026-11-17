@@ -454,8 +454,49 @@ struct ReviewPartHeading: View {
         }
         .accessibilityValue(state)
         .accessibilityIdentifier("review.part.\(part)")
+        #if os(macOS)
+        .background(UnpinnedHeadings())
+        #endif
     }
 }
+
+#if os(macOS)
+/// Build 333: the review's headings scroll with the list on the Mac instead of sticking to
+/// its top.
+///
+/// The Mac's list pins the heading of the part you are in to the top of the list while its
+/// rows scroll under it. It does not push that heading out when the next one arrives: the
+/// next heading slides UNDER it, so for a moment "2. Reschedule or drop overdue tasks" lay
+/// over the top half of "3. Thin out the loose tasks" (seen 17 Nov 2026 in the 900 x 450
+/// window; with the review folded, as it starts, every heading is followed by another one at
+/// once). SwiftUI has no switch for this, the table underneath has: `floatsGroupRows`.
+///
+/// The view is nothing to look at. It sits behind a heading, walks up to the table it is in
+/// and turns the pinning off. Every heading carries one, so whichever is drawn first does it,
+/// and it is asked again at each update in case the list was rebuilt.
+private struct UnpinnedHeadings: NSViewRepresentable {
+    func makeNSView(context: Context) -> Finder { Finder() }
+    func updateNSView(_ view: Finder, context: Context) { view.unpin() }
+
+    final class Finder: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            unpin()
+        }
+
+        func unpin() {
+            var above = superview
+            while let view = above {
+                if let table = view as? NSTableView {
+                    if table.floatsGroupRows { table.floatsGroupRows = false }
+                    return
+                }
+                above = view.superview
+            }
+        }
+    }
+}
+#endif
 
 /// **Review done**, the end of the walk (round 8, build 315). One filled button in the review's
 /// colour and one quiet line saying when the review was last done; once pressed today, a tick
