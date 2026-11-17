@@ -74,6 +74,19 @@ struct OneThingView: View {
             .padding(.horizontal, 24)
             .padding(.top, 6)
             .accessibilityIdentifier("one.why")
+        // Build 334: his own reason, from the aspiration this task leads to. Nothing at all
+        // (no gap) when there is none.
+        if let reason = OneThingWhy.reason(forNotePath: ref.notePath, in: model.index,
+                                           placeholders: model.reasonPlaceholders) {
+            Text(reason)
+                .font(Txt.label.italic())
+                .foregroundStyle(ChainTint.aspiration.ink)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .padding(.horizontal, 24)
+                .padding(.top, 10)
+                .accessibilityIdentifier("oneThing.reason")
+        }
 
         VStack(spacing: 8) {
             Button("Done") {
