@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import EventKit
 import Security
 import ParagonCore
 #if canImport(WidgetKit)
@@ -2248,7 +2249,44 @@ final class AppModel: ObservableObject {
             fresh.subtract(present)
         }
         setRemovedHere(RemovedHere.remembered(removedHere, adding: fresh, nowInNotes: present))
-        if !fresh.isEmpty { log("removed here: \(fresh.count) task(s); their reminders go at the next sync") }
+        if !fresh.isEmpty {
+            log("removed here: \(fresh.count) task(s); their reminders go in a quiet sync a few seconds on")
+            lastRemovalHere = Date()
+            planQuietSyncAfterRemoval()
+        }
+    }
+
+    /// Build 334: the time of the last delete made here, and the one quiet sync planned from it
+    /// (`QuietSyncAfterRemoval`: 8 seconds after the LAST removal, so ticking through a list
+    /// makes one sync). Planned afresh by every further delete.
+    private var lastRemovalHere: Date?
+    private var removalSync: Task<Void, Never>?
+
+    /// Not when sync is off (the timed sync is set to never) or Reminders access is missing:
+    /// then nothing is planned and nothing asks. `syncRunning` is passed by the sync itself
+    /// when it ends, since its own flag is still set at that moment.
+    private func planQuietSyncAfterRemoval(syncRunning: Bool? = nil) {
+        removalSync?.cancel()
+        removalSync = nil
+        guard vault != nil, autoSyncMinutes > 0,
+              EKEventStore.authorizationStatus(for: .reminder) == .fullAccess else { return }
+        guard case .run(let at) = QuietSyncAfterRemoval.plan(lastRemoval: lastRemovalHere,
+                                                             removedHereIsEmpty: removedHere.isEmpty,
+                                                             syncRunning: syncRunning ?? isSyncing) else { return }
+        removalSync = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(max(0, at.timeIntervalSinceNow)))
+            guard !Task.isCancelled, let self else { return }
+            // Undo may have brought the task back meanwhile (`noLongerRemovedHere`).
+            guard !self.removedHere.isEmpty else { return }
+            await self.syncNow(quietly: true)
+        }
+    }
+
+    /// Build 334: Undo put a task line back, so it is not removed after all. (The sync would
+    /// not delete its reminder anyway: the engine deletes only when the id is in no note.)
+    func noLongerRemovedHere(id: String?) {
+        guard let id, removedHere.contains(id) else { return }
+        setRemovedHere(removedHere.subtracting([id]))
     }
 
     private func setRemovedHere(_ ids: Set<String>) {
@@ -5655,6 +5693,8 @@ final class AppModel: ObservableObject {
                 // Handled, whatever became of each: the reminder is gone, or the task was
                 // in a note after all. What he removed while the sync ran stays for the next.
                 setRemovedHere(removedHere.subtracting(toldRemoved))
+                // Build 334: a delete made while this sync ran gets its own quiet sync.
+                planQuietSyncAfterRemoval(syncRunning: false)
             case .needsConfirmation(let summary):
                 // The brake (build 307): nothing was changed. A sync he started asks at once;
                 // the timed one never does it by itself — it says so and waits for **Sync now**.

@@ -122,6 +122,7 @@ extension AppModel {
             return outcome == .alreadyThere ? nil : updated
         }
         reload()
+        if result.isComplete, outcome != .alreadyThere { noLongerRemovedHere(id: removed.id) }
         if !result.isComplete {
             log("could not put \"\(removed.title)\" back: \(result.failed)")
             flash(UndoWording.notWritten(title: removed.title))
