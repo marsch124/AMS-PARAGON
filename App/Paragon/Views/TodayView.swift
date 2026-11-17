@@ -14,6 +14,11 @@ struct TodayView: View {
     @AppStorage("todayCalendarFoldedPhone") private var phoneCalendarFolded = false
     /// Build 291: Next actions, Overdue and Due today fold like Calendar, remembered by name.
     @AppStorage("todayFoldedSections") private var foldedSections = ""
+    /// Build 312: how often picking was started, up to one past `HintRule.timesShown`. The
+    /// explanation shows by itself the first three times, then waits behind the info button.
+    /// The key is the old Start the day page's, so nobody sees the paragraph three times again.
+    @AppStorage("startDayHintOpens") private var hintOpens = 0
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -50,15 +55,32 @@ struct TodayView: View {
         let today = DateOnly.today()
         let dated = index.openTasks(dueOnOrBefore: today)
         // Build 325: by the earlier of do-day and deadline (`TaskItem.pressingDay`).
-        let overdue = dated.filter { $0.task.isOverdue(on: today) }
-        let dueToday = dated.filter { $0.task.isDue(on: today) }
-        let important = index.openTasks().filter { $0.task.dueDate == nil && $0.task.priority >= 2 }
-        let shown = Set((dated + important).map(\.id))
-        let nextActions = index.nextActions().filter { !shown.contains($0.id) }
+        let allOverdue = dated.filter { $0.task.isOverdue(on: today) }
+        let allDueToday = dated.filter { $0.task.isDue(on: today) }
+        let allImportant = index.openTasks().filter { $0.task.dueDate == nil && $0.task.priority >= 2 }
+        let shown = Set((dated + allImportant).map(\.id))
+        let allNextActions = index.nextActions().filter { !shown.contains($0.id) }
         let todayNotePath = model.vault?.dailyNotePath(for: today)
-        let fromTodayNote = (model.todayNote?.openTasks ?? [])
+        let allFromTodayNote = (model.todayNote?.openTasks ?? [])
             .filter { $0.dueDate == nil }
             .map { TaskRef(notePath: todayNotePath ?? "", noteTitle: "Today's note", task: $0) }
+        // **Build 335: Start turns this list into the picking list.** Nothing below moves; the
+        // rows get a Pick in front, and what was marked First last evening comes first, once.
+        let picking = model.isPickingToday
+        let picks = PickingLists(picking: picking,
+                                 marks: model.firstPicks,
+                                 today: today,
+                                 fromTodayNote: allFromTodayNote,
+                                 nextActions: allNextActions,
+                                 overdue: allOverdue,
+                                 dueToday: allDueToday,
+                                 important: allImportant)
+        let fromTodayNote = picks.fromTodayNote
+        let nextActions = picks.nextActions
+        let overdue = picks.overdue
+        let dueToday = picks.dueToday
+        let important = picks.important
+        let plannedAt = picking ? plannedStarts(on: today) : [:]
 
         // **The date is one short grey line, outside the List (builds 219 and 220).** 219
         // deleted the row it used to live in, because a full-width list row for a date and a
@@ -120,7 +142,12 @@ struct TodayView: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("today.band")
             .band(SidebarSection.today.tint, vertical: isPhone ? 6 : 8)
-            .padding(.bottom, Theme.tight)
+            .padding(.bottom, picking ? 0 : Theme.tight)
+            // Build 335: the dark strip sits right under the band while picking.
+            if picking {
+                PickingStrip()
+                    .padding(.bottom, Theme.tight)
+            }
             // **Now and Then, the day's plan in two short lines** (build 266), outside the
             // `List` for the same reason the date is (build 220). Nothing at all on a day with
             // no plan, or once the last block is over, so Today is then as short as before.
@@ -130,7 +157,8 @@ struct TodayView: View {
             // written: an empty line asking for one every morning would be a nag, and the week
             // screen is where it is written. **Start the day** draws the same line (build 265),
             // so it is one shared view, `WeekGoalLine`.
-            if let weekGoal = model.weekGoal(for: .current()) {
+            // Build 335: while picking the morning card carries it, so it is not said twice.
+            if !picking, let weekGoal = model.weekGoal(for: .current()) {
                 WeekGoalLine(goal: weekGoal, identifier: "today.weekGoal")
                     .padding(.horizontal, Theme.gutter + 6)
                     .padding(.bottom, Theme.tight)
@@ -164,6 +192,10 @@ struct TodayView: View {
                 .padding(.bottom, Theme.tight)
             }
             List(selection: model.noteSelection) {
+                if picking {
+                    pickingTop(on: today, marked: picks.marked, plannedAt: plannedAt,
+                               somethingToPick: !picks.all.isEmpty)
+                }
                 Group {
                 if model.showsCalendarEvents {
                     Section {
@@ -186,14 +218,14 @@ struct TodayView: View {
                 // written in today's note keep a section, only when there are some.
                 if !fromTodayNote.isEmpty {
                     Section {
-                        if sectionOpen("From today's note").wrappedValue { rows(fromTodayNote) }
+                        if sectionOpen("From today's note").wrappedValue { rows(fromTodayNote, picking: picking, plannedAt: plannedAt) }
                     } header: {
                         foldHeader("From today's note", tint: SidebarSection.today.tint)
                     }
                 }
                 if !nextActions.isEmpty {
                     Section {
-                        if sectionOpen("Next actions").wrappedValue { rows(nextActions) }
+                        if sectionOpen("Next actions").wrappedValue { rows(nextActions, picking: picking, plannedAt: plannedAt) }
                     } header: {
                         foldHeader("Next actions", tint: SidebarSection.today.tint)
                     }
@@ -210,7 +242,7 @@ struct TodayView: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("today.overdue.kind")
                             }
-                            rows(overdue)
+                            rows(overdue, picking: picking, plannedAt: plannedAt)
                         }
                     } header: {
                         // A `WrappingHStack`, never a plain one: a heading and two buttons in a
@@ -235,13 +267,13 @@ struct TodayView: View {
                                                markName: "sun.max",
                                                tint: ParaKind.daily.tint,
                                                identifier: "today.overdue.today") {
-                                model.moveTasks(overdue, to: today, offersUndo: true)
+                                model.moveTasks(allOverdue, to: today, offersUndo: true)
                             }
                             HeaderActionButton(spokenTitle: "Move every overdue task to tomorrow",
                                                markName: "sunrise",
                                                tint: ParaKind.daily.tint,
                                                identifier: "today.overdue.tomorrow") {
-                                model.moveTasks(overdue, to: today.adding(days: 1), offersUndo: true)
+                                model.moveTasks(allOverdue, to: today.adding(days: 1), offersUndo: true)
                             }
                         }
                         .textCase(nil)
@@ -256,14 +288,14 @@ struct TodayView: View {
                             .font(Txt.label)
                             .foregroundStyle(.soft)
                     } else {
-                        rows(dueToday)
+                        rows(dueToday, picking: picking, plannedAt: plannedAt)
                     }
                 } header: {
                     foldHeader("Due today", count: dueToday.count, tint: SidebarSection.today.tint)
                 }
                 if !important.isEmpty {
                     Section {
-                        if sectionOpen("Important, no date").wrappedValue { rows(important) }
+                        if sectionOpen("Important, no date").wrappedValue { rows(important, picking: picking, plannedAt: plannedAt) }
                     } header: {
                         foldHeader("Important, no date", count: important.count, tint: SidebarSection.today.tint)
                     }
@@ -275,8 +307,69 @@ struct TodayView: View {
             // Build 318: the fold is remembered in the settings, which do not carry a movement by themselves.
             .animation(Motion.fold, value: foldedSections)
             .animation(Motion.fold, value: calendarFolded.wrappedValue)
+            // Build 335: the foot while something is picked — does it fit, and the plan button.
+            if picking {
+                PickingFoot(day: today,
+                            refs: TodayPicking.chosen(model.todayPicks, in: picks.all, key: StartDay.key))
+            }
         }
-        .task(id: today) { await model.loadEvents(for: today) }
+        // Today's events are what the blocks are fitted around, so they are read fresh when
+        // picking starts rather than trusted from earlier (build 238).
+        .task(id: EventsKey(day: today, picking: picking)) { await model.loadEvents(for: today) }
+        .onChange(of: picking) { _, on in
+            if on { hintOpens = HintRule.counting(hintOpens) }
+        }
+        .escapeLeavesPicking(model)
+    }
+
+    /// When the day's events are read again: a new day, or picking started.
+    private struct EventsKey: Hashable {
+        let day: DateOnly
+        let picking: Bool
+    }
+
+    /// The titles already in today's plan, so an action that is already there says so instead
+    /// of offering to go in a second time.
+    private func plannedStarts(on day: DateOnly) -> [String: Int] {
+        var result: [String: Int] = [:]
+        for block in model.planBlocks(for: day) where result[block.title] == nil {
+            result[block.title] = block.start
+        }
+        return result
+    }
+
+    /// **The top of the list while picking** (build 335): the morning card, the field for a new
+    /// action, the explanation, and what was marked **First** last evening. Rows of the list, so
+    /// they scroll with it and a small iPhone keeps room for the tasks.
+    @ViewBuilder
+    private func pickingTop(on today: DateOnly, marked: [TaskRef], plannedAt: [String: Int],
+                            somethingToPick: Bool) -> some View {
+        Section {
+            if MorningCard.hasSomething(model, on: today) {
+                MorningCard(day: today)
+                    .listRowSeparator(.hidden)
+                    .phoneCard(Theme.morningTint)
+            }
+            PickingAddField(day: today)
+                .listRowSeparator(.hidden)
+                .phoneCard(SidebarSection.today.tint)
+            if somethingToPick {
+                HintParagraph(text: StartDay.instructions(usesTaskTimes: useTaskTimes),
+                              opens: hintOpens, tint: Theme.morningTint, identifier: "startDay.how")
+                    .listRowSeparator(.hidden)
+                    .phoneCard(SidebarSection.today.tint)
+            }
+        }
+        if !marked.isEmpty {
+            Section {
+                rows(marked, picking: true, plannedAt: plannedAt)
+            } header: {
+                SectionLabel(title: "Marked first last evening", count: marked.count,
+                             tint: Theme.morningTint)
+                    .textCase(nil)
+            }
+            .phoneCard(SidebarSection.today.tint)
+        }
     }
 
     /// `FoldButton` asks whether the box is **open**; the stored value says whether it is
@@ -286,10 +379,21 @@ struct TodayView: View {
                 set: { calendarFolded.wrappedValue = !$0 })
     }
 
-    private func rows(_ refs: [TaskRef]) -> some View {
-        ForEach(refs) { ref in
-            TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
-                .tag(ref.notePath)
+    /// A plain `if` over two whole `ForEach`es, so a row keeps its identity while picking
+    /// goes on and off around it.
+    @ViewBuilder
+    private func rows(_ refs: [TaskRef], picking: Bool = false, plannedAt: [String: Int] = [:]) -> some View {
+        if picking {
+            ForEach(refs) { ref in
+                PickingRow(ref: ref, large: isPhone,
+                           plannedAt: plannedAt[planBlockTitle(from: ref.task)])
+                    .tag(ref.notePath)
+            }
+        } else {
+            ForEach(refs) { ref in
+                TaskRow(ref: ref, showNote: true) { model.toggle(ref) }
+                    .tag(ref.notePath)
+            }
         }
     }
 
@@ -325,12 +429,16 @@ struct TodayView: View {
                                identifier: "today.note") {
                 model.openDailyNote(for: .today())
             }
+            // Build 335: Start turns this list into the picking list; pressed again, it leaves.
             HeaderActionButton(title: nil,
-                               spokenTitle: "Start the day: pick the actions that matter most and put them in today's plan",
-                               markName: StartDayView.symbol,
+                               spokenTitle: model.isPickingToday
+                                   ? "Leave picking: nothing is planned"
+                                   : "Start the day: pick the actions that matter most and put them in today's plan",
+                               markName: StartDay.symbol,
                                tint: Theme.morningTint,
-                               strong: true, onBand: true, caption: "Start") {
-                model.activeSheet = .startDay
+                               strong: true, onBand: true, isOn: model.isPickingToday,
+                               caption: "Start") {
+                if model.isPickingToday { model.stopPicking() } else { model.startPicking() }
             }
             .accessibilityIdentifier("today.startDay")
             HeaderActionButton(title: nil,
@@ -512,6 +620,9 @@ private struct HeaderActionButton: View {
     var strong = false
     /// On a screen's band (build 282): a white circle with the mark in its colour.
     var onBand = false
+    /// Build 335, on the band only: the button's mode is on (Start while picking) — the pill is
+    /// filled in the button's own colour with the mark in white.
+    var isOn = false
     /// One small word under the pill (build 312), for the band's three symbol-only buttons.
     /// Part of the button, so a press on the word counts too.
     var caption: String?
@@ -548,11 +659,12 @@ private struct HeaderActionButton: View {
                 .lineLimit(1)
                 // Build 310: on the band's white circle the mark is always the deep day
                 // shade; the bright night shade on white nearly vanished (2 to 1).
-                .foregroundStyle(onBand ? tint.deep : tint.ink)
+                .foregroundStyle(onBand ? (isOn ? Color.white : tint.deep) : tint.ink)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 4)
-                .background(onBand ? Color.white : Color.clear, in: Capsule())
-                .overlay(Capsule().strokeBorder(tint.opacity(onBand ? 0 : strong ? 1 : 0.55),
+                .background(onBand ? (isOn ? tint.deep : Color.white) : Color.clear, in: Capsule())
+                .overlay(Capsule().strokeBorder(onBand ? Color.white.opacity(isOn ? 1 : 0)
+                                                       : tint.opacity(strong ? 1 : 0.55),
                                                 lineWidth: strong ? 1.5 : 1))
                 // The tap area is the label, so the padding goes inside it (build 186).
                 .contentShape(Capsule())
@@ -569,5 +681,48 @@ private struct HeaderActionButton: View {
         } else if let markName {
             MarkImage(markName)
         }
+    }
+}
+
+/// **Today's sections while picking** (build 335). Not picking: every list is as it was. Picking:
+/// what was marked **First** last evening is taken out of the sections and comes first, once
+/// (`TodayPicking.withoutMarked`, Core, tested).
+private struct PickingLists {
+    let marked: [TaskRef]
+    let fromTodayNote: [TaskRef]
+    let nextActions: [TaskRef]
+    let overdue: [TaskRef]
+    let dueToday: [TaskRef]
+    let important: [TaskRef]
+
+    /// Everything that can be picked, in the order the list shows it.
+    var all: [TaskRef] { marked + fromTodayNote + nextActions + overdue + dueToday + important }
+
+    init(picking: Bool, marks: FirstPicks, today: DateOnly,
+         fromTodayNote: [TaskRef], nextActions: [TaskRef], overdue: [TaskRef],
+         dueToday: [TaskRef], important: [TaskRef]) {
+        let everything = fromTodayNote + nextActions + overdue + dueToday + important
+        let marked = picking ? marks.split(everything, on: today).first : []
+        func rest(_ rows: [TaskRef]) -> [TaskRef] {
+            marked.isEmpty ? rows : TodayPicking.withoutMarked(rows, marked: marked, key: StartDay.key)
+        }
+        self.marked = marked
+        self.fromTodayNote = rest(fromTodayNote)
+        self.nextActions = rest(nextActions)
+        self.overdue = rest(overdue)
+        self.dueToday = rest(dueToday)
+        self.important = rest(important)
+    }
+}
+
+private extension View {
+    /// The Mac: Escape leaves picking, as it cancelled the old Start the day page. Nothing on the
+    /// iPhone and iPad.
+    func escapeLeavesPicking(_ model: AppModel) -> some View {
+        #if os(macOS)
+        self.onExitCommand { if model.isPickingToday { model.stopPicking() } }
+        #else
+        self
+        #endif
     }
 }

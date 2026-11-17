@@ -89,7 +89,8 @@ enum DayReminder: String, CaseIterable, Identifiable {
     /// The screen a press opens, or nil for the weekly review, which is not a sheet.
     var sheet: AppSheet? {
         switch self {
-        case .morning: return .startDay
+        // Build 335: the morning reminder opens Today with picking on, a place and not a sheet.
+        case .morning: return nil
         case .evening: return .closeDay
         case .weeklyReview: return nil
         }
@@ -131,7 +132,7 @@ enum DayReminder: String, CaseIterable, Identifiable {
 
     var explanation: String {
         switch self {
-        case .morning: return "One notification a day. Press it to open Start the day."
+        case .morning: return "One notification a day. Press it to open Today, ready for picking."
         case .evening: return "One notification a day. Press it to open Close the day."
         case .weeklyReview: return "One notification a week. Press it to open the Weekly review."
         }

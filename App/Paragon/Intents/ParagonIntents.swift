@@ -73,7 +73,7 @@ struct OpenTodayIntent: AppIntent {
 struct StartTheDayIntent: AppIntent {
     static let title: LocalizedStringResource = "Start the Day"
     static let description = IntentDescription(
-        "Opens Start the day in PARAGON: pick the few actions that matter today and put them in your plan.",
+        "Opens Today in PARAGON with picking on: pick the few actions that matter today and put them in your plan.",
         categoryName: "Day")
     static let openAppWhenRun = true
 
@@ -87,7 +87,8 @@ struct StartTheDayIntent: AppIntent {
         #if os(macOS)
         model.showMainWindowForShortcut()
         #endif
-        model.openDayStep(.startDay)
+        // Build 335: Today with picking on; there is no Start the day page any more.
+        model.openStartTheDay()
         return .result()
     }
 }

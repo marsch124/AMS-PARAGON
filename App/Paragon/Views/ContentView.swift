@@ -144,10 +144,6 @@ struct ContentView: View {
                     .environmentObject(model)
                     // No timer bar inside a sheet, so no Focus on this either (build 256).
                     .environment(\.focusBarShown, false)
-            case .startDay:
-                StartDayView()
-                    .environmentObject(model)
-                    .environment(\.focusBarShown, false)
             case .focusStop:
                 FocusStopView()
                     .environmentObject(model)
@@ -226,7 +222,8 @@ struct ContentView: View {
         .onReceive(EveningReminder.shared.$morningRequests) { count in
             guard EveningReminder.shared.takeOpenRequest(.morning, upTo: count) else { return }
             model.arrived(by: .reminder)
-            answerReminder(opening: .startDay)
+            // Build 335: the morning reminder opens Today with picking on.
+            model.openStartTheDay()
         }
         // The weekly review's reminder (round 8, build 315) opens the review itself: a place,
         // not a sheet, so nothing typed in an open sheet is lost by going there.

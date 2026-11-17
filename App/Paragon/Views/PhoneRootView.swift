@@ -147,7 +147,7 @@ struct PhoneRootView: View {
                     // Build 312 (review round 6, his pick A): the **+** left the top-left
                     // corner, the hardest spot for a thumb, and floats bottom right above the
                     // tabs (`PhoneCaptureButton`, still named `capture.open`).
-                    .phoneCaptureButton()
+                    .phoneCaptureButton(stepsAsideWhilePicking: true)
                     .toolbar {
                         PhoneSyncItem()
                     }

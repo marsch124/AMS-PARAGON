@@ -644,13 +644,16 @@ struct CaptureSaveItem: ToolbarContent {
 struct PhoneCaptureButton: ViewModifier {
     @EnvironmentObject private var model: AppModel
     @State private var keyboardUp = false
+    /// Build 335: on Today the + steps aside while picking — the foot belongs to the plan
+    /// button then, and **Add an action for today** takes new lines.
+    var stepsAsideWhilePicking = false
 
     static let size: CGFloat = 54
 
     func body(content: Content) -> some View {
         content
             .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
-                if !keyboardUp { button }
+                if !keyboardUp && !(stepsAsideWhilePicking && model.isPickingToday) { button }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
                 keyboardUp = true
@@ -689,6 +692,8 @@ struct PhoneCaptureButton: ViewModifier {
 
 extension View {
     /// The floating capture + of the phone's Today, Actions and Inbox tabs.
-    func phoneCaptureButton() -> some View { modifier(PhoneCaptureButton()) }
+    func phoneCaptureButton(stepsAsideWhilePicking: Bool = false) -> some View {
+        modifier(PhoneCaptureButton(stepsAsideWhilePicking: stepsAsideWhilePicking))
+    }
 }
 #endif

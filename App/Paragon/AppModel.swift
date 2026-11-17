@@ -128,8 +128,6 @@ enum AppSheet: String, Identifiable {
     case noteFromLink
     /// The evening step: what you finished, what did not happen, one line about the day.
     case closeDay
-    /// The morning step: pick the few actions that matter today and put them in the plan.
-    case startDay
     /// The focus timer was stopped: one question, is the task done (build 256).
     case focusStop
     /// Build 319: a page about PARAGON's own folder (the notes have moved; changes waiting in
@@ -143,7 +141,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 334
+    static let number = 335
 }
 
 @MainActor
@@ -3743,6 +3741,43 @@ final class AppModel: ObservableObject {
 
     func loadFirstPicks() {
         firstPicks = vault?.firstPicks() ?? FirstPicks()
+    }
+
+    // MARK: Picking on Today (build 335)
+
+    /// **Start turns Today into picking** (build 335, his pick 3): the day the Start button was
+    /// pressed on, or nil. Until 334 Start the day was a second page (a sheet); now Today's own
+    /// list carries the Pick buttons while this is today (`TodayPicking.isOn`, Core, tested).
+    @Published private(set) var pickingDay: DateOnly?
+    /// What is picked, by `TodayPicking.key`. Kept here, not in the view, so the picks are still
+    /// there after a look at another section or a note.
+    @Published var todayPicks: Set<String> = []
+
+    var isPickingToday: Bool { TodayPicking.isOn(since: pickingDay, today: .today()) }
+
+    /// The Start button on Today's band. Picks left from an earlier day are dropped.
+    func startPicking() {
+        guard vault != nil else { return }
+        loadFirstPicks()
+        if !isPickingToday { todayPicks = [] }
+        pickingDay = .today()
+    }
+
+    /// **Done** on the strip, the plan button, Start pressed again, Escape on the Mac.
+    func stopPicking() {
+        pickingDay = nil
+        todayPicks = []
+    }
+
+    /// What used to open the Start the day page — Siri's **Start the Day** and a press on the
+    /// morning reminder — now opens Today with picking on. A place, not a sheet, so it never
+    /// has to wait for an open sheet to close.
+    func openStartTheDay() {
+        afterUpdate {
+            guard self.vault != nil else { return }
+            self.openSection(.today)
+            self.startPicking()
+        }
     }
 
     /// Marks or unmarks one action for a day, and forgets the days that are over.

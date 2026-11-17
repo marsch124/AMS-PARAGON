@@ -1,189 +1,342 @@
 import SwiftUI
 import ParagonCore
 
-/// The morning step, the partner of **Close the day** (build 233): what is overdue, what is due
-/// today and your next actions, and you pick the few that matter most. Those go into today's
-/// plan as blocks, each as long as its task's own time (one hour when it has none, build 249),
-/// in the free time left in the day.
-///
-/// **Build 265: the morning starts with what is already known.** Above the list: the line he
-/// wrote last evening in **Close the day**, the goal for the week, and today's calendar events.
-/// All three are read, never written, and each is drawn only when it has something to say.
-///
-/// **The same shape as `CloseDayView` on purpose** — a sheet you open, work down and finish,
-/// through the app's single `.sheet` (build 44). Two screens that are a pair should look like
-/// one.
+/// **Start turns Today into picking** (build 335, his pick 3 of the picture of 17 November
+/// 2026). Until 334 this file held `StartDayView`, a second page (a sheet) that listed Today's
+/// tasks again with a **Pick** button on each. The page is gone: the Start button on Today's
+/// band turns Today's own list into the picking list, and the pieces that list needs live here
+/// — the dark strip, the morning card, the field for a new action, the row with its Pick in
+/// front, and the foot with the plan button. `TodayView` puts them in place; the rules without
+/// a screen are Core's `TodayPicking` (tested).
 ///
 /// **It makes plan blocks, never Time Blocks** (build 147): a `TB:` line in the daily note that
 /// stays in PARAGON. Whether a block is also in Apple Calendar is still his choice, per block,
 /// on **Plan** (build 151).
-struct StartDayView: View {
-    @EnvironmentObject private var model: AppModel
+enum StartDay {
+    /// A cup, not a sunrise: `sunrise` already means **Tomorrow** on the Inbox's buttons and over
+    /// **Overdue** (builds 215 and 224), and one symbol with two meanings is build 168's fault.
+    static let symbol = "cup.and.saucer.fill"
 
-    /// The picked actions, by note path and title (`pickKey`). Nothing is picked when the screen opens: choosing
-    /// what matters is the whole point, and a screen that chose for him would skip it.
-    @State private var picked: Set<String> = []
-    /// What is being typed into the **+** field at the top (build 235).
-    @State private var newAction = ""
-    @FocusState private var newActionFocused: Bool
-    /// Said under the field when a line typed with another day's date went to the Inbox but not
-    /// into this list. **Inside the sheet**, because the app's own message line sits under it and
-    /// the sheet covers that on a phone (build 238).
-    @State private var addNote: String?
-    /// Settings › Tasks › **Use task times** (build 248).
-    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
-    /// The pick whose time is being asked for (build 249, his answer: **ask for the time
-    /// first**). Pressing **Pick** on a task with no time opens the choices on that button, and
-    /// choosing one picks it. By `pickKey`, for the reason that key exists.
-    @State private var askingTimeFor: String?
-    /// Today's calendar events fold away (build 265). Open by default, and one key per platform,
-    /// so folding them on the phone does not fold them on the Mac — the pair Today has had since
-    /// build 212 (builds 121 and 161).
-    @AppStorage("startDayCalendarFolded") private var deskCalendarFolded = false
-    /// Build 312: how often this sheet has been opened, up to one past `HintRule.timesShown`.
-    /// The instructions show by themselves the first three times, then wait behind the info
-    /// button. Counted once per opening (`onAppear` runs again when a sheet is laid out anew).
-    @AppStorage("startDayHintOpens") private var hintOpens = 0
-    @State private var hintCounted = false
-    @AppStorage("startDayCalendarFoldedPhone") private var phoneCalendarFolded = false
-
-    /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating task
-    /// here writes its next occurrence on the line below, moving every later task in that note —
-    /// a pick kept by line would then point at the wrong task. Path and title are what
-    /// `FirstPick` has used since build 236.
-    private func pickKey(_ ref: TaskRef) -> String {
-        ref.notePath + "\n" + ref.task.title
-    }
-
-    #if os(iOS)
-    @Environment(\.horizontalSizeClass) private var sizeClass
-    private var isPhone: Bool { sizeClass == .compact }
-    #else
-    private var isPhone: Bool { false }
-    #endif
-
-    private var day: DateOnly { DateOnly.today() }
-    private var tint: Color { Theme.morningTint }
-
-    /// The planner's own question (build 174), so this screen and **Plan** can never offer two
-    /// different lists of "today's actions".
-    private var actions: [TaskRef] { model.actionsForPlanning(on: day) }
-
-    /// Marked **First** in last night's **Close the day** (build 236): his choice was a mark,
-    /// not a block, and the mark's whole job is to put these at the top of this screen.
-    private var marked: [TaskRef] { model.firstPicks.split(actions, on: day).first }
-
-    /// Everything else, in the planner's order; the three groups below are drawn from this.
-    private var unmarked: [TaskRef] { model.firstPicks.split(actions, on: day).rest }
-
-    private var overdue: [TaskRef] {
-        unmarked.filter { ref in
-            guard let due = ref.task.dueDate else { return false }
-            return due < day
-        }
-    }
-
-    private var dueToday: [TaskRef] {
-        unmarked.filter { $0.task.dueDate == day }
-    }
-
-    /// Next actions with no date on or before today — the rest of what the planner offers.
-    private var nextOnes: [TaskRef] {
-        unmarked.filter { ref in
-            guard let due = ref.task.dueDate else { return true }
-            return due > day
-        }
-    }
-
-    /// The titles already in today's plan, so an action that is already there says so instead
-    /// of offering to go in a second time.
-    private var plannedAt: [String: Int] {
-        var result: [String: Int] = [:]
-        for block in model.planBlocks(for: day) where result[block.title] == nil {
-            result[block.title] = block.start
-        }
-        return result
-    }
-
-    /// In the order the list shows them, so the earliest block goes to the first one picked
-    /// from the top.
-    private var pickedRefs: [TaskRef] {
-        (marked + overdue + dueToday + nextOnes).filter { picked.contains(pickKey($0)) }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            heading
-            Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    morningContext
-                    counts
-                    addField
-                    if actions.isEmpty {
-                        nothingToPick
-                    } else {
-                        HintParagraph(text: instructions, opens: hintOpens, tint: tint,
-                                      identifier: "startDay.how")
-                        group("Marked first last evening", marked)
-                        group("Overdue", overdue)
-                        group("Due today", dueToday)
-                        group("Next actions", nextOnes)
-                    }
-                }
-                .padding(isPhone ? 14 : 20)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            // The field **Add an action for today** sits lower since build 265, under last
-            // evening's line and the events. Dragging the list down puts the keyboard away, as on
-            // the phone's capture screen (build 231).
-            .scrollDismissesKeyboard(.interactively)
-            Divider()
-            if useTaskTimes && !picked.isEmpty {
-                fitLine
-                    .padding(.horizontal, isPhone ? 14 : 20)
-                    .padding(.top, 10)
-            }
-        }
-        // One name the screen test can wait for (build 190). Accessibility only.
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("startDay.screen")
-        .onAppear { model.loadFirstPicks() }
-        .onAppear {
-            guard !hintCounted else { return }
-            hintCounted = true
-            hintOpens = HintRule.counting(hintOpens)
-        }
-        #if os(macOS)
-        // 1.0: the cursor starts in the first field, so the first key pressed types (the sheet
-        // used to open with the focus ring on Cancel). Escape still cancels, Return still adds.
-        .defaultFocus($newActionFocused, true)
-        .onAppear { DispatchQueue.main.async { newActionFocused = true } }
-        #endif
-        // Today's events are what the blocks are fitted around, so read them fresh here rather
-        // than trust whatever Today loaded earlier (build 238).
-        .task { await model.loadEvents(for: day) }
-        .frame(minWidth: isPhone ? nil : 480, minHeight: isPhone ? nil : 420)
-        .frame(maxWidth: fillOnPhone, maxHeight: fillOnPhone, alignment: .topLeading)
-        .sheetChrome(title: "Start the day", tint: tint, actionTitle: actionTitle,
-                     cancel: { close() }, act: { finish() })
-    }
-
-    private var instructions: String {
-        if useTaskTimes {
+    /// The explanation under the field (build 312: by itself the first three times).
+    static func instructions(usesTaskTimes: Bool) -> String {
+        if usesTaskTimes {
             return "Press Pick on the left of what matters today. A task with no time asks for one first. Each one goes into your plan as a block of its own length, in the free time left today. A task that has a time of day goes in at that time, if it is free. The circle marks a task as done."
         }
         return "Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. A task that has a time of day goes in at that time, if it is free. The circle marks a task as done."
     }
 
-    /// **Does it fit?** (build 249) The picked times added up, against the free time left in the
-    /// working day and in the whole day. **The working day is a measure, never a wall**: he keeps
-    /// leisure tasks here too, so going past it is said in grey, and only a day with no room left
-    /// before midnight is orange (`DayFit`, Core, tested).
+    /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating
+    /// task writes its next occurrence on the line below.
+    static func key(_ ref: TaskRef) -> String {
+        TodayPicking.key(notePath: ref.notePath, title: ref.task.title)
+    }
+}
+
+/// The dark strip right under Today's band while picking: what is going on, and the way out.
+/// It carries the old page's name for the screen tests (`startDay.screen`).
+struct PickingStrip: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(TodayPicking.stripWords)
+                .font(Txt.label.weight(.semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Button {
+                model.stopPicking()
+            } label: {
+                // The padding goes inside the label: a Button's tap area is its label (build 186).
+                Text("Done")
+                    .font(Txt.label.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Done: leave picking, nothing is planned")
+            .accessibilityIdentifier("picking.done")
+            .help("Leave picking. Nothing is planned.")
+        }
+        .padding(.leading, Theme.gutter + 6)
+        .padding(.trailing, Theme.gutter - 4)
+        .frame(maxWidth: .infinity)
+        .background(StartScreen.slate)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("startDay.screen")
+    }
+}
+
+/// **This morning**: the line he wrote last evening in Close the day and the goal for the week,
+/// read and never written (build 265). Each line only when it has something to say; while its
+/// note is still coming from iCloud it says so — "nothing written" is not something this device
+/// can know yet (build 100).
+struct MorningCard: View {
+    @EnvironmentObject private var model: AppModel
+    let day: DateOnly
+
+    private var yesterday: DateOnly { day.adding(days: -1) }
+    private var lastEveningText: String { model.lookingBack(for: yesterday) }
+
+    /// False when the card would be an empty box: then it is not drawn at all.
+    static func hasSomething(_ model: AppModel, on day: DateOnly) -> Bool {
+        let yesterday = day.adding(days: -1)
+        return !model.lookingBack(for: yesterday).isEmpty
+            || model.dailyNoteIsWaitingForCloud(yesterday)
+            || model.weekGoal(for: .current()) != nil
+            || model.weeklyNoteIsWaitingForCloud(.current())
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            SectionLabel(title: "This morning", tint: Theme.morningTint)
+            lastEvening
+            weekGoal
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("startDay.morning")
+    }
+
+    @ViewBuilder
+    private var lastEvening: some View {
+        if !lastEveningText.isEmpty {
+            (Text("Last evening: ").fontWeight(.semibold).foregroundColor(Theme.morningTint.ink)
+                + Text(lastEveningText))
+                .font(Txt.label)
+                .lineLimit(4)
+                .fixedSize(horizontal: false, vertical: true)
+                // One sentence on both platforms, set explicitly, so a test reads the same words
+                // on the phone and the Mac (build 253's `project.next`).
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Last evening you wrote: \(lastEveningText)")
+                .accessibilityIdentifier("startDay.lastEvening")
+        } else if model.dailyNoteIsWaitingForCloud(yesterday) {
+            MarkLabel("Last evening's note is still coming from iCloud.", "icloud", text: .footnote)
+                .font(Txt.label)
+                .foregroundStyle(Theme.attention.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("startDay.lastEvening")
+        }
+    }
+
+    @ViewBuilder
+    private var weekGoal: some View {
+        if let goal = model.weekGoal(for: .current()) {
+            WeekGoalLine(goal: goal, identifier: "startDay.weekGoal")
+        } else if model.weeklyNoteIsWaitingForCloud(.current()) {
+            MarkLabel("This week's note is still coming from iCloud.", "icloud", text: .footnote)
+                .font(Txt.label)
+                .foregroundStyle(Theme.attention.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("startDay.weekGoal")
+        }
+    }
+}
+
+/// **Build 235, his idea: the morning is when new things come to mind**, so picking has to take
+/// them. One field and a **+**, the shape of the add-a-task bar in a note (build 142).
+///
+/// **It goes to the Inbox, dated today**, through the ordinary capture path — the same line
+/// **Capture** would write. The date is what puts it under **Due today**, and a date he typed
+/// himself wins (`CaptureReading.line(_:datedIfUndated:)`, Core, tested). **It arrives already
+/// picked**: typing it here is the choosing. The field keeps its focus after **+**.
+struct PickingAddField: View {
+    @EnvironmentObject private var model: AppModel
+    let day: DateOnly
+    @State private var newAction = ""
+    @FocusState private var focused: Bool
+    /// Said under the field when a line typed with another day's date went to the Inbox but not
+    /// into today's list (build 238).
+    @State private var note: String?
+
+    private var tint: Color { Theme.morningTint }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                TextField("Add an action for today", text: $newAction)
+                    .textFieldStyle(.plain)
+                    .focused($focused)
+                    .submitLabel(.done)
+                    .onSubmit { addAction() }
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
+                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
+                    .accessibilityIdentifier("startDay.newAction")
+                Button {
+                    addAction()
+                } label: {
+                    MarkImage("plus.circle.fill", text: .headline)
+                        .foregroundStyle(canAdd ? tint : Color.secondary.opacity(0.5))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!canAdd)
+                .accessibilityLabel("Add this action for today and pick it")
+                .accessibilityIdentifier("startDay.add")
+                .help("Add this action for today and pick it")
+            }
+            if let note {
+                Text(note)
+                    .font(Txt.label)
+                    .foregroundStyle(Theme.attention.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("Goes to the Inbox, dated today, and is picked for your plan.")
+                    .font(Txt.listSecond)
+                    .foregroundStyle(.soft)
+            }
+        }
+        .macCursorStartsHere($focused)
+    }
+
+    private var canAdd: Bool {
+        !newAction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// Captures the line, then finds it in the refreshed list and picks it. `capture` reloads
+    /// the model before it returns; the new line is the one ref that was not there before and
+    /// carries the title just written.
+    private func addAction() {
+        let line = CaptureReading.line(newAction, datedIfUndated: day)
+        guard !line.isEmpty else { return }
+        let title = CaptureReading(line: line).title
+        let before = Set(model.actionsForPlanning(on: day).map(\.id))
+        model.capture(text: line, target: .inbox)
+        newAction = ""
+        focused = true
+        if let ref = model.actionsForPlanning(on: day)
+            .first(where: { !before.contains($0.id) && $0.task.title == title }) {
+            model.todayPicks.insert(StartDay.key(ref))
+            note = nil
+        } else {
+            // A date he typed for another day: the line is safe in the Inbox, it just does not
+            // belong on today's list — say so rather than let it vanish (build 100).
+            note = "Saved to the Inbox. It has another date, so it is not in today's list."
+        }
+    }
+}
+
+private extension View {
+    /// The Mac: the cursor starts in the field when picking starts, so the first key pressed
+    /// types (look 1.0). Nothing on the iPhone and iPad, where it would raise the keyboard.
+    func macCursorStartsHere(_ focus: FocusState<Bool>.Binding) -> some View {
+        #if os(macOS)
+        self.onAppear { DispatchQueue.main.async { focus.wrappedValue = true } }
+        #else
+        self
+        #endif
+    }
+}
+
+/// One of Today's task rows while picking: a real `TaskRow` (build 149: a tick here ticks the
+/// task in its own note), with the pick **in front of it**. The pick is **not** a circle: the
+/// task's own tick box is the circle (build 154).
+///
+/// **Build 240: the pick comes first.** With **Pick** at the far right, the first thing his
+/// thumb met on each row was the tick circle, and he ticked two actions *done* while trying to
+/// pick them. On the iPhone it is the large button; in the Mac's and iPad's narrow Today column
+/// the small capsule, at one width so nothing jumps when **Pick** becomes **Picked**.
+struct PickingRow: View {
+    @EnvironmentObject private var model: AppModel
+    let ref: TaskRef
+    /// The iPhone's large button.
+    let large: Bool
+    /// When the task is already in today's plan: its start, shown instead of the button.
+    let plannedAt: Int?
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
+    /// Pressing **Pick** on a task with no time asks for the time first, and choosing one picks
+    /// it (build 249, his answer).
+    @State private var askingTime = false
+
+    static let smallWidth: CGFloat = 62
+    private var tint: Color { Theme.morningTint }
+    private var key: String { StartDay.key(ref) }
+    private var width: CGFloat { large ? PickButton.largeWidth : PickingRow.smallWidth }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: large ? 12 : 8) {
+            front
+            TaskRow(ref: ref, showNote: true, place: .startDay) { model.toggle(ref) }
+        }
+    }
+
+    @ViewBuilder
+    private var front: some View {
+        if let plannedAt {
+            VStack(spacing: 0) {
+                Text("In plan")
+                    .font(Txt.listSecond)
+                Text(PlanBlock.clock(plannedAt))
+                    .font(Txt.label.monospacedDigit())
+            }
+            .foregroundStyle(.soft)
+            .frame(width: width)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("In the plan at \(PlanBlock.clock(plannedAt))")
+        } else {
+            PickButton(isOn: model.todayPicks.contains(key), tint: tint, large: large) {
+                press()
+            }
+            .frame(width: width)
+            .accessibilityIdentifier("startDay.pick.\(ref.task.title)")
+            .popover(isPresented: $askingTime) {
+                TaskTimeChoices(ref: ref, tint: tint) {
+                    model.todayPicks.insert(key)
+                    askingTime = false
+                }
+                .presentationCompactAdaptation(.popover)
+            }
+        }
+    }
+
+    private func press() {
+        if model.todayPicks.contains(key) {
+            model.todayPicks.remove(key)
+        } else if useTaskTimes && ref.task.minutes == nil {
+            askingTime = true
+        } else {
+            model.todayPicks.insert(key)
+        }
+    }
+}
+
+/// The foot of Today while something is picked: **Does it fit?** (build 249) and the one
+/// full-colour button. With nothing picked it draws nothing — the strip's **Done** is the way
+/// out, and a main button is never grey.
+struct PickingFoot: View {
+    @EnvironmentObject private var model: AppModel
+    let day: DateOnly
+    /// The picked tasks in the list's order (`TodayPicking.chosen`).
+    let refs: [TaskRef]
+    @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
+
+    var body: some View {
+        if let title = TodayPicking.planTitle(picked: refs.count) {
+            VStack(alignment: .leading, spacing: 8) {
+                if useTaskTimes { fitLine }
+                Button(title) { finish() }
+                    .buttonStyle(.main(Theme.morningTint))
+                    .accessibilityIdentifier("picking.plan")
+            }
+            .padding(.horizontal, Theme.gutter + 6)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .background(.bar)
+            .overlay(alignment: .top) { Divider() }
+        }
+    }
+
+    /// The picked times added up, against the free time left in the working day and in the
+    /// whole day. **The working day is a measure, never a wall**: going past it is said in grey,
+    /// and only a day with no room left before midnight is orange (`DayFit`, Core, tested).
     private var fitLine: some View {
-        let fit = model.dayFit(for: pickedRefs, on: day)
+        let fit = model.dayFit(for: refs, on: day)
         let end = PlanBlock.clock(model.workdayEnds)
-        let untimed = pickedRefs.filter { $0.task.minutes == nil }.count
+        let untimed = refs.filter { $0.task.minutes == nil }.count
         return VStack(alignment: .leading, spacing: 3) {
             HStack {
                 Text("Picked")
@@ -234,339 +387,24 @@ struct StartDayView: View {
         }
     }
 
-    /// Says what the press will do: with nothing picked it only closes the screen.
-    private var actionTitle: String {
-        switch picked.count {
-        case 0: return "Done"
-        case 1: return "Plan 1 action"
-        default: return "Plan \(picked.count) actions"
-        }
-    }
-
-    /// Written out rather than a ternary with `nil` in one arm (build 199).
-    private var fillOnPhone: CGFloat? {
-        if isPhone { return CGFloat.infinity }
-        return nil
-    }
-
-    private var heading: some View {
-        // 1.0: the title is in the bar above; this line is the day.
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text(DayWords.withWeekday(day))
-                .font(Txt.label)
-                .foregroundStyle(.soft)
-        }
-        .padding(.horizontal, isPhone ? 14 : 20)
-        .padding(.vertical, 12)
-    }
-
-    // MARK: What is already known this morning (build 265)
-
-    /// The three things at the top, each drawn only when it has something to say. A
-    /// `@ViewBuilder` of three parts rather than a `VStack`, so a part that draws nothing leaves
-    /// no gap in the screen's spacing.
-    @ViewBuilder
-    private var morningContext: some View {
-        lastEvening
-        weekGoal
-        calendarBox
-    }
-
-    private var yesterday: DateOnly { day.adding(days: -1) }
-
-    /// The line from last night's **How was today?**, read through `AppModel.lookingBack(for:)`
-    /// — the one reader of `## Looking back`, which never makes a daily note.
-    private var lastEveningText: String { model.lookingBack(for: yesterday) }
-
-    /// What he wrote last evening, in grey. **Nothing when he wrote nothing**: an empty box every
-    /// morning would be a telling-off. While yesterday's note is still coming from iCloud it says
-    /// so instead, in the orange the review's step 7 uses for the same thing — "nothing written"
-    /// is not something this device can know yet (build 100).
-    @ViewBuilder
-    private var lastEvening: some View {
-        if !lastEveningText.isEmpty {
-            VStack(alignment: .leading, spacing: 4) {
-                SectionLabel(title: "Last evening you wrote", tint: Theme.morningTint)
-                Text(lastEveningText)
-                    .font(Txt.value)
-                    .foregroundStyle(.soft)
-                    .lineLimit(4)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // One sentence on both platforms, set explicitly, so a test reads the same words on
-            // the phone and the Mac (build 253's `project.next`).
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Last evening you wrote: \(lastEveningText)")
-            .accessibilityIdentifier("startDay.lastEvening")
-        } else if model.dailyNoteIsWaitingForCloud(yesterday) {
-            MarkLabel("Last evening's note is still coming from iCloud.", "icloud", text: .footnote)
-                .font(Txt.label)
-                .foregroundStyle(Theme.attention.ink)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("startDay.lastEvening")
-        }
-    }
-
-    /// **This week:** and the goal, the very line Today draws (`WeekGoalLine`, build 168's rule).
-    /// Nothing when no goal is written — the same as Today, and his answer on the plan page. While
-    /// this week's note is still coming from iCloud an orange line says so, as `lastEvening` does:
-    /// a missing line would read as "no goal", which this device cannot know yet (build 100).
-    @ViewBuilder
-    private var weekGoal: some View {
-        if let goal = model.weekGoal(for: .current()) {
-            WeekGoalLine(goal: goal, identifier: "startDay.weekGoal")
-        } else if model.weeklyNoteIsWaitingForCloud(.current()) {
-            MarkLabel("This week's note is still coming from iCloud.", "icloud", text: .footnote)
-                .font(Txt.label)
-                .foregroundStyle(Theme.attention.ink)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("startDay.weekGoal")
-        }
-    }
-
-    private var calendarFolded: Binding<Bool> {
-        isPhone ? $phoneCalendarFolded : $deskCalendarFolded
-    }
-
-    /// `FoldButton` asks whether the box is **open**; the stored value says whether it is
-    /// folded, so the two are the same question read the other way round (as on Today).
-    private var calendarOpen: Binding<Bool> {
-        Binding(get: { !calendarFolded.wrappedValue },
-                set: { calendarFolded.wrappedValue = !$0 })
-    }
-
-    /// Today's calendar events, one short line each — the blocks are fitted around them, and
-    /// until now this screen read them without showing them. The heading folds them away and the
-    /// count stays in it (build 212). **The access message is never folded away**: with Calendar
-    /// access off it is the only thing that says why there are no events (build 100).
-    ///
-    /// The label fills the whole line, so a press anywhere on it folds — a short button beside a
-    /// `Spacer` gets a wrong frame on the Mac, and a click there landed on the wrong view in
-    /// build 247.
-    @ViewBuilder
-    private var calendarBox: some View {
-        if model.showsCalendarEvents {
-            VStack(alignment: .leading, spacing: 6) {
-                FoldButton(isOpen: calendarOpen, accessibilityName: "Today's calendar events") {
-                    SectionLabel(title: "Today's calendar events",
-                                 count: model.events(on: day).count,
-                                 markName: SidebarSection.calendar.markName,
-                                 tint: SidebarSection.calendar.tint)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .accessibilityIdentifier("startDay.calendar")
-                if !calendarFolded.wrappedValue || model.calendarAccessGranted == false {
-                    CalendarEventRows(date: day, compact: true)
-                }
-            }
-        // Build 318: a fold kept in the settings carries no movement by itself; this gives it one (0.2 s).
-        .animation(Motion.fold, value: calendarFolded.wrappedValue)
-        }
-    }
-
-    /// A cup, not a sunrise: `sunrise` already means **Tomorrow** on the Inbox's buttons and over
-    /// **Overdue** (builds 215 and 224), and one symbol with two meanings is build 168's fault.
-    static let symbol = "cup.and.saucer.fill"
-
-    private var counts: some View {
-        WrappingHStack(spacing: 8, lineSpacing: 8) {
-            if !overdue.isEmpty {
-                // Build 330 (the advisors' round): a count that informs and does not press —
-                // no exclamation mark, and the evening's calm colour, not orange.
-                CountPill(text: "\(overdue.count) overdue",
-                          markName: "clock", tint: Theme.eveningTint)
-            }
-            CountPill(text: "\(dueToday.count) due today",
-                      markName: "calendar", tint: tint)
-            if !picked.isEmpty {
-                CountPill(text: "\(picked.count) picked",
-                          markName: "checkmark.circle", tint: .green)
-            }
-        }
-    }
-
-    /// **Build 235, his idea: the morning is when new things come to mind**, so the screen has to
-    /// take them. One field and a **+**, the shape of the add-a-task bar in a note (build 142).
-    ///
-    /// **It goes to the Inbox, dated today**, through the ordinary capture path — the same line
-    /// **Capture** would write, so it is filed later the usual way and nothing new is invented.
-    /// The date is what puts it under **Due today** here, and a date he typed himself wins
-    /// (`CaptureReading.line(_:datedIfUndated:)`, Core, tested). **It arrives already picked**:
-    /// typing it here is the choosing.
-    ///
-    /// The field keeps its focus after **+**, so a second and a third can follow without a tap.
-    private var addField: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                TextField("Add an action for today", text: $newAction)
-                    .textFieldStyle(.plain)
-                    .focused($newActionFocused)
-                    .submitLabel(.done)
-                    .onSubmit { addAction() }
-                    .padding(8)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.08)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35)))
-                    .accessibilityIdentifier("startDay.newAction")
-                Button {
-                    addAction()
-                } label: {
-                    MarkImage("plus.circle.fill", text: .headline)
-                        .foregroundStyle(canAdd ? tint : Color.secondary.opacity(0.5))
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!canAdd)
-                .accessibilityLabel("Add this action for today and pick it")
-                .accessibilityIdentifier("startDay.add")
-                .help("Add this action for today and pick it")
-            }
-            if let addNote {
-                Text(addNote)
-                    .font(Txt.label)
-                    .foregroundStyle(Theme.attention.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("Goes to the Inbox, dated today, and is picked for your plan.")
-                    .font(Txt.listSecond)
-                    .foregroundStyle(.soft)
-            }
-        }
-    }
-
-    private var canAdd: Bool {
-        !newAction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    /// Captures the line, then finds it in the refreshed list and picks it. `capture` reloads
-    /// the model before it returns, so the new line is already in `actionsForPlanning`; it is
-    /// the one ref that was not there before and carries the title just written.
-    private func addAction() {
-        let line = CaptureReading.line(newAction, datedIfUndated: day)
-        guard !line.isEmpty else { return }
-        let title = CaptureReading(line: line).title
-        let before = Set(actions.map(\.id))
-        model.capture(text: line, target: .inbox)
-        newAction = ""
-        newActionFocused = true
-        if let ref = model.actionsForPlanning(on: day)
-            .first(where: { !before.contains($0.id) && $0.task.title == title }) {
-            picked.insert(pickKey(ref))
-            addNote = nil
-        } else {
-            // A date he typed for another day: the line is safe in the Inbox, it just does not
-            // belong on today's list — say so rather than let it vanish (build 100).
-            addNote = "Saved to the Inbox. It has another date, so it is not in today's list."
-        }
-    }
-
-    /// Nothing due and no next action is worth saying in words. An empty list under a heading
-    /// reads as a screen that failed to load (build 100).
-    private var nothingToPick: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Nothing to do today.")
-                .font(Txt.value.weight(.semibold))
-            Text("No task is due today or overdue, and no note has a next action. Add one above with +.")
-                .font(Txt.label)
-                .foregroundStyle(.soft)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    /// One group, drawn only when it has something in it — the counts above already say when a
-    /// group is empty, so an empty heading here would say nothing twice.
-    @ViewBuilder
-    private func group(_ title: String, _ refs: [TaskRef]) -> some View {
-        if !refs.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(title: title, count: refs.count, tint: Theme.morningTint)
-                ForEach(refs) { ref in
-                    row(ref)
-                }
-            }
-        }
-    }
-
-    /// A real `TaskRow` (build 149: a tick here ticks the task in its own note), with the pick
-    /// **in front of it**. The pick is **not** a circle: the task's own tick box is the circle,
-    /// and two circles side by side would be two controls that look alike (build 154).
-    ///
-    /// **Build 240: the pick comes first, and larger.** With **Pick** at the far right, the first
-    /// thing his thumb met on each row was the tick circle, and in testing 239 he ticked two
-    /// actions *done* while trying to pick them. He chose this shape (B) over hiding the tick:
-    /// the morning is also when he notices something is already done.
-    private func row(_ ref: TaskRef) -> some View {
-        let key = pickKey(ref)
-        return HStack(alignment: .top, spacing: 12) {
-            if let start = plannedAt[planBlockTitle(from: ref.task)] {
-                VStack(spacing: 0) {
-                    Text("In plan")
-                        .font(Txt.listSecond)
-                    Text(PlanBlock.clock(start))
-                        .font(Txt.label.monospacedDigit())
-                }
-                .foregroundStyle(.soft)
-                .frame(width: PickButton.largeWidth)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("In the plan at \(PlanBlock.clock(start))")
-            } else {
-                PickButton(isOn: picked.contains(key), tint: tint, large: true) {
-                    pressPick(ref, key: key)
-                }
-                .accessibilityIdentifier("startDay.pick.\(ref.task.title)")
-                .popover(isPresented: timeQuestion(for: key)) {
-                    TaskTimeChoices(ref: ref, tint: tint) {
-                        picked.insert(key)
-                        askingTimeFor = nil
-                    }
-                    .presentationCompactAdaptation(.popover)
-                }
-            }
-            TaskRow(ref: ref, showNote: true, place: .startDay) { model.toggle(ref) }
-        }
-    }
-
-    /// Unpicks, picks, or — for a task with no time while task times are on — asks for the time
-    /// first, and the chosen time is what picks it (build 249, his answer).
-    private func pressPick(_ ref: TaskRef, key: String) {
-        if picked.contains(key) {
-            picked.remove(key)
-        } else if useTaskTimes && ref.task.minutes == nil {
-            askingTimeFor = key
-        } else {
-            picked.insert(key)
-        }
-    }
-
-    /// A plain function, never a `Binding` built inside the row's view builder (build 58).
-    private func timeQuestion(for key: String) -> Binding<Bool> {
-        Binding(get: { askingTimeFor == key },
-                set: { open in if !open && askingTimeFor == key { askingTimeFor = nil } })
-    }
-
-    /// With nothing picked, **Done** only closes. Otherwise one write puts every pick into the
-    /// plan, and the message says how many fitted — never silently fewer than he asked for
-    /// (build 100's rule).
+    /// One write puts every pick into the plan, and the message says how many fitted — never
+    /// silently fewer than he asked for (build 100's rule). Then picking is over.
     private func finish() {
-        let refs = pickedRefs
-        if !refs.isEmpty {
-            let placed = model.planActions(refs, on: day)
-            let text = messageWithCloudNote(placed: placed, asked: refs.count)
-            // The caution about notes still coming from iCloud is three sentences, and the
-            // capsule only shows once this sheet has gone: give it time to be read.
-            if model.notesWaitingForCloud.isEmpty {
-                model.flash(text)
-            } else {
-                model.flash(text, seconds: 10)
-            }
+        guard !refs.isEmpty else { return }
+        let placed = model.planActions(refs, on: day)
+        let text = messageWithCloudNote(placed: placed, asked: refs.count)
+        // The caution about notes still coming from iCloud is three sentences: give it time.
+        if model.notesWaitingForCloud.isEmpty {
+            model.flash(text)
+        } else {
+            model.flash(text, seconds: 10)
         }
-        close()
+        model.stopPicking()
     }
 
     /// **A note that has not arrived is not known** (build 100's rule): a task with a time of day
     /// in it is not in the index, so its hour was not kept free. The plan is written all the
-    /// same — refusing would make this screen unusable for as long as one note is on its way —
-    /// and the message says so, so a gap in what was read is never taken for free time.
+    /// same, and the message says so.
     private func messageWithCloudNote(placed: Int, asked: Int) -> String {
         let text = message(placed: placed, asked: asked)
         if model.notesWaitingForCloud.isEmpty { return text }
@@ -581,10 +419,6 @@ struct StartDayView: View {
             return "\(placed) of \(asked) fitted in your plan. The rest had no free time left today."
         }
         return placed == 1 ? "Added 1 action to today's plan." : "Added \(placed) actions to today's plan."
-    }
-
-    private func close() {
-        model.activeSheet = nil
     }
 }
 
