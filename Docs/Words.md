@@ -55,13 +55,13 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Tasks
 
 - **Task** or **action** — one line with a tick box, in any note. The two words mean the same thing.
-- **How long?** — the small dashed button on the right of a task that has no task time yet. Press it to say how long the task takes. Since build 312 it is shown only in **Start the day** and in the **Actions** column of **Plan**. Everywhere else a task shows its time only when it has one; to give it one there, hold the task (right-click on the Mac) and choose **How long**.
+- **How long?** — the small dashed button on the right of a task that has no task time yet. Press it to say how long the task takes. Since build 312 it is shown only while you pick on **Today** and in the **Actions** column of **Plan**. Everywhere else a task shows its time only when it has one; to give it one there, hold the task (right-click on the Mac) and choose **How long**.
 - **Next action** — the one task in a note you would do next. A note has at most one. It carries the tag `#next`.
 - **Due date** — the day a task should be done. Written `>2026-09-29` on the task line.
 - **Overdue** — a task whose due date has passed. Its date is shown in red.
 - **At** — the time of day a task is due, like `T14:00` after its date on the task line. You set it in the date window, in the line called **At**, or press one of the quick times there. **No time of day** there takes it away. It is not the same as **Task time**, which is how long the task takes. In a note that syncs to Reminders, Apple Reminders rings at that time. **Plan** shows a task with a time as a small grey card at its hour.
-- **Task time** — how long a task takes, like `~45m` on the task line. The small button on the right of a task sets it; in **Start the day** and in **Plan** it says **How long?** while there is none. **Use task times** in Settings turns it on and off.
-- **Working day ends** — the time in Settings that **Start the day** measures your picks against. 16:00 to begin with. Tasks can still be planned after it; it is a measure, not a limit.
+- **Task time** — how long a task takes, like `~45m` on the task line. The small button on the right of a task sets it; while you pick on **Today** and in **Plan** it says **How long?** while there is none. **Use task times** in Settings turns it on and off.
+- **Working day ends** — the time in Settings that picking on **Today** measures your picks against. 16:00 to begin with. Tasks can still be planned after it; it is a measure, not a limit.
 - **Important** — one, two or three `!` on a task line. More marks mean more important.
 - **Repeat** — a task that comes back after you tick it, like `@repeat(weekly)`.
 - **Subtask** — a task indented under another task.
@@ -78,7 +78,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Planning your day and week
 
 - **Today** — the tasks due today and the overdue ones, with today's calendar events.
-- **One**, **Note**, **Start** and **Close** — the tiny words under the four round buttons at the top of **Today** (**One** is new in build 332; before there were three). **One** opens **One thing**, **Note** opens today's note, **Start** opens **Start the day**, and **Close** opens **Close the day**.
+- **One**, **Note**, **Start** and **Close** — the tiny words under the four round buttons at the top of **Today** (**One** is new in build 332; before there were three). **One** opens **One thing**, **Note** opens today's note, **Start** turns **Today** into the picking list (before build 335 it opened a page), and **Close** opens **Close the day**.
 - **One thing** — the page that shows only one task, in large type, with a small line that says why it is the one. It is opened by the **One** button on **Today**. **Done** ticks it, **Not now** sets it aside, **Start focus** starts the focus timer on it. Overdue tasks come first, the one overdue longest first; then tasks due today; then the next actions. **Overdue** keeps its name: a task whose date has passed is still called overdue here, as on **Today**.
 - **Not now** — on **One thing**: the task is set aside for today and the next one comes. It is kept on this device only, nothing is written into the note, and the next day the task is offered again. When everything is set aside, **Show them again** brings the tasks back.
 - **Plan** — the screen with your day on an hour ruler. It has the same name everywhere: the **Plan** row in the Mac's sidebar and the **Plan** tab on the iPhone. The lane inside it where your blocks sit is still called **Time blocks**.
@@ -90,7 +90,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan**.
 - **Now line** — the thin blue line that shows the time right now.
 - **Now and Then** — two short lines under the date on **Today**, on a day with a plan. The first starts with **Now** and names the plan block you are in, with a small orange clock button that starts the focus timer on it. The second starts with **Then** and names the next block. They are not the **Now line**, which is the thin blue line across the hours.
-- **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **How long?** button opens, and first on a task's right-click menu (hold the task on the iPhone). Since build 312 a task with no time has the **How long?** button only in **Start the day** and **Plan**, so everywhere else use the menu.
+- **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **How long?** button opens, and first on a task's right-click menu (hold the task on the iPhone). Since build 312 a task with no time has the **How long?** button only while you pick on **Today** and in **Plan**, so everywhere else use the menu.
 - **Focus timer** — a clock on one task while you work. A bar at the foot of the screen shows it, with a pause button and a stop button. On the Mac the time also shows in the menu bar, on the right among the small icons there.
 - **Notification when the time is up** — one notification when you have worked as long as the task's time, or the plan block's length. Paused time does not count. The clock keeps running until you stop it.
 - **Worked** — a heading in the daily note where the focus timer writes how long you worked: one line for each stretch, like `- 08:02-08:54 Write the offer`.
@@ -98,10 +98,10 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Plan the week** — the title of the week when you open it with the **Week** button in **Plan** on the iPhone. You stay in the **Plan** tab, and the back arrow returns to your day.
 - **Goal for this week** — one line at the top of **Week** that says what the week is about. It is kept in the week's note as `focus:` and shown under the date on **Today**. Step 9 of the **Weekly review** writes it too, for the week you are about to work in.
 - **Not planned yet** — the dashed tiles at the top of **Week**: tasks with no date yet. Drag one onto a day to give it that date.
-- **Start the day** — the cup button on **Today**, with the word **Start** under it. At the top it shows what you wrote last evening, the goal for the week and today's calendar events. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added there with **+**.
+- **Picking** or **Picking for today** — what **Start** does on **Today** (since build 335; before, it opened a page called **Start the day**). Today's own list gets a dark strip, **Picking for today**, with **Done**. A card shows what you wrote last evening and the goal for the week. **Pick** appears in front of every task. You pick the actions that matter most, and each one goes into today's plan as a block as long as its task time. New actions can be added at the top with **+**. The button at the foot plans them; **Done** leaves without planning.
 - **Close the day** — the moon button on **Today**, with the word **Close** under it. It shows what your finished tasks went towards, what did not happen, and what is to do tomorrow, asks one line about the day, and shows the time you planned next to the time you worked.
-- **First** — a mark you put on an action in **Close the day**. The next morning, **Start the day** shows it first in its list, above **Overdue**.
-- **Morning reminder** — a notification every morning, at a time you choose in **Settings**. Press it to open **Start the day**.
+- **First** — a mark you put on an action in **Close the day**. The next morning, when you pick on **Today**, it comes first, in its own section **Marked first last evening**.
+- **Morning reminder** — a notification every morning, at a time you choose in **Settings**. Press it to open **Today** in picking.
 - **Evening reminder** — a notification once a day, at a time you choose in **Settings**. Press it to open **Close the day**.
 - **Looking back** — the part of a daily or weekly note where one line about the day or the week is kept.
 - **Planned and worked** — a table at the bottom of **Close the day**. For each thing you planned or worked on today, it shows the time planned next to the time the focus timer measured, and **All of today** at the bottom.
@@ -109,7 +109,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 ## Dates and times
 
-- **Date** — PARAGON writes every date the same way: year, month, day, like **2026-11-12**. Where the weekday helps, it comes first, like **Thursday 2026-11-12**: on **Today**, in **Start the day** and **Close the day**, on a day in the **Calendar**, in **Plan** and in **Done**, and as the name of a daily note. The weekday is always in English.
+- **Date** — PARAGON writes every date the same way: year, month, day, like **2026-11-12**. Where the weekday helps, it comes first, like **Thursday 2026-11-12**: on **Today**, in **Close the day**, on a day in the **Calendar**, in **Plan** and in **Done**, and as the name of a daily note. The weekday is always in English.
 - **Month** — a month alone is written like **2026-11**. It is the heading of the month in the **Calendar**, and it stands above the squares in **Done**.
 - **Week 46** — the number of the week in the year. A week runs from Monday to Sunday. The heading over a week shows its first and last day too, like **Week 46 · 2026-11-09 – 2026-11-15**.
 - **Time** — always 24 hours, like **14:30**, whatever your device is set to.

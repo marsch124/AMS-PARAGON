@@ -36,7 +36,7 @@ On the iPhone, **File it** lists the likely places first (since build 331). **Su
 
 **Today** is the screen you live in. It shows the day's calendar events, then what needs you now: overdue tasks, tasks due today, the one next action of each active project, and undated tasks marked important.
 
-Four round buttons sit at the top (since build 332; before, three): **One** opens the page One thing, **Note** opens today's note, **Start** opens Start the day, **Close** opens Close the day.
+Four round buttons sit at the top (since build 332; before, three): **One** opens the page One thing, **Note** opens today's note, **Start** turns Today into a picking list (since build 335; before, it opened a second page), **Close** opens Close the day.
 
 ### One thing
 
@@ -52,13 +52,17 @@ A tiny line at the foot says "3 more after this", "1 more after this" or "The la
 
 Which task: first the one overdue longest. Then what is due today, with a time first. Then the next action of each project, as **Today** lists them. A task that is done, someday, waiting for someone or dated in the future is never shown. When nothing is left the page says "Nothing for now." If you set tasks aside it says how many and has **Show them again**.
 
-## 4. Start the day, Plan, Focus, Close the day
+## 4. Picking for the day, Plan, Focus, Close the day
 
-### Start the day
+### Picking for the day
 
-This is for deciding each morning what matters most. At the top you see what you wrote last evening, the goal for the week and today's calendar events. Below are overdue tasks, tasks due today and your next actions. Anything you marked **First** the evening before comes at the top.
+This is for deciding each morning what matters most. There is no second page. Press **Start** on Today's band and Today's own list becomes the picking list (since build 335; before, **Start** opened a page called Start the day). A dark strip under the band says **Picking for today** and has a **Done** button.
 
-Press **Pick** beside the two or three that matter most, then the button at the bottom, such as **Plan 2 actions**. Each pick becomes a block in today's plan, as long as the task's own time. A task with no time has a dashed **How long?** button. **Add an action for today** puts a new thought into the Inbox, dated today.
+At the top, a card, **This morning**, shows what you wrote last evening and the goal for the week. Under it is **Add an action for today**, which puts a new thought into the Inbox, dated today, already picked. Anything you marked **First** the evening before comes first, under **Marked first last evening**. Below are the tasks Today already shows: from today's note, next actions, overdue, due today and important with no date. Every one has **Pick** in front of it.
+
+Press **Pick** beside the two or three that matter most. When one is picked, a button appears at the foot, such as **Plan 2 actions**. Each pick becomes a block in today's plan, as long as the task's own time. A task with no time has a dashed **How long?** button. A task already in the plan says **In plan** and its time.
+
+To leave without planning, press **Done** on the strip, press **Start** again, or press Escape on the Mac. The plan button plans and leaves. While you pick, the round + button on the iPhone steps aside and swipes on a task are off.
 
 
 
@@ -85,7 +89,7 @@ A bar at the foot of the screen shows the time, with pause and stop buttons. The
 One page you work down at the end of the day:
 
 - **Did not happen:** tasks still open that were due today or earlier. Each has **Tomorrow** and **Day…** buttons, and one button moves them all to tomorrow.
-- **To do tomorrow.** Press **First** on the ones that should come first; tomorrow's Start the day shows them at the top.
+- **To do tomorrow.** Press **First** on the ones that should come first; tomorrow's picking list on Today shows them at the top.
 - **How was today?** One line, if you feel like it, kept in today's note. It never becomes a task.
 - **What you did today:** how many tasks you finished and what they went towards.
 - **Planned and worked:** time planned next to time the focus timer measured.
@@ -249,7 +253,7 @@ PARAGON has six actions in the **Shortcuts** app, which Siri understands with no
 
 - **Add to Inbox:** "Add to PARAGON". Adds one task without opening the app. In Shortcuts it also has a **Day** field; plain-word dates are not read here.
 - **What Is Due Today?:** "What is due today in PARAGON". Answers aloud.
-- **Open Today**, **Start the Day**, **Close the Day:** each opens that screen.
+- **Open Today**, **Start the Day**, **Close the Day:** each opens that screen. **Start the Day** opens Today with picking switched on.
 - **Start Focus:** "Start focus in PARAGON". With no task named, it starts on what is next today.
 
 ### Sharing into PARAGON

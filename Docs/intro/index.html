@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* PARAGON Tour: chapter rail on the left, coach card + a pretend iPhone on the right. Same engine as the other AMS tours.
-   Based on PARAGON 1.0 (334). Update this tour in the release that changes a taught screen. */
+   Based on PARAGON 1.0 (335). Update this tour in the release that changes a taught screen. */
 :root {
   --bg: #F7F5FA; --panel: #FFFFFF; --fg: #231C33; --muted: #6D6580; --line: #E3DDEE;
   --accent: #6B4EA8; --accent-soft: #EEE9F8; --good: #2F7D32; --good-soft: #E6F3E6; --warn: #A8431A;
@@ -235,6 +235,9 @@ svg.g { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: rou
 .ansr { display: flex; gap: 16px; padding: 0 0 8px 46px }
 .ansr button { border: 0; background: none; color: var(--c-rev); font-weight: 700; font-size: 13.5px; cursor: pointer; padding: 2px 0 }
 .pickb { border: 1.3px solid var(--c-start); color: var(--c-start); background: none; border-radius: 14px; font-weight: 600; font-size: 12.5px; min-height: 26px; padding: 0 10px; cursor: pointer; flex: none }
+.pickstrip { display: flex; align-items: center; justify-content: space-between; background: #2B3640; color: #fff; font-weight: 600; font-size: 14px; padding: 6px 12px; border-radius: 10px; margin: 6px 0 }
+.pickstrip button { background: none; border: 0; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer }
+.pickfoot { position: absolute; left: 12px; right: 12px; bottom: 84px; z-index: 20 }
 .pickb.on { background: var(--c-start); color: #fff }
 .capsb { border: 1px solid; background: none; border-radius: 12px; font-size: 12px; font-weight: 600; padding: 2px 10px; cursor: pointer }
 .capsb.lit { color: #fff }
@@ -371,7 +374,7 @@ const EVENT = { title: 'Dentist check-up', from: 600, to: 630 };
 const GREETING = 'What\u2019s on your mind?';
 const mkCap = o => Object.assign({ text: '', note: false, into: 'Inbox', ignored: null, msg: '', saved: 0 }, o || {});
 const START = () => ({ start: false, tab: 'today', page: null, sheet: null, tasks: mkTasks(), cap: mkCap(), kind: 'Inbox', sel: null, fileMenu: false,
-  notesIn: [{ id: 'n1', text: 'Trail idea: sleep at the Salka hut' }], q: '', menu: null, aside: [], who: { id: null, text: '' }, picks: [], plan: [], dialog: null,
+  notesIn: [{ id: 'n1', text: 'Trail idea: sleep at the Salka hut' }], q: '', menu: null, aside: [], who: { id: null, text: '' }, picks: [], picking: false, plan: [], dialog: null,
   recent: ['prj1', 'ar1'], waitingHalf: false, rev: { open: {}, done: false }, syncMenu: false, syncT: '09:12', fresh: false, remTicks: [], rem: false,
   newTask: '', safetyOpen: false, calMode: 'Week', seen: {}, toast: '' });
 let S = START();
@@ -477,16 +480,23 @@ const sec = (title, count, col, extra, tid) => `<div class="sec2" style="color:v
 
 /* ---------- Tab screens ---------- */
 function todayHTML() {
-  const L = todayLists();
+  const L = todayLists(), pk = !!S.picking, n = S.picks.length;
   const btn = (act, ic, cap, tid, col, strong) => `<button class="bb${strong ? ' strong' : ''}" data-act="${act}" data-t="${tid}"><i style="color:${col}">${icon(ic)}</i>${cap}</button>`;
+  const prow = t => `<div class="pc" style="--tint:var(--c-start)">${trow(t, { showNote: true, tint: '--c-start' }).replace('<button class="tkc', `<button class="pickb${S.picks.includes(t.id) ? ' on' : ''}" data-act="pick" data-id="${t.id}" data-t="pick-${t.id}">${S.picks.includes(t.id) ? 'Picked' : 'Pick'}</button><button class="tkc`)}</div>`;
+  const R = pk ? l => l.map(prow).join('') : l => rows(l);
+  const act = n === 1 ? 'Plan 1 action' : 'Plan ' + n + ' actions';
+  const strip = pk ? `<div class="pickstrip" data-t="pick-strip"><span>Picking for today</span><button data-act="pick-done" data-t="pick-done">Done</button></div>
+    <div class="lbl" style="margin:6px 4px" data-t="pick-card">This morning<br>Last evening: a quiet day, one walk.<br>This week: Pack the first aid kit.</div>
+    <div class="lbl" style="margin:2px 4px 6px">Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a block of its own length.</div>` : '';
   return `<div class="scr" data-keep="scr">${navBar('Today', '--c-today')}
     <div class="band" style="background:#6B4EA8" data-t="band"><span class="bt" data-t="band-date">${withWd(TODAY)}</span>
       <div class="bbtns">${btn('band-one', 'one', 'One', 'btn-one', '#6B4EA8')}${btn('band-note', 'note', 'Note', 'btn-note', '#6B4EA8')}${btn('band-start', 'sunrise', 'Start', 'btn-start', '#D4640A', true)}${btn('band-close', 'moon', 'Close', 'btn-close', '#6E3A86')}</div></div>
+    ${strip}
     ${sec('Calendar', 1, '--c-today')}<div class="pc" style="--tint:var(--c-today)"><div class="trow2"><span class="sub" style="width:44px">10:00</span><div class="tx">${esc(EVENT.title)}</div></div></div>
-    ${L.nextActions.length ? sec('Next actions', null, '--c-today') + rows(L.nextActions) : ''}
-    ${L.overdue.length ? sec('Overdue', L.overdue.length, '--c-red', `<button class="hb2" data-act="overdue-today" data-t="overdue-today" aria-label="Move every overdue task to today">${icon('sun')}</button><button class="hb2" data-act="overdue-tomorrow" data-t="overdue-tomorrow" aria-label="Move every overdue task to tomorrow">${icon('sunrise')}</button>`, 'sec-overdue') + rows(L.overdue) : ''}
-    ${sec('Due today', L.dueToday.length, '--c-today')}${L.dueToday.length ? rows(L.dueToday) : '<div class="lbl" style="margin:2px 4px">Nothing due today</div>'}
-    </div><button class="fab" data-act="fab" data-t="fab" aria-label="New">${icon('plus', 'g')}</button>${tabBar()}`;
+    ${L.nextActions.length ? sec('Next actions', null, '--c-today') + R(L.nextActions) : ''}
+    ${L.overdue.length ? sec('Overdue', L.overdue.length, '--c-red', `<button class="hb2" data-act="overdue-today" data-t="overdue-today" aria-label="Move every overdue task to today">${icon('sun')}</button><button class="hb2" data-act="overdue-tomorrow" data-t="overdue-tomorrow" aria-label="Move every overdue task to tomorrow">${icon('sunrise')}</button>`, 'sec-overdue') + R(L.overdue) : ''}
+    ${sec('Due today', L.dueToday.length, '--c-today')}${L.dueToday.length ? R(L.dueToday) : '<div class="lbl" style="margin:2px 4px">Nothing due today</div>'}
+    </div>${pk ? (n ? `<div class="pickfoot"><button class="mainb" style="background:#D4640A" data-act="plan-go" data-t="plan-go">${act}</button></div>` : '') : `<button class="fab" data-act="fab" data-t="fab" aria-label="New">${icon('plus', 'g')}</button>`}${tabBar()}`;
 }
 function inboxHTML() {
   const items = S.tasks.filter(t => t.note === 'inbox' && isOpen(t)), n = items.length;
@@ -548,7 +558,7 @@ function browseHTML() {
     <div class="grp">Plan</div><div class="card">${R('calendar', 'note', 'Calendar', '--c-today', 0)}${R('review', 'review', 'Weekly review', '--c-rev', 0)}${R('map', 'map', 'Map', '--c-goal', 0)}${R('done', 'done', 'Done', '--c-rev', 0)}${R('deleted', 'trash', 'Deleted', '--c-arch', 0)}</div>
     <div class="grp">Tools</div><div class="card">${R('templates', 'tmpl', 'Templates', '--c-res', 0)}${R('snippets', 'snip', 'Snippets', '--c-inbox', 0)}${R('tags', 'tag', 'Tags', '--c-area', 0)}</div></div>
     <div class="card" style="margin-top:12px"><button class="lrow" data-act="settings-open"><span style="color:var(--c-set)">${icon('nut')}</span><span>Settings and Help</span><span class="sp"></span></button></div>
-    <div class="sub" style="margin:12px 4px" data-t="version">PARAGON 1.0 (334)</div></div>${tabBar()}`;
+    <div class="sub" style="margin:12px 4px" data-t="version">PARAGON 1.0 (335)</div></div>${tabBar()}`;
 }
 
 /* ---------- Pages pushed from Browse ---------- */
@@ -617,13 +627,13 @@ function calHTML() {
 }
 function settingsHTML() {
   const help = ['How it works', 'Words in PARAGON', 'What\u2019s new', 'Every detail'].map(x => `<button class="lrow" data-act="soon"><span>${x}</span><span class="sp"></span>${icon('chevR')}</button>`).join('');
-  const lines = [['Devices', 'All 2 devices run PARAGON 334.'], ['Copies in the notes folder', 'The newest copy is from today.'], ['Second copy, outside', 'The newest copy is from today.'], ['Conflict copies', 'None.'], ['Reminders sync', 'Last ran at ' + S.syncT + '.']];
+  const lines = [['Devices', 'All 2 devices run PARAGON 335.'], ['Copies in the notes folder', 'The newest copy is from today.'], ['Second copy, outside', 'The newest copy is from today.'], ['Conflict copies', 'None.'], ['Reminders sync', 'Last ran at ' + S.syncT + '.']];
   return `<div class="scr" data-keep="scr">${backBtn('Browse')}<div class="nav"><h1 style="color:var(--c-set)">Settings</h1></div>
     <div class="grp">Help</div><div class="card" data-t="help">${help}</div>
     <div class="grp">Safety</div><div class="card" data-t="safety"><button class="lrow" data-act="safety" data-t="safety-sum"><span style="color:var(--c-green)">${icon('check')}</span><span>Everything is safe</span><span class="sp"></span><span class="sub">Details</span><span style="transform:rotate(${S.safetyOpen ? 90 : 0}deg)">${icon('chevR')}</span></button>
       ${S.safetyOpen ? lines.map(([a, b]) => `<div class="kt" style="display:block"><div>${a}</div><div class="sub">${b}</div></div>`).join('') : ''}</div>
     <div class="grp">Reminders sync</div><div class="card"><button class="lrow" data-act="sync-now" data-t="sync-now-row"><span style="color:var(--c-set)">${icon('sync')}</span><span>Sync now</span></button><div class="lrow" style="cursor:default"><span>Sync automatically</span><span class="sp"></span><span class="sub">Every 5 minutes</span></div><div class="lrow" style="cursor:default"><span>If both changed</span><span class="sp"></span><span class="sub">Note wins</span></div></div>
-    <div class="sub" style="margin:14px 4px">PARAGON 1.0 (334)</div></div>${tabBar()}`;
+    <div class="sub" style="margin:14px 4px">PARAGON 1.0 (335)</div></div>${tabBar()}`;
 }
 function remHTML() {
   const mine = S.tasks.filter(t => t.note === 'prj2');
@@ -658,16 +668,6 @@ function oneHTML() {
   return `<div class="onep" data-t="one-page">${close}<h2>One thing</h2><div class="big" data-t="one-title">${esc(t.title)}</div><div class="sub" data-t="one-why">${oneWords(t)} \u00B7 ${esc(noteTitle(t.note))}</div>${why ? `<div class="gold" data-t="one-reason">${esc(why)}</div>` : ''}
     <div class="btnw"><button class="mainb" style="background:#6B4EA8" data-act="one-done" data-t="one-done">Done</button><button class="outb" style="color:var(--c-today);border-color:color-mix(in srgb,var(--c-today) 50%,transparent)" data-act="one-notnow" data-t="one-notnow">Not now</button><button class="outb" style="color:var(--c-today);border-color:color-mix(in srgb,var(--c-today) 50%,transparent)" data-act="soon" data-t="one-focus">Start focus</button></div>
     <div class="tiny" data-t="one-more">${more === 0 ? 'The last one for now' : more === 1 ? '1 more after this' : more + ' more after this'}</div></div>`;
-}
-function startHTML() {
-  const L = todayLists(), n = S.picks.length;
-  const pick = t => `<div class="pc" style="--tint:var(--c-start)"><div class="trow2" style="align-items:center"><button class="pickb${S.picks.includes(t.id) ? ' on' : ''}" data-act="pick" data-id="${t.id}" data-t="pick-${t.id}">${S.picks.includes(t.id) ? 'Picked' : 'Pick'}</button><div class="tx"><div class="tn">${esc(t.title)}</div><div class="ts"><span>${esc(noteTitle(t.note))}</span>${t.time ? `<span>${ico('clock', 12)} ${t.time}</span>` : ''}</div></div></div></div>`;
-  const act = n === 0 ? 'Done' : n === 1 ? 'Plan 1 action' : 'Plan ' + n + ' actions';
-  return `<div class="dim"></div><div class="sheet" data-t="start-sheet"><div class="scr" data-keep="scr">
-    <div class="top"><button class="hb" style="color:var(--c-start)" data-act="sheet-close" data-t="sheet-cancel">Cancel</button><span class="t">Start the day</span><button class="hb fill" style="background:#D4640A" data-act="plan-go" data-t="plan-go">${act}</button></div>
-    <div class="lbl" style="margin:2px 2px 6px">Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a block of its own length.</div>
-    ${sec('Today\u2019s calendar events', null, '--c-start')}<div class="pc" style="--tint:var(--c-start)"><div class="trow2"><span class="sub" style="width:44px">10:00</span><div class="tx">${esc(EVENT.title)}</div></div></div>
-    ${L.overdue.length ? sec('Overdue', L.overdue.length, '--c-red') + L.overdue.map(pick).join('') : ''}${sec('Due today', L.dueToday.length, '--c-start')}${L.dueToday.map(pick).join('')}${L.nextActions.length ? sec('Next actions', null, '--c-start') + L.nextActions.map(pick).join('') : ''}</div></div>`;
 }
 function closeHTML() {
   const L = todayLists(), left = L.overdue.concat(L.dueToday);
@@ -730,8 +730,8 @@ function renderStage() {
   if (S.rem) body = remHTML();
   else if (S.page) { const p = S.page; body = p.k === 'list' ? listHTML(p.id) : p.k === 'note' ? noteHTML(p.id) : p.k === 'review' ? reviewHTML() : p.k === 'cal' ? calHTML() : settingsHTML(); }
   else body = S.tab === 'today' ? todayHTML() : S.tab === 'plan' ? planHTML() : S.tab === 'actions' ? actionsHTML() : S.tab === 'inbox' ? inboxHTML() : browseHTML();
-  const over = S.sheet === 'new' ? newHTML() : S.sheet === 'one' ? oneHTML() : S.sheet === 'start' ? startHTML() : S.sheet === 'close' ? closeHTML() : S.sheet === 'who' ? whoHTML() : S.sheet === 'fs' ? fsHTML() : S.sheet === 'mac' ? macHTML() : '';
-  const startScr = S.start ? `<button class="startscr" data-act="enter" data-t="start"><span class="ic">${icon('check', 'g').replace('class="g"', 'class="g"')}</span><b>PARAGON</b><span class="d">${withWd(TODAY)}</span><span class="w">3 due today &nbsp;\u00B7&nbsp; 3 in the Inbox</span><span class="h">Tap to start</span><span class="v">1.0 (334)</span></button>` : '';
+  const over = S.sheet === 'new' ? newHTML() : S.sheet === 'one' ? oneHTML() : S.sheet === 'close' ? closeHTML() : S.sheet === 'who' ? whoHTML() : S.sheet === 'fs' ? fsHTML() : S.sheet === 'mac' ? macHTML() : '';
+  const startScr = S.start ? `<button class="startscr" data-act="enter" data-t="start"><span class="ic">${icon('check', 'g').replace('class="g"', 'class="g"')}</span><b>PARAGON</b><span class="d">${withWd(TODAY)}</span><span class="w">3 due today &nbsp;\u00B7&nbsp; 3 in the Inbox</span><span class="h">Tap to start</span><span class="v">1.0 (335)</span></button>` : '';
   st.innerHTML = `<div class="sbar"><span>9:41</span><span class="bat"></span></div>${body}${over}${popups()}${startScr}${S.toast ? `<div class="toast">${esc(S.toast)}</div>` : ''}`;
   renderStage.keys = {};
   st.querySelectorAll('[data-keep]').forEach(e => { const k = keyOf(e); e.dataset.k = k; renderStage.keys[k] = 1; e.scrollTop = prevKeys[k] ? (scrolls[k] || 0) : 0; });
@@ -796,7 +796,8 @@ function act(a, id, el) {
     case 'sync-now': S.syncMenu = false; S.syncT = '09:42'; S.fresh = true; S.remTicks.forEach(i => { const t = taskById(i); if (t) t.done = true; }); S.remTicks = []; renderStage(); emit('synced'); break;
     case 'band-one': S.sheet = 'one'; renderStage(); emit('one-open'); break;
     case 'band-note': soon(); break;
-    case 'band-start': S.sheet = 'start'; renderStage(); emit('start-open'); break;
+    case 'band-start': S.picking = !S.picking; if (!S.picking) S.picks = []; renderStage(); if (S.picking) emit('start-open'); break;
+    case 'pick-done': S.picking = false; S.picks = []; renderStage(); break;
     case 'band-close': S.sheet = 'close'; renderStage(); emit('close-open'); break;
     case 'sheet-close': S.sheet = null; S.fileMenu = false; renderStage(); break;
     case 'tick': { const t = taskById(id); if (!t) break; t.done = !t.done; if (S.sel === id && t.done) S.sel = null; renderStage(); emit('tick', id); break; }
@@ -851,7 +852,7 @@ function act(a, id, el) {
       const i = S.picks.indexOf(id); if (i < 0) S.picks.push(id); else S.picks.splice(i, 1); renderStage();
       if (!solved) { const want = ['t1', 't3', 't2', 't4', 't5'].find(x => !S.picks.includes(x)); markTarget(S.picks.length >= 2 ? 'plan-go' : 'pick-' + want); }
       emit('pick', S.picks.length); break; }
-    case 'plan-go': { if (!S.picks.length) { S.sheet = null; renderStage(); break; } S.picks.forEach(i => { const t = taskById(i); if (t && !S.plan.some(b => b.id === i)) placeBlock(t); }); const n = S.picks.length; S.picks = []; S.sheet = null; renderStage(); emit('planned', n); break; }
+    case 'plan-go': { if (!S.picks.length) { S.picking = false; renderStage(); break; } S.picks.forEach(i => { const t = taskById(i); if (t && !S.plan.some(b => b.id === i)) placeBlock(t); }); const n = S.picks.length; S.picks = []; S.picking = false; renderStage(); emit('planned', n); break; }
     case 'tile': S.dialog = id; renderStage(); emit('tile-open'); break;
     case 'dlg-next': { const t = taskById(S.dialog), s = placeBlock(t); S.dialog = null; renderStage(); toast('Added to your plan at ' + clock(s) + '.'); emit('placed'); break; }
     case 'dlg-pick': S.dialog = null; renderStage(); soon(); break;
@@ -911,7 +912,7 @@ const LESSONS = [
     { kind: 'look', head: 'Browse', text: 'Search notes first. Then three groups: Goals and PARA (Aspirations, Goals, Projects, Areas, Resources, Archive), Plan (Calendar, Weekly review, Map, Done, Deleted) and Tools. The gear at the top right opens Settings and Help.', target: 'browse-groups', setup: () => set({ tab: 'browse' }) },
     { kind: 'try', head: 'Aspirations', text: 'Open Aspirations, then "Healthy body".', target: 'row-aspirations', setup: () => set({ tab: 'browse' }), wait: 'note-open', when: d => d === 'asp1', on: { 'list-open': 'row-asp1' }, ok: 'An aspiration has no date: you never finish one. Its Reason says why it matters to you, and shows quietly under a task on One thing when the task leads to it.' },
     { kind: 'check', head: 'Quick check', text: 'What is an Area?', answers: ['A part of life you keep looking after, like Health', 'Work with an end', 'Reference material'], right: 0, ok: 'Right. A project is work with an end, a resource is reference material, and the Archive holds what is over.' },
-    { kind: 'try', head: 'Start the day', text: 'On Today press "Start". Press "Pick" beside two tasks, then the button at the top right.', target: 'btn-start', setup: () => set({}), wait: 'planned', on: { 'start-open': 'pick-t1' }, ok: 'Each pick becomes a block in today\u2019s plan, as long as the task\u2019s own time. The button says how many: "Plan 2 actions".' },
+    { kind: 'try', head: 'Pick for the day', text: 'On Today press "Start". Today turns into a picking list. Press "Pick" beside two tasks, then the button at the foot.', target: 'btn-start', setup: () => set({}), wait: 'planned', on: { 'start-open': 'pick-t1' }, ok: 'Each pick becomes a block in today\u2019s plan, as long as the task\u2019s own time. The button at the foot says how many: "Plan 2 actions". "Done" on the dark strip leaves without planning.' },
     { kind: 'try', head: 'Plan', text: 'In Plan, tap the tile "Write the packing list", then "Next free time".', target: 'tile-t5', setup: () => set({ tab: 'plan' }), wait: 'placed', on: { 'tile-open': 'dlg-next' }, ok: 'It says where, for example: Added to your plan at 10:30. A block says when you mean to do the work. It does not tick the task.' },
     { kind: 'try', head: 'Close the day', text: 'On Today press "Close", then "Move all 3 to tomorrow".', target: 'btn-close', setup: () => set({}), wait: 'moved-all', on: { 'close-open': 'move-all' }, ok: '"Did not happen" is empty now: they all moved to tomorrow. The page also holds "How was today?", one line for today\u2019s note.' },
     { kind: 'look', head: 'Calendar', text: 'Calendar has Day, Week, Month and Notes. Week shows what is due each day; tasks without a date wait in "Not planned yet", and you drag one onto a day.', target: 'cal-modes', setup: () => set({ tab: 'browse', page: { k: 'cal' } }) },
@@ -968,7 +969,7 @@ function renderRail() {
     ${LESSONS.map((l, i) => `<button class="chap ${i === ci ? 'cur' : ''} ${doneChapters.has(i) ? 'done' : ''}" data-ch="${i}">${icon(l.icon)}<span>${l.title}</span><span class="n">${doneChapters.has(i) ? '\u2713' : l.steps.length + ' steps'}</span></button>`).join('')}
     <button class="chap ${ci === LESSONS.length ? 'cur' : ''}" data-ch="${LESSONS.length}">${icon('phone')}<span>Now on your iPhone</span></button>
     <div class="bar"><i style="width:${Math.round(100 * Math.min(before, total) / total)}%"></i></div>
-    <p class="railnote">Practice copy, nothing changes in your real app. Based on PARAGON 1.0 (334).</p>`;
+    <p class="railnote">Practice copy, nothing changes in your real app. Based on PARAGON 1.0 (335).</p>`;
 }
 document.getElementById('rail').addEventListener('click', e => { const b = e.target.closest('[data-ch]'); if (b) goChapter(+b.dataset.ch); });
 
@@ -1033,7 +1034,8 @@ function renderFinish() {
 function fit() { const box = document.getElementById('stagebox'); document.getElementById('stage').style.transform = `scale(${box.clientWidth / 390})`; }
 new ResizeObserver(fit).observe(document.getElementById('stagebox'));
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && S.sheet && ['new', 'one', 'start', 'close', 'who', 'fs', 'mac'].includes(S.sheet)) { S.sheet = null; renderStage(); return; }
+  if (e.key === 'Escape' && S.sheet && ['new', 'one', 'close', 'who', 'fs', 'mac'].includes(S.sheet)) { S.sheet = null; renderStage(); return; }
+  if (e.key === 'Escape' && S.picking) { S.picking = false; S.picks = []; renderStage(); return; }
   if (e.key === 'Enter' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') { const n = document.getElementById('next'); if (n && !n.disabled && document.activeElement !== n) n.click(); }
 });
 goChapter(0); fit();
