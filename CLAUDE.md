@@ -5419,3 +5419,11 @@ A deleted task's reminder goes within seconds; three small look and word points.
 - **Seen / not seen.** Seen: picking row on the iPhone simulator, by day. Not seen: night, iPad, Mac with a real Escape key, real devices.
 - **Docs.** VersionHistory, HowItWorks (lines on How long?, picking, the hint; new block "Exact details (build 337)"), Guide and Words (already done). Look.md and the tour do not describe the dashed button while picking: unchanged.
 
+## Build 338 (17 November 2026)
+
+**The picking hint is behind the info mark from the first time.** Texts and one rule.
+
+- **Hint.** Before: shown by itself the first 3 times, then folded. Now: never by itself while picking. Core `HintRule.showsByItself(opens:place:)` (`Core/Sources/ParagonCore/Vault/GuidedOpening.swift`): `Place.picking` never, `Place.closeDay` the first 3 times. View: `HintParagraph(place:)` in `App/Paragon/Views/StartDayView.swift`, passed `.picking` from `TodayView`. Test: `GuidedOpeningTests`. Devices with more than 3 openings already had it folded.
+- **Mac test.** `testTheReviewEndsWithReviewDone` on the Mac: `endOfTheReviewByKey()` (click the date row, End key) returns the button's frame read right after End, one click at that place; not recorded -> `XCTSkip`. Three GitHub runs showed one single match whose frame reads (0, 768, 0, 0) at rest and a real frame only right after the list moved; by hand (test copy, 900x450) the list is steady and a click records. Do not spend more rounds on it.
+- **Seen / not seen.** Seen: iPhone simulator, by day. Not seen: night, iPad, Mac, real devices.
+
