@@ -141,7 +141,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 336
+    static let number = 337
 }
 
 @MainActor
@@ -680,8 +680,19 @@ final class AppModel: ObservableObject {
     /// Whether the Work row is in the sidebar. Not stored anywhere: it goes when the app does.
     @Published var workRevealed = false
     func refreshWorkNotes() {
+        // The stamp first, the files after it (`FilesStamp`): never the other way round.
+        workStampRead = vault?.workStamp
         workNotes = vault?.workNotes() ?? []
     }
+
+    /// Build 337: a re-read of the notes reads the Work notes again only when their files are
+    /// not the ones read last time. Everything that changes them here asks `refreshWorkNotes()`
+    /// itself, as before.
+    private func refreshWorkNotesIfChanged() {
+        guard vault?.workStamp != workStampRead else { return }
+        refreshWorkNotes()
+    }
+    private var workStampRead: FilesStamp?
 
     /// Counts how many times Work has been asked for, not whether it is showing. The phone
     /// pushes its screen from this: `workRevealed` changes exactly once, so every long press
@@ -1648,8 +1659,8 @@ final class AppModel: ObservableObject {
         // `signature(of:notes:fromFiles:)`.
         vaultSignature = Self.signature(of: vault, notes: notes, fromFiles: false)
         refreshDeleted()
-        refreshSnippets()
-        refreshWorkNotes()
+        refreshSnippetsIfChanged()
+        refreshWorkNotesIfChanged()
         refreshSavedSearches()
         // Soon, not now (build 271): `notes` was set above, which has already asked for this,
         // and `notesWaitingForCloud` was set after it. By the time the wait is over both are in
@@ -3135,12 +3146,24 @@ final class AppModel: ObservableObject {
     }
 
     func refreshSnippets() {
+        // The stamp first, the files after it (`FilesStamp`): never the other way round.
+        templatesStampRead = vault?.templatesStamp
         snippets = vault?.snippets() ?? []
         templates = vault?.templates() ?? []
         knownTags = vault?.knownTags() ?? []
         standardPlaceholders = vault?.areaStandardPlaceholders(among: templates) ?? []
         reasonPlaceholders = vault?.goalReasonPlaceholders(among: templates) ?? []
     }
+
+    /// Build 337: a re-read of the notes reads the templates, the snippets and the unused tags
+    /// again only when their files are not the ones read last time (every template was read in
+    /// full three times at each of the sixty-odd re-reads). Everything that changes them here
+    /// asks `refreshSnippets()` itself, as before.
+    private func refreshSnippetsIfChanged() {
+        guard vault?.templatesStamp != templatesStampRead else { return }
+        refreshSnippets()
+    }
+    private var templatesStampRead: FilesStamp?
 
     /// Drops a snippet's lines into a note's Tasks, dates and answers filled in.
     func insert(_ snippet: Snippet, answers: [String: String], into path: String) {

@@ -20,9 +20,9 @@ enum StartDay {
     /// The explanation under the field (build 312: by itself the first three times).
     static func instructions(usesTaskTimes: Bool) -> String {
         if usesTaskTimes {
-            return "Press Pick on the left of what matters today. A task with no time asks for one first. Each one goes into your plan as a block of its own length, in the free time left today. A task that has a time of day goes in at that time, if it is free. The circle marks a task as done."
+            return "Press Pick on what matters today. Each pick becomes a block in today\u{2019}s plan; a task with no time asks how long first."
         }
-        return "Press Pick on the left of the two or three that matter most today. Each one goes into your plan as a one-hour block, in the free time left today. A task that has a time of day goes in at that time, if it is free. The circle marks a task as done."
+        return "Press Pick on the two or three that matter most today. Each pick becomes a one-hour block in today\u{2019}s plan."
     }
 
     /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating
@@ -56,6 +56,11 @@ struct PickingStrip: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            #if os(macOS)
+            // Build 337: Escape is Done wherever the keyboard is. Until now it left picking
+            // only when something in Today held the keyboard (`escapeLeavesPicking`).
+            .keyboardShortcut(.cancelAction)
+            #endif
             .accessibilityLabel("Done: leave picking, nothing is planned")
             .accessibilityIdentifier("picking.done")
             .help("Leave picking. Nothing is planned.")

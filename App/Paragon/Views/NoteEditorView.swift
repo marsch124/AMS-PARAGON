@@ -1880,7 +1880,8 @@ struct TaskRow: View {
     /// bar is shown, on a task that can be focused on, and not where the time button — which
     /// already holds Focus on this — is drawn.
     private var offersFocusButton: Bool {
-        guard focusBarShown, !renaming, model.canFocus(on: ref) else { return false }
+        // Build 337: not while picking — the row there is tight, and picking is not doing.
+        guard focusBarShown, !renaming, place != .startDay, model.canFocus(on: ref) else { return false }
         return TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes) == .nothing
     }
 

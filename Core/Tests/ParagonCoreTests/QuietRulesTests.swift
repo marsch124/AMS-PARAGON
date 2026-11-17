@@ -3,10 +3,11 @@ import XCTest
 
 /// Build 312: the two "quiet by default" rules of review round 6.
 final class QuietRulesTests: XCTestCase {
-    /// flow-19: the dashed question only in Start the day and Plan the day; a set time shows
-    /// everywhere; nothing at all with task times switched off.
+    /// flow-19: the dashed question only where the day is planned; a set time shows
+    /// everywhere; nothing at all with task times switched off. **Build 337: not while picking
+    /// on Today either** — Pick asks it, so only Plan the day draws the dashed question.
     func testTheTimeQuestionIsAskedOnlyWhereTheDayIsPlanned() {
-        XCTAssertEqual(TaskTimePill.shown(in: .startDay, minutes: nil, usesTaskTimes: true), .question)
+        XCTAssertEqual(TaskTimePill.shown(in: .startDay, minutes: nil, usesTaskTimes: true), .nothing)
         XCTAssertEqual(TaskTimePill.shown(in: .plan, minutes: nil, usesTaskTimes: true), .question)
         XCTAssertEqual(TaskTimePill.shown(in: .list, minutes: nil, usesTaskTimes: true), .nothing)
         XCTAssertEqual(TaskTimePill.shown(in: .list, minutes: 45, usesTaskTimes: true), .time(45))

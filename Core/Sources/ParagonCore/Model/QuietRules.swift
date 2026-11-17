@@ -7,10 +7,16 @@ import Foundation
 /// where the length is used to plan: **Start the day** and **Plan the day**. Everywhere else a
 /// row shows a time pill only once a time is set; giving one stays in the row's menu
 /// (**How long**). With **Settings › Use task times** off nothing shows at all, as before.
+///
+/// **Build 337: while picking on Today the dashed question is gone too.** **Pick** on a task
+/// with no time already asks "How long?" first, so the row asked the same thing twice, and
+/// Pick + tick + title + the dashed button wrapped a title to two or three lines on the iPhone
+/// and in the Mac's narrow column. Only **Plan the day** still draws the dashed question.
 public enum TaskTimePill {
     /// Where a task row is drawn.
     public enum Place: Sendable {
-        /// **Start the day** and **Plan the day**: the two places a length is planned with.
+        /// Picking on Today (the old **Start the day**) and **Plan the day**: the two places a
+        /// length is planned with. Since build 337 only `plan` draws the dashed question.
         case startDay, plan
         /// Every other list: Today, Actions, a note's tasks, Close the day, Review, Search …
         case list
@@ -28,7 +34,7 @@ public enum TaskTimePill {
     public static func shown(in place: Place, minutes: Int?, usesTaskTimes: Bool) -> Shown {
         guard usesTaskTimes else { return .nothing }
         if let minutes { return .time(minutes) }
-        return place == .list ? .nothing : .question
+        return place == .plan ? .question : .nothing
     }
 }
 
