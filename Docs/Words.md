@@ -78,7 +78,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Planning your day and week
 
 - **Today** — the tasks due today and the overdue ones, with today's calendar events.
-- **Note**, **Start** and **Close** — the tiny words under the three round buttons at the top of **Today**. **Note** opens today's note, **Start** opens **Start the day**, and **Close** opens **Close the day**.
+- **One**, **Note**, **Start** and **Close** — the tiny words under the four round buttons at the top of **Today** (**One** is new in build 332; before there were three). **One** opens **One thing**, **Note** opens today's note, **Start** opens **Start the day**, and **Close** opens **Close the day**.
+- **One thing** — the page that shows only one task, in large type, with a small line that says why it is the one. It is opened by the **One** button on **Today**. **Done** ticks it, **Not now** sets it aside, **Start focus** starts the focus timer on it. Overdue tasks come first, the one overdue longest first; then tasks due today; then the next actions. **Overdue** keeps its name: a task whose date has passed is still called overdue here, as on **Today**.
+- **Not now** — on **One thing**: the task is set aside for today and the next one comes. It is kept on this device only, nothing is written into the note, and the next day the task is offered again. When everything is set aside, **Show them again** brings the tasks back.
 - **Plan** — the screen with your day on an hour ruler. It has the same name everywhere: the **Plan** row in the Mac's sidebar and the **Plan** tab on the iPhone. The lane inside it where your blocks sit is still called **Time blocks**.
 - **Plan block** — an orange block of time you set aside for something, like "09:30–11:00 Deep work". It is a line in the day's daily note, under **Plan**. It stays in PARAGON unless you tick **In Apple Calendar**.
 - **Time blocks lane** — the right-hand lane on **Plan**, where your plan blocks sit. Drop a task on an hour here to make a block. A task that has a time of day (**At**) is drawn here too, as a small grey card with a thin border and no orange, so you can tell it from a block. It cannot be moved.
@@ -122,7 +124,8 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Capture** — writing something down quickly, to sort later. It goes to the Inbox. On the iPhone it starts with the round **+** button at the bottom right of **Today**, **Actions** and **Inbox**, just above the tab bar. In **New**, the button for it is called **Inbox**, because that is where the line lands.
 - **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
 - **Add** and **Save** — a button that adds one thing straight away says **Add**, like **Add** beside a new tag. A screen with fields to fill in ends with **Save**. The app does not say Make or Create for this.
-- **File it** — moving an Inbox line into a project or an area. On the iPhone the **File it** button lists your projects and areas at once.
+- **File it** — moving an Inbox line into a project or an area. On the iPhone the **File it** button lists your projects and areas at once. With more than 6 places the menu has a row **Search…** on top (since build 332).
+- **Search…** — the first row of **File it** and **Move to** when there are more than 6 places. It opens a small page with a search field: every word you type must be in the place's name, and capitals and accents do not matter.
 - **Tap**, **Hold**, **Click** and **Right-click** — PARAGON uses the words of the device you hold. On the iPhone and the iPad it says **Tap** and **Hold**. On the Mac it says **Click** and **Right-click**. **Hold** means: press and keep your finger there until a menu opens.
 
 ## Looking after the whole
