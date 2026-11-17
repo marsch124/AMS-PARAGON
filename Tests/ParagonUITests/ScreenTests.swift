@@ -283,9 +283,9 @@ final class ScreenTests: XCTestCase {
 
     /// The settings block at the top of a note can be folded away and comes back (build 246).
     /// Build 248: the time button on a task row gives the task a time. **Build 312 (flow-19):
-    /// the dashed "How long?" is asked only in Start the day and Plan the day**, so the test
-    /// first proves a project's task row has no such button, then gives a task its time in
-    /// Start the day. The proof there is the button's own spoken words ("Takes 45 min"); that
+    /// the dashed "How long?" is asked only while picking the day and in Plan the day**, so the test
+    /// first proves a project's task row has no such button, then gives a task its time while
+    /// picking (build 335: Start turns Today itself into a picking list, no sheet). The proof there is the button's own spoken words ("Takes 45 min"); that
     /// the time is written as `~45m` is pinned in Core (`TaskTimeTests`). Both the button and
     /// the choice are pressed at the middle of their frames (`press(_:at:)`).
     func testATaskCanBeGivenATime() {
@@ -306,11 +306,11 @@ final class ScreenTests: XCTestCase {
         go(to: .today)
         let open = element("today.startDay")
         XCTAssertTrue(open.waitForExistence(timeout: 20),
-                      "Today has no Start the day button. On screen: \(visibleTexts())")
+                      "Today has no Start button. On screen: \(visibleTexts())")
         open.pressCentre()
         let field = element("startDay.newAction")
         XCTAssertTrue(field.waitForExistence(timeout: 20),
-                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+                      "Picking has no field for a new action. On screen: \(visibleTexts())")
         field.press()
         field.typeText("Water the plants")
         element("startDay.add").pressCentre()
@@ -332,7 +332,7 @@ final class ScreenTests: XCTestCase {
                 }
             }
             XCTAssertTrue(becomes(within: 10) { self.app.keyboards.count == 0 },
-                          "Dragging the Start the day list down did not put the keyboard away. On screen: \(visibleTexts())")
+                          "Dragging the picking list down did not put the keyboard away. On screen: \(visibleTexts())")
         }
         #endif
 
@@ -341,10 +341,10 @@ final class ScreenTests: XCTestCase {
         // popover — and `firstMatch` over every kind of element picked that one.
         let time = app.buttons.matching(identifier: "task.time.Water the plants").firstMatch
         XCTAssertTrue(time.waitForExistence(timeout: 20),
-                      "Start the day does not ask How long? on a task without a time. On screen: \(visibleTexts())")
+                      "Picking does not ask How long? on a task without a time. On screen: \(visibleTexts())")
         #if os(macOS)
-        // 16 Nov 2026 (the Mac run of build 329): the new task's row is the last of the sheet's
-        // list and lies below what a 450-point window's sheet shows, so the press at its
+        // 16 Nov 2026 (the Mac run of build 329): the new task's row lay below what the
+        // window shows, so the press at its
         // middle landed outside the list. By hand the list is scrolled first; so here.
         bringIntoSight(time)
         #endif
@@ -981,21 +981,22 @@ final class ScreenTests: XCTestCase {
                       "Cancel was pressed and Close the day stayed on screen.")
     }
 
-    /// **Start the day** (build 233) opens and closes. The test vault has no dated task and no
-    /// next action — a fixture other tests rely on (build 221) — so the screen shows its
-    /// "Nothing is waiting" words and the test does not pick anything. What it really proves is
-    /// that a brand new view builds and opens on both platforms (build 190).
+    /// **Start** (build 233, changed in 335) turns Today into a picking list and Done leaves it.
+    /// From build 335 there is no sheet: `startDay.screen` is the dark strip "Picking for today"
+    /// under the band, and `picking.done` / `picking.plan` replace the sheet's Cancel / action.
+    /// A line typed into the field arrives picked and then `picking.plan` appears. What it
+    /// really proves is that picking builds and opens on both platforms (build 190).
     func testStartTheDayOpensAndCloses() {
         go(to: .today)
 
         let open = element("today.startDay")
         XCTAssertTrue(open.waitForExistence(timeout: 20),
-                      "Today has no Start the day button. On screen: \(visibleTexts())")
+                      "Today has no Start button. On screen: \(visibleTexts())")
         open.pressCentre()
 
         let screen = element("startDay.screen")
         XCTAssertTrue(screen.waitForExistence(timeout: 20),
-                      "Start the day did not open. On screen: \(visibleTexts())")
+                      "Start did not turn Today into picking. On screen: \(visibleTexts())")
 
         // Build 235: a line typed into the field and added with + lands in the list, dated
         // today, and arrives already picked. The proof is the button's word (**Picked**) or its
@@ -1003,7 +1004,7 @@ final class ScreenTests: XCTestCase {
         // button carries its words as its label and may not report the trait the phone does.
         let field = element("startDay.newAction")
         XCTAssertTrue(field.waitForExistence(timeout: 10),
-                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+                      "Picking has no field for a new action. On screen: \(visibleTexts())")
         field.press()
         field.typeText("Water the plants")
         let add = element("startDay.add")
@@ -1016,53 +1017,88 @@ final class ScreenTests: XCTestCase {
             for: NSPredicate(format: "label == 'Picked' OR value == 'Picked' OR isSelected == true"),
             evaluatedWith: pick)
         wait(for: [chosen], timeout: 10)
-        XCTAssertTrue(element("sheet.action").waitForExistence(timeout: 10),
-                      "Start the day opened without its Done button. On screen: \(visibleTexts())")
-        let cancel = element("sheet.cancel")
-        XCTAssertTrue(cancel.exists, "Start the day opened without its Cancel button.")
+        XCTAssertTrue(element("picking.plan").waitForExistence(timeout: 10),
+                      "An action was picked and picking has no Plan button at the foot. On screen: \(visibleTexts())")
+        let done = element("picking.done")
+        XCTAssertTrue(done.exists, "Picking has no Done button on its strip.")
 
-        cancel.pressCentre()
+        done.pressCentre()
         XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
-                      "Cancel was pressed and Start the day stayed on screen.")
+                      "Done was pressed and Today stayed in picking.")
     }
 
-    /// **Start the day** shows what is already known this morning (build 265): the line written
+    /// **Start turns Today into picking and Done leaves it** (build 335). No sheet: the Start
+    /// button on the band makes the Today list itself a picking list, and `startDay.screen` is
+    /// the dark strip "Picking for today", there only while picking. With nothing picked the
+    /// strip's `picking.done` is there and the foot's `picking.plan` is not. Done leaves picking
+    /// and plans nothing; Start pressed again while picking leaves it too.
+    func testStartTurnsTodayIntoPickingAndDoneLeavesIt() {
+        go(to: .today)
+
+        let open = element("today.startDay")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Today has no Start button. On screen: \(visibleTexts())")
+        let strip = element("startDay.screen")
+        XCTAssertFalse(strip.exists, "Today shows the picking strip before Start was pressed.")
+
+        open.pressCentre()
+        XCTAssertTrue(strip.waitForExistence(timeout: 20),
+                      "Start was pressed and Today did not turn into picking. On screen: \(visibleTexts())")
+        let done = element("picking.done")
+        XCTAssertTrue(done.waitForExistence(timeout: 10),
+                      "Picking has no Done button on its strip. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("picking.plan").exists,
+                       "Picking offers to plan before anything is picked.")
+        look("picking-on")
+
+        done.pressCentre()
+        XCTAssertTrue(strip.waitForNonExistence(timeout: 20),
+                      "Done was pressed and Today stayed in picking. On screen: \(visibleTexts())")
+
+        let again = element("today.startDay")
+        XCTAssertTrue(again.waitForExistence(timeout: 10),
+                      "Today has no Start button after picking was left. On screen: \(visibleTexts())")
+        again.pressCentre()
+        XCTAssertTrue(strip.waitForExistence(timeout: 20),
+                      "Start was pressed a second time and Today did not turn into picking. On screen: \(visibleTexts())")
+        element("today.startDay").pressCentre()
+        XCTAssertTrue(strip.waitForNonExistence(timeout: 20),
+                      "Start was pressed while picking and Today stayed in picking. On screen: \(visibleTexts())")
+    }
+
+    /// **Picking** shows what is already known this morning (build 265): the line written
     /// last evening in **Close the day** — the test vault's daily note for yesterday carries one —
-    /// and a heading for today's calendar events. The line's label is set as one sentence, so it
-    /// reads the same on both platforms (build 253); the heading is looked for among buttons
-    /// (build 249). **The fold is not pressed**: whether the runner has events or Calendar access
-    /// is not up to the test, and a test may not fail for its own reasons (build 190).
+    /// in the morning card at the top of Today. The line's label is set as one sentence, so it
+    /// reads the same on both platforms (build 253). Build 335: the calendar heading
+    /// (`startDay.calendar`) is gone — Today's own Calendar section is the calendar now — so it
+    /// is no longer asked for.
     func testStartTheDayShowsLastEveningAndTheDay() {
         go(to: .today)
 
         let open = element("today.startDay")
         XCTAssertTrue(open.waitForExistence(timeout: 20),
-                      "Today has no Start the day button. On screen: \(visibleTexts())")
+                      "Today has no Start button. On screen: \(visibleTexts())")
         open.pressCentre()
 
         let screen = element("startDay.screen")
         XCTAssertTrue(screen.waitForExistence(timeout: 20),
-                      "Start the day did not open. On screen: \(visibleTexts())")
+                      "Start did not turn Today into picking. On screen: \(visibleTexts())")
 
         let evening = element("startDay.lastEvening")
         XCTAssertTrue(evening.waitForExistence(timeout: 20),
-                      "Start the day does not show what was written last evening. On screen: \(visibleTexts())")
+                      "Picking does not show what was written last evening. On screen: \(visibleTexts())")
         XCTAssertTrue(becomes(within: 10) { self.words(of: evening).contains("A quiet day by the sea") },
                       "The line from last evening is not the one in the test vault. It says: \(words(of: evening))")
 
-        let calendar = app.buttons.matching(identifier: "startDay.calendar").firstMatch
-        XCTAssertTrue(calendar.waitForExistence(timeout: 10),
-                      "Start the day has no heading for today's calendar events. On screen: \(visibleTexts())")
-
-        let cancel = element("sheet.cancel")
-        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
-                      "Start the day opened without its Cancel button. On screen: \(visibleTexts())")
-        cancel.pressCentre()
+        let done = element("picking.done")
+        XCTAssertTrue(done.waitForExistence(timeout: 10),
+                      "Picking has no Done button. On screen: \(visibleTexts())")
+        done.pressCentre()
         XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
-                      "Cancel was pressed and Start the day stayed on screen.")
+                      "Done was pressed and Today stayed in picking.")
     }
 
-    /// **Now and Then** on Today (build 266). An action added in **Start the day** arrives
+    /// **Now and Then** on Today (build 266). An action added while **picking** arrives
     /// picked, and **Plan 1 action** puts it into today's plan as a one-hour block from the next
     /// quarter hour. Today must then name it: as **Then** until that quarter hour has come, as
     /// **Now** after it — on a slow runner it can be either, and both are right.
@@ -1084,16 +1120,16 @@ final class ScreenTests: XCTestCase {
 
         let open = element("today.startDay")
         XCTAssertTrue(open.waitForExistence(timeout: 20),
-                      "Today has no Start the day button. On screen: \(visibleTexts())")
+                      "Today has no Start button. On screen: \(visibleTexts())")
         open.pressCentre()
 
         let screen = element("startDay.screen")
         XCTAssertTrue(screen.waitForExistence(timeout: 20),
-                      "Start the day did not open. On screen: \(visibleTexts())")
+                      "Start did not turn Today into picking. On screen: \(visibleTexts())")
 
         let field = element("startDay.newAction")
         XCTAssertTrue(field.waitForExistence(timeout: 10),
-                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+                      "Picking has no field for a new action. On screen: \(visibleTexts())")
         field.press()
         field.typeText("Water the plants")
         let add = element("startDay.add")
@@ -1107,14 +1143,14 @@ final class ScreenTests: XCTestCase {
             evaluatedWith: pick)
         wait(for: [chosen], timeout: 10)
 
-        let plan = element("sheet.action")
+        let plan = element("picking.plan")
         XCTAssertTrue(plan.waitForExistence(timeout: 10),
-                      "Start the day opened without its button at the bottom. On screen: \(visibleTexts())")
+                      "Picking has no Plan button at the foot. On screen: \(visibleTexts())")
         XCTAssertTrue(becomes(within: 10) { self.words(of: plan).contains("Plan 1") },
                       "The button at the bottom does not offer to plan the picked action. It says: \(words(of: plan))")
         plan.pressCentre()
         XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
-                      "Plan 1 action was pressed and Start the day stayed on screen.")
+                      "Plan 1 action was pressed and Today stayed in picking.")
 
         // **One query for both lines, matched by their words** (the review of 266). The block
         // starts at the next quarter hour, so at that minute **Then** turns into **Now** and
@@ -1412,14 +1448,17 @@ final class ScreenTests: XCTestCase {
     func testTheComingWeeksGoalCanBeWrittenInTheReview() {
         go(to: .review)
         openReviewPart("9")
-        let box = reveal(app.buttons.matching(identifier: "review.nextGoal").firstMatch)
+        let box = app.buttons.matching(identifier: "review.nextGoal").firstMatch
+        // 17 Nov 2026: on GitHub's Mac the box was scrolled out of the lazy list after step 9
+        // opened (frame empty), and `reveal` scrolled blindly. Now the list is nudged until the
+        // box has a frame, then it is brought clear of the rim, and pressed with `pressInSight`.
+        showInReview(box)
         XCTAssertTrue(box.exists, "The Weekly review has no step 9. The heading: \(whereabouts(app.buttons.matching(identifier: "review.part.9").firstMatch)) On screen: \(visibleTexts())")
-        let frame = box.frame
-        guard Self.isOnScreen(frame) else {
-            XCTFail("The goal box in step 9 has no place on screen: \(frame)")
+        guard Self.isOnScreen(box.frame) else {
+            XCTFail("The goal box in step 9 has no place on screen: \(whereabouts(box))")
             return
         }
-        press(box, at: frame)
+        pressInSight(box)
 
         let field = element("review.nextGoal.field")
         XCTAssertTrue(field.waitForExistence(timeout: 10),
@@ -1462,6 +1501,29 @@ final class ScreenTests: XCTestCase {
                       "Review done was pressed and the line says: \(words(of: element("review.done.last"))). The button is \(again.exists ? "still" : "no longer") on screen. \(whereabouts(again)) On screen: \(visibleTexts())")
         XCTAssertFalse(app.buttons.matching(identifier: "review.done").firstMatch.exists,
                        "Review done can be pressed twice on one day.")
+    }
+
+    /// Brings a row of the Weekly review into sight. On the Mac the list keeps only the rows
+    /// near the window, so a row out of reach has an empty frame; the list is then scrolled a
+    /// little, to one side and the other in turn, until the row has a frame, and then
+    /// `bringIntoSight` puts it clear of the rim. On the phone it is `reveal`.
+    private func showInReview(_ target: XCUIElement) {
+        #if os(macOS)
+        for attempt in 0..<14 {
+            if target.exists, !target.frame.isEmpty {
+                bringIntoSight(target)
+                return
+            }
+            let list = element("review.list")
+            let spot = list.exists
+                ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                : app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.6))
+            let reach = CGFloat(120 + 40 * (attempt / 2))
+            spot.scroll(byDeltaX: 0, deltaY: attempt % 2 == 0 ? -reach : reach)
+        }
+        #else
+        _ = reveal(target)
+        #endif
     }
 
     /// A picture for the person shipping, only when a folder is named (`TEST_RUNNER_LOOK_DIR`).
@@ -3963,9 +4025,8 @@ final class ScreenTests: XCTestCase {
                       "Ticking Not done did not turn the results into a task list with a heading counting tasks. The heading says: \(words(of: heading)). On screen: \(visibleTexts())")
     }
 
-    /// **The cursor starts in the first field** (look 1.0): Start the day opens with the
-    /// keyboard focus in its new-action field, so the first key pressed types. The sheet used
-    /// to open with the focus ring on Cancel. Mac only: the phone shows its keyboard, which is
+    /// **The cursor starts in the first field** (look 1.0): picking (Start on Today) begins
+    /// with the keyboard focus in its new-action field, so the first key pressed types. Mac only: the phone shows its keyboard, which is
     /// a different question. The focus is asked of the element itself (`hasKeyboardFocus`),
     /// never guessed from a colour (build 191).
     func testStartTheDayPutsTheCursorInItsField() {
@@ -3973,24 +4034,24 @@ final class ScreenTests: XCTestCase {
 
         let open = element("today.startDay")
         XCTAssertTrue(open.waitForExistence(timeout: 20),
-                      "Today has no Start the day button. On screen: \(visibleTexts())")
+                      "Today has no Start button. On screen: \(visibleTexts())")
         open.pressCentre()
         let screen = element("startDay.screen")
         XCTAssertTrue(screen.waitForExistence(timeout: 20),
-                      "Start the day did not open. On screen: \(visibleTexts())")
+                      "Start did not turn Today into picking. On screen: \(visibleTexts())")
 
         let field = element("startDay.newAction")
         XCTAssertTrue(field.waitForExistence(timeout: 10),
-                      "Start the day has no field for a new action. On screen: \(visibleTexts())")
+                      "Picking has no field for a new action. On screen: \(visibleTexts())")
         XCTAssertTrue(becomes(within: 5) { hasKeyboardFocus(field) },
-                      "Start the day opened without the cursor in its field. On screen: \(visibleTexts())")
+                      "Picking began without the cursor in its field. On screen: \(visibleTexts())")
 
-        let cancel = element("sheet.cancel")
-        XCTAssertTrue(cancel.waitForExistence(timeout: 10),
-                      "Start the day opened without its Cancel button.")
-        cancel.pressCentre()
+        let done = element("picking.done")
+        XCTAssertTrue(done.waitForExistence(timeout: 10),
+                      "Picking has no Done button.")
+        done.pressCentre()
         XCTAssertTrue(screen.waitForNonExistence(timeout: 20),
-                      "Cancel was pressed and Start the day stayed on screen.")
+                      "Done was pressed and Today stayed in picking.")
     }
 
     /// The same for Close the day: the cursor starts in its looking-back line
