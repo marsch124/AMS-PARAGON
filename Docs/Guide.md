@@ -42,6 +42,8 @@ Four round buttons sit at the top (since build 332; before, three): **One** open
 
 A list asks you to choose. **One** shows only one task and nothing else. It is the small button with a ring and the figure 1, left of **Note**. It opens the page **One thing**: one task in large type, a small line that says why it is the one and which note it is in (for example "Overdue since Friday · Car"), and three buttons.
 
+Since build 334, when the task leads to an aspiration and you wrote a **Reason…** on it, your reason stands under the task as one quiet line in the aspiration's gold. It reminds you why the task matters. With no reason written there is no line.
+
 - **Done** ticks the task, and the next one comes.
 - **Not now** sets the task aside for today, and the next one comes. It is only on this device and nothing is written into the note. The next day the task is offered again.
 - **Start focus** starts the focus timer on the task and closes the page. It is not there where a task cannot be focused on.

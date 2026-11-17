@@ -4,7 +4,7 @@ The version is shown as 1.0 (334) in Settings › About, at the foot of the Mac 
 
 ## Build 334 · 17 November 2026
 
-**A deleted task's reminder goes within seconds.** Four small changes. The main one: when you delete a task, PARAGON now starts a quiet sync by itself, so the reminder in Apple Reminders goes within seconds. The other three: a clearer Pause button on the focus bar, a clearer name in the list of devices, and a hint while the notes are sent to iCloud.
+**A deleted task's reminder goes within seconds.** Five changes. The main one: when you delete a task, PARAGON now starts a quiet sync by itself, so the reminder in Apple Reminders goes within seconds. The other three: a clearer Pause button on the focus bar, a clearer name in the list of devices, and a hint while the notes are sent to iCloud. New on **One thing**: your own reason from the aspiration, as one quiet line under the task.
 
 **Changed.**
 - **A deleted task's reminder.** Before (builds 332 and 333): when you deleted a task on this device, its reminder in Apple Reminders stayed until the next timed sync or until you pressed **Sync now**. Now: PARAGON starts one quiet sync by itself shortly after the delete.
@@ -14,6 +14,7 @@ The version is shown as 1.0 (334) in Settings › About, at the foot of the Mac 
   - **Quiet.** No message at the foot of the window. If a sync is already running, the quiet one runs once right after it.
   - **Not started** when the timed sync is switched off (set to never), or when PARAGON may not use Reminders.
   - **Undo** brings the task back and its reminder is left alone. **Undo** also takes the task off the list of tasks removed here.
+- **Your reason on One thing (new).** Before: the reason you wrote on an aspiration (**Reason…**) showed only on the aspiration's own page. Now: when the task on **One thing** leads to an aspiration with a reason, that reason stands as one quiet line under the task: in the aspiration's gold, in italics, at most 2 lines. PARAGON goes from the task's note (a project or an area) to the goal it serves, on to that goal's own goal, and so on up to the aspiration. With no aspiration above the task, or no reason written, there is no line and no gap. This is your pick 5 of the picture of 17 November. Today and the other daily screens are unchanged.
 - **Pause button on the focus bar.** Before: on the bar that shows a running focus timer, the **Pause** / **Go on** button was a pale grey circle (28 points, 18 % see-through). Now: full plan orange (the mark on it is white by day and dark at night), like on the Lock Screen. **Stop** stays the quiet one. The size is the same, 28 points.
 - **Devices list** (Settings, Safety, notes folder devices). Before: a device that had synced but had not yet opened a new enough PARAGON was called "Another device". Now: "A device with an older PARAGON". The second line is unchanged.
 - **Copying to PARAGON's own folder.** Before: while the step "Sending to iCloud" was at work, the page gave no hint, so a long wait looked like a hang. Now: the page adds the line "This can take some minutes on a slow connection."
@@ -21,9 +22,12 @@ The version is shown as 1.0 (334) in Settings › About, at the foot of the Mac 
 **Not seen, not tried.**
 - **Not tried on two real devices:** the quiet sync after a delete.
 - **Limit:** a line cut and pasted into another note more than a minute later gets a new reminder.
+- **Seen by me:** the focus bar's orange button on the iPhone simulator by day, running and paused; the reason line on **One thing** on the iPhone simulator by day.
+- **Not seen:** both at night (the simulator stayed in its day look), on the iPad, on the Mac and on a real phone; the new device name and the hint on the copy page (words only).
 
 Tested:
-- New rule test: `QuietSyncAfterRemovalTests`.
+- New rule tests: `QuietSyncAfterRemovalTests` (1) and `OneThingWhyTests` (2).
+- Screen tests run again on the iPhone simulator: the focus timer, and One thing.
 
 ## Build 333 · 17 November 2026
 
