@@ -1,6 +1,45 @@
 # Version history
 
-The version is shown as 1.0 (334) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (335) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 335 · 17 November 2026
+
+**Start turns Today into picking.** One change, and it is a big one: the second page, **Start the day**, is gone. Press **Start** on Today's band and Today's own list becomes the picking list. You pick right there, press one button at the foot, and the picks go into today's plan. This is your pick 3 from the picture of 17 November.
+
+**Changed.**
+- **Start no longer opens a page (the main change).** Before (up to build 334): **Start** on Today's band opened a second page, **Start the day**, with **Cancel** and **Done** (or **Plan 2 actions**) in its top bar. It listed the same tasks Today already shows, once more, each with a **Pick** button. Now: nothing opens. Today stays where it is and turns into the picking list. Press **Start** again and it turns back. The **Start** button on the band is drawn filled while you pick.
+  - **A dark strip** appears right under the band. On the left it says **Picking for today**, on the right it has **Done**.
+  - **A card, "This morning".** Before: the top of the old page showed what you wrote last evening, the week's goal and the day's events. Now: at the top of the list a card with two lines, "Last evening:" and the line you wrote in **Close the day**, and "This week:" and the week's goal. Each line is there only when it has something to say. With neither, there is no card. While last evening's note or the week's note is still coming from iCloud, the card says so. The week's goal line that Today shows under the band is not drawn a second time while you pick.
+  - **Add an action for today.** Before: the field was on the old page. Now: it is under the card, with its **+**. It works as before: the line goes to the Inbox, dated today, shows under **Due today** and is already picked. On the Mac the cursor starts in this field.
+  - **The explanation.** The short paragraph under the field is unchanged: shown by itself the first 3 times, after that behind the small info mark.
+  - **Pick on every task.** Before: the old page had its own copy of the list. Now: every task row on Today has **Pick** in front of it (**Picked** once chosen), in Today's own sections and order: **From today's note**, **Next actions**, **Overdue**, **Due today**, **Important, no date**. A task already in today's plan shows **In plan 09:30** (its time) instead of **Pick**. On the iPhone **Pick** is the large button in front of the tick circle (as chosen in build 240). On the Mac and the iPad, where Today is a narrow column, it is the small **Pick** capsule in front.
+  - **Marked first last evening.** Tasks you marked **First** in **Close the day** come first, in their own section **Marked first last evening** at the top. They are not drawn a second time further down.
+  - **New: more tasks can be picked.** Before: the old page could not pick tasks under **From today's note** and **Important, no date**, because it did not list them. Now: they have **Pick** too.
+  - **How long?** Unchanged: a task with no time asks "How long?" when you pick it, only when **Use task times** is on in Settings. While you pick, task rows show the dashed **How long?** button.
+  - **The foot.** Before: the plan button sat in the old page's top bar, and with nothing picked it said **Done**. Now: as soon as one task is picked, a bar appears at the foot of Today with one full-colour button, **Plan 1 action** or **Plan 2 actions**. Above it, with **Use task times** on, the lines "Picked", "Free until 17:00" and "It fits before 17:00." (same rules as before). With nothing picked there is no button at the foot; **Done** on the strip is the way out.
+  - **What a pick does is unchanged.** A block as long as the task's own time, or one hour when it has none, in the free time left today. A task with a time of day goes in at that time if it is free. The same messages as before, for example "Added 2 actions to today's plan."
+- **How picking ends.** Before: **Cancel** or **Done** on the old page. Now, four ways: **Done** on the strip (nothing is planned, the picks are dropped); the plan button (every pick goes into today's plan, then picking ends); pressing **Start** on the band again; **Escape** on the Mac. Picking also ends by itself when the day changes. Your picks are kept while you look at another section or open a note and come back.
+- **Today's calendar.** Before: the old page had its own folding box, "Today's calendar events". Now: that box is gone. Today's own **Calendar** section is simply still there.
+- **Everything that opened Start the day now opens Today in picking.** Before: the Siri and Shortcuts action **Start the Day**, and a press on the morning reminder, opened the old page. Now: both open Today with picking switched on.
+- **The round + button steps aside (iPhone).** Before: it stayed at the bottom right. Now: while you pick, it is hidden, because the foot belongs to the plan button and the field **Add an action for today** takes new lines. It is back as soon as picking ends.
+- **Swipes are off while you pick.** Before: a swipe on a task row gave **Done** and **Tomorrow**. Now: not while picking, so a swipe cannot tick a task by mistake. The tick circle and the row's menu work as always.
+
+**Removed.**
+- **The page Start the day,** with **Cancel** in its top bar.
+- **The three small counts** at the top of that page ("N overdue", "N due today", "N picked"). The section headings and the plan button carry those numbers now.
+
+**Unchanged.**
+- **Today when you are not picking** looks exactly as in build 334. Nothing on it moved.
+- **Close the day** is still its own page.
+
+**Not seen, not tried.**
+- **Not tried on a real device:** the whole picking list on a real iPhone, a real iPad and a real Mac.
+- **Not tried:** Siri's **Start the Day** and the morning reminder opening Today in picking on a real phone.
+
+Tested:
+- New rule tests: `TodayPickingTests` (4).
+- Screen tests: the tests of Start the day now follow the picking list, and one new screen test was added.
+- A Mac screen test for step 9 of the Weekly review was repaired (a test change only, nothing in the app).
 
 ## Build 334 · 17 November 2026
 
