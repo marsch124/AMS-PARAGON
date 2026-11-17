@@ -1476,7 +1476,14 @@ final class ScreenTests: XCTestCase {
         func isRecorded() -> Bool { self.words(of: self.element("review.done.last")) == "Review done today" }
         look("review-done-before-press")
         #if os(macOS)
-        pressWhenSteady(done, worked: isRecorded)
+        // 17 Nov 2026, the run after the End key: End put the button at (286, 515) inside the
+        // room, and the very next reading of the same query was a frame of nothing, with
+        // nothing moved. So the name is on TWO things — the button and a wrapper with no frame
+        // (build 249 met the same on another button) — and `firstMatch` hands out now one, now
+        // the other. Every match is read, and the one with a place is clicked where it lies.
+        if !clickTheOneWithAPlace("review.done") || !becomes(within: 6, isRecorded) {
+            pressWhenSteady(done, worked: isRecorded)
+        }
         let recorded = becomes(within: 10, isRecorded)
         #else
         pressInSight(done)
@@ -1522,6 +1529,25 @@ final class ScreenTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.5)
         let done = app.buttons.matching(identifier: "review.done").firstMatch
         print("NOTE: after End, Review done is at \(done.exists ? "\(done.frame)" : "nowhere") (room \(clickableRoom())).")
+    }
+
+    /// Clicks the button of this name that has a place inside the clickable room, at that
+    /// place, whatever else carries the name. Says what it found, so a red run can be read.
+    private func clickTheOneWithAPlace(_ identifier: String) -> Bool {
+        for attempt in 1...4 {
+            let frames = app.buttons.matching(identifier: identifier).allElementsBoundByIndex.map(\.frame)
+            let room = clickableRoom()
+            print("NOTE: \(identifier) is on \(frames.count) thing(s): \(frames) (room \(room)), attempt \(attempt)")
+            if let frame = frames.first(where: { !$0.isEmpty && room.contains($0) }) {
+                let window = mainWindow.frame
+                mainWindow.coordinate(withNormalizedOffset: .zero)
+                    .withOffset(CGVector(dx: frame.midX - window.minX, dy: frame.midY - window.minY))
+                    .click()
+                return true
+            }
+            Thread.sleep(forTimeInterval: 0.7)
+        }
+        return false
     }
 
     /// The Mac's lists keep only the rows near the window; a row out of reach is still found,
