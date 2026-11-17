@@ -708,6 +708,161 @@ final class ScreenTests: XCTestCase {
         XCTAssertEqual(places.count, 2, "The project should be there twice: recent, and in the whole list.")
     }
 
+    /// **Build 332:** the first row of the File it menu, **Search…**, opens a page with a
+    /// search field; typing narrows the places to the ones with those words; pressing a place
+    /// files the line, and **Cancel** closes the page and leaves the line in the Inbox.
+    /// Runs on the Mac too, where the page is a sheet and File it is the same menu.
+    func testFileItHasASearchPageThatFilesTheLine() throws {
+        try XCTSkipIf(UIDevice.current.userInterfaceIdiom == .pad, "The iPad files from its own column.")
+        go(to: .today)
+        func capture(_ words: String) {
+            let open = element("capture.open")
+            XCTAssertTrue(open.waitForExistence(timeout: 20), "There is no Quick capture button.")
+            open.press()
+            let field = element("capture.text")
+            XCTAssertTrue(field.waitForExistence(timeout: 20), "The capture screen did not open.")
+            field.press()
+            field.typeText(words)
+            let save = element("capture.save")
+            XCTAssertTrue(save.waitForExistence(timeout: 10), "The capture screen has no Save button.")
+            save.press()
+            let closed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: save)
+            XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 30), .completed,
+                           "The capture screen did not close itself. On screen: \(visibleTexts())")
+        }
+        let line = "Buy a map for the hike"
+        let other = "Pack the rain jacket"
+        capture(line)
+        capture(other)
+
+        go(to: .inbox)
+        func openSearch(for title: String) {
+            let row = element("inbox.\(title)")
+            XCTAssertTrue(row.waitForExistence(timeout: 20),
+                          "The Inbox does not show \(title). On screen: \(visibleTexts())")
+            row.press()
+            let file = element("inbox.quad.file")
+            XCTAssertTrue(file.waitForExistence(timeout: 10),
+                          "The picked line shows no File it button. On screen: \(visibleTexts())")
+            file.press()
+            let search = element("file.search.open")
+            XCTAssertTrue(search.waitForExistence(timeout: 10),
+                          "The File it menu has no Search row. On screen: \(visibleTexts())")
+            look("332-file-it-menu")
+            search.press()
+        }
+
+        openSearch(for: line)
+        let field = element("file.search.field")
+        XCTAssertTrue(field.waitForExistence(timeout: 10),
+                      "The Search row was pressed and the page shows no search field. On screen: \(visibleTexts())")
+        let task = element("file.search.task")
+        XCTAssertTrue(task.waitForExistence(timeout: 5), "The search page does not show the line it files.")
+        let shown = task.label.isEmpty ? ((task.value as? String) ?? "") : task.label
+        XCTAssertTrue(shown.contains(line),
+                      "The search page shows \"\(shown)\" instead of the line's words. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("file.search.cancel").exists, "The search page has no Cancel button.")
+        look("332-search-page")
+
+        let places = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'file.search.row.' OR identifier BEGINSWITH 'file.search.suggested.' OR identifier BEGINSWITH 'file.search.recent.'"))
+        let before = places.allElementsBoundByIndex.map { $0.identifier }
+        let stranger = before.first { id in
+            let button = app.descendants(matching: .any).matching(identifier: id).firstMatch
+            return !button.label.contains("Kungsleden")
+        }
+        XCTAssertNotNil(stranger, "Before typing, the search page lists only the Kungsleden place. Ids: \(before)")
+        field.press()
+        field.typeText("kung")
+        let project = "Plan the Kungsleden trip"
+        let match = app.descendants(matching: .any).matching(NSPredicate(
+            format: "(identifier BEGINSWITH 'file.search.row.' OR identifier BEGINSWITH 'file.search.suggested.') AND label == %@", project)).firstMatch
+        XCTAssertTrue(match.waitForExistence(timeout: 10),
+                      "Typing \"kung\" shows no row for \(project). On screen: \(visibleTexts())")
+        if let stranger {
+            XCTAssertTrue(becomes(within: 10) { !self.app.descendants(matching: .any).matching(identifier: stranger).firstMatch.exists },
+                          "Typing \"kung\" still lists the other place \(stranger).")
+        }
+        look("332-search-typed")
+        match.tap()
+        XCTAssertTrue(becomes(within: 15) { !self.element("file.search.field").exists },
+                      "A place was pressed and the search page is still open. On screen: \(visibleTexts())")
+        let left = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: element("inbox.\(line)"))
+        XCTAssertEqual(XCTWaiter().wait(for: [left], timeout: 15), .completed,
+                       "A place was pressed on the search page and the line is still in the Inbox. On screen: \(visibleTexts())")
+
+        openSearch(for: other)
+        XCTAssertTrue(element("file.search.field").waitForExistence(timeout: 10),
+                      "The search page did not open a second time. On screen: \(visibleTexts())")
+        element("file.search.cancel").press()
+        XCTAssertTrue(becomes(within: 15) { !self.element("file.search.field").exists },
+                      "Cancel was pressed and the search page is still open. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("inbox.\(other)").waitForExistence(timeout: 10),
+                      "Cancel was pressed and the line left the Inbox. On screen: \(visibleTexts())")
+    }
+
+    /// **Build 332:** the Today band's fourth button opens **One thing**: one task, **Done**
+    /// and **Not now**. Not now sets it aside and shows the next; when none is left the page
+    /// says so and **Show them again** brings them back. Set-aside tasks are kept for the day,
+    /// so the test does not assume a clean start.
+    func testOneThingShowsOneTaskAndNotNowBringsTheNext() throws {
+        go(to: .today)
+        let one = element("today.one")
+        XCTAssertTrue(one.waitForExistence(timeout: 20),
+                      "The Today band has no One thing button. On screen: \(visibleTexts())")
+        look("332-today-band")
+        one.press()
+        XCTAssertTrue(element("one.heading").waitForExistence(timeout: 10),
+                      "The One thing button was pressed and no page opened. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("one.close").exists, "The One thing page has no Close button.")
+        let title = element("one.title")
+        let nothing = element("one.nothing")
+        func titleWords() -> String {
+            title.label.isEmpty ? ((title.value as? String) ?? "") : title.label
+        }
+        if !title.exists && nothing.exists && element("one.again").exists {
+            element("one.again").press()
+        }
+        XCTAssertTrue(title.waitForExistence(timeout: 10),
+                      "One thing shows no task though the test notes have a next action. On screen: \(visibleTexts())")
+        for id in ["one.why", "one.done", "one.notNow", "one.more"] {
+            XCTAssertTrue(element(id).exists, "One thing shows a task and no \(id). On screen: \(visibleTexts())")
+        }
+        look("332-one-thing")
+
+        let first = titleWords()
+        XCTAssertFalse(first.isEmpty, "The task on One thing has no words.")
+        element("one.notNow").press()
+        XCTAssertTrue(becomes(within: 10) {
+            (title.exists && titleWords() != first) || (nothing.exists && self.element("one.again").exists)
+        }, "Not now was pressed and the page still shows \"\(first)\". On screen: \(visibleTexts())")
+        look("332-one-after-not-now")
+
+        var presses = 0
+        while !nothing.exists && presses < 30 {
+            let words = titleWords()
+            guard element("one.notNow").exists else { break }
+            element("one.notNow").press()
+            _ = becomes(within: 5) { nothing.exists || (title.exists && titleWords() != words) }
+            presses += 1
+        }
+        XCTAssertTrue(nothing.exists, "After \(presses) presses of Not now the page still shows a task. On screen: \(visibleTexts())")
+        look("332-one-nothing")
+        let again = element("one.again")
+        XCTAssertTrue(again.exists, "The empty page has no Show them again button. On screen: \(visibleTexts())")
+        again.press()
+        XCTAssertTrue(becomes(within: 10) { title.exists && titleWords() == first },
+                      "Show them again was pressed and the first task \"\(first)\" is not back. On screen: \(visibleTexts())")
+
+        element("one.done").press()
+        XCTAssertTrue(becomes(within: 10) { nothing.exists || (title.exists && titleWords() != first) },
+                      "Done was pressed and \"\(first)\" is still the task. On screen: \(visibleTexts())")
+        let close = element("one.close").exists ? element("one.close") : element("one.nothing.close")
+        close.press()
+        XCTAssertTrue(element("today.one").waitForExistence(timeout: 10),
+                      "The One thing page was closed and Today shows no One thing button. On screen: \(visibleTexts())")
+    }
+
     /// **Build 306:** an Inbox line swiped from the right goes to tomorrow, and the message's
     /// **Undo** takes the date off again (the test line has none). The date is read off the
     /// line itself, so this proves the file was written and then put back.
