@@ -88,6 +88,7 @@ struct FilingSearchPage: View {
                 .foregroundStyle(.soft)
                 .lineLimit(1)
                 .truncationMode(.tail)
+                .padding(.horizontal, 16)
                 .accessibilityIdentifier("file.search.task")
             field
             list
@@ -157,6 +158,8 @@ struct FilingSearchPage: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // Rows as tall as their words: the list's own 11 points above and below are too many.
+        .listRowInsets(EdgeInsets(top: 7, leading: 16, bottom: 7, trailing: 16))
         .accessibilityIdentifier(idPrefix + place.title)
     }
 
