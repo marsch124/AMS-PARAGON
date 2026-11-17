@@ -295,21 +295,22 @@ final class ScreenTests: XCTestCase {
         // popover — and `firstMatch` over every kind of element picked that one.
         // Build 335: the new task is a row of Today's own list now, under Due today, and a list
         // draws only the rows in view: it is scrolled to first.
-        // Build 337: no dashed "How long?" button while picking. Pick on a task without a time
-        // opens the same choices; choosing one sets the time AND picks the task.
-        let pick = reveal(app.buttons.matching(identifier: "startDay.pick.Water the plants").firstMatch)
-        XCTAssertTrue(pick.waitForExistence(timeout: 20),
-                      "The added action did not appear in the list. On screen: \(visibleTexts())")
-        XCTAssertFalse(app.buttons.matching(identifier: "task.time.Water the plants").firstMatch.exists,
-                       "Picking still draws a How long? button on a task without a time (build 337 took it away).")
+        // Build 337: while picking, the dashed "How long?" is drawn only on a task that is
+        // already picked with no time. The action typed into the field is picked as it is added,
+        // so it has the button; the test project's next action is not picked and has none.
+        let time = reveal(app.buttons.matching(identifier: "task.time.Water the plants").firstMatch)
+        XCTAssertTrue(time.waitForExistence(timeout: 20),
+                      "A task picked with no time does not ask How long? On screen: \(visibleTexts())")
+        XCTAssertFalse(app.buttons.matching(identifier: "task.time.Define the outcome and the first step").firstMatch.exists,
+                       "Picking still draws How long? on a task that is not picked (build 337 took it away).")
         #if os(macOS)
-        giveItAFrame(pick)
-        bringIntoSight(pick)
+        giveItAFrame(time)
+        bringIntoSight(time)
         #endif
-        let time = pick
+        look("picking-row-before-pick")
         let timeFrame = time.frame
         guard Self.isOnScreen(timeFrame) else {
-            XCTFail("The Pick button has no place on screen: \(timeFrame)")
+            XCTFail("The time button has no place on screen: \(timeFrame)")
             return
         }
         press(time, at: timeFrame)
@@ -317,7 +318,7 @@ final class ScreenTests: XCTestCase {
         let choice = app.buttons.matching(identifier: "time.choice.45").firstMatch
         let opened = choice.waitForExistence(timeout: 10)
         XCTAssertTrue(opened,
-                      "Pressing Pick on a task without a time did not show the choices. \(whereabouts(time)) On screen: \(visibleTexts())")
+                      "Pressing the time button did not show the choices. \(whereabouts(time)) On screen: \(visibleTexts())")
         guard opened else { return }
         // Measured once and used once (build 249's third run): reading `frame` twice asks the
         // app twice, and a popover can answer differently the second time.

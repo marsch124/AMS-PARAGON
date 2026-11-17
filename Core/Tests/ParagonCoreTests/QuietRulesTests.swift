@@ -8,6 +8,10 @@ final class QuietRulesTests: XCTestCase {
     /// on Today either** — Pick asks it, so only Plan the day draws the dashed question.
     func testTheTimeQuestionIsAskedOnlyWhereTheDayIsPlanned() {
         XCTAssertEqual(TaskTimePill.shown(in: .startDay, minutes: nil, usesTaskTimes: true), .nothing)
+        // A task picked with no time (typed into the field) keeps the question: the foot
+        // counts it as one hour, and this is where it is given a time.
+        XCTAssertEqual(TaskTimePill.shown(in: .startDay, minutes: nil, usesTaskTimes: true, picked: true), .question)
+        XCTAssertEqual(TaskTimePill.shown(in: .list, minutes: nil, usesTaskTimes: true, picked: true), .nothing)
         XCTAssertEqual(TaskTimePill.shown(in: .plan, minutes: nil, usesTaskTimes: true), .question)
         XCTAssertEqual(TaskTimePill.shown(in: .list, minutes: nil, usesTaskTimes: true), .nothing)
         XCTAssertEqual(TaskTimePill.shown(in: .list, minutes: 45, usesTaskTimes: true), .time(45))

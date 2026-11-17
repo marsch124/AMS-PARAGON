@@ -11,12 +11,14 @@ import Foundation
 /// **Build 337: while picking on Today the dashed question is gone too.** **Pick** on a task
 /// with no time already asks "How long?" first, so the row asked the same thing twice, and
 /// Pick + tick + title + the dashed button wrapped a title to two or three lines on the iPhone
-/// and in the Mac's narrow column. Only **Plan the day** still draws the dashed question.
+/// and in the Mac's narrow column. **Plan the day** still draws the dashed question, and so
+/// does a task that is already picked with no time (see `shown`).
 public enum TaskTimePill {
     /// Where a task row is drawn.
     public enum Place: Sendable {
         /// Picking on Today (the old **Start the day**) and **Plan the day**: the two places a
-        /// length is planned with. Since build 337 only `plan` draws the dashed question.
+        /// length is planned with. Since build 337 `startDay` draws the dashed question only on a
+        /// task that is already picked.
         case startDay, plan
         /// Every other list: Today, Actions, a note's tasks, Close the day, Review, Search …
         case list
@@ -31,10 +33,17 @@ public enum TaskTimePill {
         case time(Int)
     }
 
-    public static func shown(in place: Place, minutes: Int?, usesTaskTimes: Bool) -> Shown {
+    /// `picked`: while picking on Today, whether this task is picked. A task picked with no
+    /// time (one typed into the field is picked as it is added) keeps the dashed question:
+    /// the foot counts it as one hour, and this is where a time is given to it.
+    public static func shown(in place: Place, minutes: Int?, usesTaskTimes: Bool, picked: Bool = false) -> Shown {
         guard usesTaskTimes else { return .nothing }
         if let minutes { return .time(minutes) }
-        return place == .plan ? .question : .nothing
+        switch place {
+        case .plan: return .question
+        case .startDay: return picked ? .question : .nothing
+        case .list: return .nothing
+        }
     }
 }
 

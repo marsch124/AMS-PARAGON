@@ -60,7 +60,7 @@ This is for deciding each morning what matters most. There is no second page. Pr
 
 At the top, a card, **This morning**, shows what you wrote last evening and the goal for the week. Under it is **Add an action for today**, which puts a new thought into the Inbox, dated today, already picked. Anything you marked **First** the evening before comes first, under **Marked first last evening**. Below are the tasks Today already shows: from today's note, next actions, overdue, due today and important with no date. Every one has **Pick** in front of it.
 
-Press **Pick** beside the two or three that matter most. When one is picked, a button appears at the foot, such as **Plan 2 actions**. Each pick becomes a block in today's plan, as long as the task's own time. A task with no time shows nothing at the right; pressing **Pick** on it asks **How long?** first and then picks it. A task that has a time keeps its time pill. A task already in the plan says **In plan** and its time.
+Press **Pick** beside the two or three that matter most. When one is picked, a button appears at the foot, such as **Plan 2 actions**. Each pick becomes a block in today's plan, as long as the task's own time. A task with no time shows nothing at the right; pressing **Pick** on it asks **How long?** first and then picks it. A task you typed into the field is picked at once, with no time; it shows a dashed **How long?** so you can give it one. A task that has a time keeps its time pill. A task already in the plan says **In plan** and its time.
 
 To leave without planning, press **Done** on the strip, press **Start** again, or press Escape on the Mac. The plan button plans and leaves. While you pick, the round + button on the iPhone steps aside and swipes on a task are off.
 

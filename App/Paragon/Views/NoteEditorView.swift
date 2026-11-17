@@ -1882,7 +1882,14 @@ struct TaskRow: View {
     private var offersFocusButton: Bool {
         // Build 337: not while picking — the row there is tight, and picking is not doing.
         guard focusBarShown, !renaming, place != .startDay, model.canFocus(on: ref) else { return false }
-        return TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes) == .nothing
+        return timeShown == .nothing
+    }
+
+    /// What the right end of the row shows (Core `TaskTimePill`). Build 337: while picking, the
+    /// dashed question only on a task already picked.
+    private var timeShown: TaskTimePill.Shown {
+        TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes,
+                           picked: place == .startDay && model.todayPicks.contains(StartDay.key(ref)))
     }
 
     /// Whether the small line under the title has anything to show.
@@ -2020,7 +2027,7 @@ struct TaskRow: View {
             // here, and **How long** on the row's menu is where a time is given.
             if useTaskTimes && !renaming {
                 if !ref.task.isDone {
-                    if TaskTimePill.shown(in: place, minutes: ref.task.minutes, usesTaskTimes: useTaskTimes) != .nothing {
+                    if timeShown != .nothing {
                         TaskTimeButton(ref: ref, tint: tint, offersFocus: focusBarShown)
                     }
                 } else if let minutes = ref.task.minutes {

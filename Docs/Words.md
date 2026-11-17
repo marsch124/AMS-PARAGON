@@ -55,7 +55,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Tasks
 
 - **Task** or **action** — one line with a tick box, in any note. The two words mean the same thing.
-- **How long?** — the small dashed button on the right of a task that has no task time yet. Press it to say how long the task takes. Since build 337 it is no longer shown while you pick on **Today**: a task with no time shows nothing there, and **Pick** asks **How long?** first. It stays in the **Actions** column of **Plan**. Everywhere else a task shows its time only when it has one; to give it one there, hold the task (right-click on the Mac) and choose **How long**.
+- **How long?** — the small dashed button on the right of a task that has no task time yet. Press it to say how long the task takes. Since build 337 it is no longer shown while you pick on **Today**: a task with no time shows nothing there, and **Pick** asks **How long?** first. Only a task that is already picked with no time (one you typed into the field) still shows it there. It stays in the **Actions** column of **Plan**. Everywhere else a task shows its time only when it has one; to give it one there, hold the task (right-click on the Mac) and choose **How long**.
 - **Next action** — the one task in a note you would do next. A note has at most one. It carries the tag `#next`.
 - **Due date** — the day a task should be done. Written `>2026-09-29` on the task line.
 - **Overdue** — a task whose due date has passed. Its date is shown in red.
