@@ -16,12 +16,13 @@ The version is shown as 1.0 (335) in Settings › About, at the foot of the Mac 
   - **Marked first last evening.** Tasks you marked **First** in **Close the day** come first, in their own section **Marked first last evening** at the top. They are not drawn a second time further down.
   - **New: more tasks can be picked.** Before: the old page could not pick tasks under **From today's note** and **Important, no date**, because it did not list them. Now: they have **Pick** too.
   - **How long?** Unchanged: a task with no time asks "How long?" when you pick it, only when **Use task times** is on in Settings. While you pick, task rows show the dashed **How long?** button.
-  - **The foot.** Before: the plan button sat in the old page's top bar, and with nothing picked it said **Done**. Now: as soon as one task is picked, a bar appears at the foot of Today with one full-colour button, **Plan 1 action** or **Plan 2 actions**. Above it, with **Use task times** on, the lines "Picked", "Free until 17:00" and "It fits before 17:00." (same rules as before). With nothing picked there is no button at the foot; **Done** on the strip is the way out.
+  - **The foot.** Before: the plan button sat in the old page's top bar, and with nothing picked it said **Done**. Now: as soon as one task is picked, a bar appears at the foot of Today with one full-colour button, **Plan 1 action** or **Plan 2 actions**. Above it, with **Use task times** on, the lines "Picked", "Free until 16:00" and "It fits before 16:00." (same rules as before). With nothing picked there is no button at the foot; **Done** on the strip is the way out.
   - **What a pick does is unchanged.** A block as long as the task's own time, or one hour when it has none, in the free time left today. A task with a time of day goes in at that time if it is free. The same messages as before, for example "Added 2 actions to today's plan."
 - **How picking ends.** Before: **Cancel** or **Done** on the old page. Now, four ways: **Done** on the strip (nothing is planned, the picks are dropped); the plan button (every pick goes into today's plan, then picking ends); pressing **Start** on the band again; **Escape** on the Mac. Picking also ends by itself when the day changes. Your picks are kept while you look at another section or open a note and come back.
 - **Today's calendar.** Before: the old page had its own folding box, "Today's calendar events". Now: that box is gone. Today's own **Calendar** section is simply still there.
 - **Everything that opened Start the day now opens Today in picking.** Before: the Siri and Shortcuts action **Start the Day**, and a press on the morning reminder, opened the old page. Now: both open Today with picking switched on.
 - **The round + button steps aside (iPhone).** Before: it stayed at the bottom right. Now: while you pick, it is hidden, because the foot belongs to the plan button and the field **Add an action for today** takes new lines. It is back as soon as picking ends.
+- **Dragging the list down puts the keyboard away (iPhone)** while you pick, as on the old page.
 - **Swipes are off while you pick.** Before: a swipe on a task row gave **Done** and **Tomorrow**. Now: not while picking, so a swipe cannot tick a task by mistake. The tick circle and the row's menu work as always.
 
 **Removed.**
@@ -33,6 +34,8 @@ The version is shown as 1.0 (335) in Settings › About, at the foot of the Mac 
 - **Close the day** is still its own page.
 
 **Not seen, not tried.**
+- **Seen:** the picking list on the iPhone simulator by day (strip, card, field, Pick and Picked, the foot with its button).
+- **Not seen:** the Mac and the iPad (the narrow Today column with the small Pick), and night.
 - **Not tried on a real device:** the whole picking list on a real iPhone, a real iPad and a real Mac.
 - **Not tried:** Siri's **Start the Day** and the morning reminder opening Today in picking on a real phone.
 

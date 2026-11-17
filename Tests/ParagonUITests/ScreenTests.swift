@@ -314,32 +314,14 @@ final class ScreenTests: XCTestCase {
         field.press()
         field.typeText("Water the plants")
         element("startDay.add").pressCentre()
-        #if os(iOS)
-        // Build 328: the phone's keyboard stays up after Add (so a second action can follow) and
-        // covers the list: the new task's time button sat under the keys, and the press at its
-        // middle hit the keyboard's word suggestions. The screen's own way to put the keyboard
-        // away is to drag the list down (build 265, `.scrollDismissesKeyboard`), so the test does.
-        if app.keyboards.count > 0 {
-            let from = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
-            let to = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
-            from.press(forDuration: 0.1, thenDragTo: to)
-            if !becomes(within: 3, { self.app.keyboards.count == 0 }) {
-                // A drag at the top of a list that does not scroll does not always reach the
-                // keyboard; the field's own Done key (empty field: it adds nothing) always does.
-                for name in ["Done", "Return", "return"] where app.keyboards.buttons[name].exists {
-                    app.keyboards.buttons[name].tap()
-                    break
-                }
-            }
-            XCTAssertTrue(becomes(within: 10) { self.app.keyboards.count == 0 },
-                          "Dragging the picking list down did not put the keyboard away. On screen: \(visibleTexts())")
-        }
-        #endif
+        putTheKeyboardAway()
 
         // **Among buttons, never "any element"** (build 249's second run): the name also lands
         // on an element with no frame at all — a wrapper SwiftUI makes around the button for its
         // popover — and `firstMatch` over every kind of element picked that one.
-        let time = app.buttons.matching(identifier: "task.time.Water the plants").firstMatch
+        // Build 335: the new task is a row of Today's own list now, under Due today, and a list
+        // draws only the rows in view: it is scrolled to first.
+        let time = reveal(app.buttons.matching(identifier: "task.time.Water the plants").firstMatch)
         XCTAssertTrue(time.waitForExistence(timeout: 20),
                       "Picking does not ask How long? on a task without a time. On screen: \(visibleTexts())")
         #if os(macOS)
@@ -1010,13 +992,17 @@ final class ScreenTests: XCTestCase {
         let add = element("startDay.add")
         XCTAssertTrue(add.isEnabled, "The + stayed grey after a line was typed.")
         add.pressCentre()
-        let pick = element("startDay.pick.Water the plants")
+        // Build 335: the added task is a row of Today's own list, under Due today — below what
+        // the phone shows while its keyboard is up. Keyboard away, then scrolled to.
+        putTheKeyboardAway()
+        let pick = reveal(app.buttons.matching(identifier: "startDay.pick.Water the plants").firstMatch)
         XCTAssertTrue(pick.waitForExistence(timeout: 20),
                       "The added action did not appear in the list. On screen: \(visibleTexts())")
         let chosen = expectation(
             for: NSPredicate(format: "label == 'Picked' OR value == 'Picked' OR isSelected == true"),
             evaluatedWith: pick)
         wait(for: [chosen], timeout: 10)
+        look("picking-picked")
         XCTAssertTrue(element("picking.plan").waitForExistence(timeout: 10),
                       "An action was picked and picking has no Plan button at the foot. On screen: \(visibleTexts())")
         let done = element("picking.done")
@@ -1135,7 +1121,10 @@ final class ScreenTests: XCTestCase {
         let add = element("startDay.add")
         XCTAssertTrue(add.isEnabled, "The + stayed grey after a line was typed.")
         add.pressCentre()
-        let pick = element("startDay.pick.Water the plants")
+        // Build 335: the added task is a row of Today's own list, under Due today — below what
+        // the phone shows while its keyboard is up. Keyboard away, then scrolled to.
+        putTheKeyboardAway()
+        let pick = reveal(app.buttons.matching(identifier: "startDay.pick.Water the plants").firstMatch)
         XCTAssertTrue(pick.waitForExistence(timeout: 20),
                       "The added action did not appear in the list. On screen: \(visibleTexts())")
         let chosen = expectation(
@@ -1551,6 +1540,31 @@ final class ScreenTests: XCTestCase {
         pressInSight(someday)
         XCTAssertTrue(becomes(within: 10) { !self.app.buttons.matching(identifier: name).firstMatch.exists },
                       "Someday was pressed and the task is still listed as loose. On screen: \(visibleTexts())")
+    }
+
+    /// Puts the phone's keyboard away after a line was added while picking. Nothing on the Mac.
+    private func putTheKeyboardAway() {
+        #if os(iOS)
+        // Build 328: the phone's keyboard stays up after Add (so a second action can follow) and
+        // covers the list: the new task's time button sat under the keys, and the press at its
+        // middle hit the keyboard's word suggestions. The screen's own way to put the keyboard
+        // away is to drag the list down (build 265, `.scrollDismissesKeyboard`), so the test does.
+        if app.keyboards.count > 0 {
+            let from = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+            let to = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+            from.press(forDuration: 0.1, thenDragTo: to)
+            if !becomes(within: 3, { self.app.keyboards.count == 0 }) {
+                // A drag at the top of a list that does not scroll does not always reach the
+                // keyboard; the field's own Done key (empty field: it adds nothing) always does.
+                for name in ["Done", "Return", "return"] where app.keyboards.buttons[name].exists {
+                    app.keyboards.buttons[name].tap()
+                    break
+                }
+            }
+            XCTAssertTrue(becomes(within: 10) { self.app.keyboards.count == 0 },
+                          "Dragging the picking list down did not put the keyboard away. On screen: \(visibleTexts())")
+        }
+        #endif
     }
 
     /// Scrolls the screen until the element is there and on screen, and returns it. On the

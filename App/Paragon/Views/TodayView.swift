@@ -304,6 +304,9 @@ struct TodayView: View {
                 // Review round 4: on the iPhone each row is a card in the part's colour.
                 .phoneCard(SidebarSection.today.tint)
             }
+            // Build 335: the field **Add an action for today** is a row of this list while picking;
+            // dragging the list down puts the keyboard away, as on the old page (build 265).
+            .scrollDismissesKeyboard(.interactively)
             // Build 318: the fold is remembered in the settings, which do not carry a movement by themselves.
             .animation(Motion.fold, value: foldedSections)
             .animation(Motion.fold, value: calendarFolded.wrappedValue)
