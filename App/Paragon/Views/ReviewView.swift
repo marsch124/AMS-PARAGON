@@ -301,6 +301,14 @@ struct ReviewView: View {
         // about 66 points apart). Apple's compact spacing between the parts of a list.
         .listSectionSpacing(isPhone ? .compact : .default)
         #endif
+        #if os(macOS)
+        // 17 Nov 2026: room under the last row. Scrolled to its end, **Review done** sat 16
+        // points above the window's lower edge — the main button of the page on the very rim —
+        // and GitHub's Mac pressed it there twice without the app hearing it (the one screen
+        // test still red after build 331). With 40 points under it the button ends 56 points
+        // above the edge.
+        .contentMargins(.bottom, 40, for: .scrollContent)
+        #endif
         // For the screen test, which scrolls this list to reach step 7 (build 263).
         .accessibilityIdentifier("review.list")
         .onAppear { startVisit() }

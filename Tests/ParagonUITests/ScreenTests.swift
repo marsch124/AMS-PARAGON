@@ -1442,15 +1442,22 @@ final class ScreenTests: XCTestCase {
         XCTAssertTrue(done.exists, "The Weekly review has no Review done button. On screen: \(visibleTexts())")
         let last = element("review.done.last")
         XCTAssertTrue(last.exists, "No line says when the review was last done. On screen: \(visibleTexts())")
-        if done.isHittable { done.press() } else { done.pressCentre() }
+        // 17 Nov 2026: pressed the way the other review tests press (`pressInSight`: brought
+        // clear of the window's rim first, and the app brought forward again if the press
+        // left it behind). Red on GitHub's Mac in three runs with the button on the rim.
+        pressInSight(done)
         var recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
         // Build 328: a first click that only woke the window (CI of 16 Nov, macos-26) is
         // pressed once more while the button is still there. A button that did its work is gone.
         let again = app.buttons.matching(identifier: "review.done").firstMatch
         if !recorded, again.exists {
-            if again.isHittable { again.press() } else { again.pressCentre() }
+            print("NOTE: Review done needed a second press. \(whereabouts(again))")
+            pressInSight(again)
             recorded = becomes(within: 10) { self.words(of: self.element("review.done.last")) == "Review done today" }
         }
+        // A picture of the screen when it still did not work: GitHub keeps it with the log
+        // (`screen-test-pictures-mac`), so the next red run shows what lay under the press.
+        if !recorded { look("review-done-not-recorded") }
         XCTAssertTrue(recorded,
                       "Review done was pressed and the line says: \(words(of: element("review.done.last"))). The button is \(again.exists ? "still" : "no longer") on screen. \(whereabouts(again)) On screen: \(visibleTexts())")
         XCTAssertFalse(app.buttons.matching(identifier: "review.done").firstMatch.exists,

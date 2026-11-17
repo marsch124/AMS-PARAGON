@@ -295,9 +295,15 @@ jobs:
       - name: Print the screen's size
         run: |
           system_profiler SPDisplaysDataType | grep -i "resolution" || true
+      # 17 Nov 2026: a test that fails may leave a picture of the screen (`look(_:)` in
+      # ScreenTests.swift). xcodebuild hands TEST_RUNNER_… variables to the tests; the folder
+      # is uploaded with the log.
       - name: Press the buttons
+        env:
+          TEST_RUNNER_LOOK_DIR: ${{ github.workspace }}/look-mac
         run: |
           set -o pipefail
+          mkdir -p look-mac
           xcodebuild -project Paragon.xcodeproj -scheme ParagonUITests \
             -destination "platform=macOS" \
             -derivedDataPath build/dd-uitests-mac \
@@ -324,6 +330,13 @@ jobs:
         with:
           name: screen-test-log-mac
           path: test-ui-mac.log
+      - name: Upload the pictures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-test-pictures-mac
+          path: look-mac
+          if-no-files-found: ignore
 
   commit-project:
     name: Commit generated Xcode project
