@@ -255,6 +255,12 @@ struct ContentView: View {
             }
         }
         #if os(macOS)
+        // Build 340: on the Mac `scenePhase` stays `.active` while another app is in front, so
+        // switching back to PARAGON never looked at the outbox. A to-do sent from AMS Seedboard
+        // now lands in the Inbox the moment PARAGON comes to the front.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            model.afterUpdate { model.drainOutbox() }
+        }
         // Build 285: on the Mac the Map lives in its own window. Choosing it in the sidebar
         // opens (or fronts) that window and leaves this one where it was.
         .onChange(of: model.section) { old, new in

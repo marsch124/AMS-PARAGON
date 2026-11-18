@@ -330,4 +330,18 @@ final class WidgetSnapshotTests: XCTestCase {
         // And the link is not a capture, so `handle(url:)` cannot take it for one.
         XCTAssertNil(CaptureItem(url: plan))
     }
+
+    /// Build 340: AMS Deck Mate reads this file; the format number tells it when a field it reads
+    /// was renamed. A file written before build 340 has none and still reads.
+    func testTheFileCarriesItsFormatAndAnOlderFileStillReads() throws {
+        let snap = WidgetSnapshot(day: today, written: Date(timeIntervalSince1970: 0), dueToday: 1, overdue: 0,
+                                  inboxCount: 2, dueForReview: 0, items: [])
+        let data = try JSONEncoder().encode(snap)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertEqual(object["format"] as? Int, 1)
+        object.removeValue(forKey: "format")
+        let old = try JSONDecoder().decode(WidgetSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
+        XCTAssertNil(old.format)
+        XCTAssertEqual(old.inboxCount, 2)
+    }
 }

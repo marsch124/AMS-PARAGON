@@ -141,7 +141,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 339
+    static let number = 340
 }
 
 @MainActor
@@ -1116,6 +1116,11 @@ final class AppModel: ObservableObject {
         undoOffer = nil
         cloudWatcher.watch(opened.rootURL)
         reload()
+        // Build 340: lines waiting in the outbox (Share, Shortcuts, AMS Seedboard) are filed as
+        // soon as there is a vault. Before, the only looks came when the window appeared and on
+        // `.active` — both BEFORE PARAGON's own folder had opened (it opens off the main thread),
+        // so on the Mac they waited until the window was hidden and shown again.
+        afterUpdate { [weak self] in self?.drainOutbox() }
         fetchCloudFiles(force: true)
         backUpDaily()
         purgeOldDeleted()
@@ -1496,6 +1501,7 @@ final class AppModel: ObservableObject {
             self.vault = vault
             cloudWatcher.watch(vault.rootURL)
             reload()
+            afterUpdate { [weak self] in self?.drainOutbox() }  // build 340, see `openVault`
             scheduleAutoSync()
             vaultOpenedForOwnFolder()
             // Not during launch (build 261): both walk the whole vault, and iOS stops an app that

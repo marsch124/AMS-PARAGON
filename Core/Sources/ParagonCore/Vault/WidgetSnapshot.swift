@@ -99,6 +99,12 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
     /// an empty list is a day with no timed events (build 100's rule). All-day events are
     /// left out: they take no hours.
     public var events: [Span]?
+    /// Build 340 (AMS Deck Mate, his pick 52): which shape this file has. AMS Deck Mate reads
+    /// `day`, `inboxCount`, `items`, `dueText`, `plan` and `events`; **raise this whenever one of
+    /// those is renamed or changes meaning**, and Deck Mate says "Update Deck Mate" instead of
+    /// showing wrong numbers. Nil in a file written before build 340, which reads as 1.
+    public var format: Int?
+    public static let currentFormat = 1
 
     public init(day: DateOnly, written: Date, dueToday: Int, overdue: Int,
                 inboxCount: Int, dueForReview: Int, items: [Item],
@@ -112,6 +118,7 @@ public struct WidgetSnapshot: Codable, Equatable, Sendable {
         self.items = items
         self.plan = plan
         self.events = events
+        self.format = Self.currentFormat
     }
 
     /// The most actions any widget size shows. Writing more would make the file bigger for

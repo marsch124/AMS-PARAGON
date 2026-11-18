@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (339) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (340) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 340 · 18 November 2026
+
+**Lines sent to PARAGON now reach the Inbox the moment you switch to it.** One fix, and one small change that shows nothing on screen.
+
+**Fixed.**
+- **Waiting lines were filed too late (the main fix).** Lines sent to PARAGON from the Share sheet, from Shortcuts, and from the new app AMS Seedboard (**Send to PARAGON › to-dos into the Inbox**) wait in a small list beside PARAGON until PARAGON files them into their note, usually the Inbox. Before (build 339): PARAGON looked at that list only when its window first appeared and when it came back from the background. On the Mac, with the notes in PARAGON's own iCloud folder, the notes open a moment after the window appears, so that first look found no notes open and filed nothing. And on the Mac, clicking PARAGON again after another app does not count as coming back, so the lines kept waiting until you hid the window (⌘H) or minimised it and brought it back. A real case on 18 November: three to-dos sent from Seedboard did not show in the Inbox. Now: PARAGON files the waiting lines as soon as the notes folder has opened, on every device. On the Mac it also files them every time PARAGON comes to the front: a click on it, ⌘-Tab, or the Dock. So a to-do sent from Seedboard appears in the Inbox the moment you switch to PARAGON.
+- **iPhone and iPad.** The gap at start-up was the same there and is fixed the same way. Switching between apps there already worked.
+
+**Changed.**
+- **A format number for AMS Deck Mate (small).** The small summary file that PARAGON writes for its widgets, and that the Stream Deck app AMS Deck Mate reads, now carries a format number, 1. If PARAGON ever renames something Deck Mate reads, the number goes up and Deck Mate says "Update Deck Mate" instead of showing wrong numbers. Nothing changes on screen.
+
+**Unchanged.** Everything else of build 339.
+
+**Seen / not seen.**
+- **Seen:** on the Mac with build 339, hiding PARAGON and showing it again filed the three waiting Seedboard to-dos into the Inbox, so the filing itself works; build 340 only adds the two moments when it happens. PARAGON starts and settles (launch check). The format number is checked by a data test (see Tests).
+- **Not seen:** the new moments themselves (notes opening, switching to PARAGON on the Mac) with a real line waiting, and a real iPhone or iPad.
+
+**Tests.** One new data test (`WidgetSnapshotTests`): the summary file says format 1, and an older file without the number still reads.
 
 ## Build 339 · 18 November 2026
 
