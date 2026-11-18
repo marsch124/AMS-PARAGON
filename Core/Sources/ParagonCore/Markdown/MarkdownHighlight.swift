@@ -195,6 +195,10 @@ public enum MarkdownHighlight {
         for m in wikilinkRegex.matches(in: text, range: full) {
             result.append(MarkdownSpan(range: shift(m.range, by: offset), style: .link))
         }
+        // Build 339: the words of an ordinary link take the same colour, now that they open.
+        for link in MarkdownLinks.matches(in: text) {
+            result.append(MarkdownSpan(range: shift(link.label, by: offset), style: .link))
+        }
         return result
     }
 

@@ -800,6 +800,14 @@ final class LinkingTextView: NSTextView {
             rect.origin.y += textContainerInset.height
             addCursorRect(rect, cursor: .pointingHand)
         }
+        // Build 339: and over the words of an ordinary link, which ⌘-click opens.
+        for match in MarkdownLinks.matches(in: string) {
+            let glyphs = layout.glyphRange(forCharacterRange: match.label, actualCharacterRange: nil)
+            var rect = layout.boundingRect(forGlyphRange: glyphs, in: container)
+            rect.origin.x += textContainerInset.width
+            rect.origin.y += textContainerInset.height
+            addCursorRect(rect, cursor: .pointingHand)
+        }
         // And over every task's box, which a click ticks (build 286).
         for box in TaskBox.boxRanges(in: string) {
             let glyphs = layout.glyphRange(forCharacterRange: box, actualCharacterRange: nil)
@@ -1172,8 +1180,16 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
         }
 
         func commandClicked(at offset: Int) {
-            guard let textView, let title = WikiLinks.link(at: offset, in: textView.string) else { return }
-            openLink(title)
+            guard let textView else { return }
+            if let title = WikiLinks.link(at: offset, in: textView.string) {
+                openLink(title)
+                return
+            }
+            // Build 339: an ordinary `[words](address)` link opens too — the browser, Mail, or
+            // another app (the board link AMS Seedboard leaves in the notes it makes).
+            if let url = MarkdownLinks.link(at: offset, in: textView.string) {
+                NSWorkspace.shared.open(url)
+            }
         }
 
         /// Ticks the task whose box was clicked, as an ordinary edit, so ⌘Z undoes it.
@@ -1354,6 +1370,13 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
         boxTap.delegate = context.coordinator
         textView.addGestureRecognizer(boxTap)
         context.coordinator.boxTap = boxTap
+        // Build 339: a tap on the words of a link that opens ANOTHER APP (the board link AMS
+        // Seedboard leaves in a note) opens it. Same rule as the box: it only begins there, so
+        // everywhere else — also on a link to the web — the tap places the caret as before.
+        let linkTap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.linkTapped(_:)))
+        linkTap.delegate = context.coordinator
+        textView.addGestureRecognizer(linkTap)
+        context.coordinator.linkTap = linkTap
         // Build 287: a long press on a box offers Cancel task / Move to tomorrow. Same rule:
         // it only begins on a box, so the text view's own long press (the loupe) is untouched.
         let boxPress = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.boxPressed(_:)))
@@ -1423,6 +1446,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate, UIGestureRecognizerDelegate, UIEditMenuInteractionDelegate {
         weak var boxTap: UIGestureRecognizer?
         weak var boxPress: UIGestureRecognizer?
+        weak var linkTap: UIGestureRecognizer?
         var boxMenu: UIEditMenuInteraction?
         /// The box the open long-press menu is about.
         private var menuBox: Int?
@@ -1618,7 +1642,28 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
             return rect.contains(point) ? box.location : nil
         }
 
+        /// Build 339: the link to another app whose words lie under `point`, or nil.
+        func appLink(at point: CGPoint) -> URL? {
+            guard let textView, let position = textView.closestPosition(to: point) else { return nil }
+            let index = textView.offset(from: textView.beginningOfDocument, to: position)
+            guard let match = MarkdownLinks.appLink(at: index, in: textView.text),
+                  let start = textView.position(from: textView.beginningOfDocument, offset: match.label.location),
+                  let end = textView.position(from: start, offset: match.label.length),
+                  let range = textView.textRange(from: start, to: end) else { return nil }
+            // Really on the words (they may run over two lines), not in the empty room beside them.
+            let onWords = textView.selectionRects(for: range).contains { $0.rect.insetBy(dx: -6, dy: -4).contains(point) }
+            return onWords ? match.url : nil
+        }
+
+        @objc func linkTapped(_ recognizer: UITapGestureRecognizer) {
+            guard let textView, let url = appLink(at: recognizer.location(in: textView)) else { return }
+            UIApplication.shared.open(url)
+        }
+
         func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            if recognizer === linkTap, let textView {
+                return appLink(at: recognizer.location(in: textView)) != nil
+            }
             guard recognizer === boxTap || recognizer === boxPress, let textView else { return true }
             let point = recognizer.location(in: textView)
             if picture(at: point) != nil { return true }
@@ -1627,7 +1672,7 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
 
         func gestureRecognizer(_ recognizer: UIGestureRecognizer,
                                shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
-            recognizer === boxTap || recognizer === boxPress
+            recognizer === boxTap || recognizer === boxPress || recognizer === linkTap
         }
 
         @objc func boxTapped(_ recognizer: UITapGestureRecognizer) {

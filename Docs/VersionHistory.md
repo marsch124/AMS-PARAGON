@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (338) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (339) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 339 · 18 November 2026
+
+**A link to another app opens while you write.** One change, and it is only about links in a note that look like `[words](address)`.
+
+**Changed.**
+- **Opening a link while you write (the main change).** Before (build 338): an ordinary link in a note, written `[words](address)`, could only be pressed in the note's reading view. While you were writing, only `[[links]]` to other notes opened (on the Mac, hold ⌘ and click). Now, on the Mac: hold ⌘ and click any such link, anywhere on it, and it opens: a web page in the browser, a mail address in Mail, a link to another app in that app. A plain click still only puts the cursor where you clicked, so a link never gets in the way of writing. On the iPhone and iPad: one tap on the words of a link that opens another app opens that app.
+- **How it looks.** The link's words take the note's colour, like a `[[link]]`, on every device; on the Mac the pointer also turns into a hand over them. Before, they looked like ordinary text.
+- **The web on the iPhone and iPad stays as it was.** A tap on the words of a link to the web still puts the writing cursor there, so nothing changes for the links you already have. To follow a web link there, use the reading view, as before.
+- **Why now.** The new app AMS Seedboard writes a line, "Open the board in Seedboard", into every note it makes from a board. With this build that line opens the board with one tap (iPhone, iPad) or a ⌘-click (Mac) while the note is open for writing. Before, you had to switch to the reading view first.
+- **Never opened from a note.** An address that points at a file on the device does not open, and pictures are not links: they open as pictures, as before. A link to PARAGON itself is not treated as a link to another app, so a tap on it still places the cursor.
+
+**Unchanged.** Everything else of build 338. The reading view, the `[[links]]` to other notes and the pictures in the text work as before.
+
+**Seen / not seen.**
+- **Seen:** the rule is checked by a data test (see Tests).
+- **Not seen:** a real iPhone or iPad. The tap on the iPhone and iPad, and the ⌘-click and the hand on the Mac, have not yet been tried on real devices.
+
+**Tests.** One new data test for the rule (`MarkdownLinksTests`): which links count, which addresses never open, and which link a tap or click falls on.
 
 ## Build 338 · 17 November 2026
 

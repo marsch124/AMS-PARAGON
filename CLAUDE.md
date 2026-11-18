@@ -5427,3 +5427,16 @@ A deleted task's reminder goes within seconds; three small look and word points.
 - **Mac test.** `testTheReviewEndsWithReviewDone` on the Mac: `endOfTheReviewByKey()` (click the date row, End key) returns the button's frame read right after End, one click at that place; not recorded -> `XCTSkip`. Three GitHub runs showed one single match whose frame reads (0, 768, 0, 0) at rest and a real frame only right after the list moved; by hand (test copy, 900x450) the list is steady and a click records. Do not spend more rounds on it.
 - **Seen / not seen.** Seen: iPhone simulator, by day. Not seen: night, iPad, Mac, real devices.
 
+## Build 339 (18 November 2026)
+
+**A link to another app opens while you write.** One rule, one editor change.
+
+- **Rule.** Before: an ordinary `[words](address)` link opened only in Read; in Edit only `[[links]]` opened (Mac: ⌘-click). Now Core `MarkdownLinks` (`Core/Sources/ParagonCore/Markdown/MarkdownLinks.swift`): `matches(in:)` (a scheme is required; pictures `![..](..)` excluded), `mayOpen` (never `file`, `javascript`, `data`, `blob`, `about`), `opensAnotherApp` (not `http`, `https`, `mailto`, not PARAGON's own `amspara`), `link(at:in:)` anywhere on the link, `appLink(at:in:)` on the `[words]` only. Test: `MarkdownLinksTests`.
+- **Mac.** `commandClicked` in `App/Paragon/Views/MarkdownSyntaxEditor.swift` opens any such link; `resetCursorRects` gives the hand over the words; the colour is in `Core/Sources/ParagonCore/Markdown/MarkdownHighlight.swift` (same as `[[links]]`).
+- **iPhone and iPad.** A tap recogniser `linkTap` opens only a link to another app, on its words. A web link still gives the caret on a tap (nothing changes for existing links); the web is followed in Read.
+- **Trap.** A recogniser must only BEGIN on its target (`gestureRecognizerShouldBegin`), as the box tap of build 286: one that begins everywhere takes every tap away from the caret.
+- **Trap.** The Mac and iPhone editors work on the DISPLAY text, where a picture is a single character, not on the file text. Offsets from a click or tap must be mapped back, or the link found is the wrong one on a line with a picture before it.
+- **Why.** AMS Seedboard writes `[Open the board in Seedboard](seedboard://board/...)` into every note it makes from a board.
+- **Seen / not seen.** Not seen: a real iPhone or iPad, the Mac click.
+- **Docs.** VersionHistory, HowItWorks (the part **Linking notes with [[ ]]**, **Keyboard shortcuts**, new block "Exact details (build 339)"). There is no lowercase `docs/` folder. The header line of VersionHistory (version shown) is for the build bump.
+

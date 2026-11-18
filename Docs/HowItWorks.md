@@ -1560,6 +1560,8 @@ Type two square brackets in any note and a list of your notes appears under the 
 
 **Opening one.** Hold ⌘ and click the link on the Mac. On the iPhone, switch to **Read** with the button below the note and tap the link there. A plain click on the Mac still just puts the cursor where you clicked, so a link never gets in the way of writing. The pointer turns into a hand when it is over one.
 
+**Links to the web and to other apps (since build 339).** An ordinary link, written `[words](address)`, also opens while you write. On the Mac, hold ⌘ and click anywhere on it: a web page opens in the browser, a mail address in Mail, a link to another app in that app. The pointer turns into a hand over the words, and the words take the note's colour, like a `[[link]]`. On the iPhone and iPad, one tap on the words of a link that opens another app opens it, for example the line "Open the board in Seedboard" that AMS Seedboard writes into a note it made from a board. A tap on the words of a link to the web still puts the cursor there, as before; to follow a web link on the iPhone or iPad, switch to **Read**. A link to a file on the device never opens from a note, and a picture opens as a picture, as before.
+
 **Coming back.** Following a link takes you to the other note; **Back** brings you here again. On the Mac it is the ‹ button at the top left of the window, or ⌃⌘←, with ⌃⌘→ to go forward again — the same as a web browser, and it remembers the whole trail, not just the last step. On the iPhone the ordinary back arrow does it.
 
 **Press the name to open it.** **Linked notes** and **Tasks** are both boxes that fold. Press anywhere on the heading — the arrow at the left turns to show whether the box is open.
@@ -2771,6 +2773,7 @@ To see which version you have, look at **Settings › About**: **Version** says,
 - A key for quick capture from any app, if you chose one in **Settings › Quick capture** (since build 315; Mac): ⌃⌥Space, ⌃⇧Space or ⌃⌥⌘Space
 - Go menu (since build 314): ⌘1 Inbox, ⌘2 Today, ⌘3 Plan, ⌘4 All actions, ⌘5 Aspirations, and since build 315 ⌘6 Projects and ⌘7 Weekly review; ⌃⌘↑ closes the open note (the list goes full width again)
 - ⌃⌘← back to the note you came from, ⌃⌘→ forward again
+- ⌘-click a link in a note: opens a `[[link]]` to another note and, since build 339, a `[words](address)` link (Mac)
 - ⌘⌫ delete the open note (it waits in Deleted)
 - ⌃⌘D copy diagnostics, a log you can paste when reporting a problem
 - One click on the sync ring (since build 312; before, a right-click) shows **Sync now**, the sync preview and the last report
@@ -2899,3 +2902,10 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Close the day.** Unchanged: by itself the first 3 times, then the info mark.
 - **Review done on the Mac (tests only).** The test makes one direct press at the place where the button is read right after the End key; where that Mac cannot say where the button is, it is skipped with the reason written in it. iPhone and iPad as before.
 - **Not seen.** Night, iPad, Mac, real devices.
+
+## Exact details (build 339)
+
+- **The rule.** Core `MarkdownLinks` (`Core/Sources/ParagonCore/Markdown/MarkdownLinks.swift`), checked by `MarkdownLinksTests`. A link is `[words](address)` where the address starts with a scheme (such as `https:`, `mailto:` or `seedboard:`), has no space or bracket, and the words have no line break. Not a link: a picture (`![words](address)`) and an address without a scheme, which is a file path. Never opened from a note: schemes `file`, `javascript`, `data`, `blob` and `about`.
+- **Mac.** ⌘-click anywhere on `[words](address)`, brackets and address included, opens it (`commandClicked` in `App/Paragon/Views/MarkdownSyntaxEditor.swift`). A plain click still places the cursor. The pointer is a hand over the words (`resetCursorRects`), and `MarkdownHighlight` gives the words the colour of a `[[link]]`.
+- **iPhone and iPad.** One tap on the words, brackets included, of a link that opens another app opens it. A link to `http`, `https` or `mailto` does not count as another app, and nor does a link to PARAGON itself (`amspara:`): a tap on those puts the cursor there, as before. The tap recogniser (`linkTap`) only begins on such words, so a tap anywhere else, and on the box of a task, is handled as before.
+- **Not seen.** A real iPhone or iPad; the Mac click and hand were not tried on a real Mac either.
