@@ -129,3 +129,50 @@ final class CaptureTests: XCTestCase {
         XCTAssertEqual(Set(outbox.peek().map(\.text)), ["one", "two"])
     }
 }
+
+/// Build 341: a box ticked on a Seedboard board ticks its one task here.
+final class SeedboardDoneTests: XCTestCase {
+    private func line(_ words: String, place: String = "inbox", path: String? = nil, kind: String = "seedboardDone") -> Data {
+        let p = path.map { ",\"path\":\"\($0)\"" } ?? ""
+        return Data("{\"kind\":\"\(kind)\",\"words\":\"\(words)\",\"board\":\"Cabin\",\"place\":\"\(place)\"\(p),\"when\":\"2026-11-19T08:00:00Z\"}".utf8)
+    }
+    private func decode(_ data: Data) -> CaptureItem? {
+        let d = JSONDecoder(); d.dateDecodingStrategy = .iso8601
+        return try? d.decode(CaptureItem.self, from: data)
+    }
+
+    func testTicksTheOneMatchLeavesZeroOrTwoAndIgnoresUnknownKinds() throws {
+        let vault = try makeTemporaryVault()
+        defer { removeVault(vault) }
+        let date = Date(timeIntervalSince1970: 1_800_000_000)
+        try vault.capture(CaptureItem(text: "Buy fish"))
+        try vault.capture(CaptureItem(text: "Order tiles"))
+        try vault.capture(CaptureItem(text: "Order tiles"))
+        let fish = try XCTUnwrap(decode(line("Buy fish"))?.seedboardDone)
+        XCTAssertTrue(try vault.tickSeedboardDone(fish, at: date))
+        let inbox = try vault.loadNote(relativePath: "Inbox.md")
+        XCTAssertEqual(inbox.tasks.filter { $0.status == .done }.map(\.title), ["Buy fish"])
+        XCTAssertTrue(inbox.text.contains("- [x] Buy fish @done("))
+        // Already ticked, two matches, no match: nothing changes, nothing is created.
+        let before = inbox.text
+        for words in ["Buy fish", "Order tiles", "Never sent"] {
+            XCTAssertFalse(try vault.tickSeedboardDone(try XCTUnwrap(decode(line(words))?.seedboardDone), at: date))
+        }
+        XCTAssertEqual(try vault.loadNote(relativePath: "Inbox.md").text, before)
+        // In a named note; a missing note changes nothing.
+        let project = try vault.createNote(kind: .project, title: "Shed")
+        try vault.capture(CaptureItem(text: "Order timber", target: .note(path: project.relativePath)))
+        let timber = try XCTUnwrap(decode(line("Order timber", place: "note", path: project.relativePath))?.seedboardDone)
+        XCTAssertTrue(try vault.tickSeedboardDone(timber, at: date))
+        XCTAssertFalse(try vault.tickSeedboardDone(SeedboardDone(words: "x", board: "", place: "note", path: "Projects/Nope.md")))
+        // An unknown kind is skipped when read; a done line round-trips.
+        XCTAssertNil(decode(line("Buy fish", kind: "somethingNew")))
+        let e = JSONEncoder(); e.dateEncodingStrategy = .iso8601
+        let again = try JSONDecoder.iso.decode(CaptureItem.self, from: e.encode(try XCTUnwrap(decode(line("Buy fish")))))
+        XCTAssertEqual(again.seedboardDone?.words, "Buy fish")
+    }
+}
+
+private extension JSONDecoder {
+    static var iso: JSONDecoder { let d = JSONDecoder(); d.dateDecodingStrategy = .iso8601; return d }
+}

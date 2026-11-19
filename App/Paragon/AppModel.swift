@@ -4779,6 +4779,8 @@ final class AppModel: ObservableObject {
         guard let vault else { return 0 }
         var filed = 0
         var kept = 0
+        var ticked = 0
+        var tickLines = 0
         var flushed = false
         for url in Self.outboxURLs {
             let outbox = CaptureOutbox(fileURL: url)
@@ -4789,6 +4791,13 @@ final class AppModel: ObservableObject {
             let result = outbox.drain { item in
                 if !flushed { flushPendingEdits(); flushed = true }
                 do {
+                    // Build 341: a box ticked on a Seedboard board. It only ticks the one task it names;
+                    // it never files anything new.
+                    if let done = item.seedboardDone {
+                        if try vault.tickSeedboardDone(done, at: item.createdAt) { ticked += 1 }
+                        tickLines += 1
+                        return
+                    }
                     // On the day it was captured, not the day it is filed: a line kept for a note
                     // still coming from iCloud may be filed after midnight (build 261).
                     // Build 318: shared pictures and PDFs wait beside the outbox (`filesURL`).
@@ -4798,15 +4807,17 @@ final class AppModel: ObservableObject {
                     throw error
                 }
             }
-            filed += result.filed
+            filed += result.filed - tickLines
+            tickLines = 0
             kept += result.kept.count
             // Build 318: files of a share that was closed half-way, once they are a day old.
             if FileManager.default.fileExists(atPath: outbox.filesURL.path) {
                 SharedFiles.sweep(root: outbox.filesURL, keeping: Set(outbox.peek().map(\.id)).union(result.kept.map(\.id)))
             }
         }
-        guard filed + kept > 0 else { return 0 }
+        guard filed + kept + ticked > 0 else { return 0 }
         reload()
+        guard filed > 0 || kept > 0 else { return 0 }
         lastCaptureMessage = kept == 0
             ? "\(filed) captured item\(filed == 1 ? "" : "s") filed"
             : "\(filed) filed, \(kept) kept for later"

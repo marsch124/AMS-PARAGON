@@ -45,9 +45,15 @@ public struct CaptureItem: Codable, Equatable, Identifiable, Sendable {
     /// the `capture-files` folder (`SharedFiles`). Nil for every capture without files, and
     /// absent from the lines older builds wrote.
     public var files: [String]?
+    /// Build 341: a line Seedboard writes when a box is ticked on a board — "tick the one open
+    /// task with these words". Nil for every other capture. Such a line has no `id` and no
+    /// `text` of its own, so a PARAGON older than 341 cannot read it and skips it: it is never
+    /// filed as a new task. It is never filed as one here either (`Vault.tickSeedboardDone`).
+    public var seedboardDone: SeedboardDone?
 
     public init(id: UUID = UUID(), text: String, url: URL? = nil, target: CaptureTarget = .inbox, asTask: Bool = true, createdAt: Date = Date(),
-                files: [String]? = nil) {
+                files: [String]? = nil, seedboardDone: SeedboardDone? = nil) {
+        self.seedboardDone = seedboardDone
         self.files = files
         self.id = id
         self.text = text
@@ -58,6 +64,52 @@ public struct CaptureItem: Codable, Equatable, Identifiable, Sendable {
     }
 
     public static let urlScheme = "amspara"
+
+    private enum Keys: String, CodingKey {
+        case id, text, url, target, asTask, createdAt, files
+        case kind, words, board, place, path, when
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: Keys.self)
+        if let kind = try c.decodeIfPresent(String.self, forKey: .kind) {
+            // A kind this build does not know is skipped, never filed as a task.
+            guard kind == SeedboardDone.kind else {
+                throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "unknown kind")
+            }
+            let done = SeedboardDone(words: try c.decode(String.self, forKey: .words),
+                                     board: try c.decodeIfPresent(String.self, forKey: .board) ?? "",
+                                     place: try c.decodeIfPresent(String.self, forKey: .place) ?? "inbox",
+                                     path: try c.decodeIfPresent(String.self, forKey: .path))
+            self.init(id: UUID(), text: done.words, target: .inbox, asTask: false,
+                      createdAt: try c.decodeIfPresent(Date.self, forKey: .when) ?? Date(), seedboardDone: done)
+            return
+        }
+        self.init(id: try c.decode(UUID.self, forKey: .id), text: try c.decode(String.self, forKey: .text),
+                  url: try c.decodeIfPresent(URL.self, forKey: .url), target: try c.decode(CaptureTarget.self, forKey: .target),
+                  asTask: try c.decode(Bool.self, forKey: .asTask), createdAt: try c.decode(Date.self, forKey: .createdAt),
+                  files: try c.decodeIfPresent([String].self, forKey: .files))
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: Keys.self)
+        if let done = seedboardDone {
+            try c.encode(SeedboardDone.kind, forKey: .kind)
+            try c.encode(done.words, forKey: .words)
+            try c.encode(done.board, forKey: .board)
+            try c.encode(done.place, forKey: .place)
+            try c.encodeIfPresent(done.path, forKey: .path)
+            try c.encode(createdAt, forKey: .when)
+            return
+        }
+        try c.encode(id, forKey: .id)
+        try c.encode(text, forKey: .text)
+        try c.encodeIfPresent(url, forKey: .url)
+        try c.encode(target, forKey: .target)
+        try c.encode(asTask, forKey: .asTask)
+        try c.encode(createdAt, forKey: .createdAt)
+        try c.encodeIfPresent(files, forKey: .files)
+    }
 
     /// Parses `amspara://capture?text=...&url=...&target=inbox|today|<note path>&note=1`.
     public init?(url: URL) {
@@ -95,6 +147,59 @@ public struct CaptureItem: Codable, Equatable, Identifiable, Sendable {
         if clean.contains(url.absoluteString) { return TaskParser.collapseWhitespace(clean) }
         if clean.isEmpty { return "[\(url.host ?? url.absoluteString)](\(url.absoluteString))" }
         return TaskParser.collapseWhitespace(clean) + " [\(url.host ?? "link")](\(url.absoluteString))"
+    }
+}
+
+/// Build 341: what Seedboard says when a box that became one of this note's tasks is ticked on a board.
+public struct SeedboardDone: Equatable, Sendable {
+    public static let kind = "seedboardDone"
+    /// The task's words exactly as Seedboard sent them (without the box).
+    public var words: String
+    /// The board's title, for the log only.
+    public var board: String
+    /// "inbox" or "note".
+    public var place: String
+    /// For "note": the note's place in the folder, e.g. "Projects/Summer cabin.md".
+    public var path: String?
+
+    public init(words: String, board: String, place: String, path: String? = nil) {
+        self.words = words
+        self.board = board
+        self.place = place
+        self.path = path
+    }
+}
+
+public extension Vault {
+    /// Ticks the ONE open task with exactly these words in the Inbox, or in the named note, the way
+    /// PARAGON ticks tasks itself (`Note.complete`: `@done(day)`, and the next copy of a repeating one).
+    /// Found 0 times, 2 or more times, already ticked, or no such note: nothing is changed and false
+    /// comes back. It never creates a task. Throws only `notDownloadedYet` (the note is still coming
+    /// from iCloud), so the line waits for a later try.
+    @discardableResult
+    func tickSeedboardDone(_ done: SeedboardDone, at date: Date = Date()) throws -> Bool {
+        var note: Note
+        if done.place == "inbox" {
+            guard CloudFiles.exists(url(for: config.inboxFile)) else { return false }
+            note = try loadNote(relativePath: config.inboxFile)
+        } else {
+            guard let path = done.path, isNotePath(path), CloudFiles.exists(url(for: path)) else { return false }
+            note = try loadNote(relativePath: path)
+        }
+        func key(_ task: TaskItem) -> String {
+            var copy = task
+            copy.id = nil
+            copy.indent = ""
+            copy.status = .open
+            copy.doneStamp = nil
+            return copy.serialized
+        }
+        let wanted = key(TaskParser.normalized(TaskItem(title: done.words)))
+        let matches = note.tasks.filter { $0.status == .open && key($0) == wanted }
+        guard matches.count == 1, let task = matches.first else { return false }
+        _ = note.complete(task: task, at: date)
+        try save(note)
+        return true
     }
 }
 
