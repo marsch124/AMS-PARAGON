@@ -1,6 +1,22 @@
 # Version history
 
-The version is shown as 1.0 (340) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (341) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 341 · 19 November 2026
+
+**A task done on a Seedboard board is ticked here too.** One new thing, asked for in AMS Seedboard 0.11.
+
+**New.**
+- **Done in Seedboard ticks the task in PARAGON.** Before (build 340): when you sent a Seedboard timeline to PARAGON as a project, its bars and milestones became tasks here, and ticking a task here showed it done on the board, but marking a bar Done on the board changed nothing here. Now: Seedboard 0.11 leaves a small "done" line in the same waiting list it already uses for to-dos, and PARAGON reads it when it files the waiting lines (when the notes open, and on the Mac whenever PARAGON comes to the front). PARAGON then ticks the ONE open task with exactly those words in the place Seedboard sent it to (the Inbox, or the project or note made from the board), the same way you tick it yourself: `- [x] words @done(day)`.
+- **It never guesses.** If no open task has those words, if two tasks have them, if it is ticked already, or if the note is gone, PARAGON changes nothing and creates nothing; the line is simply dropped. Unticking on the board does nothing here. A note still arriving from iCloud keeps the line for the next time.
+
+**Unchanged.** Everything else of build 340. An older PARAGON (340) skips such a line safely: it is never filed as a new Inbox task.
+
+**Seen / not seen.**
+- **Seen:** the data test below; PARAGON builds on the Mac and starts and settles (launch check).
+- **Not seen:** a real board marked Done reaching your real notes, and a real iPhone or iPad.
+
+**Tests.** One new data test (`SeedboardDoneTests`): ticks the one match in the Inbox and in a note, leaves 0 or 2 matches alone, a missing note alone, skips an unknown kind, and the line reads back as written.
 
 ## Build 340 · 18 November 2026
 
