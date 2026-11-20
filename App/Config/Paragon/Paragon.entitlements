@@ -14,6 +14,8 @@
 	<true/>
 	<key>com.apple.security.personal-information.calendars</key>
 	<true/>
+	<key>com.apple.developer.healthkit</key>
+	<true/>
 	<!-- Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). -->
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>

@@ -114,6 +114,9 @@ targets:
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.files.bookmarks.app-scope: true
         com.apple.security.personal-information.calendars: true
+        # Round 350: the Health line in the daily note (iPhone and iPad; the Mac signs with its
+        # own entitlements file and never reads Health).
+        com.apple.developer.healthkit: true
         com.apple.security.application-groups: [group.com.schabbauer.amspara]
         # Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). The same three
         # keys are in Paragon-macOS.entitlements, which is kept by hand. NOT in the Mac Debug
