@@ -1,5 +1,6 @@
 import Foundation
 import EventKit
+import CoreLocation
 import ParagonCore
 
 /// Apple Reminders through EventKit. Each Reminders list is a "calendar" of type `.reminder`.
@@ -130,7 +131,8 @@ final class EventKitRemindersStore: RemindersStore {
             components.calendar = Calendar.current
             reminder.dueDateComponents = components
             // A timed due date only notifies when the reminder carries an alarm at that moment.
-            let alarms = reminder.alarms ?? []
+            // Place alarms (round 350) are left to `applyPlace`: only time alarms are handled here.
+            let alarms: [EKAlarm] = (reminder.alarms ?? []).filter { $0.structuredLocation == nil }
             if record.dueTime != nil, let moment = components.date {
                 if let alarm = alarms.first {
                     if alarm.absoluteDate != moment { alarm.absoluteDate = moment }
@@ -142,12 +144,44 @@ final class EventKitRemindersStore: RemindersStore {
             }
         } else {
             reminder.dueDateComponents = nil
-            for alarm in reminder.alarms ?? [] { reminder.removeAlarm(alarm) }
+            for alarm in reminder.alarms ?? [] where alarm.structuredLocation == nil { reminder.removeAlarm(alarm) }
         }
+        applyPlace(record.place, to: reminder)
         if record.isCompleted {
             reminder.completionDate = record.completedAt ?? reminder.completionDate ?? Date()
         } else {
             reminder.isCompleted = false
+        }
+    }
+
+    /// Round 350: a place alarm. Apple Reminders watches the place itself, so PARAGON needs no
+    /// location permission for it. Any place alarm already there is replaced by the wanted one,
+    /// and left alone when it already says the same.
+    private func applyPlace(_ place: ReminderPlace?, to reminder: EKReminder) {
+        let existing: [EKAlarm] = (reminder.alarms ?? []).filter { $0.structuredLocation != nil }
+        if let first = existing.first, let current = Self.place(from: first), current.fingerprint == place?.fingerprint, existing.count == 1 {
+            return
+        }
+        for alarm in existing { reminder.removeAlarm(alarm) }
+        guard let place else { return }
+        let location = EKStructuredLocation(title: place.name)
+        location.geoLocation = CLLocation(latitude: place.latitude, longitude: place.longitude)
+        location.radius = ReminderPlace.radius
+        let alarm = EKAlarm()
+        alarm.structuredLocation = location
+        alarm.proximity = place.arriving ? .enter : .leave
+        reminder.addAlarm(alarm)
+    }
+
+    /// The place a location alarm holds, or nil when it is not one PARAGON can read.
+    static func place(from alarm: EKAlarm) -> ReminderPlace? {
+        guard let location = alarm.structuredLocation, let geo = location.geoLocation else { return nil }
+        let name: String = location.title ?? ""
+        let cleaned: String = name.isEmpty ? "Place" : name
+        switch alarm.proximity {
+        case .enter: return ReminderPlace(name: cleaned, latitude: geo.coordinate.latitude, longitude: geo.coordinate.longitude, arriving: true)
+        case .leave: return ReminderPlace(name: cleaned, latitude: geo.coordinate.latitude, longitude: geo.coordinate.longitude, arriving: false)
+        default: return nil
         }
     }
 
@@ -163,7 +197,8 @@ final class EventKitRemindersStore: RemindersStore {
                        priority: Self.priority(fromEK: reminder.priority),
                        notes: reminder.notes,
                        lastModified: reminder.lastModifiedDate,
-                       createdAt: reminder.creationDate)
+                       createdAt: reminder.creationDate,
+                       place: (reminder.alarms ?? []).compactMap { Self.place(from: $0) }.first)
     }
 
     /// EventKit: 0 none, 1 high … 9 low. Notes: 0 none, 1 `!` … 3 `!!!`.

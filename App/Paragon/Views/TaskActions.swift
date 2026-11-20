@@ -68,6 +68,8 @@ struct TaskContextMenu: View {
     @Binding var pickingDate: Bool
     /// Opens **Who?** (build 279). The row owns the window, as it owns the date picker.
     @Binding var askingWho: Bool
+    /// Round 350: **Remind me at a place…** and **Person…**. The row owns the windows.
+    @Binding var linking: TaskLinkWindow?
     var onAddSubtask: (() -> Void)?
     var onRename: (() -> Void)?
     /// Handed in by the row, which can read where it is drawn; a context menu is built outside
@@ -158,6 +160,13 @@ struct TaskContextMenu: View {
                 Button { model.stopWaiting(ref) } label: { MarkLabel("Not waiting any more", "arrow.turn.left.up") }
             }
         }
+        // Round 350: a place the reminder rings at, and the person the task is about.
+        if !ref.task.isDone {
+            Button { linking = .place } label: { MarkLabel("Remind me at a place…", "mappin") }
+                .accessibilityIdentifier("task.menu.place")
+        }
+        Button { linking = .person } label: { MarkLabel("Person…", "person.linked") }
+            .accessibilityIdentifier("task.menu.person")
         Menu {
             TickedChoice(title: "Does not repeat", chosen: ref.task.repeatRule == nil) { model.setRepeat(ref, nil) }
             Divider()

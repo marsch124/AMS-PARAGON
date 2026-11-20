@@ -1859,6 +1859,7 @@ struct NoteHeader: View {
             }
             if note.kind != .inbox {
                 NoteTagsChip(model: model, note: note)
+                NotePeopleChip(model: model, note: note)
             }
             if note.kind.isTaskKind {
                 fact("Reminders list:", note.isSyncEnabled && !note.isArchived ? listName(for: note) : "Not synced")
@@ -1946,6 +1947,8 @@ struct TaskRow: View {
     @Environment(\.phoneLook) private var phoneLook
     /// **Who?** (build 279), opened by **Waiting for…** on the task menu.
     @State private var askingWho = false
+    /// Round 350: the place or person window of the task menu.
+    @State private var linking: TaskLinkWindow?
     @State private var renaming = false
     @State private var draft = ""
     @FocusState private var fieldFocused: Bool
@@ -2092,6 +2095,12 @@ struct TaskRow: View {
                         if let rule = ref.task.repeatRule {
                             RowFact(rule.label, "repeat")
                         }
+                        if let place = ref.task.place {
+                            RowFact(place.name, "mappin")
+                        }
+                        if let person = ref.task.person {
+                            RowFact(person, "person.linked")
+                        }
                         if showNote {
                             RowFact(ref.noteTitle, noteSymbol, shortens: true)
                                 .rowTint(tint.ink)
@@ -2108,6 +2117,9 @@ struct TaskRow: View {
                 WaitingWhoView(ref: ref, isPresented: $askingWho)
             }
             Spacer()
+                // Round 350: **Remind me at a place…** and **Person…** from the task menu. On the
+                // Spacer, because the title and the row already carry a window each (build 44).
+                .modifier(TaskLinkWindows(ref: ref, window: $linking))
             // How long it takes (build 248). A finished task keeps its time as plain words and
             // asks for nothing: "time?" on a ticked line would be a question with no use.
             // **Build 312 (flow-19): the dashed question only where the day is planned.** Core's
@@ -2212,7 +2224,7 @@ struct TaskRow: View {
         .draggable(TaskTransfer(ref))
         .contextMenu {
             TaskContextMenu(ref: ref, showNote: showNote, pickingDate: $pickingDate,
-                            askingWho: $askingWho,
+                            askingWho: $askingWho, linking: $linking,
                             onAddSubtask: onAddSubtask, onRename: startRenaming,
                             offersFocus: focusBarShown)
         }

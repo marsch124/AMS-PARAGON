@@ -244,6 +244,8 @@ struct ContentView: View {
                     // Build 317: tasks ticked on a widget, and the focus timer's Live Activity.
                     model.applyWidgetTicks()
                     model.syncFocusActivity()
+                    // Round 350: today's steps and workouts, when the switch in Settings is on.
+                    model.updateHealthLine()
                     #if os(iOS)
                     // Build 348: summaries of recorded thoughts that did not finish while locked.
                     if #available(iOS 26.0, *) {

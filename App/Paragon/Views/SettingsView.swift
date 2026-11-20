@@ -363,6 +363,8 @@ struct SettingsView: View {
             #if os(iOS)
             // Build 348: the language of Record a thought.
             VoiceSection()
+            // Round 350: the health line in the daily note (off until switched on).
+            HealthLineSection()
             #endif
             SystemSearchSection()
 

@@ -812,6 +812,8 @@ public final class SyncEngine {
         reminder.dueDate = task.dueDate
         reminder.dueTime = task.dueDate == nil ? nil : task.dueTime
         reminder.priority = task.priority
+        // The note is the truth for a place (round 350): a task with none takes it off.
+        reminder.place = task.place
         if task.isDone {
             if !reminder.isCompleted {
                 reminder.completedAt = task.doneDate ?? now()
@@ -831,6 +833,8 @@ public final class SyncEngine {
         task.dueDate = reminder.dueDate
         task.dueTime = reminder.dueDate == nil ? nil : reminder.dueTime
         task.priority = reminder.priority
+        // A place set in Apple Reminders is taken over; none there never clears the note's.
+        if let place = reminder.place { task.place = place }
         if reminder.isCompleted && !task.isDone {
             task.markDone(at: reminder.completedAt ?? now())
         } else if !reminder.isCompleted && task.isDone {
@@ -890,18 +894,25 @@ public final class SyncEngine {
     /// The part of a task or reminder that both sides share.
     public static func fingerprint(_ task: TaskItem, parentPrefix: String? = nil) -> String {
         fingerprint(title: reminderTitle(for: task.title, parentPrefix: parentPrefix), done: task.isDone,
-                    due: task.dueDate, time: task.dueDate == nil ? nil : task.dueTime, priority: task.priority)
+                    due: task.dueDate, time: task.dueDate == nil ? nil : task.dueTime, priority: task.priority,
+                    place: task.place)
     }
 
     public static func fingerprint(_ reminder: ReminderRecord) -> String {
         // Without a `@deadline(…)` a build 315 device left in the title: the deadline is not
         // part of what the two sides share, so its coming and going is no change.
         fingerprint(title: withoutDeadlineMark(singleLine(reminder.title)), done: reminder.isCompleted,
-                    due: reminder.dueDate, time: reminder.dueDate == nil ? nil : reminder.dueTime, priority: reminder.priority)
+                    due: reminder.dueDate, time: reminder.dueDate == nil ? nil : reminder.dueTime, priority: reminder.priority,
+                    place: reminder.place)
     }
 
-    private static func fingerprint(title: String, done: Bool, due: DateOnly?, time: TimeOfDay?, priority: Int) -> String {
-        "\(TaskParser.collapseWhitespace(title))|\(done ? 1 : 0)|\(due?.description ?? "")\(time.map { "T\($0)" } ?? "")|\(priority)"
+    private static func fingerprint(title: String, done: Bool, due: DateOnly?, time: TimeOfDay?, priority: Int,
+                                    place: ReminderPlace? = nil) -> String {
+        let base: String = "\(TaskParser.collapseWhitespace(title))|\(done ? 1 : 0)|\(due?.description ?? "")\(time.map { "T\($0)" } ?? "")|\(priority)"
+        // A place is added only when there is one, so every link made before round 350 keeps
+        // the fingerprint it was stored with.
+        guard let place else { return base }
+        return base + "|@" + place.fingerprint
     }
 
     // MARK: Marker in the reminder notes

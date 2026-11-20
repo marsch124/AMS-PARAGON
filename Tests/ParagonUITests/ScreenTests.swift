@@ -2339,7 +2339,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations, search }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations, search, tags }
 
     // MARK: The look (1.0, build 280)
 
@@ -2649,6 +2649,7 @@ final class ScreenTests: XCTestCase {
         case .areas: return ["sidebar.Areas"]
         case .aspirations: return ["sidebar.Aspirations"]
         case .search: return ["sidebar.Search"]
+        case .tags: return ["sidebar.Tags"]
         }
     }
 
@@ -2677,6 +2678,7 @@ final class ScreenTests: XCTestCase {
         case .areas: return ["tab.browse", "browse.Areas"]
         case .aspirations: return ["tab.browse", "browse.Aspirations"]
         case .search: return ["tab.browse", "browse.Search"]
+        case .tags: return ["tab.browse", "browse.Tags"]
         }
     }
 
@@ -4309,6 +4311,20 @@ final class ScreenTests: XCTestCase {
         cancel.press()
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: element("voiceWords.add"))
         waitForExpectations(timeout: 20)
+    }
+
+    /// Round 350: the People page is behind a switch on the Tags screen and says it is empty
+    /// when nobody is linked. (The Mac's Tools group folds, so only the phone walks here.)
+    func testThePeoplePageIsBehindASwitchOnTheTagsScreen() {
+        go(to: .tags)
+        let switcher = element("tags.people.switch")
+        XCTAssertTrue(switcher.waitForExistence(timeout: 20),
+                      "The Tags screen has no Tags / People switch. On screen: \(visibleTexts())")
+        let people = switcher.buttons["People"]
+        XCTAssertTrue(people.waitForExistence(timeout: 10), "The switch has no People part. On screen: \(visibleTexts())")
+        people.tap()
+        XCTAssertTrue(element("people.empty").waitForExistence(timeout: 10),
+                      "The People page did not say that nobody is linked yet. On screen: \(visibleTexts())")
     }
     #endif
 }
