@@ -2464,6 +2464,30 @@ final class ScreenTests: XCTestCase {
         waitForExpectations(timeout: 10)
     }
 
+    /// Build 347, his pick "option 3": the "What is next?" card shows two tiles and Not now,
+    /// and Not now closes it.
+    func testTheWhatNextCardShowsTwoTiles() {
+        app.launchArguments += ["-paragon-what-next"]
+        app.launch()
+        #if os(macOS)
+        bringTheAppToTheFront()
+        #endif
+        let card = element("whatnext.card")
+        XCTAssertTrue(card.waitForExistence(timeout: appears),
+                      "The What is next? card did not show. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("whatnext.add").exists, "No New project tile.")
+        XCTAssertTrue(element("whatnext.done").exists, "No Goal reached tile.")
+        let notNow = element("whatnext.notNow")
+        XCTAssertTrue(notNow.exists, "No Not now.")
+        #if os(macOS)
+        notNow.pressCentre()
+        #else
+        notNow.press()
+        #endif
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: card)
+        waitForExpectations(timeout: 10)
+    }
+
     #if os(iOS)
     /// Build 324: a list opened from Browse has Apple's own search field, "Search in Projects".
     /// It hangs under the title (pull down); a word that matches nothing gives "Nothing found".

@@ -1,6 +1,20 @@
 # Version history
 
-The version is shown as 1.0 (346) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (347) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 347 · 20 November 2026
+
+**"What is next?" is now PARAGON's own card with two big tiles.** After your pick of option 3 from the four pictures.
+
+**Changed: the question when a project ends.**
+- Before (build 346): Apple's standard question box. On the iPhone it floated as a small bubble with grey buttons "Add a project…", "Mark the goal done" and a "Not now" line; the goal's name was small grey text.
+- Now: a card in the middle of the screen over a dimmed page, on iPhone, iPad and Mac. Heading **What is next?**, under it "for" and the goal's name in goal gold. Two big tiles side by side: **New project** (green, the project flag in a full green circle, small words "keep going") and **Goal reached** (gold, the goal target in a full gold circle, small words "mark it done"). Under them a **Not now** text button. A tap on the dimmed page, or Escape on the Mac, is also Not now.
+- **New project** opens New Note already set to a project serving this goal, as before. **Goal reached** marks the goal Done with today's ended day, as before.
+- **One tile.** **Goal reached** shows only when the project was marked Done and the goal is not an aspiration (the same rule as before). Then **New project** fills the whole width alone.
+- **An aspiration (a life goal).** Heading **What is next?**, "for" and the aspiration's name, and one tile, **New goal** (the goal target in gold, "keep going"), which opens New Note set to a goal serving that aspiration. Before: the buttons were "Add a goal…" and "Not now".
+- **Signs in this app.** One new line: the two tiles.
+
+**Unchanged.** When the question is asked, what the buttons do, and everything else of build 346.
 
 ## Build 346 · 20 November 2026
 

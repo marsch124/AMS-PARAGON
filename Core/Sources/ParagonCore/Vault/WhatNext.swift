@@ -82,6 +82,22 @@ public struct WhatNextQuestion: Equatable, Sendable {
     /// **Mark the goal done** is offered only after Done, and never for an aspiration.
     public var offersDone: Bool { projectWasDone && !isAspiration }
 
+    // Build 347, his pick "option 3, two big tiles": the card's own words.
+
+    /// The card's heading.
+    public static let cardTitle = "What is next?"
+
+    /// The small word before the goal's name under the heading: "for Walk the Kungsleden".
+    public static let forWord = "for"
+
+    /// The tile that makes new work, and its small second line.
+    public var addTileTitle: String { isAspiration ? "New goal" : "New project" }
+    public static let addTileHint = "keep going"
+
+    /// The tile that marks the goal done, and its small second line.
+    public static let doneTileTitle = "Goal reached"
+    public static let doneTileHint = "mark it done"
+
     public static let doneTitle = "Mark the goal done"
     public static let notNowTitle = "Not now"
 

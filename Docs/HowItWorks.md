@@ -62,6 +62,7 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 
 ## Signs in this app
 
+- **Two tiles in "What is next?"** — green flag tile = start a new project for this goal; gold target tile = the goal is reached, mark it done.
 - **Marks beside words (since build 346)** — every mark in front of words (a task circle, a dot, a badge, an arrow) sits on the middle of the first line of those words. A dot in a project row stands in the same column as an icon.
 - **Round arrow at the end of a calendar event** — open it in Calendar. White by day, black at night; the calendar's own colour is the dot in front of the event.
 
@@ -944,11 +945,11 @@ Older words still read as they always did: `achieved` and `completed` mean Done,
 
 ### What is next for this goal?
 
-When you mark a project **Done**, **Missed** or **Dropped**, PARAGON looks at the goal the project worked for. If nothing else is working on that goal, a short question comes up on the screen you are on. It does not matter whether you marked the project in its own note, in **Projects** or in the weekly **Review**. The question reads **What is next for this goal?**. Under it, one sentence says: Nothing is working on "(the goal's name)" now. It has up to three buttons:
+When you mark a project **Done**, **Missed** or **Dropped**, PARAGON looks at the goal the project worked for. If nothing else is working on that goal, a card comes up in the middle of the screen, over a dimmed page, on the iPhone, the iPad and the Mac (since build 347; before, it was Apple's standard question box). It does not matter whether you marked the project in its own note, in **Projects** or in the weekly **Review**. The card reads **What is next?**, and under it "for" and the goal's name in goal gold. It has two big tiles side by side and a **Not now** button under them:
 
-- **Add a project…** opens **New** on **Project**. The goal is already chosen in the button that otherwise says **Serves a goal…**. Write the name and press **Save**.
-- **Mark the goal done** is there only after **Done**. It marks the goal itself Done, with its own day, and a short message at the bottom of the window says so.
-- **Not now** closes the question and changes nothing.
+- **New project** (green, the project flag in a green circle, small words "keep going") opens **New** on **Project**. The goal is already chosen in the button that otherwise says **Serves a goal…**. Write the name and press **Save**.
+- **Goal reached** (gold, the goal target in a gold circle, small words "mark it done") is there only after **Done**. It marks the goal itself Done, with its own day, and a short message at the bottom of the window says so. When it is not there, **New project** fills the whole width alone.
+- **Not now** closes the card and changes nothing. So does a tap on the dimmed page around the card, and on the Mac the Escape key.
 
 When the question comes, and when it does not:
 
@@ -957,8 +958,8 @@ When the question comes, and when it does not:
 - If the goal has itself ended or been archived, nothing is asked.
 - While notes are still coming from iCloud, or iCloud is updating some, nothing is asked. PARAGON cannot know yet that nothing else works on the goal, and a wrong answer could lead you to mark the goal done. The goal's own page still has **Add a project…**.
 - If you mark several projects one after another in the **Review**, the question comes once for each goal that is left with nothing.
-- An aspiration is never finished. If a project that serves an aspiration directly ends and nothing else works towards it, the question reads **What is next for this aspiration?** and the buttons are **Add a goal…** and **Not now**. There is no **Mark the goal done** for an aspiration.
-- Marking a goal Done with **Mark the goal done** does not start a second question about the aspiration above it.
+- An aspiration is never finished. If a project that serves an aspiration directly ends and nothing else works towards it, the card reads **What is next?** for the aspiration's name, and has one tile, **New goal** (the goal target in gold, small words "keep going"), which opens **New** set to a goal serving that aspiration, and **Not now**. There is no **Goal reached** for an aspiration.
+- Marking a goal Done with **Goal reached** does not start a second question about the aspiration above it.
 - A reminder that you press while the question is on screen opens when you have answered it.
 - After **Not now**, the goal's own page still has **Add a project…** (see **Adding a project from its goal**).
 
@@ -1112,7 +1113,7 @@ The per cent never says 100 until everything really is finished, and never says 
 - **Evening reminder.** In **Settings › Evening reminder**, turn on **Remind me to close the day** and choose a time (21:00 unless you change it). PARAGON then sends one notification a day at that time. Press it and **Close the day** opens. Turn the switch off and it stops.
 - **The explanation in picking and in Close the day (since build 312).** **Close the day** shows its paragraph of explanation by itself the first 3 times you open the screen; from the 4th time there is only a small hand-drawn info mark, called **What to do here**; press it to show the paragraph, and again to hide it. Picking on **Today** has the info mark from the very first time (since build 338; before, it showed the paragraph by itself the first 3 times, like **Close the day**). Since build 337 the paragraph under the field while picking is short. Before: four to five sentences (55 words with **Use task times** on, 46 with it off), about half an iPhone screen. Now, with task times on: "Press Pick on what matters today. Each pick becomes a block in today's plan; a task with no time asks how long first." (22 words); with task times off: "Press Pick on the two or three that matter most today. Each pick becomes a one-hour block in today's plan." (20 words). It is folded behind the info mark from the first time (since build 338); the list of tasks starts about 2 lines higher on the iPhone. The one-line hints under the fields are unchanged. Before, both paragraphs were shown every day and pushed the tasks down the screen.
 - **Both reminders work the same way.** The first time you turn one on, the iPhone or the Mac asks whether PARAGON may send notifications. That one answer is for both reminders and for the focus timer. Under the time, Settings says when the next reminder will come, for example "Next reminder: tomorrow at 07:30", or with the day when it is further away: "Next reminder: Saturday 2026-11-14 at 07:30". Times are always 24 hours. If no reminder can come, it says why in orange and where to change it. Each part has its own **Try it now**, which sends the same notification once, so you can try it now. Press that notification and the same screen opens as from the real one. Below the button it says what happened: when it was sent, and 15 seconds later whether the iPhone or the Mac delivered it. The iPhone and the Mac each have their own switches and times. A Focus mode, such as Do Not Disturb, can hold a notification back, and PARAGON cannot see that.
-- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New**, nothing is closed and nothing you typed is lost: **Today** in picking or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, or the question **What is next for this goal?** is on screen, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan** windows do not open it.
+- **When you press a reminder and a screen is already open.** If it is the same screen, it stays as it is, with what you typed in it. If another screen is open, such as **New**, nothing is closed and nothing you typed is lost: **Today** in picking or **Close the day** opens as soon as you close that screen. If the focus timer's question is open, or the card **What is next?** is on screen, it opens after you have answered it. On the Mac, if the main PARAGON window is closed, it opens when you next open the main window. The Settings, Help and **Plan** windows do not open it.
 - **Close the day** is one page you work down and finish. From the top:
   - **Did not happen**: everything still open that was due today or earlier. Each has a
     **Tomorrow** button and a **Day…** button for another date, and **Move all to tomorrow** is

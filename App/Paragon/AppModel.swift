@@ -141,7 +141,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 346
+    static let number = 347
 }
 
 @MainActor
@@ -458,6 +458,11 @@ final class AppModel: ObservableObject {
             UserDefaults.standard.set(true, forKey: SettingsBlockFold.flippedKey)
             if let url = try? TestVault.make() {
                 openVault(at: url)
+                // Build 347: the one screen test of the two-tile card asks for it by name.
+                if ProcessInfo.processInfo.arguments.contains(TestVault.whatNextArgument),
+                   let goal = note(at: TestVault.whatNextGoalPath) {
+                    whatNext = WhatNextQuestion(goal: goal, projectWasDone: true)
+                }
             } else {
                 vaultProblem = "The test notes folder could not be made."
             }

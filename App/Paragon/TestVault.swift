@@ -38,6 +38,11 @@ enum TestVault {
     /// screen. Without it the test vault starts straight on the app, as every other test needs.
     static let startScreenArgument = "-paragon-start-screen"
 
+    /// Build 347: passed by the screen test of the "What is next?" card, which then shows for
+    /// the sample goal as if its last project had just been marked Done.
+    static let whatNextArgument = "-paragon-what-next"
+    static let whatNextGoalPath = "Goals/Walk the Kungsleden in one go.md"
+
     /// Wipes what an earlier test run left behind. The simulator keeps the app's container
     /// between runs, so without this a stored section, a remembered note or an `editorMode`
     /// would decide what the next test sees — which is the very thing that made builds 123 to

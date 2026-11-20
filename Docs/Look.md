@@ -459,3 +459,13 @@ Since build 312 (review round 6, "iPhone flow").
 - **Project panel chips**: the status chip uses `Txt.value` like its neighbours, so every chip is one height.
 - **Start screen**: weekday (`Txt.sectionTitle`, white), date (`Txt.value`, monospaced digits, quiet grey), 18 points, then a leading-aligned block of two rows (mark 18 pt white, 10 points, words `Txt.value` quiet grey, 8 points apart), centred as a block. No hint, no version.
 - **Calendar event button**: `arrow.up.right` in the text colour on the page ground (`PlatformColor.systemBackgroundColour`) with a 0.5-point edge; the event dot keeps the calendar colour with a 0.5-point edge at 30 % text colour.
+
+## 21. What is next? card (build 347)
+
+- **Card.** Centred on the screen, maximum width 340, corner radius 18, page ground colour, 16-point padding. Same on iPhone, iPad and Mac.
+- **Dim layer.** Black 35 % (iPhone, iPad) / 25 % (Mac). A tap on it is **Not now**.
+- **Heading.** "What is next?" in `Txt.sectionTitle`. Under it the "for" line: "for" in `Txt.label` soft, then the goal's (or aspiration's) name semibold in `ChainTint` gold.
+- **Tiles.** Side by side, 8 points apart, corner radius 14, fill = the tint at 14 %. Each has a mark, 18 pt white, in a 36-point full-colour circle; the title in `Txt.listTitle` in the tint's ink; small words in `Txt.listSecond`. Left: "New project", project green, flag mark, "keep going". Right: "Goal reached", gold, goal target mark, "mark it done". With one tile only (no "Goal reached"), it fills the whole width. For an aspiration the one tile is "New goal", gold, goal target mark, "keep going".
+- **Not now.** A plain text button under the tiles, `Txt.value` soft; keyboard shortcut Escape.
+- **Motion.** Appears with a 0.2 s fade and a scale from 0.96.
+- **Identifiers.** `whatnext.card`, `whatnext.add`, `whatnext.done`, `whatnext.notNow`.

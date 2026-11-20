@@ -89,49 +89,137 @@ extension AppModel {
     }
 }
 
-/// The question itself, one `confirmationDialog` at the window's root beside the "Something went
-/// wrong" alert (build 271). A `ViewModifier`, so `ContentView`'s long chain gets one line.
+/// The question itself (build 271), since build 347 PARAGON's own card — his pick "option 3,
+/// two big tiles" from four drawn options. Apple's `confirmationDialog` floated on the iPhone as
+/// a small bubble with grey buttons and the goal's name in small grey words; it cannot be
+/// styled. The card lies over the whole window on a dimmed page, on every device.
 ///
-/// **The buttons are built by a plain function**, and each press is handed the question, never
-/// reading it back from the model: the dialog clears `whatNext` as it closes, and which of the
-/// button's action and the binding's setter runs first is not something to rely on. The same
-/// shape as the Delete question in `NoteListView`.
-///
-/// **Untested from here**: that the dialog really appears on the iPhone a turn after a Menu
-/// closes. CI compiles it but never presses the status Menu (its items carry no identifier, build
-/// 191), so his field test is the first look.
+/// **Each press is handed the question**, never reading it back from the model, and the card
+/// clears `whatNext` a turn later (`afterUpdate`), as the dialog did: the same rules as before,
+/// only the look is new. Not now, a tap on the dimmed page and Escape on the Mac close it.
 struct WhatNextDialog: ViewModifier {
     @EnvironmentObject private var model: AppModel
 
     func body(content: Content) -> some View {
         content
-            .confirmationDialog(title, isPresented: presented, titleVisibility: Visibility.visible,
-                                presenting: model.whatNext) { question in
-                buttons(for: question)
-            } message: { question in
-                Text(question.line)
+            .overlay {
+                if let question = model.whatNext {
+                    WhatNextCard(question: question,
+                                 add: { model.addWorkForWhatNext(question) },
+                                 done: {
+                                     model.afterUpdate { model.whatNext = nil }
+                                     model.markGoalDone(question)
+                                 },
+                                 notNow: { model.afterUpdate { model.whatNext = nil } })
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                }
             }
+            .animation(Motion.isReduced ? nil : .easeOut(duration: 0.2), value: model.whatNext)
+    }
+}
+
+/// The card: "What is next?", the goal's name in gold, two big tiles and **Not now**.
+struct WhatNextCard: View {
+    let question: WhatNextQuestion
+    let add: () -> Void
+    let done: () -> Void
+    let notNow: () -> Void
+
+    /// The goal's gold; a deeper gold for an aspiration, as on the Goals page.
+    private var goalTint: Color {
+        question.isAspiration ? ChainTint.aspiration : ChainTint.datedGoal
     }
 
-    private var title: String {
-        model.whatNext?.title ?? "What is next for this goal?"
-    }
+    /// New work for a goal is a project (green flag); for an aspiration it is a goal (gold target).
+    private var addTint: Color { question.isAspiration ? ChainTint.datedGoal : ParaKind.project.tint }
+    private var addMark: String { question.isAspiration ? ChainSymbol.datedGoal : ChainSymbol.project }
 
-    /// The setter clears the question a turn later, like `errorPresented`: it runs inside
-    /// SwiftUI's own update.
-    private var presented: Binding<Bool> {
-        Binding(get: { model.whatNext != nil },
-                set: { shown in
-                    if !shown { model.afterUpdate { model.whatNext = nil } }
-                })
-    }
-
-    @ViewBuilder
-    private func buttons(for question: WhatNextQuestion) -> some View {
-        Button(question.addTitle) { model.addWorkForWhatNext(question) }
-        if question.offersDone {
-            Button(WhatNextQuestion.doneTitle) { model.markGoalDone(question) }
+    var body: some View {
+        ZStack {
+            Color.black.opacity(dim)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture(perform: notNow)
+                .accessibilityHidden(true)
+            card
         }
-        Button(WhatNextQuestion.notNowTitle, role: .cancel) { }
+    }
+
+    private var dim: Double {
+        #if os(macOS)
+        0.25
+        #else
+        0.35
+        #endif
+    }
+
+    private var card: some View {
+        VStack(spacing: 0) {
+            Text(WhatNextQuestion.cardTitle)
+                .font(Txt.sectionTitle)
+                .foregroundStyle(.primary)
+            (Text(WhatNextQuestion.forWord + " ").foregroundColor(.secondary)
+             + Text(question.goalName).fontWeight(.semibold).foregroundColor(goalTint.ink))
+                .font(Txt.value)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 3)
+                .accessibilityIdentifier("whatnext.goal")
+            HStack(spacing: 8) {
+                tile(title: question.addTileTitle, hint: WhatNextQuestion.addTileHint,
+                     mark: addMark, tint: addTint, id: "whatnext.add", action: add)
+                if question.offersDone {
+                    tile(title: WhatNextQuestion.doneTileTitle, hint: WhatNextQuestion.doneTileHint,
+                         mark: ChainSymbol.datedGoal, tint: ChainTint.datedGoal, id: "whatnext.done", action: done)
+                }
+            }
+            .padding(.top, 14)
+            Button(WhatNextQuestion.notNowTitle, action: notNow)
+                .buttonStyle(.plain)
+                .font(Txt.value)
+                .foregroundStyle(.secondary)
+                .padding(.top, 12)
+                .padding(.bottom, 2)
+                .keyboardShortcut(.cancelAction)
+                .accessibilityIdentifier("whatnext.notNow")
+        }
+        .padding(16)
+        .frame(maxWidth: 340)
+        .background(Color(PlatformColor.systemBackgroundColour), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+        .padding(.horizontal, 24)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("whatnext.card")
+    }
+
+    /// One big tile: the mark white in a full-colour circle, the title in the tint's ink, and
+    /// what pressing it does in small words under it — the screen says what the tap does.
+    private func tile(title: String, hint: String, mark: String, tint: Color, id: String,
+                      action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                MarkImage(mark, size: 18)
+                    .foregroundStyle(Color.white)
+                    .frame(width: 36, height: 36)
+                    .background(tint.deep, in: Circle())
+                Text(title)
+                    .font(Txt.listTitle)
+                    .foregroundStyle(tint.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Text(hint)
+                    .font(Txt.listSecond)
+                    .foregroundStyle(tint.ink.opacity(0.8))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 6)
+            .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(title), \(hint)")
+        .accessibilityIdentifier(id)
     }
 }
