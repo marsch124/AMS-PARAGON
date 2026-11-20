@@ -52,6 +52,9 @@ public struct TaskItem: Equatable, Sendable {
     /// `@moved(5)`: how many times the do-day was moved to a later day (round 350, pick 48). Nil
     /// when never. Counted by `settingDue`; never sent to Reminders, since it is not in the title.
     public var moved: Int?
+    /// `@snooze(2026-11-24)`: an Inbox line put aside until that day (round 350). It is out of the
+    /// Inbox list and its counts until the day comes. Not sent to Reminders.
+    public var snooze: DateOnly?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
     public var indent: String
@@ -79,7 +82,8 @@ public struct TaskItem: Equatable, Sendable {
                 deadline: DateOnly? = nil,
                 place: ReminderPlace? = nil,
                 person: String? = nil,
-                moved: Int? = nil) {
+                moved: Int? = nil,
+                snooze: DateOnly? = nil) {
         self.status = status
         self.title = title
         self.dueDate = dueDate
@@ -99,6 +103,7 @@ public struct TaskItem: Equatable, Sendable {
         self.place = place
         self.person = person
         self.moved = moved.flatMap { $0 > 0 ? $0 : nil }
+        self.snooze = snooze
     }
 
     public var isDone: Bool { status == .done || status == .cancelled }
@@ -171,6 +176,7 @@ public struct TaskItem: Equatable, Sendable {
         // A new copy has not started waiting (build 279).
         copy.since = nil
         copy.moved = nil
+        copy.snooze = nil
         copy.lineIndex = -1
         return copy
     }
@@ -195,6 +201,7 @@ public struct TaskItem: Equatable, Sendable {
         }
         if let person { parts.append("@person(\(person))") }
         if let moved, moved > 0 { parts.append("@moved(\(moved))") }
+        if let snooze { parts.append("@snooze(\(snooze))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
         if let id { parts.append("^\(id)") }
         return "\(indent)\(bullet) [\(status.rawValue)] \(parts.joined(separator: " "))"
@@ -527,6 +534,8 @@ public enum TaskParser {
     static let personRegex = try! NSRegularExpression(pattern: #"(?<!\S)@person\(([^)]*)\)"#)
     /// `@moved(5)` (round 350), written like `@since(...)`.
     static let movedRegex = try! NSRegularExpression(pattern: #"(?<!\S)@moved\((\d{1,3})\)"#)
+    /// `@snooze(2026-11-24)` (round 350), written like `@since(...)`.
+    static let snoozeRegex = try! NSRegularExpression(pattern: #"(?<!\S)@snooze\((\d{4}-\d{2}-\d{2})\)"#)
     static let tagRegex = try! NSRegularExpression(pattern: #"(?<!\S)#([\p{L}\p{N}_/\-]+)"#)
 
     /// Parses a single line. Returns nil when the line is not a task.
@@ -553,6 +562,7 @@ public enum TaskParser {
         var unreadPlace: String?
         var person: String?
         var moved: Int?
+        var snooze: DateOnly?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
@@ -569,6 +579,7 @@ public enum TaskParser {
         }
         rest = extract(personRegex, from: rest) { person = PersonName.clean($0) ?? person }
         rest = extract(movedRegex, from: rest) { moved = Int($0) ?? moved }
+        rest = extract(snoozeRegex, from: rest) { snooze = DateOnly($0) ?? snooze }
         let restNS = rest as NSString
         if let due = dueRegex.firstMatch(in: rest, range: NSRange(location: 0, length: restNS.length)) {
             dueDate = DateOnly(restNS.substring(with: due.range(at: 1)))
@@ -585,7 +596,7 @@ public enum TaskParser {
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
                         indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline,
-                        place: place, person: person, moved: moved)
+                        place: place, person: person, moved: moved, snooze: snooze)
             .keepingUnreadRepeat(unreadRepeat)
             .keepingUnreadPlace(unreadPlace)
     }

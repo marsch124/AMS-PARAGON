@@ -56,6 +56,13 @@ struct QuickCaptureView: View {
     /// very words are in the field they stay plain text.
     @State private var ignoredDateWords: String?
 
+    // Round 350 (capture-inbox): many lines pasted (28), saved-count for dictation (26), and a
+    // save that waits for the place name (32).
+    @State private var askingMany = false
+    @State private var manyLines: [String] = []
+    @State private var savedCount = 0
+    @State private var filing = false
+
     /// A date written in plain words ("tomorrow 14:00"), when the capture is a task and he has
     /// not taken it away. A note line keeps its words: only a task carries a date.
     private var plainDate: PlainDate? {
@@ -96,6 +103,7 @@ struct QuickCaptureView: View {
             }
         }
         .onChange(of: text) { _, now in if !now.isEmpty { onTyped?() } }
+        .onChange(of: text) { old, now in noticePaste(from: old, to: now) }
         .popover(isPresented: $showingSyntax) { CaptureSyntaxHelp() }
         .sheet(isPresented: $pickingDate) {
             // Round 8 (build 315): the same date window as a task's, with its **At** line, so
@@ -149,6 +157,7 @@ struct QuickCaptureView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     readBack
+                    duplicateNote
                     addRow
                     intoRow
                     asRow
@@ -160,6 +169,7 @@ struct QuickCaptureView: View {
         }
         .padding(embedded ? 0 : 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .modifier(manyLinesDialog)
         .overlay(alignment: .top) { flight }
         // Build 312 (review round 6): ONE Save, top right in the bar, full colour; the one
         // Cancel is the bar's, top left. The wide Save at the foot and the second Cancel
@@ -207,6 +217,7 @@ struct QuickCaptureView: View {
                 .onSubmit(save)
                 .accessibilityIdentifier("capture.text")
             readBack
+            duplicateNote
             addRow
             HStack {
                 Picker("Save to", selection: $target) {
@@ -237,6 +248,7 @@ struct QuickCaptureView: View {
         }
         .padding(embedded ? 0 : (compact ? 12 : 20))
         .frame(width: deskWidth)
+        .modifier(manyLinesDialog)
     }
 
     /// 1.0: as a sheet of its own the Mac capture gets the bar with Cancel and Save at the top
@@ -333,8 +345,51 @@ struct QuickCaptureView: View {
             AddChip(title: "!") { insert("!") }
             AddChip(title: "!!") { insert("!!") }
             CaptureTagsChip(model: model, tags: tagChoice)
+            DictateChip(text: $text, stopWhen: savedCount)
+            ScanListChip { lines in commit(lines) }
         }
         .lineLimit(1)
+    }
+
+    /// Pick 29: the same line is already waiting in the Inbox. Only a note under the field —
+    /// **Save** still works, because writing the same thing twice is sometimes meant.
+    @ViewBuilder
+    private var duplicateNote: some View {
+        if isDuplicateOfInbox {
+            MarkLabel("Already in the Inbox", "tray", text: .footnote)
+                .font(Txt.label)
+                .foregroundStyle(SidebarSection.inbox.tint.ink)
+                .accessibilityIdentifier("capture.duplicate")
+        }
+    }
+
+    private var isDuplicateOfInbox: Bool {
+        guard target == .inbox, !asNote, canSave, !CaptureLines.isMany(text) else { return false }
+        let titles: [String] = InboxItems.waiting(model).map { $0.task.title }
+        return CaptureLines.isInInbox(lineToSave, among: titles)
+    }
+
+    // MARK: Many lines at once (pick 28)
+
+    /// Asks **Make N tasks?** when one change put two lines or more into the field.
+    private func noticePaste(from old: String, to now: String) {
+        guard CaptureLines.pastedMany(from: old, to: now) else { return }
+        manyLines = CaptureLines.split(now)
+        askingMany = true
+    }
+
+    private var manyLinesDialog: ManyLinesDialog {
+        ManyLinesDialog(isPresented: $askingMany,
+                        title: CaptureLines.question(count: manyLines.count, asTask: !asNote),
+                        each: { fileEach() },
+                        one: { askingMany = false })
+    }
+
+    private func fileEach() {
+        askingMany = false
+        let lines: [String] = manyLines.map { asNote ? $0 : PlainDate.line($0, understoodOn: .today(), ignoring: nil) }
+        manyLines = []
+        commit(lines)
     }
 
     @ViewBuilder
@@ -399,11 +454,35 @@ struct QuickCaptureView: View {
     private func save() {
         let trimmed = lineToSave.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        model.capture(text: trimmed, target: target, asTask: !asNote)
+        commit([trimmed])
+    }
+
+    /// Saves each line. With **Add the place name** on (Settings, pick 32) the place is looked
+    /// up first — a few seconds at most — and added to every line; with no answer the lines
+    /// are saved as written. The same path for a typed line, a pasted list and a scan.
+    private func commit(_ lines: [String]) {
+        guard !filing, !lines.isEmpty else { return }
+        if CapturePlace.isOn {
+            filing = true
+            Task { @MainActor in
+                let place: String? = await CapturePlace.shared.name()
+                file(lines.map { CaptureLines.placed($0, at: place) })
+                filing = false
+            }
+        } else {
+            file(lines)
+        }
+    }
+
+    private func file(_ lines: [String]) {
+        for line in lines { model.capture(text: line, target: target, asTask: !asNote) }
         text = ""
         ignoredDateWords = nil
+        savedCount += 1
         withAnimation(Motion.arrive) {
-            confirmation = model.lastCaptureMessage ?? "Saved"
+            confirmation = lines.count > 1
+                ? "Saved \(lines.count) \(asNote ? "notes" : "tasks")"
+                : (model.lastCaptureMessage ?? "Saved")
             flying = true
         }
         onSaved?()

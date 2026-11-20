@@ -990,7 +990,7 @@ final class AppModel: ObservableObject {
     /// Nothing here reads every note: those numbers are in `sidebarCounts` (hardening 07).
     func count(for section: SidebarSection) -> Int {
         switch section {
-        case .inbox: return note(at: vault?.config.inboxFile)?.openTasks.count ?? 0
+        case .inbox: return note(at: vault?.config.inboxFile)?.awaitingTasks().count ?? 0
         case .today: return sidebarCounts.dueByToday + (todayNote?.openTasks.count ?? 0)
         case .calendar, .map, .search: return 0
         case .recent: return recentNotes.count
@@ -1987,7 +1987,7 @@ final class AppModel: ObservableObject {
         guard notesWaitingForCloud.isEmpty else { return }
         // The same expression `ReviewReport` uses, so the widget's number and the review's
         // number are the same number.
-        let inbox = index.notes(kind: .inbox).first?.openTasks.count ?? 0
+        let inbox = index.notes(kind: .inbox).first?.awaitingTasks().count ?? 0
         var snapshot = index.widgetSnapshot(inboxCount: inbox,
                                             dueForReview: dueForReview().count,
                                             events: widgetEvents())
@@ -2897,6 +2897,13 @@ final class AppModel: ObservableObject {
 
     /// Build 332: the line **Search…** in **File it** was pressed for: the search page is up.
     @Published var filingSearch: TaskRef?
+
+    // Round 350 (capture-inbox)
+    /// The Inbox line **Snooze until…** was pressed for: the day window is up (`SnoozeSheetHost`).
+    @Published var snoozeAsking: TaskRef?
+    /// The Inbox's **Select** mode (pick 31) and the lines ticked in it (`TaskRef.triageID`).
+    @Published var inboxSelecting = false
+    @Published var inboxPickedIDs: Set<String> = []
 
     /// Whether **File it** offers **Search…**: with the groups, from seven places on.
     func filingOffersSearch(among places: [Note]) -> Bool {
@@ -4875,6 +4882,8 @@ final class AppModel: ObservableObject {
     func handle(url: URL) {
         // Build 329: a link names a place, so the start screen steps aside.
         arrived(by: .link)
+        // Round 350 (capture-inbox): the Control Center / Lock Screen buttons (Capture, Record).
+        if handleCaptureControlLink(url) { return }
         // The **Today's plan** widget (build 273): Time Blocks, on today. Checked before anything
         // else, and with an empty host: a note link has the note's title as its host.
         if WidgetSnapshot.opensPlan(url) {

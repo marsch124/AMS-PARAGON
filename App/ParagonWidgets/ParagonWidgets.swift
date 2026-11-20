@@ -592,6 +592,11 @@ struct ParagonWidgetBundle: WidgetBundle {
         VoiceLiveActivityWidget()
         // Build 326: the wide Today widget, for the iPad's largest size.
         TodayWideWidget()
+        // Round 350 (picks 21 and 33): the two buttons for Control Center and the Lock Screen.
+        if #available(iOS 18.0, *) {
+            CaptureControl()
+            RecordThoughtControl()
+        }
     }
     #endif
 }
