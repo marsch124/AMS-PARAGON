@@ -156,6 +156,11 @@ struct ContentView: View {
                 OneThingView()
                     .environmentObject(model)
                     .environment(\.focusBarShown, false)
+            case .voiceCheck:
+                // Round 350: check what was just recorded, or throw it away.
+                VoiceCheckView()
+                    .environmentObject(model)
+                    .environment(\.focusBarShown, false)
             case .settings:
                 NavigationStack {
                     SettingsView()
@@ -251,6 +256,8 @@ struct ContentView: View {
                     if #available(iOS 26.0, *) {
                         Task { await VoiceRecorder.shared.finishLateSummaries() }
                     }
+                    // Round 350: a recorded thought waits for its check.
+                    model.presentVoiceCheckIfWaiting()
                     #endif
                 }
             case .inactive, .background:
@@ -966,6 +973,8 @@ struct NoteListView: View {
                 SnippetsView()
             } else if shown == .tags {
                 TagsView()
+            } else if shown == .voiceNotes {
+                VoiceNotesView()
             } else if shown == .search {
                 SearchView()
             } else if shown == .aspirations, !searching {
@@ -1498,6 +1507,11 @@ struct DetailView: View {
             // The day: the calendar beside your own blocks, on one hour ruler. The same view
             // fills the floating window, where the actions come with it.
             PlannerDayView()
+        } else if model.section == .voiceNotes, model.selectedNotePath == nil {
+            EmptyStateView(title: "Voice notes",
+                           markName: SidebarSection.voiceNotes.markName,
+                           message: "Every thought you recorded, newest first. Open one to read it.",
+                           tint: SidebarSection.voiceNotes.tint)
         } else if model.section == .tags, model.selectedNotePath == nil {
             EmptyStateView(title: "Tags",
                            markName: SidebarSection.tags.markName,
@@ -1598,6 +1612,7 @@ extension SidebarSection {
         case .templates: return Color("ResourceTint")
         case .snippets: return Color("InboxTint")
         case .tags: return Color("AreaTint")
+        case .voiceNotes: return Color("InboxTint")
         case .review: return Color("ReviewTint")
         case .map: return Color("GoalTint")
         case .search: return Color("ResourceTint")

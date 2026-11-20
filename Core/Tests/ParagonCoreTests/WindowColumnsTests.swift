@@ -21,8 +21,8 @@ final class WindowColumnsTests: XCTestCase {
     func testTheSidebarGroupsFoldAndNumberTheFirstFive() {
         XCTAssertEqual(SidebarGroups.all.map(\.name), ["Do", "Goals and PARA", "Look back", "Tools"])
         let rows = SidebarGroups.all.flatMap(\.rows)
-        XCTAssertEqual(rows.count, 19)
-        XCTAssertEqual(Set(rows).count, 19)
+        XCTAssertEqual(rows.count, 20)
+        XCTAssertEqual(Set(rows).count, 20)
         XCTAssertFalse(rows.contains("Search"))
         XCTAssertEqual(SidebarGroups.numbered, ["Inbox", "Today", "Time Blocks", "All actions", "Aspirations", "Projects", "Weekly review"])
         XCTAssertEqual(SidebarGroups.folded(in: nil), ["Tools"])

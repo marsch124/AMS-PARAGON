@@ -32,9 +32,19 @@ struct VoiceActivityAttributes: ActivityAttributes {
         var length: String
         /// Build 349: the thought is meant for today's daily note, not the Inbox.
         var intoToday = false
+        /// Round 350: recording is paused. The clock stands still and shows `length`.
+        var paused = false
+        /// Round 350: seconds spent paused so far; the running clock counts from
+        /// `startedAt` plus this.
+        var pausedSeconds: Double = 0
+        /// Round 350: how many moments he marked with **Mark**.
+        var marks = 0
 
-        static func listening(_ words: String, intoToday: Bool = false, heard: Int = 0) -> Self {
-            Self(stage: .listening, words: words, title: "", tasksFound: heard, length: "", intoToday: intoToday)
+        static func listening(_ words: String, intoToday: Bool = false, heard: Int = 0,
+                              length: String = "", paused: Bool = false, pausedSeconds: Double = 0,
+                              marks: Int = 0) -> Self {
+            Self(stage: .listening, words: words, title: "", tasksFound: heard, length: length,
+                 intoToday: intoToday, paused: paused, pausedSeconds: pausedSeconds, marks: marks)
         }
     }
 
@@ -50,6 +60,30 @@ enum VoiceActivityBridge {
     static var stop: (@MainActor (String) async -> Void)?
     /// Makes the app's model, which hands `stop` in. Set by the app's delegate at launch.
     static var wake: (@MainActor () -> Void)?
+
+    /// Round 350: **Pause** / **Go on** and **Mark** on the Lock Screen.
+    static var pause: (@MainActor () async -> Void)?
+    static var mark: (@MainActor () async -> Void)?
+
+    static func runPause() async {
+        if pause == nil { wake?() }
+        var waited = 0
+        while pause == nil, waited < 40 {
+            try? await Task.sleep(for: .milliseconds(100))
+            waited += 1
+        }
+        await pause?()
+    }
+
+    static func runMark() async {
+        if mark == nil { wake?() }
+        var waited = 0
+        while mark == nil, waited < 40 {
+            try? await Task.sleep(for: .milliseconds(100))
+            waited += 1
+        }
+        await mark?()
+    }
 
     static func runStop(_ place: String = "") async {
         if stop == nil { wake?() }
@@ -77,6 +111,29 @@ struct StopVoiceIntent: LiveActivityIntent {
 
     func perform() async throws -> some IntentResult {
         await VoiceActivityBridge.runStop(place)
+        return .result()
+    }
+}
+
+/// Round 350: **Pause** (and **Go on**) on the Lock Screen: the microphone rests, the clock stops,
+/// the same note goes on when he presses again.
+struct PauseVoiceIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Pause or go on recording the thought"
+    static var isDiscoverable: Bool = false
+
+    func perform() async throws -> some IntentResult {
+        await VoiceActivityBridge.runPause()
+        return .result()
+    }
+}
+
+/// Round 350: **Mark** on the Lock Screen: the sentence being said is kept in bold in the note.
+struct MarkVoiceIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Mark this moment"
+    static var isDiscoverable: Bool = false
+
+    func perform() async throws -> some IntentResult {
+        await VoiceActivityBridge.runMark()
         return .result()
     }
 }

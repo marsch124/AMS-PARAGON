@@ -60,6 +60,8 @@ enum Marks {
         // (a head and shoulders, not the circled person of Waiting for).
         "mappin": .init(kind: .drawn(Marks.mappinPath)),
         "person.linked": .init(kind: .drawn(Marks.personLinkedPath)),
+        // Round 350 (voice-controls): a microphone, for the Voice notes page.
+        "voice": .init(kind: .drawn(Marks.voicePath)),
         // Build 343: a Google notebook linked to a Resource — the ringed notebook from the
         // AMS-Icons catalog ("notebook"), so it is not mistaken for Linked notes' chain link.
         "notebook": .init(kind: .drawn(Marks.notebookPath)),
@@ -176,6 +178,9 @@ enum Marks {
     /// One thing (build 332): a ring with the figure 1 in it.
     /// Notebook (build 343): the AMS-Icons catalog's "notebook" drawing, a book with rings.
     static let notebookPath = "M6 3.5h11.5c.6 0 1 .4 1 1v15c0 .6-.4 1-1 1H6Z M4.5 7h3 M4.5 12h3 M4.5 17h3 M10 8h5.5 M10 12h5.5"
+
+    /// Round 350: a microphone — a rounded body, the cradle round it, a stem and a foot.
+    static let voicePath = "M12 3.5a3 3 0 0 1 3 3V12a3 3 0 0 1-6 0V6.5a3 3 0 0 1 3-3Z M6.5 11a5.5 5.5 0 0 0 11 0 M12 16.5V20.5 M9 20.5h6"
 
     static let oneThingPath = "M12 3.5A8.5 8.5 0 1 0 12 20.5A8.5 8.5 0 1 0 12 3.5Z M10 9.8L12.6 8V16"
 

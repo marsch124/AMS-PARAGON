@@ -56,7 +56,7 @@ public enum SidebarGroups {
         Group(name: "Goals and PARA",
               rows: ["Aspirations", "Goals", "Projects", "Areas", "Resources", "Archive"], foldedAtFirst: false),
         Group(name: "Look back",
-              rows: ["Calendar", "Weekly review", "Map", "Recent", "Done", "Deleted"], foldedAtFirst: false),
+              rows: ["Calendar", "Weekly review", "Map", "Recent", "Voice notes", "Done", "Deleted"], foldedAtFirst: false),
         Group(name: "Tools", rows: ["Templates", "Snippets", "Tags"], foldedAtFirst: true),
     ]
 

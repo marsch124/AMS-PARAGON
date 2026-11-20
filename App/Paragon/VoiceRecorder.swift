@@ -71,6 +71,13 @@ final class VoiceRecorder {
     private var locale = Locale(identifier: "en-US")
     // Round 350 (voice-words): "stop recording" said out loud stops once.
     private var stopHeardAlready = false
+    // Round 350 (voice-controls): Pause / Go on and Mark on the Lock Screen.
+    private(set) var isPaused = false
+    private var pausedAt: Date?
+    /// Seconds spent paused in earlier pauses of this recording.
+    private var pausedTotal: TimeInterval = 0
+    /// Where each **Mark** came: the length of the cleaned transcript at that moment.
+    private var markOffsets: [Int] = []
 
     var transcript: String {
         [finished, volatile].joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -86,6 +93,10 @@ final class VoiceRecorder {
         place = target == .today ? .today : .inbox
         stopHeardAlready = false
         startedAt = Date()
+        isPaused = false
+        pausedAt = nil
+        pausedTotal = 0
+        markOffsets = []
         finished = ""
         volatile = ""
         isRecording = true
@@ -176,7 +187,7 @@ final class VoiceRecorder {
             try engine.start()
             self.engine = engine
             startedAt = Date()
-            await showActivity(.listening("Listening…", intoToday: intoToday))
+            await showActivity(listeningState("Listening…"))
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 
             limit = Task { @MainActor [weak self] in
@@ -220,7 +231,10 @@ final class VoiceRecorder {
         }
         limit?.cancel()
         limit = nil
-        let duration = Date().timeIntervalSince(startedAt)
+        // Round 350: the time spent paused is not part of the length.
+        let duration = elapsed
+        isPaused = false
+        pausedAt = nil
         let length = VoiceThought.clock(duration)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         await tearDown()
@@ -229,6 +243,7 @@ final class VoiceRecorder {
         // Round 350 (voice-words): the odd words put right, then the title, tags and ideas he said.
         thought.readWords(replacements: Self.savedWords(), linkTitles: AppModel.shared.voiceLinkTitles())
         let english = Self.wantsEnglish()
+        thought.marks = markOffsets
         guard !thought.isEmpty else {
             await showActivity(.init(stage: .nothing, words: "Nothing heard — nothing saved", title: "", tasksFound: 0, length: length, intoToday: intoToday),
                                endAfter: 60)
@@ -267,6 +282,7 @@ final class VoiceRecorder {
                                           day: intoToday ? day.description : nil, english: english))
             }
             let tasks = thought.finalTasks.count
+            afterFiling(path: filed.path, title: title, thought: thought, day: day, locale: locale.identifier)
             await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length, intoToday: intoToday), endAfter: 180)
             return .saved(title: title, tasks: tasks)
         }
@@ -294,11 +310,66 @@ final class VoiceRecorder {
     // MARK: Lock Screen
 
     private func showWords() {
-        guard isRecording, Date().timeIntervalSince(lastShown) >= 1 else { return }
+        guard isRecording, !isPaused, Date().timeIntervalSince(lastShown) >= 1 else { return }
         lastShown = Date()
         let words = VoiceThought.liveTail(transcript)
-        let heard = VoiceThought.spokenTasks(in: transcript).count
-        Task { await showActivity(.listening(words.isEmpty ? "Listening…" : words, intoToday: intoToday, heard: heard)) }
+        Task { await showActivity(listeningState(words.isEmpty ? "Listening…" : words)) }
+    }
+
+    /// Round 350: the Lock Screen card while recording, with the pause and the marks it holds.
+    private func listeningState(_ words: String) -> VoiceActivityAttributes.ContentState {
+        .listening(words, intoToday: intoToday, heard: VoiceThought.spokenTasks(in: transcript).count,
+                   length: isPaused ? VoiceThought.clock(elapsed) : "", paused: isPaused,
+                   pausedSeconds: pausedTotal, marks: markOffsets.count)
+    }
+
+    /// How long it has been recording, without the pauses.
+    private var elapsed: TimeInterval {
+        (pausedAt ?? Date()).timeIntervalSince(startedAt) - pausedTotal
+    }
+
+    /// **Pause** and **Go on** are one button on the Lock Screen.
+    func togglePause() async {
+        if isPaused { await resume() } else { await pause() }
+    }
+
+    /// Round 350: **Pause**. The microphone rests and the clock stops; the speech session stays
+    /// open, so **Go on** continues into the same note.
+    func pause() async {
+        guard isRecording, !isPaused, let engine else { return }
+        engine.pause()
+        pausedAt = Date()
+        isPaused = true
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        let words = VoiceThought.liveTail(transcript)
+        await showActivity(listeningState(words.isEmpty ? "Paused" : words))
+    }
+
+    /// Round 350: **Go on**. The time spent paused is not counted.
+    func resume() async {
+        guard isRecording, isPaused, let engine else { return }
+        do {
+            try engine.start()
+        } catch {
+            // The microphone would not start again: stay paused, and say so.
+            await showActivity(listeningState("Could not go on. Press Stop to keep what you said."))
+            return
+        }
+        if let pausedAt { pausedTotal += Date().timeIntervalSince(pausedAt) }
+        pausedAt = nil
+        isPaused = false
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        let words = VoiceThought.liveTail(transcript)
+        await showActivity(listeningState(words.isEmpty ? "Listening…" : words))
+    }
+
+    /// Round 350: **Mark**. The sentence being said now is kept in bold in the note.
+    func mark() async {
+        guard isRecording else { return }
+        markOffsets.append(VoiceThought.clean(transcript).count)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        let words = VoiceThought.liveTail(transcript)
+        await showActivity(listeningState(words.isEmpty ? "Listening…" : words))
     }
 
     private func showActivity(_ state: VoiceActivityAttributes.ContentState, endAfter: TimeInterval? = nil) async {

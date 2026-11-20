@@ -32,6 +32,9 @@ public struct VoiceThought: Equatable, Sendable {
     public var chapters: [VoiceChapter] = []
     /// Round 350: titles of notes that exist; a first mention in the words becomes a `[[link]]`.
     public var linkTitles: [String] = []
+    /// Round 350: **Mark** on the Lock Screen. Each is how many characters of the cleaned
+    /// transcript were there when it was pressed; `VoiceMarks` turns them into sentences.
+    public var marks: [Int] = []
 
     public init(transcript: String, title: String? = nil, summary: String? = nil, tasks: [String] = [],
                 recordedAt: Date, duration: TimeInterval) {
@@ -254,9 +257,17 @@ public struct VoiceThought: Equatable, Sendable {
             lines += ["", "## Ideas", ""]
             lines += ideas.map { "- " + $0 }
         }
-        let full: String = chapters.isEmpty ? VoiceWords.linking(Self.clean(transcript), titles: linkTitles)
+        // Round 350: a marked sentence is bold, and listed again below. The list comes after
+        // Full text on purpose: `enriched` adds tasks just above Full text.
+        let marked = VoiceMarks.marked(Self.clean(transcript), offsets: marks)
+        let full: String = chapters.isEmpty ? VoiceWords.linking(marked.text, titles: linkTitles)
             : VoiceChapters.markdown(chapters, linking: linkTitles)
         lines += ["", "## Full text", "", full, ""]
+        if !marked.sentences.isEmpty {
+            lines += ["## Marked", ""]
+            lines += marked.sentences.map { "- " + $0 }
+            lines.append("")
+        }
         return lines.joined(separator: "\n")
     }
 

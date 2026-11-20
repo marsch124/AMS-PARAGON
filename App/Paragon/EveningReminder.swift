@@ -477,6 +477,13 @@ final class ReminderAppDelegate: NSObject, UIApplicationDelegate {
             VoiceActivityBridge.stop = { place in
                 _ = await VoiceRecorder.shared.stopAndFile(into: place == "today" ? .today : place == "inbox" ? .inbox : nil)
             }
+            // Round 350 (voice-controls): Pause / Go on and Mark on the same Live Activity.
+            VoiceActivityBridge.pause = {
+                await VoiceRecorder.shared.togglePause()
+            }
+            VoiceActivityBridge.mark = {
+                await VoiceRecorder.shared.mark()
+            }
         }
         EveningReminder.shared.start()
         return true

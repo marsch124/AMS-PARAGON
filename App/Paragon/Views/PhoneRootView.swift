@@ -453,6 +453,7 @@ extension AppModel {
             return "\(projects) \(projects == 1 ? "project" : "projects") in \(areas) \(areas == 1 ? "area" : "areas")"
         case .search: return "Notes, tasks and words"
         case .today: return DayWords.withWeekday(DateOnly.today())
+        case .voiceNotes: return "Spoken notes, newest first"
         case .recent, .snippets, .tags, .work, .aspirations, .kind: return inAll()
         }
     }
@@ -491,7 +492,7 @@ struct PhoneBrowseView: View {
         // 183, and a second door into one room is what build 166 argued against.
         // Round 6 (build 312): Search is the field at the top of this screen and Recent is the
         // strip under it, so neither is a row down here any more.
-        ("Plan", [.calendar, .review, .map, .done, .deleted]),
+        ("Plan", [.calendar, .review, .map, .voiceNotes, .done, .deleted]),
         ("Tools", SidebarSection.tools),
     ]
 
@@ -659,7 +660,7 @@ struct PhoneSectionScreen: View {
     /// Search, Templates and Snippets are not (the Search screen has its own field).
     private var isSearchable: Bool {
         switch section {
-        case .kind, .aspirations, .allActions, .done, .recent, .deleted, .tags, .work: return true
+        case .kind, .aspirations, .allActions, .done, .recent, .deleted, .tags, .work, .voiceNotes: return true
         default: return false
         }
     }
