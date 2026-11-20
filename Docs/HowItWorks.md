@@ -10,7 +10,7 @@ Throughout: **right-click** on the Mac is **hold** (a long press) on the iPhone.
 
 ## The start screen
 
-At every fresh start, PARAGON shows a calm start screen first, on the iPhone, the iPad and the Mac (since build 329). It has the dark slate ground of the app icon, the same by day and by night, with the icon's white drawing, the name **PARAGON**, the day, one line of what is waiting, the words **Tap to start**, and the version at the foot.
+At every fresh start, PARAGON shows a calm start screen first, on the iPhone, the iPad and the Mac (since build 329). It has the dark slate ground of the app icon, the same by day and by night, with the icon's white drawing, the name **PARAGON**, the weekday on its own line and the date under it, and then two lines, each with its mark: the calendar mark with what is due today ("Nothing due today" or "3 due today"), and the Inbox tray with the Inbox ("Inbox empty" or "1 in the Inbox"). Since build 346 there are no words at the foot: tap it, click it or press any key to start.
 
 - **It waits for you.** It does not go away by itself. On the iPhone and the iPad, tap it. On the Mac, click it or press any key.
 - **What is waiting.** One line such as "3 due today · 1 in the Inbox". **Due today** counts open tasks due today or earlier, deadlines included, the archive left out: the same number as the **Today** row. The Inbox number is the open tasks in the Inbox note. A zero is said in words: "Nothing due today", "Inbox empty". The numbers appear as soon as your notes have opened; until then only the day shows.
@@ -61,6 +61,9 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 **Buttons on a Mac sheet (since build 322).** **Cancel**, **Stop**, **Close** and **Not now** beside the coloured main button are drawn by PARAGON, on 9 sheets: a soft grey fill, the same shape and height as the main button. The outline that shows where the keyboard is now sits exactly round the button. Before, it was wider than Apple's grey button (on **Stop** the grey filled about 80 % of it). The touch shape of the main button also has the same corners as its fill. The iPhone and the iPad are unchanged.
 
 ## Signs in this app
+
+- **Marks beside words (since build 346)** — every mark in front of words (a task circle, a dot, a badge, an arrow) sits on the middle of the first line of those words. A dot in a project row stands in the same column as an icon.
+- **Round arrow at the end of a calendar event** — open it in Calendar. White by day, black at night; the calendar's own colour is the dot in front of the event.
 
 Every mark and colour that means something, in a few plain words. A mark means one thing in the whole app.
 
@@ -2938,7 +2941,7 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 
 ## Exact details (build 329)
 
-- **Rule.** `StartScreenRule` (Core, `Model/StartScreenRule.swift`). `Opening`: `byHand`, `link`, `shortcut`, `reminder`, `systemSearch`, `test`. `shows(_:)` is true only for `byHand`. `dayLine` is "Monday 2026-11-16" (`DayWords.withWeekday`). `waitingLine(due:inbox:)` is "3 due today  ·  1 in the Inbox"; a zero reads "Nothing due today" and "Inbox empty". `hint(mac:)` is "Tap to start" or "Click or press a key to start". `versionLine` is "1.0 (329)". Tests: `StartScreenRuleTests`.
+- **Rule.** `StartScreenRule` (Core, `Model/StartScreenRule.swift`). `Opening`: `byHand`, `link`, `shortcut`, `reminder`, `systemSearch`, `test`. `shows(_:)` is true only for `byHand`. `dayLine` is "Monday 2026-11-16" (`DayWords.withWeekday`). Since build 346: `weekdayLine` ("Friday") and `dateLine` ("2026-11-20") are the two lines of the screen; `dueLine(_:)` is "3 due today" or "Nothing due today"; `inboxLine(_:)` is "1 in the Inbox" or "Inbox empty". No hint and no version on the screen. `versionLine` is "1.0 (329)" (Settings). Tests: `StartScreenRuleTests`.
 - **Numbers.** Due is `SidebarCounts.dueByToday`: open tasks due today or earlier, deadlines included, archive left out. Inbox is the open tasks in the Inbox note. Both are shown once the notes have opened; until then only the day.
 - **View.** `StartScreen` in `App/Paragon/Views/StartScreen.swift`, identifier `start.screen`. `AppModel.startScreenUp` and `leaveStartScreen(_:)`. It stays until a tap (Mac: a click or any key). It does not time out. A widget line, a note link, a Siri or Shortcuts action, a reminder press or a system-search note leaves it at once or never shows it. Coming back from the background does not show it again.
 - **Welcome page.** While PARAGON finds its own folder at a start (`ownFolder.opening`), `WelcomeView` draws only a `ProgressView` "Opening your notes…" (`welcome.opening`). The welcome page itself ("PARAGON", the text about choosing a folder) shows only when there is no notes folder, and it carries the app icon as a tile (`AppIconTile`, 64 pt) in place of the four coloured squares of the logo before build 311. `IconDrawing` draws the icon's tick and three squares from the numbers in `Tools/make_icon.py`.

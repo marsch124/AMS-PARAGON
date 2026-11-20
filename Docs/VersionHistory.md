@@ -1,6 +1,29 @@
 # Version history
 
-The version is shown as 1.0 (345) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (346) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 346 · 20 November 2026
+
+**Everything lines up, the start screen is calmer, and the calendar buttons on Today are readable.** After your picture of a task row whose circle sat above its words.
+
+**Fixed: marks beside words.**
+- **Task circles.** Before (build 345): the circle in front of a task stood on the bottom line of the words, so it sat about 5 points above the middle of the first line (in the Tasks card, in a note's text, on Today, in the Inbox and in All actions). Now: the middle of the circle is on the middle of the first line, also when the task wraps onto two or three lines.
+- **Every drawn mark beside words.** The same fault was in about a dozen more places: the arrow and the badge in front of a group heading on Projects, the goal badge on Goals, the marks on Done, in Settings, in the weekly look and in the goal choices. Now every mark beside words sits on the middle of the first line, everywhere in the app.
+- **Project rows.** Before: a project with an icon started its name 28 points further right than a project with only a dot, and the dot sat about 4 points high. Now: the dot stands in the same 30-point column as an icon, so every project name starts at one place down the list, and the dot is on the middle of the name's line.
+- **A goal heading that starts with an emoji.** Before: "🌳 Keep living (curious, …)" on two lines put its second line under the emoji. Now: the emoji stands on its own and the second line starts under "Keep".
+- **The List view of Projects.** Before: the column heading "Project" stood above the dots, 15 points left of the names. Now: it starts where the names start.
+- **The chips in a project's panel.** Before: "Active" was smaller than "In area…", "Set a deadline…" and "Tags…" beside it. Now: all chips have the same text size and the same height.
+- **Side edges.** The switch on All actions, the capture line in the Inbox and the rows in the Plan tray now start on the same edge as the rows under them (16 points); they were 6, 4 and 4 points off. The "Settings block" arrow in a note now stands under the arrows of the cards above it (it was 14 points further left).
+- **"##" on its own line.** Before: in the read view, a heading you had begun but not written ("##") showed as the two signs. Now: it shows nothing until it has words.
+
+**Changed: the start screen.**
+- Before: "Friday 2026-11-20" on one line, "Nothing due today · Inbox empty" on one line, "Tap to start" and the version at the foot.
+- Now: **Friday** on its own line and **2026-11-20** under it; then two lines, each with its mark: the calendar mark and "Nothing due today" (or "3 due today"), and the Inbox tray and "Inbox empty" (or "1 in the Inbox"). The two marks stand one above the other and the words start at one place. No "Tap to start" and no version: a tap, a click or any key still starts, as before; the version is in Settings › About and at the foot of the sidebar. The same on iPhone, iPad and Mac.
+
+**Fixed: readability on Today.**
+- **The button at the right end of a calendar event.** Before: it was drawn in the calendar's own colour, so a yellow calendar gave a pale yellow arrow on a pale yellow ring, hard to see on Today's lilac card. Now: a white round button (black at night) with the arrow in the text colour, readable for every calendar. The calendar's colour stays on the dot in front of the event, which now has a thin edge so a pale colour still shows.
+
+**Unchanged.** What every button does, and everything else of build 345.
 
 ## Build 345 · 20 November 2026
 

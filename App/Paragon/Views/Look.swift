@@ -948,3 +948,46 @@ extension View {
         #endif
     }
 }
+
+/// Build 346, his "I hate out-of-alignment stuff": a mark beside words sits on the middle of
+/// their FIRST line. In an `HStack(alignment: .firstTextBaseline)` a drawn mark has no text,
+/// so SwiftUI stood its bottom on the words' baseline and the mark hung half a line too high
+/// (the tick circle beside a task, the chevron and badge beside a group heading). Now the
+/// mark's centre meets the middle of the capital letters of the line beside it, on one or
+/// two lines alike.
+enum FirstLine {
+    /// Half the height of a capital letter at `size` points: where the mark's centre goes,
+    /// measured up from the baseline.
+    static func capMiddle(size: CGFloat) -> CGFloat {
+        PlatformFont.systemFont(ofSize: size).capHeight / 2
+    }
+
+    /// The same for the body text the rows are written in (it grows with the text size on
+    /// the iPhone; 13 points on the Mac).
+    static var bodyCapMiddle: CGFloat {
+        PlatformFont.preferredFont(forTextStyle: .body).capHeight / 2
+    }
+}
+
+extension View {
+    /// Centres this mark on the first line of body text beside it (see `FirstLine`).
+    func centredOnFirstLine() -> some View {
+        alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + FirstLine.bodyCapMiddle }
+    }
+
+    /// Centres this mark on the first line of text of `size` points beside it.
+    func centredOnFirstLine(size: CGFloat) -> some View {
+        alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + FirstLine.capMiddle(size: size) }
+    }
+}
+
+extension PlatformColor {
+    /// The page's own ground, white by day and black by night, on both platforms (build 346).
+    static var systemBackgroundColour: PlatformColor {
+        #if os(macOS)
+        .controlBackgroundColor
+        #else
+        .systemBackground
+        #endif
+    }
+}

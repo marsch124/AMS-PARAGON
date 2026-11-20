@@ -56,7 +56,10 @@ struct CalendarEventRow: View {
             Circle()
                 .fill(event.color)
                 .frame(width: compact ? 6 : 8, height: compact ? 6 : 8)
-                .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 3 }
+                // Build 346: a thin edge, so a pale calendar colour (yellow) still shows on a
+                // tinted card; and the dot's middle on the middle of the line.
+                .overlay(Circle().strokeBorder(Color.primary.opacity(0.3), lineWidth: 0.5))
+                .centredOnFirstLine()
             Text(event.timeLabel(on: date))
                 .font(compact ? .caption.monospacedDigit() : .callout.monospacedDigit())
                 .foregroundStyle(.soft)
@@ -97,10 +100,15 @@ struct CalendarEventRow: View {
                 model.openInCalendar(event)
             } label: {
                 // Build 291: a small round button in the event's calendar colour.
+                // Build 346, his picture ("poor readability"): a yellow calendar drew a pale
+                // yellow arrow on a pale yellow ring, unreadable on Today's lilac card. The
+                // button is now plain and strong in every colour: the arrow in the text colour
+                // on the page's own ground. The calendar's colour stays on the dot.
                 MarkImage("arrow.up.right", size: compact ? 10 : 12)
-                    .foregroundStyle(event.color)
+                    .foregroundStyle(Color.primary)
                     .frame(width: compact ? 20 : 24, height: compact ? 20 : 24)
-                    .background(event.color.opacity(0.14), in: Circle())
+                    .background(Color(PlatformColor.systemBackgroundColour), in: Circle())
+                    .overlay(Circle().strokeBorder(Color.primary.opacity(0.15), lineWidth: 0.5))
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)

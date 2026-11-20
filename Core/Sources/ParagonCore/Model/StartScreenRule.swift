@@ -30,18 +30,21 @@ public enum StartScreenRule {
     /// The day, as everywhere in the app: "Monday 2026-11-16".
     public static func dayLine(_ day: DateOnly) -> String { DayWords.withWeekday(day) }
 
-    /// What is waiting: "3 due today · 1 in the Inbox". `due` is the open tasks due today or
-    /// earlier (`SidebarCounts.dueByToday`), `inbox` the open tasks in the Inbox note. A zero
-    /// is said in words, never as "0".
-    public static func waitingLine(due: Int, inbox: Int) -> String {
-        let dueWords = due > 0 ? "\(due) due today" : "Nothing due today"
-        let inboxWords = inbox > 0 ? "\(inbox) in the Inbox" : "Inbox empty"
-        return "\(dueWords)  \u{00B7}  \(inboxWords)"
+    /// Build 346, his picture: the weekday on its own line ("Friday") …
+    public static func weekdayLine(_ day: DateOnly) -> String { DayWords.weekday(day) }
+
+    /// … and the date on the line under it ("2026-11-20").
+    public static func dateLine(_ day: DateOnly) -> String { DayWords.plain(day) }
+
+    /// Build 346: what is due, on its own line with the calendar mark. `due` is the open tasks
+    /// due today or earlier (`SidebarCounts.dueByToday`). A zero is said in words, never "0".
+    public static func dueLine(_ due: Int) -> String {
+        due > 0 ? "\(due) due today" : "Nothing due today"
     }
 
-    /// How to leave it. The Mac has no finger.
-    public static func hint(mac: Bool) -> String {
-        mac ? "Click or press a key to start" : "Tap to start"
+    /// Build 346: the Inbox, on its own line with the Inbox mark.
+    public static func inboxLine(_ inbox: Int) -> String {
+        inbox > 0 ? "\(inbox) in the Inbox" : "Inbox empty"
     }
 
     /// "1.0 (329)", as Settings › About says it.

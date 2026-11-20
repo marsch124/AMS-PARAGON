@@ -171,7 +171,8 @@ struct AllActionsView: View {
             headerRow(shown: shown, waiting: waiting, filterSymbol: true)
             headerRow(shown: shown, waiting: waiting, filterSymbol: false)
         }
-        .padding(.horizontal, 10)
+        // Build 346 (alignment check): the switch's edge on the rows' edge; it stood 6 points out.
+        .padding(.horizontal, Theme.rowEdge)
         .padding(.vertical, 8)
     }
 

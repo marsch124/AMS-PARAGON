@@ -756,7 +756,9 @@ struct NoteEditorView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .accessibilityIdentifier("note.frontmatter")
-            .padding(.horizontal, 12)
+            // Build 346 (iPhone check): its arrow stands under the arrows of the cards above
+            // (gutter + the card's own padding); it stood 14 points further left.
+            .padding(.horizontal, Theme.gutter + Theme.panelPad)
             .padding(.vertical, 5)
             Divider()
         }
@@ -2033,6 +2035,9 @@ struct TaskRow: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            // Build 346 (his picture): the circle's middle on the middle of the title's first
+            // line. It stood on the baseline before and hung half a line above the words.
+            .centredOnFirstLine()
             // For the screen tests (build 255): the tick a test presses to finish a task.
             .accessibilityIdentifier("task.tick.\(ref.task.title)")
             // What the circle shows, in words (build 268): a screen reader said only "button",

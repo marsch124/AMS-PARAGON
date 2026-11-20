@@ -84,11 +84,15 @@ struct SmallProjectMark: View {
     var size: CGFloat = 18
 
     var body: some View {
-        if line.note.ownIcon.isIconOrColour {
-            NoteIconTile(note: line.note, fallbackTint: ProjectOverviewWords.tint(of: line), size: size)
-        } else {
-            TintStripe(color: ProjectOverviewWords.tint(of: line))
+        Group {
+            if line.note.ownIcon.isIconOrColour {
+                NoteIconTile(note: line.note, fallbackTint: ProjectOverviewWords.tint(of: line), size: size)
+            } else {
+                TintStripe(color: ProjectOverviewWords.tint(of: line))
+            }
         }
+        // Build 346: the dot stands in the icon's column, so every name starts at one place.
+        .frame(width: size)
     }
 }
 
@@ -195,7 +199,11 @@ struct ProjectListOverview<Menu: View>: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            heading(.name).frame(maxWidth: .infinity, alignment: .leading)
+            // Build 346 (iPhone check): "Project" starts where the names start, after the
+            // 18-point mark and its 7-point gap, not above the marks.
+            heading(.name)
+                .padding(.leading, 18 + 7)
+                .frame(maxWidth: .infinity, alignment: .leading)
             if !isPhone {
                 heading(.goal).frame(width: 170, alignment: .leading)
                 heading(.state).frame(width: 96, alignment: .leading)

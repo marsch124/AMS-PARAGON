@@ -17,21 +17,9 @@ struct StartScreen: View {
     /// The icon's flat ground, #262D32.
     static let slate = Color(red: 38 / 255, green: 45 / 255, blue: 50 / 255)
     private static let quiet = Color(red: 190 / 255, green: 198 / 255, blue: 204 / 255)
-    private static let faint = Color(red: 150 / 255, green: 160 / 255, blue: 167 / 255)
-
-    private var isMac: Bool {
-        #if os(macOS)
-        true
-        #else
-        false
-        #endif
-    }
 
     /// Only once the notes are open: before that the numbers would be two wrong zeros.
-    private var waiting: String? {
-        guard model.vault != nil else { return nil }
-        return StartScreenRule.waitingLine(due: model.sidebarCounts.dueByToday, inbox: model.count(for: .inbox))
-    }
+    private var opened: Bool { model.vault != nil }
 
     var body: some View {
         ZStack {
@@ -44,25 +32,31 @@ struct StartScreen: View {
                     .font(Txt.bandNumber)
                     .foregroundStyle(Color.white)
                     .padding(.bottom, 14)
-                Text(StartScreenRule.dayLine(.today()))
+                // Build 346, his picture: the weekday and the date each on their own line.
+                Text(StartScreenRule.weekdayLine(.today()))
                     .font(Txt.sectionTitle)
                     .foregroundStyle(Color.white)
-                    .padding(.bottom, 4)
-                // The line keeps its place while the notes open, so nothing jumps when it fills.
-                Text(waiting ?? " ")
-                    .font(Txt.value)
+                Text(StartScreenRule.dateLine(.today()))
+                    .font(Txt.value.monospacedDigit())
                     .foregroundStyle(Self.quiet)
-                    .accessibilityIdentifier("start.waiting")
+                    .padding(.bottom, 18)
+                // What is waiting, one thing per line with its mark: the calendar for what is
+                // due, the Inbox's tray for the Inbox. The two marks stand one above the other
+                // and the words start at one place. The lines keep their place while the notes
+                // open, so nothing jumps when they fill.
+                VStack(alignment: .leading, spacing: 8) {
+                    waitingRow("calendar", opened ? StartScreenRule.dueLine(model.sidebarCounts.dueByToday) : " ")
+                        .accessibilityIdentifier("start.due")
+                    waitingRow("tray", opened ? StartScreenRule.inboxLine(model.count(for: .inbox)) : " ")
+                        .accessibilityIdentifier("start.inbox")
+                }
+                .opacity(opened ? 1 : 0)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("start.waiting")
                 Spacer(minLength: 0)
                 Spacer(minLength: 0)
-                Text(StartScreenRule.hint(mac: isMac))
-                    .font(Txt.value)
-                    .foregroundStyle(Self.faint)
-                    .padding(.bottom, 6)
-                Text(AppVersion.text)
-                    .font(Txt.label)
-                    .foregroundStyle(Self.faint.opacity(0.7))
-                    .padding(.bottom, 28)
+                // Build 346, his picture: no "Tap to start" and no version line. A tap or a
+                // key anywhere still starts, as before; the version stays in Settings › About.
             }
             .multilineTextAlignment(.center)
             .padding(.horizontal, 24)
@@ -84,6 +78,17 @@ struct StartScreen: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityIdentifier("start.screen")
+    }
+
+    private func waitingRow(_ mark: String, _ words: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            MarkImage(mark, size: 18)
+                .foregroundStyle(Color.white)
+                .centredOnFirstLine()
+            Text(words)
+                .font(Txt.value)
+                .foregroundStyle(Self.quiet)
+        }
     }
 }
 

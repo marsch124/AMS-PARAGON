@@ -279,8 +279,16 @@ struct ProjectGroupHeader: View {
                 MarkImage("chevron.right")
                     .foregroundStyle(.soft)
                     .rotationEffect(.degrees(open ? 90 : 0))
+                    .centredOnFirstLine(size: 17)
                 badge
-                Text(group.title)
+                    .centredOnFirstLine(size: 17)
+                // Build 346 (his picture): a name that starts with an emoji ("🌳 Keep living …")
+                // wrapped its second line under the emoji. The emoji now stands on its own, so
+                // the second line starts under the first word.
+                if let emoji = LeadingEmoji.split(group.title).emoji {
+                    Text(emoji).font(Txt.sectionTitle)
+                }
+                Text(LeadingEmoji.split(group.title).rest)
                     .font(Txt.sectionTitle)
                     .foregroundStyle(headingTint.ink)
                     .lineLimit(2)
@@ -406,11 +414,19 @@ struct ProjectRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             ProjectTile(status: line.status, note: line.note)
+                // Build 346 (his picture): the dot stands in the same 30-point column as an
+                // icon, so every project's name starts at the same place down the list.
+                .frame(width: 30)
                 .accessibilityIdentifier("project.tile.\(line.id)")
                 // Build 344, his note 2: the 30-point square sat on the name's baseline and
                 // hung above it, so a row with an icon was taller than a row with a dot. Now
                 // its top meets the top of the name and the words decide the height.
-                .alignmentGuide(.firstTextBaseline) { $0[.top] + ProjectRow.nameBaseline }
+                // Build 346: the 8-point dot (no icon) sat half a line above the name; it now
+                // sits on the middle of the name's line. The square keeps its top on the name's top.
+                .alignmentGuide(.firstTextBaseline) {
+                    ProjectTile.isSquare(line.note) ? $0[.top] + ProjectRow.nameBaseline
+                        : $0[VerticalAlignment.center] + FirstLine.bodyCapMiddle
+                }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline) {
                     // `strikethrough` while it is still a `Text`, before `lineLimit` makes it a view.
@@ -730,6 +746,14 @@ struct ProjectTile: View {
 
     private var tint: Color {
         status == .active || status == .done ? ParaKind.project.tint : Color.secondary
+    }
+
+    /// Whether the tile is the 30-point square (an icon, a colour or an old emoji) rather than
+    /// the 8-point dot (build 346).
+    static func isSquare(_ note: Note) -> Bool {
+        if note.ownIcon.isIconOrColour { return true }
+        if case .emoji = note.ownIcon { return true }
+        return false
     }
 
     /// The old emoji, when that is what the tile shows.

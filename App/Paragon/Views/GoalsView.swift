@@ -588,7 +588,8 @@ struct AspirationRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            GoalMark(note: chain.note, size: 24)
+            // Build 346 (iPhone check): the badge's middle on the title's first line; it sat 6 pt high.
+            GoalMark(note: chain.note, size: 24).centredOnFirstLine()
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(chain.note.title)
@@ -641,7 +642,8 @@ struct DatedGoalRow: View {
     var body: some View {
         let health = model.index.chainGoal(of: note)
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            GoalMark(note: note, size: 24)
+            // Build 346 (iPhone check): the badge's middle on the title's first line; it sat 6 pt high.
+            GoalMark(note: note, size: 24).centredOnFirstLine()
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(note.title)
@@ -1250,8 +1252,10 @@ struct NoteStatusChip: View {
             .pickerStyle(.inline)
             .labelsHidden()
         } label: {
-            MarkLabel(status.label, symbol(for: status), text: .footnote)
-                .font(Txt.label)
+            // Build 346 (alignment check): the same text size as the chips beside it, so all
+            // chips in the row are one height; it was the small label size and a smaller chip.
+            MarkLabel(status.label, symbol(for: status))
+                .font(Txt.value)
                 .foregroundStyle(tint(for: status))
         }
         .fixedSize()

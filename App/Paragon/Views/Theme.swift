@@ -5,6 +5,10 @@ import ParagonCore
 enum Theme {
     /// Padding inside a row or a panel.
     static let gutter: CGFloat = 14
+    /// Build 346, his "I hate out-of-alignment stuff": where a list's rows start, measured from
+    /// the column's edge (Apple's list inset). A bar above a list — a switch, a capture field,
+    /// a tray heading — starts here too, so its edge and the rows' edge are one line.
+    static let rowEdge: CGFloat = 16
     /// Space between a heading and what belongs to it.
     static let tight: CGFloat = 4
     static let gap: CGFloat = 8
@@ -1375,7 +1379,7 @@ struct TaskTray: View {
                         }
                     }
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, Theme.rowEdge) // build 346: one edge with the other lists
                 .padding(.vertical, 9)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(identifier)

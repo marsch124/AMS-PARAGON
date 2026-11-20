@@ -104,6 +104,12 @@ struct MarkdownPreview: View {
                 result.append(.attachment(attachment))
                 continue
             }
+            // Build 346 (his picture): a heading still being written ("##" and nothing after it)
+            // showed as the two signs on their own line. It shows nothing until it has words.
+            if (1...6).contains(trimmed.count), trimmed.allSatisfy({ $0 == "#" }) {
+                flushParagraph()
+                continue
+            }
             let level = Self.headingLevel(trimmed)
             if level > 0 {
                 flushParagraph()

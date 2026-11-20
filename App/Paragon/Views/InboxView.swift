@@ -268,7 +268,7 @@ struct InboxTriageView: View {
                 .foregroundStyle(.faint)
             #endif
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, Theme.rowEdge) // build 346: on the rows' edge, as the list under it
         .padding(.vertical, 4)
     }
 

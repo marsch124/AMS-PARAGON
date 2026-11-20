@@ -204,17 +204,21 @@ struct MarkImage: View {
     let name: String
     /// A fixed size in points, or nil when the mark follows a text style.
     private let fixed: CGFloat?
+    /// The text the mark stands beside, whose first line it centres on (build 346).
+    private let textStyle: MarkRule.TextStyle
     @ScaledMetric private var scaled: CGFloat
 
     init(_ name: String, size: CGFloat) {
         self.name = name
         self.fixed = size
+        self.textStyle = .body
         self._scaled = ScaledMetric(wrappedValue: size)
     }
 
     init(_ name: String, text: MarkRule.TextStyle = .body) {
         self.name = name
         self.fixed = nil
+        self.textStyle = text
         self._scaled = ScaledMetric(wrappedValue: CGFloat(MarkRule.size(for: text)), relativeTo: text.fontStyle)
     }
 
@@ -230,6 +234,32 @@ struct MarkImage: View {
             .renderingMode(.template)
             .resizable()
             .frame(width: size, height: size)
+            // Build 346, his "I hate out-of-alignment stuff": in a row lined up on the words'
+            // baseline, a mark stood its bottom on that line and hung above the words. Its
+            // centre now meets the middle of the first line of the text beside it. A row that
+            // places its mark itself (`alignmentGuide` outside) still wins.
+            .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + textStyle.capMiddle }
+    }
+}
+
+extension MarkRule.TextStyle {
+    /// Half a capital letter's height in Apple's font of this style (build 346).
+    var capMiddle: CGFloat {
+        let style: PlatformFont.TextStyle
+        switch self {
+        case .largeTitle: style = .largeTitle
+        case .title: style = .title1
+        case .title2: style = .title2
+        case .title3: style = .title3
+        case .headline: style = .headline
+        case .body: style = .body
+        case .callout: style = .callout
+        case .subheadline: style = .subheadline
+        case .footnote: style = .footnote
+        case .caption: style = .caption1
+        case .caption2: style = .caption2
+        }
+        return PlatformFont.preferredFont(forTextStyle: style).capHeight / 2
     }
 }
 
