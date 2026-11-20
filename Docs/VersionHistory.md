@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (341) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (342) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 342 · 20 November 2026
+
+**The Inbox alarm is fixed: two devices no longer quarrel about a task code.** One fix, and nothing new on screen.
+
+**Fixed.**
+- **A false "changed on two devices" alarm (the main fix).** Every task line can carry a small hidden code at its end (the `^t…` that links the task to its reminder). Before (build 341): when the Mac and the iPhone synced with Reminders in the same minute and both found tasks that had no code yet, each device picked its own random code. Both saved a different line, iCloud saw two versions of the note, and PARAGON said "Something went wrong — "Inbox" was changed on two devices at the same time" and saved "(conflict …)" copies, although nothing real had changed. A real case on 20 November 2026 between 09:27 and 09:33: four Inbox copies, nothing lost. Now: the code is worked out from the note's place and the task's own words, so every device gives the same task the same code. Both write the very same line, and iCloud has nothing to quarrel about. On top of that, PARAGON no longer raises the alarm or makes a copy for a version that says exactly the same thing as the note.
+- **Tasks that come in new from Reminders.** The same rule now applies when a reminder arrives as a new task line: every device gives it the same code.
+- **Two tasks with the same words.** If two tasks in one note would get the same code, the second one steps on to the next free code, the same way on every device, so they never share one.
+
+**Unchanged.**
+- **A real clash is still told.** If you really type different words into the same line on two devices, you still get the alarm and the "(conflict …)" copy, as before. Tasks that already have a code keep it.
+- Everything else of build 341.
+
+**Seen / not seen.**
+- **Seen:** the data tests; PARAGON builds on the Mac and starts and settles (launch check).
+- **Not seen:** two real devices syncing in the same minute.
+
+**Tests.** One new data test (SteadyIDTests): the same task gets the same code on every device, different tasks get different codes, and a code already in use is stepped past the same way everywhere. The Reminders sync and task tests (34) still pass.
 
 ## Build 341 · 19 November 2026
 

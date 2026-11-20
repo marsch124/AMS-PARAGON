@@ -183,6 +183,26 @@ public struct TaskItem: Equatable, Sendable {
         return out
     }
 
+    /// **The same id on every device** (build 342). When two devices sync the same minute and both
+    /// find a task without an id, a random id made each write a different line, iCloud saw two
+    /// versions of the note, and he got "was changed on two devices" with nothing really changed
+    /// (Inbox, 20 Nov 2026). This id comes from `key` (the note's path and the task's words), so
+    /// both devices write the very same line. Taken ids are stepped past the same way everywhere.
+    public static func steadyID(for key: String, avoiding taken: Set<String>) -> String {
+        var round = 0
+        while true {
+            let seed = round == 0 ? key : "\(key)\n#\(round)"
+            var hash: UInt64 = 0xcbf29ce484222325
+            for byte in seed.utf8 {
+                hash ^= UInt64(byte)
+                hash = hash &* 0x100000001b3
+            }
+            let id = "t" + String(format: "%06x", Int(hash & 0xffffff))
+            if !taken.contains(id) { return id }
+            round += 1
+        }
+    }
+
     /// This task with the words of a repeat this build cannot read, kept for writing back.
     func keepingUnreadRepeat(_ words: String?) -> TaskItem {
         var copy = self

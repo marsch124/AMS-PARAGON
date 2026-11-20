@@ -150,8 +150,7 @@ public final class SyncEngine {
                     id = recovered
                     report.warnings.append("\(note.relativePath): restored the Reminders link of \"\(task.title)\".")
                 } else {
-                    id = TaskItem.makeID()
-                    while allTaskIDs.contains(id) { id = TaskItem.makeID() }
+                    id = TaskItem.steadyID(for: key, avoiding: allTaskIDs)
                 }
                 allTaskIDs.insert(id)
                 assignedNow.insert(id)
@@ -603,8 +602,7 @@ public final class SyncEngine {
                     continue
                 }
 
-                var id = TaskItem.makeID()
-                while allTaskIDs.contains(id) { id = TaskItem.makeID() }
+                let id = TaskItem.steadyID(for: "\(path)\n\(reminder.title)", avoiding: allTaskIDs)
                 allTaskIDs.insert(id)
 
                 var task = TaskItem(title: Self.taskTitle(fromReminderTitle: reminder.title, parentPrefix: nil), id: id)
