@@ -27,6 +27,8 @@ final class LookRulesTests: XCTestCase {
                                                        "ParagonWidgets.swift", "TodayPlanWidget.swift", "OneListWidget.swift", "WidgetMarks.swift",
                                                        // Build 317: the Lock Screen widgets and the focus timer's Live Activity.
                                                        "LockScreenWidgets.swift", "FocusLiveActivityWidget.swift",
+                                                       // Build 348: the recording's Live Activity, drawn by the system like the focus one.
+                                                       "VoiceLiveActivityWidget.swift",
                                                        // Build 317: the "What is due today?" card is drawn by the system, outside
                                                        // the app's windows, like a widget; it keeps Apple's small card styles.
                                                        "ParagonIntents.swift",
