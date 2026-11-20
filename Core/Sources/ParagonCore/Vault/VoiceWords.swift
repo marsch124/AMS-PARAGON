@@ -390,11 +390,11 @@ enum SpokenWhen {
         let ns = text as NSString
         let full = NSRange(location: 0, length: ns.length)
         let edge = "(?<![\\p{L}\\p{N}])"
-        let end = "(?![\\p{L}\\p{N}:])"
+        let end = "(?![\\p{L}\\p{N}]|:)"  // never "[:" in ICU: it starts a [:Property:] class
         let patterns: [String] = [
-            edge + "(?:klockan|kl)\\s+(\\d{1,2})(?:[:.](\\d{2}))?" + end,
+            edge + "(?:klockan|kl)\\s+(\\d{1,2})(?:(?:\\.|:)(\\d{2}))?" + end,
             edge + "at\\s+(\\d{1,2})(?::(\\d{2}))?(?:\\s*(am|pm))?" + end,
-            edge + "um\\s+(\\d{1,2})(?:[:.](\\d{2}))?(?:\\s*uhr)?" + end,
+            edge + "um\\s+(\\d{1,2})(?:(?:\\.|:)(\\d{2}))?(?:\\s*uhr)?" + end,
         ]
         for pattern in patterns {
             guard let r = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
