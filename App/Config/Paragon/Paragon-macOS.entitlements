@@ -10,6 +10,9 @@
 	<true/>
 	<key>com.apple.security.personal-information.calendars</key>
 	<true/>
+	<!-- Round 350: choosing a person from Contacts (Person…). Asked only when it is used. -->
+	<key>com.apple.security.personal-information.addressbook</key>
+	<true/>
 	<!-- Build 178: the Mac app writes the widget's summary into this shared folder, and the
 	     Mac widget reads it. The Team ID in front is the Mac spelling of the same group the
 	     iPhone uses as plain "group.com.schabbauer.amspara"; the Mac App Store refuses it

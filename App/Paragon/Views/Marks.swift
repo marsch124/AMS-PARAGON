@@ -56,6 +56,10 @@ enum Marks {
         "deadline": .init(kind: .drawn(Marks.deadlinePath)),
         // Build 332: One thing — a ring with the figure 1 in it.
         "one.thing": .init(kind: .drawn(Marks.oneThingPath)),
+        // Round 350: a place a reminder rings at (a pin), and a person a task or note is about
+        // (a head and shoulders, not the circled person of Waiting for).
+        "mappin": .init(kind: .drawn(Marks.mappinPath)),
+        "person.linked": .init(kind: .drawn(Marks.personLinkedPath)),
         // Build 343: a Google notebook linked to a Resource — the ringed notebook from the
         // AMS-Icons catalog ("notebook"), so it is not mistaken for Linked notes' chain link.
         "notebook": .init(kind: .drawn(Marks.notebookPath)),
@@ -162,6 +166,8 @@ enum Marks {
     static let rowsPath = "M4 6h16 M4 12h16 M4 18h16"
     static let columnsPath = "M4.5 4.5h3.5v15h-3.5Z M10.25 4.5h3.5v9.5h-3.5Z M16 4.5h3.5v12.5h-3.5Z"
     static let cardsPath = "M3.5 6h7.5v12h-7.5Z M13 6h7.5v12h-7.5Z M5.5 14.5h3.5 M15 14.5h3.5"
+    static let mappinPath = "M12 20.5C8 15.5 6 12.5 6 9.5a6 6 0 0 1 12 0c0 3-2 6-6 11Z M12 7.6a1.9 1.9 0 1 0 0 3.8a1.9 1.9 0 1 0 0-3.8Z"
+    static let personLinkedPath = "M12 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7Z M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
 
     /// One thing (build 332): a ring with the figure 1 in it.

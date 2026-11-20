@@ -35,6 +35,8 @@ struct TagsView: View {
     @State private var renaming: String?
     @State private var renameDraft = ""
     @State private var deleting: String?
+    /// Round 350: the People page lives inside this screen, behind a switch along its top.
+    @State private var showPeople = false
 
     private var uses: [TagUse] {
         let all = model.tagUses()
@@ -45,6 +47,14 @@ struct TagsView: View {
     }
 
     var body: some View {
+        if showPeople {
+            PeopleView(showPeople: $showPeople)
+        } else {
+            tagsBody
+        }
+    }
+
+    private var tagsBody: some View {
         Group {
             if model.allTagNames.isEmpty {
                 EmptyStateView(title: "No tags yet",
@@ -112,12 +122,15 @@ struct TagsView: View {
     /// in a markdown vault, so the app remembers it in the vault's own state folder until a
     /// note or a task picks it up.
     private var makeBar: some View {
-        HStack(spacing: 8) {
-            TextField("New tag", text: $newTag)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit(make)
-            Button("Add", action: make)
-                .disabled(AppModel.cleanTag(newTag) == nil)
+        VStack(spacing: 8) {
+            TagsPeopleSwitch(showPeople: $showPeople)
+            HStack(spacing: 8) {
+                TextField("New tag", text: $newTag)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(make)
+                Button("Add", action: make)
+                    .disabled(AppModel.cleanTag(newTag) == nil)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

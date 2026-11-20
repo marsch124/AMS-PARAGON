@@ -18,6 +18,9 @@ public struct ReminderRecord: Equatable, Sendable {
     public var lastModified: Date?
     /// When the reminder was made, when Reminders says so. Of two reminders with one mark the older stays.
     public var createdAt: Date?
+    /// A place alarm on the reminder (round 350): Apple Reminders watches it and rings on
+    /// arriving or leaving. Nil when the reminder has none.
+    public var place: ReminderPlace?
 
     public init(identifier: String = "",
                 listName: String,
@@ -30,7 +33,8 @@ public struct ReminderRecord: Equatable, Sendable {
                 priority: Int = 0,
                 notes: String? = nil,
                 lastModified: Date? = nil,
-                createdAt: Date? = nil) {
+                createdAt: Date? = nil,
+                place: ReminderPlace? = nil) {
         self.identifier = identifier
         self.listName = listName
         self.listID = listID
@@ -43,6 +47,7 @@ public struct ReminderRecord: Equatable, Sendable {
         self.priority = min(max(priority, 0), 3)
         self.notes = notes
         self.lastModified = lastModified
+        self.place = place
     }
 }
 
