@@ -59,6 +59,12 @@ enum Marks {
         // Build 343: a Google notebook linked to a Resource — the ringed notebook from the
         // AMS-Icons catalog ("notebook"), so it is not mistaken for Linked notes' chain link.
         "notebook": .init(kind: .drawn(Marks.notebookPath)),
+        // Build 344: the views of the Projects page. Three rows (List), three columns of
+        // different heights (Board), two cards with a line of words each (Cards) — not four
+        // squares, which is an area.
+        "projects.rows": .init(kind: .drawn(Marks.rowsPath)),
+        "projects.columns": .init(kind: .drawn(Marks.columnsPath)),
+        "projects.cards": .init(kind: .drawn(Marks.cardsPath)),
         "circle.grid.2x2": .init(kind: .app(.area)),
         "books.vertical": .init(kind: .app(.resource)),
         "archivebox": .init(kind: .app(.archive)),
@@ -153,6 +159,9 @@ enum Marks {
     ]
 
     /// The deadline's mark: a pole, a three-cornered pennant and the finish line under it.
+    static let rowsPath = "M4 6h16 M4 12h16 M4 18h16"
+    static let columnsPath = "M4.5 4.5h3.5v15h-3.5Z M10.25 4.5h3.5v9.5h-3.5Z M16 4.5h3.5v12.5h-3.5Z"
+    static let cardsPath = "M3.5 6h7.5v12h-7.5Z M13 6h7.5v12h-7.5Z M5.5 14.5h3.5 M15 14.5h3.5"
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
 
     /// One thing (build 332): a ring with the figure 1 in it.

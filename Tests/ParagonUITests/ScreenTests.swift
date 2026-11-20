@@ -593,6 +593,28 @@ final class ScreenTests: XCTestCase {
                       "Ten seconds after opening the home is gone or the app no longer answers.")
     }
 
+    /// **Build 344 (his picks):** the Projects page has a switch with four views — By goal,
+    /// List, Board and Cards — and each shows the test project.
+    func testTheProjectsPageSwitchesBetweenFourViews() {
+        go(to: .projects)
+        let project = "Projects/Plan the Kungsleden trip.md"
+        let list = element("projects.layout.list")
+        XCTAssertTrue(list.waitForExistence(timeout: 20), "There is no view switch. On screen: \(visibleTexts())")
+        list.press()
+        XCTAssertTrue(element("projects.list.\(project)").waitForExistence(timeout: 10),
+                      "The List view does not show the test project. On screen: \(visibleTexts())")
+        element("projects.layout.board").press()
+        XCTAssertTrue(element("projects.board.running").waitForExistence(timeout: 10),
+                      "The Board has no Running column. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("projects.card.\(project)").exists, "The test project is not on the Board.")
+        element("projects.layout.cards").press()
+        XCTAssertTrue(element("projects.cards.\(project)").waitForExistence(timeout: 10),
+                      "The Cards view does not show the test project. On screen: \(visibleTexts())")
+        element("projects.layout.byGoal").press()
+        XCTAssertTrue(element("note.\(project)").waitForExistence(timeout: 10),
+                      "By goal does not come back. On screen: \(visibleTexts())")
+    }
+
     #if os(iOS)
     /// **Build 305 (his ask): swipe from the right moves a task to tomorrow.**
     func testSwipingATaskLeftMovesItToTomorrow() {

@@ -251,7 +251,7 @@ One mark, one meaning. Before build 311 the ring, the four squares, the hourglas
 | Dash in a ring | Dropped; reminders deleted | A bare dash |
 | Cross in a ring | Missed, cancelled | A bare cross |
 | Star | An aspiration. Nothing else. | Unchanged |
-| Target | A goal with a date | Unchanged |
+| Target | A goal with a date; the By goal view of Projects; the goal in a project row (build 344) | Unchanged |
 | Flag | A project | Unchanged |
 | Books | A resource | Unchanged |
 | Sun | Today. The same drawing as the library's sun. | Its own drawing |
@@ -433,3 +433,15 @@ Since build 312 (review round 6, "iPhone flow").
 - **A switch with names, not two icons.** All actions has one row: the switch "Actions 3 | Waiting for" with the counts inside it, and a button with the word **Filter** (on the Actions half only). On the iPhone the words of the chosen half are in the Actions colour. A second line (the ticked boxes, "2 of 5", **Clear**) is drawn only while a box is ticked.
 - **A part that is done has a tick.** In the Weekly review a part with nothing left has the hand-drawn tick after its heading. A paragraph of explanation that folds away (picking on Today, Close the day) leaves a small hand-drawn info mark, spoken name "What to do here".
 - **The sync words.** "Not synced", "Synced just now", "Synced 5 min ago", "Synced 3 h ago", "Synced 2026-11-09". The ring in the Mac menu bar keeps its short words.
+
+## 19. Projects: four views (build 344)
+
+- **The switch.** A segmented switch at the top of the Projects page with four parts, each a hand-drawn mark and a word: **By goal** (the goal target), **List** (three rows), **Board** (three columns), **Cards** (two cards, each with a line; never four squares, which is an area). The chosen part is full project green with white words; the other parts are plain. On the Mac it sits in the top bar; the shortcuts are Command-Option-1 to 4. On the iPhone it is a strip under the title.
+- **Memory.** The last view is stored on each device separately (not in the vault, not synced). Mac and iPhone can differ.
+- **By goal.** The grouped page of section 3, unchanged except for the row changes below.
+- **List.** Running and on-hold projects, one line each. Columns: Project, Goal, State, Next, Deadline. Default sort, "needs a look first": rank 0 a running project with a late date (an overdue task, a passed deadline, or a deadline after its goal's date); rank 1 running, no next action; rank 2 running, with a next action; rank 3 on hold. Inside a rank: the soonest deadline first (no deadline last), then the project's own `order:`. A click on a column heading sorts by it; a second click turns the order round. A click on a line opens the project; right-click gives the menu of **By goal**. Done, missed and dropped projects are not listed.
+- **Board.** Four columns side by side: Needs a look, Running, On hold, Done. Needs a look = running projects with a late date, the same rule as the orange "needs a look" count above the list. Running and On hold hold the other projects of that state. A drag of a card onto Running, On hold or Done sets the state; Done also writes `ended:` with today's date, as **Mark done** does. Needs a look takes no drop: a project is there by its dates only. Missed and dropped projects are not shown.
+- **Cards.** A grid of larger boxes, one for each running or on-hold project: its icon, its name, a progress bar with "5 of 8", its deadline with the days left (red when it has passed on a running project), and the goal it serves. A click opens the project.
+- **Marks in a project row.** Each part of the second line has a small hand-drawn mark before it, drawn inside the text so the line still shortens with "…": tasks count = ticked list (`checklist`); next task = ring (`square`); "All N finished" = ticked ring (`checkmark.square.fill`); "No next action" / "No tasks yet" = dashed ring (`circle.dashed`); all waiting = hourglass; time of the next task = plain clock; its date = calendar; project deadline = pennant (`deadline`); overdue or due after its goal = warning triangle; goal = target; "Ended …" = flag on a finish line. Mark size 10.5 points on the Mac, 12 on the iPhone. Every mark keeps the one meaning the table in section 7 gives it.
+- **Row height.** Before: a row with a 30-point coloured icon square was taller than a row with a dot, because the square hung above the name. Now: every row has the same height.
+- **Reading width.** On a wide window a project row stops at 680 points (`Theme.readingWidth`, section 8), so "On hold" and the 8-week bars sit a short way from the words, still stacked as before. Before, they sat at the far right edge of the window.

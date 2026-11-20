@@ -17,6 +17,7 @@
 		71CEC18001CF8A02059B9DED /* ParagonCore in Frameworks */ = {isa = PBXBuildFile; productRef = 972619FBA5280A0A9364E4D7 /* ParagonCore */; };
 		7E1A76B853569E06501D44E8 /* AMSIcons in Frameworks */ = {isa = PBXBuildFile; productRef = 02CF9E46CEF81012CA8D1897 /* AMSIcons */; };
 		A149D28F88891DAD8F4674CA /* IPadScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199611C16C9E127ECDA36B8E /* IPadScreens.swift */; };
+		C0C9FA8EFC31D5DE0C6C61CE /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E1585E6B88CFEAB6AA982DB0 /* index.html */; };
 		C202C2E162F6A9616899BDAE /* Words.md in Resources */ = {isa = PBXBuildFile; fileRef = 37E5572E0E65566F6BC49B8C /* Words.md */; };
 		C780D825F432B4F713C02880 /* ParagonShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2714DD3A4254950C4A439829 /* ParagonShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FD201D15E2B58DF729309497 /* Guide.md in Resources */ = {isa = PBXBuildFile; fileRef = 9187F98112AF98AD8FA34641 /* Guide.md */; };
@@ -74,6 +75,7 @@
 		78AE22FC8C9C0A80A3D7CF78 /* ParagonUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ParagonUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9187F98112AF98AD8FA34641 /* Guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Guide.md; sourceTree = "<group>"; };
 		C1D60C15B6874D11DD911583 /* Look.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Look.md; sourceTree = "<group>"; };
+		E1585E6B88CFEAB6AA982DB0 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		E6919AFBC2371667D46DD399 /* VersionHistory.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = VersionHistory.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -200,6 +202,7 @@
 				C1D60C15B6874D11DD911583 /* Look.md */,
 				E6919AFBC2371667D46DD399 /* VersionHistory.md */,
 				37E5572E0E65566F6BC49B8C /* Words.md */,
+				C23F5FA495001D3879B29711 /* intro */,
 			);
 			path = Docs;
 			sourceTree = "<group>";
@@ -218,6 +221,14 @@
 				1E845C6854A70724BDF46B81 /* ParagonUITests */,
 			);
 			path = Tests;
+			sourceTree = "<group>";
+		};
+		C23F5FA495001D3879B29711 /* intro */ = {
+			isa = PBXGroup;
+			children = (
+				E1585E6B88CFEAB6AA982DB0 /* index.html */,
+			);
+			path = intro;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -381,6 +392,7 @@
 				FE7F5DC055850D7FC4750F90 /* Look.md in Resources */,
 				627482B9308CA63E70129D95 /* VersionHistory.md in Resources */,
 				C202C2E162F6A9616899BDAE /* Words.md in Resources */,
+				C0C9FA8EFC31D5DE0C6C61CE /* index.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

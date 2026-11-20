@@ -73,7 +73,7 @@ Every mark and colour that means something, in a few plain words. A mark means o
 - **Clock with an arrow** — Recent.
 - **Bin** — Deleted. **Archive box** — the Archive.
 - **Star** — an aspiration, and only that.
-- **Target** — a goal with a date.
+- **Target** — a goal (with a date), and the **By goal** view of Projects.
 - **Flag** — a project. **Flag on a finish line** — a finished project.
 - **Four squares** — an area.
 - **Books** — a resource.
@@ -87,7 +87,7 @@ Every mark and colour that means something, in a few plain words. A mark means o
 - **Empty box** — an open task. **Ticked box** — a task that is done.
 - **Ring** (on the Map) — one open task.
 - **Ring with the figure 1** — One thing on Today: the one task to do next.
-- **Pennant on a pole, on a finish line** — a task's deadline. The project keeps the flag.
+- **Pennant on a pole, on a finish line** — a deadline: a task's, or since build 344 also a project's in its row. The project itself keeps the flag.
 - **Capsule** (small rounded label at the right of a row) — a status you cannot change here, such as Paused or Someday, or a count.
 
 **Sync**
@@ -103,6 +103,25 @@ Every mark and colour that means something, in a few plain words. A mark means o
 - **Dashed box on the Map** — a note with no goal, or an archived note.
 - **Small green dot on a project row** — the project has no icon of its own yet.
 - **Flags on a project, area or goal** (see **The flags**) — no next action, overdue, past its date, not changed for a long time, due for a look, or on hold.
+
+**The four views of Projects (since build 344)**
+- **Target** — the **By goal** view (projects under their goals).
+- **Three rows** — the **List** view.
+- **Three columns of different heights** — the **Board** view.
+- **Two cards with a line each** — the **Cards** view. (Four squares stay an area.)
+
+**Marks in a project row (since build 344)** — each mark means what it means everywhere else in PARAGON:
+- **Ticked list** — tasks: here, how many of the project's tasks are done ("2 of 5").
+- **Ring** — an open task: here, the next task.
+- **Ticked ring** — done: "All N finished".
+- **Dashed ring** — not set yet: "No next action" or "No tasks yet".
+- **Hourglass** — waiting: every open task waits for somebody else.
+- **Plain clock face** — a time on a task: here, how long the next task takes.
+- **Calendar** — a date: here, the date of the next task.
+- **Pennant on a finish line** — a deadline: here, the project's own deadline.
+- **Warning triangle** — look at this: a date has passed, or the deadline is after the goal's.
+- **Target** — a goal: here, the goal the project serves.
+- **Flag on a finish line** — a project that is over: "Ended …".
 
 **Colours**
 - **Each part has one colour** — the same in its sidebar icon, heading, main button, dot, panel and band (see **How PARAGON looks**). The dot at the left of a row has the colour of its part.
@@ -343,7 +362,18 @@ Since build 343. A note can point to a notebook in Google's NotebookLM. The same
 
 ## The Projects list
 
-The **Projects** list groups your projects by what they work towards.
+The **Projects** page has four views (since build 344). A switch at the top has four parts, each with a mark and a word: **By goal**, **List**, **Board** and **Cards**. On the Mac it is in the top bar, and Command-Option-1 to 4 choose the parts. On the iPhone it is a strip under the title. PARAGON remembers the last view you used, on each device. The chosen part is full green with white words.
+
+### The four views
+
+- **By goal.** The page as it always was: projects grouped by what they work towards (described below).
+- **List.** Every running project and every project on hold, one line each. The columns are **Project**, **Goal**, **State**, **Next** and **Deadline**. It opens sorted "needs a look first": projects with a late date (an overdue task, a deadline that has passed, or a deadline after its goal), then running projects with no next action, then running projects with a next action, then projects on hold. Inside each group the soonest deadline comes first, then your own order. Click a column heading to sort by it; click it again to turn the order round. Click a line to open the project; right-click gives the same menu as in **By goal**. Done, missed and dropped projects are not in the List.
+- **Board.** Four columns: **Needs a look**, **Running**, **On hold** and **Done**. **Needs a look** holds running projects with a late date, the same rule as the orange "needs a look" count. Drag a card onto **Running**, **On hold** or **Done** to change its state. **Done** records the day it ended, like **Mark done**. You cannot drop a card on **Needs a look**: a project comes there by its dates. Missed and dropped projects are not on the Board.
+- **Cards.** Larger boxes in a grid, one for each running or on-hold project. A box shows the icon, the name, a progress bar with "5 of 8", the deadline with the days left (red when it has passed on a running project), and the goal. Click a box to open the project.
+
+### By goal
+
+The **By goal** view groups your projects by what they work towards.
 
 - **Under an aspiration.** A project that serves an aspiration, or serves a goal with a date
   that serves an aspiration, sits under that aspiration's heading. The heading is in the aspiration's gold, with
@@ -370,13 +400,13 @@ a deadline after its goal's target date.
 
 ### What a row says
 
-Each project is one row, like every other list in PARAGON. From left to right:
+Each project is one row, like every other list in PARAGON. Every row has the same height, whether it has an icon or a dot (since build 344). On a wide window a row stops at a reading width of 680 points, so the capsule and the bars sit a short way from the words. From left to right:
 
 - The **mark**: the project's own icon, or a small green dot until you pick one. On
   **Automatic** the colour is green while the project is running or done, and grey when it is
   on hold, missed, dropped or archived. See **Your own icon** below.
 - The **name**, on one line.
-- One quiet **second line** in grey: how far it has come, then what it needs.
+- One quiet **second line** in grey: how far it has come, then what it needs. Since build 344 each piece has a small mark before it (see **Signs in this app**): the ticked list for the number of tasks, the ring for the next task, the ticked ring for "All N finished", the dashed ring for "No next action", the hourglass when every task waits for somebody, the plain clock for how long the next task takes, the calendar for its date, the pennant for the deadline, the warning triangle for a late date, the target for the goal, and the flag on a finish line for "Ended …".
   - **0 of 2 · Next:** and the task to do next. That is the open task marked `#next`, or else
     the first open task in the note. When every task is ticked but a subtask under one of them
     is still open, it is that subtask. The Goals and Aspirations screens and **Plan** use the
@@ -400,8 +430,7 @@ Each project is one row, like every other list in PARAGON. From left to right:
 - A small **capsule** at the right edge when the project is **Paused**, **Done**, **Missed**
   or **Dropped**.
 
-Everything else, the goal it serves, the deadline, the tags and the next task's date, is in
-the project's facts panel, at the top of the note.
+The goal it serves, the deadline, the tags and the next task's date are all in the project's facts panel, at the top of the note.
 
 A heading shows an orange ⚠ and a number when a project in it has a date that has passed or
 a deadline later than its goal's target date. "No next action" is never orange.

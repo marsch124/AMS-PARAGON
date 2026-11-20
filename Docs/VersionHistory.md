@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (343) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (344) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 344 · 20 November 2026
+
+**The Projects page now has four views, and every project row is the same height.** One new thing, called **Projects: four views**, and a change to the rows after your notes on a screenshot.
+
+**New.**
+- **A switch with four parts.** Before (build 343): the Projects page had one view, the list grouped under aspirations and goals. Now: a switch at the top of the page with four parts, each with a hand-drawn mark and a word: **By goal** (the goal target), **List** (three rows), **Board** (three columns) and **Cards** (two cards). The chosen part is full project green with white words; the other parts are plain. On the Mac the switch sits in the top bar, and Command-Option-1 to 4 choose the four parts. On the iPhone it is a strip under the title. PARAGON remembers the last view you used, on each device separately: the Mac and the iPhone can show different views.
+- **By goal.** This is the page as before: projects grouped under aspirations and goals, with **Done**, **Missed** and **Dropped** at the bottom.
+- **List.** Every running project and every project on hold, one line each, with five columns: **Project**, **Goal**, **State**, **Next** and **Deadline**. It opens sorted "needs a look first": first the projects with a late date (an overdue task, a deadline that has passed, or a deadline after its goal's date); then running projects with no next action; then running projects with a next action; then projects on hold. Inside each of these four groups, the project with the soonest deadline is first, then your own order. Click a column heading to sort by that column; click it again to turn the order round. Click a line to open the project. Right-click gives the same menu as before. Done, missed and dropped projects are not in the List. They stay in **By goal** and in the **Done** column of the Board.
+- **Board.** Four columns side by side: **Needs a look**, **Running**, **On hold** and **Done**. **Needs a look** holds running projects with a late date, by the same rule as the orange "needs a look" count at the top of the page. Drag a card onto **Running**, **On hold** or **Done** to change the project's state. **Done** records the day the project ended, the same as **Mark done**. **Needs a look** is not a place to drop a card: a project comes there by its dates. Missed and dropped projects are not on the Board.
+- **Cards.** A grid of larger boxes, one for each running or on-hold project. A box shows the project's icon, its name, a progress bar with the words "5 of 8", its deadline with the days left (red when the deadline has passed on a running project), and the goal it serves. Click a box to open the project.
+
+**Changed. Marks in the project rows (By goal).**
+- Before: the grey line under a project's name was plain words. Now: each piece of information has a small hand-drawn mark before it, and each mark means what it already means elsewhere in PARAGON. The number of tasks has the ticked list. The next task has the ring (an open task). "All N finished" has the ticked ring. "No next action" has the dashed ring (dashed means "not set yet"). When every task waits for somebody, the hourglass. How long the next task takes has the plain clock, its date the calendar. The project's deadline has the pennant. A date that has passed, or a deadline after its goal, has the warning triangle. The goal has the target. "Ended …" has the flag on a finish line.
+- The new marks are listed in **Signs in this app** in How it works.
+
+**Fixed.**
+- **Rows of different height.** Before: a row with a coloured icon square was taller than a row with a dot, because the 30-point square hung above the name. Now: every row is the same height.
+- **"On hold" and the bars at the far edge.** Before: on a wide window, the word "On hold" and the 8-week bars sat at the far right edge of the window, a long way from the words. Now: on a wide window a row stops at a reading width of 680 points, so they sit a short way from the words. They are stacked as before.
+
+**Unchanged.** Right-click and press-and-hold menus, dragging a project inside its group, dropping a task onto a project, Search, and the count beside **Projects** in the sidebar. Everything else of build 343.
 
 ## Build 343 · 20 November 2026
 

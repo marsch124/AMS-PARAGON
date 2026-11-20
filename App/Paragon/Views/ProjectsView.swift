@@ -21,6 +21,9 @@ struct ProjectsListView: View {
     /// The ended groups he has opened, one id per line. Done, Missed and Dropped **start
     /// folded**, as they do in both goal rooms (build 165); the heading still says how many.
     @AppStorage("projectGroupsOpened") private var openedText = ""
+    /// Build 344: which of the four views is shown — the last one used, on each device.
+    @AppStorage(ProjectsLayout.storageKey) private var layoutText = ProjectsLayout.byGoal.rawValue
+    private var layout: ProjectsLayout { ProjectsLayout(rawValue: layoutText) ?? .byGoal }
     /// Handed in, because the rename alert and the delete question belong to the note list
     /// around this view, and the flat list uses the very same two.
     let rename: (Note) -> Void
@@ -34,8 +37,36 @@ struct ProjectsListView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if isPhone {
+                // On the iPhone the switch is a strip under the title; the top bar has no room.
+                ProjectsLayoutSwitch(selection: $layoutText)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity)
+            }
             band
-            groupedList
+            switch layout {
+            case .byGoal:
+                groupedList
+            case .list:
+                ProjectListOverview(lines: ProjectOverview.lines(of: model.projectGroups, includeEnded: false),
+                                    isPhone: isPhone) { menu(for: $0) }
+            case .board:
+                ProjectBoardOverview(stacks: ProjectOverview.board(of: model.projectGroups),
+                                     isPhone: isPhone) { menu(for: $0) }
+            case .cards:
+                ProjectCardsOverview(lines: ProjectOverview.lines(of: model.projectGroups, includeEnded: false)) {
+                    menu(for: $0)
+                }
+            }
+        }
+        .toolbar {
+            // Build 344, his pick 1: the switch sits in the top bar on the Mac and the iPad.
+            ToolbarItem(placement: .principal) {
+                if !isPhone {
+                    ProjectsLayoutSwitch(selection: $layoutText)
+                }
+            }
         }
     }
 
@@ -376,6 +407,10 @@ struct ProjectRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             ProjectTile(status: line.status, note: line.note)
                 .accessibilityIdentifier("project.tile.\(line.id)")
+                // Build 344, his note 2: the 30-point square sat on the name's baseline and
+                // hung above it, so a row with an icon was taller than a row with a dot. Now
+                // its top meets the top of the name and the words decide the height.
+                .alignmentGuide(.firstTextBaseline) { $0[.top] + ProjectRow.nameBaseline }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline) {
                     // `strikethrough` while it is still a `Text`, before `lineLimit` makes it a view.
@@ -403,7 +438,19 @@ struct ProjectRow: View {
             }
         }
         .padding(.vertical, 2)
+        // Build 344, his note 3: on a wide window "On hold" and the weekly bars sat at the far
+        // right edge, far from the words. A row now stops at a reading width.
+        .frame(maxWidth: ProjectRow.readingWidth, alignment: .leading)
     }
+
+    /// The widest a project row gets (build 344).
+    static let readingWidth: CGFloat = 680
+    /// From the top of the name to its baseline, about: where the tile's top meets the name.
+    #if os(macOS)
+    static let nameBaseline: CGFloat = 13
+    #else
+    static let nameBaseline: CGFloat = 17
+    #endif
 
     /// The one second line. Named `project.next.<path>` with the need as its spoken words
     /// ("Next: …") on a live project, and `project.endedDay.<path>` saying "Ended on …" on one
@@ -412,7 +459,7 @@ struct ProjectRow: View {
     private var secondLine: some View {
         let second = secondText
         if isOver {
-            Text(second.text)
+            ProjectFacts.text(second.all)
                 .font(Txt.listSecond)
                 .foregroundStyle(.soft)
                 .lineLimit(1)
@@ -428,12 +475,12 @@ struct ProjectRow: View {
             // the need and the facts after it, and the lower line starts under the upper
             // one — it began with the dot, set in 47 points ("· Walk the Kungsleden…").
             ViewThatFits(in: .horizontal) {
-                needLine(count: second.count, words: second.lines.one)
+                needLine(count: second.count, words: ProjectFacts.text(second.lead + second.rest))
                 VStack(alignment: .leading, spacing: 1) {
-                    needLine(count: second.count, words: second.lines.upper,
-                             lines: second.lines.lower == nil ? 2 : 1)
-                    if let lower = second.lines.lower {
-                        Text(lower)
+                    needLine(count: second.count, words: ProjectFacts.text(second.lead),
+                             lines: second.rest.isEmpty ? 2 : 1)
+                    if !second.rest.isEmpty {
+                        ProjectFacts.text(second.rest)
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
@@ -452,14 +499,14 @@ struct ProjectRow: View {
     /// in the body, where a loop and `var` are not allowed (build 58).
     /// The count and the need, as one line. The count is its own words; the need element
     /// keeps its name and its "Next: …" label.
-    private func needLine(count: String?, words: String, lines: Int = 1) -> some View {
+    private func needLine(count: String?, words: Text, lines: Int = 1) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             if let count {
-                Text(count + " \u{00B7}")
+                (ProjectFacts.text([ProjectFacts.Fact("checklist", count)]) + Text(" \u{00B7}"))
                     .lineLimit(1)
                     .fixedSize()
             }
-            Text(words)
+            words
                 .lineLimit(lines)
                 .truncationMode(.tail)
                 .multilineTextAlignment(.leading)
@@ -470,50 +517,74 @@ struct ProjectRow: View {
         }
     }
 
-    private var secondText: (count: String?, text: String, lines: (one: String, upper: String, lower: String?), late: Bool, attention: Bool) {
+    private var secondText: (count: String?, text: String, all: [ProjectFacts.Fact], lead: [ProjectFacts.Fact], rest: [ProjectFacts.Fact], late: Bool, attention: Bool) {
+        typealias Fact = ProjectFacts.Fact
         let today = DateOnly.today()
-        var parts: [String] = []
+        var parts: [Fact] = []
         var count: String?
         var late = false
         var attention = false
+        // Build 344, his note 1: a small mark before each fact. Each mark already means the
+        // same thing elsewhere in PARAGON (see "Signs in this app").
         if isOver {
             if let ended = line.ended {
                 // Build 269: the day it ended, "20 October". An old project with no `ended:`
                 // day gets nothing, never a guessed day (build 262).
-                parts.append("Ended " + ProjectEnding.dayText(ended, today: today))
+                parts.append(Fact("flag.checkered", "Ended " + ProjectEnding.dayText(ended, today: today)))
             }
             if case .allFinished(let count) = line.need {
-                parts.append(ProjectLine.finishedText(count: count))
+                parts.append(Fact("checkmark.square.fill", ProjectLine.finishedText(count: count)))
             }
         } else {
             if line.total > 0, line.openCount > 0 { count = "\(line.done) of \(line.total)" }
-            parts.append(needWords)
+            parts.append(contentsOf: needFacts)
             if let next = line.nextTask {
-                if useTaskTimes, let minutes = next.minutes { parts.append(TaskTime.label(minutes)) }
+                if useTaskTimes, let minutes = next.minutes { parts.append(Fact("clock", TaskTime.label(minutes))) }
                 if let due = next.dueDate {
-                    parts.append(due.timeLeftText(from: today))
+                    parts.append(Fact("calendar", due.timeLeftText(from: today)))
                     if isRunning, due < today { late = true }
                 }
             }
             if let deadline = line.deadline {
-                parts.append(ProjectLine.deadlineText(deadline, today: today))
+                parts.append(Fact("deadline", ProjectLine.deadlineText(deadline, today: today)))
                 if isRunning, line.deadlinePassed { late = true }
             }
             if isRunning, line.overdueCount > 0 {
-                parts.append(ProjectLine.overdueText(line.overdueCount))
+                parts.append(Fact("exclamationmark.triangle", ProjectLine.overdueText(line.overdueCount)))
                 late = true
             }
-            if isRunning, line.dueAfterGoal { parts.append("Due after its goal"); attention = true }
+            if isRunning, line.dueAfterGoal {
+                parts.append(Fact("exclamationmark.triangle", "Due after its goal"))
+                attention = true
+            }
         }
         if let goal = line.goal {
-            if goal.relativePath != under?.relativePath { parts.append(goal.title) }
+            if goal.relativePath != under?.relativePath { parts.append(Fact("target", goal.title)) }
         } else if line.goalIsMissing, let name = line.note.goal {
-            parts.append("No goal called \(name)")
+            parts.append(Fact("target", "No goal called \(name)"))
         }
         // The need stands first on a live project; everything after it may move down a line.
-        let lead = isOver ? parts : Array(parts.prefix(1))
-        let rest = isOver ? [] : Array(parts.dropFirst())
-        return (count, parts.joined(separator: SecondLine.dot), SecondLine.split(first: lead, rest: rest), late, attention)
+        let leadCount = isOver ? parts.count : min(parts.count, needFacts.count)
+        let lead = Array(parts.prefix(leadCount))
+        let rest = Array(parts.dropFirst(leadCount))
+        return (count, parts.map(\.words).joined(separator: SecondLine.dot), parts, lead, rest, late, attention)
+    }
+
+    /// The need as facts with marks: "Next: …" after the open-task box; "All 15 finished"
+    /// after the ticked box and "No next action" after the dashed ring (not set yet).
+    private var needFacts: [ProjectFacts.Fact] {
+        typealias Fact = ProjectFacts.Fact
+        let running = line.status == .active
+        switch line.need {
+        case .next: return [Fact("square", "Next: " + (line.nextTitle ?? ""))]
+        case .allFinished(let count):
+            return [Fact("checkmark.square.fill", ProjectLine.finishedText(count: count))]
+                + (running ? [Fact("circle.dashed", "No next action")] : [])
+        case .waitingOnly(let count):
+            return [Fact("hourglass", ProjectLine.waitingText(count: count))]
+                + (running ? [Fact("circle.dashed", "No next action")] : [])
+        case .noTasks: return [Fact("circle.dashed", "No tasks yet")]
+        }
     }
 
     /// The need line in words, set as its label: one element with one sentence reads the same
@@ -723,5 +794,35 @@ struct ProjectTile: View {
         case .colour, .unset:
             return "Project"
         }
+    }
+}
+
+/// Facts with a small mark before each, as one `Text`, so the line still shortens with "…"
+/// and still takes the colour of the line (build 344, his note 1 on the Projects screenshot).
+enum ProjectFacts {
+    struct Fact {
+        let mark: String
+        let words: String
+        init(_ mark: String, _ words: String) {
+            self.mark = mark
+            self.words = words
+        }
+    }
+
+    #if os(macOS)
+    static let markSize: CGFloat = 10.5
+    #else
+    static let markSize: CGFloat = 12
+    #endif
+
+    static func text(_ facts: [Fact]) -> Text {
+        var result = Text("")
+        for (index, fact) in facts.enumerated() {
+            if index > 0 { result = result + Text(SecondLine.dot) }
+            let mark = Text(Marks.templateImage(fact.mark, size: markSize).renderingMode(.template))
+                .baselineOffset(-1)
+            result = result + mark + Text("\u{2009}" + fact.words)
+        }
+        return result
     }
 }
