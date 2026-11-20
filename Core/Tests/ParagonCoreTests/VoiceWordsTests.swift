@@ -33,6 +33,17 @@ final class VoiceWordsTests: XCTestCase {
                        SpokenTask(title: "Call Anna about Saturday"))
     }
 
+    /// Diagnostic for the Swedish time (CI said "Klockan 14" was not read).
+    func testTheSwedishClockIsFound() {
+        let said = "Påminn mig klockan 14 att ringa Anna."
+        let found = SpokenWhen.findTime(in: said)
+        XCTAssertNotNil(found, "findTime found nothing in: \(said)")
+        let got = SpokenWhen.extract(from: said, now: at(10), calendar: cal)
+        XCTAssertEqual(got.time, TimeOfDay(hour: 14, minute: 0), "extract gave text '\(got.text)', date \(String(describing: got.date))")
+        let prepared = VoiceThought.sentencesOf(VoiceThought.clean(VoiceWords.prepared(said)))
+        XCTAssertEqual(prepared, [said], "the sentences were: \(prepared)")
+    }
+
     func testSpokenTimesBecomeReminders() {
         let today = DateOnly(year: 2026, month: 11, day: 20)
         XCTAssertEqual(first("Remind me at 3 to call Anna.", now: at(10)),
