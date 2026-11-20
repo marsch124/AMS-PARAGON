@@ -109,7 +109,8 @@ final class TaskDueTests: XCTestCase {
         let moved = timed.settingDueDate(tomorrow)
         XCTAssertEqual(moved.dueDate, tomorrow)
         XCTAssertEqual(moved.dueTime, TimeOfDay(hour: 14, minute: 0))
-        XCTAssertEqual(moved.serialized, "- [ ] Dentist >2026-11-05T14:00")
+        // Build 350: a move to a later day is counted (`@moved`, pick 48).
+        XCTAssertEqual(moved.serialized, "- [ ] Dentist >2026-11-05T14:00 @moved(1)")
     }
 
     func testRemovingTheDateTakesTheTimeToo() throws {

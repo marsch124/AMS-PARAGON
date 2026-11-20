@@ -24,9 +24,13 @@ Capture is for getting something down in seconds without deciding where it belon
 
 Under the capture field, small dashed chips show what PARAGON understood: a date, a priority, a tag. No chip means that part was not understood. You also choose where it goes (Inbox, today's note or a project) and whether it is a task or a note.
 
+Under the field you also find **Dictate** (speak instead of type), **Scan a list** (photograph a paper list; iPhone and iPad) and, if you paste two lines or more, the question **Make 5 tasks?**. "Already in the Inbox" warns you about the same line twice. In **Settings › Place name** you can switch on a place name at the end of each capture (off at start).
+
 ### Sorting the Inbox
 
 Pick a line and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it** (into a project or area). Captured notes sit under **Notes**, where **Make task** turns one into a task. When nothing is left, the screen says **Inbox zero**.
+
+In the Inbox, **Snooze until…** on a line's menu puts it away until a day, and **Select** lets you pick several lines and file them at once.
 
 On the iPhone, **File it** lists the likely places first (since build 331). **Suggested** has up to 2 places whose name shares a telling word with the line. **Recent** has up to 3 places you last moved a task to on this phone. Under them, **All projects and areas** is the whole list, so nothing is hidden. With 6 places or fewer there are no groups. **Move to** on a line's menu has the same groups.
 
@@ -37,6 +41,8 @@ On the iPhone, **File it** lists the likely places first (since build 331). **Su
 **Today** is the screen you live in. It shows the day's calendar events, then what needs you now: overdue tasks, tasks due today, the one next action of each active project, and undated tasks marked important.
 
 Four round buttons sit at the top (since build 332; before, three): **One** opens the page One thing, **Note** opens today's note, **Start** turns Today into a picking list (since build 335; before, it opened a second page), **Close** opens Close the day.
+
+On **Today**, a small card **From your Resources** brings back one Resource note at least 30 days old, with **Open** and **Not today** (Settings › Tasks can turn it off). On the iPhone and iPad, **Settings › Health** can write one line a day into your daily note, like "Steps 8,412 · Walk 35 min" (off at start; PARAGON only reads, it never writes to Health).
 
 ### One thing
 
@@ -120,6 +126,14 @@ A task you have handed to somebody else: choose **Waiting for…** on the task m
 
 In **All actions**, the switch at the top has two halves, **Actions** and **Waiting for**. The second lists lines by person and says how long you have waited. **Follow up next week** moves a line's date a week on. **Not waiting any more** turns it back into an ordinary task. A waiting line is never your next action.
 
+### Small steps, energy, moves, places and people
+
+- **Small steps:** a task with subtasks shows a pie in its circle and "2/4". The pie is not a tick.
+- **Energy** on the task menu: **Easy**, **Medium**, **Hard**. **All actions** has boxes for them.
+- **Moved 5 times:** a task you keep moving to a later day gets this line and a menu: **Do it now**, **Split it**, **Drop it**.
+- **Remind me at a place…:** Apple Reminders rings when you arrive or leave. The task must be in a note that syncs.
+- **Person…** links a task or a note to someone in your Contacts. **Tags › People** lists everything about one person.
+
 ### Important, how long, next
 
 - **Important:** one, two or three exclamation marks.
@@ -190,6 +204,7 @@ On the Mac, the headings scroll with the list and none sticks to the top (since 
 - **Map:** what serves what, goals at the top, then areas, projects and open tasks. A star is an aspiration, a target a goal with a date, a flag a project, four squares an area, books a resource. Click a box to open its note. On the Mac it has its own window (Shift-Command-M).
 - **Calendar:** **Day**, **Week**, **Month** and **Notes** (every daily and weekly note you have written). **Week** shows what is due each day; tasks without a date wait in **Not planned yet**, and you drag one onto a day.
 - **Done:** a diary of the last 12 weeks.
+- **Your year:** in **Done**, one page with what you finished in a year. **Share as PDF** is on it.
 - **Deleted:** deleted notes, kept for 30 days. **Put back** restores one.
 - **Outside PARAGON:** your notes also appear in your device's own search, while **System search** is on in Settings.
 
@@ -275,6 +290,14 @@ Since build 348. iPhone and iPad with iOS 26 or newer; on the Mac the action is 
 - **Nothing heard:** nothing is saved; the card says "Nothing heard — nothing saved".
 - **Settings › Voice › Voice language:** "Phone's language" (default), English, Deutsch or Svenska. Under it: "The language you speak when you record a thought."
 - **Signs:** a red dot on the Lock Screen or in the Dynamic Island means PARAGON is recording your voice right now. The second button: sun = into today's note, tray = into the Inbox. "N tasks heard" = spoken tasks caught so far. The microphone mark on a Shortcut tile is **Record a Thought**.
+
+**More for voice notes (since build 350).**
+- **Words you say:** dates ("tomorrow", "on Friday", "the 25th") and times ("at 3:30", "um 15 Uhr") become the task's date. "Remind me" makes a task. "Tag garden" adds a tag, "Idea …" lists an idea, "Title …" at the start names the note, and "stop recording" at the end stops and files.
+- **Pause and Mark** are buttons on the Lock Screen card. **Mark** marks the moment; that sentence is shown in bold under **Marked**.
+- **Check before filing** (Settings › Voice, on): the thought is filed at once, and a card lets you change the title and switch tasks off. **Throw it away** moves the note to **Deleted** for 30 days.
+- **Voice notes** (under **Look back** on the Mac, in **Browse › Plan** on the iPhone) lists every recording. Each row can **Read aloud**, **Write it up again** or be thrown away.
+- **Words it mishears** (Settings › Voice) teaches PARAGON your names. **Read the summary aloud** and **Summary in English** are in Settings › Voice too.
+- **Control Center:** you can add **Capture** and **Record a Thought** as buttons. They open PARAGON, so the phone must be unlocked.
 
 ### Sharing into PARAGON
 

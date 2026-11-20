@@ -392,9 +392,9 @@ enum SpokenWhen {
         let edge = "(?<![\\p{L}\\p{N}])"
         let end = "(?![\\p{L}\\p{N}:])"
         let patterns: [String] = [
+            edge + "(?:klockan|kl)\\s+(\\d{1,2})(?:[:.](\\d{2}))?" + end,
             edge + "at\\s+(\\d{1,2})(?::(\\d{2}))?(?:\\s*(am|pm))?" + end,
             edge + "um\\s+(\\d{1,2})(?:[:.](\\d{2}))?(?:\\s*uhr)?" + end,
-            edge + "(?:klockan|kl)\\s*(\\d{1,2})(?:[:.](\\d{2}))?" + end,
         ]
         for pattern in patterns {
             guard let r = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),

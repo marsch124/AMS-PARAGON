@@ -69,6 +69,16 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 - **Inbox tray on that card (since build 348)** — the thought is saved in the Inbox ("Saved to Inbox"). A pale dot means it is getting ready or writing it up.
 - **Open on an Inbox note line (since build 348)** — the line leads to a note (a recorded thought); **Open** shows that note. Such a line has no **Make task**.
 - **Microphone mark on a Shortcut tile (since build 348)** — the action **Record a Thought**.
+- **Pause and Mark on the Lock Screen card (since build 350)** — **Pause** stops the recording for a while; the dot turns pale and the heading says "Paused". **Mark** (words only) marks the moment; the card says "N marked".
+- **Microphone mark on Voice notes (since build 350)** — the row **Voice notes**: every thought you recorded.
+- **Pin mark on a task (since build 350)** — the task has a place to remind you at. The place's name is beside it.
+- **Person mark on a task (since build 350)** — the task is about one person from your Contacts. The name is beside it.
+- **Pie in the tick circle (since build 350)** — some of the task's small steps are done, like "2/4" beside it. The pie is never a tick: only the filled circle with the tick means the task is done.
+- **"Moved 5 times" (since build 350)** — you have moved this task to a later day that many times. Its menu offers **Do it now**, **Split it** and **Drop it**.
+- **Snooze (since build 350)** — an Inbox line put aside until a day. It is out of the Inbox and the count until then. "N lines are snoozed" with **Bring back** is at the foot of the Inbox.
+- **Energy (since build 350)** — the tag #easy, #medium or #hard on a task, set with **Energy** on its menu. Not the same as **Task time**.
+- **Pale dot while paused (since build 350)** — the recording is not running. Press **Go on**.
+- **"Already in the Inbox" (since build 350)** — under the capture field: an open Inbox line has these words already.
 - **Two tiles in "What is next?"** — green flag tile = start a new project for this goal; gold target tile = the goal is reached, mark it done.
 - **Marks beside words (since build 346)** — every mark in front of words (a task circle, a dot, a badge, an arrow) sits on the middle of the first line of those words. A dot in a project row stands in the same column as an icon.
 - **Round arrow at the end of a calendar event** — open it in Calendar. White by day, black at night; the calendar's own colour is the dot in front of the event.
@@ -756,6 +766,14 @@ While the message has an **Undo** button it stays for about eight seconds. The *
 
 There is no **Undo** on the buttons in **Close the day**, because that screen covers the message on the phone. A date set on one task, and a task deleted inside a note, have none either.
 
+### New in build 350: tasks
+
+- **Small steps.** A task with subtasks shows a pie wedge inside its tick circle and "2/4" after the title. Only direct subtasks count; cancelled ones count neither way; deeper levels belong to their own task. No wedge at 0 done, and none on a done or cancelled task. The circle still ticks the whole task. Ticking every step does not tick the task by itself.
+- **Energy.** Task menu › **Energy**: **Easy**, **Medium**, **Hard**, **None** (the choice is ticked; one at a time). It writes #easy, #medium or #hard. **All actions** has a row **Energy** with a box for each; within the row it is an or, between rows an and. In the **Tags** screen these three cannot be renamed or removed: "#hard is one of the three effort tags (easy, medium, hard). Renaming or removing it would break the Energy boxes in All actions."
+- **Moved N times.** `@moved(N)` on the task line (dimmed in the editor, never in a reminder). It goes up by 1 when a day already set moves to a later day, by any way: the date window, the swipe to tomorrow, the **Overdue** buttons. It does not count an earlier day, a first date, taking the date off, or a change of the time only. **Undo** of a move takes one off. From 5, the row says "Moved 5 times" and the menu starts with that and **Do it now** (due today, count starts again), **Split it** (opens the note, count starts again) and **Drop it** (cancels the task). **Follow up next week** on a waiting line is not counted.
+- **Remind me at a place….** On the task menu. A popover (sheet on the iPhone) "Remind me at a place": **Arriving** or **Leaving**, "Search a place", **Search**, the results, **Cancel**, **Save**; when one is set "Now: Arriving at Home" and **Take place off**. Under it: "Apple Reminders watches the place and rings when you arrive/leave. The task needs to be in a note that syncs with Reminders." The line gets `@place(Home|59.32940,18.06860|arrive)`. The row shows the pin and the name. Messages: "Arriving at Home. It rings once the task has synced with Reminders." and "Place taken off." If nothing is found: "No place found. Try other words." Apple Reminders does the watching (a circle of 150 metres), so PARAGON needs no location permission for it. A place set in Apple Reminders is taken into the note; PARAGON never clears the note's place.
+- **Person….** On the task menu: "Who is it about?" with a Name field and **Add**, the people already used as chips under "People you already use", and on the iPhone and iPad **Choose from Contacts…** (Apple's picker, no permission) or on the Mac **Search Contacts** (asks for Contacts; up to 8 names). **Cancel** and **Save**; **Save** with nobody chosen takes the link away. On the task it is `@person(Anna Svensson)`; a task has one person. A note has **Person…** in its header ("People in this note", several allowed), kept as `people: [Anna Svensson]` in the settings block.
+
 ## The Inbox
 
 Everything you capture lands here, and the screen is built for emptying it.
@@ -791,6 +809,11 @@ A capture saved as **A note** into the Inbox is written into the Inbox note unde
 The right-hand column shows the line you are on, the four buttons, and everywhere the line can go. Click a destination and the line moves there, and the next line is selected so you can keep going.
 
 The destinations are grouped into **Projects** and **Areas**, with sub-areas indented under the area they belong to and a chevron to fold a family away. Since build 291 the **Projects** group and the **Areas** group each have a chevron by their heading too: press it to fold the group away, and again to open it. The app remembers which ones you folded. The grey box "Pick a line on the left..." is not shown until a line is picked.
+
+**New in build 350: Snooze and Select.**
+
+- **Snooze until….** On a line's menu (right-click on the Mac, hold on the iPhone; also on the Mac's **File it** button): **Tomorrow**, **Next Monday** or **Pick a day…**. **Pick a day…** opens a date window titled "Snooze until" with the button **Snooze**; a day that is not after today says "Pick a day after today.". The message says "Back in the Inbox on Monday 23 November." A snoozed line comes back on the day itself. It is not counted in the Inbox number, the start screen, the widget or the Weekly review. The last row of the list says "N lines are snoozed" with **Bring back** (all at once). If every line is snoozed the screen says **Inbox zero** and "N snoozed lines come back later." The phone's four-button card has no Snooze; hold the line.
+- **Select.** **Select**, above the list, with two lines or more. Each line's round button now picks it (empty or ticked). The bar shows **Cancel**, "Pick lines" or "N picked", **All** and **None**, and a full-colour **File N lines** menu: Recent places, then all projects and areas. The lines move one by one, each found again in its note as it is now. Message: "Moved 3 lines to Health." If some fail: "N of M lines were moved. The others stayed where they were; look at the Inbox and try again." Leaving the Inbox ends Select. The **Search…** page is not offered for many lines.
 
 ## Reminders sync
 
@@ -1200,6 +1223,12 @@ The per cent never says 100 until everything really is finished, and never says 
 - A daily note shows the day's events and the tasks due that day above its own text. A weekly note shows all seven days as a plan: drop tasks onto a day, tick them off there. Each of the seven days is written like **Thursday 2026-11-12**.
 - **The name of a daily or weekly note (since build 309).** In the top bar, in **Recent** and in every other list, a daily note is called by its day, for example **Thursday 2026-11-12**, and a weekly note by its week, **Week 46 · 2026**. Before, they showed the file's name, "20261112" and "2026-W46". The files keep those names. The heading PARAGON writes as the first line of a **new** daily note is unchanged, for example "# Thursday, 12 November 2026" (a new weekly note: "# Week 46, 9 Nov – 15 Nov 2026"). It is part of your note, so PARAGON does not rewrite it, in new notes or in old ones.
 - **Reading a note on the Mac (since build 309).** While the cursor is not in the note, every "#" and "**" is hidden, on the first line too. So a daily note opens as "Thursday, 12 November 2026", not "# Thursday, 12 November 2026". Click into a line and the signs of that line show, so you can change them. The iPhone already did this.
+
+### New in build 350: Your year and an older Resource
+
+- **Your year.** In **Done**, the button **Your year** replaces the diary with one page until you press **Close** (Escape on the Mac). ‹ (**Earlier year**), the year, and › (**Later year**) change the year. The card says "Your year 2026", "N goals done", "N projects finished", "N tasks done", "Busiest month: March, with 34 tasks", twelve bars for the months, and the lists **Goals done** and **Projects finished** (40 at most, then "and N more"). Only goals with a date and projects marked Done with an ending day in that year are listed (aspirations never); tasks count by the day written on them; anything with no day is left out because it cannot be proved. Empty: "Nothing dated in 2026 yet. A task you tick off, or a goal or project you mark Done, shows up here on the day it happened." Notes still coming from iCloud: "Some notes are still coming from iCloud, so the year may be missing some of its days." **Share as PDF** makes one light page as tall as needed.
+- **From your Resources.** A card on **Today**, after **Important, no date** (not while picking): one Resource note at least 30 days old, with its title and first line, **Open** and **Not today**. It is the same one all day on every device, and a new one the next day. **Not today** hides it for the day, on this device. Settings › Tasks › **Show an older Resource on Today** (on at start).
+- **A project as a PDF.** Share › **As PDF** on a project adds one grey line under the title: "Active · Serves <goal> · In area <area> · Deadline 2026-12-01 · 3 of 8 tasks done".
 
 ## Apple Calendar and Time Blocks
 
@@ -1866,6 +1895,10 @@ is. The field at the top finds a tag by name. On the iPhone (since build 324) th
 Right-click a tag (long-press on the iPhone) for **Search for #tag**, which hands it to the
 Search screen where you can combine it with anything else.
 
+### New in build 350: the People page
+
+In the **Tags** screen a switch **Tags | People** sits at the top (in the bar where you make a tag). **People** shows one folding heading per person, A to Z, with "1 open · 1 done · 1 note". Open it for the person's notes (buttons) and open tasks (ordinary task rows). Empty: "No people yet" and "Choose Person… on a task's menu or in a note's header to link it to someone in your Contacts. Everything linked to one person is then here." Reach it: Browse or the sidebar › **Tags** › **People**.
+
 ## Templates and snippets
 
 Two kinds of ready-made text, both ordinary markdown files in the `Templates` folder inside your vault. **Templates** are what a new note starts as; **snippets** are blocks of tasks you drop into a note you are already in. The **Templates** section in the sidebar lists them all and lets you edit them without leaving the app.
@@ -1973,6 +2006,14 @@ Since build 316 you can write the date in English words, and PARAGON reads it. B
 - English words only. Not read: the **+** in **Add an action for today** (while you pick on **Today**), the share sheet, a capture by link, and a line typed directly into a note's text.
 
 The full list of words is in **Exact details (build 316)**.
+
+### New in build 350: Quick capture
+
+- **Dictate.** A chip **Dictate** in the row under the field (iPhone, iPad, Mac). The first press asks for speech and microphone permission. The words appear in the field as you say them, after the words already there. The chip is **Stop** while it listens; pressing **Save** also stops it. It works on the device only: if a language cannot be understood on the device, PARAGON says so and sends nothing to a server. Problems are written in orange.
+- **Scan a list.** A chip **Scan a list** (iPhone and iPad, only where there is a camera). The page **Scanned list** shows every line read, with a small x to take a wrong one away: "Each line becomes a task in the Inbox. Take away the ones that are wrong." **Add N tasks** saves them, each as its own capture with the same choices as a typed line. No writing found: "No writing was found. Try again with more light, and the page flat."
+- **Paste many lines.** Pasting two lines or more asks **Make 5 tasks?** (or "notes" when **A note** is chosen): **One task each** saves every line as its own capture ("Saved 5 tasks"; bullets, numbers and tick boxes are taken off); **Keep as one** changes nothing. Typing a second line is not a paste.
+- **Already in the Inbox.** A small note under the field while the words match an open Inbox line (capitals, accents and spaces do not count; date, priority and length marks are left out). Only for tasks going to the Inbox. **Save** still works.
+- **Place name.** Settings › **Place name** › **Add the place name** (off at start). A line saved from Quick capture then ends "— at Malmö". It looks once, when you save, for at most 3.5 seconds; no permission, no answer or no name: saved as typed. If the permission is refused, an orange line says where to change it (Settings, under PARAGON, Location).
 
 ## Sharing into PARAGON
 
@@ -2104,6 +2145,38 @@ Since build 348, on the iPhone and the iPad with iOS 26 or newer. You speak, and
 - **iOS older than 26:** Siri says "Record a thought needs iOS 26 or newer."
 
 **Settings › Voice.** The row **Voice language**: "Phone's language" (the default), English, Deutsch or Svenska. Under it: "The language you speak when you record a thought."
+
+### New in build 350: more for voice notes
+
+**Words you say.**
+- **Dates.** "today", "tomorrow" and "the day after tomorrow" (also in German and Swedish) become the task's date. So does a weekday after a word ("on Friday", "next Monday", "am Freitag", "på måndag"): the first such day after today. And a day of the month ("the 25th", "den 25:e", "am 25ten"): the next such date, today included. The day words are taken out of the task's title. A bare weekday ("about Saturday") stays words. In the note's **Tasks** it reads "(due 2026-11-27 15:00)".
+- **Times.** "at 3", "at 3:30", "at 3 pm", "um 15 Uhr", "klockan 15". Without am or pm, the next 3:00 or 15:00 after now. If both have passed, 3:00 tomorrow. With a day in the future spoken, 1 to 6 means the afternoon and 7 to 11 the morning.
+- **Remind me.** "Remind me", "erinnere mich" and "påminn mig" make a task, without the word "task".
+- **Tag.** A sentence that starts "tag" (Swedish "tagga") and one word adds that tag to the note. The words are taken out of the text.
+- **Idea.** A sentence that starts "idea" ("Idee", "idé") is listed under **Ideas**, between **Tasks** and **Full text**. It also stays in the full text.
+- **Title.** "Title …" (German "Titel") at the very start, up to 8 words, becomes the title and wins over the one the phone makes.
+- **Stop recording.** "Stop recording", "stoppa inspelningen" or "Aufnahme beenden" at the end stops the recording and files it. The words are taken out of the text.
+- Not understood yet: German "am 25." (the dot ends a sentence), number words like "three", and "tonight".
+
+**On the Lock Screen card.**
+- **Pause** and **Go on**: the clock stops, the heading says "Paused · Inbox" or "Paused · Today's note", the dot is pale. The paused time is not in the note's length. The 30-minute limit counts the pauses too. If the microphone cannot start again, it stays paused and says "Could not go on. Press Stop to keep what you said."
+- **Mark**: the card says "N marked". The sentence you were saying is shown in bold in **Full text** and listed under **Marked**, after **Full text**.
+
+**After you stop.**
+- **Check before filing** (Settings › Voice, on at start). The thought is already filed. When PARAGON is in front, the card **Check the thought** opens: "Recorded 0:42 · saved to the Inbox" (or "today's note"), the title, the summary, and **Tasks** with one switch each ("Switch off a task you do not want. It is taken out of the Inbox."). **Save** keeps the changes (a new title renames the note, so links follow), **Cancel** keeps it as filed, **Throw it away** moves it to **Deleted**. When PARAGON was not in front, the card comes the next time it is active. A thought filed while no notes folder is open has no card.
+- **Throw it away.** The newest thought of this device only, while its note still exists. The note goes to **Deleted** for 30 days. Its open tasks and its Inbox or daily-note line are taken out; a task you ticked or changed stays, and the message says so ("Thrown away. The note is in Deleted for 30 days."). Reminders of thrown-away tasks go at the next sync. Asked for by **Throw it away** on the Voice notes page ("The last thought") and on the check card, with "Throw away this thought?" first.
+- **Read the summary aloud** (Settings › Voice, off at start): the phone says the title, the summary and the number of tasks, in the language of the recording.
+- **Headings.** A recording of 4 minutes or more, or over 600 words, is cut at sentence ends into at most 8 parts, each with a short heading (### in the note). The words are never rewritten. If Apple Intelligence is off or slow (12 seconds), you get plain text.
+- **Summary in English.** Settings › Voice › **Summary in English**, shown only when the voice language is Svenska (or the phone is Swedish and the language is the phone's). Title, summary and tasks are written in English; **Full text** stays as said. A summary that comes late is also in English.
+- **Names become links.** The first mention of each project, area, resource or goal name (4 letters or more, whole words, capitals do not matter) in the summary and the full text becomes a [[link]]. Not in a summary that comes late.
+
+**The Voice notes page.** The row **Voice notes** (microphone mark, green): under **Look back** on the Mac (after **Recent**), in **Browse › Plan** on the iPhone (after **Map**). It lists notes tagged voice, newest first: title, "2026-11-20 14:03 · 0:42" and the first words of the summary (of what was said when there is none). A search field, **Find a voice note**. A press opens the note and the page stays. The **More** menu on a row, and the right-click or hold menu: **Read aloud** (a second press stops), **Write it up again** (iPhone and iPad) and **Throw it away** (newest only). Empty: "No voice notes yet" and "Record a thought with the Action Button or Siri. It lands here as a note, with a summary and its tasks." No match: "No voice note has these words."
+
+**Write it up again.** Reads **Full text**, makes the summary again, adds tasks the note does not list yet (to **Tasks** and to the Inbox), takes nothing out, and renames the note if the title is new. Messages: "Writing it up again…", "Written up again. One new task is in the Inbox.", "Apple Intelligence took too long. Try again in a moment.", "Apple Intelligence is not available here, so nothing was changed.", "This note has no full text to write up.", "Writing it up again needs iOS 26 or newer."
+
+**Words it mishears.** Settings › Voice › **Words it mishears**: a page with **Add a word** ("Word as it should be written", "Heard as (optional, separate with commas)"), **Cancel** and **Save**. Swipe a row to remove it. PARAGON listens for these words and puts them right when the speech-to-text writes them wrong.
+
+**Control Center and the Lock Screen.** Since build 350, on iOS 18 or newer, you can add **Capture** and **Record a Thought** as buttons. They open PARAGON, so the phone must be unlocked (Apple's rule; the phone asks Face ID or the passcode first). **Capture** opens Quick capture. **Record a Thought** starts a recording (a press when recording stops and files it). For recording with a locked phone use the Action Button.
 
 ## System search
 
@@ -3070,3 +3143,15 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Mac.** ⌘-click anywhere on `[words](address)`, brackets and address included, opens it (`commandClicked` in `App/Paragon/Views/MarkdownSyntaxEditor.swift`). A plain click still places the cursor. The pointer is a hand over the words (`resetCursorRects`), and `MarkdownHighlight` gives the words the colour of a `[[link]]`.
 - **iPhone and iPad.** One tap on the words, brackets included, of a link that opens another app opens it. A link to `http`, `https` or `mailto` does not count as another app, and nor does a link to PARAGON itself (`amspara:`): a tap on those puts the cursor there, as before. The tap recogniser (`linkTap`) only begins on such words, so a tap anywhere else, and on the box of a task, is handled as before.
 - **Not seen.** A real iPhone or iPad; the Mac click and hand were not tried on a real Mac either.
+
+## Exact details (build 350)
+
+- **Settings, all new rows.** Voice: **Summary in English** (only with Swedish), **Words it mishears**, **Check before filing** (on), **Read the summary aloud** (off). **Place name** › **Add the place name** (off). **Health** (iPhone and iPad) › **Health line in the daily note** (off). Tasks › **Show an older Resource on Today** (on).
+- **Permissions, and when each is asked.** Microphone and speech: the first recording or **Dictate**. Camera: **Scan a list**. Location: turning on **Add the place name**. Health: turning on **Health line in the daily note**; refused: "Health did not allow it. You can change this in Settings > Health > Data Access." Contacts: **Search Contacts** on the Mac. Nothing is asked at launch.
+- **Health line.** Written under `## Health` in today's daily note: `Steps 8,412 · Walk 35 min · Strength 40 min`. Workouts of one kind add up; under a minute counts as 1 min. Nothing is written with no steps and no workout, and an earlier line is never removed. It is updated when the app comes to the front, at most every 30 minutes, and never while notes are coming from iCloud. PARAGON only reads steps and workouts.
+- **Voice rules.** Core `VoiceWords.swift` and `VoiceControls.swift` (Vault folder), with `VoiceWordsTests` and `VoiceControlsTests`. The late summary remembers English and puts new tasks above **Ideas**. **Marked** comes after **Full text** on purpose.
+- **Marks on the task line.** `@snooze(YYYY-MM-DD)`, `@moved(N)`, `@place(name|lat,lon|arrive or leave)` and `@person(Name)`, written after the deadline and before `@done`. They are dimmed in the editor and never part of a reminder's title. An older PARAGON keeps them as plain words in the title.
+- **Snooze rule.** A line is snoozed while its day is after today and comes back on the day. A snoozed line with a date still shows in **All actions** and the Calendar.
+- **Control Center.** The two buttons open `amspara://capture` and `amspara://record`. Not seen on a real phone.
+- **Not done.** Home and Work places from your own contact card. Ticking all small steps does not tick the task. The phone's four-button card has no Snooze. The Inbox's own field, Siri, Share and the widget add no place name. No in-app picture of any of this was taken; nothing was run on a real device.
+

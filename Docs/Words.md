@@ -73,6 +73,11 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Someday** — a task you have put aside: you want to keep it, but not now. It is on the task menu (right-click on the Mac, hold on the iPhone and the iPad); on a task already put aside the menu says **Not someday any more**. It writes the tag `#someday` on the task's line, so you can type it too. Putting a task aside takes its date, its time and its next-action mark off; a deadline stays. A task put aside is never a project's next action, and **All actions** leaves it out until you tick **Someday** in the **Mark** row.
 - **Not waiting any more** — on the task menu of a waiting line. It takes the words, the tag and the `@since` day off, and keeps the date.
 - **@since** — `@since(2026-11-01)` at the end of a waiting line: the day the waiting began. It is how the list can say "waited 5 days". A line without it never says how long.
+- **Small steps** — the subtasks of a task. A pie in the task's circle and "2/4" after the title show how many are done. The pie is not a tick: the task is done only when you tick it.
+- **Energy** — how much effort a task takes: **Easy**, **Medium** or **Hard**. Set it on the task menu. It writes the tag #easy, #medium or #hard. **All actions** has a row of boxes for it.
+- **Moved N times** — said on a task you have moved to a later day many times (from 5). Its menu offers **Do it now**, **Split it** and **Drop it**. It is kept as `@moved(5)` on the line.
+- **Place reminder** — **Remind me at a place…** on the task menu. Apple Reminders rings when you arrive at, or leave, the place. It is kept as `@place(…)` on the line, and shown with a pin.
+- **Person** — someone from your Contacts that a task or a note is about. Set it with **Person…**. A task has one; a note can have several. **Tags › People** lists everything about each person. It is kept as `@person(…)` and `people:`.
 - **Tag** — a word with `#` in front, like `#travel`, on a task or in a note's `tags:` line. It groups things across notes. See **Tags** under **Tools**.
 
 ## Planning your day and week
@@ -122,6 +127,11 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Suggested** and **Recent** — two short groups at the top of **File it** and **Move to**, when there are more than 6 places. **Suggested** has up to 2 places whose name shares a telling word with the line. **Recent** has up to 3 places you last moved a task to on this device. **All projects and areas** follows, with nothing hidden.
 - **Key from any app** — in **Settings › Quick capture** on the Mac: a key that opens a small capture panel while you are in another app. It is **Off** until you choose one.
 - **Capture** — writing something down quickly, to sort later. It goes to the Inbox. On the iPhone it starts with the round **+** button at the bottom right of **Today**, **Actions** and **Inbox**, just above the tab bar. In **New**, the button for it is called **Inbox**, because that is where the line lands.
+- **Dictate** — a chip under the Quick capture field. Press it and speak; the words appear in the field. It works on the device only.
+- **Scan a list** — a chip under the Quick capture field on the iPhone and iPad. It reads a paper list with the camera and makes one task of each line you keep.
+- **Snooze** — **Snooze until…** on an Inbox line's menu. The line leaves the Inbox until the day you choose, and comes back on that day. **Bring back** at the foot of the Inbox brings them all back. It is kept as `@snooze(…)`.
+- **Select** — the button above the Inbox list. It lets you pick several lines and file them together with **File N lines**.
+- **Place name** — Settings › **Place name**. When on, a line saved from Quick capture ends with where you are, like "— at Malmö". Off at start.
 - **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
 - **Add** and **Save** — a button that adds one thing straight away says **Add**, like **Add** beside a new tag. A screen with fields to fill in ends with **Save**. The app does not say Make or Create for this.
 - **File it** — moving an Inbox line into a project or an area. On the iPhone the **File it** button lists your projects and areas at once. With more than 6 places the menu has a row **Search…** on top (since build 332).
@@ -149,6 +159,17 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Loose tasks** — open tasks that nothing else in the week looks at: no date, no deadline, not a **Waiting for** line, not put aside for **Someday**, not a subtask, not the next action of their project, not in the Inbox, and not in a note that is archived, ended or on hold. Step 3 of the **Weekly review** (right after the overdue tasks), **Thin out the loose tasks**, shows 10 at a time, from the notes you left alone longest, with three answers under each: **Today**, **Someday** and **Drop**.
 - **Find in note** — search inside the one note you have open: **⌘F** on the Mac, the **…** menu on the iPhone. **Search** looks through all notes.
 - **Share…** — on an open note: hand a copy of it to another app, **As PDF**, **As plain text** or **The file itself**.
+
+## Voice notes
+
+- **Voice notes** — the row that lists every thought you recorded with **Record a Thought**, newest first. Under **Look back** on the Mac, in **Browse › Plan** on the iPhone.
+- **Check before filing** — a setting in Settings › Voice (on at start). The thought is filed at once; a card then lets you change the title and switch tasks off, or throw it away.
+- **Throw it away** — moves the newest voice note to **Deleted**, where it stays 30 days, and takes its tasks out of the Inbox.
+- **Write it up again** — on a voice note's menu: makes the summary again from the full text and adds tasks that are new.
+- **Words it mishears** — Settings › Voice. Names and odd words you say. PARAGON listens for them and writes them right.
+- **Pause** and **Mark** — buttons on the Lock Screen card while you record. **Mark** marks the moment; that sentence is shown in bold under **Marked**.
+- **Health line** — Settings › **Health** (iPhone and iPad). One line a day in your daily note with your steps and workouts. PARAGON only reads them. Off at start.
+- **Your year** — the button in **Done** that shows one page of what you finished in a year. **Share as PDF** is on it.
 
 ## Tools
 
