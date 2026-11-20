@@ -21,7 +21,7 @@ struct VoiceLiveActivityWidget: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    VoiceDot(stage: context.state.stage, size: 11, intoToday: context.state.intoToday)
+                    VoiceDot(stage: context.state.stage, size: 11, intoToday: context.state.intoToday, paused: context.state.paused)
                         .frame(maxHeight: .infinity)
                         .padding(.leading, 6)
                 }
@@ -52,13 +52,13 @@ struct VoiceLiveActivityWidget: Widget {
                     .padding(.bottom, 2)
                 }
             } compactLeading: {
-                VoiceDot(stage: context.state.stage, size: 9)
+                VoiceDot(stage: context.state.stage, size: 9, paused: context.state.paused)
                     .padding(.leading, 2)
             } compactTrailing: {
                 VoiceClock(startedAt: context.attributes.startedAt, state: context.state, trailing: true)
                     .font(.caption.weight(.semibold).monospacedDigit())
             } minimal: {
-                VoiceDot(stage: context.state.stage, size: 9)
+                VoiceDot(stage: context.state.stage, size: 9, paused: context.state.paused)
             }
             .keylineTint(VoiceLook.red)
         }
@@ -86,7 +86,7 @@ enum VoiceLook {
     static func heading(_ s: VoiceActivityAttributes.ContentState) -> String {
         switch s.stage {
         case .preparing: return "Getting ready"
-        case .listening: return "Listening · \(place(s))"
+        case .listening: return s.paused ? "Paused · \(place(s))" : "Listening · \(place(s))"
         case .writing: return "Writing it up…"
         case .saved: return s.intoToday ? "Saved to today's note" : "Saved to Inbox"
         case .nothing: return "Nothing saved"
@@ -95,8 +95,12 @@ enum VoiceLook {
 
     /// Build 349: "1 task heard" once he said "task" for one; empty before.
     static func heard(_ s: VoiceActivityAttributes.ContentState) -> String {
-        guard s.stage == .listening, s.tasksFound > 0 else { return "" }
-        return s.tasksFound == 1 ? "1 task heard" : "\(s.tasksFound) tasks heard"
+        guard s.stage == .listening else { return "" }
+        var parts: [String] = []
+        if s.tasksFound > 0 { parts.append(s.tasksFound == 1 ? "1 task heard" : "\(s.tasksFound) tasks heard") }
+        // Round 350: the moments he marked.
+        if s.marks > 0 { parts.append(s.marks == 1 ? "1 marked" : "\(s.marks) marked") }
+        return parts.joined(separator: " \u{00B7} ")
     }
 
     static func body(_ s: VoiceActivityAttributes.ContentState) -> String {
@@ -117,10 +121,10 @@ struct VoiceBanner: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                VoiceDot(stage: state.stage, size: 9, intoToday: state.intoToday)
+                VoiceDot(stage: state.stage, size: 9, intoToday: state.intoToday, paused: state.paused)
                 Text(VoiceLook.heading(state))
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(state.stage == .listening ? VoiceLook.red : .white)
+                    .foregroundStyle(state.stage == .listening && !state.paused ? VoiceLook.red : .white)
                     .lineLimit(1)
                 VoiceClock(startedAt: startedAt, state: state)
                     .font(.subheadline.weight(.semibold).monospacedDigit())
@@ -146,6 +150,8 @@ struct VoiceDot: View {
     let stage: VoiceActivityAttributes.ContentState.Stage
     var size: CGFloat
     var intoToday = false
+    /// Round 350: recording is paused, so the dot is not red.
+    var paused = false
 
     var body: some View {
         if stage == .saved {
@@ -156,7 +162,7 @@ struct VoiceDot: View {
                 .accessibilityHidden(true)
         } else {
             Circle()
-                .fill(stage == .listening ? VoiceLook.red : Color.white.opacity(0.45))
+                .fill(stage == .listening && !paused ? VoiceLook.red : Color.white.opacity(0.45))
                 .frame(width: size, height: size)
                 .accessibilityHidden(true)
         }
@@ -172,8 +178,9 @@ struct VoiceClock: View {
     var trailing = false
 
     var body: some View {
-        if state.stage == .listening {
-            Text(timerInterval: startedAt...Date.distantFuture, countsDown: false)
+        if state.stage == .listening && !state.paused {
+            // Round 350: the time spent paused is not counted, so the clock starts that much later.
+            Text(timerInterval: startedAt.addingTimeInterval(state.pausedSeconds)...Date.distantFuture, countsDown: false)
                 .multilineTextAlignment(trailing ? .trailing : .leading)
                 .frame(maxWidth: 52, alignment: trailing ? .trailing : .leading)
         } else {
@@ -188,15 +195,61 @@ struct VoiceButtonRow: View {
     let state: VoiceActivityAttributes.ContentState
 
     var body: some View {
-        HStack(spacing: 8) {
-            Text(VoiceLook.heard(state))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.8))
-                .lineLimit(1)
-            Spacer(minLength: 4)
-            VoiceOtherPlaceButton(intoToday: state.intoToday)
-            VoiceStopButton()
+        VStack(spacing: 6) {
+            HStack(spacing: 8) {
+                Text(VoiceLook.heard(state))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                VoiceMarkButton()
+                VoicePauseButton(paused: state.paused)
+            }
+            HStack(spacing: 8) {
+                Spacer(minLength: 4)
+                VoiceOtherPlaceButton(intoToday: state.intoToday)
+                VoiceStopButton()
+            }
         }
+    }
+}
+
+/// Round 350: **Mark** keeps the sentence being said in bold in the note. Words only: a flag
+/// already means a project in PARAGON.
+struct VoiceMarkButton: View {
+    var body: some View {
+        Button(intent: MarkVoiceIntent()) {
+            Text("Mark")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .frame(height: 30)
+                .background(Color.white.opacity(0.16), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Mark this moment")
+    }
+}
+
+/// Round 350: **Pause** rests the microphone and stops the clock; **Go on** continues into the
+/// same note.
+struct VoicePauseButton: View {
+    let paused: Bool
+
+    var body: some View {
+        Button(intent: PauseVoiceIntent()) {
+            HStack(spacing: 5) {
+                FocusMarkView(d: paused ? FocusMark.play : FocusMark.pause, size: 13)
+                Text(paused ? "Go on" : "Pause")
+                    .font(.footnote.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .background(Color.white.opacity(0.16), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(paused ? "Go on recording" : "Pause recording")
     }
 }
 

@@ -28,6 +28,8 @@ enum SidebarSection: Hashable, Identifiable {
     case snippets
     case tags
     case search
+    /// Round 350 (voice-controls): every note a recorded thought made, newest first.
+    case voiceNotes
     /// **The aspirations, in a room of their own (build 199).** They used to be what the
     /// row named Goals drew, which meant a dated goal had no list at all: you saw one only
     /// after picking the aspiration above it. His words: *"the aspirations still are the
@@ -64,6 +66,7 @@ enum SidebarSection: Hashable, Identifiable {
         case .snippets: return "Snippets"
         case .tags: return "Tags"
         case .search: return "Search"
+        case .voiceNotes: return "Voice notes"
         case .aspirations: return "Aspirations"
         case .work: return "Work"
         case .kind(let kind): return kind.displayName
@@ -89,6 +92,7 @@ enum SidebarSection: Hashable, Identifiable {
         case .snippets: return "text.append"
         case .tags: return "number"
         case .search: return "magnifyingglass"
+        case .voiceNotes: return "voice"
         // The north star you steer by. `ChainSymbol.aspiration` is the one place it is
         // spelled; this reads it back, so the row and every chip cannot drift (build 168).
         case .aspirations: return ChainSymbol.aspiration
@@ -110,7 +114,7 @@ enum SidebarSection: Hashable, Identifiable {
         }
     }
 
-    static let all: [SidebarSection] = [.inbox, .today, .calendar, .timeBlocks, .review, .map, .allActions, .recent, .done, .deleted, .templates, .snippets, .tags, .search, .aspirations, .kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]
+    static let all: [SidebarSection] = [.inbox, .today, .calendar, .timeBlocks, .review, .map, .allActions, .recent, .voiceNotes, .done, .deleted, .templates, .snippets, .tags, .search, .aspirations, .kind(.goal), .kind(.project), .kind(.area), .kind(.resource), .kind(.archive)]
 
     /// The three that are not notes: things you use *on* notes. Grouped in the sidebar under
     /// "Tools" since build 143 — his idea, and he threw out "Building blocks" for it with the
@@ -135,6 +139,9 @@ enum AppSheet: String, Identifiable {
     case ownFolder
     /// Build 332: **One thing** — a calm page with only the one next task.
     case oneThing
+    /// Round 350 (voice-controls): **Check the thought** — the card that waits for him after a
+    /// recording (Settings › Voice › Check before filing).
+    case voiceCheck
 
     var id: String { rawValue }
 }
@@ -147,6 +154,9 @@ enum BuildStamp {
 @MainActor
 final class AppModel: ObservableObject {
     @Published private(set) var vault: Vault?
+    // Round 350 (voice-controls): bumped when the list of thoughts just recorded changes, so the
+    // Voice notes page and its cards read it again.
+    @Published var voiceHistoryStamp = 0
     /// Build 329: the start screen is up from a fresh start until he taps it (`StartScreen`),
     /// or until something sends him to a place by name (`arrived(by:)`). Whether it shows at
     /// all is `StartScreenRule`'s answer (Core, tested).
@@ -975,7 +985,7 @@ final class AppModel: ObservableObject {
         case .calendar?: base = index.dailyNotes
         case .recent?: base = recentNotes
         // Sections that are not a list of notes at all: they draw their own middle column.
-        case .deleted?, .templates?, .snippets?, .tags?: base = []
+        case .deleted?, .templates?, .snippets?, .tags?, .voiceNotes?: base = []
         case .work?: base = workNotes
         // Searching inside Aspirations searches the goal notes: the section's own list is the
         // aspirations, and a search falls through to the ordinary note list (build 199).
@@ -992,7 +1002,7 @@ final class AppModel: ObservableObject {
         switch section {
         case .inbox: return note(at: vault?.config.inboxFile)?.openTasks.count ?? 0
         case .today: return sidebarCounts.dueByToday + (todayNote?.openTasks.count ?? 0)
-        case .calendar, .map, .search: return 0
+        case .calendar, .map, .search, .voiceNotes: return 0
         case .recent: return recentNotes.count
         case .deleted: return deletedNotes.count
         case .templates: return 0

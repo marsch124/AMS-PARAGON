@@ -2339,7 +2339,7 @@ final class ScreenTests: XCTestCase {
 
     /// The screens a test walks to. Spelled once here, so a test says where it is going and
     /// `go(to:)` alone knows how to get there on each platform.
-    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations, search }
+    private enum Place { case today, inbox, projects, resources, map, allActions, plan, review, done, goals, areas, aspirations, search, voiceNotes }
 
     // MARK: The look (1.0, build 280)
 
@@ -2649,6 +2649,7 @@ final class ScreenTests: XCTestCase {
         case .areas: return ["sidebar.Areas"]
         case .aspirations: return ["sidebar.Aspirations"]
         case .search: return ["sidebar.Search"]
+        case .voiceNotes: return ["sidebar.Voice notes"]
         }
     }
 
@@ -2677,6 +2678,7 @@ final class ScreenTests: XCTestCase {
         case .areas: return ["tab.browse", "browse.Areas"]
         case .aspirations: return ["tab.browse", "browse.Aspirations"]
         case .search: return ["tab.browse", "browse.Search"]
+        case .voiceNotes: return ["tab.browse", "browse.Voice notes"]
         }
     }
 
@@ -4280,6 +4282,19 @@ final class ScreenTests: XCTestCase {
         app.typeKey(.escape, modifierFlags: [])
     }
     #endif
+
+    // MARK: Voice notes (round 350, voice-controls)
+
+    /// The Voice notes page opens from its row (the sidebar's Look back group, Browse on the
+    /// phone). The test notes hold no voice note, so the page says so; a recording cannot be
+    /// made on a runner, so what a row does is pinned in Core (`VoiceControlsTests`).
+    func testTheVoiceNotesPageOpensAndSaysItIsEmpty() {
+        go(to: .voiceNotes)
+        XCTAssertTrue(element("voice.empty").waitForExistence(timeout: 20),
+                      "The Voice notes page did not open. On screen: \(visibleTexts())")
+        XCTAssertFalse(element("voice.throwLast").exists, "The page offers to throw away a thought that was never recorded.")
+        XCTAssertTrue(screenIsDrawn(timeout: 5), "The window is gone.")
+    }
 }
 
 extension XCUIElement {

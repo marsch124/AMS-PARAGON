@@ -22,6 +22,9 @@ public struct VoiceThought: Equatable, Sendable {
     /// The on-device model did not finish in time: the note says the summary follows, and
     /// `VoiceThought.enriched` puts it in later.
     public var summaryPending = false
+    /// Round 350: **Mark** on the Lock Screen. Each is how many characters of the cleaned
+    /// transcript were there when it was pressed; `VoiceMarks` turns them into sentences.
+    public var marks: [Int] = []
 
     public init(transcript: String, title: String? = nil, summary: String? = nil, tasks: [String] = [],
                 recordedAt: Date, duration: TimeInterval) {
@@ -247,7 +250,15 @@ public struct VoiceThought: Equatable, Sendable {
             lines += ["", "## Tasks", ""]
             lines += tasks.map { "- " + $0 }
         }
-        lines += ["", "## Full text", "", Self.clean(transcript), ""]
+        // Round 350: a marked sentence is bold, and listed again below. The list comes after
+        // Full text on purpose: `enriched` adds tasks just above Full text.
+        let marked = VoiceMarks.marked(Self.clean(transcript), offsets: marks)
+        lines += ["", "## Full text", "", marked.text, ""]
+        if !marked.sentences.isEmpty {
+            lines += ["## Marked", ""]
+            lines += marked.sentences.map { "- " + $0 }
+            lines.append("")
+        }
         return lines.joined(separator: "\n")
     }
 
