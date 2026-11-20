@@ -129,11 +129,19 @@ struct ProjectListOverview<Menu: View>: View {
     @ViewBuilder let menu: (Note) -> Menu
     @State private var sort: ProjectSort = .attention
     @State private var ascending = true
+    /// Build 345: only the running projects with no next action. Not kept: the List always
+    /// opens with every project.
+    @State private var onlyWanting = false
 
-    private var shown: [ProjectLine] { ProjectOverview.sorted(lines, by: sort, ascending: ascending) }
+    private var wanting: [ProjectLine] { lines.filter(ProjectOverview.needsNextAction) }
+
+    private var shown: [ProjectLine] {
+        ProjectOverview.sorted(onlyWanting ? wanting : lines, by: sort, ascending: ascending)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
+            wantingButton
             header
             Divider()
             List(selection: model.noteSelection) {
@@ -146,6 +154,42 @@ struct ProjectListOverview<Menu: View>: View {
                 }
             }
             .listStyle(.plain)
+        }
+    }
+
+    /// Build 345, his pick of my idea: "5 need a next action" above the List. The dashed
+    /// ring is the row's own mark for "No next action". Gone when no project needs one.
+    @ViewBuilder
+    private var wantingButton: some View {
+        let count = wanting.count
+        if count > 0 || onlyWanting {
+            HStack {
+                Button {
+                    withAnimation(Motion.press) { onlyWanting.toggle() }
+                } label: {
+                    HStack(spacing: 5) {
+                        MarkImage("circle.dashed", size: 11)
+                        Text(onlyWanting
+                             ? "Showing \(count) that \(count == 1 ? "needs" : "need") a next action \u{00B7} Show all"
+                             : ProjectOverview.needsNextActionText(count))
+                            .lineLimit(1)
+                    }
+                    .font(Txt.label.weight(.semibold))
+                    .foregroundStyle(onlyWanting ? Color.white : ParaKind.project.tint)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 3)
+                    .background(onlyWanting ? ParaKind.project.tint : ParaKind.project.tint.opacity(0.12),
+                                in: Capsule())
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .help(onlyWanting ? "Show every project again" : "Show only the running projects with no next action")
+                .accessibilityIdentifier("projects.list.wanting")
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 7)
+            .padding(.bottom, 2)
         }
     }
 
@@ -251,6 +295,8 @@ struct ProjectBoardOverview<Menu: View>: View {
     let isPhone: Bool
     @ViewBuilder let menu: (Note) -> Menu
     @State private var target: BoardColumn?
+    /// Build 345: the card the pointer rests on shows its 8-week bars.
+    @State private var hovered: String?
 
     private var columnWidth: CGFloat { isPhone ? 230 : 250 }
 
@@ -354,6 +400,23 @@ struct ProjectBoardOverview<Menu: View>: View {
                 .font(Txt.listSecond)
                 .foregroundStyle(deadline.late ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
             }
+            if hovered == line.id {
+                // Build 345, his pick of my idea: the 8-week bars while the pointer rests on
+                // the card. Only with a pointer; the iPhone's cards are unchanged.
+                HStack(spacing: 6) {
+                    if line.weekly.total > 0 {
+                        WeekBars(weekly: line.weekly, height: 12)
+                        Text("Finished in 8 weeks: \(line.weekly.total)")
+                    } else {
+                        Text("Nothing finished in 8 weeks")
+                    }
+                }
+                .font(Txt.listSecond)
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+                .transition(.opacity)
+                .accessibilityIdentifier("projects.card.weekly.\(line.id)")
+            }
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -362,6 +425,11 @@ struct ProjectBoardOverview<Menu: View>: View {
             .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 0.5))
         .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .onTapGesture { model.show(line.note) }
+        .onHover { inside in
+            withAnimation(Motion.press) {
+                if inside { hovered = line.id } else if hovered == line.id { hovered = nil }
+            }
+        }
         .draggable(line.note.relativePath) {
             Text(line.note.title)
                 .font(Txt.listTitle)

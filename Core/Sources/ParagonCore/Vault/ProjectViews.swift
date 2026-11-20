@@ -132,6 +132,21 @@ public enum ProjectOverview {
         }
     }
 
+    /// A running project with no next task: all its tasks finished, only waiting lines, or no
+    /// tasks yet — what its row calls "No next action". Build 345, his pick of my idea: a
+    /// button above the List shows only these. A project on hold is never counted: it is
+    /// paused on purpose.
+    public static func needsNextAction(_ line: ProjectLine) -> Bool {
+        guard line.status == .active else { return false }
+        if case .next = line.need { return false }
+        return true
+    }
+
+    /// The words on that button.
+    public static func needsNextActionText(_ count: Int) -> String {
+        count == 1 ? "1 needs a next action" : "\(count) need a next action"
+    }
+
     /// How urgent a project is for the "needs a look first" order: a late date, then running
     /// with nothing to do next, then running with a next task, then on hold, then the rest.
     public static func attentionRank(_ line: ProjectLine) -> Int {

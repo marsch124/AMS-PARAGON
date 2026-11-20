@@ -51,4 +51,13 @@ final class ProjectViewsTests: XCTestCase {
         XCTAssertEqual(Set(byDeadline.suffix(2)), ["Finished work", "Paused"], "No deadline goes last either way")
         XCTAssertEqual(ProjectsLayout.allCases.map(\.title), ["By goal", "List", "Board", "Cards"])
     }
+
+    func testTheNextActionButtonCountsRunningProjectsWithNothingToDoNext() {
+        let live = ProjectOverview.lines(of: groups, includeEnded: false)
+        let wanting = live.filter(ProjectOverview.needsNextAction).map(\.note.title).sorted()
+        XCTAssertEqual(wanting, ["Finished work", "Late"],
+                       "Running with every task finished counts, late or not; a next task or on hold does not")
+        XCTAssertEqual(ProjectOverview.needsNextActionText(1), "1 needs a next action")
+        XCTAssertEqual(ProjectOverview.needsNextActionText(5), "5 need a next action")
+    }
 }

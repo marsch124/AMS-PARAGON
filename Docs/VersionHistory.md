@@ -1,6 +1,22 @@
 # Version history
 
-The version is shown as 1.0 (344) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (345) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 345 · 20 November 2026
+
+**The List shows only the projects that need a next action, and a Board card shows its 8 weeks when the pointer rests on it.** Two new things you asked for.
+
+**New.**
+- **"N need a next action" button in the List.** Before (build 344): the List showed every running project and every project on hold, and you had to read the **Next** column to find the ones with no next task. Now: above the column headings sits a small button with the dashed ring (dashed means "not set yet", the same mark as "No next action" in the project rows) and the words, for example, "5 need a next action". The number is how many running projects have no next task: all their tasks are finished, they only wait for somebody, or they have no tasks yet. Press it and the List shows only those 5 projects. The button turns full project green with white words and says "Showing 5 that need a next action · Show all". Press it again and the List shows all projects again.
+- **When it is not shown.** When no running project needs a next action, the button is not shown. Projects on hold are never counted.
+- **Not remembered.** The filter is not kept. The List always opens showing all projects, on every device.
+- **8-week bars on a Board card.** Before: a Board card showed only its words. Now: on the Mac (and on an iPad with a pointer), when the pointer rests on a card, the card shows the project's 8-week bars under its words, and the words "Finished in 8 weeks: N". The bars are the same small green bars as in the **By goal** rows: tasks finished in each of the last 8 weeks, newest on the right; a grey stub is a week with nothing finished. When the pointer leaves the card, they go away. A project with no finished task that has a date shows "Nothing finished in 8 weeks" instead.
+- **Signs in this app.** One new line: the dashed ring button above the List.
+
+**Changed.**
+- **The iPhone.** There is no pointer on the iPhone, so the Board cards look as before. The button in the List is there on every device.
+
+**Unchanged.** The four views and the switch, the List's columns and sorting, the Board's columns and dragging, the Cards, the rows of **By goal**, and everything else of build 344.
 
 ## Build 344 · 20 November 2026
 
