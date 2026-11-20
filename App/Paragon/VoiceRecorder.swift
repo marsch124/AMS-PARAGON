@@ -69,6 +69,8 @@ final class VoiceRecorder {
     private var lastShown = Date.distantPast
     private var limit: Task<Void, Never>?
     private var locale = Locale(identifier: "en-US")
+    // Round 350 (voice-words): "stop recording" said out loud stops once.
+    private var stopHeardAlready = false
 
     var transcript: String {
         [finished, volatile].joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -82,6 +84,7 @@ final class VoiceRecorder {
         guard await AVAudioApplication.requestRecordPermission() else { throw Problem.microphoneRefused }
 
         place = target == .today ? .today : .inbox
+        stopHeardAlready = false
         startedAt = Date()
         finished = ""
         volatile = ""
@@ -104,6 +107,13 @@ final class VoiceRecorder {
             }
             let analyzer = SpeechAnalyzer(modules: [transcriber])
             self.analyzer = analyzer
+            // Round 350 (voice-words): the odd words from Settings › Voice, for it to listen for.
+            let hints = VoiceWords.contextualWords(Self.savedWords())
+            if !hints.isEmpty {
+                let context = AnalysisContext()
+                context.contextualStrings[.general] = hints
+                try? await analyzer.setContext(context)
+            }
             guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
                 throw Problem.noSpeechModel
             }
@@ -120,6 +130,11 @@ final class VoiceRecorder {
                             self.finished = [self.finished, text].joined(separator: " ")
                                 .trimmingCharacters(in: .whitespaces)
                             self.volatile = ""
+                            // Round 350 (voice-words): "stop recording" said out loud.
+                            if VoiceWords.removingStopPhrase(from: self.finished) != nil, self.isRecording, !self.stopHeardAlready {
+                                self.stopHeardAlready = true
+                                Task { @MainActor in _ = await self.stopAndFile() }
+                            }
                         } else {
                             self.volatile = text
                         }
@@ -211,6 +226,9 @@ final class VoiceRecorder {
         await tearDown()
 
         var thought = VoiceThought(transcript: transcript, recordedAt: startedAt, duration: duration)
+        // Round 350 (voice-words): the odd words put right, then the title, tags and ideas he said.
+        thought.readWords(replacements: Self.savedWords(), linkTitles: AppModel.shared.voiceLinkTitles())
+        let english = Self.wantsEnglish()
         guard !thought.isEmpty else {
             await showActivity(.init(stage: .nothing, words: "Nothing heard — nothing saved", title: "", tasksFound: 0, length: length, intoToday: intoToday),
                                endAfter: 60)
@@ -226,11 +244,14 @@ final class VoiceRecorder {
         // Test runs only: `-paragon-voice-late` makes the summary always come late.
         if ProcessInfo.processInfo.arguments.contains("-paragon-voice-late") { within = 0.01 }
         #endif
-        switch await Self.writeUp(thought.transcript, locale: locale, within: within) {
+        switch await Self.writeUp(thought.transcript, locale: locale, within: within, english: english) {
         case .done(let title, let summary, let tasks):
             thought.title = title
             thought.summary = summary
             thought.tasks = tasks
+            if VoiceChapters.isLong(duration: duration, transcript: thought.transcript) {
+                thought.chapters = await Self.writeChapters(thought.transcript, locale: locale, english: english, within: 12)
+            }
         case .late:
             thought.summaryPending = true
         case .none:
@@ -243,7 +264,7 @@ final class VoiceRecorder {
             let title = filed.title
             if thought.summaryPending {
                 Self.remember(LateSummary(path: filed.path, transcript: thought.transcript, locale: locale.identifier,
-                                          day: intoToday ? day.description : nil))
+                                          day: intoToday ? day.description : nil, english: english))
             }
             let tasks = thought.finalTasks.count
             await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length, intoToday: intoToday), endAfter: 180)
@@ -339,12 +360,13 @@ final class VoiceRecorder {
     }
 
     /// Asks Apple's on-device model, giving it `seconds`.
-    static func writeUp(_ transcript: String, locale: Locale, within seconds: Double) async -> WriteUp {
+    static func writeUp(_ transcript: String, locale: Locale, within seconds: Double, english: Bool = false) async -> WriteUp {
         let model = SystemLanguageModel.default
         guard model.availability == .available, model.supportsLocale(locale) else { return .none }
+        if english, !model.supportsLocale(Locale(identifier: "en-US")) { return .none }
         return await withTaskGroup(of: WriteUp.self) { group in
             group.addTask { @MainActor in
-                guard let r = await ask(transcript) else { return .none }
+                guard let r = await ask(transcript, english: english) else { return .none }
                 return .done(title: r.title, summary: r.summary, tasks: r.tasks)
             }
             group.addTask {
@@ -357,10 +379,12 @@ final class VoiceRecorder {
         }
     }
 
-    private static func ask(_ transcript: String) async -> (title: String, summary: String, tasks: [String])? {
+    private static func ask(_ transcript: String, english: Bool = false) async -> (title: String, summary: String, tasks: [String])? {
+        // Round 350 (voice-words): Summary in English writes the three in English.
+        let language = english ? "Answer in English, whatever language the note is in." : "Answer in the language of the note."
         let session = LanguageModelSession(instructions: """
             You turn a spoken note into a title, a short summary and a list of tasks. \
-            Use only what was said. Never add tasks that were not said. Answer in the language of the note.
+            Use only what was said. Never add tasks that were not said. \(language)
             """)
         // The model reads about 4,000 tokens: a very long recording is written up from its start.
         let text = String(transcript.prefix(6000))
@@ -383,6 +407,8 @@ extension VoiceRecorder {
         var locale: String
         /// Build 349: the day whose daily note took the thought ("2026-11-20"); nil = the Inbox.
         var day: String? = nil
+        /// Round 350: the summary is to be written in English (Settings › Voice).
+        var english: Bool? = nil
     }
 
     private static let lateKey = "voiceLateSummaries"
@@ -407,7 +433,8 @@ extension VoiceRecorder {
         await model.vaultOnceOpen()
         guard let vault = model.vault else { return }
         for late in Self.waiting {
-            let answer = await Self.writeUp(late.transcript, locale: Locale(identifier: late.locale), within: 60)
+            let answer = await Self.writeUp(late.transcript, locale: Locale(identifier: late.locale), within: 60,
+                                            english: late.english ?? false)
             var summary = "No summary: Apple Intelligence was not available on this phone."
             var tasks: [String] = []
             switch answer {

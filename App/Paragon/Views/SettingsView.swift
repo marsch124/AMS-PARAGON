@@ -1274,6 +1274,7 @@ struct SafetyNoticeBar: View {
 /// Build 348: Settings › Voice — the language spoken when recording a thought.
 struct VoiceSection: View {
     @AppStorage("voiceLanguage") private var language = ""
+    @AppStorage("voiceSummaryEnglish") private var summaryInEnglish = false
 
     var body: some View {
         Section {
@@ -1284,10 +1285,17 @@ struct VoiceSection: View {
                 Text("Svenska").tag("sv-SE")
             }
             .accessibilityIdentifier("settings.voiceLanguage")
+            // Round 350 (voice-words): a Swedish speaker can read the write-up in English.
+            if VoiceWords.offersEnglishSummary(voiceLanguage: language, phoneLanguageCode: Locale.current.language.languageCode?.identifier) {
+                Toggle("Summary in English", isOn: $summaryInEnglish)
+                    .accessibilityIdentifier("settings.voiceEnglish")
+            }
+            NavigationLink("Words it mishears") { VoiceWordsPage() }
+                .accessibilityIdentifier("settings.voiceWords")
         } header: {
             Text("Voice")
         } footer: {
-            Text("The language you speak when you record a thought.")
+            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it.")
         }
     }
 }
