@@ -4260,14 +4260,19 @@ final class ScreenTests: XCTestCase {
     /// 16 Nov 2026 (the Mac run of build 329): a project is opened, not a goal. A goal opens
     /// on its goal page, and the note's own buttons — Share among them — come with the note,
     /// one press on **Note** later; the test looked for Share on the goal page, where it is not.
+    ///
+    /// 20 Nov 2026 (the Mac run of build 349): a resource is opened, not a project. Since build
+    /// 344 the Projects page puts its four-way layout switch in the toolbar, and in the test's
+    /// 900-point window that pushed Share into the toolbar's overflow menu. A resource opens
+    /// with the same note buttons and no layout switch.
     func testAnOpenNoteOffersShare() {
-        go(to: .projects)
-        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        go(to: .resources)
+        let row = element("note.Resources/Packing list.md")
         XCTAssertTrue(row.waitForExistence(timeout: 20),
-                      "The Projects list does not show the test project. On screen: \(visibleTexts())")
+                      "The Resources list does not show the test resource. On screen: \(visibleTexts())")
         row.press()
         XCTAssertTrue(element("note.editor").waitForExistence(timeout: 20),
-                      "The project opened without its editor. On screen: \(visibleTexts())")
+                      "The resource opened without its editor. On screen: \(visibleTexts())")
 
         let share = element("note.share")
         XCTAssertTrue(share.waitForExistence(timeout: 20),
