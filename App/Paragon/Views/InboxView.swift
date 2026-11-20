@@ -15,7 +15,7 @@ enum InboxItems {
     /// The open, top-level lines waiting to be sorted.
     static func waiting(_ model: AppModel) -> [TaskRef] {
         guard let note = note(model) else { return [] }
-        return note.openTasks.filter { !$0.isSubtask }
+        return note.awaitingTasks().filter { !$0.isSubtask }
             .map { TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: $0) }
     }
 
@@ -117,10 +117,21 @@ struct InboxTriageView: View {
     /// Build 299: notes captured into the Inbox, listed under the tasks.
     private var notes: [InboxNotes.Line] { inbox.map { InboxNotes.lines(in: $0.text) } ?? [] }
     private var selected: TaskRef? { InboxItems.selected(model) }
+    private var snoozedCount: Int { InboxItems.snoozedCount(model) }
+
+    /// What the empty Inbox says; with snoozed lines it also says they are not gone (build 100).
+    private var inboxZeroMessage: String {
+        let base = "Nothing left to sort. Anything you capture — here, from the menu bar, or from the share sheet on the phone — lands in this list."
+        if snoozedCount == 0 { return base }
+        let later: String = snoozedCount == 1 ? " 1 snoozed line comes back later." : " \(snoozedCount) snoozed lines come back later."
+        return base + later
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             captureBar
+                // Round 350: the day window of **Snooze until… › Pick a day…** (pick 30).
+                .modifier(SnoozeSheetHost())
             Divider()
             if items.isEmpty, notes.isEmpty, model.inboxIsComingFromCloud {
                 // Not "Inbox zero": the Inbox note has not reached this device yet (build 261),
@@ -135,7 +146,7 @@ struct InboxTriageView: View {
             } else if items.isEmpty, notes.isEmpty {
                 EmptyStateView(title: "Inbox zero",
                                markName: "tray",
-                               message: "Nothing left to sort. Anything you capture — here, from the menu bar, or from the share sheet on the phone — lands in this list.",
+                               message: inboxZeroMessage,
                                tint: SidebarSection.inbox.tint,
                                actionTitle: "Capture something\u{2026}",
                                action: { model.activeSheet = .quickCapture },
@@ -144,6 +155,8 @@ struct InboxTriageView: View {
                 // Round 9 (build 316): not inside the iPhone layout, where the band above
                 // already says "1 waiting" and this line said "1 to sort" right under it.
                 if !phoneLook { header }
+                // Round 350 (pick 31): **Select**, then file many lines at once.
+                InboxSelectBar(items: items)
                 List(selection: $model.inboxSelection) {
                     ForEach(items, id: \.triageID) { ref in
                         InboxRow(ref: ref)
@@ -179,6 +192,12 @@ struct InboxTriageView: View {
                                 .accessibilityIdentifier("inbox.notes")
                         }
                     }
+                    // Round 350 (pick 30): snoozed lines are out of the list; say so, and
+                    // give a way to bring them back.
+                    if snoozedCount > 0 {
+                        InboxSnoozedRow(count: snoozedCount)
+                            .listRowBackground(plainRowFill)
+                    }
                 }
                 // Round 9 (build 316): dragging the list puts the keyboard away. It stayed
                 // up and covered the tabs and the round +.
@@ -211,6 +230,10 @@ struct InboxTriageView: View {
                 model.inboxShowsNote = false
                 model.selectedNotePath = nil
             }
+        }
+        .onDisappear {
+            model.inboxSelecting = false
+            model.inboxPickedIDs = []
         }
         .sheet(item: $pickingDateFor) { ref in
             TaskDatePicker(ref: ref, isPresented: Binding(get: { pickingDateFor != nil },
@@ -332,14 +355,19 @@ struct InboxRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Button {
-                model.toggle(ref)
-            } label: {
-                MarkImage("circle")
-                    .rowTint(SidebarSection.inbox.tint)
+            if model.inboxSelecting {
+                // Round 350 (pick 31): while selecting, the tick picks the line for filing.
+                InboxPickButton(ref: ref)
+            } else {
+                Button {
+                    model.toggle(ref)
+                } label: {
+                    MarkImage("circle")
+                        .rowTint(SidebarSection.inbox.tint)
+                }
+                .buttonStyle(.plain)
+                .help("Mark as done")
             }
-            .buttonStyle(.plain)
-            .help("Mark as done")
 
             VStack(alignment: .leading, spacing: 2) {
                 if editing {
@@ -495,6 +523,8 @@ struct InboxLineMenu: View {
         Button("Block time for this…") { model.blockTime(for: ref) }
         Button("Remove the date") { model.setDueDate(ref, nil) }
             .disabled(ref.task.dueDate == nil)
+        // Round 350 (pick 30): put the line aside until a later day.
+        InboxSnoozeMenu(ref: ref)
         if let rename {
             Button("Rename…") { rename() }
         }

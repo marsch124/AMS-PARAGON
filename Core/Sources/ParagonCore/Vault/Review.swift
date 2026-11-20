@@ -275,7 +275,7 @@ public extension NoteIndex {
                 return a.note.title.localizedCaseInsensitiveCompare(b.note.title) == .orderedAscending
             }
         let areas = notes(kind: .area).filter(active).map { health(of: $0, today: today, config: config, calendar: calendar) }
-        let inbox = notes(kind: .inbox).first?.openTasks.count ?? 0
+        let inbox = notes(kind: .inbox).first?.awaitingTasks(on: today).count ?? 0
         // "In the last 7 days" is today and the six days before it (review of 263).
         let completed = tasksCompleted(since: today.adding(days: -6, calendar: calendar)).count
         let overdue = openTasks(dueOnOrBefore: today.adding(days: -1, calendar: calendar))

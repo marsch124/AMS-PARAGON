@@ -42,6 +42,9 @@ public struct TaskItem: Equatable, Sendable {
     /// it (`dueDate`) (build 316). Moving the do-day never moves it. Not sent to Reminders; a mark a
     /// build 315 device left in a reminder's title is kept there (`SyncEngine.apply(task:to:)`).
     public var deadline: DateOnly?
+    /// `@snooze(2026-11-24)`: an Inbox line put aside until that day (round 350). It is out of the
+    /// Inbox list and its counts until the day comes. Not sent to Reminders.
+    public var snooze: DateOnly?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
     public var indent: String
@@ -66,7 +69,8 @@ public struct TaskItem: Equatable, Sendable {
                 lineIndex: Int = -1,
                 parentLineIndex: Int? = nil,
                 since: DateOnly? = nil,
-                deadline: DateOnly? = nil) {
+                deadline: DateOnly? = nil,
+                snooze: DateOnly? = nil) {
         self.status = status
         self.title = title
         self.dueDate = dueDate
@@ -83,6 +87,7 @@ public struct TaskItem: Equatable, Sendable {
         self.parentLineIndex = parentLineIndex
         self.since = since
         self.deadline = deadline
+        self.snooze = snooze
     }
 
     public var isDone: Bool { status == .done || status == .cancelled }
@@ -154,6 +159,7 @@ public struct TaskItem: Equatable, Sendable {
         }
         // A new copy has not started waiting (build 279).
         copy.since = nil
+        copy.snooze = nil
         copy.lineIndex = -1
         return copy
     }
@@ -171,6 +177,7 @@ public struct TaskItem: Equatable, Sendable {
         }
         if let since { parts.append("@since(\(since))") }
         if let deadline { parts.append("@deadline(\(deadline))") }
+        if let snooze { parts.append("@snooze(\(snooze))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
         if let id { parts.append("^\(id)") }
         return "\(indent)\(bullet) [\(status.rawValue)] \(parts.joined(separator: " "))"
@@ -491,6 +498,8 @@ public enum TaskParser {
     static let sinceRegex = try! NSRegularExpression(pattern: #"(?<!\S)@since\((\d{4}-\d{2}-\d{2})\)"#)
     /// `@deadline(2026-11-20)` (build 316), written like `@since(...)`.
     static let deadlineRegex = try! NSRegularExpression(pattern: #"(?<!\S)@deadline\((\d{4}-\d{2}-\d{2})\)"#)
+    /// `@snooze(2026-11-24)` (round 350), written like `@since(...)`.
+    static let snoozeRegex = try! NSRegularExpression(pattern: #"(?<!\S)@snooze\((\d{4}-\d{2}-\d{2})\)"#)
     static let tagRegex = try! NSRegularExpression(pattern: #"(?<!\S)#([\p{L}\p{N}_/\-]+)"#)
 
     /// Parses a single line. Returns nil when the line is not a task.
@@ -513,6 +522,7 @@ public enum TaskParser {
         var minutes: Int?
         var since: DateOnly?
         var deadline: DateOnly?
+        var snooze: DateOnly?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
@@ -523,6 +533,7 @@ public enum TaskParser {
         }
         rest = extract(sinceRegex, from: rest) { since = DateOnly($0) }
         rest = extract(deadlineRegex, from: rest) { deadline = DateOnly($0) ?? deadline }
+        rest = extract(snoozeRegex, from: rest) { snooze = DateOnly($0) ?? snooze }
         let restNS = rest as NSString
         if let due = dueRegex.firstMatch(in: rest, range: NSRange(location: 0, length: restNS.length)) {
             dueDate = DateOnly(restNS.substring(with: due.range(at: 1)))
@@ -538,7 +549,7 @@ public enum TaskParser {
         let tags = allCaptures(tagRegex, in: title)
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
-                        indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline)
+                        indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline, snooze: snooze)
             .keepingUnreadRepeat(unreadRepeat)
     }
 

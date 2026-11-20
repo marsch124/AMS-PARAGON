@@ -144,7 +144,10 @@ enum Marks {
         "plus.circle.fill": .init(kind: .control(.addCircle)),
         "pencil": .init(kind: .control(.edit)),
         "photo": .init(kind: .control(.photo)),
-        "checkmark": .init(kind: .control(.check)),
+        // Round 350 (capture-inbox): dictate, scan a paper list, snooze (paths in CaptureMarks.swift).
+        "mic": .init(kind: .drawn(Marks.micPath)),
+        "scan.list": .init(kind: .drawn(Marks.scanListPath)),
+        "checkmark":.init(kind: .control(.check)),
         "checkmark.circle": .init(kind: .control(.ticked)),
         "checkmark.circle.fill": .init(kind: .control(.ticked)),
         "checkmark.seal": .init(kind: .control(.ticked)),

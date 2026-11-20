@@ -4280,6 +4280,44 @@ final class ScreenTests: XCTestCase {
         app.typeKey(.escape, modifierFlags: [])
     }
     #endif
+
+    /// **Select and file many Inbox lines** (round 350, pick 31). With two lines in the Inbox,
+    /// **Select** opens the select bar, a line's own round button picks it and the count says
+    /// "1 picked", and **Cancel** puts the bar away. Nothing is filed: the test vault has two
+    /// places and a filing menu is a menu (nothing here has opened one). The rule behind the
+    /// count is plain; the dangerous part (a tick that takes the row's click, builds 71 to 74)
+    /// is what a press on the round button proves it does not.
+    func testSelectingInboxLinesCountsThePickedOnes() {
+        go(to: .today)
+        saveACapture("Water the plants")
+        go(to: .inbox)
+        XCTAssertTrue(element("inbox.Water the plants").waitForExistence(timeout: 20),
+                      "The captured line is not in the Inbox. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("inbox.Call the bank about the ferry").waitForExistence(timeout: 20),
+                      "The test line is not in the Inbox. On screen: \(visibleTexts())")
+
+        let select = app.buttons.matching(identifier: "inbox.select").firstMatch
+        XCTAssertTrue(select.waitForExistence(timeout: 20),
+                      "The Inbox has two lines and no Select button. On screen: \(visibleTexts())")
+        select.pressCentre()
+
+        let pick = app.buttons.matching(identifier: "inbox.pick.Water the plants").firstMatch
+        XCTAssertTrue(pick.waitForExistence(timeout: 10),
+                      "Select was pressed and a line has no round button to pick it. On screen: \(visibleTexts())")
+        pick.pressCentre()
+
+        let count = element("inbox.select.count")
+        XCTAssertTrue(count.waitForExistence(timeout: 10),
+                      "The select bar has no count. On screen: \(visibleTexts())")
+        XCTAssertTrue(becomes(within: 10) { self.words(of: count).contains("1 picked") },
+                      "One line was picked and the bar says: \(words(of: count))")
+
+        let cancel = app.buttons.matching(identifier: "inbox.select.cancel").firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10), "The select bar has no Cancel.")
+        cancel.pressCentre()
+        XCTAssertTrue(becomes(within: 10) { app.buttons.matching(identifier: "inbox.select").firstMatch.exists },
+                      "Cancel was pressed and Select did not come back. On screen: \(visibleTexts())")
+    }
 }
 
 extension XCUIElement {

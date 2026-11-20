@@ -358,6 +358,9 @@ struct SettingsView: View {
                 #endif
             }
 
+            // Round 350 (capture-inbox, pick 32): the place name on a capture. Off by default.
+            CapturePlaceSection()
+
             // Build 317: Siri and Shortcuts (features-07), notes in the system search (features-21).
             SiriShortcutsSection()
             #if os(iOS)
