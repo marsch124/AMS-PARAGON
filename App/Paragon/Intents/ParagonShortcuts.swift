@@ -82,6 +82,15 @@ struct ParagonShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Record a Thought",
             systemImageName: "mic")
+        // Build 349: the same, into today's daily note.
+        AppShortcut(
+            intent: RecordThoughtIntoTodayIntent(),
+            phrases: [
+                "Record into today's note in \(.applicationName)",
+                "Today's note recording in \(.applicationName)",
+            ],
+            shortTitle: "Record into Today's Note",
+            systemImageName: "sun.max")
         #endif
     }
 }

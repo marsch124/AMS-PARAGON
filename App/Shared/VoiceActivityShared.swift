@@ -26,12 +26,15 @@ struct VoiceActivityAttributes: ActivityAttributes {
         var stage: Stage
         var words: String
         var title: String
+        /// Saved: the tasks filed. Listening (build 349): the tasks he marked by saying "task".
         var tasksFound: Int
         /// How long it ran, once stopped ("0:42").
         var length: String
+        /// Build 349: the thought is meant for today's daily note, not the Inbox.
+        var intoToday = false
 
-        static func listening(_ words: String) -> Self {
-            Self(stage: .listening, words: words, title: "", tasksFound: 0, length: "")
+        static func listening(_ words: String, intoToday: Bool = false, heard: Int = 0) -> Self {
+            Self(stage: .listening, words: words, title: "", tasksFound: heard, length: "", intoToday: intoToday)
         }
     }
 
@@ -43,28 +46,37 @@ struct VoiceActivityAttributes: ActivityAttributes {
 /// runs inside the app, never in the widget extension, so it stops the real recording.
 @MainActor
 enum VoiceActivityBridge {
-    static var stop: (@MainActor () async -> Void)?
+    /// Build 349: "" files where the recording was meant to go, "today" or "inbox" there.
+    static var stop: (@MainActor (String) async -> Void)?
     /// Makes the app's model, which hands `stop` in. Set by the app's delegate at launch.
     static var wake: (@MainActor () -> Void)?
 
-    static func runStop() async {
+    static func runStop(_ place: String = "") async {
         if stop == nil { wake?() }
         var waited = 0
         while stop == nil, waited < 40 {
             try? await Task.sleep(for: .milliseconds(100))
             waited += 1
         }
-        await stop?()
+        await stop?(place)
     }
 }
 
-/// **Stop** on the Lock Screen and in the Dynamic Island.
+/// **Stop** on the Lock Screen and in the Dynamic Island, and (build 349) the second button
+/// beside it that stops and files into the other place: **Today** or **Inbox**.
 struct StopVoiceIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Stop recording the thought"
     static var isDiscoverable: Bool = false
 
+    /// "" = where the recording was meant to go; "today" or "inbox".
+    @Parameter(title: "Place")
+    var place: String
+
+    init() { place = "" }
+    init(place: String) { self.place = place }
+
     func perform() async throws -> some IntentResult {
-        await VoiceActivityBridge.runStop()
+        await VoiceActivityBridge.runStop(place)
         return .result()
     }
 }

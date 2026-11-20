@@ -248,29 +248,33 @@ On the iPhone, hold the Home Screen and press **+**. On the Mac, choose **Edit W
 
 ### Siri and Shortcuts
 
-PARAGON has seven actions in the **Shortcuts** app, which Siri understands with no setup. Each phrase must contain the name PARAGON.
+PARAGON has eight actions on the iPhone and the iPad (six on the Mac) in the **Shortcuts** app, which Siri understands with no setup. Each phrase must contain the name PARAGON.
 
 - **Add to Inbox:** "Add to PARAGON". Adds one task without opening the app. In Shortcuts it also has a **Day** field; plain-word dates are not read here.
 - **What Is Due Today?:** "What is due today in PARAGON". Answers aloud.
 - **Open Today**, **Start the Day**, **Close the Day:** each opens that screen. **Start the Day** opens Today with picking switched on.
 - **Start Focus:** "Start focus in PARAGON". With no task named, it starts on what is next today.
 - **Record a Thought:** "Record a thought in PARAGON". See **Record a thought** below.
+- **Record into Today's Note** (iPhone and iPad, since build 349): "Record into today's note in PARAGON" or "Today's note recording in PARAGON". The same, but the thought goes into today's note. See **Record a thought** below.
 
 ### Record a thought
 
 Since build 348. iPhone and iPad with iOS 26 or newer; on the Mac the action is not offered (on an older phone Siri says "Record a thought needs iOS 26 or newer."). The action **Record a Thought** is in Shortcuts under PARAGON, with Siri ("Record a thought in PARAGON", "Record in PARAGON", "Voice note in PARAGON") and on the Action Button (iPhone 15 Pro or newer: Settings app › Action Button › Shortcut › PARAGON › Record a Thought).
 
 - **Press once:** recording starts at once, also with the phone locked, with a short tap. **Press again**, or the red **Stop** button on the Lock Screen: it stops. The longest recording is 30 minutes; then it stops and saves by itself. The first time, iOS asks to use the microphone and speech recognition.
-- **While recording:** the Lock Screen card shows a red dot, "Listening", the running time (0:42) and the last words you said, live. The Dynamic Island shows a red dot and the time; expanded, the live words and **Stop**. The first recording in a language may show "Getting the speech model ready…" while Apple's speech model is fetched once.
-- **After stopping:** "Writing it up…", then "Saved to Inbox" with the title and "N tasks found". The card goes away after a few minutes.
+- **Into today's note (since build 349):** the action **Record into Today's Note** works the same but files into today's note; it can be on the Action Button instead of Record a Thought (Settings app › Action Button › Shortcut › PARAGON › Record into Today's Note); press again to stop. A long press cannot choose (Apple's Action Button sends one kind of press), so the Lock Screen card has the choice.
+- **While recording:** the Lock Screen card shows a red dot, "Listening · Inbox" or "Listening · Today's note", the running time (0:42) and the last words you said, live. The Dynamic Island shows a red dot and the time; expanded, the live words and **Stop**. Since build 349 there are two buttons: the red **Stop** files where the heading says; the second stops and files to the other place: **Today** (purple, sun mark) when it says Inbox, **Inbox** (green, tray mark) when it says today's note. Once a task is caught the card shows "1 task heard" / "N tasks heard" before the live words. The first recording in a language may show "Getting the speech model ready…" while Apple's speech model is fetched once.
+- **After stopping:** "Writing it up…", then "Saved to Inbox" with the tray mark (or "Saved to today's note" with the sun mark) and the title and "N tasks found". The card goes away after a few minutes.
 - **Saved as a note:** a new note in **Resources**, titled by the phone, tagged #voice, with "## Summary" (two or three sentences), "## Tasks" (the tasks found, as plain list lines) and "## Full text" (everything you said), plus the day, time and length.
 - **Saved in the Inbox:** each task found as its own open task line, and one line under Notes that links to the new note, for example "[[Drawer screws and Saturday]] — voice note, 0:42". Sort them like any Inbox line.
+- **Saved in today's note (since build 349):** the note still goes to Resources; the tasks become open tasks in today's daily note under Tasks (so they count on Today); the line "[[Title]] — voice note, 0:42" goes under Notes of today's daily note; nothing goes into the Inbox. A summary that comes late puts its new tasks into that same day's note.
+- **Say "task" (since build 349):** a sentence that starts with "task" (also "new task"; German "Aufgabe", "neue Aufgabe"; Swedish "uppgift", "ny uppgift") becomes a task without that word: "Task: call Anna about Saturday." gives "Call Anna about Saturday". The word alone ("Task. Order screws.") makes the next sentence the task. Only at the start of a sentence ("This task is hard" is not one). At most 25 words. Always filed, even without Apple Intelligence or when the summary is late; they come first and the AI's tasks that say the same or less are left out.
 - **Who does the work:** title, summary and tasks come from Apple Intelligence on the phone; speech to text is Apple's too. It is free, private and works without internet.
 - **Without Apple Intelligence** (turned off, or an older iPhone): the text is still saved, the title is the first words, no summary and no tasks are made, and the note says so in one line.
 - **When the phone is locked.** The iPhone slows Apple's AI down while it is locked. If the summary is not ready after 20 seconds, the words are saved at once anyway, with the first words as the title, and the note says "The summary is still being written. PARAGON adds it the next time it opens." The next time you open PARAGON, the summary goes into the note and the tasks into the Inbox. Nothing you said waits or gets lost.
 - **Nothing heard:** nothing is saved; the card says "Nothing heard — nothing saved".
 - **Settings › Voice › Voice language:** "Phone's language" (default), English, Deutsch or Svenska. Under it: "The language you speak when you record a thought."
-- **Signs:** a red dot on the Lock Screen or in the Dynamic Island means PARAGON is recording your voice right now. The microphone mark on a Shortcut tile is **Record a Thought**.
+- **Signs:** a red dot on the Lock Screen or in the Dynamic Island means PARAGON is recording your voice right now. The second button: sun = into today's note, tray = into the Inbox. "N tasks heard" = spoken tasks caught so far. The microphone mark on a Shortcut tile is **Record a Thought**.
 
 ### Sharing into PARAGON
 

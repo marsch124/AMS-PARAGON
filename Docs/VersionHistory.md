@@ -1,6 +1,44 @@
 # Version history
 
-The version is shown as 1.0 (348) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (349) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 349 · 20 November 2026
+
+**Record a thought can now go straight into today's note, and you can say "task".** Your two picks for "Record a thought".
+
+**New: a second button on the recording card.**
+- Before (build 348): while a thought was recording, the Lock Screen card and the Dynamic Island had one button, the red **Stop**. Everything was filed in the Inbox.
+- Now: the card has **two** buttons. The red **Stop** files where the heading says. The second button stops the recording and files it to the other place: **Today** (Today's purple colour, the sun mark) when the recording is meant for the Inbox, **Inbox** (green, the tray mark) when it is meant for today's note.
+- **The heading says where it goes.** "Listening · Inbox" or "Listening · Today's note", with the red dot and the running time as before.
+- **Why a button and not a long press on the Action Button.** Apple's Action Button sends only one kind of press, so the choice is on the Lock Screen instead (your choice).
+
+**New: filing into today's note.**
+- **The note.** It still goes to Resources as before, with the title, the summary, the tasks and the full text.
+- **The tasks.** They become open tasks in today's daily note, under **Tasks**, so they count on **Today**.
+- **The note line.** The line "[[Title]] — voice note, 0:42" goes under **Notes** in today's daily note.
+- **The Inbox.** Nothing goes into the Inbox.
+- **A summary that comes late.** When the phone was locked and the summary arrives later, its new tasks go into that same day's note (the day you recorded), not into the Inbox.
+- **The finished card.** It says "Saved to today's note" with the sun mark. When it was filed to the Inbox it says "Saved to Inbox" with the tray mark, as before.
+
+**New: the action Record into Today's Note.**
+- **Where it is.** In the **Shortcuts** app under PARAGON and with Siri. Say "Record into today's note in PARAGON" or "Today's note recording in PARAGON".
+- **The Action Button.** You can set the Action Button to it instead of **Record a Thought**: iPhone Settings app › Action Button › Shortcut › PARAGON › Record into Today's Note.
+- **Press again** and it stops, filing into today's note.
+- **iPhone only.** Same as Record a Thought: iOS 26 or newer, not offered on the Mac.
+- **Siri and Shortcuts.** PARAGON now has 8 actions on the iPhone and the iPad (before 7); the Mac still has 6.
+
+**New: say "task".**
+- **How.** A sentence that starts with the word "task" becomes a task, without that word. Also "new task", in German "Aufgabe" and "neue Aufgabe", in Swedish "uppgift" and "ny uppgift". "Task: call Anna about Saturday." becomes the task "Call Anna about Saturday".
+- **The word alone.** When you say the word on its own ("Task. Order screws."), the next sentence is the task.
+- **Only at the start of a sentence.** "This task is hard" is not a task.
+- **Length.** A spoken task has at most 25 words.
+- **Always filed.** These tasks are saved even without Apple Intelligence and even when the summary comes late.
+- **Order.** They come first in the list. The tasks the AI finds that say the same thing (or less) are left out, so nothing appears twice.
+- **While you record.** Once one is caught, the Lock Screen card shows "1 task heard" (or "N tasks heard") in front of the live words.
+
+**Signs in this app.** New lines: the second button on the Lock Screen card (sun = into today's note, tray = into the Inbox), the sun mark on "Saved to today's note", and "N tasks heard".
+
+**Unchanged.** Everything of build 348: the first press, the Stop button, the 30-minute limit, the note's parts, the 20-second wait while locked, "Nothing heard — nothing saved", and Voice language in Settings.
 
 ## Build 348 · 20 November 2026
 

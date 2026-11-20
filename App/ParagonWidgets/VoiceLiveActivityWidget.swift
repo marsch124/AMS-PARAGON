@@ -21,7 +21,7 @@ struct VoiceLiveActivityWidget: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    VoiceDot(stage: context.state.stage, size: 11)
+                    VoiceDot(stage: context.state.stage, size: 11, intoToday: context.state.intoToday)
                         .frame(maxHeight: .infinity)
                         .padding(.leading, 6)
                 }
@@ -38,14 +38,14 @@ struct VoiceLiveActivityWidget: Widget {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(alignment: .bottom, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(VoiceLook.body(context.state))
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .lineLimit(3)
+                            .lineLimit(VoiceLook.isRunning(context.state) ? 2 : 3)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        if context.state.stage == .listening || context.state.stage == .preparing {
-                            VoiceStopButton()
+                        if VoiceLook.isRunning(context.state) {
+                            VoiceButtonRow(state: context.state)
                         }
                     }
                     .padding(.horizontal, 6)
@@ -70,15 +70,33 @@ enum VoiceLook {
     static let red = Color(red: 0.886, green: 0.294, blue: 0.290)
     /// The Inbox's own green (its night shade: the card is always dark), for "Saved to Inbox".
     static let inbox = Color(lightHex: 0xB4D25A, darkHex: 0xB4D25A)
+    /// Build 349: Today's own purple (its night shade), for today's note.
+    static let today = Color(lightHex: 0xA98FE0, darkHex: 0xA98FE0)
+
+    /// Still recording (or about to): the buttons show.
+    static func isRunning(_ s: VoiceActivityAttributes.ContentState) -> Bool {
+        s.stage == .listening || s.stage == .preparing
+    }
+
+    /// Where it goes, in the words the rest of PARAGON uses.
+    static func place(_ s: VoiceActivityAttributes.ContentState) -> String {
+        s.intoToday ? "Today's note" : "Inbox"
+    }
 
     static func heading(_ s: VoiceActivityAttributes.ContentState) -> String {
         switch s.stage {
         case .preparing: return "Getting ready"
-        case .listening: return "Listening"
+        case .listening: return "Listening · \(place(s))"
         case .writing: return "Writing it up…"
-        case .saved: return "Saved to Inbox"
+        case .saved: return s.intoToday ? "Saved to today's note" : "Saved to Inbox"
         case .nothing: return "Nothing saved"
         }
+    }
+
+    /// Build 349: "1 task heard" once he said "task" for one; empty before.
+    static func heard(_ s: VoiceActivityAttributes.ContentState) -> String {
+        guard s.stage == .listening, s.tasksFound > 0 else { return "" }
+        return s.tasksFound == 1 ? "1 task heard" : "\(s.tasksFound) tasks heard"
     }
 
     static func body(_ s: VoiceActivityAttributes.ContentState) -> String {
@@ -99,22 +117,23 @@ struct VoiceBanner: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                VoiceDot(stage: state.stage, size: 9)
+                VoiceDot(stage: state.stage, size: 9, intoToday: state.intoToday)
                 Text(VoiceLook.heading(state))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(state.stage == .listening ? VoiceLook.red : .white)
+                    .lineLimit(1)
                 VoiceClock(startedAt: startedAt, state: state)
                     .font(.subheadline.weight(.semibold).monospacedDigit())
                     .opacity(0.8)
                 Spacer(minLength: 4)
-                if state.stage == .listening || state.stage == .preparing {
-                    VoiceStopButton()
-                }
             }
             Text(VoiceLook.body(state))
                 .font(.subheadline)
-                .lineLimit(3)
+                .lineLimit(VoiceLook.isRunning(state) ? 2 : 3)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            if VoiceLook.isRunning(state) {
+                VoiceButtonRow(state: state)
+            }
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 16)
@@ -126,13 +145,14 @@ struct VoiceBanner: View {
 struct VoiceDot: View {
     let stage: VoiceActivityAttributes.ContentState.Stage
     var size: CGFloat
+    var intoToday = false
 
     var body: some View {
         if stage == .saved {
             // Saved: the Inbox's own tray mark in its green, not a dot — a green dot already
-            // means "a project without an icon" in PARAGON.
-            WidgetMark(name: "tray", size: size + 5)
-                .foregroundStyle(VoiceLook.inbox)
+            // means "a project without an icon" in PARAGON. Build 349: today's note = Today's sun.
+            WidgetMark(name: intoToday ? "sun.max" : "tray", size: size + 5)
+                .foregroundStyle(intoToday ? VoiceLook.today : VoiceLook.inbox)
                 .accessibilityHidden(true)
         } else {
             Circle()
@@ -159,6 +179,47 @@ struct VoiceClock: View {
         } else {
             Text(state.length)
         }
+    }
+}
+
+/// Build 349: under the words while recording — "N tasks heard" at the left, then the
+/// second button (stops and files in the other place) and the red **Stop**.
+struct VoiceButtonRow: View {
+    let state: VoiceActivityAttributes.ContentState
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(VoiceLook.heard(state))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.8))
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            VoiceOtherPlaceButton(intoToday: state.intoToday)
+            VoiceStopButton()
+        }
+    }
+}
+
+/// Build 349: stops and files into the place the recording was NOT meant for: **Today**
+/// (today's note, Today's sun in Today's purple) or **Inbox** (the tray in the Inbox's green).
+struct VoiceOtherPlaceButton: View {
+    let intoToday: Bool
+
+    var body: some View {
+        Button(intent: StopVoiceIntent(place: intoToday ? "inbox" : "today")) {
+            HStack(spacing: 5) {
+                WidgetMark(name: intoToday ? "tray" : "sun.max", size: 14)
+                    .foregroundStyle(intoToday ? VoiceLook.inbox : VoiceLook.today)
+                Text(intoToday ? "Inbox" : "Today")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .background(Color.white.opacity(0.16), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(intoToday ? "Stop and save to the Inbox" : "Stop and save to today's note")
     }
 }
 

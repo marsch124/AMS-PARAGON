@@ -52,12 +52,26 @@ public struct VoiceThought: Equatable, Sendable {
         return Self.fallbackTitle(from: transcript)
     }
 
-    /// The tasks that go to the Inbox: trimmed, without a leading "- [ ]" or bullet, no empty
-    /// ones, no two the same (letter case aside), at most `mostTasks`.
+    /// The tasks that go to the Inbox: first the ones he marked by saying "task"
+    /// (`spokenTasks`), then the model's, trimmed, without a leading "- [ ]" or bullet, no empty
+    /// ones, no two the same (letter case aside, and a model task that says the same as a
+    /// spoken one, or less, is left out), at most `mostTasks`.
     public var finalTasks: [String] {
+        Self.merged(Self.spokenTasks(in: transcript), tasks)
+    }
+
+    /// Build 349: the model's tasks that a late summary adds — the ones not already filed
+    /// because he said "task" for them.
+    public static func lateTasks(transcript: String, modelTasks: [String]) -> [String] {
+        let spoken = merged(spokenTasks(in: transcript), [])
+        return Array(merged(spoken, modelTasks).dropFirst(spoken.count))
+    }
+
+    static func merged(_ first: [String], _ second: [String]) -> [String] {
         var seen = Set<String>()
+        var keys: [String] = []
         var out: [String] = []
-        for raw in tasks {
+        for raw in first + second {
             var t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             for prefix in ["- [ ] ", "- [ ]", "[ ] ", "- ", "* ", "• "] where t.hasPrefix(prefix) {
                 t = String(t.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
@@ -67,11 +81,98 @@ public struct VoiceThought: Equatable, Sendable {
             guard !t.isEmpty, Self.hasWords(t) else { continue }
             let key = t.lowercased()
             guard !seen.contains(key) else { continue }
+            let loose = " " + looseKey(t) + " "
+            // "Call Anna" said as a task, and the model's "Call Anna about Saturday": one task
+            // (whole words only: "Shop" and "Shopping list" are two).
+            guard !keys.contains(where: { $0.contains(loose) || loose.contains($0) }) else { continue }
             seen.insert(key)
+            keys.append(loose)
             out.append(t)
             if out.count == Self.mostTasks { break }
         }
         return out
+    }
+
+    // MARK: Saying "task"
+
+    /// The words that mark a task when a sentence starts with them, longest first, in the
+    /// three voice languages.
+    public static let taskWords = ["new task", "task", "neue aufgabe", "aufgabe", "ny uppgift", "uppgift"]
+    /// A spoken task is cut after this many words (a sentence without a full stop could
+    /// otherwise run to the end of the recording).
+    public static let longestSpokenTask = 25
+
+    /// Build 349: the tasks he marked himself. A sentence that starts with "task" (or "new
+    /// task", "Aufgabe", "uppgift") is a task without that word: "Task: call Anna." → "Call
+    /// Anna". When the word stands alone ("Task. Call Anna."), the next sentence is the task.
+    public static func spokenTasks(in transcript: String) -> [String] {
+        let sentences = sentencesOf(clean(transcript))
+        var out: [String] = []
+        var takeNext = false
+        for sentence in sentences {
+            if let rest = afterTaskWord(sentence) {
+                if let task = taskWords(rest) {
+                    out.append(task)
+                    takeNext = false
+                } else {
+                    takeNext = true
+                }
+                continue
+            }
+            if takeNext, let task = taskWords(sentence) { out.append(task) }
+            takeNext = false
+        }
+        return out
+    }
+
+    /// The sentences, each ending with its . ! or ? (a dot inside "3.5" does not end one).
+    static func sentencesOf(_ text: String) -> [String] {
+        var out: [String] = []
+        var current = ""
+        let chars = Array(text)
+        for (i, c) in chars.enumerated() {
+            current.append(c)
+            let ends = c == "." || c == "!" || c == "?"
+            if ends, i + 1 == chars.count || chars[i + 1].isWhitespace {
+                out.append(current.trimmingCharacters(in: .whitespaces))
+                current = ""
+            }
+        }
+        let last = current.trimmingCharacters(in: .whitespaces)
+        if !last.isEmpty { out.append(last) }
+        return out
+    }
+
+    /// What follows the task word when the sentence starts with one; nil otherwise.
+    static func afterTaskWord(_ sentence: String) -> String? {
+        let lower = sentence.lowercased()
+        for word in taskWords where lower.hasPrefix(word) {
+            let rest = sentence.dropFirst(word.count)
+            if let next = rest.first, next.isLetter || next.isNumber { continue }
+            return String(rest)
+        }
+        return nil
+    }
+
+    /// A sentence as a task: no leading ": , -", no closing . ! ?, at most
+    /// `longestSpokenTask` words, the first letter large. Nil when no words are left.
+    static func taskWords(_ raw: String) -> String? {
+        var t = raw.trimmingCharacters(in: .whitespaces)
+        while let f = t.first, ":,;-–—.".contains(f) || f.isWhitespace { t.removeFirst() }
+        while let l = t.last, ".!?,;:".contains(l) || l.isWhitespace { t.removeLast() }
+        let words = t.split(whereSeparator: { $0.isWhitespace })
+        guard !words.isEmpty, hasWords(t) else { return nil }
+        t = words.prefix(longestSpokenTask).joined(separator: " ")
+        while let l = t.last, ".!?,;:".contains(l) { t.removeLast() }
+        guard let first = t.first else { return nil }
+        return first.uppercased() + t.dropFirst()
+    }
+
+    /// Letters and digits only, small, one space between words: to see that two tasks say
+    /// the same.
+    static func looseKey(_ text: String) -> String {
+        let kept = text.lowercased().unicodeScalars.map { CharacterSet.alphanumerics.contains($0) ? Character($0) : " " }
+        return String(kept).split(separator: " ").joined(separator: " ")
     }
 
     /// "0:42", "12:05", "1:02:03".
@@ -162,7 +263,13 @@ public struct VoiceThought: Equatable, Sendable {
         var text = noteText.replacingOccurrences(of: pendingLine,
                                                  with: clean.isEmpty ? "No summary was made." : clean)
         let list = VoiceThought(transcript: "x", tasks: tasks, recordedAt: Date(), duration: 0).finalTasks
-        if !list.isEmpty, !text.contains("\n## Tasks\n"), let full = text.range(of: "\n## Full text\n") {
+        guard !list.isEmpty, let full = text.range(of: "\n## Full text\n") else { return text }
+        if text.contains("\n## Tasks\n") {
+            // Build 349: the tasks he said already stand there: the model's go below them.
+            var end = full.lowerBound
+            while end > text.startIndex, text[text.index(before: end)] == "\n" { end = text.index(before: end) }
+            text.insert(contentsOf: list.map { "\n- " + $0 }.joined(), at: end)
+        } else {
             text.insert(contentsOf: "\n## Tasks\n\n" + list.map { "- " + $0 }.joined(separator: "\n") + "\n",
                         at: full.lowerBound)
         }
@@ -218,7 +325,11 @@ public extension Vault {
     }
 
     /// As `fileVoiceThought`, and where the note went.
-    func fileVoiceThoughtNote(_ thought: VoiceThought, today: DateOnly = .today()) throws -> (title: String, path: String) {
+    ///
+    /// Build 349: `into: .today` puts the tasks and the line into today's daily note instead
+    /// of the Inbox (the note itself still goes to Resources). Any other place is the Inbox.
+    func fileVoiceThoughtNote(_ thought: VoiceThought, today: DateOnly = .today(),
+                              into place: CaptureTarget = .inbox) throws -> (title: String, path: String) {
         guard !thought.isEmpty else { throw VaultError.invalidTitle }
         guard let folder = config.folder(for: .resource) else { throw VaultError.invalidTitle }
         let title = thought.finalTitle
@@ -227,19 +338,21 @@ public extension Vault {
                         text: thought.noteText(today: today), modifiedAt: Date())
         try save(note)
 
-        var inbox = try inboxNote()
+        var target = try (place == .today ? dailyNote(for: today) : inboxNote())
         for task in thought.finalTasks {
-            inbox.append(task: TaskParser.normalized(TaskItem(title: task)))
+            target.append(task: TaskParser.normalized(TaskItem(title: task)))
         }
-        inbox.appendLine(VoiceThought.inboxNoteLine(title: title, duration: thought.duration), under: "Notes")
-        try save(inbox)
+        target.appendLine(VoiceThought.inboxNoteLine(title: title, duration: thought.duration), under: "Notes")
+        try save(target)
         return (title, note.relativePath)
     }
 
     /// The late summary of a voice note (`VoiceThought.enriched`), and its tasks into the Inbox.
     /// False when the note is gone or no longer waits for one: nothing is written then.
     @discardableResult
-    func addLateVoiceSummary(path: String, summary: String, tasks: [String]) throws -> Bool {
+    ///
+    /// Build 349: `intoDay` is the day whose daily note took the thought; its tasks go there.
+    func addLateVoiceSummary(path: String, summary: String, tasks: [String], intoDay: DateOnly? = nil) throws -> Bool {
         guard CloudFiles.exists(url(for: path)) else { return false }
         var note = try loadNote(relativePath: path)
         guard let text = VoiceThought.enriched(note.text, summary: summary, tasks: tasks) else { return false }
@@ -247,9 +360,9 @@ public extension Vault {
         try save(note)
         let list = VoiceThought(transcript: "x", tasks: tasks, recordedAt: Date(), duration: 0).finalTasks
         if !list.isEmpty {
-            var inbox = try inboxNote()
-            for task in list { inbox.append(task: TaskParser.normalized(TaskItem(title: task))) }
-            try save(inbox)
+            var target = try intoDay.map { try dailyNote(for: $0) } ?? inboxNote()
+            for task in list { target.append(task: TaskParser.normalized(TaskItem(title: task))) }
+            try save(target)
         }
         return true
     }

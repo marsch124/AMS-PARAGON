@@ -474,7 +474,9 @@ final class ReminderAppDelegate: NSObject, UIApplicationDelegate {
         FocusActivityBridge.wake = { _ = AppModel.shared }
         // Build 348: Stop on the recording's Live Activity reaches the one recorder.
         if #available(iOS 26.0, *) {
-            VoiceActivityBridge.stop = { _ = await VoiceRecorder.shared.stopAndFile() }
+            VoiceActivityBridge.stop = { place in
+                _ = await VoiceRecorder.shared.stopAndFile(into: place == "today" ? .today : place == "inbox" ? .inbox : nil)
+            }
         }
         EveningReminder.shared.start()
         return true

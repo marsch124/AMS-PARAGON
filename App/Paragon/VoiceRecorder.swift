@@ -53,6 +53,10 @@ final class VoiceRecorder {
     }
 
     private(set) var isRecording = false
+    /// Build 349: where this recording is meant to go — the Inbox, or today's daily note
+    /// (**Record into Today's Note**). The Lock Screen's second button files it in the other.
+    private(set) var place: CaptureTarget = .inbox
+    private var intoToday: Bool { place == .today }
     fileprivate(set) var isWriting = false
     private var startedAt = Date()
     private var engine: AVAudioEngine?
@@ -72,17 +76,18 @@ final class VoiceRecorder {
 
     // MARK: Start
 
-    func start() async throws {
+    func start(into target: CaptureTarget = .inbox) async throws {
         guard !isRecording else { return }
         guard !isWriting else { throw Problem.busy }
         guard await AVAudioApplication.requestRecordPermission() else { throw Problem.microphoneRefused }
 
+        place = target == .today ? .today : .inbox
         startedAt = Date()
         finished = ""
         volatile = ""
         isRecording = true
         // The Live Activity first: an `AudioRecordingIntent` must show one while it records.
-        await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: ""))
+        await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
 
         do {
             let chosen = UserDefaults.standard.string(forKey: Self.languageKey) ?? ""
@@ -94,7 +99,7 @@ final class VoiceRecorder {
             let transcriber = SpeechTranscriber(locale: found, transcriptionOptions: [],
                                                 reportingOptions: [.volatileResults], attributeOptions: [])
             if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
-                await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: ""))
+                await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
                 try await install.downloadAndInstall()
             }
             let analyzer = SpeechAnalyzer(modules: [transcriber])
@@ -156,7 +161,7 @@ final class VoiceRecorder {
             try engine.start()
             self.engine = engine
             startedAt = Date()
-            await showActivity(.listening("Listening…"))
+            await showActivity(.listening("Listening…", intoToday: intoToday))
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 
             limit = Task { @MainActor [weak self] in
@@ -169,7 +174,7 @@ final class VoiceRecorder {
         } catch {
             await tearDown()
             isRecording = false
-            await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: ""),
+            await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: "", intoToday: intoToday),
                                endAfter: 60)
             throw error
         }
@@ -178,7 +183,9 @@ final class VoiceRecorder {
     // MARK: Stop
 
     /// Stops, writes it up and files it. Comes back when it is in the Inbox (or kept).
-    func stopAndFile() async -> Outcome {
+    /// Build 349: `into` (the Lock Screen's second button) files it there instead of where the
+    /// recording was meant to go.
+    func stopAndFile(into chosen: CaptureTarget? = nil) async -> Outcome {
         guard isRecording else {
             // A Stop left on the Lock Screen by an app that was closed meanwhile.
             for old in Activity<VoiceActivityAttributes>.activities { await old.end(nil, dismissalPolicy: .immediate) }
@@ -186,6 +193,9 @@ final class VoiceRecorder {
         }
         isRecording = false
         isWriting = true
+        if let chosen { place = chosen == .today ? .today : .inbox }
+        let intoToday = self.intoToday
+        let day = DateOnly.today()
         // Once the microphone is off iOS may put PARAGON to sleep: this asks for the minute
         // the write-up and the filing need (the 30-minute stop has no action keeping it awake).
         let awake = UIApplication.shared.beginBackgroundTask(withName: "Record a thought")
@@ -202,11 +212,11 @@ final class VoiceRecorder {
 
         var thought = VoiceThought(transcript: transcript, recordedAt: startedAt, duration: duration)
         guard !thought.isEmpty else {
-            await showActivity(.init(stage: .nothing, words: "Nothing heard — nothing saved", title: "", tasksFound: 0, length: length),
+            await showActivity(.init(stage: .nothing, words: "Nothing heard — nothing saved", title: "", tasksFound: 0, length: length, intoToday: intoToday),
                                endAfter: 60)
             return .nothingHeard
         }
-        await showActivity(.init(stage: .writing, words: VoiceThought.liveTail(thought.transcript), title: "", tasksFound: 0, length: length))
+        await showActivity(.init(stage: .writing, words: VoiceThought.liveTail(thought.transcript), title: "", tasksFound: 0, length: length, intoToday: intoToday))
 
         // The words are never kept waiting for the model: after 20 seconds (the phone may be
         // locked, and iOS slows the model down then) they are filed with the first words as
@@ -229,16 +239,19 @@ final class VoiceRecorder {
 
         let model = AppModel.shared
         await model.vaultOnceOpen()
-        if let filed = model.fileVoiceThought(thought) {
+        if let filed = model.fileVoiceThought(thought, into: place, today: day) {
             let title = filed.title
-            if thought.summaryPending { Self.remember(LateSummary(path: filed.path, transcript: thought.transcript, locale: locale.identifier)) }
+            if thought.summaryPending {
+                Self.remember(LateSummary(path: filed.path, transcript: thought.transcript, locale: locale.identifier,
+                                          day: intoToday ? day.description : nil))
+            }
             let tasks = thought.finalTasks.count
-            await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length), endAfter: 180)
+            await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length, intoToday: intoToday), endAfter: 180)
             return .saved(title: title, tasks: tasks)
         }
-        // No vault now: the words wait in the outbox, as one Inbox note line.
-        model.capture(text: "Voice note (\(length)): " + VoiceThought.clean(thought.transcript), target: .inbox, asTask: false)
-        await showActivity(.init(stage: .saved, words: "", title: thought.finalTitle, tasksFound: 0, length: length), endAfter: 180)
+        // No vault now: the words wait in the outbox, as one note line in the Inbox (or today's note).
+        model.capture(text: "Voice note (\(length)): " + VoiceThought.clean(thought.transcript), target: place, asTask: false)
+        await showActivity(.init(stage: .saved, words: "", title: thought.finalTitle, tasksFound: 0, length: length, intoToday: intoToday), endAfter: 180)
         return .kept
     }
 
@@ -263,7 +276,8 @@ final class VoiceRecorder {
         guard isRecording, Date().timeIntervalSince(lastShown) >= 1 else { return }
         lastShown = Date()
         let words = VoiceThought.liveTail(transcript)
-        Task { await showActivity(.listening(words.isEmpty ? "Listening…" : words)) }
+        let heard = VoiceThought.spokenTasks(in: transcript).count
+        Task { await showActivity(.listening(words.isEmpty ? "Listening…" : words, intoToday: intoToday, heard: heard)) }
     }
 
     private func showActivity(_ state: VoiceActivityAttributes.ContentState, endAfter: TimeInterval? = nil) async {
@@ -287,12 +301,15 @@ final class VoiceRecorder {
     /// Test runs only (`-paragon-voice-demo`): the Lock Screen card listening to sample words for
     /// 20 seconds, then the real write-up and filing into the test vault.
     func demo() async {
-        let words = "The drawer in the hall needs new screws, so I should order them tonight. And I must call Anna about Saturday, whether we go to the lake or stay home."
+        let words = "The drawer in the hall needs new screws, so I should order them tonight. And I must call Anna about Saturday, whether we go to the lake or stay home. Task: water the plants."
         let awake = UIApplication.shared.beginBackgroundTask(withName: "Voice demo")
         defer { UIApplication.shared.endBackgroundTask(awake) }
         startedAt = Date()
         isRecording = true
-        await showActivity(.listening(VoiceThought.liveTail(words)))
+        // `-paragon-voice-today`: the recording meant for today's note (Inbox as second button).
+        place = ProcessInfo.processInfo.arguments.contains("-paragon-voice-today") ? .today : .inbox
+        await showActivity(.listening(VoiceThought.liveTail(words), intoToday: intoToday,
+                                      heard: VoiceThought.spokenTasks(in: words).count))
         try? await Task.sleep(for: .seconds(20))
         finished = words
         _ = await stopAndFile()
@@ -364,6 +381,8 @@ extension VoiceRecorder {
         var path: String
         var transcript: String
         var locale: String
+        /// Build 349: the day whose daily note took the thought ("2026-11-20"); nil = the Inbox.
+        var day: String? = nil
     }
 
     private static let lateKey = "voiceLateSummaries"
@@ -396,10 +415,12 @@ extension VoiceRecorder {
             case .none: break
             case .done(_, let s, let t):
                 summary = s
-                tasks = t
+                // Build 349: the tasks he said were filed at once; only the model's others now.
+                tasks = VoiceThought.lateTasks(transcript: late.transcript, modelTasks: t)
             }
             model.flushPendingEdits()
-            _ = try? vault.addLateVoiceSummary(path: late.path, summary: summary, tasks: tasks)
+            _ = try? vault.addLateVoiceSummary(path: late.path, summary: summary, tasks: tasks,
+                                               intoDay: late.day.flatMap { DateOnly($0) })
             Self.waiting.removeAll { $0 == late }
             model.reload()
         }
@@ -409,11 +430,12 @@ extension VoiceRecorder {
 extension AppModel {
     /// Build 348: files a recorded thought into the open vault and refreshes the lists.
     /// Nil when no vault is open or it could not be written.
-    func fileVoiceThought(_ thought: VoiceThought) -> (title: String, path: String)? {
+    func fileVoiceThought(_ thought: VoiceThought, into place: CaptureTarget = .inbox,
+                          today: DateOnly = .today()) -> (title: String, path: String)? {
         guard let vault else { return nil }
         flushPendingEdits()
         do {
-            let filed = try vault.fileVoiceThoughtNote(thought)
+            let filed = try vault.fileVoiceThoughtNote(thought, today: today, into: place)
             reload()
             return filed
         } catch {
