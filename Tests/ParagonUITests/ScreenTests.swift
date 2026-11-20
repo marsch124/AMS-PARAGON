@@ -4285,6 +4285,32 @@ final class ScreenTests: XCTestCase {
         app.typeKey(.escape, modifierFlags: [])
     }
     #endif
+
+    #if os(iOS)
+    /// Round 350 (voice-words): Settings › Voice has **Words it mishears** (`settings.voiceWords`),
+    /// a page of its own: **Add a word** (`voiceWords.add`) makes a row (`voiceWords.word`),
+    /// **Cancel** (`voiceWords.cancel`) leaves without saving.
+    func testWordsItMishearsOpensAndCancels() throws {
+        let browse = element("tab.browse")
+        try XCTSkipUnless(browse.waitForExistence(timeout: appears), "The iPhone's way in to Settings; the iPad has its own.")
+        browse.press()
+        let gear = element("browse.settings")
+        XCTAssertTrue(gear.waitForExistence(timeout: 20), "Browse has no gear (browse.settings). On screen: \(visibleTexts())")
+        gear.press()
+        let link = reveal("settings.voiceWords")
+        XCTAssertTrue(link.exists, "Settings has no Words it mishears (settings.voiceWords). On screen: \(visibleTexts())")
+        link.press()
+        let add = element("voiceWords.add")
+        XCTAssertTrue(add.waitForExistence(timeout: 20), "The page has no Add a word (voiceWords.add). On screen: \(visibleTexts())")
+        add.press()
+        XCTAssertTrue(element("voiceWords.word").waitForExistence(timeout: 10), "Add a word made no row (voiceWords.word).")
+        let cancel = element("voiceWords.cancel")
+        XCTAssertTrue(cancel.exists, "The page has no Cancel (voiceWords.cancel).")
+        cancel.press()
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: element("voiceWords.add"))
+        waitForExpectations(timeout: 20)
+    }
+    #endif
 }
 
 extension XCUIElement {

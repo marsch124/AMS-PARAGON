@@ -22,6 +22,16 @@ public struct VoiceThought: Equatable, Sendable {
     /// The on-device model did not finish in time: the note says the summary follows, and
     /// `VoiceThought.enriched` puts it in later.
     public var summaryPending = false
+    /// Round 350: said out loud — "tag garden" gives the tag `garden`.
+    public var extraTags: [String] = []
+    /// Round 350: said out loud — sentences that start with "idea".
+    public var ideas: [String] = []
+    /// Round 350: said out loud — "title …" at the very start; wins over the model's title.
+    public var spokenTitle: String?
+    /// Round 350: a long thought in parts, each under a small heading; empty = plain text.
+    public var chapters: [VoiceChapter] = []
+    /// Round 350: titles of notes that exist; a first mention in the words becomes a `[[link]]`.
+    public var linkTitles: [String] = []
 
     public init(transcript: String, title: String? = nil, summary: String? = nil, tasks: [String] = [],
                 recordedAt: Date, duration: TimeInterval) {
@@ -47,6 +57,8 @@ public struct VoiceThought: Equatable, Sendable {
 
     /// The title the note gets: the model's, cleaned, or else the first words said.
     public var finalTitle: String {
+        let said = Self.cleanTitle(spokenTitle ?? "")
+        if !said.isEmpty { return said }
         let given = Self.cleanTitle(title ?? "")
         if !given.isEmpty { return given }
         return Self.fallbackTitle(from: transcript)
@@ -106,23 +118,8 @@ public struct VoiceThought: Equatable, Sendable {
     /// task", "Aufgabe", "uppgift") is a task without that word: "Task: call Anna." → "Call
     /// Anna". When the word stands alone ("Task. Call Anna."), the next sentence is the task.
     public static func spokenTasks(in transcript: String) -> [String] {
-        let sentences = sentencesOf(clean(transcript))
-        var out: [String] = []
-        var takeNext = false
-        for sentence in sentences {
-            if let rest = afterTaskWord(sentence) {
-                if let task = taskWords(rest) {
-                    out.append(task)
-                    takeNext = false
-                } else {
-                    takeNext = true
-                }
-                continue
-            }
-            if takeNext, let task = taskWords(sentence) { out.append(task) }
-            takeNext = false
-        }
-        return out
+        // Round 350: with the day and time words taken out of each title (`spokenTaskItems`).
+        spokenTaskItems(in: transcript).map { $0.title }
     }
 
     /// The sentences, each ending with its . ! or ? (a dot inside "3.5" does not end one).
@@ -145,8 +142,13 @@ public struct VoiceThought: Equatable, Sendable {
 
     /// What follows the task word when the sentence starts with one; nil otherwise.
     static func afterTaskWord(_ sentence: String) -> String? {
+        afterWord(sentence, taskWords)
+    }
+
+    /// What follows one of `words` when the sentence starts with it (as a whole word); nil otherwise.
+    static func afterWord(_ sentence: String, _ words: [String]) -> String? {
         let lower = sentence.lowercased()
-        for word in taskWords where lower.hasPrefix(word) {
+        for word in words where lower.hasPrefix(word) {
             let rest = sentence.dropFirst(word.count)
             if let next = rest.first, next.isLetter || next.isNumber { continue }
             return String(rest)
@@ -156,13 +158,13 @@ public struct VoiceThought: Equatable, Sendable {
 
     /// A sentence as a task: no leading ": , -", no closing . ! ?, at most
     /// `longestSpokenTask` words, the first letter large. Nil when no words are left.
-    static func taskWords(_ raw: String) -> String? {
+    static func taskText(_ raw: String, limit: Int = longestSpokenTask) -> String? {
         var t = raw.trimmingCharacters(in: .whitespaces)
         while let f = t.first, ":,;-–—.".contains(f) || f.isWhitespace { t.removeFirst() }
         while let l = t.last, ".!?,;:".contains(l) || l.isWhitespace { t.removeLast() }
         let words = t.split(whereSeparator: { $0.isWhitespace })
         guard !words.isEmpty, hasWords(t) else { return nil }
-        t = words.prefix(longestSpokenTask).joined(separator: " ")
+        t = words.prefix(limit).joined(separator: " ")
         while let l = t.last, ".!?,;:".contains(l) { t.removeLast() }
         guard let first = t.first else { return nil }
         return first.uppercased() + t.dropFirst()
@@ -220,13 +222,14 @@ public struct VoiceThought: Equatable, Sendable {
         f.timeZone = timeZone
         f.dateFormat = "yyyy-MM-dd"
         let day = f.string(from: recordedAt)
+        let tagList: String = ([Self.tag] + extraTags).joined(separator: ", ")
         var lines: [String] = [
             "---",
             "title: \(title)",
             "type: resource",
             "created: \(today.description)",
             "source: voice",
-            "tags: [\(Self.tag)]",
+            "tags: [\(tagList)]",
             "---",
             "# \(title)",
             "",
@@ -236,18 +239,24 @@ public struct VoiceThought: Equatable, Sendable {
             "",
         ]
         if let summary = summary?.trimmingCharacters(in: .whitespacesAndNewlines), !summary.isEmpty {
-            lines.append(summary)
+            lines.append(VoiceWords.linking(summary, titles: linkTitles))
         } else if summaryPending {
             lines.append(Self.pendingLine)
         } else {
             lines.append("No summary: Apple Intelligence was not available on this phone.")
         }
-        let tasks = finalTasks
+        let tasks = finalTaskItems()
         if !tasks.isEmpty {
             lines += ["", "## Tasks", ""]
-            lines += tasks.map { "- " + $0 }
+            lines += tasks.map { "- " + $0.title + Self.dueWords($0) }
         }
-        lines += ["", "## Full text", "", Self.clean(transcript), ""]
+        if !ideas.isEmpty {
+            lines += ["", "## Ideas", ""]
+            lines += ideas.map { "- " + $0 }
+        }
+        let full: String = chapters.isEmpty ? VoiceWords.linking(Self.clean(transcript), titles: linkTitles)
+            : VoiceChapters.markdown(chapters, linking: linkTitles)
+        lines += ["", "## Full text", "", full, ""]
         return lines.joined(separator: "\n")
     }
 
@@ -264,14 +273,18 @@ public struct VoiceThought: Equatable, Sendable {
                                                  with: clean.isEmpty ? "No summary was made." : clean)
         let list = VoiceThought(transcript: "x", tasks: tasks, recordedAt: Date(), duration: 0).finalTasks
         guard !list.isEmpty, let full = text.range(of: "\n## Full text\n") else { return text }
-        if text.contains("\n## Tasks\n") {
+        // Round 350: an Ideas part may stand between Tasks and Full text.
+        let ideasAt = text.range(of: "\n## Ideas\n")
+        let before: String.Index = ideasAt?.lowerBound ?? full.lowerBound
+        if let tasksAt = text.range(of: "\n## Tasks\n") {
             // Build 349: the tasks he said already stand there: the model's go below them.
-            var end = full.lowerBound
+            var end = before
+            if tasksAt.lowerBound >= before { return text }
             while end > text.startIndex, text[text.index(before: end)] == "\n" { end = text.index(before: end) }
             text.insert(contentsOf: list.map { "\n- " + $0 }.joined(), at: end)
         } else {
             text.insert(contentsOf: "\n## Tasks\n\n" + list.map { "- " + $0 }.joined(separator: "\n") + "\n",
-                        at: full.lowerBound)
+                        at: before)
         }
         return text
     }
@@ -339,8 +352,8 @@ public extension Vault {
         try save(note)
 
         var target = try (place == .today ? dailyNote(for: today) : inboxNote())
-        for task in thought.finalTasks {
-            target.append(task: TaskParser.normalized(TaskItem(title: task)))
+        for item in thought.finalTaskItems() {
+            target.append(task: item)
         }
         target.appendLine(VoiceThought.inboxNoteLine(title: title, duration: thought.duration), under: "Notes")
         try save(target)
