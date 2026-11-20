@@ -373,11 +373,13 @@ public extension Vault {
         var removed = 0
         var kept = 0
         for title in titles {
-            let open: Int? = lines.lastIndex(where: { (line: String) -> Bool in
-                guard let task = TaskParser.parse(line: line) else { return false }
+            let openLines: [Int] = lines.indices.filter { (index: Int) -> Bool in
+                guard let task = TaskParser.parse(line: lines[index]) else { return false }
                 return task.title == title && !task.isDone
-            })
-            if let open {
+            }
+            // Review of build 350: two open lines with the same words cannot be told apart (a
+            // newer capture may say the same), so neither is taken out; it is counted as kept.
+            if openLines.count == 1, let open = openLines.first {
                 lines.remove(at: open)
                 removed += 1
             } else if lines.contains(where: { TaskParser.parse(line: $0)?.title == title }) {
@@ -399,13 +401,15 @@ public extension Vault {
     /// tasks and its line leave the Inbox or the daily note.
     @discardableResult
     func discardVoiceThought(_ filed: VoiceFiled) throws -> VoiceDiscard {
+        // Review of build 350: the lines first, the note after. A line that cannot be written
+        // (changed on another device) stops it all before anything is gone.
+        let result = try removeFiledLines(filed, titles: filed.tasks, andLine: true)
         var noteRemoved = false
         if CloudFiles.exists(url(for: filed.path)) {
             let note = try loadNote(relativePath: filed.path)
             try trash(note)
             noteRemoved = true
         }
-        let result = try removeFiledLines(filed, titles: filed.tasks, andLine: true)
         return VoiceDiscard(removedTasks: result.removed, keptTasks: result.kept, noteRemoved: noteRemoved)
     }
 

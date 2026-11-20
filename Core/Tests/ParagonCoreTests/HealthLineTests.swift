@@ -32,6 +32,16 @@ final class HealthLineTests: XCTestCase {
         XCTAssertEqual(HealthLine.note(note, settingLine: nil), note, "nothing to write, no section made")
     }
 
+    /// Review of build 350: a Health part he wrote himself is never replaced.
+    func testHisOwnHealthNotesAreLeftAlone() {
+        let own = Note(relativePath: "Calendar/2026-11-20.md", kind: .daily,
+                       text: "# 2026-11-20\n\n## Health\n\nSlept badly, knee sore.\n")
+        let after = HealthLine.note(own, settingLine: "Steps 8,412")
+        XCTAssertEqual(after.body, own.body)
+        XCTAssertTrue(HealthLine.isOwn("Steps 8,412 \u{00b7} Walk 35 min"))
+        XCTAssertFalse(HealthLine.isOwn("Ran 30 min with Anna, then sauna"))
+    }
+
     func testTheNoteIsAskedAgainOnlyAfterHalfAnHour() {
         let now = Date(timeIntervalSince1970: 1_000_000)
         XCTAssertTrue(HealthLine.isDue(lastRead: nil, now: now))

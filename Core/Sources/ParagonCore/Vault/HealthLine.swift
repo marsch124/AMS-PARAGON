@@ -73,6 +73,9 @@ public enum HealthLine {
         let clean = (line ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         var lines = note.body.components(separatedBy: "\n")
         let found = MarkdownSection.find(heading, in: note.body)
+        // Review of build 350: a Health part he wrote himself is never touched. Only an empty
+        // part, or one holding nothing but a line PARAGON wrote, is replaced.
+        if found.range != nil, !isOwn(text(in: note)) { return note }
         if let range = found.range {
             let headingLine = max(range.lowerBound - 1, 0)
             if clean.isEmpty {
@@ -91,6 +94,24 @@ public enum HealthLine {
         }
         updated.body = lines.joined(separator: "\n")
         return updated
+    }
+
+    /// Whether the part holds nothing, or only one line in PARAGON's own wording ("Steps …" or
+    /// workouts joined by " · ").
+    public static func isOwn(_ text: String) -> Bool {
+        let lines = text.split(separator: "\n", omittingEmptySubsequences: true)
+        if lines.isEmpty { return true }
+        guard lines.count == 1 else { return false }
+        let parts = String(lines[0]).components(separatedBy: " \u{00b7} ")
+        let stepsPart = try? NSRegularExpression(pattern: #"^Steps [0-9][0-9,.\x{00A0}\x{202F}]*$"#)
+        let workoutPart = try? NSRegularExpression(pattern: #"^\S.* [0-9]+ min$"#)
+        for (index, part) in parts.enumerated() {
+            let range = NSRange(location: 0, length: (part as NSString).length)
+            if index == 0, stepsPart?.firstMatch(in: part, range: range) != nil { continue }
+            if workoutPart?.firstMatch(in: part, range: range) != nil { continue }
+            return false
+        }
+        return true
     }
 
     /// How often the app asks Health again while it is open: at most once in this many seconds.

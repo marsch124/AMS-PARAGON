@@ -158,12 +158,18 @@ final class EventKitRemindersStore: RemindersStore {
     /// location permission for it. Any place alarm already there is replaced by the wanted one,
     /// and left alone when it already says the same.
     private func applyPlace(_ place: ReminderPlace?, to reminder: EKReminder) {
-        let existing: [EKAlarm] = (reminder.alarms ?? []).filter { $0.structuredLocation != nil }
-        if let first = existing.first, let current = Self.place(from: first), current.fingerprint == place?.fingerprint, existing.count == 1 {
+        // Review of build 350: only place alarms PARAGON can read are ever touched; a car alarm
+        // or any other kind he set in Reminders stays. With no place on the task, a readable
+        // place alarm is removed only when it is the one alone (the one the note would carry).
+        let readable: [EKAlarm] = (reminder.alarms ?? []).filter { Self.place(from: $0) != nil }
+        if readable.count == 1, let current = Self.place(from: readable[0]), current.fingerprint == place?.fingerprint {
             return
         }
-        for alarm in existing { reminder.removeAlarm(alarm) }
-        guard let place else { return }
+        guard let place else {
+            if readable.count == 1 { reminder.removeAlarm(readable[0]) }
+            return
+        }
+        for alarm in readable { reminder.removeAlarm(alarm) }
         let location = EKStructuredLocation(title: place.name)
         location.geoLocation = CLLocation(latitude: place.latitude, longitude: place.longitude)
         location.radius = ReminderPlace.radius
