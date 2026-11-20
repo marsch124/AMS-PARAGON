@@ -17,6 +17,24 @@ public enum NoteShare {
         return "\(name).\(ext)"
     }
 
+    /// **Send as PDF, for a project** (round 350, pick 40): one line of facts under the title, the
+    /// way the page says it on screen: "Active · Serves Build a home · In area Health · Deadline
+    /// 2026-12-01 · 3 of 8 tasks done". Nil for every other kind of note, and for a project with
+    /// nothing to say. Cancelled tasks are not counted, as in the progress bars.
+    public static func factsLine(of note: Note) -> String? {
+        guard note.declaredKind == .project else { return nil }
+        var parts: [String] = [note.noteStatus.label]
+        if let goal = note.goal, !goal.isEmpty { parts.append("Serves " + goal) }
+        if let area = note.area, !area.isEmpty { parts.append("In area " + area) }
+        if let due = note.dueDate { parts.append("Deadline " + due.description) }
+        let all = note.tasks.filter { $0.status != .cancelled }
+        if !all.isEmpty {
+            let done = all.filter { $0.status == .done }.count
+            parts.append("\(done) of \(all.count) tasks done")
+        }
+        return parts.joined(separator: " \u{00B7} ")
+    }
+
     /// The note as plain text: what he wrote, without the settings block at the top and
     /// without the hidden `^t` sync markers. Nothing is changed in the file.
     public static func plainText(of text: String) -> String {

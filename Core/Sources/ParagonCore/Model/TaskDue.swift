@@ -60,6 +60,12 @@ public extension TaskItem {
     /// with no date there is no time either. Everything else on the line is untouched.
     func settingDue(date: DateOnly?, time: TimeOfDay?) -> TaskItem {
         var copy = self
+        // Round 350 (pick 48): a do-day moved to a LATER day is counted on the line, `@moved(N)`.
+        // First giving a date, taking it off, or moving it earlier or to the same day counts
+        // nothing. A change of the time of day alone is not a move of the day.
+        if let old = dueDate, let new = date, new > old {
+            copy.moved = (moved ?? 0) + 1
+        }
         copy.dueDate = date
         copy.dueTime = date == nil ? nil : time
         return copy

@@ -49,6 +49,9 @@ public struct TaskItem: Equatable, Sendable {
     public private(set) var unreadPlace: String?
     /// `@person(Anna Svensson)`: the person the task is about (round 350).
     public var person: String?
+    /// `@moved(5)`: how many times the do-day was moved to a later day (round 350, pick 48). Nil
+    /// when never. Counted by `settingDue`; never sent to Reminders, since it is not in the title.
+    public var moved: Int?
     /// Stable id without the caret, e.g. `t3fa2c1`. Assigned on first sync.
     public var id: String?
     public var indent: String
@@ -75,7 +78,8 @@ public struct TaskItem: Equatable, Sendable {
                 since: DateOnly? = nil,
                 deadline: DateOnly? = nil,
                 place: ReminderPlace? = nil,
-                person: String? = nil) {
+                person: String? = nil,
+                moved: Int? = nil) {
         self.status = status
         self.title = title
         self.dueDate = dueDate
@@ -94,6 +98,7 @@ public struct TaskItem: Equatable, Sendable {
         self.deadline = deadline
         self.place = place
         self.person = person
+        self.moved = moved.flatMap { $0 > 0 ? $0 : nil }
     }
 
     public var isDone: Bool { status == .done || status == .cancelled }
@@ -165,6 +170,7 @@ public struct TaskItem: Equatable, Sendable {
         }
         // A new copy has not started waiting (build 279).
         copy.since = nil
+        copy.moved = nil
         copy.lineIndex = -1
         return copy
     }
@@ -188,6 +194,7 @@ public struct TaskItem: Equatable, Sendable {
             parts.append("@place(\(unreadPlace))")
         }
         if let person { parts.append("@person(\(person))") }
+        if let moved, moved > 0 { parts.append("@moved(\(moved))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
         if let id { parts.append("^\(id)") }
         return "\(indent)\(bullet) [\(status.rawValue)] \(parts.joined(separator: " "))"
@@ -518,6 +525,8 @@ public enum TaskParser {
     static let placeRegex = try! NSRegularExpression(pattern: #"(?<!\S)@place\(([^)]*)\)"#)
     /// `@person(Anna Svensson)` (round 350).
     static let personRegex = try! NSRegularExpression(pattern: #"(?<!\S)@person\(([^)]*)\)"#)
+    /// `@moved(5)` (round 350), written like `@since(...)`.
+    static let movedRegex = try! NSRegularExpression(pattern: #"(?<!\S)@moved\((\d{1,3})\)"#)
     static let tagRegex = try! NSRegularExpression(pattern: #"(?<!\S)#([\p{L}\p{N}_/\-]+)"#)
 
     /// Parses a single line. Returns nil when the line is not a task.
@@ -543,6 +552,7 @@ public enum TaskParser {
         var place: ReminderPlace?
         var unreadPlace: String?
         var person: String?
+        var moved: Int?
 
         rest = extract(idRegex, from: rest) { id = $0 }
         rest = extract(doneRegex, from: rest) { doneStamp = $0.trimmingCharacters(in: .whitespaces) }
@@ -558,6 +568,7 @@ public enum TaskParser {
             unreadPlace = place == nil ? $0 : nil
         }
         rest = extract(personRegex, from: rest) { person = PersonName.clean($0) ?? person }
+        rest = extract(movedRegex, from: rest) { moved = Int($0) ?? moved }
         let restNS = rest as NSString
         if let due = dueRegex.firstMatch(in: rest, range: NSRange(location: 0, length: restNS.length)) {
             dueDate = DateOnly(restNS.substring(with: due.range(at: 1)))
@@ -574,7 +585,7 @@ public enum TaskParser {
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
                         indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline,
-                        place: place, person: person)
+                        place: place, person: person, moved: moved)
             .keepingUnreadRepeat(unreadRepeat)
             .keepingUnreadPlace(unreadPlace)
     }

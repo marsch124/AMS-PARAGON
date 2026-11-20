@@ -2744,8 +2744,9 @@ final class AppModel: ObservableObject {
             var changed = false
             var moved: [MovedTask] = []
             for ref in wanted {
-                var task = ref.task
-                task.dueDate = date
+                // Round 350: through `settingDueDate`, which counts a move to a later day
+                // (`@moved(N)`) and keeps the time of day, as `task.dueDate = date` did.
+                let task = ref.task.settingDueDate(date)
                 if updated.replace(task: task) {
                     changed = true
                     moved.append(MovedTask(ref: ref, to: date))
@@ -3335,6 +3336,12 @@ final class AppModel: ObservableObject {
         // for list and could become a next action again.
         guard AppModel.cleanTag(old)?.lowercased() != WaitingFor.tag else {
             errorMessage = "#\(WaitingFor.tag) is how the app marks a line you are waiting on somebody for. Renaming or removing it would break the Waiting for list."
+            return
+        }
+        // Round 350 (pick 44): `#easy`, `#medium` and `#hard` are the effort tags, with a row of
+        // boxes in All actions of their own. Renaming one would split a task from its box.
+        guard !TaskEnergy.isEnergyTag(old) else {
+            errorMessage = "#\(AppModel.cleanTag(old) ?? old) is one of the three effort tags (easy, medium, hard). Renaming or removing it would break the Energy boxes in All actions."
             return
         }
         let target = new.flatMap(AppModel.cleanTag)

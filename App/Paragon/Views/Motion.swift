@@ -84,10 +84,32 @@ enum Motion {
 ///
 /// The size, the 22-point box that takes the press and the colour stay with the caller, so the
 /// row is laid out exactly as before.
+/// A pie wedge from twelve o'clock, clockwise (round 350, pick 36: the share of small steps done).
+struct PieWedge: Shape {
+    var fraction: Double
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let centre = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        path.move(to: centre)
+        path.addArc(center: centre, radius: radius, startAngle: .degrees(-90),
+                    endAngle: .degrees(-90 + 360 * fraction), clockwise: false)
+        path.closeSubpath()
+        return path
+    }
+}
+
 struct TickMark: View {
     let isDone: Bool
     var isCancelled = false
     var size: CGFloat = 15
+    /// Round 350 (pick 36): the share of a task's small steps that are ticked, 0 to 1, or nil
+    /// for a task with no steps. A wedge inside the ring is "some steps done"; only the filled
+    /// disc with the tick is "done". The wedge never carries the tick, so the two cannot be
+    /// mistaken for each other, and pressing the circle still ticks the whole task.
+    var progress: Double? = nil
+    var progressTint: Color = Color.accentColor
 
     private var filled: Bool { isDone && !isCancelled }
 
@@ -95,6 +117,11 @@ struct TickMark: View {
         ZStack {
             MarkImage(isCancelled ? "xmark.circle" : "circle", size: size)
                 .opacity(filled ? 0 : 1)
+            if let progress = progress, !filled, !isCancelled, progress > 0 {
+                PieWedge(fraction: progress)
+                    .fill(progressTint.opacity(0.85))
+                    .frame(width: size * 0.56, height: size * 0.56)
+            }
             MarkImage("checkmark.circle.fill", size: size)
                 .opacity(filled ? 1 : 0)
                 .scaleEffect(filled ? 1 : 0.6)

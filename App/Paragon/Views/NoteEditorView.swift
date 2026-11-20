@@ -1961,6 +1961,14 @@ struct TaskRow: View {
 
     private var isNext: Bool { ref.task.tags.contains(Note.nextActionTag) }
 
+    /// Round 350 (pick 36): how many of the task's small steps are ticked. Nil for a ticked or
+    /// cancelled task and for a task with no steps.
+    private var smallSteps: SmallSteps? {
+        guard !ref.task.isDone, let note = model.note(at: ref.notePath) else { return nil }
+        let steps = note.smallSteps(of: ref.task)
+        return steps.total > 0 ? steps : nil
+    }
+
     /// Mac (build 316): the pointer is over this row.
     @State private var hovering = false
 
@@ -1983,7 +1991,7 @@ struct TaskRow: View {
     /// Whether the small line under the title has anything to show.
     private var hasFacts: Bool {
         ref.task.priority > 0 || ref.task.dueDate != nil || ref.task.deadline != nil
-            || ref.task.repeatRule != nil || showNote
+            || ref.task.repeatRule != nil || showNote || ref.task.movedOften
     }
 
     /// The press on the circle. Ticking a task first fills the circle, 0.1 s later the task is
@@ -2032,7 +2040,8 @@ struct TaskRow: View {
                 // takes the press anywhere inside it — a stroked ring alone only took a press on
                 // its line, which is what the first Mac run of build 280 found.
                 // Build 318: the circle fills over 0.2 s when the task is ticked (`TickMark`).
-                TickMark(isDone: ref.task.isDone || tickShown, isCancelled: ref.task.status == .cancelled)
+                TickMark(isDone: ref.task.isDone || tickShown, isCancelled: ref.task.status == .cancelled,
+                         progress: smallSteps?.fraction, progressTint: tint)
                     .rowTint(ref.task.isDone ? Color.secondary : tint)
                     .frame(width: 22, height: 22)
                     .contentShape(Rectangle())
@@ -2058,6 +2067,16 @@ struct TaskRow: View {
                             .strikethrough(ref.task.isDone)
                             .foregroundStyle(ref.task.isDone ? .secondary : .primary)
                             .animation(Motion.tick, value: ref.task.isDone)
+                        if let steps = smallSteps, let words = steps.text {
+                            // Round 350 (pick 36): "2/4", the small steps done.
+                            Text(words)
+                                .font(Txt.listSecond.monospacedDigit())
+                                .lineLimit(1)
+                                .fixedSize()
+                                .foregroundStyle(.soft)
+                                .accessibilityLabel(steps.spoken ?? words)
+                                .accessibilityIdentifier("task.steps.\(ref.task.title)")
+                        }
                         if isNext && !ref.task.isDone {
                             Text("next")
                                 .font(Txt.listSecond.weight(.semibold))
@@ -2100,6 +2119,12 @@ struct TaskRow: View {
                         }
                         if let person = ref.task.person {
                             RowFact(person, "person.linked")
+                        }
+                        if ref.task.movedOften, let movedWords = ref.task.movedText {
+                            // Round 350 (pick 48): the question is in the task's menu.
+                            RowFact(movedWords, "chevron.right")
+                                .rowTint(Theme.attention.ink)
+                                .accessibilityIdentifier("task.moved.\(ref.task.title)")
                         }
                         if showNote {
                             RowFact(ref.noteTitle, noteSymbol, shortens: true)

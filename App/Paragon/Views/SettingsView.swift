@@ -15,6 +15,7 @@ struct SettingsView: View {
     @AppStorage("showSyncMenuBarItem") private var showSyncMenuBarItem = true
     @AppStorage("hideFinishedTasks") private var hideFinishedTasks = false
     @AppStorage(TaskTimeSetting.key) private var useTaskTimes = true
+    @AppStorage(OldNoteSetting.key) private var showOldNote = true
 
     @Environment(\.phoneLook) private var phoneLook
 
@@ -98,6 +99,11 @@ struct SettingsView: View {
                 if useTaskTimes {
                     WorkdayEndRow()
                 }
+                Toggle("Show an older Resource on Today", isOn: $showOldNote)
+                    .accessibilityIdentifier("settings.showOldNote")
+                Text("Once a day, one Resource you have not changed for 30 days comes back on Today. Press Not today to hide it until tomorrow.")
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
                 Toggle("Hide finished tasks in notes", isOn: $hideFinishedTasks)
                 Text("Done and cancelled tasks stay in the file and in the editor; this only hides them from the checklist. A finished task with open subtasks is always shown.")
                     .font(Txt.label)
