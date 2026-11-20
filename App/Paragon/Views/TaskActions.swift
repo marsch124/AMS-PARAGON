@@ -100,6 +100,14 @@ struct TaskContextMenu: View {
     ]
 
     var body: some View {
+        // Round 350 (pick 48): a task moved to a later day five times is asked about first.
+        if ref.task.movedOften, let words = ref.task.movedText {
+            Text(words)
+            Button { model.doItNowAfterMoves(ref) } label: { MarkLabel("Do it now", "sun.max") }
+            Button { model.splitAfterMoves(ref) } label: { MarkLabel("Split it", "list.bullet.indent") }
+            Button(role: .destructive) { model.dropTask(ref) } label: { MarkLabel("Drop it", "xmark.circle") }
+            Divider()
+        }
         if offersFocus, model.canFocus(on: ref) {
             // First in the menu, as in the drawing (build 256): start the clock on this task.
             Button {
@@ -147,6 +155,22 @@ struct TaskContextMenu: View {
                 }
             } label: {
                 MarkLabel("How long", "hourglass")
+            }
+        }
+        // Round 350 (pick 44): how much effort it takes, one of three tags.
+        if !ref.task.isDone {
+            Menu {
+                ForEach(TaskEnergy.allCases) { level in
+                    TickedChoice(title: level.label, chosen: ref.task.energy == level) {
+                        model.setEnergy(ref, level)
+                    }
+                }
+                Divider()
+                TickedChoice(title: "None", chosen: ref.task.energy == nil) {
+                    model.setEnergy(ref, nil)
+                }
+            } label: {
+                MarkLabel("Energy", "chart.line")
             }
         }
         // Build 279: a line he has handed to somebody else. On a line that already waits the

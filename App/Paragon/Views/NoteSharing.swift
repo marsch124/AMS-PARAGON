@@ -121,6 +121,15 @@ struct NotePrint {
         let preview = MarkdownPreview(note: note, beforeToggle: {})
         let blocks = preview.blocks
         var result: [AnyView] = []
+        // Round 350 (pick 40): a project's facts on one line under its name.
+        let facts: String? = NoteShare.factsLine(of: note)
+        var factsPending = facts != nil
+        let factsPiece = AnyView(
+            Text(facts ?? "")
+                .font(Txt.label)
+                .foregroundStyle(Color.gray)
+                .padding(.bottom, 4)
+        )
         // The note's name on top, unless the note already begins with it as a heading.
         if case .heading(_, let text)? = blocks.first(where: { if case .blank = $0 { return false } else { return true } }),
            text == note.displayTitle {
@@ -131,12 +140,21 @@ struct NotePrint {
                     .foregroundStyle(Color.black)
                     .padding(.bottom, 6)
             ))
+            if factsPending {
+                result.append(factsPiece)
+                factsPending = false
+            }
         }
         for block in blocks {
             if case .task(let task) = block {
                 result.append(AnyView(PrintedTask(task: task, words: preview.inline(Self.words(of: task)))))
             } else {
                 result.append(AnyView(preview.render(block).foregroundStyle(Color.black)))
+                // The note began with its own name as a heading: the facts go right under it.
+                if factsPending, case .heading = block {
+                    result.append(factsPiece)
+                    factsPending = false
+                }
             }
         }
         return result

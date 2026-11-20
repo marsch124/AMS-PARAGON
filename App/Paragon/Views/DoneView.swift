@@ -30,7 +30,19 @@ struct DoneView: View {
     private var isPhone: Bool { false }
     #endif
 
+    /// Round 350 (pick 38): **Your year** takes the place of the diary until it is closed.
+    @State private var showingYear = false
+
     var body: some View {
+        if showingYear {
+            YourYearView(close: { showingYear = false })
+        } else {
+            diaryBody
+        }
+    }
+
+    @ViewBuilder
+    private var diaryBody: some View {
         let today = diary?.today ?? DateOnly.today()
         // **The first `ScrollViewReader` in the app** (build 268): a square at the top goes to
         // its day's card. The reader holds the squares and the `List` both, so the squares stay
@@ -47,6 +59,22 @@ struct DoneView: View {
                     VaultWarningBar(text: warning) { model.fetchMissingNotes() }
                         .padding(.vertical, Theme.tight)
                 }
+                // Round 350 (pick 38): the year in one page. Outside the `List`, a plain button.
+                Button { showingYear = true } label: {
+                    HStack(spacing: 6) {
+                        MarkImage("chart.line")
+                        Text("Your year")
+                        MarkImage("chevron.right")
+                    }
+                    .font(Txt.value)
+                    .foregroundStyle(SidebarSection.done.tint.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .accessibilityIdentifier("done.year")
                 // Outside the `List`, or it would be a row with a row's height (build 220). Nothing
                 // at all when no finished task in the vault carries a day: a count would then be a
                 // zero that only says the file cannot tell (build 141).

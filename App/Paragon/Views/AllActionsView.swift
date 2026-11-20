@@ -255,6 +255,13 @@ struct AllActionsView: View {
                     toggle(&model.actionFilter.marks, mark)
                 }
             })
+            // Round 350 (pick 44): the effort tags, a row of their own.
+            row("Energy", choices: TaskEnergy.allCases.map { level in
+                Choice(id: "energy." + level.rawValue, title: level.label,
+                       isOn: model.actionFilter.energies.contains(level)) {
+                    toggle(&model.actionFilter.energies, level)
+                }
+            })
             let tags = ActionFilter.tagChoices(among: all, including: model.actionFilter.tags)
             if !tags.isEmpty {
                 row("Tags", choices: tags.map { tag in

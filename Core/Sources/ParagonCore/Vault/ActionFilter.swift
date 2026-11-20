@@ -77,18 +77,26 @@ public struct ActionFilter: Equatable, Sendable {
     /// Normalized: lower case, no leading `#`, so a box and a task line can never disagree
     /// about what `#Travel` is (build 143's `normalized`, build 187's `TagName`).
     public var tags: Set<String>
+    /// Round 350 (pick 44): `#easy`, `#medium`, `#hard`. A row of its own, an **or** inside the
+    /// row and an **and** with the others, like every other row.
+    public var energies: Set<TaskEnergy>
 
-    public init(whens: Set<When> = [], marks: Set<Mark> = [], tags: Set<String> = []) {
+    public init(whens: Set<When> = [], marks: Set<Mark> = [], tags: Set<String> = [],
+                energies: Set<TaskEnergy> = []) {
         self.whens = whens
         self.marks = marks
         self.tags = Set(tags.map { NoteIndex.normalized($0) })
+        self.energies = energies
     }
 
-    public var isEmpty: Bool { whens.isEmpty && marks.isEmpty && tags.isEmpty }
+    public var isEmpty: Bool { whens.isEmpty && marks.isEmpty && tags.isEmpty && energies.isEmpty }
 
     public func matches(_ ref: TaskRef, today: DateOnly) -> Bool {
         if !whens.isEmpty, !whens.contains(where: { $0.matches(ref.task, today: today) }) { return false }
         if !marks.isEmpty, !marks.contains(where: { $0.matches(ref.task) }) { return false }
+        if !energies.isEmpty {
+            guard let own = ref.task.energy, energies.contains(own) else { return false }
+        }
         if !tags.isEmpty {
             let own = Set(ref.task.tags.map { NoteIndex.normalized($0) })
             if own.isDisjoint(with: tags) { return false }
@@ -116,7 +124,7 @@ public struct ActionFilter: Equatable, Sendable {
                 let name = NoteIndex.normalized(tag)
                 // `#next` has its own box under Marks. Two boxes for one thing is the fault
                 // build 165 named: two words for one state, whichever is prettier.
-                if name != Note.nextActionTag, name != Someday.tag { found.insert(name) }
+                if name != Note.nextActionTag, name != Someday.tag, !TaskEnergy.isEnergyTag(name) { found.insert(name) }
             }
         }
         return found.sorted()
@@ -133,6 +141,9 @@ public struct ActionFilter: Equatable, Sendable {
         }
         if !marks.isEmpty {
             parts.append(Mark.allCases.filter { marks.contains($0) }.map(\.label).joined(separator: " or "))
+        }
+        if !energies.isEmpty {
+            parts.append(TaskEnergy.allCases.filter { energies.contains($0) }.map(\.label).joined(separator: " or "))
         }
         if !tags.isEmpty {
             parts.append(tags.sorted().map { "#\($0)" }.joined(separator: " or "))

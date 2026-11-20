@@ -159,6 +159,10 @@ public extension Note {
                 pick = fitting.first(where: { $0.lineIndex == move.lineIndex }) ?? fitting[0]
             }
             var back = pick
+            // Round 350: the move that is undone is not counted in `@moved(N)` any more.
+            if let old = move.oldDate, old < move.newDate, let count = back.moved {
+                back.moved = max(0, count - 1)
+            }
             back.dueDate = move.oldDate
             if updated.replace(task: back) {
                 taken.insert(pick.lineIndex)

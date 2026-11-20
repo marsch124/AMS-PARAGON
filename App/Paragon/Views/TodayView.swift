@@ -300,6 +300,10 @@ struct TodayView: View {
                         foldHeader("Important, no date", count: important.count, tint: SidebarSection.today.tint)
                     }
                 }
+                // Round 350 (pick 43): one older Resource, once a day.
+                if !picking {
+                    OldNoteSection(day: today)
+                }
                 }
                 // Review round 4: on the iPhone each row is a card in the part's colour.
                 .phoneCard(SidebarSection.today.tint)

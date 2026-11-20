@@ -4280,6 +4280,29 @@ final class ScreenTests: XCTestCase {
         app.typeKey(.escape, modifierFlags: [])
     }
     #endif
+
+    // MARK: Round 350, tasks-pages
+
+    /// Pick 38: **Your year** opens from the Done page, names the year, offers Share as PDF, and
+    /// Close brings the diary back. Dull on purpose: what the page counts is pinned in Core
+    /// (`YearReviewTests`).
+    func testYourYearOpensFromDoneAndCloses() {
+        go(to: .done)
+        let open = element("done.year")
+        XCTAssertTrue(open.waitForExistence(timeout: 20),
+                      "Done has no Your year button (done.year). On screen: \(visibleTexts())")
+        open.pressCentre()
+        let card = element("year.card")
+        XCTAssertTrue(card.waitForExistence(timeout: 20),
+                      "Your year did not open. On screen: \(visibleTexts())")
+        let thisYear = String(Calendar.current.component(.year, from: Date()))
+        XCTAssertTrue(becomes(within: 10) { self.words(of: card).contains(thisYear) },
+                      "Your year does not name this year. It says: \(words(of: card))")
+        XCTAssertTrue(element("year.share").exists, "Your year has no Share as PDF button (year.share).")
+        element("year.close").pressCentre()
+        XCTAssertTrue(element("done.year").waitForExistence(timeout: 10),
+                      "Close did not bring the Done page back. On screen: \(visibleTexts())")
+    }
 }
 
 extension XCUIElement {
