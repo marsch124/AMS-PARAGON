@@ -72,6 +72,12 @@ final class CaptureDictation: ObservableObject {
         newRequest.requiresOnDeviceRecognition = true
 
         #if os(iOS)
+        // Review of build 350: while a thought is being recorded the microphone is his
+        // recording's; dictation would take the audio session away from it.
+        if #available(iOS 26.0, *), VoiceRecorder.shared.isRecording {
+            problem = "A thought is being recorded. Stop it first."
+            return
+        }
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.record, mode: .measurement, options: [.duckOthers])
@@ -85,6 +91,15 @@ final class CaptureDictation: ObservableObject {
         let newEngine = AVAudioEngine()
         let node = newEngine.inputNode
         let format = node.outputFormat(forBus: 0)
+        // Review of build 350: no microphone (or one held by a call) gives an empty format, and
+        // a tap on it stops the app.
+        guard format.sampleRate > 0, format.channelCount > 0 else {
+            problem = "No microphone is available right now."
+            #if os(iOS)
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            #endif
+            return
+        }
         node.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
             newRequest.append(buffer)
         }
