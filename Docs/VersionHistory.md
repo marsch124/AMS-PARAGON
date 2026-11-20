@@ -1,6 +1,32 @@
 # Version history
 
-The version is shown as 1.0 (342) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (343) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 343 · 20 November 2026
+
+**A Resource can now carry a link to a Google notebook, and send its note to it.** One new thing, called **Notebook**.
+
+**New.**
+- **A notebook link on a note.** Before (build 342): a note could not point to a notebook in NotebookLM or in the Gemini app (Google shows the same notebooks there as "notebooks in Gemini"). Now: a note can carry one extra line in its settings block (the `---` block at the top): `notebook: https://notebooklm.google.com/notebook/…`. Only addresses on notebooklm.google.com or gemini.google.com are accepted, and only with https. If you leave "https://" out, PARAGON adds it. Anything else is refused with this message: "That is not a notebook address. Copy the link from the notebook's Share button in NotebookLM or Gemini. It starts with notebooklm.google.com or gemini.google.com."
+- **The Notebook menu.** Before: nothing. Now: a **Notebook** menu with a new hand-drawn mark (a notebook with rings on its left edge, so it is not mistaken for the chain link of Linked notes) and the word "Notebook". On the Mac and the iPad it sits in the note's toolbar, beside **Share…**. On the iPhone it is inside the note's **⋯ More** menu, as a sub-menu called **Notebook**. It shows on every Resource note. It also shows on any other note that already has a notebook link, so a Resource you moved to the Archive keeps its way to the notebook.
+- **Marks in the menu.** **Open notebook** has the open-link arrow, **Send to notebook** the share mark, **Link a notebook…** and **Change notebook link…** the pencil, and **Remove notebook link** the minus.
+- **Open notebook.** Shown only when the note has a link. It opens the notebook in NotebookLM, or in the web browser.
+- **Send to notebook.** On the iPhone and the iPad, PARAGON makes a PDF copy of the note (the same PDF as **Share… › As PDF**) and opens the share list. You pick NotebookLM there and choose the notebook. The NotebookLM app must be on the phone. On the Mac there is no NotebookLM app, so PARAGON copies the note as plain text (no settings block and no hidden task codes, the same as **Share… › As plain text**) and opens the linked notebook in the web browser. If the note has no link yet, it opens notebooklm.google.com, your list of notebooks. A message says: "Note copied. In the notebook, choose Add source, then Copied text, and paste." The note itself is never changed.
+- **Link a notebook… / Change notebook link….** The first one shows when the note has no link, the second when it has one. Both open a small window with one field, "Notebook address", and the buttons **Cancel** and **Save**. If the clipboard already holds a notebook address, the field is filled with it. On the Mac, Escape is Cancel.
+- **Remove notebook link.** Shown only when the note has a link. It removes the `notebook:` line. Nothing else in the note changes.
+- **Why only this.** Google gives other apps no way to read a notebook, ask it a question, or add a source to it. So PARAGON does the two things it can: it keeps the link, and it hands over a copy of the note.
+
+**Rules.**
+- Setting the same link again saves nothing.
+- Other lines of the settings block, and the text of the note, are never touched.
+
+**Unchanged.** **Share…** is as before: **As PDF**, **As plain text** and **The file itself** work the same. Everything else of build 342.
+
+**Seen / not seen.**
+- **Seen:** PARAGON builds on the Mac and the iPhone; the data tests pass. On the iPhone (simulator): the **Notebook** item in the ⋯ menu, **Link a notebook…** with its field, **Save**, then **Open notebook**, **Change notebook link…** and **Remove notebook link** showing, and **Send to notebook** opening the share list with "Packing list.pdf".
+- **Not seen:** NotebookLM taking the note on a real iPhone (the simulator has no NotebookLM app); the Mac's Send to notebook opening the browser.
+
+**Tests.** One new data test file (NotebookLinkTests): which addresses are accepted and which are refused, "https://" added when missing, the link read from the note, the link set and removed, the same link saving nothing, and which notes offer the menu.
 
 ## Build 342 · 20 November 2026
 

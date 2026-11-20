@@ -141,7 +141,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 342
+    static let number = 343
 }
 
 @MainActor
@@ -3398,6 +3398,34 @@ final class AppModel: ObservableObject {
         guard save(updated) else { return }
         reload()
     }
+
+    /// **Notebook** (build 343): the note's link to a Google notebook, written as `notebook:`.
+    /// Core decides what is accepted (`NotebookLink.cleaned`) and what is written
+    /// (`NotebookLink.setting`, tested); the same link again writes nothing. Nil removes it.
+    func setNotebookLink(_ url: URL?, on note: Note) {
+        flushPendingEdits()
+        guard let live = self.note(at: note.relativePath) else { return }
+        let updated = NotebookLink.setting(url, on: live)
+        guard updated != live else { return }
+        guard save(updated) else { return }
+        reload()
+        flash(url == nil ? "Notebook link removed." : "Notebook linked.")
+    }
+
+    #if os(macOS)
+    /// **Send to notebook** on the Mac (build 343). There is no NotebookLM app on the Mac and
+    /// Google lets no app add a source, so the note goes on the clipboard as plain text (the
+    /// same words as Share… › As plain text) and the notebook opens in the browser, where
+    /// **Add source › Copied text** takes it.
+    func sendToNotebook(_ note: Note) {
+        flushPendingEdits()
+        guard let live = self.note(at: note.relativePath) else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(NoteShare.plainText(of: live.text), forType: .string)
+        NSWorkspace.shared.open(NotebookLink.link(of: live) ?? NotebookLink.home)
+        flash("Note copied. In the notebook, choose Add source, then Copied text, and paste.", seconds: 6)
+    }
+    #endif
 
     /// A project's own deadline, written as `due:`. Nothing in the app wrote that line before
     /// build 132, so the review's "past its due date" check had never once been able to fire

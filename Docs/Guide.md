@@ -141,7 +141,7 @@ A note opens ready to write in. On the iPhone, a pencil button turns writing on 
 - **Adding tasks:** the field at the foot says **Add a task…**.
 - **Renaming:** press the note's name; links to it follow.
 - **Archive** puts a note away. **Delete** moves it to **Deleted**; if it has open reminders, PARAGON asks once whether to remove them too.
-- **Share…** hands out a copy as a PDF, plain text or the note's own file. Your note is never touched.
+- **Share…** hands out a copy as a PDF, plain text or the note's own file. Your note is never touched. A Resource also has a **Notebook** menu (a notebook mark): link a Google NotebookLM notebook to the note, open it, or send a copy of the note to it. On the Mac, PARAGON copies the note and opens the notebook, and you paste it as a source.
 
 ### Pictures and sketches
 

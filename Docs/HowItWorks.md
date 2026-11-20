@@ -60,6 +60,56 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 
 **Buttons on a Mac sheet (since build 322).** **Cancel**, **Stop**, **Close** and **Not now** beside the coloured main button are drawn by PARAGON, on 9 sheets: a soft grey fill, the same shape and height as the main button. The outline that shows where the keyboard is now sits exactly round the button. Before, it was wider than Apple's grey button (on **Stop** the grey filled about 80 % of it). The touch shape of the main button also has the same corners as its fill. The iPhone and the iPad are unchanged.
 
+## Signs in this app
+
+Every mark and colour that means something, in a few plain words. A mark means one thing in the whole app.
+
+**Parts of the app**
+- **Tray** — the Inbox: lines waiting to be sorted.
+- **Sun** — Today.
+- **Calendar** — Calendar. **Calendar with a clock** — Time blocks.
+- **Ticked list** — the Weekly review.
+- **Three joined dots** — the Map.
+- **Clock with an arrow** — Recent.
+- **Bin** — Deleted. **Archive box** — the Archive.
+- **Star** — an aspiration, and only that.
+- **Target** — a goal with a date.
+- **Flag** — a project. **Flag on a finish line** — a finished project.
+- **Four squares** — an area.
+- **Books** — a resource.
+- **Notebook with rings on its left edge** — the Notebook menu of a note (a link to a Google notebook, and sending the note to it).
+- **Chain link** — a link between notes (Linked notes).
+- **Open-link arrow** — opens the thing in its own place, such as **Open notebook**.
+- **Share mark** — hands out a copy of a note, such as **Share…** and **Send to notebook**.
+- **Pencil** — change it. **Minus** — remove it.
+
+**Tasks**
+- **Empty box** — an open task. **Ticked box** — a task that is done.
+- **Ring** (on the Map) — one open task.
+- **Ring with the figure 1** — One thing on Today: the one task to do next.
+- **Pennant on a pole, on a finish line** — a task's deadline. The project keeps the flag.
+- **Capsule** (small rounded label at the right of a row) — a status you cannot change here, such as Paused or Someday, or a count.
+
+**Sync**
+- **Clock ring** (foot of the Mac sidebar, the Mac menu bar, the iPhone and iPad menu) — when Reminders last synced.
+  - **Green:** synced less than 1 hour ago.
+  - **Yellow:** longer ago, or waiting for iCloud.
+  - **Red, full ring:** changes clashed (conflicts).
+  - **Grey, empty:** no sync yet.
+  - While a sync runs, the ring turns once a second.
+- **Small amber dot on the Settings gear** (on the Mac, an amber line at the foot of the sidebar) — something needs a look.
+
+**Goals and projects**
+- **Dashed box on the Map** — a note with no goal, or an archived note.
+- **Small green dot on a project row** — the project has no icon of its own yet.
+- **Flags on a project, area or goal** (see **The flags**) — no next action, overdue, past its date, not changed for a long time, due for a look, or on hold.
+
+**Colours**
+- **Each part has one colour** — the same in its sidebar icon, heading, main button, dot, panel and band (see **How PARAGON looks**). The dot at the left of a row has the colour of its part.
+- **Red** — overdue, or will be deleted.
+- **Orange** — a warning word. Blocks in **Plan** are orange too.
+- **Dashed grey capsule** — an empty choice you can still make, such as **Icon…**.
+
 ## Movement
 
 Since build 318. PARAGON moves only to show what changed: a ticked task fades and the list closes up, a group folds under its heading, a bar fills. Nothing bounces, glows or celebrates. Every movement takes between 0.15 and 0.35 seconds. The note is always written first, at once; the movement only draws what has already happened.
@@ -270,6 +320,26 @@ Since build 315. Choose **Share…** (in the note's toolbar on the Mac and the i
 - **The file itself** is the note's own .md file.
 
 PARAGON always hands over a copy, never the note in your vault, so nothing another app does can change your note. What you typed last is saved first. On the Mac, **Show in Finder** in the same menu shows where the note's file is.
+
+### A notebook for a Resource
+
+Since build 343. A note can point to a notebook in Google's NotebookLM. The same notebooks also show in the Gemini app, as "notebooks in Gemini". Google gives other apps no way to read a notebook, ask it a question or add a source to it. So PARAGON does the two things it can do: it keeps the link, and it hands over a copy of the note. There is no deeper link, because Google leaves no door open for one.
+
+**The link.** The note carries one line in its settings block (the `---` block at the top): `notebook: https://notebooklm.google.com/notebook/…`.
+
+- Only addresses on **notebooklm.google.com** or **gemini.google.com** are accepted, and only with https. If you leave "https://" out, PARAGON adds it.
+- Anything else is refused with this message: "That is not a notebook address. Copy the link from the notebook's Share button in NotebookLM or Gemini. It starts with notebooklm.google.com or gemini.google.com."
+
+**The Notebook menu.** It has its own hand-drawn mark, a notebook with rings on its left edge (not the chain link of Linked notes), and the word "Notebook". The items have marks too: **Open notebook** the open-link arrow, **Send to notebook** the share mark, **Link a notebook…** and **Change notebook link…** the pencil, **Remove notebook link** the minus. On the Mac and the iPad it sits in the note's toolbar, beside **Share…**. On the iPhone it is inside the note's **⋯ More** menu, as a sub-menu **Notebook**. It shows on every Resource note, and on any other note that already has a link, so a Resource you moved to the Archive keeps its way to the notebook.
+
+- **Open notebook** shows only when the note has a link. It opens the notebook in NotebookLM, or in the web browser.
+- **Send to notebook** works in a different way on each device:
+  - **iPhone and iPad:** PARAGON makes a PDF copy of the note (the same PDF as **Share… › As PDF**) and opens the share list. You pick NotebookLM there and choose the notebook. The NotebookLM app must be on the phone.
+  - **Mac:** there is no NotebookLM app on the Mac. PARAGON copies the note as plain text (no settings block and no hidden task codes, the same as **Share… › As plain text**) and opens the linked notebook in the web browser. With no link yet, it opens notebooklm.google.com, your list of notebooks. A message says: "Note copied. In the notebook, choose Add source, then Copied text, and paste."
+- **Link a notebook…** (the note has no link) or **Change notebook link…** (it has one) opens a small window with one field, "Notebook address", and the buttons **Cancel** and **Save**. If the clipboard already holds a notebook address, the field is filled with it. On the Mac, Escape is Cancel.
+- **Remove notebook link** shows only when the note has a link. It removes the `notebook:` line.
+
+**Rules.** The note itself is never changed by **Send to notebook**. Setting the same link again saves nothing. The other lines of the settings block, and the text, are never touched by any of these buttons.
 
 ## The Projects list
 

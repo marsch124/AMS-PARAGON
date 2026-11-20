@@ -27,6 +27,10 @@ struct NoteEditorView: View {
     @State private var confirmTrash = false
     @State private var snippetToFill: Snippet?
     @State private var renamingNote = false
+    /// Build 343: the **Link a notebook…** window is up, and what is typed in it.
+    @State private var linkingNotebook = false
+    @State private var notebookDraft = ""
+    @Environment(\.openURL) private var openURL
     #if os(iOS)
     /// Round 8 (build 315): the copy **Share…** made, waiting for the share sheet.
     @State private var sharedFile: SharedFile?
@@ -192,6 +196,17 @@ struct NoteEditorView: View {
         } message: {
             Text("The file is renamed too, and every note that links to it is pointed at the new name.")
         }
+        // Build 343: Notebook › Link a notebook… — one field, Cancel and Save.
+        .alert(note.flatMap(NotebookLink.link(of:)) == nil ? "Link a notebook" : "Change notebook link",
+               isPresented: $linkingNotebook) {
+            TextField("Notebook address", text: $notebookDraft)
+                .accessibilityIdentifier("note.notebook.address")
+            Button("Cancel", role: .cancel) { }
+            Button("Save") { saveNotebookLink() }
+                .accessibilityIdentifier("note.notebook.save")
+        } message: {
+            Text("Paste the link from the notebook's Share button in NotebookLM or Gemini.")
+        }
         .attachmentPreview($openedFile)
         .sheet(item: $sketch) { request in
             SketchSheet(request: request, tint: note?.tint ?? Theme.fallbackTint) { png, drawing in
@@ -232,6 +247,7 @@ struct NoteEditorView: View {
                         }
                         .accessibilityIdentifier("note.find")
                         shareMenu
+                        if let note, NotebookLink.isOffered(for: note) { notebookMenu(note) }
                         if let note, note.kind != .inbox, note.kind != .daily {
                             Button {
                                 noteTitleDraft = note.displayTitle
@@ -310,6 +326,11 @@ struct NoteEditorView: View {
                 // Round 8 (build 315): Share… and, on the Mac, Show in Finder.
                 shareMenu
                     .help("Send this note on: as a PDF, as plain text, or the file itself")
+                // Build 343: a Resource's Google notebook.
+                if let note, NotebookLink.isOffered(for: note) {
+                    notebookMenu(note)
+                        .help("Open this Resource's notebook in NotebookLM, or send the note to it")
+                }
                 // No Rename button. It was a second pencil beside the Edit toggle and a whole
                 // toolbar slot for one rare action — "exaggerated", his word, build 154. The
                 // note's name in the header is what renames it now.
@@ -367,6 +388,68 @@ struct NoteEditorView: View {
             MarkLabel("Share…", "square.and.arrow.up", size: 16)
         }
         .accessibilityIdentifier("note.share")
+    }
+
+    // MARK: Notebook (build 343)
+
+    /// **Notebook**: open the Resource's Google notebook, send the note to it, set the link.
+    private func notebookMenu(_ note: Note) -> some View {
+        let link = NotebookLink.link(of: note)
+        return Menu {
+            if let link {
+                Button { openURL(link) } label: { MarkLabel("Open notebook", "arrow.up.right", size: 16) }
+                    .accessibilityIdentifier("note.notebook.open")
+            }
+            Button { sendToNotebook() } label: { MarkLabel("Send to notebook", "square.and.arrow.up", size: 16) }
+                .accessibilityIdentifier("note.notebook.send")
+            Button {
+                notebookDraft = link?.absoluteString ?? Self.notebookOnClipboard ?? ""
+                linkingNotebook = true
+            } label: {
+                MarkLabel(link == nil ? "Link a notebook\u{2026}" : "Change notebook link\u{2026}", "pencil", size: 16)
+            }
+            .accessibilityIdentifier("note.notebook.link")
+            if link != nil {
+                Button { model.setNotebookLink(nil, on: note) } label: { MarkLabel("Remove notebook link", "minus", size: 16) }
+                    .accessibilityIdentifier("note.notebook.remove")
+            }
+        } label: {
+            MarkLabel("Notebook", "notebook", size: 16)
+        }
+        .accessibilityIdentifier("note.notebook")
+    }
+
+    /// A notebook address waiting on the clipboard, to fill the field with.
+    private static var notebookOnClipboard: String? {
+        #if os(macOS)
+        let text = NSPasteboard.general.string(forType: .string)
+        #else
+        // Read only when a link is waiting, so iOS's paste question comes only when it can help.
+        let text = UIPasteboard.general.hasURLs ? UIPasteboard.general.url?.absoluteString : nil
+        #endif
+        return text.flatMap(NotebookLink.cleaned)?.absoluteString
+    }
+
+    private func saveNotebookLink() {
+        guard let note = model.note(at: path) else { return }
+        guard let url = NotebookLink.cleaned(notebookDraft) else {
+            model.errorMessage = "That is not a notebook address. Copy the link from the notebook's Share button in NotebookLM or Gemini. It starts with notebooklm.google.com or gemini.google.com."
+            return
+        }
+        flushSave()
+        model.setNotebookLink(url, on: note)
+    }
+
+    /// **Send to notebook**: on the iPhone and iPad the note as a PDF into the share list, where
+    /// NotebookLM takes it as a source; on the Mac the words on the clipboard and the notebook open.
+    private func sendToNotebook() {
+        flushSave()
+        guard let note = model.note(at: path) else { return }
+        #if os(macOS)
+        model.sendToNotebook(note)
+        #else
+        share(.pdf)
+        #endif
     }
 
     private func share(_ form: NoteShare.Form) {

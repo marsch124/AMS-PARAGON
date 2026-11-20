@@ -56,6 +56,9 @@ enum Marks {
         "deadline": .init(kind: .drawn(Marks.deadlinePath)),
         // Build 332: One thing — a ring with the figure 1 in it.
         "one.thing": .init(kind: .drawn(Marks.oneThingPath)),
+        // Build 343: a Google notebook linked to a Resource — the ringed notebook from the
+        // AMS-Icons catalog ("notebook"), so it is not mistaken for Linked notes' chain link.
+        "notebook": .init(kind: .drawn(Marks.notebookPath)),
         "circle.grid.2x2": .init(kind: .app(.area)),
         "books.vertical": .init(kind: .app(.resource)),
         "archivebox": .init(kind: .app(.archive)),
@@ -153,6 +156,9 @@ enum Marks {
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
 
     /// One thing (build 332): a ring with the figure 1 in it.
+    /// Notebook (build 343): the AMS-Icons catalog's "notebook" drawing, a book with rings.
+    static let notebookPath = "M6 3.5h11.5c.6 0 1 .4 1 1v15c0 .6-.4 1-1 1H6Z M4.5 7h3 M4.5 12h3 M4.5 17h3 M10 8h5.5 M10 12h5.5"
+
     static let oneThingPath = "M12 3.5A8.5 8.5 0 1 0 12 20.5A8.5 8.5 0 1 0 12 3.5Z M10 9.8L12.6 8V16"
 
     /// A goal's number: two axes and a line that climbs.
