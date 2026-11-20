@@ -114,7 +114,7 @@ struct WhatNextDialog: ViewModifier {
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 }
             }
-            .animation(Motion.isReduced ? nil : .easeOut(duration: 0.2), value: model.whatNext)
+            .animation(Motion.arrive, value: model.whatNext)
     }
 }
 
