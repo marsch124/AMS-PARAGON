@@ -472,6 +472,10 @@ final class ReminderAppDelegate: NSObject, UIApplicationDelegate {
         // Build 317: a button on the focus timer's Live Activity can start the app in the
         // background, with no window. Only then is the model made from here.
         FocusActivityBridge.wake = { _ = AppModel.shared }
+        // Build 348: Stop on the recording's Live Activity reaches the one recorder.
+        if #available(iOS 26.0, *) {
+            VoiceActivityBridge.stop = { _ = await VoiceRecorder.shared.stopAndFile() }
+        }
         EveningReminder.shared.start()
         return true
     }

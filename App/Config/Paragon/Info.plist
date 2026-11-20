@@ -45,10 +45,14 @@
 	<string>PARAGON uses the camera to put a photo into a note.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PARAGON listens while you record a thought and writes down what you say. Everything stays on the phone.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>PARAGON turns a recorded thought into text on the phone.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSUbiquitousContainers</key>
@@ -63,6 +67,10 @@
 			<string>Any</string>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

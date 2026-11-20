@@ -134,7 +134,20 @@ struct SiriShortcutsSection: View {
         Phrase(action: "Start the Day", say: "Start the day in PARAGON"),
         Phrase(action: "Close the Day", say: "Close the day in PARAGON"),
         Phrase(action: "Start Focus", say: "Start focus in PARAGON"),
-    ]
+    ] + extra
+
+    /// Build 348: Record a Thought, on the iPhone and the iPad only.
+    #if os(iOS)
+    static let extra = [Phrase(action: "Record a Thought", say: "Record a thought in PARAGON")]
+    #else
+    static let extra: [Phrase] = []
+    #endif
+
+    #if os(iOS)
+    static let footnote = "Say one of these to Siri, or find the same seven actions in the Shortcuts app and in the system search. Add to Inbox, What is due today and Record a Thought work without opening PARAGON. Record a Thought also goes on the Action Button: Settings app › Action Button › Shortcut › PARAGON."
+    #else
+    static let footnote = "Say one of these to Siri, or find the same six actions in the Shortcuts app and in the system search. Add to Inbox and What is due today answer without opening PARAGON."
+    #endif
 
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var widthClass
@@ -189,7 +202,7 @@ struct SiriShortcutsSection: View {
             }
             .accessibilityIdentifier("settings.shortcuts.open")
             #endif
-            Text("Say one of these to Siri, or find the same six actions in the Shortcuts app and in the system search. Add to Inbox and What is due today answer without opening PARAGON.")
+            Text(Self.footnote)
                 .font(Txt.label)
                 .foregroundStyle(Theme.soft)
                 .fixedSize(horizontal: false, vertical: true)

@@ -74,6 +74,10 @@ targets:
         NSRemindersFullAccessUsageDescription: PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.
         NSRemindersUsageDescription: PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.
         NSCameraUsageDescription: PARAGON uses the camera to put a photo into a note.
+        # Build 348: Record a thought (Action Button, Siri, Shortcuts).
+        NSMicrophoneUsageDescription: PARAGON listens while you record a thought and writes down what you say. Everything stays on the phone.
+        NSSpeechRecognitionUsageDescription: PARAGON turns a recorded thought into text on the phone.
+        UIBackgroundModes: [audio]
         # Build 317: the focus timer on the iPhone's Lock Screen and in the Dynamic Island.
         NSSupportsLiveActivities: true
         NSHumanReadableCopyright: ""

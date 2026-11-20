@@ -71,5 +71,17 @@ struct ParagonShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Start Focus",
             systemImageName: "timer")
+        #if os(iOS)
+        // Build 348: the one for the Action Button.
+        AppShortcut(
+            intent: RecordThoughtIntent(),
+            phrases: [
+                "Record a thought in \(.applicationName)",
+                "Record in \(.applicationName)",
+                "Voice note in \(.applicationName)",
+            ],
+            shortTitle: "Record a Thought",
+            systemImageName: "mic")
+        #endif
     }
 }

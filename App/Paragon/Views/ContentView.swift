@@ -244,6 +244,12 @@ struct ContentView: View {
                     // Build 317: tasks ticked on a widget, and the focus timer's Live Activity.
                     model.applyWidgetTicks()
                     model.syncFocusActivity()
+                    #if os(iOS)
+                    // Build 348: summaries of recorded thoughts that did not finish while locked.
+                    if #available(iOS 26.0, *) {
+                        Task { await VoiceRecorder.shared.finishLateSummaries() }
+                    }
+                    #endif
                 }
             case .inactive, .background:
                 // Going to the background (or being quit on iOS): write what is being typed.

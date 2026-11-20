@@ -588,6 +588,8 @@ struct ParagonWidgetBundle: WidgetBundle {
         TodayPlanWidget()
         LockWidget()
         FocusLiveActivityWidget()
+        // Build 348: Record a thought.
+        VoiceLiveActivityWidget()
         // Build 326: the wide Today widget, for the iPad's largest size.
         TodayWideWidget()
     }

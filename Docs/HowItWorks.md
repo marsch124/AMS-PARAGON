@@ -62,6 +62,10 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 
 ## Signs in this app
 
+- **Red dot on the Lock Screen or in the Dynamic Island (since build 348)** — PARAGON is recording your voice right now. Press **Stop** to end it.
+- **Inbox tray on that card (since build 348)** — the thought is saved in the Inbox. A pale dot means it is getting ready or writing it up.
+- **Open on an Inbox note line (since build 348)** — the line leads to a note (a recorded thought); **Open** shows that note. Such a line has no **Make task**.
+- **Microphone mark on a Shortcut tile (since build 348)** — the action **Record a Thought**.
 - **Two tiles in "What is next?"** — green flag tile = start a new project for this goal; gold target tile = the goal is reached, mark it done.
 - **Marks beside words (since build 346)** — every mark in front of words (a task circle, a dot, a badge, an arrow) sits on the middle of the first line of those words. A dot in a project row stands in the same column as an icon.
 - **Round arrow at the end of a calendar event** — open it in Calendar. White by day, black at night; the calendar's own colour is the dot in front of the event.
@@ -2002,11 +2006,11 @@ Since build 318 a note shows pictures in **Read** too, and shows a PDF as a row.
 
 ## Siri and Shortcuts
 
-Since build 317, on the iPhone, the iPad and the Mac. PARAGON has 6 actions. You set up nothing: they are in the **Shortcuts** app under PARAGON, in the system search, and Siri understands them. You can also put one on the Action Button, on the Home Screen, or into a longer shortcut of your own.
+Since build 317, on the iPhone, the iPad and the Mac. PARAGON has 7 actions (6 before build 348; the 7th is **Record a Thought**, see **Record a thought**). You set up nothing: they are in the **Shortcuts** app under PARAGON, in the system search, and Siri understands them. You can also put one on the Action Button, on the Home Screen, or into a longer shortcut of your own.
 
 Each phrase must have the name PARAGON in it. That is Apple's rule: the name is what Siri listens for.
 
-### The six actions and what to say
+### The actions and what to say
 
 - **Add to Inbox**: "Add to PARAGON". Also "Add to PARAGON Inbox", "Add to Inbox in PARAGON", "Add a task to PARAGON", "Capture in PARAGON". PARAGON does not open.
 - **What Is Due Today?** (its tile says **Due Today**): "What is due today in PARAGON". Also "What is due in PARAGON", "What is due today PARAGON", "PARAGON what is due today". PARAGON does not open.
@@ -2014,8 +2018,9 @@ Each phrase must have the name PARAGON in it. That is Apple's rule: the name is 
 - **Start the Day**: "Start the day in PARAGON". Also "Start my day in PARAGON", "Start the day with PARAGON". PARAGON opens on **Today**, in picking (since build 335; before, on the page Start the day).
 - **Close the Day**: "Close the day in PARAGON". Also "Close my day in PARAGON", "Close the day with PARAGON". PARAGON opens on **Close the day**.
 - **Start Focus**: "Start focus in PARAGON". Also "Start a focus in PARAGON", "Start the focus clock in PARAGON", "Focus with PARAGON". PARAGON does not open.
+- **Record a Thought** (iPhone and iPad only, build 348): "Record a thought in PARAGON". Also "Record in PARAGON", "Voice note in PARAGON". Press once to start, again to stop. PARAGON does not open. See **Record a thought** below.
 
-**Settings › Siri and Shortcuts** (after **Quick capture**) lists the 6 actions with the first phrase of each. Under them is a button that opens the **Shortcuts** app: Apple's own **Shortcuts** button on the iPhone and the iPad, **Open Shortcuts** on the Mac.
+**Settings › Siri and Shortcuts** (after **Quick capture**) lists the actions with the first phrase of each (7 on the iPhone and the iPad, 6 on the Mac). Under them is a button that opens the **Shortcuts** app: Apple's own **Shortcuts** button on the iPhone and the iPad, **Open Shortcuts** on the Mac.
 
 ### Add to Inbox
 
@@ -2052,6 +2057,38 @@ Each phrase must have the name PARAGON in it. That is Apple's rule: the name is 
 - It is the same clock as after **Focus on this**. A clock that runs on another task is stopped first, and its time is written under **Worked**.
 - The answers: "Focus started on Call the bank, 45 minutes planned." (the minutes only when the task or block has a time) · "The clock is already running on Call the bank." · "That task is no longer open in PARAGON." · "PARAGON is asking about the clock you stopped. Answer that first."
 - On the iPhone and the iPad the timer shows on the Lock Screen and in the Dynamic Island at once.
+
+## Record a thought
+
+Since build 348, on the iPhone and the iPad with iOS 26 or newer. You speak, and PARAGON writes it up for you. On the Mac the action is not offered.
+
+**Starting and stopping.**
+- The action is **Record a Thought**. It is in the **Shortcuts** app under PARAGON. Say "Record a thought in PARAGON", "Record in PARAGON" or "Voice note in PARAGON".
+- You can put it on the **Action Button** (iPhone 15 Pro or newer): Settings app › Action Button › Shortcut › PARAGON › Record a Thought.
+- First press: recording starts at once, also with the phone locked. The phone gives a short tap.
+- Second press, or the red **Stop** button on the Lock Screen: it stops.
+- The first time, iOS asks to use the microphone and speech recognition.
+- The longest recording is 30 minutes. Then it stops and saves by itself.
+
+**What you see while you record.**
+- On the Lock Screen: a card with a red dot, "Listening" and the time running (0:42), and the last words you said, live, as you speak.
+- In the Dynamic Island: a red dot and the time. Open it to see the live words and **Stop**.
+- After you stop, the card says "Writing it up…". Then it says "Saved to Inbox", with the title and "N tasks found". It goes away after a few minutes.
+- The first recording in a language may need to fetch Apple's speech model once. The card says "Getting the speech model ready…".
+
+**What is saved.**
+- **A new note in Resources.** It has the title the phone made and the tag #voice. It has "## Summary" (two or three sentences), "## Tasks" (the tasks it found, as plain list lines) and "## Full text" (everything you said). It also has the day, the time and the length.
+- **In the Inbox.** Every task found is its own open task line. One line under Notes links to the new note, for example "[[Drawer screws and Saturday]] — voice note, 0:42". File them from there like any Inbox line.
+
+**Who does the work.** The title, the summary and the tasks come from Apple's own on-device AI (Apple Intelligence). Speech to text is Apple's own too. All of it happens on the phone: it is free, private and works without internet.
+
+**When something is missing.**
+- **No Apple Intelligence** (turned off, or an older iPhone): the text is still saved. The title is the first words. No summary and no tasks are made, and the note says so in one line.
+- **Phone locked and the summary is slow** (the iPhone slows Apple's AI down while locked): after 20 seconds the words are saved anyway, with the first words as the title, and the note says "The summary is still being written. PARAGON adds it the next time it opens." The next time you open PARAGON, the summary goes into the note and the tasks into the Inbox.
+- **Nothing heard:** nothing is saved. The card says "Nothing heard — nothing saved".
+- **iOS older than 26:** Siri says "Record a thought needs iOS 26 or newer."
+
+**Settings › Voice.** The row **Voice language**: "Phone's language" (the default), English, Deutsch or Svenska. Under it: "The language you speak when you record a thought."
 
 ## System search
 

@@ -169,7 +169,8 @@ struct InboxTriageView: View {
                             ForEach(notes, id: \.self) { line in
                                 InboxNoteRow(line: line,
                                              makeTask: { changeInbox { InboxNotes.makingTask($0, line: line) } },
-                                             delete: { changeInbox { InboxNotes.removing($0, line: line) } })
+                                             delete: { changeInbox { InboxNotes.removing($0, line: line) } },
+                                             open: { title in model.openWikiLink(title, from: model.vault?.config.inboxFile ?? "Inbox.md") })
                                     .listRowBackground(plainRowFill)
                             }
                         } header: {
@@ -892,13 +893,20 @@ struct InboxNoteRow: View {
     let line: InboxNotes.Line
     let makeTask: () -> Void
     let delete: () -> Void
+    var open: (String) -> Void = { _ in }
 
     var body: some View {
         HStack(spacing: 8) {
             // Build 318: a shared picture or PDF shows as itself and opens large on a press;
             // it is not something to make a task of.
             InboxNoteWords(text: line.text)
-            if !InboxNoteWords.isAttachment(line.text) {
+            if let link = VoiceThought.link(inInboxLine: line.text) {
+                // Build 348: a line that leads to a note opens it; it is not made a task.
+                Button("Open") { open(link.title) }
+                    .buttonStyle(.filled(SidebarSection.inbox.tint))
+                    .controlSize(.small)
+                    .accessibilityIdentifier("inbox.note.open")
+            } else if !InboxNoteWords.isAttachment(line.text) {
                 Button("Make task", action: makeTask)
                     .buttonStyle(.filled(SidebarSection.inbox.tint))
                     .controlSize(.small)

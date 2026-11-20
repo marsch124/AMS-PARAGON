@@ -5440,3 +5440,13 @@ A deleted task's reminder goes within seconds; three small look and word points.
 - **Seen / not seen.** Not seen: a real iPhone or iPad, the Mac click.
 - **Docs.** VersionHistory, HowItWorks (the part **Linking notes with [[ ]]**, **Keyboard shortcuts**, new block "Exact details (build 339)"). There is no lowercase `docs/` folder. The header line of VersionHistory (version shown) is for the build bump.
 
+
+## Build 348 (20 November 2026) — Record a thought
+
+His ask after looking at the Flowtica Verso (an E Ink voice note-taker): the iPhone's Action Button as the button, PARAGON as the place it lands. He picked it from a 4-step picture.
+- **Core** `Vault/VoiceThought.swift`: the words (clock "0:42", lock-screen tail, fallback title = first 6 words), the note in Resources (`source: voice`, `tags: [voice]`, Summary / Tasks / Full text) and `Vault.fileVoiceThought` (tasks → Inbox tasks, one `- [[Title]] — voice note, 0:42` line under Notes). Test `VoiceThoughtTests`.
+- **App** `VoiceRecorder.swift` (iOS 26+): `SpeechAnalyzer` + `SpeechTranscriber` (volatile results) fed from `AVAudioEngine`, `FoundationModels` `@Generable WrittenUp` for title/summary/tasks (nil when Apple Intelligence is off → first words as title). No vault → the words go to the capture outbox as one Inbox note line. 30-minute limit. `beginBackgroundTask` around the write-up: once the microphone is off iOS may suspend the app (seen on the simulator before it was added).
+- `Intents/RecordThoughtIntent.swift`: one action, two presses (start / stop+file); `AudioRecordingIntent` conformance in an `@available(iOS 18)` extension (deployment stays iOS 17). Seventh App Shortcut, iOS only (`#if` inside the builder compiles fine).
+- `App/Shared/VoiceActivityShared.swift` + `ParagonWidgets/VoiceLiveActivityWidget.swift`: the Live Activity (preparing / listening / writing / saved / nothing), red dot + red **Stop** (`StopVoiceIntent`, a `LiveActivityIntent`), the Inbox tray mark in green when saved. Bridge set in `ReminderAppDelegate`.
+- Settings › Voice (`VoiceSection`, `@AppStorage("voiceLanguage")`: "" / en-US / de-DE / sv-SE). Info.plist: microphone + speech words, `UIBackgroundModes: [audio]`.
+- Test hook `-paragon-voice-demo` (DEBUG, with `-paragon-test-vault`): 20 s of sample words on the Lock Screen, then the real write-up and filing. On the iOS 27 simulator Apple's model answered (title "Hall Drawer and Saturday Plans", 2 tasks). 🪤 A tap on a Live Activity button in the simulator's locked screen works (StopVoiceIntent ran). NOT proven: a real microphone recording and the Action Button on his phone.

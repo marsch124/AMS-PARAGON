@@ -1,6 +1,30 @@
 # Version history
 
-The version is shown as 1.0 (347) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (348) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 348 · 20 November 2026
+
+**"Record a thought": press the Action Button, speak, and PARAGON writes it up.** One new thing, like a voice note-taker, but with your iPhone.
+
+**New: the action Record a Thought.**
+- **Where it is.** In the **Shortcuts** app under PARAGON, with Siri, and on the **Action Button** (iPhone 15 Pro or newer). Say "Record a thought in PARAGON", "Record in PARAGON" or "Voice note in PARAGON". To put it on the Action Button: Settings app › Action Button › Shortcut › PARAGON › Record a Thought.
+- **First press: it records.** Recording starts at once, also with the phone locked. The phone gives a short tap so you know. **Second press** (or the red **Stop** button on the Lock Screen): it stops.
+- **While you record.** The Lock Screen shows a card (a Live Activity) with a red dot, the word "Listening" and the time running, for example 0:42, and under them the last words you said, live, as you speak. The Dynamic Island shows a red dot and the time. Open it and you see the live words and **Stop**.
+- **After you stop.** The card says "Writing it up…", then "Saved to Inbox" with the Inbox tray mark, the title and "N tasks found". It goes away after a few minutes.
+- **A new note in Resources.** It has the title the phone made and the tag #voice. It has three parts: "## Summary" (two or three sentences), "## Tasks" (the tasks it found, as plain list lines) and "## Full text" (everything you said). It also has the day, the time and the length of the recording.
+- **Lines in the Inbox.** Every task found is its own open task line. Under Notes there is one line that links to the new note, for example "[[Drawer screws and Saturday]] — voice note, 0:42". The note line shows the note's title, with "voice note, 0:42" under it in grey, and an **Open** button that opens the note (no **Make task** on this line). The tasks you file like any Inbox line.
+- **Who does the work.** The title, the summary and the tasks come from Apple's own on-device AI (Apple Intelligence). Turning speech into text is Apple's own too. All of it happens on the phone: it is free, private and works without internet. The first recording in a language may need to fetch Apple's speech model once; the card then says "Getting the speech model ready…".
+- **When the phone is locked.** The iPhone slows Apple's AI down while it is locked. If the summary is not ready after 20 seconds, the words are saved at once anyway, with the first words as the title, and the note says "The summary is still being written. PARAGON adds it the next time it opens." The next time you open PARAGON, the summary goes into the note and the tasks into the Inbox. Nothing you said waits or gets lost.
+- **Without Apple Intelligence** (it is turned off, or the iPhone is older). The text is still saved. The title is the first words. No summary and no tasks are made, and the note says so in one line.
+- **If nothing could be heard.** Nothing is saved. The card says "Nothing heard — nothing saved".
+- **Longest recording: 30 minutes.** Then it stops and saves by itself.
+- **Settings › Voice.** New row **Voice language**: "Phone's language" (the default), English, Deutsch or Svenska. One line under it: "The language you speak when you record a thought."
+- **Where it works.** iPhone and iPad, with iOS 26 or newer. On the Mac the action is not offered. On an older phone Siri says "Record a thought needs iOS 26 or newer."
+- **Permission.** The first time, iOS asks to use the microphone and speech recognition. Press Allow.
+- **Siri and Shortcuts.** PARAGON now has 7 actions, before 6.
+- **Signs in this app.** Four new lines: the red dot on the Lock Screen and in the Dynamic Island (recording), the Inbox tray on that card (saved), **Open** on an Inbox note line, and the microphone mark on the Shortcut tile.
+
+**Unchanged.** Everything of build 347.
 
 ## Build 347 · 20 November 2026
 

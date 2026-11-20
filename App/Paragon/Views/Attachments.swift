@@ -390,6 +390,16 @@ struct InboxNoteWords: View {
            let attachment = SharedFiles.attachment(inLine: text, notePath: vault.config.inboxFile) {
             AttachmentBlock(attachment: attachment, root: vault.rootURL, compact: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        } else if let link = VoiceThought.link(inInboxLine: text) {
+            // Build 348: a recorded thought's line — the note's title, and what it is.
+            VStack(alignment: .leading, spacing: 1) {
+                Text(link.title)
+                    .font(Txt.list)
+                Text(link.rest)
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             Text(text)
                 .font(Txt.list)

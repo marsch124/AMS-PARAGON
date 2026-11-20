@@ -360,6 +360,10 @@ struct SettingsView: View {
 
             // Build 317: Siri and Shortcuts (features-07), notes in the system search (features-21).
             SiriShortcutsSection()
+            #if os(iOS)
+            // Build 348: the language of Record a thought.
+            VoiceSection()
+            #endif
             SystemSearchSection()
 
             Section("Weekly review") {
@@ -1262,6 +1266,29 @@ struct SafetyNoticeBar: View {
         .buttonStyle(.plain)
         .help("Open Settings \u{203A} Safety")
         .accessibilityIdentifier("sidebar.safety")
+    }
+}
+#endif
+
+#if os(iOS)
+/// Build 348: Settings › Voice — the language spoken when recording a thought.
+struct VoiceSection: View {
+    @AppStorage("voiceLanguage") private var language = ""
+
+    var body: some View {
+        Section {
+            Picker("Voice language", selection: $language) {
+                Text("Phone's language").tag("")
+                Text("English").tag("en-US")
+                Text("Deutsch").tag("de-DE")
+                Text("Svenska").tag("sv-SE")
+            }
+            .accessibilityIdentifier("settings.voiceLanguage")
+        } header: {
+            Text("Voice")
+        } footer: {
+            Text("The language you speak when you record a thought.")
+        }
     }
 }
 #endif

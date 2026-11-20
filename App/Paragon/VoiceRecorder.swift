@@ -1,0 +1,424 @@
+import Foundation
+import ParagonCore
+#if os(iOS)
+import ActivityKit
+import AVFoundation
+import FoundationModels
+import Speech
+import UIKit
+
+/// Build 348: **Record a thought** — the iPhone as a voice note-taker.
+///
+/// One recorder for the whole app. The Action Button (through **Record a Thought**, an
+/// `AudioRecordingIntent`) starts it, a second press or **Stop** on the Lock Screen ends it.
+/// While it listens, Apple's own speech-to-text (`SpeechAnalyzer`, on the phone) writes the
+/// words and the Lock Screen shows the last of them. When it stops, Apple's on-device model
+/// (`FoundationModels`) adds a title, a short summary and the tasks it heard, and Core files it
+/// all (`Vault.fileVoiceThought`): a note in Resources, the tasks and one line in the Inbox.
+///
+/// **Nothing said is ever lost for a missing model or vault:** without Apple Intelligence the
+/// words are filed with the first words as title; without an open vault they go to the capture
+/// outbox as one Inbox note line, filed the next time the vault is open.
+@available(iOS 26.0, *)
+@MainActor
+final class VoiceRecorder {
+    static let shared = VoiceRecorder()
+
+    /// The language chosen in Settings › Voice; "" is the phone's own.
+    static let languageKey = "voiceLanguage"
+
+    enum Problem: LocalizedError {
+        case microphoneRefused
+        case noSpeechModel
+        case busy
+
+        var errorDescription: String? {
+            switch self {
+            case .microphoneRefused:
+                return "PARAGON may not use the microphone. Turn it on in the Settings app › PARAGON › Microphone."
+            case .noSpeechModel:
+                return "This phone cannot turn speech into text in the chosen language."
+            case .busy:
+                return "PARAGON is still writing up the last thought."
+            }
+        }
+    }
+
+    /// What a stop led to, in words for Siri and the Lock Screen.
+    enum Outcome {
+        case saved(title: String, tasks: Int)
+        case kept
+        case nothingHeard
+        case notRecording
+    }
+
+    private(set) var isRecording = false
+    fileprivate(set) var isWriting = false
+    private var startedAt = Date()
+    private var engine: AVAudioEngine?
+    private var input: AsyncStream<AnalyzerInput>.Continuation?
+    private var analyzer: SpeechAnalyzer?
+    private var results: Task<Void, Never>?
+    private var finished = ""
+    private var volatile = ""
+    private var activity: Activity<VoiceActivityAttributes>?
+    private var lastShown = Date.distantPast
+    private var limit: Task<Void, Never>?
+    private var locale = Locale(identifier: "en-US")
+
+    var transcript: String {
+        [finished, volatile].joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // MARK: Start
+
+    func start() async throws {
+        guard !isRecording else { return }
+        guard !isWriting else { throw Problem.busy }
+        guard await AVAudioApplication.requestRecordPermission() else { throw Problem.microphoneRefused }
+
+        startedAt = Date()
+        finished = ""
+        volatile = ""
+        isRecording = true
+        // The Live Activity first: an `AudioRecordingIntent` must show one while it records.
+        await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: ""))
+
+        do {
+            let chosen = UserDefaults.standard.string(forKey: Self.languageKey) ?? ""
+            let wanted = chosen.isEmpty ? Locale.current : Locale(identifier: chosen)
+            var match = await SpeechTranscriber.supportedLocale(equivalentTo: wanted)
+            if match == nil { match = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: "en-US")) }
+            guard let found = match else { throw Problem.noSpeechModel }
+            locale = found
+            let transcriber = SpeechTranscriber(locale: found, transcriptionOptions: [],
+                                                reportingOptions: [.volatileResults], attributeOptions: [])
+            if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+                await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: ""))
+                try await install.downloadAndInstall()
+            }
+            let analyzer = SpeechAnalyzer(modules: [transcriber])
+            self.analyzer = analyzer
+            guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
+                throw Problem.noSpeechModel
+            }
+            let (stream, builder) = AsyncStream<AnalyzerInput>.makeStream()
+            input = builder
+            try await analyzer.start(inputSequence: stream)
+
+            results = Task { @MainActor [weak self] in
+                do {
+                    for try await result in transcriber.results {
+                        guard let self else { return }
+                        let text = String(result.text.characters)
+                        if result.isFinal {
+                            self.finished = [self.finished, text].joined(separator: " ")
+                                .trimmingCharacters(in: .whitespaces)
+                            self.volatile = ""
+                        } else {
+                            self.volatile = text
+                        }
+                        self.showWords()
+                    }
+                } catch {}
+            }
+
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.record, mode: .spokenAudio, options: [])
+            try session.setActive(true)
+
+            let engine = AVAudioEngine()
+            let node = engine.inputNode
+            let heard = node.outputFormat(forBus: 0)
+            let converter = heard == format ? nil : AVAudioConverter(from: heard, to: format)
+            node.installTap(onBus: 0, bufferSize: 4096, format: heard) { buffer, _ in
+                guard let converter else {
+                    builder.yield(AnalyzerInput(buffer: buffer))
+                    return
+                }
+                let ratio = format.sampleRate / heard.sampleRate
+                let room = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 16
+                guard let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: room) else { return }
+                var given = false
+                var problem: NSError?
+                converter.convert(to: out, error: &problem) { _, status in
+                    if given {
+                        status.pointee = .noDataNow
+                        return nil
+                    }
+                    given = true
+                    status.pointee = .haveData
+                    return buffer
+                }
+                if problem == nil, out.frameLength > 0 { builder.yield(AnalyzerInput(buffer: out)) }
+            }
+            engine.prepare()
+            try engine.start()
+            self.engine = engine
+            startedAt = Date()
+            await showActivity(.listening("Listening…"))
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+
+            limit = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(VoiceThought.longest))
+                guard let self, !Task.isCancelled, self.isRecording else { return }
+                // Not cancelled by the stop it starts: the write-up must not be cut short.
+                self.limit = nil
+                Task { @MainActor in _ = await self.stopAndFile() }
+            }
+        } catch {
+            await tearDown()
+            isRecording = false
+            await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: ""),
+                               endAfter: 60)
+            throw error
+        }
+    }
+
+    // MARK: Stop
+
+    /// Stops, writes it up and files it. Comes back when it is in the Inbox (or kept).
+    func stopAndFile() async -> Outcome {
+        guard isRecording else {
+            // A Stop left on the Lock Screen by an app that was closed meanwhile.
+            for old in Activity<VoiceActivityAttributes>.activities { await old.end(nil, dismissalPolicy: .immediate) }
+            return .notRecording
+        }
+        isRecording = false
+        isWriting = true
+        // Once the microphone is off iOS may put PARAGON to sleep: this asks for the minute
+        // the write-up and the filing need (the 30-minute stop has no action keeping it awake).
+        let awake = UIApplication.shared.beginBackgroundTask(withName: "Record a thought")
+        defer {
+            isWriting = false
+            if awake != .invalid { UIApplication.shared.endBackgroundTask(awake) }
+        }
+        limit?.cancel()
+        limit = nil
+        let duration = Date().timeIntervalSince(startedAt)
+        let length = VoiceThought.clock(duration)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        await tearDown()
+
+        var thought = VoiceThought(transcript: transcript, recordedAt: startedAt, duration: duration)
+        guard !thought.isEmpty else {
+            await showActivity(.init(stage: .nothing, words: "Nothing heard — nothing saved", title: "", tasksFound: 0, length: length),
+                               endAfter: 60)
+            return .nothingHeard
+        }
+        await showActivity(.init(stage: .writing, words: VoiceThought.liveTail(thought.transcript), title: "", tasksFound: 0, length: length))
+
+        // The words are never kept waiting for the model: after 20 seconds (the phone may be
+        // locked, and iOS slows the model down then) they are filed with the first words as
+        // title, and the summary is added the next time PARAGON opens.
+        var within: Double = 20
+        #if DEBUG
+        // Test runs only: `-paragon-voice-late` makes the summary always come late.
+        if ProcessInfo.processInfo.arguments.contains("-paragon-voice-late") { within = 0.01 }
+        #endif
+        switch await Self.writeUp(thought.transcript, locale: locale, within: within) {
+        case .done(let title, let summary, let tasks):
+            thought.title = title
+            thought.summary = summary
+            thought.tasks = tasks
+        case .late:
+            thought.summaryPending = true
+        case .none:
+            break
+        }
+
+        let model = AppModel.shared
+        await model.vaultOnceOpen()
+        if let filed = model.fileVoiceThought(thought) {
+            let title = filed.title
+            if thought.summaryPending { Self.remember(LateSummary(path: filed.path, transcript: thought.transcript, locale: locale.identifier)) }
+            let tasks = thought.finalTasks.count
+            await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length), endAfter: 180)
+            return .saved(title: title, tasks: tasks)
+        }
+        // No vault now: the words wait in the outbox, as one Inbox note line.
+        model.capture(text: "Voice note (\(length)): " + VoiceThought.clean(thought.transcript), target: .inbox, asTask: false)
+        await showActivity(.init(stage: .saved, words: "", title: thought.finalTitle, tasksFound: 0, length: length), endAfter: 180)
+        return .kept
+    }
+
+    private func tearDown() async {
+        if let engine {
+            engine.inputNode.removeTap(onBus: 0)
+            engine.stop()
+        }
+        engine = nil
+        input?.finish()
+        input = nil
+        if let analyzer { try? await analyzer.finalizeAndFinishThroughEndOfInput() }
+        analyzer = nil
+        await results?.value
+        results = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    // MARK: Lock Screen
+
+    private func showWords() {
+        guard isRecording, Date().timeIntervalSince(lastShown) >= 1 else { return }
+        lastShown = Date()
+        let words = VoiceThought.liveTail(transcript)
+        Task { await showActivity(.listening(words.isEmpty ? "Listening…" : words)) }
+    }
+
+    private func showActivity(_ state: VoiceActivityAttributes.ContentState, endAfter: TimeInterval? = nil) async {
+        let content = ActivityContent(state: state, staleDate: nil)
+        if activity == nil || activity?.attributes.startedAt != startedAt {
+            for old in Activity<VoiceActivityAttributes>.activities { await old.end(nil, dismissalPolicy: .immediate) }
+            activity = nil
+            if ActivityAuthorizationInfo().areActivitiesEnabled {
+                activity = try? Activity.request(attributes: VoiceActivityAttributes(startedAt: startedAt), content: content, pushType: nil)
+            }
+        } else {
+            await activity?.update(content)
+        }
+        if let endAfter {
+            await activity?.end(content, dismissalPolicy: .after(Date().addingTimeInterval(endAfter)))
+            activity = nil
+        }
+    }
+
+    #if DEBUG
+    /// Test runs only (`-paragon-voice-demo`): the Lock Screen card listening to sample words for
+    /// 20 seconds, then the real write-up and filing into the test vault.
+    func demo() async {
+        let words = "The drawer in the hall needs new screws, so I should order them tonight. And I must call Anna about Saturday, whether we go to the lake or stay home."
+        let awake = UIApplication.shared.beginBackgroundTask(withName: "Voice demo")
+        defer { UIApplication.shared.endBackgroundTask(awake) }
+        startedAt = Date()
+        isRecording = true
+        await showActivity(.listening(VoiceThought.liveTail(words)))
+        try? await Task.sleep(for: .seconds(20))
+        finished = words
+        _ = await stopAndFile()
+    }
+    #endif
+
+    // MARK: Title, summary and tasks
+
+    @Generable
+    struct WrittenUp {
+        @Guide(description: "A short title for the spoken note, 2 to 6 words, in the language the note was spoken in.")
+        var title: String
+        @Guide(description: "Two or three short, plain sentences that sum up the note, in the language it was spoken in.")
+        var summary: String
+        @Guide(description: "The things the speaker said they need to do, each a short task that starts with a verb, in the language of the note. Empty when nothing needs doing.",
+               .maximumCount(10))
+        var tasks: [String]
+    }
+
+    enum WriteUp {
+        case done(title: String, summary: String, tasks: [String])
+        /// Not done within the time given.
+        case late
+        /// No model here (no Apple Intelligence, an older phone, a language it does not know),
+        /// or it did not answer.
+        case none
+    }
+
+    /// Asks Apple's on-device model, giving it `seconds`.
+    static func writeUp(_ transcript: String, locale: Locale, within seconds: Double) async -> WriteUp {
+        let model = SystemLanguageModel.default
+        guard model.availability == .available, model.supportsLocale(locale) else { return .none }
+        return await withTaskGroup(of: WriteUp.self) { group in
+            group.addTask { @MainActor in
+                guard let r = await ask(transcript) else { return .none }
+                return .done(title: r.title, summary: r.summary, tasks: r.tasks)
+            }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(seconds))
+                return .late
+            }
+            let first = await group.next() ?? .none
+            group.cancelAll()
+            return first
+        }
+    }
+
+    private static func ask(_ transcript: String) async -> (title: String, summary: String, tasks: [String])? {
+        let session = LanguageModelSession(instructions: """
+            You turn a spoken note into a title, a short summary and a list of tasks. \
+            Use only what was said. Never add tasks that were not said. Answer in the language of the note.
+            """)
+        // The model reads about 4,000 tokens: a very long recording is written up from its start.
+        let text = String(transcript.prefix(6000))
+        do {
+            let answer = try await session.respond(to: "The spoken note:\n\(text)", generating: WrittenUp.self)
+            return (answer.content.title, answer.content.summary, answer.content.tasks)
+        } catch {
+            return nil
+        }
+    }
+}
+
+// MARK: Summaries that came late
+
+@available(iOS 26.0, *)
+extension VoiceRecorder {
+    struct LateSummary: Codable, Equatable {
+        var path: String
+        var transcript: String
+        var locale: String
+    }
+
+    private static let lateKey = "voiceLateSummaries"
+
+    static var waiting: [LateSummary] {
+        get {
+            guard let data = UserDefaults.standard.data(forKey: lateKey) else { return [] }
+            return (try? JSONDecoder().decode([LateSummary].self, from: data)) ?? []
+        }
+        set { UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: lateKey) }
+    }
+
+    static func remember(_ late: LateSummary) { waiting.append(late) }
+
+    /// When PARAGON comes to the front: writes the summaries that did not finish while the
+    /// phone was locked into their notes, and their tasks into the Inbox.
+    func finishLateSummaries() async {
+        guard !Self.waiting.isEmpty, !isRecording, !isWriting else { return }
+        isWriting = true
+        defer { isWriting = false }
+        let model = AppModel.shared
+        await model.vaultOnceOpen()
+        guard let vault = model.vault else { return }
+        for late in Self.waiting {
+            let answer = await Self.writeUp(late.transcript, locale: Locale(identifier: late.locale), within: 60)
+            var summary = "No summary: Apple Intelligence was not available on this phone."
+            var tasks: [String] = []
+            switch answer {
+            case .late: continue
+            case .none: break
+            case .done(_, let s, let t):
+                summary = s
+                tasks = t
+            }
+            model.flushPendingEdits()
+            _ = try? vault.addLateVoiceSummary(path: late.path, summary: summary, tasks: tasks)
+            Self.waiting.removeAll { $0 == late }
+            model.reload()
+        }
+    }
+}
+
+extension AppModel {
+    /// Build 348: files a recorded thought into the open vault and refreshes the lists.
+    /// Nil when no vault is open or it could not be written.
+    func fileVoiceThought(_ thought: VoiceThought) -> (title: String, path: String)? {
+        guard let vault else { return nil }
+        flushPendingEdits()
+        do {
+            let filed = try vault.fileVoiceThoughtNote(thought)
+            reload()
+            return filed
+        } catch {
+            return nil
+        }
+    }
+}
+#endif

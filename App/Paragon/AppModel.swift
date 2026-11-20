@@ -141,7 +141,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 347
+    static let number = 348
 }
 
 @MainActor
@@ -463,6 +463,13 @@ final class AppModel: ObservableObject {
                    let goal = note(at: TestVault.whatNextGoalPath) {
                     whatNext = WhatNextQuestion(goal: goal, projectWasDone: true)
                 }
+                #if os(iOS)
+                // Build 348: the recording's Lock Screen card and its filing, for pictures,
+                // with sample words instead of the microphone.
+                if ProcessInfo.processInfo.arguments.contains("-paragon-voice-demo"), #available(iOS 26.0, *) {
+                    Task { @MainActor in await VoiceRecorder.shared.demo() }
+                }
+                #endif
             } else {
                 vaultProblem = "The test notes folder could not be made."
             }
