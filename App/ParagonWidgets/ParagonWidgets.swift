@@ -145,6 +145,9 @@ enum WidgetLook {
     static let calendar = Color(lightHex: 0x6B4EA8, darkHex: 0xA98FE0)   // CalendarTint
     static let archive = Color(lightHex: 0x6E6E73, darkHex: 0x9A9AA2)    // ArchiveTint
     static let attention = Color.orange
+    /// Overdue is red, as in the app's task rows (build 200, his choice: "red"). Round 352: the
+    /// widgets drew it in the warning orange, so the same date had two colours.
+    static let overdue = Color.red
 
     /// The colour of each kind of note, as `ParaKind.tint` gives it in the app. All seven are
     /// here because `symbol(forKind:)` below already knows all seven: a task in the Inbox note
@@ -342,7 +345,7 @@ struct ActionsWidgetView: View {
             if let snapshot = entry.snapshot, snapshot.overdue > 0 {
                 Text("\(snapshot.overdue) over")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(WidgetLook.attention)
+                    .foregroundStyle(WidgetLook.overdue)
             }
         }
     }
@@ -416,7 +419,7 @@ struct ActionRow: View {
             if let due = item.dueText {
                 Text(due)
                     .font(.caption2.weight(item.isOverdue ? .semibold : .regular))
-                    .foregroundStyle(item.isOverdue ? WidgetLook.attention : .secondary)
+                    .foregroundStyle(item.isOverdue ? WidgetLook.overdue : .secondary)
                     .lineLimit(1)
             }
         }
@@ -451,7 +454,7 @@ struct CountsWidgetView: View {
                 }
                 WidgetLink(to: link(.overdue)) {
                     CountLine(number: s.overdue, word: "overdue",
-                              symbol: "clock.badge.exclamationmark", tint: WidgetLook.attention)
+                              symbol: "clock.badge.exclamationmark", tint: WidgetLook.overdue)
                 }
                 WidgetLink(to: link(.inbox)) {
                     CountLine(number: s.inboxCount, word: "in the Inbox",

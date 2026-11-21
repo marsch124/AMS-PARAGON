@@ -81,7 +81,7 @@ struct OneListLook {
             name = "Today"; symbol = "calendar"; tint = WidgetLook.project
             words = "due today"; emptyWords = "Nothing due today"
         case .overdue:
-            name = "Overdue"; symbol = "clock.badge.exclamationmark"; tint = WidgetLook.attention
+            name = "Overdue"; symbol = "clock.badge.exclamationmark"; tint = WidgetLook.overdue
             words = "overdue"; emptyWords = "Nothing overdue"
         case .inbox:
             name = "Inbox"; symbol = "tray"; tint = WidgetLook.resource
