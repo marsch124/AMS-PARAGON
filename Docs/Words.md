@@ -168,7 +168,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Write it up again** — on a voice note's menu: makes the summary again from the full text and adds tasks that are new.
 - **Words it mishears** — Settings › Voice. Names and odd words you say. PARAGON listens for them and writes them right.
 - **Pause** and **Mark** — buttons on the Lock Screen card while you record. **Mark** marks the moment; that sentence is shown in bold under **Marked**.
-- **Health line** — Settings › **Health** (iPhone and iPad). One line a day in your daily note with your steps and workouts. PARAGON only reads them. Off at start.
+- **Health line** — coming in a later build: one line a day in your daily note with your steps and workouts.
 - **Your year** — the button in **Done** that shows one page of what you finished in a year. **Share as PDF** is on it.
 
 ## Tools

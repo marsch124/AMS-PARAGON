@@ -90,18 +90,17 @@ The version is shown as 1.0 (350) in Settings › About, at the foot of the Mac 
 
 **Waiting for.** Nothing new: it has been complete since build 279.
 
-### People, places and Health
+### People and places
 
 **New: Person.** Task menu › **Person…** and, at the top of a note, **Person…**. Choose a name from Contacts (iPhone and iPad: Apple's picker, no permission; Mac: **Search Contacts** asks for Contacts) or type one. A task has one person, a note can have several. The row shows the person with a person mark.
 - **The People page.** In **Tags**, a switch **Tags | People**. Each person has a heading with "1 open · 1 done · 1 note", and under it their notes and open tasks. Empty: "No people yet".
 
-**New: a Health line in the daily note (iPhone and iPad only).** Settings › **Health** › **Health line in the daily note**, off at start. When you turn it on, Health asks to read your steps and workouts. PARAGON then writes one line under **Health** in today's daily note, like "Steps 8,412 · Walk 35 min", when you open the app (at most every 30 minutes). It only reads. It never writes to Health. Nothing is written without steps or a workout.
+**Not yet: the Health line in the daily note.** It is built, but Apple must first allow PARAGON to read Health. It comes in a later build.
 
 ### Which permission, and when
 - **Microphone and speech:** the first time you record a thought or press **Dictate**.
 - **Camera:** the first time you press **Scan a list** (or take a photo).
 - **Location:** when you turn on **Add the place name**.
-- **Health:** when you turn on **Health line in the daily note**.
 - **Contacts:** when you press **Search Contacts** on the Mac.
 - **Places for reminders** need none.
 
