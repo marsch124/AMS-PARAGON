@@ -35,6 +35,7 @@ final class VoiceRecorder {
         // for a download (the action is stopped after a short time: "timeout"). Say so at once.
         case microphoneNotAskedYet
         case modelDownloading
+        case noMicrophone
 
         var errorDescription: String? {
             switch self {
@@ -46,6 +47,8 @@ final class VoiceRecorder {
                 return "PARAGON is still writing up the last thought."
             case .microphoneNotAskedYet:
                 return "PARAGON has not been allowed to use the microphone yet. Open PARAGON › Settings › Voice and press Get ready."
+            case .noMicrophone:
+                return "No microphone is free right now. Is a call or another recording on?"
             case .modelDownloading:
                 return "The iPhone is getting Apple's speech model. Open PARAGON › Settings › Voice and press Get ready, or try again in a few minutes."
             }
@@ -71,6 +74,11 @@ final class VoiceRecorder {
     private var startedAt = Date()
     private var engine: AVAudioEngine?
     private var input: AsyncStream<AnalyzerInput>.Continuation?
+    /// Build 353: what the microphone hears, kept until the speech-to-text is ready for it.
+    private var raw: AsyncStream<AVAudioPCMBuffer>.Continuation?
+    /// Build 353: the second half of a start (`attachSpeechToText`), and the audio pump.
+    private var preparing: Task<Void, Never>?
+    private var pump: Task<Void, Never>?
     private var analyzer: SpeechAnalyzer?
     private var results: Task<Void, Never>?
     private var finished = ""
@@ -113,18 +121,58 @@ final class VoiceRecorder {
         // The Live Activity first: an `AudioRecordingIntent` must show one while it records.
         await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
 
+        // Build 353: the microphone starts **before** the speech-to-text is set up, and the press
+        // returns as soon as it listens. Setting up Apple's speech model can take several seconds
+        // when the press has to start PARAGON first, and iOS stops a press that takes too long
+        // ("timeout"). What is said meanwhile is kept and handed over when the model is ready.
         do {
-            let chosen = UserDefaults.standard.string(forKey: Self.languageKey) ?? ""
-            let wanted = chosen.isEmpty ? Locale.current : Locale(identifier: chosen)
-            var match = await SpeechTranscriber.supportedLocale(equivalentTo: wanted)
-            if match == nil { match = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: "en-US")) }
-            guard let found = match else { throw Problem.noSpeechModel }
-            locale = found
-            let transcriber = SpeechTranscriber(locale: found, transcriptionOptions: [],
-                                                reportingOptions: [.volatileResults], attributeOptions: [])
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.record, mode: .spokenAudio, options: [])
+            try session.setActive(true)
+
+            let engine = AVAudioEngine()
+            let node = engine.inputNode
+            let heard = node.outputFormat(forBus: 0)
+            guard heard.sampleRate > 0, heard.channelCount > 0 else { throw Problem.noMicrophone }
+            let (raw, rawBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream(bufferingPolicy: .unbounded)
+            self.raw = rawBuilder
+            node.installTap(onBus: 0, bufferSize: 4096, format: heard) { buffer, _ in
+                rawBuilder.yield(buffer)
+            }
+            engine.prepare()
+            try engine.start()
+            self.engine = engine
+            startedAt = Date()
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+
+            limit = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(VoiceThought.longest))
+                guard let self, !Task.isCancelled, self.isRecording else { return }
+                // Not cancelled by the stop it starts: the write-up must not be cut short.
+                self.limit = nil
+                Task { @MainActor in _ = await self.stopAndFile() }
+            }
+            preparing = Task { @MainActor [weak self] in
+                await self?.attachSpeechToText(raw: raw, heard: heard)
+            }
+        } catch {
+            await tearDown()
+            isRecording = false
+            await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: "", intoToday: intoToday),
+                               endAfter: 60)
+            throw error
+        }
+    }
+
+    /// Build 353: the second half of a start, after the press has returned. Sets up Apple's
+    /// speech-to-text and then feeds it everything the microphone heard, from the first moment.
+    private func attachSpeechToText(raw: AsyncStream<AVAudioPCMBuffer>, heard: AVAudioFormat) async {
+        do {
+            guard let chosen = await chosenTranscriberAndLocale() else { throw Problem.noSpeechModel }
+            let transcriber = chosen.transcriber
+            locale = chosen.locale
             if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
-                // Build 353: in the background (the Action Button) a download can take longer than
-                // the action may run, so it is started and the press says so instead of waiting.
+                // In the background a download takes too long: it is started, and this recording ends.
                 guard UIApplication.shared.applicationState == .active else {
                     Task { @MainActor in try? await install.downloadAndInstall() }
                     throw Problem.modelDownloading
@@ -132,6 +180,7 @@ final class VoiceRecorder {
                 await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
                 try await install.downloadAndInstall()
             }
+            guard isRecording else { return }
             let analyzer = SpeechAnalyzer(modules: [transcriber])
             self.analyzer = analyzer
             // Round 350 (voice-words): the odd words from Settings › Voice, for it to listen for.
@@ -170,55 +219,42 @@ final class VoiceRecorder {
                 } catch {}
             }
 
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.record, mode: .spokenAudio, options: [])
-            try session.setActive(true)
-
-            let engine = AVAudioEngine()
-            let node = engine.inputNode
-            let heard = node.outputFormat(forBus: 0)
+            // Everything heard so far, then everything still to come, converted for the model.
             let converter = heard == format ? nil : AVAudioConverter(from: heard, to: format)
-            node.installTap(onBus: 0, bufferSize: 4096, format: heard) { buffer, _ in
-                guard let converter else {
-                    builder.yield(AnalyzerInput(buffer: buffer))
-                    return
-                }
-                let ratio = format.sampleRate / heard.sampleRate
-                let room = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 16
-                guard let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: room) else { return }
-                var given = false
-                var problem: NSError?
-                converter.convert(to: out, error: &problem) { _, status in
-                    if given {
-                        status.pointee = .noDataNow
-                        return nil
+            pump = Task.detached {
+                for await buffer in raw {
+                    guard let converter else {
+                        builder.yield(AnalyzerInput(buffer: buffer))
+                        continue
                     }
-                    given = true
-                    status.pointee = .haveData
-                    return buffer
+                    let ratio = format.sampleRate / heard.sampleRate
+                    let room = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 16
+                    guard let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: room) else { continue }
+                    var given = false
+                    var problem: NSError?
+                    converter.convert(to: out, error: &problem) { _, status in
+                        if given {
+                            status.pointee = .noDataNow
+                            return nil
+                        }
+                        given = true
+                        status.pointee = .haveData
+                        return buffer
+                    }
+                    if problem == nil, out.frameLength > 0 { builder.yield(AnalyzerInput(buffer: out)) }
                 }
-                if problem == nil, out.frameLength > 0 { builder.yield(AnalyzerInput(buffer: out)) }
             }
-            engine.prepare()
-            try engine.start()
-            self.engine = engine
-            startedAt = Date()
-            await showActivity(listeningState("Listening…"))
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-
-            limit = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .seconds(VoiceThought.longest))
-                guard let self, !Task.isCancelled, self.isRecording else { return }
-                // Not cancelled by the stop it starts: the write-up must not be cut short.
-                self.limit = nil
-                Task { @MainActor in _ = await self.stopAndFile() }
-            }
+            if isRecording, !isPaused { await showActivity(listeningState("Listening…")) }
         } catch {
+            guard isRecording else { return }
+            limit?.cancel()
+            limit = nil
+            // This task is `preparing`: tearDown must not wait for itself.
+            preparing = nil
             await tearDown()
             isRecording = false
             await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: "", intoToday: intoToday),
                                endAfter: 60)
-            throw error
         }
     }
 
@@ -316,6 +352,24 @@ final class VoiceRecorder {
             engine.stop()
         }
         engine = nil
+        // Build 353: no more sound; let the set-up and the pump hand over what they have.
+        raw?.finish()
+        raw = nil
+        if let waiting = preparing {
+            _ = await VoiceRace.first(within: 8, otherwise: false) { @MainActor () async -> Bool in
+                await waiting.value
+                return true
+            }
+        }
+        preparing = nil
+        if let feeding = pump {
+            _ = await VoiceRace.first(within: 4, otherwise: false) { @MainActor () async -> Bool in
+                await feeding.value
+                return true
+            }
+            feeding.cancel()
+        }
+        pump = nil
         input?.finish()
         input = nil
         // Build 353: each wait here has a limit, so a stop can never hang the recorder.
@@ -421,13 +475,18 @@ final class VoiceRecorder {
 
     /// The speech model for the chosen language, or nil when the phone has none for it.
     private func chosenTranscriber() async -> SpeechTranscriber? {
+        await chosenTranscriberAndLocale()?.transcriber
+    }
+
+    private func chosenTranscriberAndLocale() async -> (transcriber: SpeechTranscriber, locale: Locale)? {
         let chosen = UserDefaults.standard.string(forKey: Self.languageKey) ?? ""
         let wanted = chosen.isEmpty ? Locale.current : Locale(identifier: chosen)
         var match = await SpeechTranscriber.supportedLocale(equivalentTo: wanted)
         if match == nil { match = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: "en-US")) }
         guard let found = match else { return nil }
-        return SpeechTranscriber(locale: found, transcriptionOptions: [],
-                                 reportingOptions: [.volatileResults], attributeOptions: [])
+        let transcriber = SpeechTranscriber(locale: found, transcriptionOptions: [],
+                                            reportingOptions: [.volatileResults], attributeOptions: [])
+        return (transcriber, found)
     }
 
     /// What Settings › Voice shows: is the microphone allowed, and is the speech model here.

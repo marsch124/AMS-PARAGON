@@ -5521,3 +5521,12 @@ possibly `downloadAndInstall()`, and the intent ran past its time limit.
   cancellation (Apple's `LanguageModelSession.respond` did). Race with a continuation instead.
 - His Action Button worked on 352 only after **Dictate** in Capture had asked for the microphone — which
   confirms the first cause.
+- **Third fault, same build: "timeout" again after he swiped PARAGON away** (screenshot: the start screen, then
+  "Record a Thought timeout"). A cold start plus the speech set-up (`supportedLocale`, `AssetInventory`,
+  `SpeechAnalyzer.start`, `bestAvailableAudioFormat`) ran inside `perform`, past iOS's limit for one press. Now
+  `start` only checks the microphone, shows the Live Activity, starts `AVAudioEngine` with a tap into an
+  unbounded `AsyncStream<AVAudioPCMBuffer>` (`raw`) and returns; `attachSpeechToText` (task `preparing`) sets up
+  the model afterwards and a detached `pump` converts and feeds every buffer heard since the first moment.
+  `tearDown` finishes `raw`, waits for `preparing` (8 s) and `pump` (4 s), then the analyzer as before.
+- 🪤 **An `AppIntent.perform` must return within a few seconds, cold start included.** Start the one thing that
+  must happen (here the microphone) and do the slow set-up after returning.
