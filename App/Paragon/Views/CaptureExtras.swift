@@ -59,7 +59,7 @@ struct DictateChip: View {
             if let problem = dictation.problem {
                 Text(problem)
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .frame(maxWidth: 260, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("capture.dictate.problem")

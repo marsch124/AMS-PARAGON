@@ -112,7 +112,7 @@ struct CapturePlaceSection: View {
             if on && place.refused {
                 Text("PARAGON may not use the location. Turn it on in Settings, under PARAGON, Location.")
                     .font(Txt.label)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Theme.attention.ink)
                     .accessibilityIdentifier("settings.capturePlace.refused")
             }
         } header: {

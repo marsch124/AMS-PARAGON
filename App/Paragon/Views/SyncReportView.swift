@@ -31,7 +31,7 @@ struct SyncReportView: View {
                             rows(report)
                         }
                         if !report.conflicts.isEmpty {
-                            section("Changed in both places", report.conflicts, icon: "exclamationmark.triangle", tint: .orange)
+                            section("Changed in both places", report.conflicts, icon: "exclamationmark.triangle", tint: Theme.attention.ink)
                         }
                         if !report.warnings.isEmpty {
                             section("Worth knowing", report.warnings, icon: "info.circle", tint: .secondary)

@@ -1325,7 +1325,7 @@ struct AllAspirationsView: View {
                 if !loose.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionLabel(title: "Goals with no aspiration", count: loose.count,
-                                     markName: ChainSymbol.datedGoal, tint: .orange)
+                                     markName: ChainSymbol.datedGoal, tint: Theme.attention.ink)
                         Text("Each of these is working towards nothing. Give it the aspiration it is in service of.")
                             .font(Txt.label)
                             .foregroundStyle(Theme.attention.ink)
