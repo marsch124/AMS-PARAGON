@@ -58,8 +58,14 @@ extension AppModel {
         var failed = 0
         var leftBehind = 0
         var targetTitle = ""
+        // Round 352: the notes as each move wrote them, so the next line is found in the newest
+        // copy without reading the whole notes folder again after every line. `vault.move`
+        // returns both notes with their new dates. Only after a line that went wrong is
+        // everything read again, so the next line starts from what is really on disk.
+        var written: [String: Note] = [:]
         for ref in refs {
-            guard let source = note(at: ref.notePath), let target = note(at: path),
+            guard let source = written[ref.notePath] ?? note(at: ref.notePath),
+                  let target = written[path] ?? note(at: path),
                   let live = source.liveTask(for: ref.task) else {
                 failed += 1
                 continue
@@ -68,11 +74,23 @@ extension AppModel {
                 let move = try vault.move(task: live, from: source, to: target)
                 targetTitle = move.target.displayTitle
                 moved += 1
-                if move.leftInSource { leftBehind += 1 }
-                reload()
+                if move.leftInSource {
+                    leftBehind += 1
+                    written = [:]
+                    reload()
+                } else {
+                    written[move.source.relativePath] = move.source
+                    written[move.target.relativePath] = move.target
+                }
             } catch {
                 failed += 1
+                written = [:]
+                reload()
             }
+        }
+        if moved > 0 {
+            withAnimation(Motion.settle) { reload() }
+            rememberFiledPlace(path)
         }
         inboxSelecting = false
         inboxPickedIDs = []

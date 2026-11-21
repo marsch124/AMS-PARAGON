@@ -2888,7 +2888,9 @@ final class AppModel: ObservableObject {
         UserDefaults.standard.stringArray(forKey: AppModel.recentFilingKey) ?? []
     static let recentFilingKey = "filing.recentPlaces"
 
-    private func rememberFiledPlace(_ path: String) {
+    /// Internal since round 352: filing many Inbox lines at once (`fileInboxLines`) remembers
+    /// the place too.
+    func rememberFiledPlace(_ path: String) {
         recentFilingPaths = FilingOrder.remembering(path, in: recentFilingPaths)
         UserDefaults.standard.set(recentFilingPaths, forKey: Self.recentFilingKey)
     }
