@@ -1,6 +1,112 @@
 # Version history
 
-The version is shown as 1.0 (351) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (352) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 352 · 21 November 2026
+
+**The tidy-up round: many small fixes you will notice every day.** Most of them finish something that build 350 left half done.
+
+### Inbox and places
+
+**New: Home, Work and the places you used before.**
+- Before: **Remind me at a place…** on the task menu always started with an empty search. You had to search for your home every time.
+- Now: above the search field, a small grey line **Your places** has a row of places you can press at once. **Home** and **Work** come first, if you have set them. Then come the places you already used on tasks, the most used first, at most 8 in all. Press one, then **Save**.
+- Set **Home** and **Work** once in Settings › **Home and Work** (right under **Place name**). Press **Set…**, search the address, and press the right answer. **Change…** and **Remove** are there once a place is set. They are kept on this device only, and no contacts are used.
+
+**New: Snooze in File it on the iPhone.**
+- Before: on the iPhone, **File it** under a picked Inbox line had no **Snooze**. You had to hold the line to find it.
+- Now: the **File it** list ends with a line and **Snooze until…**: **Tomorrow**, **Next Monday** and **Pick a day…**. They are the same as on the line's own menu. With no project or area yet, the list says "No project or area yet" and still offers **Snooze until…**.
+
+**Changed: when every Inbox line is snoozed.**
+- Before: the Inbox said **Inbox zero**, as if it were empty.
+- Now: it says **All lines are snoozed** and when the first one comes back, for example "1 line comes back on Monday 23 November." or "3 lines are snoozed. The first comes back on Monday 23 November." A full-colour **Bring back** button puts them all back at once. **Inbox zero** is only for an Inbox that is really empty.
+
+**Changed: File N lines remembers the place.**
+- Before: filing several lines with **Select** and **File N lines** did not put the place into **Recent**. PARAGON also read the whole notes folder again after every single line.
+- Now: the place goes to the top of **Recent**, as when you file one line. The notes folder is read once, at the end, so filing many lines is quicker. After a line that could not be moved, PARAGON reads everything again before the next line, as before.
+
+**Changed: the Inbox's own field adds the place name too.**
+- Before: with Settings › **Place name** › **Add the place name** on, only Quick capture added the place.
+- Now: a line typed into the capture field at the top of the Inbox also ends with the place, for example "Buy milk — at Malmö". The field is empty again at once, so you can type the next line while PARAGON looks up the place. With the switch off, nothing changes.
+
+**Changed: no dashed borders on the Inbox's four buttons.**
+- Before: **Today**, **Tomorrow** and **Pick a date** under a picked line had a dashed grey border when they were not chosen.
+- Now: a thin solid grey border. The chosen date is filled in the Inbox colour, as before.
+
+### Tasks and voice
+
+**New: ticking the last small step ticks the task.**
+- Before: when you ticked every small step (subtask) of a task, the task itself stayed open. You had to tick it as well.
+- Now: when you tick the last open step, the task is ticked too, and PARAGON says "All steps done, so “Pack the car” is done too." This works on a task row in any list and on a box in the note's text. If the task is itself a small step of another task, that one is ticked too when all its steps are done.
+- A cancelled step counts as finished, but at least one step must be done. A repeating task gets its next time, as with any tick.
+- Unticking a step does not open the task again. Untick the task yourself if you want it open.
+- Not yet: a step ticked in Apple Reminders does not tick its task.
+
+**Changed: the name of a voice setting.**
+- Before: Settings › Voice › **Check before filing**.
+- Now: **Check after filing**. Nothing else changed. The thought was always filed first, so nothing can be lost, and then the card **Check the thought** opens. The new name says what really happens.
+
+**New: German "am 25."**
+- Before: in a German recording, "am 25." (with a dot) was not read as a date.
+- Now: "am 25.", "zum 25." and "bis zum 25." are the 25th, the next such date (today included). This is only when the voice language is German. "am 25.11" (with the month) is still not read, and "am 25. November" loses the month.
+
+**Changed: Next free time says when a block runs past your working day.**
+- Where: on the iPhone, tap an action tile at the top of **Plan** and choose **Next free time**.
+- Before: the message was only "Added to your plan at 17:00.", also when the block ran into the evening.
+- Now: when the block ends after your working day (Settings › Tasks › **Working day ends**), the message says so: "Added to your plan at 17:00. That is after your working day, which ends at 16:00."
+- The block is still placed at the first free time, the same time as before. PARAGON does not refuse it: your working day is only a guide. **Pick a time…** fills in the same start.
+
+**Changed: the Weekly review remembers what you left open.**
+- Before (since build 312): every visit started with only the first part that had something to do open. The parts you had opened last time were folded again.
+- Now: once you have opened or folded a part yourself, the next visit starts with exactly the parts you left open. If you folded all of them, all stay folded. **Open all** and **Close all** count as a choice too.
+- Until you have pressed a heading once, it opens the first part that has something to do, as before. So the first visit after this update still looks like before.
+
+### Looks and words
+
+**Fixed: texts that were cut.**
+- Before: a long "Next: …" line on a project row, and the second line of an aspiration or a goal row, ended in "…".
+- Now: they wrap to a second line.
+
+**Changed: warnings in the darker orange.**
+- Before: four warnings were in Apple's lighter orange: the problem line under **Dictate**, the line "PARAGON may not use the location…" in Settings › **Place name**, the heading **Changed in both places** in the sync report, and the heading **Goals with no aspiration**.
+- Now: they use the same darker orange as every other warning.
+
+**Fixed (a guard): the Add a task bar after the keyboard goes.**
+- Before: once, on the iPhone, the **Add a task…** bar of a note was seen stuck in the middle of the page, after the keyboard had been up in **Search**.
+- Now: when the keyboard goes, PARAGON places the bar again. We never saw it happen a second time, so this is a guard. We cannot know yet if it cures it.
+
+**Changed: hints say what a control does.**
+- Before: many small hints and tips started with "Press …", for example "Press to close." or "Press Not today to hide it until tomorrow."
+- Now: they say what the control does: "Closes this part.", "Not today hides it until tomorrow.", "Renames this note.", "A day's line opens that day's note." The two picking lines on **Today** now start "Pick marks what matters today." The Mac's sync ring tip now says "A click opens Sync now and the other choices".
+- The words about the Action Button still say "press", because that is a real button.
+
+**Changed: overdue is red in the widgets.**
+- Before: the widgets drew overdue in orange: "2 over" in **Today's actions**, an overdue date on a line, the **overdue** number in **What is waiting**, and the **Overdue** list in **One list**.
+- Now: red, as in the app's task rows.
+
+**Changed: the sync button on the iPhone.**
+- Before (since build 312): a tap on the sync button at the top right opened a menu, so **Sync now** took 2 taps.
+- Now: a tap syncs at once. Press and hold it for the menu: **Sync now**, **Show me what would change…**, **Last sync report…** and **Sync settings…**. The iPad and the Mac are unchanged.
+
+**New: All recent notes on the iPhone.**
+- Before: **Browse** showed only the 5 notes you opened last. The whole list and its **Clear** were on the Mac only.
+- Now: under those 5 notes, a row **All recent notes**, with the number at the right, opens the whole list (up to 40, newest first). **Clear** at the top right empties it.
+
+### Signs: one sign, one meaning
+
+A ring means the state of a task. A dot means which part or which calendar. Some places used them for other things. They do not any more.
+
+- **Today in the month grid.** Before: today's date had a ring round it. Now: the date is bold with a short line under it. The day you chose still has a filled circle.
+- **Copying your notes.** Before: a step not reached yet had an empty ring. Now: a short grey dash.
+- **Safety.** Before: an amber dot on the Settings gear, in front of each Safety line that needs a look, and in front of the Mac's Safety line at the foot of the sidebar. Now: a small amber badge with a white **!**, in the same places.
+- **The focus timer.** Before: an orange dot in the bar at the foot, on the **Now** line on **Today** and in the Mac's menu bar. Now: the timer's own mark, orange while it runs and grey while it is paused. In the Mac's menu bar, while paused, the pause sign is shown as before.
+- **The now line.** Before: it started with a dot. Now: it starts with a short upright notch, in the same colour. This is in **Plan**, in the Calendar's day and in the **Today's plan** widget.
+- **The month grid above a day in Calendar.** Before: small dots under a day. Now: short bars. Tasks due are in the colour of the text, red when one is overdue. Calendar events are in the Calendar's purple. A day with a daily note has a grey bar.
+- **Calendar › Month.** Before: a purple dot under a day that has a daily note and nothing due or done. Now: a short purple bar.
+- **The Map.** Before: the box you drag over and the area you sweep while arranging were drawn in the accent colour you chose for your Mac (yours is orange). Now: the box you drag over is outlined in its own colour, and the area you sweep is in the Map's gold.
+- **Events and tasks in the month grid.** Before: the dot for events was in the accent colour too, and the dot for tasks due was in Today's purple, so the two could look alike. Now: events are in the Calendar's purple and tasks due are in the colour of the text (red when one is overdue), as above.
+
+**Not in this build.** Number words in a recording ("three") are still not read; this was left out on purpose. New colours, so that orange means only "needs a look", come in a later build, after you have chosen them.
 
 ## Build 351 · 21 November 2026
 

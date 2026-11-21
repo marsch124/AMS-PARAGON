@@ -30,7 +30,7 @@ Under the field you also find **Dictate** (speak instead of type), **Scan a list
 
 Pick a line and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it** (into a project or area). Captured notes sit under **Notes**, where **Make task** turns one into a task. When nothing is left, the screen says **Inbox zero**.
 
-In the Inbox, **Snooze until…** on a line's menu puts it away until a day, and **Select** lets you pick several lines and file them at once.
+In the Inbox, **Snooze until…** on a line's menu puts it away until a day (on the iPhone it is also at the end of **File it**), and **Select** lets you pick several lines and file them at once. When every line is snoozed, the Inbox says **All lines are snoozed** and when the first comes back; **Bring back** brings them all back.
 
 On the iPhone, **File it** lists the likely places first (since build 331). **Suggested** has up to 2 places whose name shares a telling word with the line. **Recent** has up to 3 places you last moved a task to on this phone. Under them, **All projects and areas** is the whole list, so nothing is hidden. With 6 places or fewer there are no groups. **Move to** on a line's menu has the same groups.
 
@@ -128,10 +128,10 @@ In **All actions**, the switch at the top has two halves, **Actions** and **Wait
 
 ### Small steps, energy, moves, places and people
 
-- **Small steps:** a task with subtasks shows a pie in its circle and "2/4". The pie is not a tick.
+- **Small steps:** a task with subtasks shows a pie in its circle and "2/4". The pie is not a tick. When you tick the last open step, the task is ticked too, and PARAGON says so. Unticking a step does not untick the task.
 - **Energy** on the task menu: **Easy**, **Medium**, **Hard**. **All actions** has boxes for them.
 - **Moved 5 times:** a task you keep moving to a later day gets this line and a menu: **Do it now**, **Split it**, **Drop it**.
-- **Remind me at a place…:** Apple Reminders rings when you arrive or leave. The task must be in a note that syncs.
+- **Remind me at a place…:** Apple Reminders rings when you arrive or leave. The task must be in a note that syncs. **Your places**, above the search field, offers **Home**, **Work** and the places you used before, with one press. Set Home and Work once in Settings › **Home and Work**.
 - **Person…** links a task or a note to someone in your Contacts. **Tags › People** lists everything about one person.
 
 ### Important, how long, next
@@ -196,13 +196,14 @@ The steps:
 8. **Look back at last week.** Your days, the lines from Close the day, time worked, what ended, and a box, **How was the week?**
 9. **Write the goal for the week.** One line; it shows under the date on Today.
 
-On the Mac, the headings scroll with the list and none sticks to the top (since build 333). Press **Review done** at the end; on the Mac it has room under it. That is enough for the week. Settings can remind you: **Remind me to do the weekly review**.
+The review remembers which parts you left open, and the next visit starts with those. On the Mac, the headings scroll with the list and none sticks to the top (since build 333). Press **Review done** at the end; on the Mac it has room under it. That is enough for the week. Settings can remind you: **Remind me to do the weekly review**.
 
 ## 9. Finding things
 
 - **Search:** on the iPhone, **Search notes** at the top of **Browse**; on the Mac, the toolbar field (Shift-Command-F). Type a word, then narrow it with tick boxes for tasks, kinds of note and tags. Writing "done" looks for the word; ticking **Done** asks for finished tasks.
 - **Map:** what serves what, goals at the top, then areas, projects and open tasks. A star is an aspiration, a target a goal with a date, a flag a project, four squares an area, books a resource. Click a box to open its note. On the Mac it has its own window (Shift-Command-M).
 - **Calendar:** **Day**, **Week**, **Month** and **Notes** (every daily and weekly note you have written). **Week** shows what is due each day; tasks without a date wait in **Not planned yet**, and you drag one onto a day.
+- **Recent:** the notes you opened last. On the Mac it is in the sidebar. On the iPhone the newest 5 are at the top of **Browse**, and **All recent notes** under them opens the whole list, with **Clear**.
 - **Done:** a diary of the last 12 weeks.
 - **Your year:** in **Done**, one page with what you finished in a year. **Share as PDF** is on it.
 - **Deleted:** deleted notes, kept for 30 days. **Put back** restores one.
@@ -220,7 +221,7 @@ What goes across:
 - Ticking, renaming, dating and deleting on either side carries over. A task with a time gets an alarm.
 - Goals stay out, because they are direction, not to-dos.
 
-Sync runs by itself every few minutes. Press the **sync ring** (foot of the sidebar on the Mac, top right of the screens on the iPhone) for **Sync now**, **Show me what would change…** and the last report. The ring is a small clock: green when the last sync is recent, yellow after a while, red after conflicts, grey before any sync. On the Mac, Shift-Command-R also syncs.
+Sync runs by itself every few minutes. On the Mac, click the **sync ring** at the foot of the sidebar for **Sync now**, **Show me what would change…** and the last report. On the iPhone, a tap on the sync button at the top right syncs at once; press and hold it for the same choices. The ring is a small clock: green when the last sync is recent, yellow after a while, red after conflicts, grey before any sync. On the Mac, Shift-Command-R also syncs.
 
 If a task changed on both sides, **Settings › Reminders sync** decides who wins: the note or the reminder.
 
@@ -248,7 +249,7 @@ When you delete a task on this device, PARAGON starts one quiet sync by itself a
 - **Conflict copies:** two devices changed a note at once and iCloud kept both.
 - **Reminders sync:** when it last ran.
 
-A small amber dot on the Settings gear (on the Mac, an amber line at the foot of the sidebar) says when something needs a look.
+A small amber badge with **!** on the Settings gear (on the Mac, an amber line at the foot of the sidebar) says when something needs a look. The same badge stands in front of each Safety line that needs a look.
 
 ## 12. Widgets, Siri and Shortcuts, sharing
 
@@ -294,7 +295,7 @@ Since build 348. iPhone and iPad with iOS 26 or newer; on the Mac the action is 
 **More for voice notes (since build 350).**
 - **Words you say:** dates ("tomorrow", "on Friday", "the 25th") and times ("at 3:30", "um 15 Uhr") become the task's date. "Remind me" makes a task. "Tag garden" adds a tag, "Idea …" lists an idea, "Title …" at the start names the note, and "stop recording" at the end stops and files.
 - **Pause and Mark** are buttons on the Lock Screen card. **Mark** marks the moment; that sentence is shown in bold under **Marked**.
-- **Check before filing** (Settings › Voice, on): the thought is filed at once, and a card lets you change the title and switch tasks off. **Throw it away** moves the note to **Deleted** for 30 days.
+- **Check after filing** (Settings › Voice, on): the thought is filed at once, and then a card lets you change the title and switch tasks off. **Throw it away** moves the note to **Deleted** for 30 days.
 - **Voice notes** (under **Look back** on the Mac, in **Browse › Plan** on the iPhone) lists every recording. Each row can **Read aloud**, **Write it up again** or be thrown away.
 - **Words it mishears** (Settings › Voice) teaches PARAGON your names. **Read the summary aloud** and **Summary in English** are in Settings › Voice too.
 - **Control Center:** you can add **Capture** and **Record a Thought** as buttons. They open PARAGON, so the phone must be unlocked.

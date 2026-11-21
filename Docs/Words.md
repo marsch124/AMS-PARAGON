@@ -73,10 +73,12 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Someday** — a task you have put aside: you want to keep it, but not now. It is on the task menu (right-click on the Mac, hold on the iPhone and the iPad); on a task already put aside the menu says **Not someday any more**. It writes the tag `#someday` on the task's line, so you can type it too. Putting a task aside takes its date, its time and its next-action mark off; a deadline stays. A task put aside is never a project's next action, and **All actions** leaves it out until you tick **Someday** in the **Mark** row.
 - **Not waiting any more** — on the task menu of a waiting line. It takes the words, the tag and the `@since` day off, and keeps the date.
 - **@since** — `@since(2026-11-01)` at the end of a waiting line: the day the waiting began. It is how the list can say "waited 5 days". A line without it never says how long.
-- **Small steps** — the subtasks of a task. A pie in the task's circle and "2/4" after the title show how many are done. The pie is not a tick: the task is done only when you tick it.
+- **Small steps** — the subtasks of a task. A pie in the task's circle and "2/4" after the title show how many are done. The pie is not a tick. When you tick the last open step, the task is ticked too, and PARAGON says so. Unticking a step does not untick the task.
 - **Energy** — how much effort a task takes: **Easy**, **Medium** or **Hard**. Set it on the task menu. It writes the tag #easy, #medium or #hard. **All actions** has a row of boxes for it.
 - **Moved N times** — said on a task you have moved to a later day many times (from 5). Its menu offers **Do it now**, **Split it** and **Drop it**. It is kept as `@moved(5)` on the line.
 - **Place reminder** — **Remind me at a place…** on the task menu. Apple Reminders rings when you arrive at, or leave, the place. It is kept as `@place(…)` on the line, and shown with a pin.
+- **Your places** — a row above the search field in **Remind me at a place**. It offers **Home**, **Work** and the places you used on tasks before, the most used first. Press one, then **Save**: no search needed.
+- **Home and Work** — two places you set once in Settings › **Home and Work** (**Set…**, then press the right answer). They come first in **Your places**. They are kept on this device only.
 - **Person** — someone from your Contacts that a task or a note is about. Set it with **Person…**. A task has one; a note can have several. **Tags › People** lists everything about each person. It is kept as `@person(…)` and `people:`.
 - **Tag** — a word with `#` in front, like `#travel`, on a task or in a note's `tags:` line. It groups things across notes. See **Tags** under **Tools**.
 
@@ -89,11 +91,11 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Plan** — the screen with your day on an hour ruler. It has the same name everywhere: the **Plan** row in the Mac's sidebar and the **Plan** tab on the iPhone. The lane inside it where your blocks sit is still called **Time blocks**.
 - **Plan block** — an orange block of time you set aside for something, like "09:30–11:00 Deep work". It is a line in the day's daily note, under **Plan**. It stays in PARAGON unless you tick **In Apple Calendar**.
 - **Time blocks lane** — the right-hand lane on **Plan**, where your plan blocks sit. Drop a task on an hour here to make a block. A task that has a time of day (**At**) is drawn here too, as a small grey card with a thin border and no orange, so you can tell it from a block. It cannot be moved.
-- **Next free time** — on the iPhone, in the small menu that opens when you tap an action at the top of **Plan**. It adds a plan block for the action at the first free time of the day, as long as the task's own time, or 60 minutes when it has none. It says "Added to your plan at 14:15.", or "No free time left on this day. Pick a time instead." when there is no room.
+- **Next free time** — on the iPhone, in the small menu that opens when you tap an action at the top of **Plan**. It adds a plan block for the action at the first free time of the day, as long as the task's own time, or 60 minutes when it has none. It says "Added to your plan at 14:15.", or "No free time left on this day. Pick a time instead." when there is no room. It looks before **Working day ends** first. When the block ends after your working day, the block is still added and the message says so: "… That is after your working day, which ends at 16:00."
 - **Pick a time…** — in the same menu. It opens the **New block** sheet with the action's name, its length and the next free start filled in, and you set the time yourself.
 - **Calendar lane** — the left-hand lane on **Plan**. It shows your Apple Calendar events and is read only.
 - **Apple Calendar blocks** — the older kind of block, which is a real event in Apple Calendar. Reach them with the calendar button on **Plan**.
-- **Now line** — the thin blue line that shows the time right now.
+- **Now line** — the thin blue line that shows the time right now. It starts with a short upright notch.
 - **Now and Then** — two short lines under the date on **Today**, on a day with a plan. The first starts with **Now** and names the plan block you are in, with a small orange clock button that starts the focus timer on it. The second starts with **Then** and names the next block. They are not the **Now line**, which is the thin blue line across the hours.
 - **Focus on this** — starts the focus timer on a task or a plan block. It is at the bottom of the list the **How long?** button opens, and first on a task's right-click menu (hold the task on the iPhone). Since build 312 a task with no time has the **How long?** button only while you pick on **Today** and in **Plan**, so everywhere else use the menu.
 - **Focus timer** — a clock on one task while you work. A bar at the foot of the screen shows it, with a pause button and a stop button. On the Mac the time also shows in the menu bar, on the right among the small icons there.
@@ -129,7 +131,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Capture** — writing something down quickly, to sort later. It goes to the Inbox. On the iPhone it starts with the round **+** button at the bottom right of **Today**, **Actions** and **Inbox**, just above the tab bar. In **New**, the button for it is called **Inbox**, because that is where the line lands.
 - **Dictate** — a chip under the Quick capture field. Press it and speak; the words appear in the field. It works on the device only.
 - **Scan a list** — a chip under the Quick capture field on the iPhone and iPad. It reads a paper list with the camera and makes one task of each line you keep.
-- **Snooze** — **Snooze until…** on an Inbox line's menu. The line leaves the Inbox until the day you choose, and comes back on that day. **Bring back** at the foot of the Inbox brings them all back. It is kept as `@snooze(…)`.
+- **Snooze** — **Snooze until…** on an Inbox line's menu. The line leaves the Inbox until the day you choose, and comes back on that day. **Bring back** at the foot of the Inbox brings them all back. When every line is snoozed, the Inbox says **All lines are snoozed**, when the first comes back, and offers **Bring back**. On the iPhone, **Snooze until…** is also at the end of **File it**. It is kept as `@snooze(…)`.
 - **Select** — the button above the Inbox list. It lets you pick several lines and file them together with **File N lines**.
 - **Place name** — Settings › **Place name**. When on, a line saved from Quick capture ends with where you are, like "— at Malmö". Off at start.
 - **New** — the screen that adds something: an aspiration, a goal, a project, an area, a resource, or a line for the Inbox. It opens with **+** or ⌘N.
@@ -152,7 +154,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Filter** — the button beside that switch. It shows the tick boxes that narrow the list, and folds them away again. It is there only on the **Actions** half.
 - **Search** — find words, with tick boxes for the kind of note and the state of tasks. On the iPhone it opens from the field **Search notes** at the very top of **Browse**.
 - **Saved search** — a search you kept, shown as a chip on the **Search** screen.
-- **Recent** — the notes you opened last. On the Mac it is a list in the sidebar. On the iPhone the newest ones, up to 5, are in one line at the top of **Browse**.
+- **Recent** — the notes you opened last. On the Mac it is a list in the sidebar. On the iPhone the newest ones, up to 5, are in one line at the top of **Browse**, and **All recent notes** under it opens the whole list (up to 40), with **Clear**.
 - **Done** (in the sidebar) — a diary of the last 12 weeks. For each day: the tasks you finished, the time on the focus timer, your line from **Close the day**, and what the work went towards. At the top, **Last 12 weeks** shows a small square for each day; the stronger the colour, the more was done. An empty square with an orange dashed edge is a day whose note is still coming from iCloud.
 - **Deleted** — notes you deleted. They are kept for 30 days and can be restored.
 - **Review done** — the button at the end of the **Weekly review**, under step 9, the last one. It keeps today's date as the day you did the review. When that day is more than 7 days ago, **Today** shows one line, like **Last weekly review: 9 days ago**.
@@ -163,7 +165,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 ## Voice notes
 
 - **Voice notes** — the row that lists every thought you recorded with **Record a Thought**, newest first. Under **Look back** on the Mac, in **Browse › Plan** on the iPhone.
-- **Check before filing** — a setting in Settings › Voice (on at start). The thought is filed at once; a card then lets you change the title and switch tasks off, or throw it away.
+- **Check after filing** — a setting in Settings › Voice (on at start). The thought is filed at once; a card then lets you change the title and switch tasks off, or throw it away. It was called **Check before filing** until build 352.
 - **Throw it away** — moves the newest voice note to **Deleted**, where it stays 30 days, and takes its tasks out of the Inbox.
 - **Write it up again** — on a voice note's menu: makes the summary again from the full text and adds tasks that are new.
 - **Words it mishears** — Settings › Voice. Names and odd words you say. PARAGON listens for them and writes them right.
@@ -181,7 +183,7 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 - **Notes folder** — the folder on your device or in iCloud that holds all your notes as plain text files.
 - **Not synced** — the words at the sync ring before the first sync. Before build 312 it said "Not synced yet".
-- **Synced … ago** — the words at the sync ring after a sync: **Synced just now** (under 1 minute), **Synced 5 min ago**, **Synced 3 h ago** (under 24 hours), then the date, like **Synced 2026-11-09**. One tap on the ring (one click on the Mac) shows its choices, with **Sync now** first. The ring in the Mac menu bar keeps its short words, like "10:55".
+- **Synced … ago** — the words at the sync ring after a sync: **Synced just now** (under 1 minute), **Synced 5 min ago**, **Synced 3 h ago** (under 24 hours), then the date, like **Synced 2026-11-09**. One click on the ring on the Mac, or one tap on the iPad, shows its choices, with **Sync now** first. On the iPhone a tap syncs at once; press and hold for the choices. The ring in the Mac menu bar keeps its short words, like "10:55".
 - **Reminders list:** — at the top of a project or an area: the list in Apple Reminders its tasks go to.
 - **Reminders sync** — tasks are copied both ways between PARAGON and Apple Reminders. Goals and aspirations never sync.
 - **Backup** — a dated copy of all your notes, made every day and before each sync, kept in tiers (last 5 before-sync copies, one per day for 14 days, one per week for 2 months). Since build 308 a second copy, with pictures and sketches, is made once a day outside the vault: on this device, or in a folder you choose.
