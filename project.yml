@@ -78,6 +78,7 @@ targets:
         # Each is asked only when its feature is first used, never at launch.
         NSLocationWhenInUseUsageDescription: PARAGON uses your location only to find places for reminders and, if you switch it on, to add the place name to things you capture.
         NSHealthShareUsageDescription: PARAGON reads your steps and workouts to write one line in your daily note. It never writes to Health.
+        NSHealthUpdateUsageDescription: PARAGON never writes to Health. It only reads your steps and workouts.
         NSContactsUsageDescription: PARAGON lets you choose a person from Contacts to link tasks and notes to them.
         # Build 348: Record a thought (Action Button, Siri, Shortcuts).
         NSMicrophoneUsageDescription: PARAGON listens while you record a thought and writes down what you say. Everything stays on the phone.

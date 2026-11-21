@@ -47,6 +47,8 @@
 	<string>PARAGON lets you choose a person from Contacts to link tasks and notes to them.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>PARAGON reads your steps and workouts to write one line in your daily note. It never writes to Health.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>PARAGON never writes to Health. It only reads your steps and workouts.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
