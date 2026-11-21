@@ -792,7 +792,8 @@ struct NoteEditorView: View {
                             paste: { offset, data, ext in pastePicture(data, ext: ext, at: offset) },
                             copyWords: { model.copyPictureWords($0) },
                             showWords: { offset, picture in showWords(of: picture, at: offset) },
-                            makeTasks: { offset, picture in makeTasks(of: picture, at: offset) })
+                            makeTasks: { offset, picture in makeTasks(of: picture, at: offset) },
+                            stepsDone: { message in model.flash(message) })
     }
 
     /// Build 290: the picture whose caption is being written, and the words so far.

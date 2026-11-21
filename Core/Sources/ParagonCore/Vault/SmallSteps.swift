@@ -52,4 +52,52 @@ public extension Note {
     func smallSteps(of task: TaskItem) -> SmallSteps {
         SmallSteps.of(task, in: tasks)
     }
+
+    /// **Round 352: ticking the last small step ticks the task.** Call this right after `step`
+    /// was ticked done in this note. When it is a small step, its parent is still open, and
+    /// every step under the parent is now done or cancelled (`SmallSteps.isComplete`), the
+    /// parent is ticked too — through `complete(task:)`, the same path as any tick, so it gets
+    /// its `@done(…)` stamp and a repeating parent gets its next time. It goes on upwards while
+    /// the same is true one level higher. Returns the tasks ticked this way (as they were,
+    /// innermost first), or an empty list. Unticking a step never unticks a parent: nothing
+    /// here is called for that.
+    @discardableResult
+    mutating func tickParentsWhenStepsDone(afterTicking step: TaskItem, at date: Date = Date(),
+                                           calendar: Calendar = .current) -> [TaskItem] {
+        var ticked: [TaskItem] = []
+        var current = step
+        for _ in 0..<20 {
+            guard let found = Self.doneLine(of: current, in: tasks),
+                  let parentLine = found.parentLineIndex,
+                  let parent = tasks.first(where: { $0.lineIndex == parentLine }),
+                  parent.status == .open,
+                  smallSteps(of: parent).isComplete else { break }
+            complete(task: parent, at: date, calendar: calendar)
+            ticked.append(parent)
+            current = parent
+        }
+        return ticked
+    }
+
+    /// The ticked line that `task` now is: by its id, else by its line and words, else the
+    /// first ticked task with its words. Nil when it is not ticked in the note.
+    private static func doneLine(of task: TaskItem, in all: [TaskItem]) -> TaskItem? {
+        if let id = task.id {
+            return all.first { $0.id == id && $0.status == .done }
+        }
+        return all.first { $0.lineIndex == task.lineIndex && $0.title == task.title && $0.status == .done }
+            ?? all.first { $0.title == task.title && $0.status == .done }
+    }
+}
+
+public extension SmallSteps {
+    /// The short message after a tick that also ticked the task above it:
+    /// "All steps done, so “Pack the car” is done too." Nil when nothing else was ticked.
+    static func parentsDoneMessage(_ titles: [String]) -> String? {
+        guard let first = titles.first else { return nil }
+        if titles.count == 1 { return "All steps done, so “\(first)” is done too." }
+        let quoted = titles.map { "“\($0)”" }
+        let names = quoted.dropLast().joined(separator: ", ") + " and " + quoted[quoted.count - 1]
+        return "All steps done, so \(names) are done too."
+    }
 }

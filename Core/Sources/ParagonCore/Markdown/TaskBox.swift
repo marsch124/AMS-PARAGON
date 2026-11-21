@@ -22,9 +22,25 @@ public enum TaskBox {
     }
 
     /// The text with the task on `offset`'s line ticked (or opened again), or nil when that
-    /// line is not a task.
+    /// line is not a task. The same as `tick(_:at:date:calendar:)` without the names.
     public static func toggled(_ text: String, at offset: Int, date: Date = Date(),
                                calendar: Calendar = .current) -> String? {
+        tick(text, at: offset, date: date, calendar: calendar)?.text
+    }
+
+    /// What a press on a box did: the new text, and the titles of the tasks above it that were
+    /// ticked too because their last small step was just ticked (round 352), innermost first.
+    public struct Tick: Equatable, Sendable {
+        public var text: String
+        public var parentsDone: [String]
+    }
+
+    /// Ticks (or opens again) the task on `offset`'s line, exactly as `toggled` always did, and
+    /// then — only when it was ticked done — ticks the task above it when that was its last
+    /// open small step (`Note.tickParentsWhenStepsDone`), so a box in the text behaves like a
+    /// task row. Opening a step again never opens its parent. Nil when that line is not a task.
+    public static func tick(_ text: String, at offset: Int, date: Date = Date(),
+                            calendar: Calendar = .current) -> Tick? {
         let ns = text as NSString
         guard ns.length > 0, offset >= 0, offset <= ns.length else { return nil }
         let line = ns.lineRange(for: NSRange(location: min(offset, ns.length - 1), length: 0))
@@ -33,6 +49,7 @@ public enum TaskBox {
         let ending = String(raw.dropFirst(content.count))
         guard var task = TaskParser.parse(line: content) else { return nil }
         var replacement: String
+        let ticksDone = !task.isDone
         if task.isDone {
             task.markOpen()
             replacement = task.serialized
@@ -45,7 +62,17 @@ public enum TaskBox {
                 replacement += "\n" + next.withIDForNewRepeat(avoiding: taken).serialized
             }
         }
-        return ns.replacingCharacters(in: line, with: replacement + ending)
+        let result = ns.replacingCharacters(in: line, with: replacement + ending)
+        guard ticksDone else { return Tick(text: result, parentsDone: []) }
+        // Round 352: the line's number in the text, to find the ticked step among the tasks.
+        let lineIndex = ns.substring(to: line.location).components(separatedBy: "\n").count - 1
+        var note = Note(relativePath: "", kind: .resource, body: result)
+        guard let step = note.tasks.first(where: { $0.lineIndex == lineIndex }) else {
+            return Tick(text: result, parentsDone: [])
+        }
+        let parents = note.tickParentsWhenStepsDone(afterTicking: step, at: date, calendar: calendar)
+        guard !parents.isEmpty else { return Tick(text: result, parentsDone: []) }
+        return Tick(text: note.body, parentsDone: parents.map { $0.title })
     }
 
     /// The checkbox button above the keyboard: turns the line holding `offset` into a task

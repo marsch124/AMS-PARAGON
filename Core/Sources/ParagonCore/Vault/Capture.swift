@@ -198,6 +198,8 @@ public extension Vault {
         let matches = note.tasks.filter { $0.status == .open && key($0) == wanted }
         guard matches.count == 1, let task = matches.first else { return false }
         _ = note.complete(task: task, at: date)
+        // Round 352: a tick from outside the app follows the same rule as a tick in it.
+        note.tickParentsWhenStepsDone(afterTicking: task, at: date)
         try save(note)
         return true
     }

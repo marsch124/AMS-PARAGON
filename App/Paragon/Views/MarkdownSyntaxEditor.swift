@@ -112,6 +112,10 @@ struct PictureHooks {
     var showWords: (Int, String) -> Void = { _, _ in }
     /// Build 298: Make tasks — where the picture's link starts in the markdown, and its file.
     var makeTasks: (Int, String) -> Void = { _, _ in }
+    /// Round 352: a box in the text ticked the task above it too (its last small step was
+    /// ticked). The message to show, "All steps done, so “X” is done too." Not a picture
+    /// hook, but this is the one bundle of closures the note screen hands the editor.
+    var stepsDone: (String) -> Void = { _ in }
 }
 
 /// A picture shown in the text in place of its `![…](…)` line. The line itself rides along,
@@ -1194,8 +1198,12 @@ struct MarkdownTextViewRepresentable: NSViewRepresentable {
 
         /// Ticks the task whose box was clicked, as an ordinary edit, so ⌘Z undoes it.
         func boxClicked(at offset: Int) {
-            guard let textView, let ticked = TaskBox.toggled(textView.string, at: offset) else { return }
-            replace(with: ticked, selection: nil)
+            guard let textView, let ticked = TaskBox.tick(textView.string, at: offset) else { return }
+            replace(with: ticked.text, selection: nil)
+            // Round 352: the last small step ticked the task above it too; say so.
+            if let message = SmallSteps.parentsDoneMessage(ticked.parentsDone) {
+                pictures?.stepsDone(message)
+            }
         }
 
         /// Build 287: the right-click menu on a box.
@@ -1682,12 +1690,16 @@ struct MarkdownTextViewRepresentable: UIViewRepresentable {
                 return
             }
             guard let textView, let offset = boxOffset(at: recognizer.location(in: textView)),
-                  let ticked = TaskBox.toggled(textView.text, at: offset) else { return }
+                  let ticked = TaskBox.tick(textView.text, at: offset) else { return }
             // Build 303: the soft tap when a box is ticked done (not when one is unticked).
-            if ticked.components(separatedBy: "[x]").count > textView.text.components(separatedBy: "[x]").count {
+            if ticked.text.components(separatedBy: "[x]").count > textView.text.components(separatedBy: "[x]").count {
                 Haptics.done()
             }
-            write(ticked, cursor: nil)
+            write(ticked.text, cursor: nil)
+            // Round 352: the last small step ticked the task above it too; say so.
+            if let message = SmallSteps.parentsDoneMessage(ticked.parentsDone) {
+                pictures?.stepsDone(message)
+            }
         }
 
         @objc func boxPressed(_ recognizer: UILongPressGestureRecognizer) {

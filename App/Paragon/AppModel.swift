@@ -2655,10 +2655,17 @@ final class AppModel: ObservableObject {
             guard !note.holdsDone(ref.task) else { return }
             // Build 303: a gentle tap you can feel (iPhone and iPad only).
             Haptics.done()
+            var said: [String] = []
             if let next = note.complete(task: ref.task) {
                 // Build 316: a repeat with only a deadline has no do-day to name.
-                flash("Done. Next time: \((next.dueDate ?? next.deadline)?.description ?? "")")
+                said.append("Done. Next time: \((next.dueDate ?? next.deadline)?.description ?? "")")
             }
+            // Round 352: ticking the last small step ticks the task above it too (Core rule).
+            let parents: [TaskItem] = note.tickParentsWhenStepsDone(afterTicking: ref.task)
+            if let message = SmallSteps.parentsDoneMessage(parents.map { $0.title }) {
+                said.append(message)
+            }
+            if !said.isEmpty { flash(said.joined(separator: " ")) }
         }
         saveSettling(note)
     }
