@@ -13,7 +13,7 @@ enum VoiceSettings {
     static let readKey = "voiceReadAloud"
     static let languageKey = "voiceLanguage"
 
-    /// **Check before filing**: on unless he turned it off.
+    /// **Check after filing**: on unless he turned it off.
     static var checksFirst: Bool {
         UserDefaults.standard.object(forKey: checkKey) as? Bool ?? true
     }

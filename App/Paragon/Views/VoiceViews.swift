@@ -158,7 +158,7 @@ struct VoiceNotesView: View {
     }
 }
 
-/// **Check the thought**: the card after a recording (Settings › Voice › Check before
+/// **Check the thought**: the card after a recording (Settings › Voice › Check after
 /// filing). The thought is already filed; **Save** keeps it with the changes made here,
 /// **Cancel** keeps it as it is, **Throw it away** takes it back out (the note goes to Deleted).
 struct VoiceCheckView: View {

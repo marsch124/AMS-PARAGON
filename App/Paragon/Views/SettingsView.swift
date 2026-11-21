@@ -1296,7 +1296,8 @@ struct SafetyNoticeBar: View {
 struct VoiceSection: View {
     @AppStorage("voiceLanguage") private var language = ""
     @AppStorage("voiceSummaryEnglish") private var summaryInEnglish = false
-    // Round 350 (voice-controls): the two switches. Check before filing is on until he turns it off.
+    // Round 350 (voice-controls): the two switches. Check after filing is on until he turns it off.
+    // Round 352: it was called "Check before filing", which was untrue: the thought is filed first.
     @AppStorage(VoiceSettings.checkKey) private var checkFirst = true
     @AppStorage(VoiceSettings.readKey) private var readAloud = false
 
@@ -1316,14 +1317,14 @@ struct VoiceSection: View {
             }
             NavigationLink("Words it mishears") { VoiceWordsPage() }
                 .accessibilityIdentifier("settings.voiceWords")
-            Toggle("Check before filing", isOn: $checkFirst)
+            Toggle("Check after filing", isOn: $checkFirst)
                 .accessibilityIdentifier("settings.voiceCheckFirst")
             Toggle("Read the summary aloud", isOn: $readAloud)
                 .accessibilityIdentifier("settings.voiceReadAloud")
         } header: {
             Text("Voice")
         } footer: {
-            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Check before filing, a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done.")
+            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done.")
         }
     }
 }

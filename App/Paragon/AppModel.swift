@@ -140,7 +140,7 @@ enum AppSheet: String, Identifiable {
     /// Build 332: **One thing** — a calm page with only the one next task.
     case oneThing
     /// Round 350 (voice-controls): **Check the thought** — the card that waits for him after a
-    /// recording (Settings › Voice › Check before filing).
+    /// recording (Settings › Voice › Check after filing).
     case voiceCheck
 
     var id: String { rawValue }
