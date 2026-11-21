@@ -215,6 +215,10 @@ public enum DayPlan {
     public static func nextFreeMessage(_ slot: FreeSlot?, workdayEnds: Int) -> String {
         guard let slot else { return "No free time left on this day. Pick a time instead." }
         if slot.endsAfterWorkday {
+            // A block that starts before the working day ends but runs past it is not "after" it.
+            if slot.start < workdayEnds {
+                return "Added to your plan at \(PlanBlock.clock(slot.start)). It runs past the end of your working day at \(PlanBlock.clock(workdayEnds))."
+            }
             return "Added to your plan at \(PlanBlock.clock(slot.start)). That is after your working day, which ends at \(PlanBlock.clock(workdayEnds))."
         }
         return "Added to your plan at \(PlanBlock.clock(slot.start))."

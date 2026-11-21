@@ -289,6 +289,8 @@ final class DayPlanTests: XCTestCase {
                        "Added to your plan at 10:00.")
         XCTAssertEqual(DayPlan.nextFreeMessage(DayPlan.FreeSlot(start: 960, endsAfterWorkday: true), workdayEnds: ends),
                        "Added to your plan at 16:00. That is after your working day, which ends at 16:00.")
+        XCTAssertEqual(DayPlan.nextFreeMessage(DayPlan.FreeSlot(start: 930, endsAfterWorkday: true), workdayEnds: ends),
+                       "Added to your plan at 15:30. It runs past the end of your working day at 16:00.")
         XCTAssertEqual(DayPlan.nextFreeMessage(nil, workdayEnds: ends), "No free time left on this day. Pick a time instead.")
     }
 }
