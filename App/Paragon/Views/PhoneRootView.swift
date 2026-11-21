@@ -512,7 +512,10 @@ struct PhoneBrowseView: View {
             // the page itself, not on a card, so they read as the head of the screen.
             Section {
                 searchField
-                if !recent.isEmpty { recentStrip }
+                if !recent.isEmpty {
+                    recentStrip
+                    allRecentRow
+                }
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
@@ -599,6 +602,26 @@ struct PhoneBrowseView: View {
 
     /// The notes on the strip: `BrowseRule` says how many.
     private var recent: [Note] { BrowseRule.recentStrip(model.recentNotes) }
+
+    /// Round 352: the strip shows five; this row opens the whole Recent list (up to forty), the
+    /// same list the Mac has in its sidebar, with **Clear** in its top bar.
+    private var allRecentRow: some View {
+        NavigationLink(value: PhoneRoute.section(.recent)) {
+            HStack(spacing: Theme.gap) {
+                Text("All recent notes")
+                    .font(Txt.label)
+                Spacer(minLength: 0)
+                Text("\(model.recentNotes.count)")
+                    .font(Txt.label)
+                    .foregroundStyle(.faint)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .foregroundStyle(.soft)
+            .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("browse.recent.all")
+    }
 
     /// The one search, at the top (round 6, his pick). It looks like a field and opens the
     /// Search screen with the keyboard up, so the words, the boxes and the results are the
