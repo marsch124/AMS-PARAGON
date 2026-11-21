@@ -612,7 +612,9 @@ struct AspirationRow: View {
                 Text(secondLine)
                     .font(Txt.listSecond)
                     .foregroundStyle(.soft)
-                    .lineLimit(1)
+                    // Round 352: two lines, wrapped rather than cut.
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 2)
@@ -696,7 +698,9 @@ struct DatedGoalRow: View {
         Text(second.text)
             .font(Txt.listSecond)
             .foregroundStyle(second.late ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
-            .lineLimit(1)
+            // Round 352: two lines, wrapped rather than cut.
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private func secondLine(_ health: ChainGoal) -> (text: String, late: Bool)? {

@@ -493,8 +493,9 @@ struct ProjectRow: View {
             ViewThatFits(in: .horizontal) {
                 needLine(count: second.count, words: ProjectFacts.text(second.lead + second.rest))
                 VStack(alignment: .leading, spacing: 1) {
-                    needLine(count: second.count, words: ProjectFacts.text(second.lead),
-                             lines: second.rest.isEmpty ? 2 : 1)
+                    // Round 352: always two lines for "Next: …", also when other facts follow
+                    // on the line below (it was cut after one line then).
+                    needLine(count: second.count, words: ProjectFacts.text(second.lead), lines: 2)
                     if !second.rest.isEmpty {
                         ProjectFacts.text(second.rest)
                             .lineLimit(1)
