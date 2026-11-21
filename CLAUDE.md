@@ -5534,3 +5534,22 @@ possibly `downloadAndInstall()`, and the intent ran past its time limit.
   252 s against ~156) and passed on the one re-run; nothing near the focus timer changed in 353. A second
   failure is real: look at the timer mark in `FocusBar` (build 352 changed the dot to `MarkImage("timer")`).
 - 353 uploaded to TestFlight (iPhone + Mac) on 21 Nov; not yet tried by him.
+
+## Build 354 (21 November 2026) — why a press did nothing
+
+His report on 353: Voice said **Ready** (grey, he asked for a green sign) and, with PARAGON closed, a press of
+the Action Button showed nothing and recorded nothing (screen recording; only one frame arrived).
+- **Suspect, not proven:** `showActivity` used `try? Activity.request` and skipped it when
+  `areActivitiesEnabled` was false. An `AudioRecordingIntent` must show a Live Activity to record in the
+  background; without one iOS stops the recording silently, and since 353 `perform` returned "" at once,
+  so nothing was said. Now `activityProblem` keeps the reason and `start` throws `Problem.noLiveActivity`
+  when the card is missing and the app is not active (on screen it still records without one).
+- `VoiceReadiness` (struct, replaces the tuple) adds **Live Activities**; `VoiceReadyLine` draws a green
+  tick or the Safety "!" badge (a DOT would break build 352's signs rule). All fine: "Ready to record" with a
+  tick, no grey disabled button. Ids `settings.voiceLiveActivities`, `settings.voiceReady` (row or button).
+- **`VoiceLog`** (VoiceRecorder.swift, UserDefaults `voiceLog`, last 40 lines, per device) notes every step
+  of a press; `VoiceLogPage` ("Last presses", link **What the last presses did**, `settings.voiceLog`,
+  `voiceLog.copy`, `voiceLog.clear`). 🪤 **A press from the Action Button has no screen: log each step to a
+  place the user can screenshot, or every report is a guess.** An empty log after a press = the press
+  never reached PARAGON (Action Button / Shortcuts set-up), not a recorder fault.
+

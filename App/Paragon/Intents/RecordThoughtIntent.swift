@@ -27,7 +27,9 @@ struct RecordThoughtIntent: AppIntent {
         guard #available(iOS 26.0, *) else { throw VoiceProblem.tooOld }
         let recorder = VoiceRecorder.shared
         if recorder.isRecording {
-            switch await recorder.stopAndFile(into: place == .today ? .today : nil) {
+            let outcome = await recorder.stopAndFile(into: place == .today ? .today : nil)
+            VoiceLog.note("Stop finished: \(VoiceLog.words(for: outcome)).")
+            switch outcome {
             case .saved(let title, let tasks):
                 let found = tasks == 0 ? "" : tasks == 1 ? " One task found." : " \(tasks) tasks found."
                 let where_ = recorder.place == .today ? "today's note" : "Inbox"
@@ -43,8 +45,10 @@ struct RecordThoughtIntent: AppIntent {
         do {
             try await recorder.start(into: place)
         } catch {
+            VoiceLog.note("The press ended with: \(error.localizedDescription)")
             throw VoiceProblem.cannotStart(error.localizedDescription)
         }
+        VoiceLog.note("The press returned. Recording goes on.")
         // No spoken answer here: it would be recorded.
         return .result(dialog: "")
     }

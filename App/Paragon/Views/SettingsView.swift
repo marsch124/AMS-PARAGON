@@ -1,5 +1,8 @@
 import SwiftUI
 import ParagonCore
+#if os(iOS)
+import UIKit
+#endif
 
 struct SettingsView: View {
     @EnvironmentObject private var model: AppModel
@@ -1299,35 +1302,48 @@ struct SafetyNoticeBar: View {
 @available(iOS 26.0, *)
 struct VoiceReadyRows: View {
     let language: String
-    @State private var microphone = "…"
-    @State private var model = "…"
-    @State private var ready = false
+    @State private var found = VoiceReadiness()
+    @State private var looked = false
     @State private var working = false
     @State private var answer = ""
 
     var body: some View {
-        LabeledContent("Microphone", value: microphone)
+        VoiceReadyLine(title: "Microphone", value: found.microphone, ok: found.microphoneOK, looked: looked)
             .accessibilityIdentifier("settings.voiceMicrophone")
             .task(id: language) { await look() }
-        LabeledContent("Speech model", value: model)
+        VoiceReadyLine(title: "Live Activities", value: found.liveActivities, ok: found.liveActivitiesOK, looked: looked)
+            .accessibilityIdentifier("settings.voiceLiveActivities")
+        VoiceReadyLine(title: "Speech model", value: found.model, ok: found.modelOK, looked: looked)
             .accessibilityIdentifier("settings.voiceModel")
-        Button(working ? "Getting ready…" : (ready ? "Ready" : "Get ready")) {
-            press()
+        // Build 354: when all three are fine there is nothing to press, so no grey button —
+        // a green tick and words, the way the Safety summary says "Everything is safe".
+        if found.ready && !working {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                MarkImage("checkmark", text: .footnote)
+                    .foregroundStyle(Color.green)
+                Text("Ready to record")
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("settings.voiceReady")
+        } else {
+            Button(working ? "Getting ready…" : "Get ready") {
+                press()
+            }
+            .disabled(working || !looked)
+            .accessibilityIdentifier("settings.voiceReady")
         }
-        .disabled(working || ready)
-        .accessibilityIdentifier("settings.voiceReady")
         if !answer.isEmpty {
             Text(answer)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("settings.voiceReadyAnswer")
         }
+        NavigationLink("What the last presses did") { VoiceLogPage() }
+            .accessibilityIdentifier("settings.voiceLog")
     }
 
     private func look() async {
-        let found = await VoiceRecorder.shared.readiness()
-        microphone = found.microphone
-        model = found.model
-        ready = found.ready
+        found = await VoiceRecorder.shared.readiness()
+        looked = true
     }
 
     private func press() {
@@ -1338,6 +1354,84 @@ struct VoiceReadyRows: View {
             await look()
             working = false
         }
+    }
+}
+
+/// Build 354: one line of Settings › Voice — a green tick when it is fine, the "!" badge of the
+/// Safety section when it needs a look, nothing while it is still being checked.
+struct VoiceReadyLine: View {
+    let title: String
+    let value: String
+    let ok: Bool
+    let looked: Bool
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+            Spacer(minLength: 8)
+            Text(value)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+            if looked {
+                if ok {
+                    MarkImage("checkmark", text: .footnote)
+                        .foregroundStyle(Color.green)
+                        .frame(width: 14)
+                } else {
+                    Text("!")
+                        .font(Txt.tiny.weight(.heavy))
+                        .foregroundStyle(Color.white)
+                        .frame(width: 12, height: 12)
+                        .background(Theme.attention, in: Circle())
+                        .frame(width: 14)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Build 354: the steps of the last presses of **Record a Thought** (`VoiceLog`), newest last.
+/// A press from the Action Button happens with PARAGON out of sight; this shows where it stopped.
+struct VoiceLogPage: View {
+    @State private var lines: [String] = []
+    @State private var copied = false
+
+    var body: some View {
+        List {
+            Section {
+                if lines.isEmpty {
+                    Text("Nothing yet. Press the Action Button, then come back here.")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("voiceLog.empty")
+                } else {
+                    ForEach(lines.indices, id: \.self) { index in
+                        Text(lines[index])
+                            .font(Txt.label)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            } footer: {
+                Text("Kept on this iPhone only. Send a screenshot of this page if Record a Thought does not work.")
+            }
+            Section {
+                Button(copied ? "Copied" : "Copy all lines") {
+                    UIPasteboard.general.string = lines.joined(separator: "\n")
+                    copied = true
+                }
+                .disabled(lines.isEmpty)
+                .accessibilityIdentifier("voiceLog.copy")
+                Button("Clear the list", role: .destructive) {
+                    VoiceLog.clear()
+                    lines = []
+                }
+                .disabled(lines.isEmpty)
+                .accessibilityIdentifier("voiceLog.clear")
+            }
+        }
+        .navigationTitle("Last presses")
+        .onAppear { lines = VoiceLog.lines }
     }
 }
 

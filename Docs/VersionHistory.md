@@ -1,6 +1,17 @@
 # Version history
 
-The version is shown as 1.0 (353) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (354) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 354 · 21 November 2026
+
+**Record a Thought: PARAGON now says why a press from the Action Button did nothing.**
+
+- **The fault:** with PARAGON closed, a press of the Action Button showed nothing and recorded nothing. No message came either. iOS lets an app record in the background only while the recording shows on the Lock Screen (a Live Activity). If iOS did not show that card, PARAGON did not notice, and iOS stopped the recording at once without a word.
+- **Now a press says so.** If the Lock Screen card cannot be shown while PARAGON is not on screen, the press stops and says why, for example: "Live Activities are turned off for PARAGON. … Turn on Live Activities in the Settings app › Apps › PARAGON, then press again."
+- **New line in Settings › Voice: Live Activities** (On or Off), between **Microphone** and **Speech model**.
+- **Each line has a sign now**, the way the Safety section does it: a green tick when it is fine, the orange **!** when it needs a look. When all three are fine, there is no grey button any more: the last line says **Ready to record** with a green tick. Otherwise the button says **Get ready**.
+- **New: What the last presses did**, at the foot of Settings › Voice. It lists each step of the last presses with the time: whether PARAGON was on screen or in the background, whether the Lock Screen card was shown, whether the microphone listened, whether the speech model was ready, when the first words were heard, and how the stop ended. **Copy all lines** and **Clear the list** are on the page. If a press still does nothing, a screenshot of this page shows where it stopped. If the page stays empty after a press, the press never reached PARAGON.
+- **Not tried on a real iPhone yet.**
 
 ## Build 353 · 21 November 2026
 

@@ -36,6 +36,8 @@ final class VoiceRecorder {
         case microphoneNotAskedYet
         case modelDownloading
         case noMicrophone
+        // Build 354: iOS records in the background only while the Lock Screen card shows.
+        case noLiveActivity(String)
 
         var errorDescription: String? {
             switch self {
@@ -51,6 +53,8 @@ final class VoiceRecorder {
                 return "No microphone is free right now. Is a call or another recording on?"
             case .modelDownloading:
                 return "The iPhone is getting Apple's speech model. Open PARAGON › Settings › Voice and press Get ready, or try again in a few minutes."
+            case .noLiveActivity(let why):
+                return "\(why) iOS only lets PARAGON record in the background while the recording shows on the Lock Screen. Turn on Live Activities in the Settings app › Apps › PARAGON, then press again."
             }
         }
     }
@@ -84,6 +88,10 @@ final class VoiceRecorder {
     private var finished = ""
     private var volatile = ""
     private var activity: Activity<VoiceActivityAttributes>?
+    /// Build 354: why the last Lock Screen card could not be shown, in words.
+    private var activityProblem = ""
+    /// Build 354: the first words of a recording are written to `VoiceLog` once.
+    private var loggedFirstWords = false
     private var lastShown = Date.distantPast
     private var limit: Task<Void, Never>?
     private var locale = Locale(identifier: "en-US")
@@ -104,9 +112,16 @@ final class VoiceRecorder {
     // MARK: Start
 
     func start(into target: CaptureTarget = .inbox) async throws {
-        guard !isRecording else { return }
-        guard !isWriting else { throw Problem.busy }
-        try await askForMicrophoneIfItCanBeAsked()
+        VoiceLog.note("Press to start. PARAGON was \(VoiceLog.appState()).")
+        guard !isRecording else { VoiceLog.note("Already recording."); return }
+        guard !isWriting else { VoiceLog.note("Refused: still writing up the last thought."); throw Problem.busy }
+        do {
+            try await askForMicrophoneIfItCanBeAsked()
+        } catch {
+            VoiceLog.note("Microphone: \(error.localizedDescription)")
+            throw error
+        }
+        loggedFirstWords = false
 
         place = target == .today ? .today : .inbox
         stopHeardAlready = false
@@ -120,6 +135,17 @@ final class VoiceRecorder {
         isRecording = true
         // The Live Activity first: an `AudioRecordingIntent` must show one while it records.
         await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
+        if activity == nil {
+            VoiceLog.note("Lock Screen card: not shown. \(activityProblem)")
+            // Build 354: without the card iOS stops a recording in the background at once, and
+            // the press used to end in silence. On screen PARAGON can record without it.
+            if UIApplication.shared.applicationState != .active {
+                isRecording = false
+                throw Problem.noLiveActivity(activityProblem)
+            }
+        } else {
+            VoiceLog.note("Lock Screen card: shown.")
+        }
 
         // Build 353: the microphone starts **before** the speech-to-text is set up, and the press
         // returns as soon as it listens. Setting up Apple's speech model can take several seconds
@@ -143,6 +169,7 @@ final class VoiceRecorder {
             try engine.start()
             self.engine = engine
             startedAt = Date()
+            VoiceLog.note("Microphone: listening.")
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 
             limit = Task { @MainActor [weak self] in
@@ -156,6 +183,7 @@ final class VoiceRecorder {
                 await self?.attachSpeechToText(raw: raw, heard: heard)
             }
         } catch {
+            VoiceLog.note("Could not start: \(error.localizedDescription)")
             await tearDown()
             isRecording = false
             await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: "", intoToday: intoToday),
@@ -174,6 +202,7 @@ final class VoiceRecorder {
             if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
                 // In the background a download takes too long: it is started, and this recording ends.
                 guard UIApplication.shared.applicationState == .active else {
+                    VoiceLog.note("Speech model: not on the iPhone. The download was started.")
                     Task { @MainActor in try? await install.downloadAndInstall() }
                     throw Problem.modelDownloading
                 }
@@ -196,12 +225,17 @@ final class VoiceRecorder {
             let (stream, builder) = AsyncStream<AnalyzerInput>.makeStream()
             input = builder
             try await analyzer.start(inputSequence: stream)
+            VoiceLog.note("Speech model: ready (\(chosen.locale.identifier)).")
 
             results = Task { @MainActor [weak self] in
                 do {
                     for try await result in transcriber.results {
                         guard let self else { return }
                         let text = String(result.text.characters)
+                        if !self.loggedFirstWords, !text.isEmpty {
+                            self.loggedFirstWords = true
+                            VoiceLog.note("First words heard.")
+                        }
                         if result.isFinal {
                             self.finished = [self.finished, text].joined(separator: " ")
                                 .trimmingCharacters(in: .whitespaces)
@@ -246,6 +280,7 @@ final class VoiceRecorder {
             }
             if isRecording, !isPaused { await showActivity(listeningState("Listening…")) }
         } catch {
+            VoiceLog.note("Speech model: \(error.localizedDescription)")
             guard isRecording else { return }
             limit?.cancel()
             limit = nil
@@ -264,6 +299,7 @@ final class VoiceRecorder {
     /// Build 349: `into` (the Lock Screen's second button) files it there instead of where the
     /// recording was meant to go.
     func stopAndFile(into chosen: CaptureTarget? = nil) async -> Outcome {
+        VoiceLog.note("Stop asked for. PARAGON was \(VoiceLog.appState()).")
         guard isRecording else {
             // A Stop left on the Lock Screen by an app that was closed meanwhile.
             for old in Activity<VoiceActivityAttributes>.activities { await old.end(nil, dismissalPolicy: .immediate) }
@@ -491,25 +527,35 @@ final class VoiceRecorder {
 
     /// What Settings › Voice shows: is the microphone allowed, and is the speech model here.
     /// Changes nothing.
-    func readiness() async -> (microphone: String, model: String, ready: Bool) {
-        let mic: String
-        let micOK: Bool
+    func readiness() async -> VoiceReadiness {
+        var found = VoiceReadiness()
         switch AVAudioApplication.shared.recordPermission {
-        case .granted: mic = "Allowed"; micOK = true
-        case .denied: mic = "Not allowed. Turn it on in the Settings app › PARAGON › Microphone."; micOK = false
-        default: mic = "Not asked yet"; micOK = false
+        case .granted: found.microphone = "Allowed"; found.microphoneOK = true
+        case .denied: found.microphone = "Not allowed. Turn it on in the Settings app › Apps › PARAGON › Microphone."
+        default: found.microphone = "Not asked yet"
+        }
+        // Build 354: without Live Activities iOS stops a recording that PARAGON is not on screen for.
+        if ActivityAuthorizationInfo().areActivitiesEnabled {
+            found.liveActivities = "On"
+            found.liveActivitiesOK = true
+        } else {
+            found.liveActivities = "Off. Turn them on in the Settings app › Apps › PARAGON › Live Activities."
         }
         guard let transcriber = await chosenTranscriber() else {
-            return (mic, "This iPhone cannot turn speech into text in the chosen language.", false)
+            found.model = "This iPhone cannot turn speech into text in the chosen language."
+            return found
         }
         do {
             if try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) == nil {
-                return (mic, "Ready", micOK)
+                found.model = "Ready"
+                found.modelOK = true
+            } else {
+                found.model = "Not on this iPhone yet"
             }
-            return (mic, "Not on this iPhone yet", false)
         } catch {
-            return (mic, "Could not be checked: \(error.localizedDescription)", false)
+            found.model = "Could not be checked: \(error.localizedDescription)"
         }
+        return found
     }
 
     /// **Get ready** in Settings › Voice, pressed while PARAGON is on screen: asks for the
@@ -538,7 +584,14 @@ final class VoiceRecorder {
             for old in Activity<VoiceActivityAttributes>.activities { await old.end(nil, dismissalPolicy: .immediate) }
             activity = nil
             if ActivityAuthorizationInfo().areActivitiesEnabled {
-                activity = try? Activity.request(attributes: VoiceActivityAttributes(startedAt: startedAt), content: content, pushType: nil)
+                do {
+                    activity = try Activity.request(attributes: VoiceActivityAttributes(startedAt: startedAt), content: content, pushType: nil)
+                    activityProblem = ""
+                } catch {
+                    activityProblem = "iOS refused it: \(error.localizedDescription)."
+                }
+            } else {
+                activityProblem = "Live Activities are turned off for PARAGON."
             }
         } else {
             await activity?.update(content)
@@ -732,4 +785,55 @@ final class FirstAnswer<T>: @unchecked Sendable {
         waiting?.resume(returning: value)
     }
 }
+/// Build 354: what Settings › Voice shows about the three things a recording needs.
+struct VoiceReadiness {
+    var microphone = "…"
+    var microphoneOK = false
+    var liveActivities = "…"
+    var liveActivitiesOK = false
+    var model = "…"
+    var modelOK = false
+    var ready: Bool { microphoneOK && liveActivitiesOK && modelOK }
+}
+
+/// Build 354: what the last presses of **Record a Thought** did, step by step, shown in
+/// Settings › Voice. A press from the Action Button happens with PARAGON out of sight, so this
+/// list is the only way to see where it stopped. Kept on this iPhone only, the last 40 lines.
+enum VoiceLog {
+    private static let key = "voiceLog"
+    private static let kept = 40
+
+    static func note(_ line: String) {
+        let clock = Date().formatted(date: .omitted, time: .standard)
+        var lines = UserDefaults.standard.stringArray(forKey: key) ?? []
+        lines.append("\(clock)  \(line)")
+        if lines.count > kept { lines.removeFirst(lines.count - kept) }
+        UserDefaults.standard.set(lines, forKey: key)
+    }
+
+    static var lines: [String] { UserDefaults.standard.stringArray(forKey: key) ?? [] }
+
+    static func clear() { UserDefaults.standard.removeObject(forKey: key) }
+
+    @available(iOS 26.0, *)
+    static func words(for outcome: VoiceRecorder.Outcome) -> String {
+        switch outcome {
+        case .saved(let title, let tasks): return "saved \"\(title)\", \(tasks) tasks"
+        case .kept: return "kept, to be filed when PARAGON next opens the notes"
+        case .nothingHeard: return "nothing heard"
+        case .notRecording: return "nothing was recording"
+        }
+    }
+
+    @MainActor
+    static func appState() -> String {
+        switch UIApplication.shared.applicationState {
+        case .active: return "on screen"
+        case .inactive: return "half on screen"
+        case .background: return "in the background"
+        @unknown default: return "in an unknown state"
+        }
+    }
+}
+
 #endif
