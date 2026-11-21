@@ -1,6 +1,16 @@
 # Version history
 
-The version is shown as 1.0 (350) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (351) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 351 · 21 November 2026
+
+**The Health line is here (iPhone and iPad).** Build 350 had to leave it out, because Apple had not yet allowed PARAGON to read Health. You switched that on, so it is in now.
+
+- **New: a Health line in the daily note.** Settings › **Health** › **Health line in the daily note**, off at start. When you turn it on, Health asks to read your steps and workouts. PARAGON then writes one line under **Health** in today's daily note, like "Steps 8,412 · Walk 35 min", when you open the app (at most every 30 minutes).
+- PARAGON only reads Health. It never writes to Health.
+- Nothing is written on a day without steps or a workout.
+- If you already wrote your own text under a **Health** heading in a daily note, PARAGON leaves it alone and writes nothing there.
+- **Permission:** Health asks only when you turn the switch on, never when the app starts.
 
 ## Build 350 · 20 November 2026
 

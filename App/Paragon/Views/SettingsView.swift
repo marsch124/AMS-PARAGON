@@ -372,9 +372,8 @@ struct SettingsView: View {
             #if os(iOS)
             // Build 348: the language of Record a thought.
             VoiceSection()
-            // Round 350: the health line in the daily note waits for the HealthKit option on the
-            // App ID (his choice 21 Nov 2026: ship without it). Put HealthLineSection() back here
-            // together with the healthkit entitlement once it is switched on.
+            // Round 350: the health line in the daily note (off until switched on).
+            HealthLineSection()
             #endif
             SystemSearchSection()
 
