@@ -615,7 +615,8 @@ struct PlanRuler: View {
 
     // MARK: Now
 
-    /// The same line as the app's `NowLine` (Theme.swift): 1.5 points, with a 7-point dot.
+    /// The same line as the app's `NowLine` (Theme.swift): 1.5 points, with a 9-point upright
+    /// notch at its start (round 352; it was a 7-point dot).
     @ViewBuilder
     private func nowMarker(_ geometry: RulerGeometry) -> some View {
         if geometry.contains(minute) {
@@ -623,13 +624,13 @@ struct PlanRuler: View {
                 Rectangle()
                     .fill(PlanLook.now)
                     .frame(height: 1.5)
-                Circle()
+                RoundedRectangle(cornerRadius: 1.5)
                     .fill(PlanLook.now)
-                    .frame(width: 7, height: 7)
-                    .offset(x: -3)
+                    .frame(width: 3, height: 9)
+                    .offset(x: -1.5)
             }
-            .frame(width: max(0, geometry.size.width - geometry.gutter), height: 7, alignment: .leading)
-            .offset(x: geometry.gutter, y: geometry.y(forMinute: minute) - 3.5)
+            .frame(width: max(0, geometry.size.width - geometry.gutter), height: 9, alignment: .leading)
+            .offset(x: geometry.gutter, y: geometry.y(forMinute: minute) - 4.5)
         }
     }
 }

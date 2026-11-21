@@ -1222,15 +1222,18 @@ struct NowLine: View {
     var body: some View {
         Group {
             if let offset {
+                // Round 352: a short upright notch at the start of the line, not a dot — a
+                // dot means "which part" in this app. 9 points tall, so the line (the middle)
+                // sits where it sat before: one point higher offset than the old 7-point dot.
                 HStack(spacing: 0) {
-                    Circle()
+                    RoundedRectangle(cornerRadius: 1.5)
                         .fill(Theme.nowTint)
-                        .frame(width: 7, height: 7)
+                        .frame(width: 3, height: 9)
                     Rectangle()
                         .fill(Theme.nowTint)
                         .frame(height: 1.5)
                 }
-                .offset(x: leading - 3, y: offset)
+                .offset(x: leading - 1.5, y: offset - 1)
                 .allowsHitTesting(false)
             }
         }
