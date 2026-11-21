@@ -193,7 +193,7 @@ struct PhoneRootView: View {
 /// "Synced at" pill on Today is gone. A ring round the button is full just after a sync and
 /// runs down over two hours — green for the first hour, then yellow; a whole red ring when
 /// the last sync had conflicts — with a small word under it (the time, "Yesterday", …).
-/// Press = the small menu, Sync now first (build 312; it was sync at once, menu on a long press).
+/// Tap = Sync now, long press = the small menu (round 352; build 312 had made a tap the menu).
 /// Build 300: the clock ring and the word under it are wider than the round glass iOS 26
 /// draws behind a toolbar button, which cut the word off — so this one item has none.
 struct PhoneSyncItem: ToolbarContent {
@@ -214,8 +214,8 @@ struct PhoneSyncButton: View {
     private var conflicts: Int { model.lastReport?.conflicts.count ?? 0 }
 
     var body: some View {
-        // Build 312 (review round 6): a plain tap opens the small menu, **Sync now** first.
-        // Until now a tap synced at once and the other choices hid behind a long press.
+        // Build 312 (review round 6) made a plain tap open the small menu. Round 352 turned
+        // it back, at his request: a tap is **Sync now**, a long press is the menu.
         Menu {
             SyncChoices {
                 model.settingsJumpToSync = true
@@ -228,6 +228,10 @@ struct PhoneSyncButton: View {
             // A Menu paints its label in the tab's tint, which turned the grey caption into
             // a pale colour that was hard to read; primary keeps it the grey it was.
             .foregroundStyle(Color.primary)
+        } primaryAction: {
+            // Round 352 (his choice): a tap syncs at once again, as build 300 meant; the
+            // menu is a long press away. `primaryAction` gives a Menu exactly that pair.
+            syncNow()
         }
         .buttonStyle(.plain)
         .tint(Color.primary)
@@ -243,6 +247,12 @@ struct PhoneSyncButton: View {
 
     private func label(now: Date) -> some View {
         SyncRingMark(now: now, axis: .vertical, ring: 26)
+    }
+
+    /// The tap: the same as the menu's **Sync now**, and nothing while a sync runs.
+    private func syncNow() {
+        guard !model.isSyncing else { return }
+        Task { await model.syncNow() }
     }
 }
 
