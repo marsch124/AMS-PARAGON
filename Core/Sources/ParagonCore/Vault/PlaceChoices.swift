@@ -79,8 +79,9 @@ public enum PlaceChoices {
                              limit: Int = PlaceChoices.shownAtOnce) -> [KnownPlace] {
         var result: [KnownPlace] = []
         var spots = Set<String>()
-        for place in [home, work].compactMap({ $0 }) where spots.insert(place.spot).inserted {
-            result.append(place)
+        let saved: [KnownPlace] = [home, work].compactMap { $0 }
+        for place in saved {
+            if spots.insert(place.spot).inserted { result.append(place) }
         }
         for place in used where !spots.contains(place.spot) {
             result.append(place)
