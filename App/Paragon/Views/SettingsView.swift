@@ -1219,17 +1219,20 @@ struct SafetySection: View {
     }
 }
 
-/// A green tick when a Safety line is fine, an amber dot when it needs a look.
+/// A green tick when a Safety line is fine, an amber badge with "!" when it needs a look —
+/// the same badge as on the gear (round 352; it was a plain dot, and a dot means "which part").
 struct SafetyMark: View {
     let needsALook: Bool
 
     var body: some View {
         if needsALook {
-            Circle()
-                .fill(Theme.attention)
-                .frame(width: 8, height: 8)
+            Text("!")
+                .font(Txt.tiny.weight(.heavy))
+                .foregroundStyle(Color.white)
+                .frame(width: 12, height: 12)
+                .background(Theme.attention, in: Circle())
                 .frame(width: 14)
-                .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 3 }
+                .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 1 }
         } else {
             MarkImage("checkmark", text: .footnote)
                 .foregroundStyle(Color.green)
