@@ -113,11 +113,38 @@ public enum InboxSnooze {
 
     /// The confirmation: "Back in the Inbox on Monday 23 November."
     public static func message(until day: DateOnly, calendar: Calendar = .current) -> String {
-        guard let date = day.date(calendar: calendar) else { return "Snoozed until \(day)." }
+        guard let words = dayWords(day, calendar: calendar) else { return "Snoozed until \(day)." }
+        return "Back in the Inbox on \(words)."
+    }
+
+    /// "Monday 23 November", or nil when the day cannot be made into a date.
+    static func dayWords(_ day: DateOnly, calendar: Calendar) -> String? {
+        guard let date = day.date(calendar: calendar) else { return nil }
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.dateFormat = "EEEE d MMMM"
-        return "Back in the Inbox on \(formatter.string(from: date))."
+        return formatter.string(from: date)
+    }
+
+    /// Round 352: the day the first snoozed line comes back, among a note's tasks. Only open,
+    /// top-level lines count, as in the Inbox list.
+    public static func firstBack(_ tasks: [TaskItem], on day: DateOnly) -> DateOnly? {
+        tasks.filter { !$0.isDone && !$0.isSubtask && $0.isSnoozed(on: day) }
+            .compactMap(\.snooze)
+            .min()
+    }
+
+    /// Round 352: what the Inbox says when every line is snoozed (it is not "Inbox zero").
+    /// "1 line comes back on Monday 23 November." / "3 lines are snoozed. The first comes back
+    /// on Monday 23 November."
+    public static func allSnoozedText(count: Int, firstBack: DateOnly?, calendar: Calendar = .current) -> String {
+        let words: String? = firstBack.flatMap { dayWords($0, calendar: calendar) }
+        if count == 1 {
+            if let words { return "1 line comes back on \(words)." }
+            return "1 line comes back later."
+        }
+        if let words { return "\(count) lines are snoozed. The first comes back on \(words)." }
+        return "\(count) lines are snoozed. They come back later."
     }
 }
 

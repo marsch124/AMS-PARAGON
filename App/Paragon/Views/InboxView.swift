@@ -127,6 +127,13 @@ struct InboxTriageView: View {
         return base + later
     }
 
+    /// Round 352: when every line is snoozed, how many and when the first comes back.
+    private var allSnoozedText: String {
+        let tasks: [TaskItem] = inbox?.tasks ?? []
+        return InboxSnooze.allSnoozedText(count: snoozedCount,
+                                          firstBack: InboxSnooze.firstBack(tasks, on: DateOnly.today()))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             captureBar
@@ -143,6 +150,17 @@ struct InboxTriageView: View {
                                actionTitle: "Ask iCloud again",
                                action: { model.fetchMissingNotes() },
                                warns: true)
+            } else if items.isEmpty, notes.isEmpty, snoozedCount > 0 {
+                // Round 352: not "Inbox zero" when lines are only put aside. Say when they come
+                // back, and offer the same **Bring back** as the row at the foot of the list.
+                EmptyStateView(title: "All lines are snoozed",
+                               markName: "tray",
+                               message: allSnoozedText,
+                               tint: SidebarSection.inbox.tint,
+                               actionTitle: "Bring back",
+                               action: { model.bringSnoozedBack() },
+                               hint: allSnoozedText,
+                               actionIdentifier: "inbox.snoozed.bringBack")
             } else if items.isEmpty, notes.isEmpty {
                 EmptyStateView(title: "Inbox zero",
                                markName: "tray",

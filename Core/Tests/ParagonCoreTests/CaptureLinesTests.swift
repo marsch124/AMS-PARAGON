@@ -61,4 +61,27 @@ final class CaptureLinesTests: XCTestCase {
         XCTAssertEqual(InboxSnooze.nextMonday(after: DateOnly(year: 2026, month: 11, day: 23), calendar: calendar),
                        DateOnly(year: 2026, month: 11, day: 30))
     }
+
+    // Round 352: the Inbox when every line is snoozed.
+    func testTheInboxSaysWhenSnoozedLinesComeBack() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Stockholm") ?? .current
+        let today = DateOnly(year: 2026, month: 11, day: 21)
+        let tasks: [TaskItem] = [
+            TaskItem(title: "Later", snooze: DateOnly(year: 2026, month: 11, day: 30)),
+            TaskItem(title: "Sooner", snooze: DateOnly(year: 2026, month: 11, day: 23)),
+            TaskItem(title: "Back already", snooze: DateOnly(year: 2026, month: 11, day: 21)),
+            TaskItem(title: "Not snoozed"),
+        ]
+        let first = try XCTUnwrap(InboxSnooze.firstBack(tasks, on: today))
+        XCTAssertEqual(first, DateOnly(year: 2026, month: 11, day: 23))
+        XCTAssertNil(InboxSnooze.firstBack([TaskItem(title: "Plain")], on: today))
+        let words = try XCTUnwrap(InboxSnooze.dayWords(first, calendar: calendar))
+        XCTAssertEqual(InboxSnooze.allSnoozedText(count: 1, firstBack: first, calendar: calendar),
+                       "1 line comes back on \(words).")
+        XCTAssertEqual(InboxSnooze.allSnoozedText(count: 2, firstBack: first, calendar: calendar),
+                       "2 lines are snoozed. The first comes back on \(words).")
+        XCTAssertEqual(InboxSnooze.allSnoozedText(count: 2, firstBack: nil, calendar: calendar),
+                       "2 lines are snoozed. They come back later.")
+    }
 }
