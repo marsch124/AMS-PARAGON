@@ -5470,3 +5470,25 @@ the container: CI compiled all of it first time; Core and screen tests went gree
   PARAGON can read; dictation refuses without a microphone or during a recording.
 - Shipped with the GitHub TestFlight workflow (it works again; `Tools/ship.sh` on his Mac is the other way).
 - Next round (his yes): the tidy-up round — 350 leftovers, the small look/word list, the signs check.
+
+## Build 352 (21 November 2026) — the tidy-up round
+
+His yes of 20 Nov ("your recommendation is very good"): 350 leftovers + list B + the signs check, shown first as
+one numbered tick-list (23 items). He answered "All except 6b" (number words in voice). Built in three lanes in
+git worktrees (inbox, tasks, looks); per-item facts, exact words and identifiers in `Work/round352/*.md`.
+- **List B was mostly done already**: 26 of its 39 points were fixed in builds 316–324. **Always check an old
+  list against the code before showing it** — three Explore agents did this in about four minutes.
+- **The signs rule**: RING = a task's state only (month today = bold date + line; copy steps = grey dash; the
+  sync clock ring stays, his choice). DOT = which part / which calendar only (Safety = "!" badge, focus = timer
+  mark, now line = notch, day grid = short bars). The Mac's accent colour (his is orange) is never a sign.
+  Month grid: events = Calendar purple, tasks due = text colour (red when overdue).
+- **Item 21 (orange = "needs a look" only) is NOT in 352**: it needs new colours for plan blocks + focus and for
+  the morning button, and he must pick them. Choice page: https://claude.ai/artifact/Tv1bsbBX1gApoM5smrckt5
+  (1A/1B/1C, 2A/2B/2C; my suggestion 1B copper, 2C coral). Build it when he answers.
+- **Item 14 as asked changed nothing**: the free-time search only moves forward, so "until working day end, then
+  midnight" finds the same start. Built instead: the message says when a block runs past the working day.
+- **Item 2** also ticks a parent from AMS Seedboard's tick; a step ticked in Apple Reminders does not tick its parent.
+- 🪤 `EmptyStateView` decides its sentence by `tint == .orange`, so its orange tints were left alone.
+- The tick-list's source is his memory repo `AMS-Claude-Rules` (`memory/project_paragon_tidyup_round.md`,
+  `memory/project_paragon_round9_start.md`); this cloud session was not allowed to attach it and read the old
+  session's transcript instead (list_events).
