@@ -103,7 +103,7 @@ final class FocusStatusItem: NSObject {
         button.setAccessibilityLabel("Focus clock \(clock)\(state), \(session.title)")
     }
 
-    /// Running: the plan-block orange dot, the same dot as the bar at the foot of the window.
+    /// Running: the timer mark in plan-block orange, as in the bar at the foot of the window.
     /// Paused: a pause sign drawn as a **template** image (build 258). The menu bar paints a
     /// template image itself, in the colour it gives the time beside it, so the sign is exactly
     /// as easy to see as the time on a light, dark or see-through bar. A fixed colour gets no such
@@ -116,11 +116,15 @@ final class FocusStatusItem: NSObject {
         if paused {
             return Marks.nsImage("pause.circle", size: 12)
         }
+        // Round 352: the timer's own mark in the planner's orange, not a dot — a dot means
+        // "which part" in this app. The mark is drawn as a template (black) and then painted
+        // orange where it has ink, so it keeps its colour on any menu bar.
         let colour = NSColor(named: "PlanTint") ?? .systemOrange
-        let size: CGFloat = 8
-        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
-            colour.setFill()
-            NSBezierPath(ovalIn: rect).fill()
+        let mark: NSImage = Marks.nsImage("timer", size: 13)
+        let image = NSImage(size: mark.size, flipped: false) { rect in
+            mark.draw(in: rect)
+            colour.set()
+            rect.fill(using: .sourceAtop)
             return true
         }
         image.isTemplate = false

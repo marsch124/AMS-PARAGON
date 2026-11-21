@@ -561,8 +561,8 @@ private struct NowAndNextLines: View {
         .accessibilityIdentifier("today.next")
     }
 
-    /// The clock button, or — while the focus timer already runs on this block — a small dot in
-    /// its place: orange while it runs, grey while paused. **Never a button that does nothing**
+    /// The clock button, or — while the focus timer already runs on this block — the timer's
+    /// mark in its place (round 352; it was a dot): orange while it runs, grey while paused. **Never a button that does nothing**
     /// (build 175). The clock is matched to the block by name, the way **Planned and worked**
     /// matches them (build 259), so a clock started on the task the block was made from counts.
     /// The button goes through the same `startFocus(onBlock:on:)` as the block's menu in **Plan
@@ -571,9 +571,9 @@ private struct NowAndNextLines: View {
     @ViewBuilder
     private func nowControl(for block: PlanBlock, on day: DateOnly) -> some View {
         if let session = model.focus, NowAndNext.sameName(session.title, block.title) {
-            Circle()
-                .fill(session.isPaused ? Color.secondary : Theme.planBlockTint)
-                .frame(width: 7, height: 7)
+            // Round 352: the timer's own mark, not a dot — a dot means "which part" here.
+            MarkImage("timer", size: 13)
+                .foregroundStyle(session.isPaused ? Color.secondary : Theme.planBlockTint)
                 .accessibilityElement()
                 .accessibilityLabel(Self.runningWords(session))
                 .accessibilityIdentifier("today.now.running")

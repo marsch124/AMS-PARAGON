@@ -59,9 +59,9 @@ struct FocusBar: View {
         HStack(spacing: 10) {
             // Paused: the bar's own page colour, faded. `Color.secondary` was the bar's ink at
             // half strength on that same ink, so the paused dot could not be seen (build 258).
-            Circle()
-                .fill(session.isPaused ? AnyShapeStyle(.background.opacity(0.55)) : AnyShapeStyle(Theme.planBlockTint))
-                .frame(width: 9, height: 9)
+            // Round 352: the timer's own mark, not a dot — a dot means "which part" here.
+            MarkImage("timer", size: 14)
+                .foregroundStyle(session.isPaused ? AnyShapeStyle(.background.opacity(0.55)) : AnyShapeStyle(Theme.planBlockTint))
             VStack(alignment: .leading, spacing: 1) {
                 Text(session.title)
                     .font(Txt.label)
