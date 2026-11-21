@@ -5450,3 +5450,23 @@ His ask after looking at the Flowtica Verso (an E Ink voice note-taker): the iPh
 - `App/Shared/VoiceActivityShared.swift` + `ParagonWidgets/VoiceLiveActivityWidget.swift`: the Live Activity (preparing / listening / writing / saved / nothing), red dot + red **Stop** (`StopVoiceIntent`, a `LiveActivityIntent`), the Inbox tray mark in green when saved. Bridge set in `ReminderAppDelegate`.
 - Settings › Voice (`VoiceSection`, `@AppStorage("voiceLanguage")`: "" / en-US / de-DE / sv-SE). Info.plist: microphone + speech words, `UIBackgroundModes: [audio]`.
 - Test hook `-paragon-voice-demo` (DEBUG, with `-paragon-test-vault`): 20 s of sample words on the Lock Screen, then the real write-up and filing. On the iOS 27 simulator Apple's model answered (title "Hall Drawer and Saturday Plans", 2 tasks). 🪤 A tap on a Live Activity button in the simulator's locked screen works (StopVoiceIntent ran). NOT proven: a real microphone recording and the Action Button on his phone.
+
+## Builds 350 and 351 (20–21 November 2026) — his 36 picks, from a cloud session
+
+Built in five lanes by helpers in git worktrees (voice-words, voice-controls, capture-inbox, tasks-pages,
+permissions); per-pick facts with exact words and identifiers are in `Work/round350/*.md`. No compiler in
+the container: CI compiled all of it first time; Core and screen tests went green after small fixes.
+- **New task markers**, all LAST `TaskItem` init parameters with defaults, serialized before `@done`, never in
+  a Reminders title: `@place(Name|lat,lon|arrive)`, `@person(Name)`, `@moved(N)` (counted in `settingDue`
+  when the do-day moves later — so a reschedule to a later day writes `@moved(1)`), `@snooze(YYYY-MM-DD)`.
+- 🪤 **ICU regex: never start a character class with a colon** (`[:.]`): ICU reads `[:` as a
+  `[:Property:]` class and the whole pattern fails to compile, silently under `try?`. The Swedish
+  "klockan 14" was lost that way. Use `(?:\.|:)`.
+- 🪤 **HealthKit**: the App ID needed HealthKit ticked by him in the developer portal (21 Nov), AND
+  `NSHealthUpdateUsageDescription` is required at upload even for read-only use. 350 shipped without
+  the Health line; 351 has it.
+- Review fixes before shipping: his own `## Health` text is never replaced (`HealthLine.isOwn`); Throw away
+  removes the lines before the note and never one of two identical lines; sync touches only place alarms
+  PARAGON can read; dictation refuses without a microphone or during a recording.
+- Shipped with the GitHub TestFlight workflow (it works again; `Tools/ship.sh` on his Mac is the other way).
+- Next round (his yes): the tidy-up round — 350 leftovers, the small look/word list, the signs check.
