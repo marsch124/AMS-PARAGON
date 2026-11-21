@@ -543,10 +543,10 @@ struct InboxLineMenu: View {
 /// phone, which has no third column.
 ///
 /// The three date buttons use build 142's two-state language — the tint filled with a solid
-/// border for the one the line is already set to, grey with a dashed border for the others —
-/// so the quadrant also says where the line stands. **File it keeps a solid grey border**: it
-/// opens a menu rather than setting anything, so "off" is not a state it can be in, and
-/// drawing it dashed would say something untrue.
+/// border for the one the line is already set to, a thin solid grey border for the others —
+/// so the quadrant also says where the line stands. **Off is never dashed** (build 281's rule
+/// for `StateToggle`, carried here in round 352; `LookRulesTests` checks it). **File it** has
+/// the same grey border: it opens a menu and is never "on".
 struct InboxQuadrant: View {
     @EnvironmentObject private var model: AppModel
     let ref: TaskRef
@@ -590,14 +590,20 @@ struct InboxQuadrant: View {
                 Menu {
                     if !filesDirectly {
                         InboxLineMenu(ref: ref, rename: rename)
-                    } else if destinations.isEmpty {
-                        // An empty menu opens as nothing at all (build 100): say why.
-                        Text("No project or area yet")
                     } else {
-                        FilingPlaces(ref: ref, places: destinations)
+                        if destinations.isEmpty {
+                            // An empty menu opens as nothing at all (build 100): say why.
+                            Text("No project or area yet")
+                        } else {
+                            FilingPlaces(ref: ref, places: destinations)
+                        }
+                        // Round 352: the same **Snooze until…** as the line's long press, so
+                        // the phone can put a line aside from the four buttons too.
+                        Divider()
+                        InboxSnoozeMenu(ref: ref)
                     }
                 } label: {
-                    face("tray.and.arrow.down", "File it", isOn: false, dashed: false)
+                    face("tray.and.arrow.down", "File it", isOn: false)
                 }
                 .menuIndicator(.hidden)
                 .accessibilityIdentifier("inbox.quad.file")
@@ -610,13 +616,13 @@ struct InboxQuadrant: View {
     private func button(_ symbol: String, _ title: String, id: String,
                         isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            face(symbol, title, isOn: isOn, dashed: true)
+            face(symbol, title, isOn: isOn)
         }
         .accessibilityIdentifier("inbox.quad.\(id)")
         .help(title)
     }
 
-    private func face(_ symbol: String, _ title: String, isOn: Bool, dashed: Bool) -> some View {
+    private func face(_ symbol: String, _ title: String, isOn: Bool) -> some View {
         VStack(spacing: 3) {
             MarkImage(symbol)
             Text(title)
@@ -635,8 +641,7 @@ struct InboxQuadrant: View {
         .overlay {
             RoundedRectangle(cornerRadius: 9)
                 .strokeBorder(isOn ? tint.opacity(0.75) : Color.primary.opacity(0.3),
-                              style: StrokeStyle(lineWidth: isOn ? 1.3 : 1.1,
-                                                 dash: (isOn || !dashed) ? [] : [3.5, 2.5]))
+                              lineWidth: isOn ? 1.3 : 1.1)
         }
         .contentShape(RoundedRectangle(cornerRadius: 9))
     }

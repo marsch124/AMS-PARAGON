@@ -103,15 +103,25 @@ final class LookRulesTests: XCTestCase {
     /// dashed shape left in the app is the Icon… button while nothing is chosen, which is a
     /// placeholder and means to look like one.
     func testTheTwoStateButtonIsNotDashed() throws {
-        let theme = appFolder.appendingPathComponent("Paragon/Views/Theme.swift")
-        let text = try String(contentsOf: theme, encoding: .utf8)
-        guard let start = text.range(of: "struct StateToggle") else {
-            XCTFail("Theme.swift has no StateToggle any more; move this test to where it went.")
+        try assertNotDashed("struct StateToggle", in: "Paragon/Views/Theme.swift",
+                            "StateToggle draws a dashed line. Its off state is a thin solid border (build 281).")
+        // Round 352: the Inbox's four buttons (Today, Tomorrow, Pick a date, File it) follow
+        // the same rule.
+        try assertNotDashed("struct InboxQuadrant", in: "Paragon/Views/InboxView.swift",
+                            "The Inbox's four buttons draw a dashed line. Off is a thin solid border (round 352).")
+    }
+
+    /// Fails when the struct that starts with `start` (up to the next top-level `struct`)
+    /// draws a dashed line.
+    private func assertNotDashed(_ start: String, in path: String, _ message: String) throws {
+        let file = appFolder.appendingPathComponent(path)
+        let text = try String(contentsOf: file, encoding: .utf8)
+        guard let found = text.range(of: start) else {
+            XCTFail("\(path) has no \(start) any more; move this test to where it went.")
             return
         }
-        let rest = text[start.upperBound...]
+        let rest = text[found.upperBound...]
         let end = rest.range(of: "\nstruct ")?.lowerBound ?? rest.endIndex
-        XCTAssertFalse(rest[..<end].contains("dash:"),
-                       "StateToggle draws a dashed line. Its off state is a thin solid border (build 281).")
+        XCTAssertFalse(rest[..<end].contains("dash:"), message)
     }
 }
