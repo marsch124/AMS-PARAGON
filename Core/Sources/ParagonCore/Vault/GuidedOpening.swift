@@ -30,6 +30,15 @@ public enum ReviewOpening {
         return firstToDo(parts).map { [$0] } ?? []
     }
 
+    /// **Round 352: the review remembers what he left open.** At the start of a visit: when he
+    /// has ever opened or folded a part himself (`chosenByHand`), the parts he left open last
+    /// time (`leftOpen`) — also none, when he folded them all. Only when nothing is remembered
+    /// does the first part with something to do open by itself (build 312).
+    public static func openAtStartOfVisit(parts: [Part], leftOpen: Set<String>, chosenByHand: Bool) -> Set<String> {
+        if chosenByHand { return leftOpen }
+        return open(parts: parts, byHand: leftOpen, visitStarted: false)
+    }
+
     /// **Build 331: the loose tasks moved from step 9 to step 3**, so old steps 3 to 8 became 4
     /// to 9. The remembered open parts keep the step number as their id; this maps one such
     /// text (ids one per line) once, so a remembered old number opens the same step as before.

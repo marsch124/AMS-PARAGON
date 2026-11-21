@@ -20,6 +20,19 @@ final class GuidedOpeningTests: XCTestCase {
         XCTAssertFalse(ReviewOpening.isTicked(toDo: nil))
     }
 
+    /// Round 352: what he left open last time is what the next visit starts with; the first
+    /// part with something to do opens by itself only while nothing is remembered.
+    func testTheReviewStartsWithThePartsHeLeftOpen() {
+        let parts = [ReviewOpening.Part("due", toDo: 0), .init("1", toDo: 0), .init("2", toDo: 3),
+                     .init("5", toDo: 1), .init("8", toDo: nil)]
+        // Nothing remembered yet: the first part with something to do.
+        XCTAssertEqual(ReviewOpening.openAtStartOfVisit(parts: parts, leftOpen: ["6"], chosenByHand: false), ["2"])
+        // He chose before: exactly what he left open, even a part with nothing to do.
+        XCTAssertEqual(ReviewOpening.openAtStartOfVisit(parts: parts, leftOpen: ["5", "8"], chosenByHand: true), ["5", "8"])
+        // He folded them all: all stay folded.
+        XCTAssertEqual(ReviewOpening.openAtStartOfVisit(parts: parts, leftOpen: [], chosenByHand: true), [])
+    }
+
     func testAnExplanationShowsThreeTimesThenFolds() {
         var opens = 0
         var shown: [Bool] = []

@@ -19,6 +19,10 @@ struct ReviewView: View {
     /// opening a step on the phone does not open it on the Mac (build 161's pair).
     @AppStorage("reviewOpenParts") private var deskOpenText = ""
     @AppStorage("reviewOpenPartsPhone") private var phoneOpenText = ""
+    // Round 352: true once he has opened or folded a part himself on this platform. From then
+    // on a visit starts with the parts he left open (`ReviewOpening.openAtStartOfVisit`).
+    @AppStorage("reviewOpenPartsByHand") private var deskChoseByHand = false
+    @AppStorage("reviewOpenPartsByHandPhone") private var phoneChoseByHand = false
     /// Build 331: the loose tasks became step 3 and old steps 3 to 8 became 4 to 9. True once
     /// the two remembered texts above have been mapped to the new numbers (done once).
     @AppStorage("reviewStepsRenumbered331") private var stepsRenumbered = false
@@ -330,7 +334,8 @@ struct ReviewView: View {
         toDoParts(report, due: due).first { $0.id == part }?.toDo
     }
 
-    /// Once per visit: the first part with something to do is open, the others folded.
+    /// Once per visit: the parts he left open last time; while nothing is remembered, the
+    /// first part with something to do is open, the others folded (round 352).
     private func startVisit() {
         if !stepsRenumbered {
             deskOpenText = ReviewOpening.renumberedForLooseStepFirst(deskOpenText)
@@ -339,8 +344,8 @@ struct ReviewView: View {
         }
         guard !visitStarted else { return }
         let parts = toDoParts(model.index.review(config: model.config), due: model.dueForReview().count)
-        let open = ReviewOpening.open(parts: parts, byHand: Self.ids(in: openText.wrappedValue),
-                                      visitStarted: false)
+        let open = ReviewOpening.openAtStartOfVisit(parts: parts, leftOpen: Self.ids(in: openText.wrappedValue),
+                                                    chosenByHand: choseByHand.wrappedValue)
         visitStarted = true
         openText.wrappedValue = open.sorted().joined(separator: "\n")
     }
@@ -350,6 +355,9 @@ struct ReviewView: View {
     /// The open set for this platform.
     private var openText: Binding<String> { isPhone ? $phoneOpenText : $deskOpenText }
 
+    /// Round 352: whether he has opened or folded a part himself on this platform.
+    private var choseByHand: Binding<Bool> { isPhone ? $phoneChoseByHand : $deskChoseByHand }
+
     private func isOpen(_ part: String) -> Bool {
         Self.ids(in: openText.wrappedValue).contains(part)
     }
@@ -358,8 +366,12 @@ struct ReviewView: View {
     /// so **Open all** and a heading can never disagree.
     private func openBinding(_ part: String) -> Binding<Bool> {
         let text = openText
+        let byHand = choseByHand
         return Binding(get: { Self.ids(in: text.wrappedValue).contains(part) },
-                       set: { text.wrappedValue = Self.storing(part, opening: $0, in: text.wrappedValue) })
+                       set: { opening in
+                           byHand.wrappedValue = true
+                           text.wrappedValue = Self.storing(part, opening: opening, in: text.wrappedValue)
+                       })
     }
 
     /// The parts drawn right now: **Projects with no goal** only while there are such projects,
@@ -375,6 +387,7 @@ struct ReviewView: View {
     }
 
     private func openOrCloseAll(_ report: ReviewReport) {
+        choseByHand.wrappedValue = true
         openText.wrappedValue = anyFolded(report) ? Self.parts.joined(separator: "\n") : ""
     }
 
