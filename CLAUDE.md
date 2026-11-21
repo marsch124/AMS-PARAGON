@@ -5492,3 +5492,20 @@ git worktrees (inbox, tasks, looks); per-item facts, exact words and identifiers
 - The tick-list's source is his memory repo `AMS-Claude-Rules` (`memory/project_paragon_tidyup_round.md`,
   `memory/project_paragon_round9_start.md`); this cloud session was not allowed to attach it and read the old
   session's transcript instead (list_events).
+
+## Build 353 (21 November 2026) — Get ready for Record a Thought
+
+His report on 352: the Action Button showed PARAGON, but **Record a Thought** ended in "timeout because an
+unknown error". Cause found by reading, NOT proven on his phone: nothing in the app ever asked for the
+microphone or downloaded the speech model, so the first press from the Action Button (app in the background)
+called `AVAudioApplication.requestRecordPermission()` — iOS cannot show that question in the background — and
+possibly `downloadAndInstall()`, and the intent ran past its time limit.
+- `VoiceRecorder.askForMicrophoneIfItCanBeAsked()`: granted → go; denied → `.microphoneRefused`; not asked and
+  app not active → `.microphoneNotAskedYet` at once (never waits). Model missing while not active → the download
+  starts in a `Task` and the press throws `.modelDownloading`.
+- `readiness()` / `prepare()` + `VoiceReadyRows` in Settings › Voice (iOS 26): lines **Microphone**, **Speech
+  model**, button **Get ready** (`settings.voiceReady`), answer line `settings.voiceReadyAnswer`.
+- 🪤 **An App Intent that runs in the background must never wait for a permission question or a download.**
+  Do both inside the app first, and make the intent fail fast with words that say what to do.
+- If it still fails after **Ready**: next suspects are `Activity.request` from the background and the time the
+  intent takes to start the speech analyzer.

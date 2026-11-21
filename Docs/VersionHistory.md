@@ -1,6 +1,15 @@
 # Version history
 
-The version is shown as 1.0 (352) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (353) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 353 · 21 November 2026
+
+**Record a Thought from the Action Button: Get ready first.**
+
+- **The fault:** pressing the Action Button with **Record a Thought** ended with a "timeout" message. PARAGON had never asked for the microphone and had never got Apple's speech model. A press from the Action Button runs while PARAGON is not on screen. There iOS cannot show the microphone question, and the press may not wait minutes for a download. So the press waited until iOS stopped it.
+- **New: Get ready** in Settings › **Voice** (iPhone and iPad). Two lines say how things stand: **Microphone** (Allowed, Not asked yet, or Not allowed) and **Speech model** (Ready, or Not on this iPhone yet). Press **Get ready** once: the iPhone asks whether PARAGON may use the microphone, then gets the speech model (use Wi-Fi). When both are done the button says **Ready**.
+- **Now a press from the Action Button never waits for this.** If the microphone was not allowed yet, it says at once: "PARAGON has not been allowed to use the microphone yet. Open PARAGON › Settings › Voice and press Get ready." If the speech model is missing, it starts getting it and says so. It does not record that time.
+- **Not tried on a real iPhone yet.** This is the most likely cause, found by reading the code. If a press still fails after **Get ready** shows **Ready**, the message it shows tells me the next step.
 
 ## Build 352 · 21 November 2026
 

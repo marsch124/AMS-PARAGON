@@ -1293,6 +1293,54 @@ struct SafetyNoticeBar: View {
 
 #if os(iOS)
 /// Build 348: Settings › Voice — the language spoken when recording a thought.
+/// Build 353: whether **Record a Thought** can start from the Action Button, and **Get ready**,
+/// which does the two things a press from the background cannot: ask for the microphone and
+/// download Apple's speech model. Changing the language checks again.
+@available(iOS 26.0, *)
+struct VoiceReadyRows: View {
+    let language: String
+    @State private var microphone = "…"
+    @State private var model = "…"
+    @State private var ready = false
+    @State private var working = false
+    @State private var answer = ""
+
+    var body: some View {
+        LabeledContent("Microphone", value: microphone)
+            .accessibilityIdentifier("settings.voiceMicrophone")
+            .task(id: language) { await look() }
+        LabeledContent("Speech model", value: model)
+            .accessibilityIdentifier("settings.voiceModel")
+        Button(working ? "Getting ready…" : (ready ? "Ready" : "Get ready")) {
+            press()
+        }
+        .disabled(working || ready)
+        .accessibilityIdentifier("settings.voiceReady")
+        if !answer.isEmpty {
+            Text(answer)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("settings.voiceReadyAnswer")
+        }
+    }
+
+    private func look() async {
+        let found = await VoiceRecorder.shared.readiness()
+        microphone = found.microphone
+        model = found.model
+        ready = found.ready
+    }
+
+    private func press() {
+        working = true
+        answer = ""
+        Task { @MainActor in
+            answer = await VoiceRecorder.shared.prepare()
+            await look()
+            working = false
+        }
+    }
+}
+
 struct VoiceSection: View {
     @AppStorage("voiceLanguage") private var language = ""
     @AppStorage("voiceSummaryEnglish") private var summaryInEnglish = false
@@ -1321,10 +1369,14 @@ struct VoiceSection: View {
                 .accessibilityIdentifier("settings.voiceCheckFirst")
             Toggle("Read the summary aloud", isOn: $readAloud)
                 .accessibilityIdentifier("settings.voiceReadAloud")
+            // Build 353: the Action Button cannot ask for the microphone or wait for a download.
+            if #available(iOS 26.0, *) {
+                VoiceReadyRows(language: language)
+            }
         } header: {
             Text("Voice")
         } footer: {
-            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done.")
+            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done. Press Get ready once before you use the Action Button: it asks for the microphone and gets Apple's speech model, which the Action Button cannot do.")
         }
     }
 }

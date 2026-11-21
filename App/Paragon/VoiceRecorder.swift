@@ -31,6 +31,10 @@ final class VoiceRecorder {
         case microphoneRefused
         case noSpeechModel
         case busy
+        // Build 353: a press from the Action Button cannot show iOS's questions or wait minutes
+        // for a download (the action is stopped after a short time: "timeout"). Say so at once.
+        case microphoneNotAskedYet
+        case modelDownloading
 
         var errorDescription: String? {
             switch self {
@@ -40,6 +44,10 @@ final class VoiceRecorder {
                 return "This phone cannot turn speech into text in the chosen language."
             case .busy:
                 return "PARAGON is still writing up the last thought."
+            case .microphoneNotAskedYet:
+                return "PARAGON has not been allowed to use the microphone yet. Open PARAGON › Settings › Voice and press Get ready."
+            case .modelDownloading:
+                return "The iPhone is getting Apple's speech model. Open PARAGON › Settings › Voice and press Get ready, or try again in a few minutes."
             }
         }
     }
@@ -88,7 +96,7 @@ final class VoiceRecorder {
     func start(into target: CaptureTarget = .inbox) async throws {
         guard !isRecording else { return }
         guard !isWriting else { throw Problem.busy }
-        guard await AVAudioApplication.requestRecordPermission() else { throw Problem.microphoneRefused }
+        try await askForMicrophoneIfItCanBeAsked()
 
         place = target == .today ? .today : .inbox
         stopHeardAlready = false
@@ -113,6 +121,12 @@ final class VoiceRecorder {
             let transcriber = SpeechTranscriber(locale: found, transcriptionOptions: [],
                                                 reportingOptions: [.volatileResults], attributeOptions: [])
             if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+                // Build 353: in the background (the Action Button) a download can take longer than
+                // the action may run, so it is started and the press says so instead of waiting.
+                guard UIApplication.shared.applicationState == .active else {
+                    Task { @MainActor in try? await install.downloadAndInstall() }
+                    throw Problem.modelDownloading
+                }
                 await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
                 try await install.downloadAndInstall()
             }
@@ -372,6 +386,77 @@ final class VoiceRecorder {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         let words = VoiceThought.liveTail(transcript)
         await showActivity(listeningState(words.isEmpty ? "Listening…" : words))
+    }
+
+    // MARK: Getting ready (build 353)
+
+    /// The microphone question can only be shown while PARAGON is on screen. From the Action
+    /// Button (PARAGON in the background) the question never appears and the press waited until
+    /// iOS stopped it ("timeout"), so there it fails at once with words that say what to do.
+    private func askForMicrophoneIfItCanBeAsked() async throws {
+        switch AVAudioApplication.shared.recordPermission {
+        case .granted:
+            return
+        case .denied:
+            throw Problem.microphoneRefused
+        default:
+            guard UIApplication.shared.applicationState == .active else { throw Problem.microphoneNotAskedYet }
+            guard await AVAudioApplication.requestRecordPermission() else { throw Problem.microphoneRefused }
+        }
+    }
+
+    /// The speech model for the chosen language, or nil when the phone has none for it.
+    private func chosenTranscriber() async -> SpeechTranscriber? {
+        let chosen = UserDefaults.standard.string(forKey: Self.languageKey) ?? ""
+        let wanted = chosen.isEmpty ? Locale.current : Locale(identifier: chosen)
+        var match = await SpeechTranscriber.supportedLocale(equivalentTo: wanted)
+        if match == nil { match = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: "en-US")) }
+        guard let found = match else { return nil }
+        return SpeechTranscriber(locale: found, transcriptionOptions: [],
+                                 reportingOptions: [.volatileResults], attributeOptions: [])
+    }
+
+    /// What Settings › Voice shows: is the microphone allowed, and is the speech model here.
+    /// Changes nothing.
+    func readiness() async -> (microphone: String, model: String, ready: Bool) {
+        let mic: String
+        let micOK: Bool
+        switch AVAudioApplication.shared.recordPermission {
+        case .granted: mic = "Allowed"; micOK = true
+        case .denied: mic = "Not allowed. Turn it on in the Settings app › PARAGON › Microphone."; micOK = false
+        default: mic = "Not asked yet"; micOK = false
+        }
+        guard let transcriber = await chosenTranscriber() else {
+            return (mic, "This iPhone cannot turn speech into text in the chosen language.", false)
+        }
+        do {
+            if try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) == nil {
+                return (mic, "Ready", micOK)
+            }
+            return (mic, "Not on this iPhone yet", false)
+        } catch {
+            return (mic, "Could not be checked: \(error.localizedDescription)", false)
+        }
+    }
+
+    /// **Get ready** in Settings › Voice, pressed while PARAGON is on screen: asks for the
+    /// microphone (the question can show here) and downloads the speech model. Returns words
+    /// for the line under the button.
+    func prepare() async -> String {
+        do {
+            try await askForMicrophoneIfItCanBeAsked()
+        } catch {
+            return error.localizedDescription
+        }
+        guard let transcriber = await chosenTranscriber() else { return Problem.noSpeechModel.localizedDescription }
+        do {
+            if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+                try await install.downloadAndInstall()
+            }
+            return "Ready. Press the Action Button to record a thought."
+        } catch {
+            return "The speech model could not be downloaded: \(error.localizedDescription) Try again with Wi-Fi."
+        }
     }
 
     private func showActivity(_ state: VoiceActivityAttributes.ContentState, endAfter: TimeInterval? = nil) async {
