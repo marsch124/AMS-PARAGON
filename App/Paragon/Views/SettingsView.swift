@@ -1232,7 +1232,7 @@ struct SafetyMark: View {
                 .frame(width: 12, height: 12)
                 .background(Theme.attention, in: Circle())
                 .frame(width: 14)
-                .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 1 }
+                .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
         } else {
             MarkImage("checkmark", text: .footnote)
                 .foregroundStyle(Color.green)
