@@ -226,9 +226,9 @@ struct AreaStandardBox: View {
 
     private static func message(onFile: String?) -> String {
         guard let onFile else {
-            return "The standard was taken away on your other device. Your words are still in the box. Press Save again to use them."
+            return "The standard was taken away on your other device. Your words are still in the box. Save again puts them in."
         }
         let now = AreaStandard.firstSentence(of: onFile)
-        return "The standard was changed on your other device to \u{201C}\(now)\u{201D}. Your words are still in the box. Press Save again to use yours instead."
+        return "The standard was changed on your other device to \u{201C}\(now)\u{201D}. Your words are still in the box. Save again puts yours in instead."
     }
 }

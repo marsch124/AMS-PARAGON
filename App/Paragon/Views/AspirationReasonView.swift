@@ -280,9 +280,9 @@ struct AspirationReasonBox: View {
 
     private static func message(onFile: String?) -> String {
         guard let onFile else {
-            return "The reason was taken away on your other device. Your words are still in the box. Press Save again to use them."
+            return "The reason was taken away on your other device. Your words are still in the box. Save again puts them in."
         }
-        return "The reason was changed on your other device to \u{201C}\(quote(onFile))\u{201D}. Your words are still in the box. Press Save again to use yours instead."
+        return "The reason was changed on your other device to \u{201C}\(quote(onFile))\u{201D}. Your words are still in the box. Save again puts yours in instead."
     }
 
     /// The first sentence of what is on file, and never more than 120 characters of it: a long

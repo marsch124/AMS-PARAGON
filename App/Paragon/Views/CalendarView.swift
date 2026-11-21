@@ -738,7 +738,7 @@ struct WeekGoalBox: View {
     /// "no goal" (build 100), and pressing would only fail, so the box says so and waits.
     private var waiting: Bool { goal == nil && model.weeklyNoteIsWaitingForCloud(week) }
     private var emptyText: String {
-        waiting ? "The week's note is still coming from iCloud." : "What is \(weekWords) about? Press to write it."
+        waiting ? "The week's note is still coming from iCloud." : "What is \(weekWords) about? Not written yet."
     }
 
     var body: some View {
@@ -792,7 +792,7 @@ struct WeekGoalBox: View {
         .accessibilityLabel(Text(shownTitle + ": " + (goal ?? (waiting ? "still coming from iCloud" : "not written yet"))))
         .accessibilityIdentifier(identifier)
         // Round 9 (build 316): no hover tip while the box is empty; its own words say the same.
-        .help(goal == nil ? "" : "Press to change what the week is about")
+        .help(goal == nil ? "" : "Changes what the week is about")
     }
 
     @ViewBuilder

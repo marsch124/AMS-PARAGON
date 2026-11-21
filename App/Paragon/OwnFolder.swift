@@ -659,7 +659,7 @@ extension AppModel {
                 if toOwn {
                     lines.append("They are now in \(VaultMove.ownFolderWords). PARAGON opens that folder by itself on every device.")
                     lines.append("Nothing was deleted. Your old folder \u{201C}\(root.lastPathComponent)\u{201D} is as it was; PARAGON only added one text file that says where the notes went. You decide later when to delete it.")
-                    lines.append("On your other devices PARAGON shows \u{201C}Your notes are in a new place\u{201D}. Press Open\u{2026} there when iCloud has brought everything.")
+                    lines.append("On your other devices PARAGON shows \u{201C}Your notes are in a new place\u{201D}. Open\u{2026} there switches to the new place when iCloud has brought everything.")
                 } else {
                     lines.append("They are in the folder \u{201C}\(placeName)\u{201D} again.")
                     if outcome.setAside > 0 {

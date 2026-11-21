@@ -1113,7 +1113,7 @@ struct StateToggle: View {
         .buttonStyle(.plain)
         .accessibilityLabel(isOn ? "\(title), on" : "\(title), off")
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
-        .help(isOn ? "\(title) is on. Press to turn it off." : "\(title) is off. Press to turn it on.")
+        .help(isOn ? "\(title) is on." : "\(title) is off.")
     }
 
     @ViewBuilder
@@ -1177,7 +1177,7 @@ struct FoldButton<Label: View>: View {
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityName)
         .accessibilityAddTraits(isOpen ? [.isSelected] : [])
-        .help(isOpen ? "Press to close." : "Press to open.")
+        .help(isOpen ? "Closes this part." : "Opens this part.")
     }
 }
 

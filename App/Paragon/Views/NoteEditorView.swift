@@ -1527,13 +1527,13 @@ struct GoalMeasureEditor: View {
     /// is already gone is not a refusal, so only **Set** gets that sentence.
     private static func message(onFile: String?, clearing: Bool) -> String {
         guard let onFile else {
-            return "The measure was removed on your other device. Press Set again to use your words."
+            return "The measure was removed on your other device. Set again puts your words in."
         }
         let what = "The measure was changed on your other device to \u{201C}\(onFile)\u{201D}."
         if clearing {
-            return what + " Press Clear again to take it away."
+            return what + " Clear again takes it away."
         }
-        return what + " Press Set again to use your words instead."
+        return what + " Set again puts your words in instead."
     }
 }
 
@@ -1565,7 +1565,7 @@ struct ProjectEndedLine: View {
         .buttonStyle(.plain)
         .accessibilityLabel(Text(words ?? "Set the day it ended"))
         .accessibilityIdentifier("project.ended")
-        .help("The day this project ended. Press to change it.")
+        .help("The day this project ended. A click changes it.")
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .popover(isPresented: $picking) {
@@ -1777,7 +1777,7 @@ struct NoteHeader: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help("Press to rename this note. The file is renamed too, and links to it follow.")
+            .help("Renames this note. The file is renamed too, and links to it follow.")
             .accessibilityIdentifier("note.title")
         } else {
             Text(note.displayTitle)

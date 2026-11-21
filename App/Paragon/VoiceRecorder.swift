@@ -352,7 +352,7 @@ final class VoiceRecorder {
             try engine.start()
         } catch {
             // The microphone would not start again: stay paused, and say so.
-            await showActivity(listeningState("Could not go on. Press Stop to keep what you said."))
+            await showActivity(listeningState("Could not go on. Stop keeps what you said."))
             return
         }
         if let pausedAt { pausedTotal += Date().timeIntervalSince(pausedAt) }

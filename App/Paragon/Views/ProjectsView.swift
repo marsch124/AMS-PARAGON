@@ -334,7 +334,7 @@ struct ProjectGroupHeader: View {
         .accessibilityLabel(spoken)
         .accessibilityAddTraits(open ? [.isSelected] : [])
         .accessibilityIdentifier("projects.group.\(group.id)")
-        .help(open ? "Press to close." : "Press to open.")
+        .help(open ? "Closes this group." : "Opens this group.")
     }
 
     private var spoken: String {

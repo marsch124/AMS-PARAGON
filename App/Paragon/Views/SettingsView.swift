@@ -101,7 +101,7 @@ struct SettingsView: View {
                 }
                 Toggle("Show an older Resource on Today", isOn: $showOldNote)
                     .accessibilityIdentifier("settings.showOldNote")
-                Text("Once a day, one Resource you have not changed for 30 days comes back on Today. Press Not today to hide it until tomorrow.")
+                Text("Once a day, one Resource you have not changed for 30 days comes back on Today. Not today hides it until tomorrow.")
                     .font(Txt.label)
                     .foregroundStyle(.soft)
                 Toggle("Hide finished tasks in notes", isOn: $hideFinishedTasks)

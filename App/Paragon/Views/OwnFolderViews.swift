@@ -189,7 +189,7 @@ struct OwnFolderPageView: View {
                      text: ["A file in the old folder that is replaced, or that you have deleted since the copy, is set aside there, not deleted.",
                             "\(VaultMove.ownFolderWords) stays as it is."]),
                 Part(head: "Your other devices",
-                     text: ["They follow: PARAGON shows \u{201C}Your notes are in a new place\u{201D} there. Press Open\u{2026} on each."]),
+                     text: ["They follow: PARAGON shows \u{201C}Your notes are in a new place\u{201D} there. Open\u{2026} on each switches it to the new place."]),
             ]
             w.action = "Go back"
             return w

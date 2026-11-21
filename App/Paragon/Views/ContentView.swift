@@ -1547,7 +1547,7 @@ struct DetailView: View {
         } else if model.section == .done {
             EmptyStateView(title: "What you finished",
                            markName: "checkmark.circle",
-                           message: "Press a task on the left to open the note it came from.",
+                           message: "A task on the left opens the note it came from.",
                            tint: SidebarSection.done.tint)
         } else {
             // Build 291: no words — he asked for the text to go. The icon and the button stay.
@@ -1566,7 +1566,7 @@ extension SyncStatusBar {
         let auto = minutes > 0 ? " It also runs by itself every \(minutes) minutes." : ""
         // Round 9 (build 316): a press opens the small menu since build 312, so the tip no
         // longer says "Sync … now".
-        let head = "The sync with Apple Reminders. Press for Sync now and the other choices; ⇧⌘R syncs at once.\(auto)"
+        let head = "The sync with Apple Reminders. A click opens Sync now and the other choices; ⇧⌘R syncs at once.\(auto)"
         guard let report else { return head }
         let time = DayWords.time(report.finishedAt ?? report.startedAt)
         if !report.conflicts.isEmpty {

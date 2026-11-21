@@ -52,7 +52,7 @@ struct WeekLookStep: View {
             ReviewPartHeading(title: heading, isOpen: $isOpen, part: "8")
         } footer: {
             if isOpen {
-                Text("Press a day's line to open that day's note. The arrows show earlier weeks. **How was the week?** keeps one line about the week in that week's note.")
+                Text("A day's line opens that day's note. The arrows show earlier weeks. **How was the week?** keeps one line about the week in that week's note.")
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -300,7 +300,7 @@ struct WeekLineBox: View {
     private var restingText: String {
         if hasLine { return line }
         if waiting { return "The week's note is still coming from iCloud." }
-        return "Press to write a line about \(weekName)."
+        return "No line about \(weekName) yet."
     }
 
     /// One sentence for a screen reader and for the screen test, on both platforms (builds 196,
@@ -356,7 +356,7 @@ struct WeekLineBox: View {
         .accessibilityLabel(spoken)
         .accessibilityIdentifier("review.weekLine")
         // Round 9 (build 316): no hover tip while the box is empty; its own words say the same.
-        .help(hasLine ? "Press to change the line about the week" : "")
+        .help(hasLine ? "Changes the line about the week" : "")
     }
 
     /// **Cancel and Done sit above the field, in the heading's own line**, not below it: with

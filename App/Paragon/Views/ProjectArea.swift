@@ -197,11 +197,11 @@ struct ProjectAreaChip: View {
     }
 
     private var tooltip: String {
-        if current != nil { return "\(fullTitle). Press to choose another area, or none." }
-        if let archived { return "\(archived.displayTitle) is archived. Press to choose another area, or none." }
+        if current != nil { return "\(fullTitle). This button chooses another area, or none." }
+        if let archived { return "\(archived.displayTitle) is archived. This button chooses another area, or none." }
         if let written = live.area {
             if stillComing { return "\(ProjectAreaWording.missing(written, stillComing: true))." }
-            return "\(ProjectAreaWording.missing(written, stillComing: false)). Press to choose one."
+            return "\(ProjectAreaWording.missing(written, stillComing: false)). This button chooses one."
         }
         return "Which area this project is part of"
     }

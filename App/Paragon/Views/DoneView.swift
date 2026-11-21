@@ -339,7 +339,7 @@ struct DoneSquaresView: View {
         let waits = weeks.contains { week in week.contains { isWaiting($0) } }
         var text = "Each square is one day. A stronger colour means more done."
         if waits { text += " An orange dashed square is a day whose note is still coming from iCloud." }
-        if canPress { text += " Press a day to go to it." }
+        if canPress { text += " A day's square takes you to that day in the list." }
         return text
     }
 

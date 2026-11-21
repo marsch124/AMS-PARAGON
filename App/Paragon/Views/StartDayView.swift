@@ -20,9 +20,9 @@ enum StartDay {
     /// The explanation under the field (build 312: by itself the first three times).
     static func instructions(usesTaskTimes: Bool) -> String {
         if usesTaskTimes {
-            return "Press Pick on what matters today. Each pick becomes a block in today\u{2019}s plan; a task with no time asks how long first."
+            return "Pick marks what matters today. Each pick becomes a block in today\u{2019}s plan; a task with no time asks how long first."
         }
-        return "Press Pick on the two or three that matter most today. Each pick becomes a one-hour block in today\u{2019}s plan."
+        return "Pick marks the two or three that matter most today. Each pick becomes a one-hour block in today\u{2019}s plan."
     }
 
     /// **Not `TaskRef.id`** (build 238): that carries the line number, and ticking a repeating

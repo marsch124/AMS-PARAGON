@@ -132,9 +132,9 @@ enum DayReminder: String, CaseIterable, Identifiable {
 
     var explanation: String {
         switch self {
-        case .morning: return "One notification a day. Press it to open Today, ready for picking."
-        case .evening: return "One notification a day. Press it to open Close the day."
-        case .weeklyReview: return "One notification a week. Press it to open the Weekly review."
+        case .morning: return "One notification a day. It opens Today, ready for picking."
+        case .evening: return "One notification a day. It opens Close the day."
+        case .weeklyReview: return "One notification a week. It opens the Weekly review."
         }
     }
 

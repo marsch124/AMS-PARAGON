@@ -3591,7 +3591,7 @@ final class AppModel: ObservableObject {
                 let name = WeekLook.weekName(week, today: DateOnly.today())
                 let what = onFile.map { "changed on your other device to \u{201C}\($0)\u{201D}" }
                     ?? "removed on your other device"
-                errorMessage = "The goal for \(name) was \(what). Your words are still in the box. Press Done again to use yours instead."
+                errorMessage = "The goal for \(name) was \(what). Your words are still in the box. Done again puts yours in instead."
                 reload()
                 return false
             }
@@ -5847,7 +5847,7 @@ final class AppModel: ObservableObject {
                 guard self.vault === vault else { return }
                 log("sync stopped: \(summary.message)")
                 if quietly {
-                    flash("Sync stopped: it would change \(summary.total) tasks. Press Sync now to look.")
+                    flash("Sync stopped: it would change \(summary.total) tasks. Sync now shows them.")
                 } else {
                     afterUpdate { self.massChangeQuestion = summary }
                 }

@@ -185,7 +185,7 @@ struct CloseDayView: View {
                     .font(Txt.label)
                     .foregroundStyle(.soft)
             } else {
-                HintParagraph(text: "Press First on the left of what comes first. Start the day shows it at the top tomorrow morning.",
+                HintParagraph(text: "First, on the left, marks what comes first. Tomorrow morning it is at the top of the picking list.",
                               opens: hintOpens, tint: tint, identifier: "closeDay.how")
                 ForEach(tomorrowShown) { ref in
                     // **First** in front of the row, larger (build 240): the tick circle came
