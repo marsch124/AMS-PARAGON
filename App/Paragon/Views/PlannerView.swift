@@ -52,11 +52,9 @@ struct PlannerView: View {
 
     /// **Next free time**: placed, and the message says where — or says there is no room.
     private func placeAtNextFreeTime(_ ref: TaskRef) {
-        if let start = model.planAtNextFreeTime(ref, on: model.plannerDay) {
-            model.flash("Added to your plan at \(PlanBlock.clock(start)).")
-        } else {
-            model.flash("No free time left on this day. Pick a time instead.")
-        }
+        // Round 352: the words come from Core, and say when the block runs past the working day.
+        let slot: DayPlan.FreeSlot? = model.planAtNextFreeTime(ref, on: model.plannerDay)
+        model.flash(DayPlan.nextFreeMessage(slot, workdayEnds: model.workdayEnds))
     }
 
     var body: some View {
@@ -186,8 +184,11 @@ struct PlannerDayView: View {
             guard let ref = picking.wrappedValue else { return }
             picking.wrappedValue = nil
             let length = model.planLength(of: ref.task)
-            let start = DayPlan.nextFreeStart(length: length, from: model.planningStart(on: day),
-                                              busy: model.planningBusy(on: day)) ?? nextFreeStart()
+            // Round 352: the same search as Next free time, working day first.
+            let slot: DayPlan.FreeSlot? = DayPlan.nextFreeSlot(length: length, from: model.planningStart(on: day),
+                                                               workdayEnds: model.workdayEnds,
+                                                               busy: model.planningBusy(on: day))
+            let start = slot?.start ?? nextFreeStart()
             startNewBlock(at: start, titled: planBlockTitle(from: ref.task), minutes: length)
         }
         // One sheet for all of it, keyed by what is being shown (build 44).

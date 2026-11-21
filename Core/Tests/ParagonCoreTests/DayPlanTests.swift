@@ -256,4 +256,39 @@ final class DayPlanTests: XCTestCase {
         XCTAssertNil(DayPlan.nextFreeStart(length: 60, from: 23 * 60 + 20, busy: []))
         XCTAssertNil(DayPlan.nextFreeStart(length: 60, from: 9 * 60, until: 16 * 60, busy: [540..<930]))
     }
+
+    /// Round 352: **Next free time** looks inside the working day first, then until midnight;
+    /// the start is the same as the plain search, and the answer says when it runs past.
+    func testNextFreeTimeLooksInsideTheWorkingDayFirst() {
+        let ends = 16 * 60
+        let busy = [540..<600, 630..<720]
+        // A gap inside the working day: found there, not past it.
+        XCTAssertEqual(DayPlan.nextFreeSlot(length: 30, from: 9 * 60 + 5, workdayEnds: ends, busy: busy),
+                       DayPlan.FreeSlot(start: 600, endsAfterWorkday: false))
+        // The working day is full: it looks on until midnight and says so.
+        let full = [540..<960]
+        XCTAssertEqual(DayPlan.nextFreeSlot(length: 60, from: 9 * 60, workdayEnds: ends, busy: full),
+                       DayPlan.FreeSlot(start: 960, endsAfterWorkday: true))
+        // Only a gap that runs over the end of the working day: that one, marked as past it.
+        XCTAssertEqual(DayPlan.nextFreeSlot(length: 60, from: 9 * 60, workdayEnds: ends, busy: [540..<930]),
+                       DayPlan.FreeSlot(start: 930, endsAfterWorkday: true))
+        // Already evening: until midnight as before.
+        XCTAssertEqual(DayPlan.nextFreeSlot(length: 30, from: 19 * 60 + 10, workdayEnds: ends, busy: []),
+                       DayPlan.FreeSlot(start: 19 * 60 + 15, endsAfterWorkday: true))
+        // No room at all.
+        XCTAssertNil(DayPlan.nextFreeSlot(length: 60, from: 23 * 60 + 20, workdayEnds: ends, busy: []))
+        // The start never differs from the plain search.
+        for from in stride(from: 6 * 60, to: 23 * 60, by: 35) {
+            for length in [15, 60, 120] {
+                XCTAssertEqual(DayPlan.nextFreeSlot(length: length, from: from, workdayEnds: ends, busy: busy)?.start,
+                               DayPlan.nextFreeStart(length: length, from: from, busy: busy))
+            }
+        }
+        // The words.
+        XCTAssertEqual(DayPlan.nextFreeMessage(DayPlan.FreeSlot(start: 600, endsAfterWorkday: false), workdayEnds: ends),
+                       "Added to your plan at 10:00.")
+        XCTAssertEqual(DayPlan.nextFreeMessage(DayPlan.FreeSlot(start: 960, endsAfterWorkday: true), workdayEnds: ends),
+                       "Added to your plan at 16:00. That is after your working day, which ends at 16:00.")
+        XCTAssertEqual(DayPlan.nextFreeMessage(nil, workdayEnds: ends), "No free time left on this day. Pick a time instead.")
+    }
 }

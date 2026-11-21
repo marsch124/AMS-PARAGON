@@ -182,6 +182,44 @@ public enum DayPlan {
         freeStarts(count: 1, length: length, from: from, until: until, busy: busy).first
     }
 
+    /// Where **Next free time** puts a block, and whether it runs past the working day.
+    public struct FreeSlot: Equatable, Sendable {
+        public var start: Int
+        /// True when the block ends after Settings › **Working day ends**. Said in the message,
+        /// never refused: the working day is a measure, not a wall (build 249).
+        public var endsAfterWorkday: Bool
+
+        public init(start: Int, endsAfterWorkday: Bool) {
+            self.start = start
+            self.endsAfterWorkday = endsAfterWorkday
+        }
+    }
+
+    /// **Round 352: Next free time looks inside the working day first.** The gap is looked for
+    /// until `workdayEnds`; when it is already past that, or nothing fits before it, it looks
+    /// until midnight as before. Because the search only moves forward, the start is always
+    /// the same one `nextFreeStart(length:from:busy:)` finds — what is new is that the answer
+    /// says when the block runs past the working day, so the message can say so. Nil when the
+    /// day has no room at all.
+    public static func nextFreeSlot(length: Int, from: Int, workdayEnds: Int,
+                                    busy: [Range<Int>]) -> FreeSlot? {
+        if from < workdayEnds,
+           let start = nextFreeStart(length: length, from: from, until: workdayEnds, busy: busy) {
+            return FreeSlot(start: start, endsAfterWorkday: false)
+        }
+        guard let start = nextFreeStart(length: length, from: from, until: 24 * 60, busy: busy) else { return nil }
+        return FreeSlot(start: start, endsAfterWorkday: start + length > workdayEnds)
+    }
+
+    /// The message after **Next free time** placed a block (or found no room).
+    public static func nextFreeMessage(_ slot: FreeSlot?, workdayEnds: Int) -> String {
+        guard let slot else { return "No free time left on this day. Pick a time instead." }
+        if slot.endsAfterWorkday {
+            return "Added to your plan at \(PlanBlock.clock(slot.start)). That is after your working day, which ends at \(PlanBlock.clock(workdayEnds))."
+        }
+        return "Added to your plan at \(PlanBlock.clock(slot.start))."
+    }
+
     /// Like `freeStarts(count:length:…)`, but each block has **its own length** (build 249: a
     /// task's time). One answer per length, in order: a start, or nil when that block found no
     /// room before `until`. A block that does not fit does not stop the ones after it — a long

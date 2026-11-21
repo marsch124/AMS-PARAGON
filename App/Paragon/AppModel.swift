@@ -4182,16 +4182,18 @@ final class AppModel: ObservableObject {
 
     /// **Next free time** for one action (build 312): a plan block in the first gap of the day
     /// that holds it, by the same start and the same busy list **Start the day** uses. Answers
-    /// the start, or nil when the day has no room left — then nothing is written.
+    /// the slot, or nil when the day has no room left — then nothing is written.
+    /// Round 352: looked for inside Settings › **Working day ends** first (`DayPlan.nextFreeSlot`),
+    /// and the slot says when it runs past it.
     @discardableResult
-    func planAtNextFreeTime(_ ref: TaskRef, on day: DateOnly) -> Int? {
+    func planAtNextFreeTime(_ ref: TaskRef, on day: DateOnly) -> DayPlan.FreeSlot? {
         let title = planBlockTitle(from: ref.task)
         guard !title.isEmpty else { return nil }
         let length = planLength(of: ref.task)
-        guard let start = DayPlan.nextFreeStart(length: length, from: planningStart(on: day),
-                                                busy: planningBusy(on: day, excluding: [ref])) else { return nil }
-        addPlanBlock(PlanBlock(start: start, end: start + length, title: title), on: day)
-        return start
+        guard let slot = DayPlan.nextFreeSlot(length: length, from: planningStart(on: day), workdayEnds: workdayEnds,
+                                              busy: planningBusy(on: day, excluding: [ref])) else { return nil }
+        addPlanBlock(PlanBlock(start: slot.start, end: slot.start + length, title: title), on: day)
+        return slot
     }
 
     func show(section target: SidebarSection, notePath: String?) {
