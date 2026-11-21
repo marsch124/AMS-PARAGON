@@ -292,12 +292,19 @@ enum SpokenWhen {
         var marker: String?
     }
 
-    /// The text without the day and time words, and what they said.
-    static func extract(from raw: String, now: Date, calendar: Calendar) -> (text: String, date: DateOnly?, time: TimeOfDay?) {
+    /// Round 352: true for a German voice language ("de-DE", "de_AT", "de").
+    static func isGerman(_ language: String) -> Bool {
+        language.lowercased().hasPrefix("de")
+    }
+
+    /// The text without the day and time words, and what they said. `german` adds the German
+    /// "am 25." (the 25th); it is off for every other language, so "I am 25." stays words.
+    static func extract(from raw: String, now: Date, calendar: Calendar,
+                        german: Bool = false) -> (text: String, date: DateOnly?, time: TimeOfDay?) {
         var text = raw
         let today = DateOnly(now, calendar: calendar)
         var date: DateOnly?
-        if let found = findDate(in: text, today: today, calendar: calendar) {
+        if let found = findDate(in: text, today: today, calendar: calendar, german: german) {
             date = found.date
             text = (text as NSString).replacingCharacters(in: found.range, with: " ")
         }
@@ -319,7 +326,8 @@ enum SpokenWhen {
         return DateOnly(moved, calendar: calendar)
     }
 
-    static func findDate(in text: String, today: DateOnly, calendar: Calendar) -> (range: NSRange, date: DateOnly)? {
+    static func findDate(in text: String, today: DateOnly, calendar: Calendar,
+                         german: Bool = false) -> (range: NSRange, date: DateOnly)? {
         let ns = text as NSString
         let full = NSRange(location: 0, length: ns.length)
         let edge = "(?<![\\p{L}\\p{N}])"
@@ -352,11 +360,17 @@ enum SpokenWhen {
             return (m.range, adding(delta, to: today, calendar: calendar))
         }
 
-        let ordinals: [String] = [
+        var ordinals: [String] = [
             edge + "(?:(?:on|by|until)\\s+)?(?:the\\s+)?(\\d{1,2})(?:st|nd|rd|th)" + end,
             edge + "(?:(?:på|till)\\s+)?(?:den\\s+)?(\\d{1,2}):e" + end,
             edge + "(?:am\\s+)?(\\d{1,2})(?:ten|sten)" + end,
         ]
+        // Round 352: German writes the 25th as "25." — only after "am" or "bis zum", and never
+        // before a digit ("am 25.11" is not read), and only when German is spoken: in English
+        // "I am 25." is an age.
+        if german {
+            ordinals.append(edge + "(?:am|bis\\s+zum|zum)\\s+(\\d{1,2})\\." + "(?!\\p{N})")
+        }
         for pattern in ordinals {
             guard let r = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
                   let m = r.firstMatch(in: text, range: full),
@@ -471,13 +485,13 @@ extension VoiceThought {
     /// to call Anna" is "Call Anna" at 15:00 today (tomorrow 03:00 when both 3:00 and 15:00 have
     /// passed). The day and time words are taken out of the title.
     public static func spokenTaskItems(in transcript: String, now: Date = Date(),
-                                       calendar: Calendar = .current) -> [SpokenTask] {
+                                       calendar: Calendar = .current, german: Bool = false) -> [SpokenTask] {
         let sentences = sentencesOf(clean(VoiceWords.prepared(transcript)))
         var out: [SpokenTask] = []
         var takeNext = false
         for sentence in sentences {
             if let rest = afterWord(sentence, taskWords) {
-                if let item = spokenTask(rest, now: now, calendar: calendar) {
+                if let item = spokenTask(rest, now: now, calendar: calendar, german: german) {
                     out.append(item)
                     takeNext = false
                 } else {
@@ -486,18 +500,18 @@ extension VoiceThought {
                 continue
             }
             if afterWord(sentence, VoiceWords.remindWords) != nil {
-                if let item = spokenTask(sentence, now: now, calendar: calendar) { out.append(item) }
+                if let item = spokenTask(sentence, now: now, calendar: calendar, german: german) { out.append(item) }
                 takeNext = false
                 continue
             }
-            if takeNext, let item = spokenTask(sentence, now: now, calendar: calendar) { out.append(item) }
+            if takeNext, let item = spokenTask(sentence, now: now, calendar: calendar, german: german) { out.append(item) }
             takeNext = false
         }
         return out
     }
 
-    static func spokenTask(_ raw: String, now: Date, calendar: Calendar) -> SpokenTask? {
-        let found = SpokenWhen.extract(from: raw, now: now, calendar: calendar)
+    static func spokenTask(_ raw: String, now: Date, calendar: Calendar, german: Bool = false) -> SpokenTask? {
+        let found = SpokenWhen.extract(from: raw, now: now, calendar: calendar, german: german)
         var text = found.text.trimmingCharacters(in: .whitespacesAndNewlines)
         while let f = text.first, ":,;-–—.".contains(f) || f.isWhitespace { text.removeFirst() }
         if let after = afterWord(text, VoiceWords.remindWords) { text = after }
@@ -508,7 +522,8 @@ extension VoiceThought {
 
     /// The tasks that go to the Inbox, as task lines: the day and time he said are on the line.
     public func finalTaskItems(calendar: Calendar = .current) -> [TaskItem] {
-        let spoken = Self.spokenTaskItems(in: transcript, now: recordedAt.addingTimeInterval(duration), calendar: calendar)
+        let spoken = Self.spokenTaskItems(in: transcript, now: recordedAt.addingTimeInterval(duration), calendar: calendar,
+                                          german: speaksGerman)
         return finalTasks.map { title in
             let key = Self.looseKey(title)
             var item = TaskItem(title: title)

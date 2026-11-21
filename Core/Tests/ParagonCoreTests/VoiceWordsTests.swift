@@ -33,6 +33,31 @@ final class VoiceWordsTests: XCTestCase {
                        SpokenTask(title: "Call Anna about Saturday"))
     }
 
+    /// Round 352: the German "am 25." is the 25th — only when German is spoken.
+    func testTheGermanDayWithADotIsADateOnlyInGerman() {
+        let now = at(10)
+        let german = VoiceThought.spokenTaskItems(in: "Aufgabe Miete zahlen am 25.", now: now, calendar: cal, german: true)
+        XCTAssertEqual(german.first, SpokenTask(title: "Miete zahlen", date: DateOnly(year: 2026, month: 11, day: 25)))
+        // A day already past this month is next month's.
+        XCTAssertEqual(VoiceThought.spokenTaskItems(in: "Aufgabe Arzt anrufen am 12.", now: now, calendar: cal, german: true).first?.date,
+                       DateOnly(year: 2026, month: 12, day: 12))
+        // "am 25.11" is not read as the 25th (the month after it is not understood).
+        XCTAssertNil(VoiceThought.spokenTaskItems(in: "Aufgabe Miete zahlen am 25.11 bitte.", now: now, calendar: cal, german: true).first?.date)
+        // Not German: "am 25." is words, never a date.
+        XCTAssertNil(VoiceThought.spokenTaskItems(in: "Task tell them I am 25.", now: now, calendar: cal).first?.date)
+        XCTAssertNil(VoiceThought.spokenTaskItems(in: "Aufgabe Miete zahlen am 25.", now: now, calendar: cal).first?.date)
+        // Through the thought: the language decides, and the Inbox line carries the day.
+        var thought = VoiceThought(transcript: "Aufgabe Miete zahlen am 25.", recordedAt: now, duration: 0)
+        thought.language = "de-DE"
+        XCTAssertTrue(thought.speaksGerman)
+        let items = thought.finalTaskItems(calendar: cal)
+        XCTAssertEqual(items.map { $0.title }, ["Miete zahlen"])
+        XCTAssertEqual(items.first?.dueDate, DateOnly(year: 2026, month: 11, day: 25))
+        thought.language = "en-US"
+        XCTAssertFalse(thought.speaksGerman)
+        XCTAssertNil(thought.finalTaskItems(calendar: cal).first?.dueDate)
+    }
+
     /// Diagnostic for the Swedish time (CI said "Klockan 14" was not read).
     func testTheSwedishClockIsFound() {
         let said = "Påminn mig klockan 14 att ringa Anna."

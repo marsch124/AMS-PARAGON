@@ -240,6 +240,8 @@ final class VoiceRecorder {
         await tearDown()
 
         var thought = VoiceThought(transcript: transcript, recordedAt: startedAt, duration: duration)
+        // Round 352: the language it was spoken in, so a German "am 25." is read as the 25th.
+        thought.language = locale.identifier
         // Round 350 (voice-words): the odd words put right, then the title, tags and ideas he said.
         thought.readWords(replacements: Self.savedWords(), linkTitles: AppModel.shared.voiceLinkTitles())
         let english = Self.wantsEnglish()

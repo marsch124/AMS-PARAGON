@@ -35,6 +35,12 @@ public struct VoiceThought: Equatable, Sendable {
     /// Round 350: **Mark** on the Lock Screen. Each is how many characters of the cleaned
     /// transcript were there when it was pressed; `VoiceMarks` turns them into sentences.
     public var marks: [Int] = []
+    /// Round 352: the language it was spoken in ("de-DE", "sv_SE", …); empty when not known.
+    /// Only German changes anything so far: "am 25." is then the 25th (`SpokenWhen`).
+    public var language: String = ""
+
+    /// True when it was spoken in German.
+    public var speaksGerman: Bool { SpokenWhen.isGerman(language) }
 
     public init(transcript: String, title: String? = nil, summary: String? = nil, tasks: [String] = [],
                 recordedAt: Date, duration: TimeInterval) {
@@ -72,7 +78,7 @@ public struct VoiceThought: Equatable, Sendable {
     /// ones, no two the same (letter case aside, and a model task that says the same as a
     /// spoken one, or less, is left out), at most `mostTasks`.
     public var finalTasks: [String] {
-        Self.merged(Self.spokenTasks(in: transcript), tasks)
+        Self.merged(Self.spokenTasks(in: transcript, german: speaksGerman), tasks)
     }
 
     /// Build 349: the model's tasks that a late summary adds — the ones not already filed
@@ -120,9 +126,9 @@ public struct VoiceThought: Equatable, Sendable {
     /// Build 349: the tasks he marked himself. A sentence that starts with "task" (or "new
     /// task", "Aufgabe", "uppgift") is a task without that word: "Task: call Anna." → "Call
     /// Anna". When the word stands alone ("Task. Call Anna."), the next sentence is the task.
-    public static func spokenTasks(in transcript: String) -> [String] {
+    public static func spokenTasks(in transcript: String, german: Bool = false) -> [String] {
         // Round 350: with the day and time words taken out of each title (`spokenTaskItems`).
-        spokenTaskItems(in: transcript).map { $0.title }
+        spokenTaskItems(in: transcript, german: german).map { $0.title }
     }
 
     /// The sentences, each ending with its . ! or ? (a dot inside "3.5" does not end one).
