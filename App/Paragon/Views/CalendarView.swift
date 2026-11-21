@@ -303,10 +303,11 @@ struct MonthGridCell: View {
                     }
                 }
             // Round 352: short bars, not dots — a dot means "which part" or "which calendar".
-            // Events wear the Calendar's colour, not the Mac's accent colour.
+            // Events wear the Calendar's colour, not the Mac's accent colour. Tasks due wear
+            // the text colour (red when one is overdue), so the two bars never share a colour.
             HStack(spacing: 3) {
                 if !overview.due.isEmpty {
-                    Capsule().fill(overview.overdueCount > 0 ? Color.red : ParaKind.daily.tint)
+                    Capsule().fill(overview.overdueCount > 0 ? Color.red : Color.primary)
                         .frame(width: 7, height: 3)
                 }
                 if events > 0 {
