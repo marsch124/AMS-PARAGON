@@ -147,30 +147,37 @@ final class VoiceRecorder {
             VoiceLog.note("Lock Screen card: shown.")
         }
 
-        // Build 353: the microphone starts **before** the speech-to-text is set up, and the press
-        // returns as soon as it listens. Setting up Apple's speech model can take several seconds
-        // when the press has to start PARAGON first, and iOS stops a press that takes too long
-        // ("timeout"). What is said meanwhile is kept and handed over when the model is ready.
+        // Build 355: the speech-to-text is set up **first** and the microphone second — the order
+        // of build 352, which recorded. Build 353 swapped it to beat a time limit in the
+        // background, and with PARAGON on screen the microphone then failed with "OSStatus error
+        // -50". Since build 355 a press always opens PARAGON (iOS refuses the Lock Screen card to
+        // an app in the background: "Target is not foreground"), so the swap bought nothing.
+        let (raw, rawBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream(bufferingPolicy: .unbounded)
+        self.raw = rawBuilder
         do {
+            try await prepareSpeech(raw: raw)
+
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.record, mode: .spokenAudio, options: [])
-            try session.setActive(true)
+            try Self.step("Sound: set to recording") { try session.setCategory(.record, mode: .spokenAudio, options: []) }
+            try Self.step("Sound: switched on") { try session.setActive(true) }
 
             let engine = AVAudioEngine()
             let node = engine.inputNode
             let heard = node.outputFormat(forBus: 0)
-            guard heard.sampleRate > 0, heard.channelCount > 0 else { throw Problem.noMicrophone }
-            let (raw, rawBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream(bufferingPolicy: .unbounded)
-            self.raw = rawBuilder
+            guard heard.sampleRate > 0, heard.channelCount > 0 else {
+                VoiceLog.note("Microphone: no sound format (\(heard.sampleRate) Hz, \(heard.channelCount) channels).")
+                throw Problem.noMicrophone
+            }
             node.installTap(onBus: 0, bufferSize: 4096, format: heard) { buffer, _ in
                 rawBuilder.yield(buffer)
             }
             engine.prepare()
-            try engine.start()
+            try Self.step("Microphone: start") { try engine.start() }
             self.engine = engine
             startedAt = Date()
             VoiceLog.note("Microphone: listening.")
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            if !isPaused { await showActivity(listeningState("Listening…")) }
 
             limit = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(VoiceThought.longest))
@@ -178,9 +185,6 @@ final class VoiceRecorder {
                 // Not cancelled by the stop it starts: the write-up must not be cut short.
                 self.limit = nil
                 Task { @MainActor in _ = await self.stopAndFile() }
-            }
-            preparing = Task { @MainActor [weak self] in
-                await self?.attachSpeechToText(raw: raw, heard: heard)
             }
         } catch {
             VoiceLog.note("Could not start: \(error.localizedDescription)")
@@ -192,104 +196,118 @@ final class VoiceRecorder {
         }
     }
 
-    /// Build 353: the second half of a start, after the press has returned. Sets up Apple's
-    /// speech-to-text and then feeds it everything the microphone heard, from the first moment.
-    private func attachSpeechToText(raw: AsyncStream<AVAudioPCMBuffer>, heard: AVAudioFormat) async {
+    /// Build 355: one step of the start that can fail, named in `VoiceLog` when it does, so the
+    /// last presses say which step it was and not only Apple's number.
+    private static func step(_ name: String, _ work: () throws -> Void) throws {
         do {
-            guard let chosen = await chosenTranscriberAndLocale() else { throw Problem.noSpeechModel }
-            let transcriber = chosen.transcriber
-            locale = chosen.locale
-            if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
-                // In the background a download takes too long: it is started, and this recording ends.
-                guard UIApplication.shared.applicationState == .active else {
-                    VoiceLog.note("Speech model: not on the iPhone. The download was started.")
-                    Task { @MainActor in try? await install.downloadAndInstall() }
-                    throw Problem.modelDownloading
-                }
-                await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
-                try await install.downloadAndInstall()
-            }
-            guard isRecording else { return }
-            let analyzer = SpeechAnalyzer(modules: [transcriber])
-            self.analyzer = analyzer
-            // Round 350 (voice-words): the odd words from Settings › Voice, for it to listen for.
-            let hints = VoiceWords.contextualWords(Self.savedWords())
-            if !hints.isEmpty {
-                let context = AnalysisContext()
-                context.contextualStrings[.general] = hints
-                try? await analyzer.setContext(context)
-            }
-            guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
-                throw Problem.noSpeechModel
-            }
-            let (stream, builder) = AsyncStream<AnalyzerInput>.makeStream()
-            input = builder
-            try await analyzer.start(inputSequence: stream)
-            VoiceLog.note("Speech model: ready (\(chosen.locale.identifier)).")
-
-            results = Task { @MainActor [weak self] in
-                do {
-                    for try await result in transcriber.results {
-                        guard let self else { return }
-                        let text = String(result.text.characters)
-                        if !self.loggedFirstWords, !text.isEmpty {
-                            self.loggedFirstWords = true
-                            VoiceLog.note("First words heard.")
-                        }
-                        if result.isFinal {
-                            self.finished = [self.finished, text].joined(separator: " ")
-                                .trimmingCharacters(in: .whitespaces)
-                            self.volatile = ""
-                            // Round 350 (voice-words): "stop recording" said out loud.
-                            if VoiceWords.removingStopPhrase(from: self.finished) != nil, self.isRecording, !self.stopHeardAlready {
-                                self.stopHeardAlready = true
-                                Task { @MainActor in _ = await self.stopAndFile() }
-                            }
-                        } else {
-                            self.volatile = text
-                        }
-                        self.showWords()
-                    }
-                } catch {}
-            }
-
-            // Everything heard so far, then everything still to come, converted for the model.
-            let converter = heard == format ? nil : AVAudioConverter(from: heard, to: format)
-            pump = Task.detached {
-                for await buffer in raw {
-                    guard let converter else {
-                        builder.yield(AnalyzerInput(buffer: buffer))
-                        continue
-                    }
-                    let ratio = format.sampleRate / heard.sampleRate
-                    let room = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 16
-                    guard let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: room) else { continue }
-                    var given = false
-                    var problem: NSError?
-                    converter.convert(to: out, error: &problem) { _, status in
-                        if given {
-                            status.pointee = .noDataNow
-                            return nil
-                        }
-                        given = true
-                        status.pointee = .haveData
-                        return buffer
-                    }
-                    if problem == nil, out.frameLength > 0 { builder.yield(AnalyzerInput(buffer: out)) }
-                }
-            }
-            if isRecording, !isPaused { await showActivity(listeningState("Listening…")) }
+            try work()
         } catch {
-            VoiceLog.note("Speech model: \(error.localizedDescription)")
-            guard isRecording else { return }
-            limit?.cancel()
-            limit = nil
-            // This task is `preparing`: tearDown must not wait for itself.
-            preparing = nil
-            await tearDown()
-            isRecording = false
-            await showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: "", intoToday: intoToday),
-                               endAfter: 60)
+            VoiceLog.note("\(name) failed: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+    /// Sets up Apple's speech-to-text and the pump that feeds it everything the microphone
+    /// hears. The converter is made from the first sound that arrives, so this needs nothing
+    /// from the microphone and can run before it starts.
+    private func prepareSpeech(raw: AsyncStream<AVAudioPCMBuffer>) async throws {
+        guard let chosen = await chosenTranscriberAndLocale() else {
+            VoiceLog.note("Speech model: none for the chosen language.")
+            throw Problem.noSpeechModel
+        }
+        let transcriber = chosen.transcriber
+        locale = chosen.locale
+        if let install = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
+            // In the background a download takes too long: it is started, and this recording ends.
+            guard UIApplication.shared.applicationState == .active else {
+                VoiceLog.note("Speech model: not on the iPhone. The download was started.")
+                Task { @MainActor in try? await install.downloadAndInstall() }
+                throw Problem.modelDownloading
+            }
+            VoiceLog.note("Speech model: downloading.")
+            await showActivity(.init(stage: .preparing, words: "Getting the speech model ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
+            try await install.downloadAndInstall()
+        }
+        let analyzer = SpeechAnalyzer(modules: [transcriber])
+        self.analyzer = analyzer
+        // Round 350 (voice-words): the odd words from Settings › Voice, for it to listen for.
+        let hints = VoiceWords.contextualWords(Self.savedWords())
+        if !hints.isEmpty {
+            let context = AnalysisContext()
+            context.contextualStrings[.general] = hints
+            try? await analyzer.setContext(context)
+        }
+        guard let format = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber]) else {
+            VoiceLog.note("Speech model: no sound format it can take.")
+            throw Problem.noSpeechModel
+        }
+        let (stream, builder) = AsyncStream<AnalyzerInput>.makeStream()
+        input = builder
+        do {
+            try await analyzer.start(inputSequence: stream)
+        } catch {
+            VoiceLog.note("Speech model: start failed: \(error.localizedDescription)")
+            throw error
+        }
+        VoiceLog.note("Speech model: ready (\(chosen.locale.identifier)).")
+
+        results = Task { @MainActor [weak self] in
+            do {
+                for try await result in transcriber.results {
+                    guard let self else { return }
+                    let text = String(result.text.characters)
+                    if !self.loggedFirstWords, !text.isEmpty {
+                        self.loggedFirstWords = true
+                        VoiceLog.note("First words heard.")
+                    }
+                    if result.isFinal {
+                        self.finished = [self.finished, text].joined(separator: " ")
+                            .trimmingCharacters(in: .whitespaces)
+                        self.volatile = ""
+                        // Round 350 (voice-words): "stop recording" said out loud.
+                        if VoiceWords.removingStopPhrase(from: self.finished) != nil, self.isRecording, !self.stopHeardAlready {
+                            self.stopHeardAlready = true
+                            Task { @MainActor in _ = await self.stopAndFile() }
+                        }
+                    } else {
+                        self.volatile = text
+                    }
+                    self.showWords()
+                }
+            } catch {}
+        }
+
+        // Everything the microphone hears, converted for the model. The converter is made from
+        // the first sound, since the microphone has not started yet.
+        pump = Task.detached {
+            var converter: AVAudioConverter?
+            var madeConverter = false
+            for await buffer in raw {
+                let heard = buffer.format
+                if !madeConverter {
+                    madeConverter = true
+                    converter = heard == format ? nil : AVAudioConverter(from: heard, to: format)
+                }
+                guard let converter else {
+                    builder.yield(AnalyzerInput(buffer: buffer))
+                    continue
+                }
+                let ratio = format.sampleRate / heard.sampleRate
+                let room = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 16
+                guard let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: room) else { continue }
+                var given = false
+                var problem: NSError?
+                converter.convert(to: out, error: &problem) { _, status in
+                    if given {
+                        status.pointee = .noDataNow
+                        return nil
+                    }
+                    given = true
+                    status.pointee = .haveData
+                    return buffer
+                }
+                if problem == nil, out.frameLength > 0 { builder.yield(AnalyzerInput(buffer: out)) }
+            }
         }
     }
 

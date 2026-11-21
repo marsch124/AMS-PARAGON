@@ -5,14 +5,17 @@ import ParagonCore
 /// Build 348: **Record a Thought** — for the Action Button, Siri and Shortcuts.
 ///
 /// One action, two presses: the first starts recording (the Lock Screen shows the words as they
-/// are said), the second stops it and files the thought (`VoiceRecorder`). It never opens the
-/// app. iPhone and iPad only, iOS 26 or newer: Apple's on-phone speech-to-text came then.
+/// are said), the second stops it and files the thought (`VoiceRecorder`). Since build 355 it opens
+/// the app (iOS refuses the Lock Screen card from the background). iPhone and iPad only, iOS 26 or newer: Apple's on-phone speech-to-text came then.
 struct RecordThoughtIntent: AppIntent {
     static let title: LocalizedStringResource = "Record a Thought"
     static let description = IntentDescription(
         "Press once to start recording, press again to stop. PARAGON writes down what you said, makes a title, a short summary and the tasks it heard, and puts them in your Inbox. Everything happens on the phone.",
         categoryName: "Capture")
-    static let openAppWhenRun = false
+    // Build 355: iOS will not show the Lock Screen card for an app in the background ("Target
+    // is not foreground", seen in his log on 21 November), and without the card it stops the
+    // recording. So a press brings PARAGON to the front; the recording goes on after he leaves.
+    static let openAppWhenRun = true
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
@@ -25,6 +28,8 @@ struct RecordThoughtIntent: AppIntent {
     @MainActor
     static func pressed(into place: CaptureTarget) async throws -> some IntentResult & ProvidesDialog {
         guard #available(iOS 26.0, *) else { throw VoiceProblem.tooOld }
+        // Build 355: the press opens PARAGON, so the start screen steps aside (build 329).
+        AppModel.shared.arrived(by: .shortcut)
         let recorder = VoiceRecorder.shared
         if recorder.isRecording {
             let outcome = await recorder.stopAndFile(into: place == .today ? .today : nil)
@@ -67,7 +72,10 @@ struct RecordThoughtIntoTodayIntent: AppIntent {
     static let description = IntentDescription(
         "Press once to start recording, press again to stop. Like Record a Thought, but the tasks and a line to the note go into today's note instead of the Inbox.",
         categoryName: "Capture")
-    static let openAppWhenRun = false
+    // Build 355: iOS will not show the Lock Screen card for an app in the background ("Target
+    // is not foreground", seen in his log on 21 November), and without the card it stops the
+    // recording. So a press brings PARAGON to the front; the recording goes on after he leaves.
+    static let openAppWhenRun = true
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {

@@ -5553,3 +5553,21 @@ the Action Button showed nothing and recorded nothing (screen recording; only on
   place the user can screenshot, or every report is a guess.** An empty log after a press = the press
   never reached PARAGON (Action Button / Shortcuts set-up), not a recorder fault.
 
+## Build 355 (22 November 2026) — the press opens PARAGON
+
+His Last presses page on 354 (screenshots via Drime share links: `dri.me` is blocked here, but
+`https://app.drime.cloud/api/v1/shareable-links/<hash>` gives the entry id and
+`/api/v1/file-entries/<id>?shareable_link=<hash>` the file): **`Activity.request` from the background
+throws "Target is not foreground"**, even inside an `AudioRecordingIntent`, with Live Activities on. Apple
+forums (thread 815725) say the same: a recording with a Live Activity must be started in the foreground.
+- `RecordThoughtIntent` and `RecordThoughtIntoTodayIntent` are `openAppWhenRun = true` and call
+  `AppModel.shared.arrived(by: .shortcut)` so the start screen steps aside. The stop press opens it too;
+  the Lock Screen **Stop** (`StopVoiceIntent`) does not.
+- **"OSStatus error -50" with the app open**: build 353 started `AVAudioEngine` before the speech analyzer.
+  Back to 352's order: `prepareSpeech(raw:)` (throws; analyzer started, pump made, converter made from the
+  first buffer's format), then `setCategory`/`setActive`/`engine.start` through `step(_:_:)`, which logs the
+  failing step's name. `attachSpeechToText` is gone; `preparing` stays nil. **Not proven which call gave
+  -50**; the next log will say.
+- 🪤 **An app in the background cannot start a Live Activity, `AudioRecordingIntent` or not.** Any action
+  that records must open the app.
+

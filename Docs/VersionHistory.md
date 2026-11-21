@@ -1,6 +1,16 @@
 # Version history
 
-The version is shown as 1.0 (354) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (355) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 355 · 22 November 2026
+
+**Record a Thought: a press opens PARAGON, and recording works again with PARAGON open.**
+
+- **What the last presses page showed** (your screenshot from build 354): with PARAGON closed, iOS refused the Lock Screen card with the words "Target is not foreground". So iOS does not let an app that is not on screen start the card, and without the card it stops the recording. Live Activities were on; that was not the cause.
+- **Now a press of the Action Button opens PARAGON** and starts the recording there. After that you can go back to the Home Screen or lock the phone: the recording goes on, with the red dot and **Stop** on the Lock Screen. With the phone locked, iOS asks for Face ID or the passcode first. A second press (or **Stop** on the Lock Screen) stops and files it.
+- **Fixed: "OSStatus error -50" with PARAGON open.** Build 353 started the microphone before Apple's speech-to-text was ready, to beat a time limit in the background. With PARAGON on screen the microphone then failed. The order is back to the one of build 352, which recorded: speech-to-text first, then the microphone.
+- **What the last presses did** now names the step that failed (for example "Microphone: start failed"), not only Apple's number.
+- **Not tried on a real iPhone yet.**
 
 ## Build 354 · 21 November 2026
 
