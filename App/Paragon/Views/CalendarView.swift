@@ -292,25 +292,30 @@ struct MonthGridCell: View {
                 .fontWeight(isToday ? .bold : .regular)
                 .foregroundStyle(isSelected ? Color.white : (isToday ? ParaKind.daily.tint.ink : Color.primary))
                 .frame(width: 22, height: 20)
-                .background {
+                // Round 352: a ring means a task's state in this app, so today is the date in
+                // bold with a short line under it, in the colour the ring had.
+                .background(alignment: .bottom) {
                     if isSelected {
                         Circle().fill(ParaKind.daily.tint.deep)
                     } else if isToday {
-                        Circle().strokeBorder(ParaKind.daily.tint, lineWidth: 1.5)
+                        Capsule().fill(ParaKind.daily.tint)
+                            .frame(width: 12, height: 2)
                     }
                 }
+            // Round 352: short bars, not dots — a dot means "which part" or "which calendar".
+            // Events wear the Calendar's colour, not the Mac's accent colour.
             HStack(spacing: 3) {
                 if !overview.due.isEmpty {
-                    Circle().fill(overview.overdueCount > 0 ? Color.red : ParaKind.daily.tint)
-                        .frame(width: 4, height: 4)
+                    Capsule().fill(overview.overdueCount > 0 ? Color.red : ParaKind.daily.tint)
+                        .frame(width: 7, height: 3)
                 }
                 if events > 0 {
-                    Circle().fill(Color.accentColor)
-                        .frame(width: 4, height: 4)
+                    Capsule().fill(SidebarSection.calendar.tint)
+                        .frame(width: 7, height: 3)
                 }
                 if overview.dailyNotePath != nil {
-                    Circle().fill(Color.secondary.opacity(0.5))
-                        .frame(width: 4, height: 4)
+                    Capsule().fill(Color.secondary.opacity(0.5))
+                        .frame(width: 7, height: 3)
                 }
             }
             .frame(height: 4)
@@ -681,7 +686,8 @@ struct MonthDayCell: View {
                     .accessibilityLabel("\(day.completed.count) done")
                 }
                 if day.dailyNotePath != nil && day.due.isEmpty && day.completed.isEmpty {
-                    Circle().fill(ParaKind.daily.tint).frame(width: 4, height: 4)
+                    // Round 352: a short bar, not a dot.
+                    Capsule().fill(ParaKind.daily.tint).frame(width: 7, height: 3)
                 }
             }
             .frame(height: 14)

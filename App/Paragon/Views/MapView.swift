@@ -509,9 +509,11 @@ struct MapCanvas: View {
                            unpin: { unpinGroup(item.node) })
             }
             if let band {
+                // Round 352: the Map's own gold, not the Mac's accent colour (his is orange,
+                // which on this screen already means "look at this").
                 Rectangle()
-                    .fill(Color.accentColor.opacity(0.12))
-                    .overlay(Rectangle().strokeBorder(Color.accentColor, lineWidth: 1))
+                    .fill(SidebarSection.map.tint.opacity(0.12))
+                    .overlay(Rectangle().strokeBorder(SidebarSection.map.tint, lineWidth: 1))
                     .frame(width: band.width, height: band.height)
                     .offset(x: band.minX, y: band.minY)
                     .allowsHitTesting(false)
@@ -665,7 +667,8 @@ struct MapNodeView: View {
         .contentShape(Rectangle())
         .overlay {
             RoundedRectangle(cornerRadius: 10 * zoom)
-                .strokeBorder(Color.accentColor, lineWidth: targeted ? 2.5 : 0)
+                // Round 352: the box's own colour, not the Mac's accent colour.
+                .strokeBorder(node.tint, lineWidth: targeted ? 2.5 : 0)
         }
         .help(node.title)
         .animation(Motion.press, value: dimmed)
