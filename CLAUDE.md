@@ -5530,3 +5530,7 @@ possibly `downloadAndInstall()`, and the intent ran past its time limit.
   `tearDown` finishes `raw`, waits for `preparing` (8 s) and `pump` (4 s), then the analyzer as before.
 - 🪤 **An `AppIntent.perform` must return within a few seconds, cold start included.** Start the one thing that
   must happen (here the microphone) and do the slow set-up after returning.
+- **CI of 353:** `testAFocusTimerStartsPausesAndStops` failed once on the iPhone ("no timer bar appeared",
+  252 s against ~156) and passed on the one re-run; nothing near the focus timer changed in 353. A second
+  failure is real: look at the timer mark in `FocusBar` (build 352 changed the dot to `MarkImage("timer")`).
+- 353 uploaded to TestFlight (iPhone + Mac) on 21 Nov; not yet tried by him.
