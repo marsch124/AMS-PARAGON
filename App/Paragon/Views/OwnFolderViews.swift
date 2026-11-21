@@ -357,7 +357,8 @@ struct OwnFolderPageView: View {
                         } else if index == words.stepAtWork {
                             ProgressView().controlSize(.small)
                         } else {
-                            Circle().strokeBorder(Theme.soft.opacity(0.5), lineWidth: 1).frame(width: 9, height: 9)
+                            // Round 352: a short grey dash, not a ring — a ring means a task's state.
+                            Capsule().fill(Theme.soft.opacity(0.5)).frame(width: 9, height: 2)
                         }
                     }
                     .frame(width: 18)
