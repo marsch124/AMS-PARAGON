@@ -5509,3 +5509,15 @@ possibly `downloadAndInstall()`, and the intent ran past its time limit.
   Do both inside the app first, and make the intent fail fast with words that say what to do.
 - If it still fails after **Ready**: next suspects are `Activity.request` from the background and the time the
   intent takes to start the speech analyzer.
+- **Second fault, same build, his report on 352 (after Dictate had asked for the microphone, the Action
+  Button recorded):** the next press said "PARAGON is still writing up the last thought". `writeUp` raced the
+  model against a 20 s sleep in a **`withTaskGroup` — a task group waits for every child before it returns**,
+  so the limit was no limit, and a locked phone's model can take minutes. Now `VoiceRace.first(within:otherwise:)`
+  (a continuation resumed by whichever finishes first, `FirstAnswer`, the loser's answer dropped) for the
+  write-up, the chapter headings (one limit for all, was checked only between headings) and `tearDown`
+  (`finalizeAndFinishThroughEndOfInput` 6 s, the results task 3 s then cancelled). `finishLateSummaries` has
+  its own flag `catchingUp` instead of `isWriting`, so a catch-up never blocks a recording.
+- 🪤 **`withTaskGroup` + `cancelAll()` is not a timeout**: the group still waits for a child that ignores
+  cancellation (Apple's `LanguageModelSession.respond` did). Race with a continuation instead.
+- His Action Button worked on 352 only after **Dictate** in Capture had asked for the microphone — which
+  confirms the first cause.

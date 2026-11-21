@@ -66,6 +66,8 @@ final class VoiceRecorder {
     private(set) var place: CaptureTarget = .inbox
     private var intoToday: Bool { place == .today }
     fileprivate(set) var isWriting = false
+    /// Build 353: late summaries being written in; never stops a new recording.
+    fileprivate var catchingUp = false
     private var startedAt = Date()
     private var engine: AVAudioEngine?
     private var input: AsyncStream<AnalyzerInput>.Continuation?
@@ -316,9 +318,21 @@ final class VoiceRecorder {
         engine = nil
         input?.finish()
         input = nil
-        if let analyzer { try? await analyzer.finalizeAndFinishThroughEndOfInput() }
+        // Build 353: each wait here has a limit, so a stop can never hang the recorder.
+        if let analyzer {
+            _ = await VoiceRace.first(within: 6, otherwise: false) { @MainActor () async -> Bool in
+                try? await analyzer.finalizeAndFinishThroughEndOfInput()
+                return true
+            }
+        }
         analyzer = nil
-        await results?.value
+        if let pending = results {
+            _ = await VoiceRace.first(within: 3, otherwise: false) { @MainActor () async -> Bool in
+                await pending.value
+                return true
+            }
+            pending.cancel()
+        }
         results = nil
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
@@ -522,18 +536,13 @@ final class VoiceRecorder {
         let model = SystemLanguageModel.default
         guard model.availability == .available, model.supportsLocale(locale) else { return .none }
         if english, !model.supportsLocale(Locale(identifier: "en-US")) { return .none }
-        return await withTaskGroup(of: WriteUp.self) { group in
-            group.addTask { @MainActor in
-                guard let r = await ask(transcript, english: english) else { return .none }
-                return .done(title: r.title, summary: r.summary, tasks: r.tasks)
-            }
-            group.addTask {
-                try? await Task.sleep(for: .seconds(seconds))
-                return .late
-            }
-            let first = await group.next() ?? .none
-            group.cancelAll()
-            return first
+        // Build 353: a task group waits for every child before it returns, so the old limit was
+        // no limit: with the phone locked the model could take minutes and the recorder stayed
+        // "still writing up the last thought". The race now returns at the limit and lets the
+        // model's answer fall away.
+        return await VoiceRace.first(within: seconds, otherwise: WriteUp.late) { @MainActor () async -> WriteUp in
+            guard let r = await ask(transcript, english: english) else { return WriteUp.none }
+            return WriteUp.done(title: r.title, summary: r.summary, tasks: r.tasks)
         }
     }
 
@@ -584,9 +593,11 @@ extension VoiceRecorder {
     /// When PARAGON comes to the front: writes the summaries that did not finish while the
     /// phone was locked into their notes, and their tasks into the Inbox.
     func finishLateSummaries() async {
-        guard !Self.waiting.isEmpty, !isRecording, !isWriting else { return }
-        isWriting = true
-        defer { isWriting = false }
+        // Build 353: this has its own flag. It used `isWriting`, so a catch-up of several late
+        // summaries kept a new recording out with "still writing up the last thought".
+        guard !Self.waiting.isEmpty, !isRecording, !isWriting, !catchingUp else { return }
+        catchingUp = true
+        defer { catchingUp = false }
         let model = AppModel.shared
         await model.vaultOnceOpen()
         guard let vault = model.vault else { return }
@@ -626,6 +637,40 @@ extension AppModel {
         } catch {
             return nil
         }
+    }
+}
+
+/// Build 353: the first of two answers, the work or the limit, without waiting for the other.
+/// The work goes on in the background when the limit wins, and its answer is dropped.
+enum VoiceRace {
+    static func first<T>(within seconds: Double, otherwise late: T,
+                         _ work: @escaping @MainActor () async -> T) async -> T {
+        await withCheckedContinuation { (continuation: CheckedContinuation<T, Never>) in
+            let answer = FirstAnswer(continuation)
+            Task { @MainActor in answer.give(await work()) }
+            Task {
+                try? await Task.sleep(for: .seconds(seconds))
+                answer.give(late)
+            }
+        }
+    }
+}
+
+/// Resumes its continuation once; later answers are dropped.
+final class FirstAnswer<T>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<T, Never>?
+
+    init(_ continuation: CheckedContinuation<T, Never>) {
+        self.continuation = continuation
+    }
+
+    func give(_ value: T) {
+        lock.lock()
+        let waiting = continuation
+        continuation = nil
+        lock.unlock()
+        waiting?.resume(returning: value)
     }
 }
 #endif

@@ -41,14 +41,16 @@ extension VoiceRecorder {
         guard !chunks.isEmpty else { return [] }
         let model = SystemLanguageModel.default
         guard model.availability == .available, model.supportsLocale(locale) else { return [] }
-        let deadline = Date().addingTimeInterval(seconds)
-        var headings: [String?] = []
-        for chunk in chunks {
-            if Date() >= deadline { return [] }
-            let heading: String? = await chapterHeading(for: chunk, english: english)
-            headings.append(heading)
+        // Build 353: one limit for all the headings, which returns at the limit even while the
+        // model is still busy (it checked only between headings before).
+        return await VoiceRace.first(within: seconds, otherwise: [VoiceChapter]()) { @MainActor () async -> [VoiceChapter] in
+            var headings: [String?] = []
+            for chunk in chunks {
+                let heading: String? = await chapterHeading(for: chunk, english: english)
+                headings.append(heading)
+            }
+            return VoiceChapters.chapters(chunks: chunks, headings: headings)
         }
-        return VoiceChapters.chapters(chunks: chunks, headings: headings)
     }
 
     private static func chapterHeading(for text: String, english: Bool) async -> String? {
