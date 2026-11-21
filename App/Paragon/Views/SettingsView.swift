@@ -1240,14 +1240,19 @@ struct SafetyMark: View {
 }
 
 extension View {
-    /// The amber dot on a Settings gear while something on the Safety list needs a look.
+    /// The amber badge on a Settings gear while something on the Safety list needs a look.
+    /// Round 352: a small round badge with "!" in it, not a plain dot — a dot means "which part"
+    /// or "which calendar" in this app. Same place, same name for the tests.
     func safetyDot(_ shown: Bool) -> some View {
         overlay(alignment: .topTrailing) {
             if shown {
-                Circle()
-                    .fill(Theme.attention)
-                    .frame(width: 7, height: 7)
-                    .offset(x: 3, y: -2)
+                Text("!")
+                    .font(Txt.tiny.weight(.heavy))
+                    .foregroundStyle(Color.white)
+                    .frame(width: 12, height: 12)
+                    .background(Theme.attention, in: Circle())
+                    .offset(x: 5, y: -4)
+                    .accessibilityLabel("Something needs a look")
                     .accessibilityIdentifier("safety.dot")
             }
         }
