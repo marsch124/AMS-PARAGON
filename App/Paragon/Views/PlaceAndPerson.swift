@@ -78,6 +78,15 @@ struct PlaceHit: Identifiable, Equatable {
         self.longitude = coordinate.longitude
         self.id = "\(title)|\(coordinate.latitude),\(coordinate.longitude)"
     }
+
+    /// Round 352: a ready-made place (Home, Work, or one already used on a task) as a choice.
+    init(known: KnownPlace) {
+        self.name = known.name
+        self.address = known.address
+        self.latitude = known.latitude
+        self.longitude = known.longitude
+        self.id = "known|\(known.id)"
+    }
 }
 
 /// The window behind **Remind me at a place…**: a search field, the answers, Arriving or
@@ -92,6 +101,8 @@ struct PlaceSearchView: View {
     @State private var arriving = true
     @State private var searching = false
     @State private var message: String?
+    /// Round 352: Home, Work and the places already used on tasks, worked out once on appear.
+    @State private var readyMade: [KnownPlace] = []
     @FocusState private var focused: Bool
 
     private var tint: Color { SidebarSection.allActions.tint }
@@ -129,6 +140,19 @@ struct PlaceSearchView: View {
                     .accessibilityIdentifier("place.arriving")
                 PickChip(title: "Leaving", isOn: !arriving, tint: tint) { arriving = false }
                     .accessibilityIdentifier("place.leaving")
+            }
+            if !readyMade.isEmpty {
+                Text("Your places")
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                WrappingHStack(spacing: 6, lineSpacing: 6) {
+                    ForEach(readyMade) { known in
+                        PickChip(title: known.name, isOn: chosen?.id == PlaceHit(known: known).id, tint: tint) {
+                            chosen = PlaceHit(known: known)
+                        }
+                        .accessibilityIdentifier("place.chip.\(known.name)")
+                    }
+                }
             }
             HStack(spacing: 6) {
                 TextField("Search a place", text: $query)
@@ -182,6 +206,9 @@ struct PlaceSearchView: View {
         .frame(width: 320, alignment: .leading)
         .onAppear {
             if let current = ref.task.place { arriving = current.arriving }
+            readyMade = PlaceChoices.chips(home: SavedPlaceStore.read(.home),
+                                           work: SavedPlaceStore.read(.work),
+                                           used: model.index.usedPlaces())
             DispatchQueue.main.async { focused = true }
         }
     }
@@ -213,6 +240,192 @@ struct PlaceSearchView: View {
                                   longitude: chosen.longitude, arriving: arriving)
         model.setPlace(place, for: ref)
         isPresented = false
+    }
+}
+
+// MARK: - Home and Work (round 352)
+
+/// **Home** and **Work** on this device, in `UserDefaults`. The words and the format are in Core
+/// (`SavedPlace`); this only reads and writes the two keys.
+enum SavedPlaceStore {
+    static func read(_ which: SavedPlace) -> KnownPlace? {
+        which.read(UserDefaults.standard.string(forKey: which.defaultsKey))
+    }
+
+    static func write(_ hit: PlaceHit, as which: SavedPlace) {
+        let text: String = SavedPlace.stored(address: words(for: hit), latitude: hit.latitude, longitude: hit.longitude)
+        UserDefaults.standard.set(text, forKey: which.defaultsKey)
+    }
+
+    static func remove(_ which: SavedPlace) {
+        UserDefaults.standard.removeObject(forKey: which.defaultsKey)
+    }
+
+    /// The name and the address, without saying the name twice.
+    static func words(for hit: PlaceHit) -> String {
+        if hit.address.isEmpty { return hit.name }
+        if hit.address.hasPrefix(hit.name) { return hit.address }
+        return "\(hit.name), \(hit.address)"
+    }
+}
+
+/// The place search, shared by the Home and Work window.
+enum PlaceLookup {
+    /// Up to eight answers. Throws when the search could not be made (no connection).
+    @MainActor
+    static func search(_ text: String) async throws -> [PlaceHit] {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = text
+        let response = try await MKLocalSearch(request: request).start()
+        return response.mapItems.prefix(8).map { PlaceHit(item: $0) }
+    }
+}
+
+/// Settings › **Home and Work**: two places set once, offered as chips in
+/// **Remind me at a place…**. Kept on this device only.
+struct ReminderPlacesSection: View {
+    @State private var home: KnownPlace? = SavedPlaceStore.read(.home)
+    @State private var work: KnownPlace? = SavedPlaceStore.read(.work)
+    @State private var setting: SavedPlace?
+
+    var body: some View {
+        Section {
+            row(.home, place: home)
+            row(.work, place: work)
+        } header: {
+            Text("Home and Work")
+        } footer: {
+            Text("Set them once. Then Remind me at a place\u{2026} offers Home and Work without a search. Kept on this device only.")
+        }
+        .sheet(item: $setting, onDismiss: refresh) { which in
+            SavedPlacePicker(which: which)
+        }
+    }
+
+    private func row(_ which: SavedPlace, place: KnownPlace?) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(which.label)
+                Text(place?.address ?? "Not set")
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                    .lineLimit(2)
+                    .accessibilityIdentifier("settings.place.\(which.rawValue).now")
+            }
+            Spacer(minLength: 8)
+            Button(place == nil ? "Set\u{2026}" : "Change\u{2026}") { setting = which }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("settings.place.\(which.rawValue)")
+            if place != nil {
+                Button("Remove") {
+                    SavedPlaceStore.remove(which)
+                    refresh()
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("settings.place.\(which.rawValue).remove")
+            }
+        }
+    }
+
+    private func refresh() {
+        home = SavedPlaceStore.read(.home)
+        work = SavedPlaceStore.read(.work)
+    }
+}
+
+/// The window behind Settings › Home and Work › **Set…**: search, then press the answer.
+struct SavedPlacePicker: View {
+    let which: SavedPlace
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    @State private var results: [PlaceHit] = []
+    @State private var searching = false
+    @State private var message: String?
+    @FocusState private var focused: Bool
+
+    private var tint: Color { SidebarSection.allActions.tint }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Text("Set \(which.label)")
+                    .font(Txt.listTitle)
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                    .accessibilityIdentifier("savedPlace.cancel")
+            }
+            HStack(spacing: 6) {
+                TextField("Search an address or a place", text: $query)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($focused)
+                    .onSubmit(search)
+                    .accessibilityIdentifier("savedPlace.field")
+                Button("Search", action: search)
+                    .disabled(query.trimmingCharacters(in: .whitespaces).isEmpty || searching)
+                    .accessibilityIdentifier("savedPlace.search")
+            }
+            if let message {
+                Text(message)
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("savedPlace.message")
+            }
+            ForEach(results) { hit in
+                Button {
+                    SavedPlaceStore.write(hit, as: which)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 8) {
+                        MarkImage("mappin", text: .footnote)
+                            .foregroundStyle(Color.secondary)
+                            .frame(width: 16)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(hit.name)
+                                .font(Txt.listTitle)
+                                .lineLimit(1)
+                            if !hit.address.isEmpty {
+                                Text(hit.address)
+                                    .font(Txt.label)
+                                    .foregroundStyle(.soft)
+                                    .lineLimit(2)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("savedPlace.result.\(hit.name)")
+            }
+            Text("Press the right answer to keep it as \(which.label).")
+                .font(Txt.label)
+                .foregroundStyle(.soft)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(minWidth: 300, idealWidth: 380, minHeight: 280, alignment: .topLeading)
+        .onAppear { DispatchQueue.main.async { focused = true } }
+    }
+
+    private func search() {
+        let text = query.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+        searching = true
+        message = nil
+        Task { @MainActor in
+            do {
+                let hits: [PlaceHit] = try await PlaceLookup.search(text)
+                results = hits
+                if hits.isEmpty { message = "No place found. Try other words." }
+            } catch {
+                results = []
+                message = "PARAGON could not search for places now. Check the connection and try again."
+            }
+            searching = false
+        }
     }
 }
 

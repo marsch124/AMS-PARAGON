@@ -366,6 +366,8 @@ struct SettingsView: View {
 
             // Round 350 (capture-inbox, pick 32): the place name on a capture. Off by default.
             CapturePlaceSection()
+            // Round 352: Home and Work for Remind me at a place.
+            ReminderPlacesSection()
 
             // Build 317: Siri and Shortcuts (features-07), notes in the system search (features-21).
             SiriShortcutsSection()
