@@ -581,6 +581,7 @@ struct NoteEditorView: View {
                     addTaskBar
                 }
                 .background(.bar)
+                .modifier(ReseatsWhenKeyboardGoes())
             }
         }
         #if os(iOS)
@@ -3204,6 +3205,29 @@ struct SharesNoteFile: ViewModifier {
         content.sheet(item: $file) { file in
             ShareSheet(url: file.url)
         }
+        #else
+        content
+        #endif
+    }
+}
+
+/// Round 352: the **Add a task…** bar at the foot of a note on the iPhone was once seen stuck in
+/// the middle of the page after the keyboard had been up in Search. It was never seen again, so
+/// this is only a guard: each time the keyboard has gone, the bar's height is moved by half a
+/// point and back on the next turn. Two changes of size make SwiftUI measure the bar again and
+/// place it at the foot of the screen. The bar keeps its identity, so nothing in it is reset
+/// (an open ⓘ sheet, the words being typed). iOS only.
+private struct ReseatsWhenKeyboardGoes: ViewModifier {
+    @State private var nudged = false
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        content
+            .padding(.bottom, nudged ? 0.5 : 0)
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
+                nudged = true
+                DispatchQueue.main.async { nudged = false }
+            }
         #else
         content
         #endif
