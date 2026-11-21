@@ -1,7 +1,17 @@
 import XCTest
 @testable import ParagonCore
 
+/// Hooks for a test move that never asks the runner's own disk how much room it has. A GitHub
+/// runner with a nearly full disk reports 0 bytes for "important use", which stopped every move
+/// with "not enough room" (21 November 2026). The one test about room sets its own number.
+private func roomy() -> MoveHooks {
+    var hooks = MoveHooks()
+    hooks.freeBytes = { _ in 100_000_000_000 }
+    return hooks
+}
+
 /// Build 319: moving the vault into PARAGON's own folder. Every rule, on temporary folders.
+
 final class VaultMoveTests: XCTestCase {
     private let fm = FileManager.default
     private var folders: [URL] = []
@@ -66,7 +76,7 @@ final class VaultMoveTests: XCTestCase {
         let before = try VaultMove.manifest(of: old)
         XCTAssertEqual(VaultMove.standing(of: old), .plain)
 
-        let outcome = try VaultMove.run(request(from: old, to: new))
+        let outcome = try VaultMove.run(request(from: old, to: new), hooks: roomy())
 
         // Every file, the hidden state included, with the same bytes.
         let after = try VaultMove.manifest(of: new)
@@ -106,7 +116,7 @@ final class VaultMoveTests: XCTestCase {
     func testAStoppedMoveIsRecognisableNeverAVaultAndCanBeRunAgain() throws {
         let old = try oldVault(), new = try emptyFolder()
         let before = try VaultMove.manifest(of: old)
-        var hooks = MoveHooks()
+        var hooks = roomy()
         var copied = 0
         hooks.progress = { if $0.step == .copying { copied = $0.done } }
         hooks.cancelled = { copied >= 3 }
@@ -122,7 +132,7 @@ final class VaultMoveTests: XCTestCase {
         XCTAssertFalse(fm.fileExists(atPath: old.appendingPathComponent(VaultMove.movedFileName).path))
 
         // Again: the same move goes on, what was copied is kept, nothing is set aside.
-        let outcome = try VaultMove.run(request(from: old, to: new))
+        let outcome = try VaultMove.run(request(from: old, to: new), hooks: roomy())
         XCTAssertEqual(outcome.stamp.moveID, first.moveID)
         XCTAssertEqual(outcome.stamp.generation, 1)
         XCTAssertEqual(outcome.alreadyThere, 3)
@@ -133,7 +143,7 @@ final class VaultMoveTests: XCTestCase {
 
     func testANoteChangedWhileCopyingIsCopiedAgainBeforeTheMoveCounts() throws {
         let old = try oldVault(), new = try emptyFolder()
-        var hooks = MoveHooks()
+        var hooks = roomy()
         var changed = false
         hooks.progress = { [self] progress in
             if progress.step == .copying, progress.done == progress.total, !changed {
@@ -152,7 +162,7 @@ final class VaultMoveTests: XCTestCase {
         let old = try oldVault()
         // iCloud full: the copy is there but never called complete; the old folder is not marked.
         let full = try emptyFolder()
-        var hooks = MoveHooks()
+        var hooks = roomy()
         hooks.uploadState = { _ in .full }
         XCTAssertThrowsError(try VaultMove.run(request(from: old, to: full), hooks: hooks)) {
             XCTAssertEqual($0 as? MoveError, .cloudFull)
@@ -161,7 +171,7 @@ final class VaultMoveTests: XCTestCase {
         XCTAssertEqual(VaultMove.standing(of: old), .plain)
 
         // iCloud never takes the files: given up after the patience, nothing changed.
-        var slow = MoveHooks()
+        var slow = roomy()
         var clock = Date(timeIntervalSince1970: 1_800_000_000)
         slow.now = { clock }
         slow.pause = { clock.addTimeInterval($0 * 400) }
@@ -173,7 +183,7 @@ final class VaultMoveTests: XCTestCase {
 
         // No room on the device: stopped before anything is written.
         let tight = try emptyFolder()
-        var small = MoveHooks()
+        var small = roomy()
         small.freeBytes = { _ in 1_000 }
         XCTAssertThrowsError(try VaultMove.run(request(from: old, to: tight), hooks: small)) {
             guard case .notEnoughRoom = $0 as? MoveError else { return XCTFail("\($0)") }
@@ -183,7 +193,7 @@ final class VaultMoveTests: XCTestCase {
         // A folder with somebody's files in it is never filled.
         let foreign = try emptyFolder()
         try write("mine", "Holiday.txt", in: foreign)
-        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: foreign))) {
+        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: foreign), hooks: roomy())) {
             XCTAssertEqual($0 as? MoveError, .destinationHoldsOtherThings(1))
         }
         XCTAssertEqual(try fm.contentsOfDirectory(atPath: foreign.path), ["Holiday.txt"])
@@ -193,7 +203,7 @@ final class VaultMoveTests: XCTestCase {
 
     func testASecondDeviceOpensTheNewFolderOnlyWhenItIsCompleteThere() throws {
         let old = try oldVault(), new = try emptyFolder()
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         let list = try VaultMove.manifest(of: new)
         func bring(_ path: String, to device: URL) throws {
             let target = device.appendingPathComponent(path)
@@ -253,7 +263,7 @@ final class VaultMoveTests: XCTestCase {
 
     func testChangesInTheOldFolderAfterTheMoveAreFoundAndBroughtOverWithoutLosingEitherSide() throws {
         let old = try oldVault(), new = try emptyFolder()
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         let baseline = try XCTUnwrap(VaultMove.baseline(for: "PHONE", in: new))
         XCTAssertTrue(try VaultMove.changes(in: old, since: baseline).changes.isEmpty)
 
@@ -304,13 +314,13 @@ final class VaultMoveTests: XCTestCase {
 
     func testGoingBackIsTheSameMoveTheOtherWayAndSetsAsideInsteadOfDeleting() throws {
         let old = try oldVault(), new = try emptyFolder()
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         // He works in the new folder for a while.
         try write("# Alpha, a week later\n", "Projects/Alpha.md", in: new)
         try write("# Zeta\n", "Projects/Zeta.md", in: new)
         try fm.removeItem(at: new.appendingPathComponent("Areas/Delta.md"))
 
-        let back = try VaultMove.run(request(from: new, to: old, toOwn: false))
+        let back = try VaultMove.run(request(from: new, to: old, toOwn: false), hooks: roomy())
         XCTAssertEqual(back.stamp.generation, 2)
         XCTAssertEqual(back.setAside, 2)
         XCTAssertEqual(try VaultMove.manifest(of: old).files, try VaultMove.manifest(of: new).files)
@@ -326,7 +336,7 @@ final class VaultMoveTests: XCTestCase {
         XCTAssertTrue(kept.contains { $0.hasSuffix("Areas/Delta.md") })
 
         // And forward again: move 3, into the folder that was left.
-        let forward = try VaultMove.run(request(from: old, to: new))
+        let forward = try VaultMove.run(request(from: old, to: new), hooks: roomy())
         XCTAssertEqual(forward.stamp.generation, 3)
         XCTAssertEqual(isVault(VaultMove.standing(of: new))?.generation, 3)
         guard case .movedAway = VaultMove.standing(of: old) else { return XCTFail("old folder not marked again") }
@@ -381,10 +391,10 @@ final class VaultMoveTests: XCTestCase {
 
     func testAMoveNeverGoesIntoAVaultInUseNorIntoAnotherDevicesFreshCopy() throws {
         let old = try oldVault(), new = try emptyFolder()
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         try write("# Alpha, written in the new place\n", "Projects/Alpha.md", in: new)
         // The phone has not seen the move yet and presses "Move my notes" too.
-        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: new, device: "PHONE"))) {
+        XCTAssertThrowsError(try VaultMove.run(request(from: old, to: new, device: "PHONE"), hooks: roomy())) {
             guard case .alreadyMoved = $0 as? MoveError else { return XCTFail("\($0)") }
         }
         XCTAssertEqual(text("Projects/Alpha.md", in: new), "# Alpha, written in the new place\n")
@@ -393,14 +403,14 @@ final class VaultMoveTests: XCTestCase {
 
         // A copy the Mac started an hour ago: the phone does not take it over. After a day it may.
         let half = try emptyFolder()
-        var stop = MoveHooks()
+        var stop = roomy()
         stop.uploadState = { $0.lastPathComponent == VaultMove.arrivingName ? .sent : .full }
         XCTAssertThrowsError(try VaultMove.run(request(from: old, to: half), hooks: stop))
         let again = try oldVault()
-        XCTAssertThrowsError(try VaultMove.run(request(from: again, to: half, device: "PHONE"))) {
+        XCTAssertThrowsError(try VaultMove.run(request(from: again, to: half, device: "PHONE"), hooks: roomy())) {
             guard case .otherDeviceMoving = $0 as? MoveError else { return XCTFail("\($0)") }
         }
-        var later = MoveHooks()
+        var later = roomy()
         later.now = { Date().addingTimeInterval(2 * 86_400) }
         XCTAssertNoThrow(try VaultMove.run(request(from: again, to: half, device: "PHONE"), hooks: later))
     }
@@ -408,7 +418,7 @@ final class VaultMoveTests: XCTestCase {
     func testTwoDevicesMovingAtTheSameTimeBothStopBeforeTheCopyCounts() throws {
         // iCloud parks the other device's marker beside this one's before a note is copied.
         let old = try oldVault(), new = try emptyFolder()
-        var hooks = MoveHooks()
+        var hooks = roomy()
         hooks.uploadState = { [self] url in
             if url.lastPathComponent == VaultMove.arrivingName {
                 try? write("{}", ".ams-para/move/arriving 2.json", in: new)
@@ -423,7 +433,7 @@ final class VaultMoveTests: XCTestCase {
 
         // The other device's marker takes this one's place while the copy is being sent.
         let second = try emptyFolder()
-        var late = MoveHooks()
+        var late = roomy()
         var swapped = false
         late.progress = { [self] progress in
             guard progress.step == .sending, !swapped else { return }
@@ -443,7 +453,7 @@ final class VaultMoveTests: XCTestCase {
 
     func testANoteChangedWhileICloudTakesTheCopyIsInTheCopyBeforeItCounts() throws {
         let old = try oldVault(), new = try emptyFolder()
-        var hooks = MoveHooks()
+        var hooks = roomy()
         var changed = false
         hooks.uploadState = { [self] url in
             if url.lastPathComponent == "Beta.md", !changed {
@@ -471,7 +481,7 @@ final class VaultMoveTests: XCTestCase {
         try write("", "Areas/Empty.md", in: old)
         try write("hidden", ".obsidian/app.json", in: old)
         try write("x", String(repeating: "långt namn ", count: 18) + ".md", in: old)
-        let outcome = try VaultMove.run(request(from: old, to: new))
+        let outcome = try VaultMove.run(request(from: old, to: new), hooks: roomy())
         XCTAssertEqual(text(decomposed.precomposedStringWithCanonicalMapping, in: new), "# Mål\n")
         XCTAssertEqual(text("Areas/Empty.md", in: new), "")
         XCTAssertEqual(text(".obsidian/app.json", in: new), "hidden")
@@ -486,14 +496,14 @@ final class VaultMoveTests: XCTestCase {
         // counted as copied and never copied as an empty file.
         let withStub = try oldVault(), target = try emptyFolder()
         try write("", "Projects/.Evicted.md.icloud", in: withStub)
-        XCTAssertThrowsError(try VaultMove.run(request(from: withStub, to: target))) {
+        XCTAssertThrowsError(try VaultMove.run(request(from: withStub, to: target), hooks: roomy())) {
             XCTAssertEqual($0 as? MoveError, .notHere(["Projects/Evicted.md"]))
         }
         XCTAssertEqual(VaultMove.standing(of: target), .plain)
         // A link to somewhere else stops it too.
         let withLink = try oldVault(), other = try emptyFolder()
         try fm.createSymbolicLink(at: withLink.appendingPathComponent("Projects/Link.md"), withDestinationURL: old.appendingPathComponent("Projects/Alpha.md"))
-        XCTAssertThrowsError(try VaultMove.run(request(from: withLink, to: other))) {
+        XCTAssertThrowsError(try VaultMove.run(request(from: withLink, to: other), hooks: roomy())) {
             XCTAssertEqual($0 as? MoveError, .unsupported(["Projects/Link.md"]))
         }
     }
@@ -507,7 +517,7 @@ final class VaultMoveTests: XCTestCase {
             XCTAssertEqual($0 as? MoveError, .notHere(["Projects/Beta.md"]))
         }
 
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         // A phone that was offline: its old folder shows Alpha as it was a week ago. The text
         // differs from the list made at the move, but it is older — it must not replace the note.
         try write("# Alpha as it was last week\n", "Projects/Alpha.md", in: old)
@@ -532,7 +542,7 @@ final class VaultMoveTests: XCTestCase {
 
     func testANoteDeletedBeforeTheMoveDoesNotComeBackFromALateDevice() throws {
         let old = try oldVault(), new = try emptyFolder()
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         // A long-offline phone still held "Old idea", deleted before the copy; iCloud puts it back.
         try write("# Old idea\n", "Projects/Old idea.md", in: old)
         try fm.setAttributes([.modificationDate: Date().addingTimeInterval(-3 * 86_400)],
@@ -561,7 +571,7 @@ final class VaultMoveTests: XCTestCase {
 
     func testBackupsLeaveTheMarkersOutAndARestoreNeverBringsAMarkerBack() throws {
         let old = try oldVault(), new = try emptyFolder()
-        try VaultMove.run(request(from: old, to: new))
+        try VaultMove.run(request(from: old, to: new), hooks: roomy())
         let vault = try Vault(rootURL: new)
         let backup = try XCTUnwrap(try vault.makeBackup(reason: "manual"))
         let folder = vault.backupsURL.appendingPathComponent(backup.folderName)
