@@ -118,7 +118,7 @@ struct CapturePlaceSection: View {
         } header: {
             Text("Place name")
         } footer: {
-            Text("When this is on, a line saved from Quick capture ends with the place where you are, like \u{201C}Buy milk \u{2014} at Malm\u{F6}\u{201D}. PARAGON looks once, when you save, and keeps no track of where you go.")
+            Text("When this is on, a line saved from Quick capture or from the Inbox\u{2019}s own field ends with the place where you are, like \u{201C}Buy milk \u{2014} at Malm\u{F6}\u{201D}. PARAGON looks once, when you save, and keeps no track of where you go.")
         }
     }
 }

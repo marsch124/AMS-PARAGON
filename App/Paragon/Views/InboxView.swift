@@ -338,9 +338,22 @@ struct InboxTriageView: View {
         let text = newItem.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let inbox else { return }
         // Build 316: date words that were read ("tomorrow 14:00") are saved as the date mark.
-        model.addTask(PlainDateChip.line(text, ignoring: ignoredDateWords), to: inbox.relativePath)
+        let line: String = PlainDateChip.line(text, ignoring: ignoredDateWords)
+        let path: String = inbox.relativePath
+        // The field is empty at once, so the next line can be typed while the place is found.
         newItem = ""
         ignoredDateWords = nil
+        // Round 352: with **Add the place name** on (Settings), the same look-up as Quick
+        // capture: a few seconds at most, and with no answer the line is saved as written.
+        // The place goes at the end of the words; `addTask` moves the date mark behind it.
+        if CapturePlace.isOn {
+            Task { @MainActor in
+                let place: String? = await CapturePlace.shared.name()
+                model.addTask(CaptureLines.placed(line, at: place), to: path)
+            }
+        } else {
+            model.addTask(line, to: path)
+        }
     }
 
     /// Runs a single-key action on the selected line, unless you are typing in the capture box.
