@@ -18,15 +18,21 @@ struct RecordThoughtIntent: AppIntent {
     static let openAppWhenRun = true
 
     @MainActor
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult {
         try await Self.pressed(into: .inbox)
     }
 
     /// One press of either action: start when nothing records, else stop. A second press of
     /// **Record into Today's Note** files into today's note, of **Record a Thought** where the
     /// recording was meant to go.
+    ///
+    /// Build 357: no answer card. Every press opens PARAGON (build 355), and an answer card
+    /// covered its top with a white card holding only **Done** (the start had an empty answer),
+    /// which looked as if nothing was recording. PARAGON itself says what happened: the Lock
+    /// Screen card while it records, **Check the thought** or the saved thought after a stop,
+    /// and a short message at the foot of the screen for the rest.
     @MainActor
-    static func pressed(into place: CaptureTarget) async throws -> some IntentResult & ProvidesDialog {
+    static func pressed(into place: CaptureTarget) async throws -> some IntentResult {
         guard #available(iOS 26.0, *) else { throw VoiceProblem.tooOld }
         // Build 355: the press opens PARAGON, so the start screen steps aside (build 329).
         AppModel.shared.arrived(by: .shortcut)
@@ -37,15 +43,16 @@ struct RecordThoughtIntent: AppIntent {
             switch outcome {
             case .saved(let title, let tasks):
                 let found = tasks == 0 ? "" : tasks == 1 ? " One task found." : " \(tasks) tasks found."
-                let where_ = recorder.place == .today ? "today's note" : "Inbox"
-                return .result(dialog: IntentDialog(stringLiteral: "Saved to \(where_): \(title).\(found)"))
+                let where_ = recorder.place == .today ? "today's note" : "the Inbox"
+                AppModel.shared.flash("Saved to \(where_): \(title).\(found)", seconds: 5)
             case .kept:
-                return .result(dialog: "Saved. It is filed the next time PARAGON opens your notes.")
+                AppModel.shared.flash("Saved. It is filed the next time PARAGON opens your notes.", seconds: 5)
             case .nothingHeard:
-                return .result(dialog: "Nothing heard, so nothing was saved.")
+                AppModel.shared.flash("Nothing heard, so nothing was saved.", seconds: 5)
             case .notRecording:
-                return .result(dialog: "Nothing was recording.")
+                AppModel.shared.flash("Nothing was recording.")
             }
+            return .result()
         }
         do {
             try await recorder.start(into: place)
@@ -54,8 +61,8 @@ struct RecordThoughtIntent: AppIntent {
             throw VoiceProblem.cannotStart(error.localizedDescription)
         }
         VoiceLog.note("The press returned. Recording goes on.")
-        // No spoken answer here: it would be recorded.
-        return .result(dialog: "")
+        AppModel.shared.flash("Recording. Press again to stop.", seconds: 5)
+        return .result()
     }
 }
 
@@ -78,7 +85,7 @@ struct RecordThoughtIntoTodayIntent: AppIntent {
     static let openAppWhenRun = true
 
     @MainActor
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult {
         try await RecordThoughtIntent.pressed(into: .today)
     }
 }

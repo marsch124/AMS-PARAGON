@@ -94,6 +94,8 @@ final class VoiceRecorder {
     private var loggedFirstWords = false
     private var lastShown = Date.distantPast
     private var limit: Task<Void, Never>?
+    /// Build 357: the two watchers set up by `watchTheSound`.
+    private var soundWatch: [NSObjectProtocol] = []
     private var locale = Locale(identifier: "en-US")
     // Round 350 (voice-words): "stop recording" said out loud stops once.
     private var stopHeardAlready = false
@@ -184,6 +186,7 @@ final class VoiceRecorder {
             engine.prepare()
             try Self.step("Microphone: start") { try engine.start() }
             self.engine = engine
+            watchTheSound(engine)
             startedAt = Date()
             VoiceLog.note("Microphone: listening.")
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -381,7 +384,10 @@ final class VoiceRecorder {
         case .done(let title, let summary, let tasks):
             thought.title = title
             thought.summary = summary
-            thought.tasks = tasks
+            // Build 357: only the tasks that come from what was said (the model once gave back a
+            // line of its own instructions as a task).
+            thought.tasks = VoiceThought.heardTasks(tasks, transcript: thought.transcript,
+                                                    sameLanguage: !english || locale.language.languageCode == .english)
             if VoiceChapters.isLong(duration: duration, transcript: thought.transcript) {
                 thought.chapters = await Self.writeChapters(thought.transcript, locale: locale, english: english, within: 12)
             }
@@ -410,7 +416,27 @@ final class VoiceRecorder {
         return .kept
     }
 
+    /// Build 357: iOS can take the microphone away (a call, Siri, another app that records),
+    /// and the recording then stops without a word. The last presses say when that happened.
+    private func watchTheSound(_ engine: AVAudioEngine) {
+        let centre = NotificationCenter.default
+        soundWatch = [
+            centre.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { note in
+                let kind = (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt)
+                    .flatMap { AVAudioSession.InterruptionType(rawValue: $0) }
+                VoiceLog.note(kind == .began
+                    ? "Microphone: iOS took it away (a call, Siri or another app)."
+                    : "Microphone: iOS gave it back.")
+            },
+            centre.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main) { _ in
+                VoiceLog.note("Microphone: the sound set-up changed. The recording may have stopped.")
+            }
+        ]
+    }
+
     private func tearDown() async {
+        for watcher in soundWatch { NotificationCenter.default.removeObserver(watcher) }
+        soundWatch = []
         if let engine {
             engine.inputNode.removeTap(onBus: 0)
             engine.stop()
@@ -752,7 +778,10 @@ extension VoiceRecorder {
             case .done(_, let s, let t):
                 summary = s
                 // Build 349: the tasks he said were filed at once; only the model's others now.
-                tasks = VoiceThought.lateTasks(transcript: late.transcript, modelTasks: t)
+                let heard = VoiceThought.heardTasks(t, transcript: late.transcript,
+                                                    sameLanguage: !(late.english ?? false)
+                                                        || Locale(identifier: late.locale).language.languageCode == .english)
+                tasks = VoiceThought.lateTasks(transcript: late.transcript, modelTasks: heard)
             }
             model.flushPendingEdits()
             _ = try? vault.addLateVoiceSummary(path: late.path, summary: summary, tasks: tasks,

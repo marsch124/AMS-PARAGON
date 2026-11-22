@@ -88,6 +88,30 @@ public struct VoiceThought: Equatable, Sendable {
         return Array(merged(spoken, modelTasks).dropFirst(spoken.count))
     }
 
+    /// Build 357: the model's tasks that come from what was said. Apple's model once gave back a
+    /// line of its own instructions as a task ("Respond using the following JSON schema…", seen
+    /// on his iPhone on 22 November, from a thought of two short sentences). A task is kept when
+    /// at least half of its longer words (four letters or more) were said; a task with no longer
+    /// words is kept. When the write-up is in another language than the one spoken (Settings ›
+    /// Voice › **Summary in English**), words cannot be matched, so only a task that names the
+    /// model's own format ("JSON", "schema") without it being said is left out.
+    public static func heardTasks(_ modelTasks: [String], transcript: String, sameLanguage: Bool) -> [String] {
+        let said = Set(looseKey(transcript).split(separator: " ").map(String.init))
+        func wasSaid(_ word: String) -> Bool {
+            let stem = String(word.prefix(5))
+            return said.contains { $0.hasPrefix(stem) || ($0.count >= 4 && word.hasPrefix(String($0.prefix(5)))) }
+        }
+        return modelTasks.filter { task in
+            let words = looseKey(task).split(separator: " ").map(String.init)
+            if !sameLanguage {
+                return !words.contains { ($0 == "json" || $0 == "schema") && !said.contains($0) }
+            }
+            let long = words.filter { $0.count >= 4 }
+            guard !long.isEmpty else { return true }
+            return long.filter(wasSaid).count * 2 >= long.count
+        }
+    }
+
     static func merged(_ first: [String], _ second: [String]) -> [String] {
         var seen = Set<String>()
         var keys: [String] = []

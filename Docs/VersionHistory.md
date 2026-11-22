@@ -1,6 +1,16 @@
 # Version history
 
-The version is shown as 1.0 (356) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (357) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 357 · 22 November 2026
+
+**Record a Thought: no empty card, and no tasks you did not say.**
+
+- **Recording works.** Your log and the saved thought from build 356 show it: a press opened PARAGON, the recording ran for 1:12, and your words were saved ("It doesn't work. This is what happens.").
+- **The white card with only Done is gone.** After a press, iOS showed a white card at the top with nothing in it but **Done**. PARAGON caused it: the action gave iOS an empty answer. It made it look as if nothing was recording. Now there is no card. PARAGON shows a short message at the foot of the screen instead: "Recording. Press again to stop." when it starts, and "Saved to the Inbox: …" (or "Nothing heard, so nothing was saved.") when it stops.
+- **A task you did not say is left out.** Your thought got the task "Respond using the following JSON…". You did not say that. It is a line from the instructions that Apple's model gets, and the model gave it back by mistake. Now a task from the model is kept only when at least half of its longer words (four letters or more) are words you said. This also applies to **Write it up again**. Tasks you said with the word "task" are always kept, as before.
+- **What the last presses did** now also says when iOS takes the microphone away during a recording (for example a call or Siri), and when it gives it back.
+- **Not tried on a real iPhone yet.**
 
 ## Build 356 · 22 November 2026
 

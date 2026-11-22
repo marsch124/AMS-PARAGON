@@ -25,6 +25,22 @@ final class VoiceThoughtTests: XCTestCase {
         XCTAssertNil(VoiceThought.link(inInboxLine: "Idea for the boat [[Boat]]"))
     }
 
+    /// Build 357: a task the model made up (once a line of its own instructions) is left out.
+    func testOnlyTasksFromWhatWasSaidAreKept() {
+        XCTAssertEqual(VoiceThought.heardTasks(["Respond using the following JSON schema"],
+                                               transcript: "It doesn't work. This is what happens.", sameLanguage: true), [])
+        let said = "The drawer in the hall needs new screws, so I should order them tonight. And I must call Anna about Saturday."
+        XCTAssertEqual(VoiceThought.heardTasks(["Order new screws for the hall drawer", "Call Anna about Saturday",
+                                                "Book a dentist appointment", "Phone Anna", "Go"],
+                                               transcript: said, sameLanguage: true),
+                       ["Order new screws for the hall drawer", "Call Anna about Saturday", "Phone Anna", "Go"])
+        // Written up in English from German: only the model's own format words are caught.
+        XCTAssertEqual(VoiceThought.heardTasks(["Call Anna", "Respond using the following JSON schema"],
+                                               transcript: "Ich muss Anna anrufen.", sameLanguage: false), ["Call Anna"])
+        XCTAssertEqual(VoiceThought.heardTasks(["Fix the JSON file"],
+                                               transcript: "Die JSON Datei reparieren.", sameLanguage: false), ["Fix the JSON file"])
+    }
+
     func testAThoughtIsFiledAsANoteAndInboxLines() throws {
         let root = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("paragon-voice-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

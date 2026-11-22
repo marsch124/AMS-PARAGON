@@ -211,7 +211,9 @@ extension AppModel {
             flushPendingEdits()
             guard let vault else { return }
             do {
-                let added = try vault.rewriteVoiceNote(path: path, summary: summary, tasks: tasks) ?? []
+                // Build 357: only the tasks that come from what was said.
+                let heard = VoiceThought.heardTasks(tasks, transcript: said, sameLanguage: true)
+                let added = try vault.rewriteVoiceNote(path: path, summary: summary, tasks: heard) ?? []
                 reload()
                 let clean = VoiceThought.tidyTitle(title)
                 if !clean.isEmpty, let current = self.note(at: path), clean != current.displayTitle {

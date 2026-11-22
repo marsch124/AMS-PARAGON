@@ -5579,3 +5579,25 @@ on his iPhone (iOS 27). `.spokenAudio` is a playback mode. Now `.record` + `.mea
 logged. 🪤 **Only one change, because the log named one step: the VoiceLog paid for itself on the first
 report.** The same log showed the phone's language resolves to `en_SG` for "Phone's language".
 
+
+## Build 357 (22 November 2026) — no empty card, no made-up tasks
+
+His log and saved thought on 356 show **Record a Thought works**: press → PARAGON opens → 1:12
+recorded → saved ("It doesn't work. This is what happens."). Two faults seen in his screenshots:
+- **The white card with only Done** was ours: the start returned `.result(dialog: "")`, and iOS
+  draws an empty answer as a card. Both record intents now return `some IntentResult` with
+  `.result()` and say what happened with `AppModel.flash(_:seconds:)` ("Recording. Press again
+  to stop.", "Saved to the Inbox: …", "Nothing heard, so nothing was saved.").
+- **A made-up task**: "Respond using the following JSON…" — the FoundationModels guided-generation
+  instruction, given back by the model as a task from a two-sentence thought. Core
+  `VoiceThought.heardTasks(_:transcript:sameLanguage:)` (tested in `VoiceThoughtTests`): a model
+  task is kept when at least half of its words of 4+ letters were said (5-letter stems, either
+  way); with **Summary in English** from another language only "json"/"schema" not said are
+  dropped. Used at the stop, the late summary and **Write it up again**.
+- `watchTheSound` logs `AVAudioSession.interruptionNotification` and
+  `AVAudioEngineConfigurationChange` to VoiceLog during a recording.
+- 🪤 **An empty `IntentDialog` is not "no answer": iOS still shows a card with only Done.** Use
+  `some IntentResult` and `.result()` when there is nothing to say.
+- 🪤 I read a missing orange dot in his 09:30 screenshot as "the microphone stopped"; the saved
+  thought showed the recording ran on. A screenshot of the app in front may not show the dot —
+  check the saved result before calling a recording broken.
