@@ -15,8 +15,8 @@ struct RecordThoughtIntent: AppIntent {
         "Press once to start recording, press again to stop. PARAGON writes down what you said, makes a title, a short summary and the tasks it heard, and puts them in your Inbox. Everything happens on the phone.",
         categoryName: "Capture")
     // Build 358: a press does not open PARAGON (builds 355 to 357 did, which is not the design).
-    // The card iOS refused in the background is now asked for once the microphone runs
-    // (`VoiceRecorder.start`), as build 352 did when it recorded with PARAGON closed.
+    // Build 360: the Lock Screen card is allowed from the background because the action is also
+    // a `LiveActivityIntent` (below).
     static let openAppWhenRun = false
 
     @MainActor
@@ -78,6 +78,12 @@ struct RecordThoughtIntent: AppIntent {
 @available(iOS 18.0, *)
 extension RecordThoughtIntent: AudioRecordingIntent {}
 
+/// Build 360: and only an action that says it starts a Live Activity may start one with PARAGON
+/// in the background. Without this iOS refused the Lock Screen card ("Target is not foreground",
+/// builds 354 and 358), and iOS 27 then stopped the app, because a recording action may not end
+/// with the microphone on and no card. The focus timer's start has done the same since build 317.
+extension RecordThoughtIntent: LiveActivityIntent {}
+
 /// Build 349: **Record into Today's Note** — the same recorder, but the tasks and the line go
 /// into today's daily note instead of the Inbox. The Action Button can hold this one instead
 /// (Apple's Action Button has no long press of its own).
@@ -87,8 +93,8 @@ struct RecordThoughtIntoTodayIntent: AppIntent {
         "Press once to start recording, press again to stop. Like Record a Thought, but the tasks and a line to the note go into today's note instead of the Inbox.",
         categoryName: "Capture")
     // Build 358: a press does not open PARAGON (builds 355 to 357 did, which is not the design).
-    // The card iOS refused in the background is now asked for once the microphone runs
-    // (`VoiceRecorder.start`), as build 352 did when it recorded with PARAGON closed.
+    // Build 360: the Lock Screen card is allowed from the background because the action is also
+    // a `LiveActivityIntent` (below).
     static let openAppWhenRun = false
 
     @MainActor
@@ -99,6 +105,9 @@ struct RecordThoughtIntoTodayIntent: AppIntent {
 
 @available(iOS 18.0, *)
 extension RecordThoughtIntoTodayIntent: AudioRecordingIntent {}
+
+/// Build 360: see `RecordThoughtIntent: LiveActivityIntent`.
+extension RecordThoughtIntoTodayIntent: LiveActivityIntent {}
 
 enum VoiceProblem: Error, CustomLocalizedStringResourceConvertible {
     case tooOld

@@ -5639,3 +5639,25 @@ a 5-letter stem; "json"/"schema" not said → always dropped (both language mode
   made-up task can be switched off in **Check the thought**; a real task dropped is gone silently.
 - 🪤 Swift Set literals: keep them free of duplicates (a duplicate "was" in EN and DE was caught by
   a script, not a compiler — there is none here).
+
+## Build 360 (22 November 2026) — the crash of 358, and the real key: `LiveActivityIntent`
+
+His press on 358 → "AMS PARAGON Crashed". Crash reports workflow, report for 358.204: Thread 6
+`_assertionFailure` in AppIntents `PerformActionExecutorTask.verifySystemPolicyWith(intent:output:)`.
+iOS 27.0.1's text (found by other developers): *"AudioRecordingIntent was performed with an active
+audio session but without a Live Activity"*. 358 started the mic first, the card was still
+refused, `perform` returned → abort.
+- **The key was in our own code since build 317:** `extension StartFocusIntent: LiveActivityIntent {}`
+  — "Apple lets an app start a Live Activity from the background only for an action that says it
+  is one". Both record intents are now `AudioRecordingIntent` + `LiveActivityIntent` (avibe PR
+  #3999 found the same: AudioRecordingIntent alone → refused). 🪤 **Before researching the web,
+  grep this repo for the same problem solved elsewhere** — five builds went into a fix that was
+  already written down above, under build 317.
+- `VoiceRecorder.start`: card first (`.preparing`), **no card → no microphone**, throw
+  `Problem.noLiveActivity`; mic; card updated to listening; speech in `preparing`. `startedAt` is
+  no longer reset after the mic starts (a new value made `showActivity` end the card and ask
+  again — a refusal there would leave the mic on with no card = abort).
+- `tearDown` deactivates the session (`.notifyOthersOnDeactivation`): `.duckOthers` left his music
+  turned down after every recording, and a stop press must not end with the session on.
+- 🪤 **iOS 27 enforces "record ⇒ Live Activity" with a crash, not an error.** Never return from a
+  recording intent's `perform` with the audio session active unless `activity != nil`.

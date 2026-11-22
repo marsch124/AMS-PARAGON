@@ -1,6 +1,17 @@
 # Version history
 
-The version is shown as 1.0 (359) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (360) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 360 · 22 November 2026
+
+**Record a Thought: fixed the crash when you pressed the Action Button (build 358).**
+
+- **What Apple's crash report said:** "AMS PARAGON Crashed" came from iOS 27 itself. iOS stops an app when a recording action ends with the microphone on but no recording shown on the Lock Screen. Build 358 started the microphone first, and iOS still refused the Lock Screen card, so iOS stopped PARAGON.
+- **Why iOS refused the card:** iOS lets an app start a Lock Screen card from the background only when the action says it starts one. The focus timer's start has said so since build 317, and it works on your iPhone. **Record a Thought** did not say so. Now it does.
+- **Now the card comes first, and the microphone only after it.** If iOS ever refuses the card, the microphone stays off and the press says why. No crash.
+- **Music comes back.** Other sound (music, a podcast) is turned down while you record. Before, it stayed turned down after the recording. Now it comes back up when you stop.
+- **Build 359 was not sent to TestFlight.** Its change comes with this build: tasks the AI words differently are kept.
+- **Not tried on a real iPhone yet.**
 
 ## Build 359 · 22 November 2026
 

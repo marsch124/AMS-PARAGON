@@ -54,7 +54,7 @@ final class VoiceRecorder {
             case .modelDownloading:
                 return "The iPhone is getting Apple's speech model. Open PARAGON › Settings › Voice and press Get ready, or try again in a few minutes."
             case .noLiveActivity(let why):
-                return "\(why) iOS only lets PARAGON record in the background while the recording shows on the Lock Screen. Turn on Live Activities in the Settings app › Apps › PARAGON, then press again."
+                return "\(why) PARAGON records only while the recording shows on the Lock Screen, so it did not start. If Live Activities are off, turn them on in the Settings app › Apps › PARAGON. Then press again."
             }
         }
     }
@@ -136,17 +136,25 @@ final class VoiceRecorder {
         volatile = ""
         isRecording = true
 
-        // Build 358: the microphone first, the Lock Screen card second, the speech-to-text last.
-        // - The card after the microphone: with PARAGON not on screen, iOS refuses the card while
-        //   nothing records yet ("Target is not foreground", his log of build 354). Build 352 asked
-        //   a second time once the microphone ran, and recorded with PARAGON closed. Builds 354
-        //   and 355 stopped at the first refusal and then opened PARAGON instead, which is not
-        //   the design (one press, no app).
+        // Build 360: the Lock Screen card first, the microphone only once the card is there, the
+        // speech-to-text last.
+        // - iOS 27 stops the app when a recording action ends with the microphone on and no card
+        //   ("AudioRecordingIntent was performed with an active audio session but without a Live
+        //   Activity" — his crash of build 358, 22 November). So no card, no microphone.
+        // - The card from the background: the actions are also `LiveActivityIntent`s
+        //   (RecordThoughtIntent.swift), the way the focus timer's start has been since build
+        //   317. Without that iOS refused it: "Target is not foreground" (builds 354 and 358).
         // - The speech-to-text after the press returns: set up inside the press it ran past
         //   iOS's time limit on a cold start (build 353). What the microphone hears meanwhile is
         //   kept in `raw` and handed over once it is ready, so nothing said is lost.
-        // - "OSStatus error -50" (builds 353 to 355) was the `.spokenAudio` mode (build 356),
-        //   not this order.
+        // - "OSStatus error -50" (builds 353 to 355) was the `.spokenAudio` mode (build 356).
+        await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
+        guard activity != nil else {
+            VoiceLog.note("Lock Screen card: not shown. \(activityProblem) The microphone was not started.")
+            isRecording = false
+            throw Problem.noLiveActivity(activityProblem)
+        }
+        VoiceLog.note("Lock Screen card: shown.")
         let (raw, rawBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream(bufferingPolicy: .unbounded)
         self.raw = rawBuilder
         do {
@@ -178,17 +186,12 @@ final class VoiceRecorder {
             try Self.step("Microphone: start") { try engine.start() }
             self.engine = engine
             watchTheSound(engine)
-            startedAt = Date()
+            // Build 360: `startedAt` is not set again here. The card is keyed by it, and a new
+            // value made `showActivity` end the card and ask for a new one — a second ask iOS
+            // could refuse while the microphone already runs (build 352 counted on that ask).
             VoiceLog.note("Microphone: listening.")
 
             await showActivity(listeningState("Listening…"))
-            if activity == nil {
-                // Kept recording: with PARAGON on screen it records without the card, and in the
-                // background the log then shows whether iOS stopped it.
-                VoiceLog.note("Lock Screen card: not shown. \(activityProblem) The recording goes on.")
-            } else {
-                VoiceLog.note("Lock Screen card: shown.")
-            }
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
 
             limit = Task { @MainActor [weak self] in
@@ -456,6 +459,11 @@ final class VoiceRecorder {
             engine.stop()
         }
         engine = nil
+        // Build 360: the sound is handed back. Other sound (music, a podcast) was turned down
+        // while recording (`.duckOthers`) and stayed down until something else took over; and
+        // iOS 27 stops an app whose recording action ends with the microphone still switched on
+        // and no Lock Screen card.
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         // Build 353: no more sound; let the set-up and the pump hand over what they have.
         raw?.finish()
         raw = nil
