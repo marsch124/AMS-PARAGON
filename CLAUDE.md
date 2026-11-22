@@ -5627,3 +5627,15 @@ press anywhere, no app, Lock Screen card, second press files.
   Apple's forum (thread 815725) says the Activity-first order fails; nobody there tried this one.
   If the log shows "Lock Screen card: not shown … The recording goes on" followed by the
   microphone being taken away, the next option is a Control (ControlWidget) for the Action Button.
+
+## Build 359 (22 November 2026) — the task rule, gentler
+
+Read-through of 357's `VoiceThought.heardTasks` before he met it: "half of the 4+-letter words
+said" drops paraphrased tasks ("Call the plumber about the leak" from "ring the plumber" → 1 of
+4). Now: kept when ONE real word (3+ letters, not in `littleWords`, EN/DE/SV) was said or shares
+a 5-letter stem; "json"/"schema" not said → always dropped (both language modes). Tests in
+`VoiceThoughtTests.testOnlyTasksFromWhatWasSaidAreKept`.
+- 🪤 **A filter that removes things the user cannot see removed must lean towards keeping.** A
+  made-up task can be switched off in **Check the thought**; a real task dropped is gone silently.
+- 🪤 Swift Set literals: keep them free of duplicates (a duplicate "was" in EN and DE was caught by
+  a script, not a compiler — there is none here).

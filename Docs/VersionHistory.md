@@ -1,6 +1,14 @@
 # Version history
 
-The version is shown as 1.0 (358) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (359) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 359 · 22 November 2026
+
+**Record a Thought: tasks the AI words differently are kept again.**
+
+- **The fault (build 357):** a task from the AI was kept only when at least half of its longer words were words you said. That was too strict. A task the AI put in its own words could be dropped, for example "Call the plumber about the leak" when you said "ring the plumber".
+- **Now a task is kept when at least one real word in it is a word you said** ("the", "and", "und", "och" and other small words do not count). Tasks the AI made up still go: "Respond using the following JSON…" has no word you said. A task that names "JSON" or "schema" is always left out unless you said that word.
+- Found by reading the code again before you met it. Nothing else changed.
 
 ## Build 358 · 22 November 2026
 

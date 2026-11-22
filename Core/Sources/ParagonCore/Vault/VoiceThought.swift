@@ -90,11 +90,16 @@ public struct VoiceThought: Equatable, Sendable {
 
     /// Build 357: the model's tasks that come from what was said. Apple's model once gave back a
     /// line of its own instructions as a task ("Respond using the following JSON schema…", seen
-    /// on his iPhone on 22 November, from a thought of two short sentences). A task is kept when
-    /// at least half of its longer words (four letters or more) were said; a task with no longer
-    /// words is kept. When the write-up is in another language than the one spoken (Settings ›
-    /// Voice › **Summary in English**), words cannot be matched, so only a task that names the
-    /// model's own format ("JSON", "schema") without it being said is left out.
+    /// on his iPhone on 22 November, from a thought of two short sentences).
+    ///
+    /// Build 359: a task is kept when at least one of its real words (three letters or more, not
+    /// a small word like "the" or "und") was said, or begins like a word that was said. Build 357
+    /// asked for half of its longer words, which dropped a task the model put in its own words
+    /// ("Call the plumber about the leak" from "ring the plumber"). A task with no real words is
+    /// kept. A task that names the model's own format ("JSON", "schema") is always left out
+    /// unless that word was said. When the write-up is in another language than the one spoken
+    /// (Settings › Voice › **Summary in English**), words cannot be matched, so only that last
+    /// check is made.
     public static func heardTasks(_ modelTasks: [String], transcript: String, sameLanguage: Bool) -> [String] {
         let said = Set(looseKey(transcript).split(separator: " ").map(String.init))
         func wasSaid(_ word: String) -> Bool {
@@ -103,14 +108,27 @@ public struct VoiceThought: Equatable, Sendable {
         }
         return modelTasks.filter { task in
             let words = looseKey(task).split(separator: " ").map(String.init)
-            if !sameLanguage {
-                return !words.contains { ($0 == "json" || $0 == "schema") && !said.contains($0) }
-            }
-            let long = words.filter { $0.count >= 4 }
-            guard !long.isEmpty else { return true }
-            return long.filter(wasSaid).count * 2 >= long.count
+            if words.contains(where: { ($0 == "json" || $0 == "schema") && !said.contains($0) }) { return false }
+            guard sameLanguage else { return true }
+            let real = words.filter { $0.count >= 3 && !littleWords.contains($0) }
+            guard !real.isEmpty else { return true }
+            return real.contains(where: wasSaid)
         }
     }
+
+    /// Build 359: words that say nothing about a task, in the three voice languages.
+    static let littleWords: Set<String> = [
+        "the", "and", "for", "you", "are", "was", "were", "with", "this", "that", "from", "have", "has",
+        "had", "what", "will", "can", "not", "but", "all", "any", "our", "your", "its", "his", "her",
+        "they", "them", "then", "than", "there", "here", "into", "out", "about", "just", "also", "some",
+        "more", "very", "been", "which", "who", "how", "why", "when", "where", "need", "needs", "must",
+        "should", "would", "could",
+        "der", "die", "das", "und", "ein", "eine", "einen", "einem", "mit", "für", "von", "den", "dem",
+        "des", "ist", "sind", "war", "auch", "nicht", "noch", "aber", "oder", "wie", "wir", "ich",
+        "sie", "ihr", "sich", "auf", "aus", "bei", "nach", "zum", "zur", "muss", "soll",
+        "och", "att", "det", "som", "med", "för", "till", "inte", "har", "var", "kan", "ska", "jag",
+        "han", "hon", "sig", "måste", "behöver"
+    ]
 
     static func merged(_ first: [String], _ second: [String]) -> [String] {
         var seen = Set<String>()

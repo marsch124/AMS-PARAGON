@@ -39,6 +39,17 @@ final class VoiceThoughtTests: XCTestCase {
                                                transcript: "Ich muss Anna anrufen.", sameLanguage: false), ["Call Anna"])
         XCTAssertEqual(VoiceThought.heardTasks(["Fix the JSON file"],
                                                transcript: "Die JSON Datei reparieren.", sameLanguage: false), ["Fix the JSON file"])
+        // Build 359: a task in the model's own words is kept when one real word was said.
+        XCTAssertEqual(VoiceThought.heardTasks(["Call the plumber about the leak", "Buy groceries"],
+                                               transcript: "The kitchen tap drips, I must ring the plumber. And buy milk.",
+                                               sameLanguage: true),
+                       ["Call the plumber about the leak", "Buy groceries"])
+        // Only small words in common is not enough.
+        XCTAssertEqual(VoiceThought.heardTasks(["Write the report for them"],
+                                               transcript: "The garden needs water and they should come.", sameLanguage: true), [])
+        // The model's own format words are left out even when another word was said.
+        XCTAssertEqual(VoiceThought.heardTasks(["Respond to Anna using JSON"],
+                                               transcript: "I must respond to Anna today.", sameLanguage: true), [])
     }
 
     func testAThoughtIsFiledAsANoteAndInboxLines() throws {
