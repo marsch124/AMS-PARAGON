@@ -60,6 +60,8 @@ enum Marks {
         // (a head and shoulders, not the circled person of Waiting for).
         "mappin": .init(kind: .drawn(Marks.mappinPath)),
         "person.linked": .init(kind: .drawn(Marks.personLinkedPath)),
+        // Build 361: two people — a project shared with someone (AMS-Icons app mark "people").
+        "people": .init(kind: .drawn(Marks.peoplePath)),
         // Round 350 (voice-controls): a microphone, for the Voice notes page.
         "voice": .init(kind: .drawn(Marks.voicePath)),
         // Build 343: a Google notebook linked to a Resource — the ringed notebook from the
@@ -173,6 +175,7 @@ enum Marks {
     static let cardsPath = "M3.5 6h7.5v12h-7.5Z M13 6h7.5v12h-7.5Z M5.5 14.5h3.5 M15 14.5h3.5"
     static let mappinPath = "M12 20.5C8 15.5 6 12.5 6 9.5a6 6 0 0 1 12 0c0 3-2 6-6 11Z M12 7.6a1.9 1.9 0 1 0 0 3.8a1.9 1.9 0 1 0 0-3.8Z"
     static let personLinkedPath = "M12 4.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7Z M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"
+    static let peoplePath = "M10 6a3 3 0 1 0 0 6a3 3 0 1 0 0-6Z M4 20c0-3.6 2.7-6 6-6s6 2.4 6 6 M15.2 5.3a2.6 2.6 0 1 1 1.3 4.9 M17.8 14.2c2.2.6 3.7 2.7 3.7 5.8"
     static let deadlinePath = "M7 20.5V3.5 M7 4.5L18.5 8.75L7 13 M3.5 20.5h13"
 
     /// One thing (build 332): a ring with the figure 1 in it.

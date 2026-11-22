@@ -140,6 +140,9 @@ public struct Note: Equatable, Identifiable, Sendable {
 
     /// `sync: false` in the frontmatter keeps a note out of Reminders.
     public var isSyncEnabled: Bool { frontmatter.bool("sync") ?? true }
+    /// `shared-with: [Anna]` (build 361): the people this note's Reminders list is shared with.
+    public var sharedWith: [String] { frontmatter.list("shared-with").compactMap(SharedTasks.cleanName) }
+    public var isShared: Bool { !sharedWith.isEmpty }
 
     /// The Reminders list that mirrors this note (frontmatter `reminders-list`, else the title).
     public var remindersListName: String { frontmatter.string("reminders-list") ?? title }

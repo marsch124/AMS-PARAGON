@@ -199,6 +199,7 @@ tags: [web, marketing]
 related: [Brand guide]   # notes this one links to (titles or paths)
 reminders-list: Web      # optional, overrides the Reminders list name
 sync: false              # optional, keeps this note out of Reminders
+shared-with: [Anna]      # optional (build 361), names the project is shared with
 ---
 ```
 
@@ -215,6 +216,7 @@ Every note also gets a `## Tasks` section by template; imported reminders are ap
 - [ ] Due date >2026-09-10
 - [ ] Due date with a time >2026-09-10T14:30
 - [ ] Tags stay in the text #finance #call
+- [ ] Who is responsible, in a shared note @who(Anna)
 - [ ] The sync adds a stable id at the end ^t3fa2c1
 - [ ] A parent task
     - [ ] An indented line below it is a subtask
@@ -242,6 +244,16 @@ note, so a project sees its resources and a resource sees where it is used. Sub-
   `sync: false` are left alone.
 - **Identity.** On first sync every task line gets an id (`^t3fa2c1`). The mirrored reminder carries
   `ams-para:^t3fa2c1` in its notes field. Both survive edits, moves between notes and other devices.
+- **Shared projects (build 361).** `shared-with:` in the frontmatter lists the names a note is shared with
+  (the sharing itself is done in Apple Reminders). The vault config (`.ams-para/config.json`) has `myName`,
+  the owner's own name for the whole notes folder. A task's `@who(Name)` says who is responsible for it.
+  In a shared note the reminder's notes get `Who: Name` as the first line (only when a name is set) and
+  `ams-para: ^t...`, plus `ams-para-from: Name` (the folder's `myName`). Editing the `Who:` line in
+  Reminders changes `@who(...)`, and back. Import rule: in a shared note, a reminder that carries a PARAGON
+  mark and belongs to none of this notes folder's notes is taken in with that same task id when its
+  `ams-para-from` name differs from this folder's own `myName`. In a note that is not shared such reminders
+  are still skipped. The task fingerprint gains `|who:Name` only when a name is set. Apple's own "Assign"
+  cannot be read by apps, so it is not synced.
 - **Fields.** Title (including `#tags`), open/done, due date, due time and priority are kept identical on
   both sides.
 - **Changes in a note** update, complete or delete the reminder. Moving a task line to another

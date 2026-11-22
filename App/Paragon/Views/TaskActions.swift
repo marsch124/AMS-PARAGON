@@ -191,6 +191,8 @@ struct TaskContextMenu: View {
         }
         Button { linking = .person } label: { MarkLabel("Person…", "person.linked") }
             .accessibilityIdentifier("task.menu.person")
+        // Build 361: in a shared project, who is responsible for this task.
+        WhoDoesItMenu(model: model, ref: ref)
         Menu {
             TickedChoice(title: "Does not repeat", chosen: ref.task.repeatRule == nil) { model.setRepeat(ref, nil) }
             Divider()
@@ -520,7 +522,7 @@ struct TaskTimeChoices: View {
 /// One choice in a menu of several, the chosen one with the hand-drawn tick. A menu draws
 /// only words and images, so the tick is the label's icon rather than a typed "✓" in the
 /// title (premium review, round 5).
-private struct TickedChoice: View {
+struct TickedChoice: View {
     let title: String
     let chosen: Bool
     let action: () -> Void

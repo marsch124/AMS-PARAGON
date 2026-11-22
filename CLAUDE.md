@@ -5661,3 +5661,18 @@ refused, `perform` returned → abort.
   turned down after every recording, and a stop press must not end with the session on.
 - 🪤 **iOS 27 enforces "record ⇒ Live Activity" with a crash, not an error.** Never return from a
   recording intent's `perform` with the audio session active unless `activity != nil`.
+
+## Shared projects (build 361)
+
+- Frontmatter `shared-with:` (list of names); vault config key `myName` (one name per notes folder).
+- Task marker `@who(Name)` at the end of the task line (who is RESPONSIBLE, not who made it).
+- Reminder notes: first line `Who: Name` (only when a name is set), then `ams-para: ^t…`, then
+  `ams-para-from: Name` (this folder's `myName`). `Who:` edited in Reminders ⇄ `@who(…)` in the note.
+- Import rule: in a shared note, a reminder carrying a PARAGON mark that is in none of this notes
+  folder's notes is taken in with that same task id when its `ams-para-from` name differs from this
+  folder's own name. Before 361 every such reminder was skipped (two PARAGONs ignored each other).
+- Task fingerprint gains `|who:Name` only when a name is set (old fingerprints stay valid).
+- UI: the Reminders list: fact is a pop-up with **Share this list…** (window **Share**: Your name,
+  Shared with, steps, Cancel/Save, Stop sharing); "Shared with Anna" + two-people mark opens it; task
+  menu **Who does it** (names + Nobody); grey name at the row's right end.
+- Limit: Apple's "Assign" in shared lists is not readable by apps.

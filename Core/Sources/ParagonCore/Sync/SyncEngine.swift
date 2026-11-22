@@ -22,6 +22,9 @@ public final class SyncEngine {
     public static let standardGoneGrace: TimeInterval = 120
     /// The identity of each list PARAGON is linked to, by name, for the run in progress.
     private var knownListIDs: [String: String] = [:]
+    /// Build 361: the Reminders lists of shared notes in this run. Their reminders carry
+    /// `ams-para-from:` with this folder's own name, and take in the other person's tasks.
+    private var sharedLists: Set<String> = []
 
     /// Build 332: the ids of tasks a change made on THIS device removed since the last sync
     /// (`RemovedHere`). The app saw them go, so nothing is in transit: their reminders are
@@ -174,6 +177,8 @@ public final class SyncEngine {
             listForPath[note.relativePath] = list
             notesByPath[note.relativePath] = note
         }
+        sharedLists = Set(notesByPath.values.filter { $0.isShared && SharedTasks.cleanName(config.myName) != nil }
+            .compactMap { listForPath[$0.relativePath] })
         if config.syncDailyNotes, pathForList[config.dailyNotesListName] == nil {
             pathForList[config.dailyNotesListName] = todayPath // fetched even before the first daily note exists
         }
@@ -565,10 +570,16 @@ public final class SyncEngine {
                     otherListsLeftAlone.insert(reminder.listName)
                     continue
                 }
-                if Self.markerTaskID(in: reminder.notes) != nil, !looseTwins.contains(reminder.identifier) {
+                var theirID: String?
+                if let mark = Self.markerTaskID(in: reminder.notes), !looseTwins.contains(reminder.identifier) {
                     // Marked by PARAGON but not linked here and not in any note this device can see.
                     // That happens on a fresh device before the notes arrive; never delete on that basis.
-                    continue
+                    // Build 361: in a shared list, a task from the OTHER person's folder is taken in,
+                    // under its own id, so both folders hold the same line.
+                    guard sharedLists.contains(reminder.listName),
+                          SharedTasks.takesIn(markID: mark, knownIDs: allTaskIDs, noteShared: true,
+                                              from: SharedTasks.from(inNotes: reminder.notes), me: config.myName) else { continue }
+                    theirID = mark
                 }
                 if reminder.isCompleted && !config.importCompletedReminders { continue }
 
@@ -586,7 +597,9 @@ public final class SyncEngine {
                 // look for a task in that note with the same words that no reminder owns, and
                 // link to it instead (two devices adding the same words must not double up).
                 let words = Self.sameWords(Self.taskTitle(fromReminderTitle: reminder.title, parentPrefix: nil))
-                if !words.isEmpty,
+                // Not for the other person's task (build 361): it keeps its own id, or the two
+                // folders would write two different marks into one reminder, turn about.
+                if theirID == nil, !words.isEmpty,
                    let twin = notesByPath[path]?.tasks.first(where: { candidate in
                        guard let candidateID = candidate.id, state.links[candidateID] == nil,
                              remindersByMarker[candidateID] == nil, !candidate.isSubtask,
@@ -602,7 +615,7 @@ public final class SyncEngine {
                     continue
                 }
 
-                let id = TaskItem.steadyID(for: "\(path)\n\(reminder.title)", avoiding: allTaskIDs)
+                let id = theirID ?? TaskItem.steadyID(for: "\(path)\n\(reminder.title)", avoiding: allTaskIDs)
                 allTaskIDs.insert(id)
 
                 var task = TaskItem(title: Self.taskTitle(fromReminderTitle: reminder.title, parentPrefix: nil), id: id)
@@ -737,7 +750,8 @@ public final class SyncEngine {
         newLink.listName = listName
         newLink.lastSyncedAt = now()
 
-        if !taskChanged && !reminderChanged && !listChanged && Self.markerTaskID(in: reminder.notes) == task.id {
+        if !taskChanged && !reminderChanged && !listChanged && Self.markerTaskID(in: reminder.notes) == task.id
+            && !needsFromLine(reminder, listName: listName) {
             return newLink
         }
 
@@ -826,6 +840,19 @@ public final class SyncEngine {
         if let id = task.id {
             reminder.notes = Self.notes(reminder.notes, withMarkerFor: id)
         }
+        // Build 361: who does it, and in a shared list whose task this is. A `from` line
+        // another person's PARAGON wrote is never replaced: the task stays theirs.
+        if task.who != SharedTasks.who(inNotes: reminder.notes) {
+            reminder.notes = SharedTasks.notes(reminder.notes, who: task.who)
+        }
+        if needsFromLine(reminder, listName: listName) {
+            reminder.notes = SharedTasks.notes(reminder.notes, from: config.myName)
+        }
+    }
+
+    /// A reminder in a shared list that does not yet say whose task it is.
+    private func needsFromLine(_ reminder: ReminderRecord, listName: String) -> Bool {
+        sharedLists.contains(listName) && SharedTasks.from(inNotes: reminder.notes) == nil
     }
 
     func apply(reminder: ReminderRecord, to task: inout TaskItem, parentPrefix: String? = nil) {
@@ -835,6 +862,8 @@ public final class SyncEngine {
         task.priority = reminder.priority
         // A place set in Apple Reminders is taken over; none there never clears the note's.
         if let place = reminder.place { task.place = place }
+        // Build 361: the `Who:` line is the reminder's side of `@who(…)`.
+        task.who = SharedTasks.who(inNotes: reminder.notes)
         if reminder.isCompleted && !task.isDone {
             task.markDone(at: reminder.completedAt ?? now())
         } else if !reminder.isCompleted && task.isDone {
@@ -895,7 +924,7 @@ public final class SyncEngine {
     public static func fingerprint(_ task: TaskItem, parentPrefix: String? = nil) -> String {
         fingerprint(title: reminderTitle(for: task.title, parentPrefix: parentPrefix), done: task.isDone,
                     due: task.dueDate, time: task.dueDate == nil ? nil : task.dueTime, priority: task.priority,
-                    place: task.place)
+                    place: task.place, who: task.who)
     }
 
     public static func fingerprint(_ reminder: ReminderRecord) -> String {
@@ -903,16 +932,17 @@ public final class SyncEngine {
         // part of what the two sides share, so its coming and going is no change.
         fingerprint(title: withoutDeadlineMark(singleLine(reminder.title)), done: reminder.isCompleted,
                     due: reminder.dueDate, time: reminder.dueDate == nil ? nil : reminder.dueTime, priority: reminder.priority,
-                    place: reminder.place)
+                    place: reminder.place, who: SharedTasks.who(inNotes: reminder.notes))
     }
 
     private static func fingerprint(title: String, done: Bool, due: DateOnly?, time: TimeOfDay?, priority: Int,
-                                    place: ReminderPlace? = nil) -> String {
-        let base: String = "\(TaskParser.collapseWhitespace(title))|\(done ? 1 : 0)|\(due?.description ?? "")\(time.map { "T\($0)" } ?? "")|\(priority)"
+                                    place: ReminderPlace? = nil, who: String? = nil) -> String {
+        var base: String = "\(TaskParser.collapseWhitespace(title))|\(done ? 1 : 0)|\(due?.description ?? "")\(time.map { "T\($0)" } ?? "")|\(priority)"
         // A place is added only when there is one, so every link made before round 350 keeps
-        // the fingerprint it was stored with.
-        guard let place else { return base }
-        return base + "|@" + place.fingerprint
+        // the fingerprint it was stored with. The same for who does it (build 361).
+        if let place { base += "|@" + place.fingerprint }
+        if let who { base += "|who:" + who }
+        return base
     }
 
     // MARK: Marker in the reminder notes

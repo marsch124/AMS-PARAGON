@@ -1,6 +1,25 @@
 # Version history
 
-The version is shown as 1.0 (360) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (361) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 361 · 22 November 2026
+
+**Shared projects: share a project with Anna, and say who does each task.**
+
+- **What the name on a task means.** It says who is responsible for the task, not who made it. A task made by you can be Anna's to do, and the other way round.
+- **Share this list… (new).** On any project or area page, the fact **Reminders list:** in the panel under the title is now a small pop-up with **Share this list…**. Before, it was a plain fact with nothing to press. It opens a window called **Share** with three things:
+  - **Your name.** Kept for the whole notes folder, so it is the same on all your devices.
+  - **Shared with.** One or more names, separated by commas.
+  - **The steps in Apple Reminders.** Open Reminders, press and hold the list with the project's name (on the Mac: right-click it), choose **Share List**, and invite the person.
+  - The other person accepts, makes a project with the **same name** in her PARAGON, and shares it the same way (her name, shared with you).
+  - **Cancel** and **Save**. When the project is already shared, there is also a **Stop sharing** button.
+- **"Shared with Anna" (new).** A shared page shows **Shared with Anna**, with a two-people mark, in the panel under the title. Press it to open the same **Share** window.
+- **Who does it (new).** The menu of each task in a shared project has **Who does it**, with the names (your own name and the people the project is shared with) and **Nobody**. The chosen name shows at the far right end of the task's row, in small grey words. In the note it is written as `@who(Anna)` at the end of the line.
+- **In Apple Reminders.** The reminder's notes now start with a line **Who: Anna**. Change that line in Reminders and the task in PARAGON changes; change it in PARAGON and the line changes. The notes also get a line `ams-para-from: Martin`. That is PARAGON's own mark: it tells each app which tasks came from the other person. Leave it alone.
+- **Fixed: tasks from the other person's PARAGON were skipped.** Before, each PARAGON passed over the tasks that another person's PARAGON had put into a shared Reminders list. Now, in a shared project, both PARAGONs take in each other's tasks, ticks, dates and who does it. Before, a task Anna made did not reach your note; now it does. Tasks typed straight into Apple Reminders come in as before, with no name.
+- **A limit.** Apple's own **Assign** in shared Reminders lists cannot be seen by PARAGON, because Apple gives apps no way to read it. Use the **Who: …** line or PARAGON instead.
+- **Not shared, nothing changes.** A project with no one in **Shared with** works exactly as before. No name shows, and the reminder's notes get no **Who:** line.
+- **Not tried with two real people yet.**
 
 ## Build 360 · 22 November 2026
 

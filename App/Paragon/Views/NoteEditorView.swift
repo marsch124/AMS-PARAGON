@@ -1865,6 +1865,10 @@ struct NoteHeader: View {
             }
             if note.kind.isTaskKind {
                 fact("Reminders list:", note.isSyncEnabled && !note.isArchived ? listName(for: note) : "Not synced")
+                // Build 361: share the list with someone (projects and areas that sync).
+                if (note.kind == .project || note.kind == .area) && note.isSyncEnabled && !note.isArchived {
+                    SharedListChip(model: model, note: note)
+                }
             }
             ForEach(notices, id: \.self) { notice in
                 Pill(text: notice, color: Theme.attention)
@@ -2147,6 +2151,16 @@ struct TaskRow: View {
                 // Round 350: **Remind me at a place…** and **Person…** from the task menu. On the
                 // Spacer, because the title and the row already carry a window each (build 44).
                 .modifier(TaskLinkWindows(ref: ref, window: $linking))
+            // Build 361 (his pick 1): who does it, at the right end, in small grey words.
+            if let who = ref.task.who, !renaming {
+                Text(who)
+                    .font(Txt.label)
+                    .foregroundStyle(.soft)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .accessibilityLabel("\(who) does it")
+                    .accessibilityIdentifier("task.who.\(ref.task.title)")
+            }
             // How long it takes (build 248). A finished task keeps its time as plain words and
             // asks for nothing: "time?" on a ticked line would be a question with no use.
             // **Build 312 (flow-19): the dashed question only where the day is planned.** Core's

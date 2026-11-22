@@ -49,6 +49,9 @@ public struct TaskItem: Equatable, Sendable {
     public private(set) var unreadPlace: String?
     /// `@person(Anna Svensson)`: the person the task is about (round 350).
     public var person: String?
+    /// `@who(Anna)`: who is responsible for the task in a shared project (build 361). Sent to
+    /// Reminders as the first line of the reminder's notes, `Who: Anna`.
+    public var who: String?
     /// `@moved(5)`: how many times the do-day was moved to a later day (round 350, pick 48). Nil
     /// when never. Counted by `settingDue`; never sent to Reminders, since it is not in the title.
     public var moved: Int?
@@ -83,7 +86,8 @@ public struct TaskItem: Equatable, Sendable {
                 place: ReminderPlace? = nil,
                 person: String? = nil,
                 moved: Int? = nil,
-                snooze: DateOnly? = nil) {
+                snooze: DateOnly? = nil,
+                who: String? = nil) {
         self.status = status
         self.title = title
         self.dueDate = dueDate
@@ -102,6 +106,7 @@ public struct TaskItem: Equatable, Sendable {
         self.deadline = deadline
         self.place = place
         self.person = person
+        self.who = who
         self.moved = moved.flatMap { $0 > 0 ? $0 : nil }
         self.snooze = snooze
     }
@@ -200,6 +205,7 @@ public struct TaskItem: Equatable, Sendable {
             parts.append("@place(\(unreadPlace))")
         }
         if let person { parts.append("@person(\(person))") }
+        if let who { parts.append("@who(\(who))") }
         if let moved, moved > 0 { parts.append("@moved(\(moved))") }
         if let snooze { parts.append("@snooze(\(snooze))") }
         if let doneStamp { parts.append("@done(\(doneStamp))") }
@@ -532,6 +538,8 @@ public enum TaskParser {
     static let placeRegex = try! NSRegularExpression(pattern: #"(?<!\S)@place\(([^)]*)\)"#)
     /// `@person(Anna Svensson)` (round 350).
     static let personRegex = try! NSRegularExpression(pattern: #"(?<!\S)@person\(([^)]*)\)"#)
+    /// `@who(Anna)` (build 361).
+    static let whoRegex = try! NSRegularExpression(pattern: #"(?<!\S)@who\(([^)]*)\)"#)
     /// `@moved(5)` (round 350), written like `@since(...)`.
     static let movedRegex = try! NSRegularExpression(pattern: #"(?<!\S)@moved\((\d{1,3})\)"#)
     /// `@snooze(2026-11-24)` (round 350), written like `@since(...)`.
@@ -561,6 +569,7 @@ public enum TaskParser {
         var place: ReminderPlace?
         var unreadPlace: String?
         var person: String?
+        var who: String?
         var moved: Int?
         var snooze: DateOnly?
 
@@ -578,6 +587,7 @@ public enum TaskParser {
             unreadPlace = place == nil ? $0 : nil
         }
         rest = extract(personRegex, from: rest) { person = PersonName.clean($0) ?? person }
+        rest = extract(whoRegex, from: rest) { who = SharedTasks.cleanName($0) ?? who }
         rest = extract(movedRegex, from: rest) { moved = Int($0) ?? moved }
         rest = extract(snoozeRegex, from: rest) { snooze = DateOnly($0) ?? snooze }
         let restNS = rest as NSString
@@ -596,7 +606,7 @@ public enum TaskParser {
         return TaskItem(status: status, title: title, dueDate: dueDate, dueTime: dueTime, priority: priority,
                         doneStamp: doneStamp, tags: tags, repeatRule: repeatRule, minutes: minutes, id: id,
                         indent: indent, bullet: bullet, lineIndex: lineIndex, since: since, deadline: deadline,
-                        place: place, person: person, moved: moved, snooze: snooze)
+                        place: place, person: person, moved: moved, snooze: snooze, who: who)
             .keepingUnreadRepeat(unreadRepeat)
             .keepingUnreadPlace(unreadPlace)
     }

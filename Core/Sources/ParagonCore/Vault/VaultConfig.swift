@@ -46,6 +46,9 @@ public struct VaultConfig: Codable, Equatable, Sendable {
     /// Reminders lists kept apart from the note with the same name (build 315): the sync
     /// never joins them and never asks about them again. See `ListsKeptApart`.
     public var listsKeptApart: [KeptApartList] = []
+    /// The owner's own name for shared projects (build 361): one for the whole notes folder,
+    /// so every device of the same person writes the same `ams-para-from:` line.
+    public var myName = ""
 
     public init() {}
 
@@ -55,6 +58,7 @@ public struct VaultConfig: Codable, Equatable, Sendable {
         case conflictPolicy, syncAreas, createMissingLists, importCompletedReminders
         case aspirationReviewDays, goalReviewDays, areaReviewDays
         case listsKeptApart
+        case myName
     }
 
     public init(from decoder: Decoder) throws {
@@ -82,6 +86,7 @@ public struct VaultConfig: Codable, Equatable, Sendable {
         goalReviewDays = try c.decodeIfPresent(Int.self, forKey: .goalReviewDays) ?? d.goalReviewDays
         areaReviewDays = try c.decodeIfPresent(Int.self, forKey: .areaReviewDays) ?? d.areaReviewDays
         listsKeptApart = try c.decodeIfPresent([KeptApartList].self, forKey: .listsKeptApart) ?? []
+        myName = try c.decodeIfPresent(String.self, forKey: .myName) ?? ""
     }
 
     public func folder(for kind: ParaKind) -> String? {

@@ -62,6 +62,8 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 
 ## Signs in this app
 
+- **Two-people mark with "Shared with Anna" (since build 361)** — this project or area is shared with someone. It sits in the panel under the title; press it to open the **Share** window.
+- **Grey name at the right end of a task (since build 361)** — who does the task (who is responsible for it, not who made it). Set with **Who does it** on the task's menu.
 - **Red dot on the Lock Screen or in the Dynamic Island (since build 348)** — PARAGON is recording your voice right now. Press **Stop** to end it.
 - **Second button on that card (since build 349)** — it stops and files to the other place: the sun mark (**Today**, Today's purple) files into today's note, the tray mark (**Inbox**, green) files into the Inbox. The heading says which one **Stop** uses: "Listening · Inbox" or "Listening · Today's note".
 - **Sun mark on "Saved to today's note" (since build 349)** — the thought went into today's note, not the Inbox.
@@ -847,6 +849,7 @@ The sync goes both ways. Click the sync ring at the foot of the sidebar and choo
 
 **In the Mac menu bar.** Since build 303 a second PARAGON item sits beside the quick-capture one: the same clock ring as at the foot of the sidebar (green under an hour, yellow after that or while waiting for iCloud, full red after conflicts, grey and empty before any sync), with the short word beside it ("10:55", "Yesterday", "Syncing…"). Click it for a menu: the sync line (such as "Synced at 10:55", "Synced yesterday at 21:40" or, for an earlier day, "Synced 2026-11-09 at 21:40"), **Sync now**, **Show me what would change…**, **Last sync report…**, **Sync settings…** and **Show PARAGON**. Since build 304 it also shows the number of tasks due today right beside the ring, for example "3 · 11:20"; nothing is shown when no task is due, and over 99 it says "99+". The ring is drawn once per minute (in build 303 it redrew without pause and the Mac app would not open). To hide it, switch off **Show the sync ring in the menu bar** in Settings › Reminders sync (on by default).
 - Subtasks become separate reminders named "Parent › Child". Tasks with a time get an alarm.
+- **Shared projects (since build 361).** In a project you share, the sync also writes a first line **Who: Anna** into the reminder's notes and a line `ams-para-from: Martin`, and takes in the other person's tasks. See **Sharing a project**.
 
 **When the notes are in a new place (since build 319).** Before every sync PARAGON looks for the marks of a copy in the vault folder. When the notes are used in another folder now, or are being copied into this one, no sync runs from it, and **Sync now** says "Reminders sync is paused: your notes are in another folder now." A mark that is still coming from iCloud pauses the sync too, until it can be read. The sync also rests while a copy runs on this device. See **PARAGON's own iCloud folder**.
 
@@ -859,6 +862,39 @@ The toolbar buttons explain themselves when you hold the pointer over them: the 
 In **Settings › Reminders sync**, since build 330, a grey line says: PARAGON remembers on each device what it has synced, and marks each task with a small hidden code so a task and its reminder stay linked. Before, it talked about a hidden folder and task ids.
 
 Since build 312 one click on the sync ring at the foot of the sidebar opens a small panel (on the iPad, one tap opens a menu; on the iPhone, since build 352, a tap syncs at once and a press and hold opens the menu): **Sync now**, **Show me what would change…**, **Last sync report…** (only when there is a report), a line, and **Sync settings…**. Before, a click synced at once, and the other choices opened only on a right-click or a hold, which nothing told you. So **Sync now** is 2 clicks now; before it was 1. The words at the ring say "Not synced" before any sync (before build 312: "Not synced yet"), then "Synced just now" (under 1 minute), "Synced 5 min ago", "Synced 3 h ago" (under 24 hours), then the date, "Synced 2026-11-09". The ring in the menu bar keeps its short words. **Show me what would change…** rehearses the entire sync on a copy of your notes folder and a copy of your reminders and shows the result. Nothing is touched. From that sheet you can press **Sync now** to do it for real. **Last sync report…** shows the same for the sync you ran.
+
+## Sharing a project
+
+Since build 361. You can share a project or an area with another person, for example Anna. Sharing happens in Apple Reminders; PARAGON adds the names. The name on a task means **who is responsible for it**, not who made it.
+
+### Setting it up (both people do it)
+
+1. Open the project's page. In the panel under the title, press **Reminders list:** and choose **Share this list…**. The **Share** window opens.
+2. Fill in **Your name** (kept for the whole notes folder, so it is the same on all your devices) and **Shared with** (one or more names, separated by commas).
+3. Follow the steps in the window: open **Reminders**, press and hold the list with the project's name (on the Mac: right-click it), choose **Share List**, and invite the person.
+4. The other person accepts the invitation, makes a project with the **same name** in her PARAGON, and shares it the same way: her name, shared with you.
+5. Press **Save**. **Cancel** changes nothing. When a project is already shared, the window also has **Stop sharing**.
+
+A shared page shows **Shared with Anna**, with a two-people mark, in the panel under the title. Press it to open the same window.
+
+### Who does it
+
+- Press a task's menu and choose **Who does it**. You see your own name, the people the project is shared with, and **Nobody**.
+- The chosen name shows at the far right end of the task's row, in small grey words.
+- In the note the name is written at the end of the line as `@who(Anna)`.
+
+### What you see in Apple Reminders
+
+- The reminder's notes start with a line **Who: Anna**. If you change that line in Reminders, the task in PARAGON changes; change it in PARAGON and the line changes.
+- The notes also hold a line `ams-para-from: Martin`. It is PARAGON's own mark, so each app knows which tasks came from the other person. Leave it alone.
+- In a shared project both PARAGONs take in each other's tasks, ticks, dates and who does it. (Before build 361 each PARAGON skipped the tasks the other person's PARAGON had put in the shared list.)
+- A task typed straight into Apple Reminders comes in as before, with no name.
+
+### The limit
+
+Apple's own **Assign** in shared Reminders lists cannot be seen by PARAGON, because Apple gives apps no way to read it. Use the **Who: …** line or PARAGON to say who does a task.
+
+A project that is not shared works as before: no name shows and the reminder's notes get no **Who:** line.
 
 ## Aspirations and Goals
 

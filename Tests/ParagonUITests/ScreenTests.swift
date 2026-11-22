@@ -173,6 +173,33 @@ final class ScreenTests: XCTestCase {
                       "The editor did not take the typing. It shows: \(shown.prefix(200))")
     }
 
+    /// Build 361: a project's panel has **Share…**; its window takes your name and who it is
+    /// shared with, and Save turns the chip into "Shared with Anna".
+    func testAProjectCanBeSharedWithSomeone() {
+        go(to: .projects)
+        let row = element("note.Projects/Plan the Kungsleden trip.md")
+        XCTAssertTrue(row.waitForExistence(timeout: 20), "The Projects list does not show the test project.")
+        row.press()
+        let chip = element("note.shared")
+        XCTAssertTrue(chip.waitForExistence(timeout: 20), "The project's panel has no Share button.")
+        chip.press()
+        let mine = element("share.myName")
+        XCTAssertTrue(mine.waitForExistence(timeout: 10), "Share did not open its window.")
+        mine.press()
+        mine.typeText("Martin")
+        let with = element("share.with")
+        with.press()
+        with.typeText("Anna")
+        element("share.save").press()
+        let shared = NSPredicate(format: "label CONTAINS 'Shared with Anna'")
+        expectation(for: shared, evaluatedWith: element("note.shared"))
+        waitForExpectations(timeout: 10)
+        if let path = ProcessInfo.processInfo.environment["TEST_RUNNER_SHOT_PATH"] ?? ProcessInfo.processInfo.environment["SHOT_PATH"] {
+            sleep(1)
+            try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: path))
+        }
+    }
+
     /// Build 286: the checkbox button above the keyboard turns the line into a task, and the
     /// editor still takes typing (the extra tap recogniser only begins on a box).
     #if os(iOS)
