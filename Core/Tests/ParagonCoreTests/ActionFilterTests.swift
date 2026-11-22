@@ -126,4 +126,18 @@ final class ActionFilterTests: XCTestCase {
         let filter = ActionFilter(whens: [.today, .overdue], marks: [.next], tags: ["travel"])
         XCTAssertEqual(filter.summary, "Overdue or Today · Next action · #travel")
     }
+
+    // MARK: Mine (build 362)
+
+    func testMineKeepsMyTasksAndUnnamedOnesAndHidesOthers() {
+        var mineNamed = ref("Dig the bed"); mineNamed.task.who = "martin"
+        var hers = ref("Buy seeds"); hers.task.who = "Anna"
+        let unnamed = ref("Water the plants")
+        let filter = ActionFilter(mine: "Martin")
+        XCTAssertEqual(filter.apply(to: [mineNamed, hers, unnamed], today: today).map(\.task.title),
+                       ["Dig the bed", "Water the plants"])
+        XCTAssertFalse(filter.isEmpty)
+        XCTAssertEqual(filter.summary, "Mine")
+        XCTAssertEqual(ActionFilter().apply(to: [mineNamed, hers, unnamed], today: today).count, 3)
+    }
 }

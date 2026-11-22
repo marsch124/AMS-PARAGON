@@ -198,3 +198,4 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 - **Connect again** — beside a list in **Lists kept apart**. It forgets that you keep the list apart. Nothing is joined by the press; the next sync asks you about the list once more.
 - **Outside copy** — the second copy of your notes, kept outside your notes folder: on this device, or in a folder you choose. It holds your notes, pictures and sketches.
 - **Restore from the outside copy…** — a button in **Settings › Second copy, outside your notes folder**. It puts an outside copy of this notes folder back into your notes folder (the newest, unless you choose another in the list), after saving what you have now. Nothing is deleted.
+- **Mine** — the box in the row **WHO** on **All actions** (since build 362): only your tasks, those with your name in **Who does it** or with no name. It shows once **Your name** is set in the **Share** window.

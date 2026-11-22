@@ -80,18 +80,32 @@ public struct ActionFilter: Equatable, Sendable {
     /// Round 350 (pick 44): `#easy`, `#medium`, `#hard`. A row of its own, an **or** inside the
     /// row and an **and** with the others, like every other row.
     public var energies: Set<TaskEnergy>
+    /// Build 362 (his ask): the **Mine** box. When set, it holds his own name ("Your name",
+    /// `VaultConfig.myName`) and only his actions are kept: those whose `@who(…)` is that name
+    /// (any case), and those with no name at all — in his own projects nobody else does them.
+    /// A task that names someone else (`@who(Anna)`) is left out. Nil = the box is not ticked.
+    public var mine: String?
 
     public init(whens: Set<When> = [], marks: Set<Mark> = [], tags: Set<String> = [],
-                energies: Set<TaskEnergy> = []) {
+                energies: Set<TaskEnergy> = [], mine: String? = nil) {
         self.whens = whens
         self.marks = marks
         self.tags = Set(tags.map { NoteIndex.normalized($0) })
         self.energies = energies
+        self.mine = mine.flatMap { SharedTasks.cleanName($0) }
     }
 
-    public var isEmpty: Bool { whens.isEmpty && marks.isEmpty && tags.isEmpty && energies.isEmpty }
+    public var isEmpty: Bool { whens.isEmpty && marks.isEmpty && tags.isEmpty && energies.isEmpty && mine == nil }
+
+    /// Build 362: whether `task` is his — named for him, or named for nobody.
+    public static func isMine(_ task: TaskItem, me: String) -> Bool {
+        guard let who = task.who.flatMap({ SharedTasks.cleanName($0) }) else { return true }
+        guard let me = SharedTasks.cleanName(me) else { return false }
+        return who.lowercased() == me.lowercased()
+    }
 
     public func matches(_ ref: TaskRef, today: DateOnly) -> Bool {
+        if let me = mine, !Self.isMine(ref.task, me: me) { return false }
         if !whens.isEmpty, !whens.contains(where: { $0.matches(ref.task, today: today) }) { return false }
         if !marks.isEmpty, !marks.contains(where: { $0.matches(ref.task) }) { return false }
         if !energies.isEmpty {
@@ -136,6 +150,7 @@ public struct ActionFilter: Equatable, Sendable {
     /// that a search must never be invisible, in a new place.
     public var summary: String {
         var parts: [String] = []
+        if mine != nil { parts.append("Mine") }
         if !whens.isEmpty {
             parts.append(When.allCases.filter { whens.contains($0) }.map(\.label).joined(separator: " or "))
         }

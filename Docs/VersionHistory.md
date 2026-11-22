@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (361) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (362) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 362 · 22 November 2026
+
+**All actions: a Mine box, so you see only your own tasks.**
+
+### New
+
+- **Mine (new).** On **All actions**, under **Filter**, there is a new row called **WHO**, after **Tags**, with one box: **Mine**. Tick it and the list shows only your actions. Hold the pointer over the box and it says: "Only your actions: those with your name or no name".
+- **What counts as yours.** A task is yours when **Who does it** is your name (it does not matter whether it is written in capitals or small letters), and also when the task has no name at all: in your own projects nobody else does the tasks, so a task without a name is yours. A task that names somebody else, for example Anna, is left out.
+- **It works with the other boxes.** Like every row, **Mine** is added to the others: tick **Mine** and **Overdue** and you get your own overdue tasks. The line under the boxes says **Mine** while the box is ticked, and **Clear** unticks it with the rest.
+- **Your name is needed.** PARAGON can only tell whose a task is when it knows who you are. The **WHO** row therefore shows up once **Your name** is set, which happens the first time you share a project (**Share** window, since build 361). Until then the row is not there, and nothing looks different. A ticked **Mine** box always stays on the screen, so you can always untick it.
+
+### Changed
+
+- Nothing else. The other boxes, **Waiting for** and the task rows work as before.
+
+### Fixed
+
+- Nothing in this build.
+
+Not yet tried with two real people on a shared project.
 
 ## Build 361 · 22 November 2026
 

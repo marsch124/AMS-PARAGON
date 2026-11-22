@@ -220,7 +220,7 @@ What goes across:
 - Tasks in daily and weekly notes go to a list called Daily Notes.
 - Ticking, renaming, dating and deleting on either side carries over. A task with a time gets an alarm.
 - Goals stay out, because they are direction, not to-dos.
-- A project can be shared with another person (since build 361): press **Reminders list:** on its page and choose **Share this list…**. Each task then has **Who does it**, and the name shows in small grey words at the right end of its row. See **Sharing a project** in How it works.
+- A project can be shared with another person (since build 361): press **Reminders list:** on its page and choose **Share this list…**. Each task then has **Who does it**, and the name shows in small grey words at the right end of its row. See **Sharing a project** in How it works. Since build 362, the box **Mine** under **WHO** in **All actions** shows only your own tasks (yours by name, or with no name).
 
 Sync runs by itself every few minutes. On the Mac, click the **sync ring** at the foot of the sidebar for **Sync now**, **Show me what would change…** and the last report. On the iPhone, a tap on the sync button at the top right syncs at once; press and hold it for the same choices. The ring is a small clock: green when the last sync is recent, yellow after a while, red after conflicts, grey before any sync. On the Mac, Shift-Command-R also syncs.
 

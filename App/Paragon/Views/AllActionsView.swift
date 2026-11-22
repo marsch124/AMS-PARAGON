@@ -271,6 +271,18 @@ struct AllActionsView: View {
                     }
                 })
             }
+            // Build 362 (his ask): "Mine" — only the actions he does. Shown once he has a name
+            // (set when a project is first shared); without it no task can be told apart.
+            // A ticked box always stays, so it can be unticked (build 175's rule).
+            let me = model.config.myName
+            if SharedTasks.cleanName(me) != nil || model.actionFilter.mine != nil {
+                row("Who", choices: [
+                    Choice(id: "who.mine", title: "Mine", isOn: model.actionFilter.mine != nil) {
+                        model.actionFilter.mine = model.actionFilter.mine == nil ? SharedTasks.cleanName(me) : nil
+                    }
+                ])
+                .help("Only your actions: those with your name or no name")
+            }
         }
         .padding(.horizontal, 10)
         .padding(.bottom, 10)
