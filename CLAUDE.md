@@ -5601,3 +5601,29 @@ recorded → saved ("It doesn't work. This is what happens."). Two faults seen i
 - 🪤 I read a missing orange dot in his 09:30 screenshot as "the microphone stopped"; the saved
   thought showed the recording ran on. A screenshot of the app in front may not show the dot —
   check the saved result before calling a recording broken.
+
+## Build 358 (22 November 2026) — back to the design: one press, PARAGON does not open
+
+He: *"I expect the function to work as we designed it from the beginning … 3 days ago and we
+have updated this 15 versions."* The design (build 348, from the Flowtica Verso comparison) is one
+press anywhere, no app, Lock Screen card, second press files.
+- **What really happened.** Build 352 recorded from the Action Button with PARAGON closed: its
+  `showActivity` asked for the card before the microphone (refused, silently, `try?`) and AGAIN
+  after `engine.start()` (because `startedAt` was reset), and the second ask came while the app
+  was recording. Build 354 made the first refusal throw ("Target is not foreground"), and 355
+  answered that with `openAppWhenRun = true`. **I turned a silent first refusal into a stop and
+  then built around my own stop for three builds.**
+- Now (`VoiceRecorder.start`): microphone first (session `.measurement`, engine, tap into `raw`),
+  then `showActivity(listening)`; a refusal is logged and the recording goes on (`showWords`
+  asks again each second while `activity == nil`); the speech-to-text is set up in `preparing`
+  after the press returns (353's cold-start limit), and `raw` keeps everything heard until then.
+  Both intents `openAppWhenRun = false`; messages only when PARAGON is on screen (`sayOnScreen`).
+  357 was never uploaded; its fixes ship in 358.
+- 🪤 **Before making a refusal fatal, check whether the old code went on past it and worked.**
+  A `try?` that "silently failed" may have been followed by a retry that succeeded.
+- 🪤 **When a fix needs to break the agreed design (here: opening the app), stop and say so to
+  him first.** Three builds went into a shape he never asked for.
+- Not proven on his phone: that iOS grants the card once the microphone runs in the background.
+  Apple's forum (thread 815725) says the Activity-first order fails; nobody there tried this one.
+  If the log shows "Lock Screen card: not shown … The recording goes on" followed by the
+  microphone being taken away, the next option is a Control (ControlWidget) for the Action Button.

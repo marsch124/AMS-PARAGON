@@ -135,30 +135,21 @@ final class VoiceRecorder {
         finished = ""
         volatile = ""
         isRecording = true
-        // The Live Activity first: an `AudioRecordingIntent` must show one while it records.
-        await showActivity(.init(stage: .preparing, words: "Getting ready…", title: "", tasksFound: 0, length: "", intoToday: intoToday))
-        if activity == nil {
-            VoiceLog.note("Lock Screen card: not shown. \(activityProblem)")
-            // Build 354: without the card iOS stops a recording in the background at once, and
-            // the press used to end in silence. On screen PARAGON can record without it.
-            if UIApplication.shared.applicationState != .active {
-                isRecording = false
-                throw Problem.noLiveActivity(activityProblem)
-            }
-        } else {
-            VoiceLog.note("Lock Screen card: shown.")
-        }
 
-        // Build 355: the speech-to-text is set up **first** and the microphone second — the order
-        // of build 352, which recorded. Build 353 swapped it to beat a time limit in the
-        // background, and with PARAGON on screen the microphone then failed with "OSStatus error
-        // -50". Since build 355 a press always opens PARAGON (iOS refuses the Lock Screen card to
-        // an app in the background: "Target is not foreground"), so the swap bought nothing.
+        // Build 358: the microphone first, the Lock Screen card second, the speech-to-text last.
+        // - The card after the microphone: with PARAGON not on screen, iOS refuses the card while
+        //   nothing records yet ("Target is not foreground", his log of build 354). Build 352 asked
+        //   a second time once the microphone ran, and recorded with PARAGON closed. Builds 354
+        //   and 355 stopped at the first refusal and then opened PARAGON instead, which is not
+        //   the design (one press, no app).
+        // - The speech-to-text after the press returns: set up inside the press it ran past
+        //   iOS's time limit on a cold start (build 353). What the microphone hears meanwhile is
+        //   kept in `raw` and handed over once it is ready, so nothing said is lost.
+        // - "OSStatus error -50" (builds 353 to 355) was the `.spokenAudio` mode (build 356),
+        //   not this order.
         let (raw, rawBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream(bufferingPolicy: .unbounded)
         self.raw = rawBuilder
         do {
-            try await prepareSpeech(raw: raw)
-
             let session = AVAudioSession.sharedInstance()
             // Build 356: `.spokenAudio` is a mode for playing speech, and iOS refused it with
             // `.record` on his iPhone ("OSStatus error -50", seen in Last presses on 22 November).
@@ -189,8 +180,16 @@ final class VoiceRecorder {
             watchTheSound(engine)
             startedAt = Date()
             VoiceLog.note("Microphone: listening.")
+
+            await showActivity(listeningState("Listening…"))
+            if activity == nil {
+                // Kept recording: with PARAGON on screen it records without the card, and in the
+                // background the log then shows whether iOS stopped it.
+                VoiceLog.note("Lock Screen card: not shown. \(activityProblem) The recording goes on.")
+            } else {
+                VoiceLog.note("Lock Screen card: shown.")
+            }
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            if !isPaused { await showActivity(listeningState("Listening…")) }
 
             limit = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(VoiceThought.longest))
@@ -198,6 +197,21 @@ final class VoiceRecorder {
                 // Not cancelled by the stop it starts: the write-up must not be cut short.
                 self.limit = nil
                 Task { @MainActor in _ = await self.stopAndFile() }
+            }
+
+            preparing = Task { @MainActor [weak self] in
+                guard let self else { return }
+                do {
+                    try await self.prepareSpeech(raw: raw)
+                } catch {
+                    VoiceLog.note("Speech-to-text could not start: \(error.localizedDescription)")
+                    self.preparing = nil
+                    guard self.isRecording else { return }
+                    self.isRecording = false
+                    await self.tearDown()
+                    await self.showActivity(.init(stage: .nothing, words: error.localizedDescription, title: "", tasksFound: 0, length: "", intoToday: self.intoToday),
+                                            endAfter: 60)
+                }
             }
         } catch {
             VoiceLog.note("Could not start: \(error.localizedDescription)")
@@ -290,8 +304,8 @@ final class VoiceRecorder {
             } catch {}
         }
 
-        // Everything the microphone hears, converted for the model. The converter is made from
-        // the first sound, since the microphone has not started yet.
+        // Everything the microphone hears, converted for the model, from the first moment it
+        // listened. The converter is made from the first sound's own format.
         pump = Task.detached {
             var converter: AVAudioConverter?
             var madeConverter = false

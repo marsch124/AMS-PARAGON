@@ -1,6 +1,16 @@
 # Version history
 
-The version is shown as 1.0 (357) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (358) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 358 · 22 November 2026
+
+**Record a Thought works as we designed it: one press, and PARAGON does not open.**
+
+- **A press does not open PARAGON any more.** Press the Action Button anywhere. The recording starts, the phone gives a short tap, and the recording shows on the Lock Screen and in the Dynamic Island. Press again (or **Stop** on the Lock Screen) to stop. The card then says what was saved.
+- **Why builds 355 to 357 opened PARAGON:** iOS refuses the Lock Screen card to an app in the background while it is not recording yet. Build 352 asked for the card a second time once the microphone ran, and then it worked. Build 354 stopped at the first refusal instead, and build 355 opened PARAGON to get around it. That was my mistake. Now PARAGON starts the microphone first and asks for the card after that.
+- **Nothing you say at the start is lost.** Apple's speech-to-text gets ready while you already speak. What the microphone heard meanwhile is kept and written down once it is ready.
+- **Build 357 was not sent to TestFlight.** Its two fixes come with this build: no white card with only **Done**, and no tasks you did not say.
+- **Not tried on a real iPhone yet.** If a press does nothing, send a screenshot of Settings › **Voice** › **What the last presses did**.
 
 ## Build 357 · 22 November 2026
 
