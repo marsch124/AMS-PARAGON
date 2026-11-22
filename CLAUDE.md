@@ -5571,3 +5571,11 @@ forums (thread 815725) say the same: a recording with a Live Activity must be st
 - 🪤 **An app in the background cannot start a Live Activity, `AudioRecordingIntent` or not.** Any action
   that records must open the app.
 
+## Build 356 (22 November 2026) — the audio mode
+
+His Last presses page on 355 named the step: **`setCategory(.record, mode: .spokenAudio)` throws OSStatus -50**
+on his iPhone (iOS 27). `.spokenAudio` is a playback mode. Now `.record` + `.measurement` + `[.duckOthers]`
+(what `CaptureDictation` uses, and it records there), falling back to `.record` + `.default`, the refusal
+logged. 🪤 **Only one change, because the log named one step: the VoiceLog paid for itself on the first
+report.** The same log showed the phone's language resolves to `en_SG` for "Phone's language".
+

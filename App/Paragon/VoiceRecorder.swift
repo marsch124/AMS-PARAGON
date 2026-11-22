@@ -158,7 +158,17 @@ final class VoiceRecorder {
             try await prepareSpeech(raw: raw)
 
             let session = AVAudioSession.sharedInstance()
-            try Self.step("Sound: set to recording") { try session.setCategory(.record, mode: .spokenAudio, options: []) }
+            // Build 356: `.spokenAudio` is a mode for playing speech, and iOS refused it with
+            // `.record` on his iPhone ("OSStatus error -50", seen in Last presses on 22 November).
+            // `.measurement` is the mode Dictate uses (CaptureDictation), which records on his
+            // phone, and the mode Apple names for speech recognition. The plain mode is the
+            // fall-back, so a refused mode never again stops the recording.
+            do {
+                try session.setCategory(.record, mode: .measurement, options: [.duckOthers])
+            } catch {
+                VoiceLog.note("Sound: measurement mode refused (\(error.localizedDescription)). Trying the plain mode.")
+                try Self.step("Sound: set to recording") { try session.setCategory(.record, mode: .default, options: []) }
+            }
             try Self.step("Sound: switched on") { try session.setActive(true) }
 
             let engine = AVAudioEngine()

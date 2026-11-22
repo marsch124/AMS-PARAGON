@@ -1,6 +1,14 @@
 # Version history
 
-The version is shown as 1.0 (355) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (356) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 356 · 22 November 2026
+
+**Record a Thought: fixed "OSStatus error -50".**
+
+- **What the last presses page showed:** every press stopped at the line "Sound: set to recording failed". That is the step where PARAGON tells iOS how it will use the microphone. PARAGON asked for a mode that is meant for playing speech, and iOS refused it together with recording.
+- **Now PARAGON asks for the same mode as Dictate in Capture**, which records on your iPhone. If iOS ever refuses that mode too, PARAGON tries the plain mode before it gives up, and **What the last presses did** says so.
+- **Not tried on a real iPhone yet.**
 
 ## Build 355 · 22 November 2026
 
