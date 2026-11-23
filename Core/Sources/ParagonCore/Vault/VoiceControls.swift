@@ -113,9 +113,21 @@ public enum VoiceNoteText {
     public static func summary(of text: String) -> String? {
         let all = lines(of: text)
         guard let range = part("Summary", in: all) else { return nil }
-        let joined = all[range].joined(separator: " ")
+        // Build 364: key points that stand in for the summary read as one line, "a · b · c".
+        var body = Array(all[range])
+        var points: [String] = []
+        if let at = body.firstIndex(of: VoiceThought.keyPointsLine) {
+            var end = at + 1
+            while end < body.count, body[end].hasPrefix("- ") { end += 1 }
+            points = body[(at + 1)..<end].map { String($0.dropFirst(2)) }
+            body.removeSubrange(at..<end)
+        }
+        body.removeAll { $0 == VoiceThought.pendingLine }
+        let joined = body.joined(separator: " ")
         let clean = joined.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
-        if clean.isEmpty || clean == VoiceThought.pendingLine || clean.hasPrefix("No summary") { return nil }
+        if clean.isEmpty || clean.hasPrefix("No summary") {
+            return points.isEmpty ? nil : points.joined(separator: " \u{00B7} ")
+        }
         return clean
     }
 

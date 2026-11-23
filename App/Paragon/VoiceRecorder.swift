@@ -397,6 +397,8 @@ final class VoiceRecorder {
         await tearDown()
 
         var thought = VoiceThought(transcript: transcript, recordedAt: startedAt, duration: duration)
+        // Build 364: the key points stand in the note until the summary is there.
+        thought.keyPoints = points
         // Round 352: the language it was spoken in, so a German "am 25." is read as the 25th.
         thought.language = locale.identifier
         // Round 350 (voice-words): the odd words put right, then the title, tags and ideas he said.

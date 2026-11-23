@@ -22,6 +22,9 @@ public struct VoiceThought: Equatable, Sendable {
     /// The on-device model did not finish in time: the note says the summary follows, and
     /// `VoiceThought.enriched` puts it in later.
     public var summaryPending = false
+    /// Build 364: the key points the Lock Screen card showed last (`VoiceLiveSummary`). They
+    /// stand under Summary for as long as the note has no real summary.
+    public var keyPoints: [String] = []
     /// Round 350: said out loud — "tag garden" gives the tag `garden`.
     public var extraTags: [String] = []
     /// Round 350: said out loud — sentences that start with "idea".
@@ -291,10 +294,19 @@ public struct VoiceThought: Equatable, Sendable {
         ]
         if let summary = summary?.trimmingCharacters(in: .whitespacesAndNewlines), !summary.isEmpty {
             lines.append(VoiceWords.linking(summary, titles: linkTitles))
-        } else if summaryPending {
-            lines.append(Self.pendingLine)
         } else {
-            lines.append("No summary: Apple Intelligence was not available on this phone.")
+            // Build 364: the key points he saw on the card stand in until the summary comes.
+            let points = VoiceLiveSummary.points(keyPoints)
+            if !points.isEmpty {
+                lines.append(Self.keyPointsLine)
+                lines += points.map { "- " + $0 }
+                if summaryPending { lines.append("") }
+            }
+            if summaryPending {
+                lines.append(Self.pendingLine)
+            } else if points.isEmpty {
+                lines.append("No summary: Apple Intelligence was not available on this phone.")
+            }
         }
         let tasks = finalTaskItems()
         if !tasks.isEmpty {
@@ -322,14 +334,46 @@ public struct VoiceThought: Equatable, Sendable {
     /// Stands in the note while the summary is still to come.
     public static let pendingLine = "The summary is still being written. PARAGON adds it the next time it opens."
 
+    /// Build 364: stands above the key points in a note that has no summary (yet).
+    public static let keyPointsLine = "Key points while you spoke:"
+
+    /// The key points a note carries under `keyPointsLine`, without their dashes.
+    public static func keyPoints(in noteText: String) -> [String] {
+        let lines = noteText.components(separatedBy: "\n")
+        guard let at = lines.firstIndex(of: keyPointsLine) else { return [] }
+        return lines[(at + 1)...].prefix(while: { $0.hasPrefix("- ") }).map { String($0.dropFirst(2)) }
+    }
+
+    /// The note without the key points part: its line, its points and the empty line after.
+    static func withoutKeyPoints(_ noteText: String) -> String {
+        var lines = noteText.components(separatedBy: "\n")
+        guard let at = lines.firstIndex(of: keyPointsLine) else { return noteText }
+        var end = at + 1
+        while end < lines.count, lines[end].hasPrefix("- ") { end += 1 }
+        if end < lines.count, lines[end].isEmpty { end += 1 }
+        lines.removeSubrange(at..<end)
+        return lines.joined(separator: "\n")
+    }
+
     /// A voice note whose summary came late: the waiting line becomes the summary, and the
     /// tasks go in their own part above the full text. Nil when the note no longer has the
     /// waiting line (he changed it meanwhile): then nothing is touched.
+    ///
+    /// Build 364: key points that stood in (`keyPointsLine`) give way to a real summary. When
+    /// no summary could be made they stay, and only the waiting line goes.
     public static func enriched(_ noteText: String, summary: String, tasks: [String]) -> String? {
         guard noteText.contains(pendingLine) else { return nil }
         let clean = summary.trimmingCharacters(in: .whitespacesAndNewlines)
-        var text = noteText.replacingOccurrences(of: pendingLine,
-                                                 with: clean.isEmpty ? "No summary was made." : clean)
+        let real = !clean.isEmpty && !clean.hasPrefix("No summary")
+        var text = noteText
+        if real {
+            text = withoutKeyPoints(text).replacingOccurrences(of: pendingLine, with: clean)
+        } else if !keyPoints(in: text).isEmpty {
+            text = text.replacingOccurrences(of: "\n\n" + pendingLine, with: "")
+                .replacingOccurrences(of: pendingLine, with: "")
+        } else {
+            text = text.replacingOccurrences(of: pendingLine, with: clean.isEmpty ? "No summary was made." : clean)
+        }
         let list = VoiceThought(transcript: "x", tasks: tasks, recordedAt: Date(), duration: 0).finalTasks
         guard !list.isEmpty, let full = text.range(of: "\n## Full text\n") else { return text }
         // Round 350: an Ideas part may stand between Tasks and Full text.

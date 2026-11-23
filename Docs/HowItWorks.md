@@ -2198,10 +2198,11 @@ Since build 348, on the iPhone and the iPad with iOS 26 or newer. You speak, and
 **When something is missing.**
 - **No Apple Intelligence** (turned off, or an older iPhone): the text is still saved. The title is the first words. No summary and no AI tasks are made, and the note says so in one line. Tasks you said with the word "task" are still filed (since build 349).
 - **Phone locked and the summary is slow** (the iPhone slows Apple's AI down while locked): after 20 seconds the words are saved anyway, with the first words as the title, and the note says "The summary is still being written. PARAGON adds it the next time it opens." The next time you open PARAGON, the summary goes into the note and the tasks into the Inbox.
+  - Since build 364, when the card had key points at **Stop**, the note's **Summary** part first reads "Key points while you spoke:", the points (one dash line each), an empty line, and then the waiting line, so the note is useful at once. When the summary is written, the key points line and its points are taken out and the summary stands in their place; the waiting line goes too. If no summary can be made then either, the key points stay as the summary and only the waiting line is taken out. If Apple's AI gave key points at **Stop** but then no summary at all, the key points stand under **Summary** instead of "No summary: Apple Intelligence was not available on this phone." With no key points, the note is written as before.
 - **Nothing heard:** nothing is saved. The card says "Nothing heard — nothing saved".
 - **iOS older than 26:** Siri says "Record a thought needs iOS 26 or newer."
 
-**Settings › Voice.** The row **Voice language**: "Phone's language" (the default), English, Deutsch or Svenska. Under it: "The language you speak when you record a thought." Since build 363 the switch **Key points while you speak** (on at start), with "With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; it needs Apple Intelligence." under it.
+**Settings › Voice.** The row **Voice language**: "Phone's language" (the default), English, Deutsch or Svenska. Under it: "The language you speak when you record a thought." Since build 363 the switch **Key points while you speak** (on at start), with "With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; when the summary comes late, they stand in the note until it arrives. It needs Apple Intelligence." under it (the part after the semicolon since build 364; before: "…what you have said so far; it needs Apple Intelligence.").
 
 ### New in build 350: more for voice notes
 
@@ -2250,6 +2251,22 @@ iPhone and iPad only; the Mac is unchanged.
 - **Switch.** Settings › **Voice** › **Key points while you speak**, on at start. Without Apple Intelligence the card shows your words only, and **What the last presses did** says so.
 - **Not changed.** The note (**Summary**, **Tasks**, **Full text**), the Inbox, tasks and sync.
 - **Not seen.** A real microphone on a real iPhone; whether Apple's AI answers fast enough while the phone is locked. Seen on the iPhone simulator only.
+
+### New in build 364: key points in the note
+
+iPhone and iPad only; the Mac is unchanged (it only shows the notes).
+
+- **Before.** The key points were only on the Lock Screen card. A summary that came late left the note's **Summary** part with only "The summary is still being written. PARAGON adds it the next time it opens."; no summary at all left "No summary: Apple Intelligence was not available on this phone."
+- **Now, summary late.** If the card had key points at **Stop**, **Summary** reads "Key points while you spoke:", the points as dash lines, an empty line, and the waiting line. The note is useful at once, also on the Mac and the iPad through iCloud.
+- **Summary arrives.** The next time PARAGON opens, the "Key points while you spoke:" line and its points are taken out and the summary stands in their place. The waiting line goes too. Tasks are added as before.
+- **No summary then either.** The key points stay as the summary; only the waiting line is taken out.
+- **Key points but no summary at Stop.** The key points stand under **Summary** instead of "No summary: Apple Intelligence was not available on this phone."
+- **No key points** (switch off, under about 30 words, no Apple Intelligence): the note is written exactly as before.
+- **In short views.** The **Check after filing** card and the short preview of a voice note show a note that has only key points as one line, with " · " between them.
+- **Your own changes.** If you changed the note so the waiting line is gone, nothing is touched.
+- **Words under the Voice rows** (Settings › **Voice**): "With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; when the summary comes late, they stand in the note until it arrives. It needs Apple Intelligence."
+- **Signs.** No new switch, mark or colour. In the note, a dash line under "Key points while you spoke:" is one key point.
+- **Not seen.** A real iPhone; the late path with the phone really locked.
 
 ## System search
 
@@ -3261,3 +3278,12 @@ Help › Copy Diagnostics (⌃⌘D — control, not option) copies a short log: 
 - **Setting.** Key `voiceKeyPoints` (UserDefaults, on by default); identifier `settings.voiceKeyPoints`.
 - **Demo hook.** The launch argument `-paragon-voice-demo` now also shows key points.
 - **Not seen.** A real iPhone.
+
+## Exact details (build 364)
+
+- **Core.** `Vault/VoiceThought.swift`: `keyPoints` (the points the card had at Stop), `keyPointsLine` (the line "Key points while you spoke:"), `noteText` (writes the Summary part), `enriched` (swaps in the late summary). `Vault/VoiceControls.swift`: `VoiceNoteText.summary(of:)` (the short form of a note's summary; key points only are joined into one line with " · "). Test: `VoiceLiveSummaryTests.testKeyPointsStandInTheNoteUntilTheSummaryArrives`.
+- **Order in the Summary part, summary late:** the line "Key points while you spoke:", then one dash line per point (up to 3), then an empty line, then "The summary is still being written. PARAGON adds it the next time it opens."
+- **What replaces what.** Late summary written: the key points line, its points and the waiting line are removed and the summary stands there. No summary can be made: only the waiting line is removed, the key points stay. No summary at Stop but key points: the key points stand under Summary (no "No summary: Apple Intelligence was not available on this phone."). No key points: as before. Waiting line gone (changed by you): nothing is touched.
+- **App.** `VoiceRecorder.swift`: `stopAndFile` sets `thought.keyPoints`.
+- **Setting text.** The footer under the Voice rows is changed (see **New in build 364**). No new setting or identifier.
+- **Not seen.** A real iPhone; the late path with the phone really locked.

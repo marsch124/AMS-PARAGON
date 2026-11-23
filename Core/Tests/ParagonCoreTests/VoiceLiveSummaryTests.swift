@@ -49,4 +49,40 @@ final class VoiceLiveSummaryTests: XCTestCase {
         XCTAssertTrue(cut.hasSuffix("…"))
         XCTAssertEqual(VoiceLiveSummary.cardStays, 14_400)
     }
+
+    // Build 364: key points in the note.
+    func testKeyPointsStandInTheNoteUntilTheSummaryArrives() {
+        var late = VoiceThought(transcript: "the drawer needs screws and anna is to be called", recordedAt: Date(), duration: 30)
+        late.summaryPending = true
+        late.keyPoints = ["- Order screws for drawer.", "Call Anna about Saturday"]
+        let note = late.noteText(today: .today())
+        let block = "## Summary\n\nKey points while you spoke:\n- Order screws for drawer\n- Call Anna about Saturday\n\n" + VoiceThought.pendingLine + "\n\n## Full text"
+        XCTAssertTrue(note.contains(block))
+        XCTAssertEqual(VoiceThought.keyPoints(in: note), ["Order screws for drawer", "Call Anna about Saturday"])
+        // Read back in short: the points in one line.
+        XCTAssertEqual(VoiceNoteText.summary(of: note), "Order screws for drawer \u{00B7} Call Anna about Saturday")
+
+        // The summary arrives: the points give way to it.
+        let done = VoiceThought.enriched(note, summary: "The drawer needs screws.", tasks: ["Call Anna"])
+        XCTAssertEqual(done?.contains("## Summary\n\nThe drawer needs screws.\n\n## Tasks\n\n- Call Anna\n\n## Full text"), true)
+        XCTAssertEqual(done?.contains(VoiceThought.keyPointsLine), false)
+        XCTAssertEqual(VoiceNoteText.summary(of: done ?? ""), "The drawer needs screws.")
+
+        // No summary could be made: the points stay, the waiting line goes.
+        let kept = VoiceThought.enriched(note, summary: "No summary: Apple Intelligence was not available on this phone.", tasks: [])
+        XCTAssertEqual(kept?.contains("## Summary\n\nKey points while you spoke:\n- Order screws for drawer\n- Call Anna about Saturday\n\n## Full text"), true)
+        XCTAssertEqual(kept?.contains("No summary"), false)
+
+        // Points but no summary at Stop: the points are the summary. No points: as before.
+        late.summaryPending = false
+        let only = late.noteText(today: .today())
+        XCTAssertTrue(only.contains("Key points while you spoke:\n- Order screws for drawer\n- Call Anna about Saturday\n\n## Full text"))
+        XCTAssertFalse(only.contains("No summary"))
+        late.keyPoints = []
+        XCTAssertTrue(late.noteText(today: .today()).contains("No summary: Apple Intelligence"))
+        late.summaryPending = true
+        let plain = late.noteText(today: .today())
+        XCTAssertTrue(plain.contains("## Summary\n\n" + VoiceThought.pendingLine + "\n\n## Full text"))
+        XCTAssertEqual(VoiceThought.enriched(plain, summary: "", tasks: [])?.contains("No summary was made."), true)
+    }
 }

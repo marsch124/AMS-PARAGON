@@ -1474,7 +1474,7 @@ struct VoiceSection: View {
         } header: {
             Text("Voice")
         } footer: {
-            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; it needs Apple Intelligence. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done. Press Get ready once before you use the Action Button: it asks for the microphone and gets Apple's speech model, which the Action Button cannot do.")
+            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; when the summary comes late, they stand in the note until it arrives. It needs Apple Intelligence. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done. Press Get ready once before you use the Action Button: it asks for the microphone and gets Apple's speech model, which the Action Button cannot do.")
         }
     }
 }

@@ -5686,3 +5686,12 @@ refused, `perform` returned → abort.
 - The saved card now stays up to 4 hours (Apple's longest), "Nothing heard" 1 minute.
 - 🪤 The model is slowed or refused while PARAGON is in the background or the phone is locked, so key points may not come; never let the card depend on them (the old two-line card is the fallback).
 - Not seen: a real phone.
+
+## Build 364: key points in the note (23 November 2026)
+
+- Before: the key points (build 363) were only on the Lock Screen card; a late summary left the note's Summary with only the waiting line, no summary left "No summary: Apple Intelligence was not available on this phone."
+- Now: `thought.keyPoints` is set in `App/Paragon/VoiceRecorder.swift` `stopAndFile`. Core `Vault/VoiceThought.swift` (`keyPoints`, `keyPointsLine`, `noteText`, `enriched`): a late summary writes "Key points while you spoke:", dash lines, an empty line, then the waiting line. `enriched` replaces the key points line + points + waiting line with the summary; with no summary it removes only the waiting line and keeps the points. Key points but no summary at Stop: points stand under Summary. No key points: as before. A note changed so the waiting line is gone is left alone.
+- `Vault/VoiceControls.swift` `VoiceNoteText.summary(of:)`: a note with only key points shows them in one line joined with " · " (Check after filing, voice note preview).
+- Voice footer now: "...of what you have said so far; when the summary comes late, they stand in the note until it arrives. It needs Apple Intelligence." No new setting, mark or colour.
+- Test: `Core/Tests/ParagonCoreTests/VoiceLiveSummaryTests.swift`, `testKeyPointsStandInTheNoteUntilTheSummaryArrives`.
+- Not tried: a real iPhone; the late path with the phone really locked.
