@@ -81,8 +81,8 @@ targets:
         NSHealthUpdateUsageDescription: PARAGON never writes to Health. It only reads your steps and workouts.
         NSContactsUsageDescription: PARAGON lets you choose a person from Contacts to link tasks and notes to them.
         # Build 348: Record a thought (Action Button, Siri, Shortcuts).
-        NSMicrophoneUsageDescription: PARAGON listens while you record a thought and writes down what you say. Everything stays on the phone.
-        NSSpeechRecognitionUsageDescription: PARAGON turns a recorded thought into text on the phone.
+        NSMicrophoneUsageDescription: PARAGON listens while you record a thought and writes down what you say. Everything stays on this device.
+        NSSpeechRecognitionUsageDescription: PARAGON turns a recorded thought into text on this device.
         UIBackgroundModes: [audio]
         # Build 317: the focus timer on the iPhone's Lock Screen and in the Dynamic Island.
         NSSupportsLiveActivities: true

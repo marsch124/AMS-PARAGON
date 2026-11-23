@@ -1,4 +1,54 @@
 import Foundation
+
+/// What the recording card shows: on the iPhone the Lock Screen card (a Live Activity), on
+/// the Mac the small floating card (build 365). One type for both, so the one recorder
+/// (`VoiceRecorder`) says the same things everywhere.
+struct VoiceCardState: Codable, Hashable, Sendable {
+    enum Stage: String, Codable, Hashable, Sendable {
+        /// The speech model is being fetched (first recording in a language).
+        case preparing
+        /// Recording: the clock runs from `startedAt`, `words` are the last words heard.
+        case listening
+        /// Stopped; the on-device model is writing the title, summary and tasks.
+        case writing
+        /// In the Inbox: `title` and `tasksFound` say what was saved.
+        case saved
+        /// Nothing was heard, or something went wrong: `words` says what.
+        case nothing
+    }
+
+    var stage: Stage
+    var words: String
+    var title: String
+    /// Saved: the tasks filed. Listening (build 349): the tasks he marked by saying "task".
+    var tasksFound: Int
+    /// How long it ran, once stopped ("0:42").
+    var length: String
+    /// Build 349: the thought is meant for today's daily note, not the Inbox.
+    var intoToday = false
+    /// Round 350: recording is paused. The clock stands still and shows `length`.
+    var paused = false
+    /// Round 350: seconds spent paused so far; the running clock counts from
+    /// `startedAt` plus this.
+    var pausedSeconds: Double = 0
+    /// Round 350: how many moments he marked with **Mark**.
+    var marks = 0
+    /// Build 363: up to three key points of what was said so far (`VoiceLiveSummary`).
+    /// They stay through Pause and the write-up; the saved card shows them when the
+    /// summary came late.
+    var points: [String] = []
+    /// Build 363: the summary, on the saved card.
+    var summary = ""
+
+    static func listening(_ words: String, intoToday: Bool = false, heard: Int = 0,
+                          length: String = "", paused: Bool = false, pausedSeconds: Double = 0,
+                          marks: Int = 0, points: [String] = []) -> Self {
+        Self(stage: .listening, words: words, title: "", tasksFound: heard, length: length,
+             intoToday: intoToday, paused: paused, pausedSeconds: pausedSeconds, marks: marks,
+             points: points)
+    }
+}
+
 #if os(iOS)
 import ActivityKit
 import AppIntents
@@ -9,51 +59,8 @@ import AppIntents
 
 /// One recording's Live Activity.
 struct VoiceActivityAttributes: ActivityAttributes {
-    struct ContentState: Codable, Hashable, Sendable {
-        enum Stage: String, Codable, Hashable, Sendable {
-            /// The speech model is being fetched (first recording in a language).
-            case preparing
-            /// Recording: the clock runs from `startedAt`, `words` are the last words heard.
-            case listening
-            /// Stopped; the on-device model is writing the title, summary and tasks.
-            case writing
-            /// In the Inbox: `title` and `tasksFound` say what was saved.
-            case saved
-            /// Nothing was heard, or something went wrong: `words` says what.
-            case nothing
-        }
-
-        var stage: Stage
-        var words: String
-        var title: String
-        /// Saved: the tasks filed. Listening (build 349): the tasks he marked by saying "task".
-        var tasksFound: Int
-        /// How long it ran, once stopped ("0:42").
-        var length: String
-        /// Build 349: the thought is meant for today's daily note, not the Inbox.
-        var intoToday = false
-        /// Round 350: recording is paused. The clock stands still and shows `length`.
-        var paused = false
-        /// Round 350: seconds spent paused so far; the running clock counts from
-        /// `startedAt` plus this.
-        var pausedSeconds: Double = 0
-        /// Round 350: how many moments he marked with **Mark**.
-        var marks = 0
-        /// Build 363: up to three key points of what was said so far (`VoiceLiveSummary`).
-        /// They stay through Pause and the write-up; the saved card shows them when the
-        /// summary came late.
-        var points: [String] = []
-        /// Build 363: the summary, on the saved card.
-        var summary = ""
-
-        static func listening(_ words: String, intoToday: Bool = false, heard: Int = 0,
-                              length: String = "", paused: Bool = false, pausedSeconds: Double = 0,
-                              marks: Int = 0, points: [String] = []) -> Self {
-            Self(stage: .listening, words: words, title: "", tasksFound: heard, length: length,
-                 intoToday: intoToday, paused: paused, pausedSeconds: pausedSeconds, marks: marks,
-                 points: points)
-        }
-    }
+    /// Build 365: the state is `VoiceCardState`, which the Mac's card shows too.
+    typealias ContentState = VoiceCardState
 
     /// When recording began: the Lock Screen's clock counts from here by itself.
     var startedAt: Date

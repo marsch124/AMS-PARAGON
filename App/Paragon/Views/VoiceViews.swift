@@ -148,10 +148,8 @@ struct VoiceNotesView: View {
     private func actions(for row: VoiceNoteRow) -> some View {
         Button("Read aloud") { model.readVoiceNoteAloud(path: row.path) }
             .accessibilityIdentifier("voice.readAloud")
-        #if os(iOS)
         Button("Write it up again") { model.writeVoiceNoteAgain(path: row.path) }
             .accessibilityIdentifier("voice.writeAgain")
-        #endif
         if let entry = VoiceHistoryStore.entry(path: row.path), entry.path == VoiceHistoryStore.load().first?.path {
             Button("Throw it away", role: .destructive) { throwing = entry }
         }

@@ -186,20 +186,23 @@ extension AppModel {
     }
 }
 
-#if os(iOS)
 extension AppModel {
     /// **Write it up again** on a voice note: Apple's on-device model reads what was said once
     /// more and writes a new title, summary and tasks. Tasks the note does not list yet are
     /// added; nothing is taken out.
     func writeVoiceNoteAgain(path: String) {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             Task { await self.writeUpAgain(path: path) }
         } else {
+            #if os(iOS)
             flash("Writing it up again needs iOS 26 or newer.")
+            #else
+            flash("Writing it up again needs macOS 26 or newer.")
+            #endif
         }
     }
 
-    @available(iOS 26.0, *)
+    @available(iOS 26.0, macOS 26.0, *)
     private func writeUpAgain(path: String) async {
         guard let note = self.note(at: path), let said = VoiceNoteText.fullText(of: note.text) else {
             flash("This note has no full text to write up.")
@@ -234,4 +237,3 @@ extension AppModel {
         }
     }
 }
-#endif

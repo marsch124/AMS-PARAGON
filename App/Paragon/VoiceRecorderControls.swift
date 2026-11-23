@@ -1,11 +1,10 @@
 import Foundation
 import ParagonCore
-#if os(iOS)
 
 // Round 350 (voice-controls): what the recorder does once a thought is filed — it is kept in
 // the list of the newest thoughts (so it can be checked, or thrown away), and read aloud when
 // Settings › Voice says so.
-@available(iOS 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 extension VoiceRecorder {
     func afterFiling(path: String, title: String, thought: VoiceThought, day: DateOnly, locale: String) {
         let model = AppModel.shared
@@ -24,4 +23,3 @@ extension VoiceRecorder {
         }
     }
 }
-#endif

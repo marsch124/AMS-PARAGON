@@ -71,13 +71,13 @@ final class CaptureDictation: ObservableObject {
         newRequest.shouldReportPartialResults = true
         newRequest.requiresOnDeviceRecognition = true
 
-        #if os(iOS)
         // Review of build 350: while a thought is being recorded the microphone is his
-        // recording's; dictation would take the audio session away from it.
-        if #available(iOS 26.0, *), VoiceRecorder.shared.isRecording {
+        // recording's; dictation would take the audio session away from it. Build 365: the Mac too.
+        if #available(iOS 26.0, macOS 26.0, *), VoiceRecorder.shared.isRecording {
             problem = "A thought is being recorded. Stop it first."
             return
         }
+        #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.record, mode: .measurement, options: [.duckOthers])
