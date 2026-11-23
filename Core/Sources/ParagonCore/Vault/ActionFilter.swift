@@ -104,6 +104,18 @@ public struct ActionFilter: Equatable, Sendable {
         return who.lowercased() == me.lowercased()
     }
 
+    /// Build 365 (his ask): the number shown on the **Mine** box. The open actions that would be
+    /// on the page if Mine were ticked, with every other box of this filter as it is now: it is
+    /// exactly what he sees after ticking it (and, when it is already ticked, the number of
+    /// actions listed; `extra` is the page's search words). Zero when nothing is his, and zero when there is no name to go by.
+    public func mineCount(among refs: [TaskRef], me: String, today: DateOnly,
+                          matching extra: (TaskRef) -> Bool = { _ in true }) -> Int {
+        guard let name = mine ?? SharedTasks.cleanName(me) else { return 0 }
+        var ticked = self
+        ticked.mine = name
+        return ticked.apply(to: refs, today: today).filter(extra).count
+    }
+
     public func matches(_ ref: TaskRef, today: DateOnly) -> Bool {
         if let me = mine, !Self.isMine(ref.task, me: me) { return false }
         if !whens.isEmpty, !whens.contains(where: { $0.matches(ref.task, today: today) }) { return false }
