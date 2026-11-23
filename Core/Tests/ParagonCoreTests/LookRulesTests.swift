@@ -124,4 +124,31 @@ final class LookRulesTests: XCTestCase {
         let end = rest.range(of: "\nstruct ")?.lowerBound ?? rest.endIndex
         XCTAssertFalse(rest[..<end].contains("dash:"), message)
     }
+
+    /// Build 365: orange means one thing, "needs a look". The plan blocks and the focus timer
+    /// (`PlanTint`) are copper, the morning (`MorningTint`) is coral; neither is the warning
+    /// orange (`Theme.attention`), by day or by night.
+    func testPlanAndMorningColoursAreNotTheWarningOrange() throws {
+        let sets = appFolder.appendingPathComponent("Paragon/Assets.xcassets", isDirectory: true)
+        func hexes(_ name: String) throws -> (day: String, night: String) {
+            let url = sets.appendingPathComponent("\(name).colorset/Contents.json")
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+            var day = "", night = ""
+            for entry in try XCTUnwrap(json["colors"] as? [[String: Any]]) {
+                let c = try XCTUnwrap((entry["color"] as? [String: Any])?["components"] as? [String: String])
+                let text = ["red", "green", "blue"].map { String(c[$0]!.dropFirst(2)) }.joined().uppercased()
+                if entry["appearances"] != nil { night = text } else { day = text }
+            }
+            return (day, night)
+        }
+        let look = try String(contentsOf: appFolder.appendingPathComponent("Paragon/Views/Look.swift"), encoding: .utf8)
+        XCTAssertTrue(look.contains("static let attention = Color(day: 0xD4640A, night: 0xFFA23A)"),
+                      "The warning orange changed; update this test and the guide")
+        let plan = try hexes("PlanTint"), morning = try hexes("MorningTint")
+        XCTAssertEqual(plan.day, "8E4B2A"); XCTAssertEqual(plan.night, "E0946A")
+        XCTAssertEqual(morning.day, "C8553D"); XCTAssertEqual(morning.night, "F08A74")
+        for colour in [plan, morning] {
+            XCTAssertNotEqual(colour.day, "D4640A"); XCTAssertNotEqual(colour.night, "FFA23A")
+        }
+    }
 }

@@ -18,7 +18,8 @@ enum Theme {
     static let editorFont: Font = .system(.body, design: .default)
     static let editorLineSpacing: CGFloat = 3
 
-    /// The planner's own blocks: orange, at his request in build 152. They used to borrow the
+    /// The planner's own blocks and the focus timer: copper brown (build 365; orange now only
+    /// means "needs a look"). Day #8E4B2A, night #E0946A. Planner blocks first came in build 152. They used to borrow the
     /// review's teal, which put them in the same family as the Calendar column beside them —
     /// the whole point of the two lanes is that they are different things. One place, so the
     /// lane, the card, the "make a block" buttons and the sheet cannot drift apart.
@@ -37,8 +38,8 @@ enum Theme {
     /// day is not one of those things, so it may not wear one of their colours.
     static let nowTint = Color("NowTint")
 
-    /// **Start the day** and **Close the day**, his colours (build 241): a clear orange for
-    /// the morning and a dark lilac for the evening. The button on Today and the screen it
+    /// **Start the day** and **Close the day**, his colours (build 241): a morning coral
+    /// (build 365, day #C8553D, night #F08A74; it was orange) for the morning and a dark lilac for the evening. The button on Today and the screen it
     /// opens use the same one, so the two cannot drift (build 168). The lilac is redder and
     /// darker than the Calendar's violet, so the evening button does not read as a calendar
     /// thing.
