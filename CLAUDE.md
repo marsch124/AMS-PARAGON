@@ -5695,3 +5695,26 @@ refused, `perform` returned → abort.
 - Voice footer now: "...of what you have said so far; when the summary comes late, they stand in the note until it arrives. It needs Apple Intelligence." No new setting, mark or colour.
 - Test: `Core/Tests/ParagonCoreTests/VoiceLiveSummaryTests.swift`, `testKeyPointsStandInTheNoteUntilTheSummaryArrives`.
 - Not tried: a real iPhone; the late path with the phone really locked.
+
+## Build 365 (23 November 2026)
+
+### Orange means one thing
+
+- Before: orange was four things (needs a look, plan blocks, the focus timer, the morning). Now: orange = needs a look only.
+- `App/Paragon/Assets.xcassets/PlanTint.colorset`: day #C05E0C to #8E4B2A, night #F2A45C to #E0946A (copper). `App/ParagonWidgets/Assets.xcassets/PlanTint.colorset`: the same copy and values (a test keeps the two equal).
+- `MorningTint.colorset`: day #D4640A to #C8553D, night #FFA23A to #F08A74 (coral). `Views/Theme.swift`: two comments only.
+- Test: `Core/Tests/ParagonCoreTests/LookRulesTests.swift`, `testPlanAndMorningColoursAreNotTheWarningOrange`.
+- Follows by itself: the focus timer (in-app bar, Today Now line, Mac menu bar item via `FocusMenuBar` reading PlanTint, Lock Screen and Dynamic Island via `PlanLook.plan` = PlanTint), plan blocks, planner capsules, Today's plan widget (PlanTint); the Start button and Start the day screen (MorningTint). Shades are computed from the colour sets in `Look.swift`.
+- Left orange on purpose: `Theme.attention` (#D4640A / #FFA23A, `Look.swift`), every `Color.orange` in Review, Goals flags, Done waiting day, notice boxes, OwnFolderViews, SyncReport, EmptyStateView (its `tint == .orange` test untouched), the widgets' unused `WidgetLook.attention`.
+- Measured: copper day 6.6 to 1 with white words, night 8.6 to 1 with dark words; coral day 4.4 to 1 (the app's rule deepens small words), night 8.6 to 1.
+- Not seen on a screen (no simulator). Item 21 of build 352 is done by this build.
+
+### Count on Mine
+
+- Before: the box on All actions, row WHO, said "Mine". Now "Mine 12", identifier still `actions.box.who.mine`; spoken "Mine, 12 tasks, ticked" / "not ticked" ("Mine, 1 task" for one); zero reads "Mine 0"; the filter summary line still says "Mine".
+- Core `ActionFilter.mineCount(among:me:today:matching:)`: the open actions that would be listed if Mine were ticked, with every other box and the search words as now; the same ticked or not, equal to the rows shown; no name set gives 0 (the row is hidden then). `FilterBox` got an optional `spoken` text; the title is built in `AllActionsView`.
+- 🪤 The header's "Actions 12" ignores the search words but Mine counts them, so they can differ while he searches on the iPhone. No screen test matches the Mine box (none exists).
+
+### Record a Thought on the Mac
+
+CODE-NOTES: (the main session fills this in)

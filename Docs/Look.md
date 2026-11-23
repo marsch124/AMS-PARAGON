@@ -69,8 +69,8 @@ Every part has one colour. It is the same everywhere the part shows: the icon in
 | Inbox, Snippets, Quick capture | leaf green | #5E7D12 (before build 310 amber #B0631A) | #B4D25A (before #E8A053) |
 | Calendar, Today, Plan, daily and weekly notes | purple | #6B4EA8 | #A98FE0 |
 | Weekly review, Done | teal | #1E7F84 | #5FC2C7 |
-| Blocks in Plan | orange | #C05E0C | #F2A45C |
-| Start (picking on Today) | orange | #D4640A (before #E06C00) | #FFA23A |
+| Blocks in Plan and the focus timer | copper brown (since build 365; before orange #C05E0C / #F2A45C) | #8E4B2A | #E0946A |
+| Start (picking on Today), the Start the day colours | morning coral (since build 365; before orange #D4640A / #FFA23A) | #C8553D | #F08A74 |
 | Close the day | dark lilac | #6E3A86 | #C79AE0 |
 | The now-line | slate blue | #4B7F9E | #8FC0DC |
 | Look at this (`Theme.attention`) | orange | #D4640A | #FFA23A |

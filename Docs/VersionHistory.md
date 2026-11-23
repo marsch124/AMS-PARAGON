@@ -1,6 +1,41 @@
 # Version history
 
-The version is shown as 1.0 (364) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (365) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 365 · 23 November 2026
+
+**Orange means one thing, a number on Mine, and recording a thought on the Mac.** (The colours and the Mine number are on the iPhone, the iPad and the Mac. Recording is new on the Mac.)
+
+### New
+
+- **Record a thought on the Mac.** Before (up to build 364), **Record a Thought** worked on the iPhone and the iPad only, and the Mac only showed the notes. Now the Mac records too, with macOS 26 or newer. There are 3 ways to start:
+  - **File** menu › **Record a Thought**, keys Option-Command-R. While it records, the same item reads **Stop Recording**.
+  - **File** menu › **Record into Today's Note**.
+  - The button **Record a thought** in PARAGON's menu bar window (the quick capture window behind the mark in the menu bar).
+- **A card while it records.** A small dark card floats at the top right of the screen, above every window. It shows a red dot, "Listening · Inbox" (or "Listening · Today's note"), the running time, the last words heard, up to 3 key points (when **Key points while you speak** is on), "1 task heard · 1 marked" when there are any, and 4 buttons with words: **Mark**, **Pause** (then **Go on**), **Stop to Today** (it reads **Stop to Inbox** when the recording was started for today's note) and the red **Stop**. You can drag the card to another place.
+- **A card after Stop.** It says "Writing it up…", then "Saved to Inbox" (or "Saved to today's note") with the title, how many tasks were found and the summary, and 2 buttons: **Open** (opens the new note in PARAGON) and **Close**. The saved card stays 5 minutes, then goes by itself. When nothing was heard it says "Nothing saved" and goes after 30 seconds.
+- **What is made is exactly what the iPhone makes:** a note in **Resources** with the tag voice (**Summary**, **Tasks**, **Full text**), the tasks, and one line in the Inbox, or in today's note. Saying "task", "idea", "title", "tag …" and "stop recording" works the same. **Check after filing** and **Read the summary aloud** work the same. A recording stops by itself after the same longest time as on the iPhone (30 minutes).
+- **Settings › Voice on the Mac.** Before, there was no Voice part in the Mac's Settings. Now it has **Voice language** (Mac's language, English, Deutsch, Svenska), **Key points while you speak**, **Check after filing**, **Read the summary aloud**, the lines **Microphone** and **Speech model** (a green tick when ready, the "!" badge when something is missing), the button **Get ready** (asks for the microphone once and fetches Apple's speech model) and **Copy what the last recordings did**.
+- **Write it up again on the Mac.** On the **Voice notes** page, **Write it up again** was on the iPhone and the iPad only. Now the Mac has it too.
+- **Who does the work.** The words are written on the Mac itself by Apple's speech-to-text. The title, summary, tasks and key points need Apple Intelligence. Without it the words are still filed, with the first words as the title.
+- **Still iPhone only:** the list **Words it mishears**, **Summary in English**, the Action Button, Siri and Shortcuts actions, the Control Center buttons and the Lock Screen card.
+- **A number on Mine.** In **All actions**, the row **WHO** had one box, **Mine**, with no number. Now it reads **Mine 12**: the number of open actions that are yours, with the other boxes and the search words as they are. It is the number of rows you see once the box is ticked, and the same whether the box is ticked or not. **Mine 0** means none are yours right now. VoiceOver says "Mine, 12 tasks, ticked" (or "not ticked"; "Mine, 1 task" for one). The line under the boxes still says **Mine**. The other boxes are unchanged.
+
+### Changed
+
+- **Orange means one thing.** Before, orange meant 4 things: needs a look, plan time blocks, the focus timer and the morning. Now orange means only "needs a look".
+  - **Plan blocks and the focus timer are copper brown.** By day #8E4B2A (before #C05E0C), at night #E0946A (before #F2A45C). This moves the plan blocks and their capsules in **Plan**, the **Today's plan** widget, the focus bar, the **Now** line on **Today**, the timer mark in the Mac's menu bar, and the Lock Screen card and Dynamic Island of the timer. White words on it by day read 6.6 to 1; dark words at night 8.6 to 1. The strength of the plan block (22 % fill, coloured words and edge) is as before.
+  - **The morning is morning coral.** By day #C8553D (before #D4640A), at night #F08A74 (before #FFA23A). This moves the **Start** button on **Today** and the Start the day colours. White words by day read 4.4 to 1, as with the old orange (small words are made deeper by the app's own rule); dark words at night 8.6 to 1.
+  - **Warnings stay orange** (#D4640A by day for the shape, #B35300 for warning words, #FFA23A at night): **Review**, goal flags, the **Done** waiting day, the notice boxes, sync problems and the iCloud lines.
+- **Docs:** **How it works**, the guide, the words list and the look list name the new colours and the new Mac recording.
+- **Signs in this app** now says: orange = needs a look only; copper brown = plan blocks and the focus timer; morning coral = the morning; a red dot on the Mac's recording card = recording now (the same as on the iPhone's Lock Screen card).
+- **The header's "Actions 12"** is unchanged. It does not count the search words; **Mine 12** does, so while you search the two numbers can differ.
+
+### Fixed
+
+- Nothing in this build.
+
+Not seen: the new colours were not seen on a screen (no simulator). One small test checks that the plan and morning colours are not the warning orange. The number on Mine has a small data test; no screen test finds the box. NOT-TRIED: (the main session fills this in)
 
 ## Build 364 · 23 November 2026
 
