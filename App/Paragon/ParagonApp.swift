@@ -46,6 +46,10 @@ struct ParagonApp: App {
                     .disabled(model.vault == nil)
                 Button("Quick Capture…") { model.activeSheet = .quickCapture }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
+                #if os(macOS)
+                // Build 365: Record a Thought on the Mac (⌥⌘R), and into today's note.
+                RecordThoughtCommands()
+                #endif
                 // Round 9 (build 316): no dots; it opens no dialog.
                 Button("Search Everywhere") { model.section = .search }
                     .keyboardShortcut("f", modifiers: [.command, .shift])
@@ -161,9 +165,14 @@ struct ParagonApp: App {
         }
         .defaultSize(width: 1200, height: 800)
         MenuBarExtra(isInserted: $showMenuBarItem) {
-            QuickCaptureView(compact: true)
-                .environmentObject(model)
-                .modifier(HandsInMainWindowOpener(model: model))
+            VStack(spacing: 0) {
+                QuickCaptureView(compact: true)
+                Divider()
+                // Build 365: Record a Thought from the menu bar window.
+                MacRecordRow()
+            }
+            .environmentObject(model)
+            .modifier(HandsInMainWindowOpener(model: model))
         } label: {
             // 1.0: the hand-drawn capture tray, as a template image the menu bar can draw.
             Image(nsImage: Marks.nsImage("tray.and.arrow.down"))

@@ -379,6 +379,11 @@ struct SettingsView: View {
             VoiceSection()
             // Round 350: the health line in the daily note (off until switched on).
             HealthLineSection()
+            #else
+            // Build 365: Record a Thought on the Mac has its own Voice part.
+            if #available(macOS 26.0, *) {
+                MacVoiceSection()
+            }
             #endif
             SystemSearchSection()
 
@@ -1357,8 +1362,11 @@ struct VoiceReadyRows: View {
     }
 }
 
+#endif
+
 /// Build 354: one line of Settings › Voice — a green tick when it is fine, the "!" badge of the
 /// Safety section when it needs a look, nothing while it is still being checked.
+/// Build 365: on the Mac too (`MacVoiceSection`).
 struct VoiceReadyLine: View {
     let title: String
     let value: String
@@ -1392,6 +1400,7 @@ struct VoiceReadyLine: View {
     }
 }
 
+#if os(iOS)
 /// Build 354: the steps of the last presses of **Record a Thought** (`VoiceLog`), newest last.
 /// A press from the Action Button happens with PARAGON out of sight; this shows where it stopped.
 struct VoiceLogPage: View {

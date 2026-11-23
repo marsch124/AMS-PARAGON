@@ -54,13 +54,13 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>PARAGON uses your location only to find places for reminders and, if you switch it on, to add the place name to things you capture.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>PARAGON listens while you record a thought and writes down what you say. Everything stays on the phone.</string>
+	<string>PARAGON listens while you record a thought and writes down what you say. Everything stays on this device.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>PARAGON mirrors the tasks in your PARA notes to Apple Reminders and back.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>PARAGON turns a recorded thought into text on the phone.</string>
+	<string>PARAGON turns a recorded thought into text on this device.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSUbiquitousContainers</key>

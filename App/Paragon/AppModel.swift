@@ -473,12 +473,18 @@ final class AppModel: ObservableObject {
                    let goal = note(at: TestVault.whatNextGoalPath) {
                     whatNext = WhatNextQuestion(goal: goal, projectWasDone: true)
                 }
-                #if os(iOS)
                 // Build 348: the recording's Lock Screen card and its filing, for pictures,
-                // with sample words instead of the microphone.
-                if ProcessInfo.processInfo.arguments.contains("-paragon-voice-demo"), #available(iOS 26.0, *) {
+                // with sample words instead of the microphone. Build 365: the Mac's card too.
+                #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("-paragon-voice-demo"), #available(iOS 26.0, macOS 26.0, *) {
                     Task { @MainActor in await VoiceRecorder.shared.demo() }
                 }
+                #if os(macOS)
+                // Build 365: the Mac's recording card drawn into pictures (`-paragonVoiceCardPictures <folder>`).
+                if let folder = UserDefaults.standard.string(forKey: "paragonVoiceCardPictures"), !folder.isEmpty {
+                    VoiceCardCenter.writePictures(to: folder)
+                }
+                #endif
                 #endif
             } else {
                 vaultProblem = "The test notes folder could not be made."

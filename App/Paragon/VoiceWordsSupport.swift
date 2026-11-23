@@ -1,4 +1,3 @@
-#if os(iOS)
 import Foundation
 import FoundationModels
 import ParagonCore
@@ -8,14 +7,14 @@ import ParagonCore
 /// headings of a long thought. The rules are in Core (`VoiceWords`, `VoiceChapters`).
 
 /// One small heading for a part of a long thought.
-@available(iOS 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 @Generable
 struct VoiceChapterHeading {
     @Guide(description: "A heading of two to five words for this part of a spoken note.")
     var heading: String
 }
 
-@available(iOS 26.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 extension VoiceRecorder {
     /// Settings › Voice › Words it mishears (JSON in one setting).
     static let wordsKey = "voiceWords"
@@ -86,4 +85,3 @@ extension AppModel {
         return out
     }
 }
-#endif

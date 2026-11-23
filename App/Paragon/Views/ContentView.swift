@@ -251,11 +251,12 @@ struct ContentView: View {
                     model.syncFocusActivity()
                     // Round 350: today's steps and workouts, when the switch in Settings is on.
                     model.updateHealthLine()
-                    #if os(iOS)
                     // Build 348: summaries of recorded thoughts that did not finish while locked.
-                    if #available(iOS 26.0, *) {
+                    // Build 365: on the Mac too.
+                    if #available(iOS 26.0, macOS 26.0, *) {
                         Task { await VoiceRecorder.shared.finishLateSummaries() }
                     }
+                    #if os(iOS)
                     // Round 350: a recorded thought waits for its check.
                     model.presentVoiceCheckIfWaiting()
                     #endif
