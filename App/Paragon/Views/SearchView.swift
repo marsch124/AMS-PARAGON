@@ -479,6 +479,8 @@ struct FilterBox: View {
     /// Build 301 (his ask, All actions): a smaller, calmer chip on every device — off is a
     /// soft grey fill, ticked is filled in the row's colour with white words and a small tick.
     var chip: Bool = false
+    /// Build 365: plain words for VoiceOver when the title carries a number ("Mine, 12 tasks").
+    var spoken: String? = nil
     let action: () -> Void
 
     var body: some View {
@@ -508,7 +510,7 @@ struct FilterBox: View {
             .animation(Motion.press, value: isOn)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isOn ? "\(title), ticked" : "\(title), not ticked")
+        .accessibilityLabel(isOn ? "\(spoken ?? title), ticked" : "\(spoken ?? title), not ticked")
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
         .accessibilityIdentifier(token.map { "search.box.\($0)" } ?? "")
     }

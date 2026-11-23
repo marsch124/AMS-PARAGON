@@ -140,4 +140,18 @@ final class ActionFilterTests: XCTestCase {
         XCTAssertEqual(filter.summary, "Mine")
         XCTAssertEqual(ActionFilter().apply(to: [mineNamed, hers, unnamed], today: today).count, 3)
     }
+
+    func testMineCountIsWhatTheBoxWouldShowWithTheOtherBoxesAsTheyAre() {
+        var mineNamed = ref("Dig the bed"); mineNamed.task.who = "martin"
+        var hers = ref("Buy seeds"); hers.task.who = "Anna"
+        let unnamed = ref("Water the plants")
+        let all = [mineNamed, hers, unnamed]
+        XCTAssertEqual(ActionFilter().mineCount(among: all, me: "Martin", today: today), 2)
+        // Ticked or not, the number is the same, and it equals the rows shown.
+        let ticked = ActionFilter(mine: "Martin")
+        XCTAssertEqual(ticked.mineCount(among: all, me: "Martin", today: today), ticked.apply(to: all, today: today).count)
+        // Another box narrows it.
+        XCTAssertEqual(ActionFilter(tags: ["nothing"]).mineCount(among: all, me: "Martin", today: today), 0)
+        XCTAssertEqual(ActionFilter().mineCount(among: all, me: "  ", today: today), 0)
+    }
 }

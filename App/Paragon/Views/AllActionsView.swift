@@ -276,8 +276,15 @@ struct AllActionsView: View {
             // A ticked box always stays, so it can be unticked (build 175's rule).
             let me = model.config.myName
             if SharedTasks.cleanName(me) != nil || model.actionFilter.mine != nil {
+                // Build 365: the box carries its number, right beside the word, like "Actions 12":
+                // the open actions that would be listed with Mine ticked (other boxes and the
+                // search words as they are now). 0 reads "Mine 0".
+                let query = phoneQuery.trimmingCharacters(in: .whitespaces)
+                let mineRefs = model.actionFilter.mineCount(among: all, me: me, today: .today(),
+                                                           matching: { $0.task.title.matchesListSearch(query) })
                 row("Who", choices: [
-                    Choice(id: "who.mine", title: "Mine", isOn: model.actionFilter.mine != nil) {
+                    Choice(id: "who.mine", title: "Mine \(mineRefs)", isOn: model.actionFilter.mine != nil,
+                           spoken: "Mine, \(mineRefs) \(mineRefs == 1 ? "task" : "tasks")") {
                         model.actionFilter.mine = model.actionFilter.mine == nil ? SharedTasks.cleanName(me) : nil
                     }
                 ])
@@ -301,7 +308,7 @@ struct AllActionsView: View {
                 .foregroundStyle(.soft)
             WrappingHStack(spacing: 5, lineSpacing: 5) {
                 ForEach(choices) { choice in
-                    FilterBox(title: choice.title, isOn: choice.isOn, tint: tint, chip: true, action: choice.action)
+                    FilterBox(title: choice.title, isOn: choice.isOn, tint: tint, chip: true, spoken: choice.spoken, action: choice.action)
                         .accessibilityIdentifier("actions.box.\(choice.id)")
                 }
             }
@@ -315,6 +322,7 @@ struct AllActionsView: View {
         let id: String
         let title: String
         let isOn: Bool
+        var spoken: String? = nil
         let action: () -> Void
     }
 
