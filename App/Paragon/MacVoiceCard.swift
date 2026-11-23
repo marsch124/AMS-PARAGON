@@ -257,23 +257,23 @@ struct MacVoiceCardView: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 dot(stage, state: state)
                 Text(VoiceCardWords.heading(stage, paused: state.paused, intoToday: state.intoToday))
-                    .font(.subheadline.weight(.semibold))
+                    .font(Txt.listTitle)
                     .foregroundStyle(listening ? Self.red : Color.white)
                     .lineLimit(1)
                     .accessibilityIdentifier("voiceCard.heading")
                 clock(state, listening: listening)
-                    .font(.subheadline.weight(.semibold).monospacedDigit())
+                    .font(Txt.listTitle.monospacedDigit())
                     .opacity(0.8)
                 Spacer(minLength: 4)
             }
             if stage == .saved {
                 Text(VoiceCardWords.savedLine(title: state.title, tasks: state.tasksFound))
-                    .font(.subheadline.weight(.semibold))
+                    .font(Txt.listTitle)
                     .lineLimit(2)
                     .accessibilityIdentifier("voiceCard.saved")
                 if !state.summary.isEmpty {
                     Text(state.summary)
-                        .font(.footnote)
+                        .font(Txt.label)
                         .foregroundStyle(.white.opacity(0.85))
                         .lineLimit(6)
                         .fixedSize(horizontal: false, vertical: true)
@@ -299,7 +299,7 @@ struct MacVoiceCardView: View {
                         .truncationMode(.head)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .font(.footnote)
+                .font(Txt.label)
                 .foregroundStyle(.white.opacity(points.isEmpty ? 1 : 0.75))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityIdentifier("voiceCard.words")
@@ -353,7 +353,7 @@ struct MacVoiceCardView: View {
                 }
             }
         }
-        .font(.footnote)
+        .font(Txt.label)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Key points so far: " + points.joined(separator: "; "))
@@ -399,7 +399,7 @@ private struct CardButton: View {
             HStack(spacing: 5) {
                 if let mark { MarkImage(mark, size: 10) }
                 Text(title)
-                    .font(.footnote.weight(.semibold))
+                    .font(Txt.button)
                     .lineLimit(1)
                     .fixedSize()
             }
@@ -448,7 +448,7 @@ struct MacRecordRow: View {
             .help("Speak, and PARAGON writes it down: a note with a summary, and the tasks in the Inbox")
             Spacer(minLength: 0)
             Text("\u{2325}\u{2318}R")
-                .font(.footnote)
+                .font(Txt.label)
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
         }
