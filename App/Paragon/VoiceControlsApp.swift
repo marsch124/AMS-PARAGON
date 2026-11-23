@@ -12,6 +12,9 @@ enum VoiceSettings {
     static let checkKey = "voiceCheckFirst"
     static let readKey = "voiceReadAloud"
     static let languageKey = "voiceLanguage"
+    /// Build 363: **Key points while you speak**: on unless he turned it off
+    /// (read by `VoiceRecorder.wantsKeyPoints`).
+    static let keyPointsKey = "voiceKeyPoints"
 
     /// **Check after filing**: on unless he turned it off.
     static var checksFirst: Bool {

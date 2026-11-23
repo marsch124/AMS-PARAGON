@@ -106,6 +106,20 @@ final class VoiceRecorder {
     private var pausedTotal: TimeInterval = 0
     /// Where each **Mark** came: the length of the cleaned transcript at that moment.
     private var markOffsets: [Int] = []
+    // Build 363: key points while he speaks (`VoiceLiveSummary`), shown on the Lock Screen card.
+    /// The points on the card now. They stay until newer ones come, and through the write-up.
+    private var livePoints: [String] = []
+    /// The one ask that is out, if any.
+    private var keyPointsTask: Task<Void, Never>?
+    /// Counts the asks, so an answer that comes after its ask was dropped is not used.
+    private var keyPointsRound = 0
+    private var keyPointsAskedAt: Date?
+    private var keyPointsAskedAtWords: Int?
+    /// Asks in a row without an answer.
+    private var keyPointsFailures = 0
+    /// This recording asks no more: the switch is off, or the phone has no Apple Intelligence.
+    private var keyPointsOff = false
+    private var keyPointsFailureLogged = false
 
     var transcript: String {
         [finished, volatile].joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -134,6 +148,7 @@ final class VoiceRecorder {
         markOffsets = []
         finished = ""
         volatile = ""
+        resetKeyPoints()
         isRecording = true
 
         // Build 360: the Lock Screen card first, the microphone only once the card is there, the
@@ -303,6 +318,7 @@ final class VoiceRecorder {
                         self.volatile = text
                     }
                     self.showWords()
+                    self.considerKeyPoints()
                 }
             } catch {}
         }
@@ -367,6 +383,11 @@ final class VoiceRecorder {
         }
         limit?.cancel()
         limit = nil
+        // Build 363: an ask for key points that is still out is dropped, so the write-up below
+        // is not kept waiting behind it. The points already on the card stay.
+        keyPointsTask?.cancel()
+        keyPointsTask = nil
+        let points = livePoints
         // Round 350: the time spent paused is not part of the length.
         let duration = elapsed
         isPaused = false
@@ -387,7 +408,8 @@ final class VoiceRecorder {
                                endAfter: 60)
             return .nothingHeard
         }
-        await showActivity(.init(stage: .writing, words: VoiceThought.liveTail(thought.transcript), title: "", tasksFound: 0, length: length, intoToday: intoToday))
+        await showActivity(.init(stage: .writing, words: VoiceThought.liveTail(thought.transcript), title: "", tasksFound: 0, length: length, intoToday: intoToday,
+                                 points: points))
 
         // The words are never kept waiting for the model: after 20 seconds (the phone may be
         // locked, and iOS slows the model down then) they are filed with the first words as
@@ -424,12 +446,19 @@ final class VoiceRecorder {
             }
             let tasks = thought.finalTasks.count
             afterFiling(path: filed.path, title: title, thought: thought, day: day, locale: locale.identifier)
-            await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length, intoToday: intoToday), endAfter: 180)
+            // Build 363: the saved card shows the summary (the last key points when it came
+            // late) and stays for as long as iOS lets it, not three minutes ("make sure that the
+            // live summary doesn't close").
+            await showActivity(.init(stage: .saved, words: "", title: title, tasksFound: tasks, length: length, intoToday: intoToday,
+                                     points: points, summary: VoiceLiveSummary.cardSummary(thought.summary)),
+                               endAfter: VoiceLiveSummary.cardStays)
             return .saved(title: title, tasks: tasks)
         }
         // No vault now: the words wait in the outbox, as one note line in the Inbox (or today's note).
         model.capture(text: "Voice note (\(length)): " + VoiceThought.clean(thought.transcript), target: place, asTask: false)
-        await showActivity(.init(stage: .saved, words: "", title: thought.finalTitle, tasksFound: 0, length: length, intoToday: intoToday), endAfter: 180)
+        await showActivity(.init(stage: .saved, words: "", title: thought.finalTitle, tasksFound: 0, length: length, intoToday: intoToday,
+                                 points: points, summary: VoiceLiveSummary.cardSummary(thought.summary)),
+                           endAfter: VoiceLiveSummary.cardStays)
         return .kept
     }
 
@@ -516,7 +545,122 @@ final class VoiceRecorder {
     private func listeningState(_ words: String) -> VoiceActivityAttributes.ContentState {
         .listening(words, intoToday: intoToday, heard: VoiceThought.spokenTasks(in: transcript).count,
                    length: isPaused ? VoiceThought.clock(elapsed) : "", paused: isPaused,
-                   pausedSeconds: pausedTotal, marks: markOffsets.count)
+                   pausedSeconds: pausedTotal, marks: markOffsets.count, points: livePoints)
+    }
+
+    // MARK: Key points while he speaks (build 363)
+
+    private func resetKeyPoints() {
+        keyPointsTask?.cancel()
+        keyPointsTask = nil
+        livePoints = []
+        keyPointsAskedAt = nil
+        keyPointsAskedAtWords = nil
+        keyPointsFailures = 0
+        keyPointsOff = false
+        keyPointsFailureLogged = false
+    }
+
+    /// Settings › Voice › Key points while you speak. On until he turns it off.
+    static func wantsKeyPoints() -> Bool {
+        UserDefaults.standard.object(forKey: VoiceSettings.keyPointsKey) as? Bool ?? true
+    }
+
+    /// Called with every new word: asks Apple's on-device model for the key points when
+    /// `VoiceLiveSummary.isDue` says so. One ask at a time. The card never waits for it and
+    /// never depends on it: iOS slows the model down, or refuses it, while PARAGON is in the
+    /// background or the phone is locked, and then the card shows the words as before.
+    private func considerKeyPoints() {
+        guard isRecording, !isPaused, !keyPointsOff else { return }
+        if keyPointsTask != nil, let asked = keyPointsAskedAt,
+           Date().timeIntervalSince(asked) > VoiceLiveSummary.tooLong {
+            keyPointsTask?.cancel()
+            keyPointsTask = nil
+            noteKeyPointsFailure("no answer after \(Int(VoiceLiveSummary.tooLong)) seconds")
+        }
+        let said = transcript
+        let words = VoiceLiveSummary.wordCount(said)
+        guard VoiceLiveSummary.isDue(words: words, askedAtWords: keyPointsAskedAtWords,
+                                     sinceAsk: keyPointsAskedAt.map { Date().timeIntervalSince($0) },
+                                     busy: keyPointsTask != nil, failures: keyPointsFailures) else { return }
+        guard Self.wantsKeyPoints() else {
+            keyPointsOff = true
+            return
+        }
+        let english = Self.wantsEnglish()
+        let model = SystemLanguageModel.default
+        guard model.availability == .available, model.supportsLocale(locale),
+              !english || model.supportsLocale(Locale(identifier: "en-US")) else {
+            keyPointsOff = true
+            VoiceLog.note("Key points: Apple Intelligence is not available, so the card shows your words only.")
+            return
+        }
+        keyPointsAskedAt = Date()
+        keyPointsAskedAtWords = words
+        keyPointsRound += 1
+        let round = keyPointsRound
+        let text = VoiceLiveSummary.textToSumUp(said)
+        keyPointsTask = Task { @MainActor [weak self] in
+            let answer = await Self.askKeyPoints(text, english: english)
+            // An ask that was dropped (too long, or Stop) or overtaken changes nothing.
+            guard let self, self.keyPointsRound == round, !Task.isCancelled else { return }
+            self.keyPointsTask = nil
+            guard self.isRecording else { return }
+            switch answer {
+            case .points(let raw):
+                let points = VoiceLiveSummary.points(raw)
+                guard !points.isEmpty else {
+                    self.noteKeyPointsFailure("it gave no points")
+                    return
+                }
+                self.keyPointsFailures = 0
+                if self.livePoints.isEmpty { VoiceLog.note("Key points: shown after \(words) words.") }
+                self.livePoints = points
+                let tail = VoiceThought.liveTail(self.transcript)
+                await self.showActivity(self.listeningState(tail.isEmpty ? (self.isPaused ? "Paused" : "Listening…") : tail))
+            case .failed(let why):
+                self.noteKeyPointsFailure(why)
+            }
+        }
+    }
+
+    /// The last presses say once per recording why no key points came, and when it gave up.
+    private func noteKeyPointsFailure(_ why: String) {
+        keyPointsFailures += 1
+        if !keyPointsFailureLogged {
+            keyPointsFailureLogged = true
+            VoiceLog.note("Key points: the iPhone did not answer (\(why)).")
+        }
+        if keyPointsFailures == VoiceLiveSummary.mostFailures {
+            VoiceLog.note("Key points: stopped asking after \(VoiceLiveSummary.mostFailures) tries without an answer.")
+        }
+    }
+
+    @Generable
+    struct KeyPoints {
+        @Guide(description: "The main points said so far, the most important first. Each is a headline of three to seven words, not a whole sentence, in the language the note is spoken in.",
+               .maximumCount(3))
+        var points: [String]
+    }
+
+    enum KeyPointsAnswer {
+        case points([String])
+        case failed(String)
+    }
+
+    private static func askKeyPoints(_ text: String, english: Bool) async -> KeyPointsAnswer {
+        let language = english ? "Answer in English, whatever language the note is in." : "Answer in the language of the note."
+        let session = LanguageModelSession(instructions: """
+            You list the main points of a spoken note that is still being recorded. \
+            Write each point as a short headline in your own few words; do not copy whole sentences. \
+            Use only what was said. Never add anything that was not said. \(language)
+            """)
+        do {
+            let answer = try await session.respond(to: "The spoken note so far:\n\(text)", generating: KeyPoints.self)
+            return .points(answer.content.points)
+        } catch {
+            return .failed(error.localizedDescription)
+        }
     }
 
     /// How long it has been recording, without the pauses.
@@ -689,10 +833,20 @@ final class VoiceRecorder {
         isRecording = true
         // `-paragon-voice-today`: the recording meant for today's note (Inbox as second button).
         place = ProcessInfo.processInfo.arguments.contains("-paragon-voice-today") ? .today : .inbox
-        await showActivity(.listening(VoiceThought.liveTail(words), intoToday: intoToday,
-                                      heard: VoiceThought.spokenTasks(in: words).count))
-        try? await Task.sleep(for: .seconds(20))
+        resetKeyPoints()
         finished = words
+        await showActivity(listeningState(VoiceThought.liveTail(words)))
+        // Build 363: the key points, from the model as in a real recording. For pictures the
+        // card must not depend on the simulator's model: sample points after 8 seconds.
+        considerKeyPoints()
+        try? await Task.sleep(for: .seconds(8))
+        if livePoints.isEmpty {
+            livePoints = ["Hall drawer needs new screws", "Call Anna about Saturday", "Water the plants"]
+            await showActivity(listeningState(VoiceThought.liveTail(words)))
+        }
+        // `-paragonVoiceDemoSeconds 45`: a longer look at the listening card, for pictures.
+        let longer = UserDefaults.standard.double(forKey: "paragonVoiceDemoSeconds")
+        try? await Task.sleep(for: .seconds(max(12, longer - 8)))
         _ = await stopAndFile()
     }
     #endif

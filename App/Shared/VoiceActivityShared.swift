@@ -39,12 +39,19 @@ struct VoiceActivityAttributes: ActivityAttributes {
         var pausedSeconds: Double = 0
         /// Round 350: how many moments he marked with **Mark**.
         var marks = 0
+        /// Build 363: up to three key points of what was said so far (`VoiceLiveSummary`).
+        /// They stay through Pause and the write-up; the saved card shows them when the
+        /// summary came late.
+        var points: [String] = []
+        /// Build 363: the summary, on the saved card.
+        var summary = ""
 
         static func listening(_ words: String, intoToday: Bool = false, heard: Int = 0,
                               length: String = "", paused: Bool = false, pausedSeconds: Double = 0,
-                              marks: Int = 0) -> Self {
+                              marks: Int = 0, points: [String] = []) -> Self {
             Self(stage: .listening, words: words, title: "", tasksFound: heard, length: length,
-                 intoToday: intoToday, paused: paused, pausedSeconds: pausedSeconds, marks: marks)
+                 intoToday: intoToday, paused: paused, pausedSeconds: pausedSeconds, marks: marks,
+                 points: points)
         }
     }
 

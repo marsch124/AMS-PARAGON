@@ -1442,6 +1442,8 @@ struct VoiceSection: View {
     // Round 352: it was called "Check before filing", which was untrue: the thought is filed first.
     @AppStorage(VoiceSettings.checkKey) private var checkFirst = true
     @AppStorage(VoiceSettings.readKey) private var readAloud = false
+    // Build 363: key points on the Lock Screen card while he speaks. On until he turns it off.
+    @AppStorage(VoiceSettings.keyPointsKey) private var keyPoints = true
 
     var body: some View {
         Section {
@@ -1459,6 +1461,8 @@ struct VoiceSection: View {
             }
             NavigationLink("Words it mishears") { VoiceWordsPage() }
                 .accessibilityIdentifier("settings.voiceWords")
+            Toggle("Key points while you speak", isOn: $keyPoints)
+                .accessibilityIdentifier("settings.voiceKeyPoints")
             Toggle("Check after filing", isOn: $checkFirst)
                 .accessibilityIdentifier("settings.voiceCheckFirst")
             Toggle("Read the summary aloud", isOn: $readAloud)
@@ -1470,7 +1474,7 @@ struct VoiceSection: View {
         } header: {
             Text("Voice")
         } footer: {
-            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done. Press Get ready once before you use the Action Button: it asks for the microphone and gets Apple's speech model, which the Action Button cannot do.")
+            Text("The language you speak when you record a thought. Summary in English writes the title, summary and tasks in English; the full text stays as you said it. With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; it needs Apple Intelligence. With Check after filing, the thought is filed first; then a card lets you change the title, take out a task or throw the thought away. With Read the summary aloud, PARAGON says the title, the summary and how many tasks it found when it is done. Press Get ready once before you use the Action Button: it asks for the microphone and gets Apple's speech model, which the Action Button cannot do.")
         }
     }
 }

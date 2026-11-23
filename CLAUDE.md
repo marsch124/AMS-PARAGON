@@ -5676,3 +5676,13 @@ refused, `perform` returned → abort.
   Shared with, steps, Cancel/Save, Stop sharing); "Shared with Anna" + two-people mark opens it; task
   menu **Who does it** (names + Nobody); grey name at the row's right end.
 - Limit: Apple's "Assign" in shared lists is not readable by apps.
+
+## Build 363: key points while you speak (23 November 2026)
+
+- His ask, after the Flowtica Verso video: a "live summary", and "make sure that the live summary doesn't close".
+- Core `Vault/VoiceLiveSummary.swift` (`isDue`, `points`, `textToSumUp`, `cardSummary`; constants firstWords 30, moreWords 25, rest 20 s, tooLong 45 s, mostFailures 3, mostPoints 3, longestPoint 70, mostLetters 6000, cardStays 4 h, longestCardSummary 240) + `VoiceLiveSummaryTests`.
+- App `VoiceRecorder.swift`: `considerKeyPoints`, `@Generable KeyPoints`; the ask is cancelled in `stopAndFile`. `VoiceActivityAttributes.ContentState` gains `points: [String]`, `summary: String`. `VoiceLiveActivityWidget.swift`: `VoiceListeningBody`, one button row when points show.
+- Setting `voiceKeyPoints` (UserDefaults, default on), identifier `settings.voiceKeyPoints`; demo hook `-paragon-voice-demo` also shows key points.
+- The saved card now stays up to 4 hours (Apple's longest), "Nothing heard" 1 minute.
+- 🪤 The model is slowed or refused while PARAGON is in the background or the phone is locked, so key points may not come; never let the card depend on them (the old two-line card is the fallback).
+- Not seen: a real phone.

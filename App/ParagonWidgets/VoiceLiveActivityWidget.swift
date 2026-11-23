@@ -39,14 +39,7 @@ struct VoiceLiveActivityWidget: Widget {
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(VoiceLook.body(context.state))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(VoiceLook.isRunning(context.state) ? 2 : 3)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        if VoiceLook.isRunning(context.state) {
-                            VoiceButtonRow(state: context.state)
-                        }
+                        VoiceCardBody(state: context.state, island: true)
                     }
                     .padding(.horizontal, 6)
                     .padding(.bottom, 2)
@@ -103,6 +96,16 @@ enum VoiceLook {
         return parts.joined(separator: " \u{00B7} ")
     }
 
+    /// Build 363: the key points the card lists (`VoiceLiveSummary`): while recording, paused
+    /// and during the write-up; on the saved card only when no summary came.
+    static func points(_ s: VoiceActivityAttributes.ContentState) -> [String] {
+        switch s.stage {
+        case .listening, .preparing, .writing: return Array(s.points.prefix(3))
+        case .saved: return s.summary.isEmpty ? Array(s.points.prefix(3)) : []
+        case .nothing: return []
+        }
+    }
+
     static func body(_ s: VoiceActivityAttributes.ContentState) -> String {
         switch s.stage {
         case .saved:
@@ -131,17 +134,102 @@ struct VoiceBanner: View {
                     .opacity(0.8)
                 Spacer(minLength: 4)
             }
+            VoiceCardBody(state: state)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 16)
+        // Build 363: with key points the card holds more lines; iOS cuts a card off at 160 points.
+        .padding(.vertical, VoiceLook.points(state).isEmpty ? 13 : 10)
+    }
+}
+
+/// Build 363: what stands under the heading, on the Lock Screen and in the opened Dynamic
+/// Island.
+/// - No key points yet (or none wanted): as before — two lines of live words, two rows of buttons.
+/// - With key points: the points, one line of the last words, and the four buttons in one row.
+/// - Saved: the title and the tasks found, then the summary (the last key points when it came late).
+struct VoiceCardBody: View {
+    let state: VoiceActivityAttributes.ContentState
+    var island = false
+
+    var body: some View {
+        let points = VoiceLook.points(state)
+        if state.stage == .saved {
             Text(VoiceLook.body(state))
-                .font(.subheadline)
+                .font(island ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
+                .lineLimit(points.isEmpty && state.summary.isEmpty ? 3 : 1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if !state.summary.isEmpty {
+                Text(state.summary)
+                    .font(island ? .caption : .footnote)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .lineLimit(4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else if !points.isEmpty {
+                VoicePointList(points: points, island: island)
+            }
+        } else if points.isEmpty {
+            Text(VoiceLook.body(state))
+                .font(island ? .caption : .subheadline)
+                .foregroundStyle(island ? AnyShapeStyle(.secondary) : AnyShapeStyle(.white))
                 .lineLimit(VoiceLook.isRunning(state) ? 2 : 3)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if VoiceLook.isRunning(state) {
                 VoiceButtonRow(state: state)
             }
+        } else {
+            VoicePointList(points: points, island: island)
+            if VoiceLook.isRunning(state) {
+                VoiceLastWords(state: state)
+                VoiceButtonRow(state: state, oneRow: true)
+            }
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
+    }
+}
+
+/// Build 363: the key points, one line each behind a small bullet.
+struct VoicePointList: View {
+    let points: [String]
+    var island = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            ForEach(Array(points.enumerated()), id: \.offset) { _, point in
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\u{2022}")
+                        .foregroundStyle(.white.opacity(0.6))
+                    Text(point)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .font(island ? .caption : .footnote)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Key points so far: " + points.joined(separator: "; "))
+    }
+}
+
+/// Build 363: under the key points — "1 task heard · 1 marked", then the last words said, on
+/// one line. A long line loses its start, so the newest words stay in sight.
+struct VoiceLastWords: View {
+    let state: VoiceActivityAttributes.ContentState
+
+    var body: some View {
+        let heard = VoiceLook.heard(state)
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            if !heard.isEmpty {
+                Text(heard)
+                    .fontWeight(.semibold)
+                    .fixedSize()
+            }
+            Text(state.words)
+                .lineLimit(1)
+                .truncationMode(.head)
+        }
+        .font(.caption)
+        .foregroundStyle(.white.opacity(0.75))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -193,8 +281,25 @@ struct VoiceClock: View {
 /// second button (stops and files in the other place) and the red **Stop**.
 struct VoiceButtonRow: View {
     let state: VoiceActivityAttributes.ContentState
+    /// Build 363: with key points on the card the four buttons share one row, in the same
+    /// order; "N tasks heard" stands with the last words then.
+    var oneRow = false
 
     var body: some View {
+        if oneRow {
+            HStack(spacing: 6) {
+                Spacer(minLength: 0)
+                VoiceMarkButton(pad: 10)
+                VoicePauseButton(paused: state.paused, pad: 10)
+                VoiceOtherPlaceButton(intoToday: state.intoToday, pad: 10)
+                VoiceStopButton(pad: 10)
+            }
+        } else {
+            twoRows
+        }
+    }
+
+    private var twoRows: some View {
         VStack(spacing: 6) {
             HStack(spacing: 8) {
                 Text(VoiceLook.heard(state))
@@ -217,12 +322,14 @@ struct VoiceButtonRow: View {
 /// Round 350: **Mark** keeps the sentence being said in bold in the note. Words only: a flag
 /// already means a project in PARAGON.
 struct VoiceMarkButton: View {
+    var pad: CGFloat = 12
+
     var body: some View {
         Button(intent: MarkVoiceIntent()) {
             Text("Mark")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.white)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, pad)
                 .frame(height: 30)
                 .background(Color.white.opacity(0.16), in: Capsule())
         }
@@ -235,6 +342,7 @@ struct VoiceMarkButton: View {
 /// same note.
 struct VoicePauseButton: View {
     let paused: Bool
+    var pad: CGFloat = 12
 
     var body: some View {
         Button(intent: PauseVoiceIntent()) {
@@ -244,7 +352,7 @@ struct VoicePauseButton: View {
                     .font(.footnote.weight(.semibold))
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, pad)
             .frame(height: 30)
             .background(Color.white.opacity(0.16), in: Capsule())
         }
@@ -257,6 +365,7 @@ struct VoicePauseButton: View {
 /// (today's note, Today's sun in Today's purple) or **Inbox** (the tray in the Inbox's green).
 struct VoiceOtherPlaceButton: View {
     let intoToday: Bool
+    var pad: CGFloat = 12
 
     var body: some View {
         Button(intent: StopVoiceIntent(place: intoToday ? "inbox" : "today")) {
@@ -267,7 +376,7 @@ struct VoiceOtherPlaceButton: View {
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.white)
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, pad)
             .frame(height: 30)
             .background(Color.white.opacity(0.16), in: Capsule())
         }
@@ -278,6 +387,8 @@ struct VoiceOtherPlaceButton: View {
 
 /// **Stop**: the main button, full red, with its word.
 struct VoiceStopButton: View {
+    var pad: CGFloat = 12
+
     var body: some View {
         Button(intent: StopVoiceIntent()) {
             HStack(spacing: 5) {
@@ -286,7 +397,7 @@ struct VoiceStopButton: View {
                     .font(.footnote.weight(.semibold))
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, pad)
             .frame(height: 30)
             .background(VoiceLook.red, in: Capsule())
         }

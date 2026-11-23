@@ -1,6 +1,35 @@
 # Version history
 
-The version is shown as 1.0 (362) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (363) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 363 · 23 November 2026
+
+**Key points while you speak, and a summary that stays.** (iPhone and iPad only; the Mac is unchanged.)
+
+### New
+
+- **Key points while you speak.** While **Record a Thought** (or **Record into Today's Note**) is recording, the Lock Screen card lists up to 3 key points of what you have said so far, one short line each with a small bullet in front. They come from Apple's own on-device AI (Apple Intelligence), on the phone: free, private, no internet.
+- **When they come.** The first key points come once you have said about 30 words. After that PARAGON asks again when you have said 25 more words and at least 20 seconds have passed. New points replace the old ones. The old ones stay on the card until the new ones arrive, so the card is never empty in between.
+- **One line of live words under them.** Under the key points there is one line with the last words you said, live, as before. Before, the card had two lines of live words and no key points. "1 task heard" and "N marked" now stand in front of that one line.
+- **One row of buttons.** **Mark**, **Pause** (**Go on**), **Today** or **Inbox**, and the red **Stop** are now in one row under the words. Before, they were in two rows of two. Their order and what they do is unchanged.
+- **Until the first key points arrive, the card looks exactly as before:** two lines of live words and two rows of buttons. It also stays as before when the switch is off or the phone has no Apple Intelligence.
+- **The Dynamic Island, opened, shows the same:** the key points, the line of last words and the one row of buttons.
+- **Short lines.** Each point is at most one line: 70 letters, cut at a whole word with "…". Of a very long recording the newest 6,000 letters are summed up.
+- **The key points do not go away.** They stay on the card while you pause ("Paused · Inbox") and while the card says "Writing it up…" after **Stop**.
+- **The saved card shows the summary and stays.** After **Stop** the card says "Saved to Inbox" (or "Saved to today's note") with the title and "N tasks found", as before, and now under them the summary: up to 4 lines, at most 240 letters. When the summary comes late (the phone is locked, see **When something is missing** in **Record a thought**), the card shows the last key points instead. Before, the saved card went away after 3 minutes. Now it stays on the Lock Screen for up to 4 hours, or until you swipe it away or start the next recording. Four hours is the longest Apple allows. The "Nothing heard — nothing saved" card still goes after 1 minute.
+- **A new switch:** Settings › **Voice** › **Key points while you speak** (on at start). The words under the Voice rows say: "With Key points while you speak, the Lock Screen card lists up to 3 key points of what you have said so far; it needs Apple Intelligence."
+- **More lines in "What the last presses did"** (Settings › **Voice**): "Key points: shown after N words." the first time they show in a recording; "Key points: the iPhone did not answer (reason)." the first time an ask fails; "Key points: stopped asking after 3 tries without an answer."; and "Key points: Apple Intelligence is not available, so the card shows your words only."
+
+### Changed
+
+- **The key points are only on the card.** The note is written as before: **Summary**, **Tasks**, **Full text**. Nothing in notes, the Inbox, tasks or sync changes.
+- **Stop does not wait for them.** When you press **Stop**, an ask for key points that is still out is dropped, so the write-up is not kept waiting.
+
+### Fixed
+
+- Nothing in this build.
+
+Not yet tried: a real microphone on a real iPhone, and whether Apple's AI answers fast enough while the phone is locked (iOS slows it down then). If it does not answer, the card shows your words as before and **What the last presses did** says why. Seen on the iPhone simulator only.
 
 ## Build 362 · 22 November 2026
 
