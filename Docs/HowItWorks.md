@@ -2176,7 +2176,6 @@ Since build 348, on the iPhone and the iPad with iOS 26 or newer. You speak, and
 - **Who does the work.** The words are written on the Mac itself by Apple's speech-to-text. The title, summary, tasks and key points need Apple Intelligence. Without it the words are still filed, with the first words as the title.
 - **Not on the Mac (still the iPhone only).** The list **Words it mishears**, **Summary in English**, the Action Button, Siri and Shortcuts actions, the Control Center buttons and the Lock Screen card.
 - **Sign.** The red dot on the card means "recording now", the same as on the iPhone's Lock Screen card.
-- **Not tried.** NOT-TRIED: (the main session fills this in)
 
 **Starting and stopping.**
 - The action is **Record a Thought**. It is in the **Shortcuts** app under PARAGON. Say "Record a thought in PARAGON", "Record in PARAGON" or "Voice note in PARAGON".

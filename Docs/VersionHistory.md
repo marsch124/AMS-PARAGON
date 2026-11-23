@@ -35,7 +35,9 @@ The version is shown as 1.0 (365) in Settings › About, at the foot of the Mac 
 
 - Nothing in this build.
 
-Not seen: the new colours were not seen on a screen (no simulator). One small test checks that the plan and morning colours are not the warning orange. The number on Mine has a small data test; no screen test finds the box. NOT-TRIED: (the main session fills this in)
+Seen before shipping: on the iPhone simulator, **Today** and **Plan** by day and by night (the **Start** button in coral, a time block in copper). On the Mac: the recording card in its 8 states and the menu bar button as pictures drawn by the app itself, and one sample recording in the test copy from the card to the note in **Resources** and the tasks in the Inbox (Apple's AI on the Mac wrote the title, the summary and 3 tasks).
+
+Not seen: the real floating card on the Mac's screen, a click on its buttons, the **File** menu items, **Settings › Voice** on the Mac, a recording with a real voice on the Mac, the new colours on the Mac, and the number on **Mine** on a screen (it has a small data test).
 
 ## Build 364 · 23 November 2026
 
