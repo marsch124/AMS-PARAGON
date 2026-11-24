@@ -5843,6 +5843,14 @@ tomorrow, or do."* And: *"take it all the way from here to test flight, includin
   (build 48), so check what the probe prints before changing it.
 - 🪤 **His Mac was not reachable from this cloud session** (`list_computer_folders`: not available), so
   `Tools/ship.sh` could not be the way round. Builds 360 to 365 went up that way from a session on his Mac.
+- **CI of 367 (run on the notes commit after it, same code): iPhone screen tests 67 passed, 5 failed.**
+  `testACaptureLandsInTheInbox` (newest on top) and `testTheLivePageStaysAfterTheRecordingUntilDone`
+  passed. The 5 red are the same 5 as before 367, **not looked into**: four cannot find `note.editor`
+  after opening a note (`testANoteCanBeOpenedAndTypedIn`, `testTheKeyboardBarHasStrikeAndSketch`,
+  `testTheKeyboardBarMakesATask`, `testTheKeyboardBarMakesBoldAndTasksContinue`), and
+  `testTheSettingsBlockCanBeFoldedAway` says the block is still shown after the fold. Asked him whether
+  typing in a note works on his iPhone in 367; no answer when the session was archived. The Mac and
+  iPad screen tests had not got a build machine by then.
 - NOT seen on a screen; the long-press card not tried anywhere.
 
 ## Record a Thought: what is possible (the verdict given to him, 24 November 2026)
