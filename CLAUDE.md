@@ -5873,3 +5873,6 @@ What he was told, and what holds until he says otherwise:
   decides: keep it, or take it out. Offered and not built: the Mac card staying after "Saved";
   **Settings › Display & Brightness › Always On Display** as his own setting to try (not seen on his phone).
 
+## Build 368 (24 November 2026) — the bridge to Finance Steward
+
+Build 368: the bridge to Finance Steward — contract `EventBridge.swift` (identical file in Steward's Core), keychain side `BridgeBox.swift`, facts in Steward's `Docs/drafts/0.16-bridge.md`.

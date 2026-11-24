@@ -195,8 +195,21 @@ The steps:
 7. **Look over the areas.** An area's **Standard** shows here: your words for what good looks like.
 8. **Look back at last week.** Your days, the lines from Close the day, time worked, what ended, and a box, **How was the week?**
 9. **Write the goal for the week.** One line; it shows under the date on Today.
+10. **Events ahead** (since build 368). Every event in Finance Steward that is running or starts in the next 8 weeks and is not finished: name, days, "Planned … · spent …", its project (press it to open it) and **Open in Steward**. A line under the list says on which day Steward last wrote its list. See **PARAGON and Finance Steward** below.
 
 The review remembers which parts you left open, and the next visit starts with those. On the Mac, the headings scroll with the list and none sticks to the top (since build 333). Press **Review done** at the end; on the Mac it has room under it. That is enough for the week. Settings can remind you: **Remind me to do the weekly review**.
+
+### PARAGON and Finance Steward
+
+Since build 368, a project can be linked to an event in **Finance Steward** (needs Steward 0.16 or newer on the same device).
+
+- On a project, its menu has **Open in Steward** when it is linked, and **Make a Steward event** when it is not. A linked project also shows a small fact **Steward event** on its page; press it to open the event.
+- An event made in Steward can make its project here (Steward's switch **Also make a project in PARAGON**), or link to one you have. The project's deadline is the event's first day.
+- Change the deadline of a linked project and PARAGON asks "Move the event in Steward to start on <day> too?": **Move the event** or **Only here**.
+- When the event is finished in Steward, PARAGON asks once: "Mark the project done?": **Mark done** or **Not now**.
+- In Steward, flagging a purchase of a linked event puts a task in the project: "Talk about it: <shop>, <day>".
+- The money stays in Steward: no money is shown on a project. Only step 10 of the weekly review, **Events ahead**, shows what an event plans and has spent.
+- A message waits until the other app is opened on the same device. The money in **Events ahead** is as fresh as Steward's last opening on that device; the line under the list gives the day.
 
 ## 9. Finding things
 

@@ -1,6 +1,48 @@
 # Version history
 
-The version is shown as 1.0 (367) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (368) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 368 · 24 November 2026
+
+**PARAGON and Finance Steward talk to each other: projects and events.** (iPhone, iPad and Mac. It needs Finance Steward 0.16 or newer on the same device.)
+
+Before, a project in PARAGON and an event in Finance Steward (a race or a trip) did not know about each other. You kept the two in step by hand, and nothing in PARAGON showed what an event costs. Now you can link a project to an event, each app can open the other, and the weekly review has a new last step, **Events ahead**.
+
+### New
+
+- **Open in Steward.** On a project that is linked to an event, the project's menu (on its page and on its row) has **Open in Steward**. It opens Finance Steward on that event.
+- **Make a Steward event.** On a project that is not linked, the same menu has **Make a Steward event** instead. It opens Finance Steward on a new event, already filled in with the project's name and its deadline as the first day. You check it and save it there.
+- **"Steward event" on the project's page.** A linked project shows one more small fact among its facts, **Steward event**. Press it and you are in Steward on that event. It is a fact in words, not a new mark. There is no money on the project page (see below).
+- **Projects that Steward makes or links.** When you make an event in Finance Steward and leave its switch **Also make a project in PARAGON** on, PARAGON makes a project with the event's name, and its deadline is the event's first day. You can also link an event to a project you already have; Steward lists your live projects. If you link an event to a project that was linked to another event, the old link is taken off. If you take the link off, or remove the event, the project stays and only the link goes.
+- **Days in step: PARAGON side.** When you change the deadline of a linked project, PARAGON asks: "Move the event in Steward to start on <day> too?" with **Move the event** and **Only here**. **Move the event** moves the event's first day and keeps its length. **Only here** changes only the project.
+- **Days in step: Steward side.** When you move the event in Steward and say yes there, the deadline of the project in PARAGON is moved to the new first day.
+- **"Mark the project done?"** When an event is finished in Steward and its project is still running, PARAGON asks once, in a card like "What is next?": "<event name> is finished in Steward. Mark the project done?" with **Mark done** and **Not now**. **Not now** is remembered: PARAGON does not ask again, on any of your devices.
+- **A new last step in the weekly review: 10. Events ahead.** It sits after step 9 and before **Review done**. It lists every Steward event that is running now or starts in the next 8 weeks and is not finished. Each row shows:
+  - the event's name and its days,
+  - "Planned 9 800 kr · spent 6 400 kr",
+  - the name of its project, when it has one (press it and the project opens),
+  - **Open in Steward**.
+  Under the list one line says "As Steward knew it on 2026-11-24." The day is the last time Steward wrote its list on this device, so you can see how fresh the money is.
+- **Two empty texts.** When there is no event in the next 8 weeks: "No events in the next 8 weeks." When PARAGON has never seen Steward's list on this device: "Open Finance Steward once on this device, then its events show here."
+- **"Talk about it" tasks from Steward.** When, in Steward, you flag a purchase that belongs to an event linked to a project, a task arrives in that project: "Talk about it: <shop>, 2026-11-12". It has no amount. Taking the flag off in Steward leaves the task where it is.
+
+### Changed
+
+- **Step 10 in the weekly review.** Before, the review had 9 steps and **Review done** stood under step 9. Now there are 10 steps and **Review done** stands under step 10. Like every part, step 10 folds, and it never gets a tick and never opens by itself.
+- **PARAGON now looks for messages from Steward** when it opens and when it comes to the front, and writes its own list of projects for Steward at the same moments and after you change a project.
+
+### Fixed
+
+- Nothing in this build.
+
+### What is not there
+
+- **No money on the project page, in the Projects list or anywhere else but the review step.** You chose this. Over-plan is not shown as "needs a look", and Anna does not see it.
+- **A message waits until the other app is opened on the same device.** If you move a deadline in PARAGON, the event in Steward moves when Steward is next opened on that device (or comes to the front). Your other devices then follow through each app's own sync.
+- **The money in Events ahead is as fresh as Steward's last opening on that device.** The line under the list names the day.
+- **Both apps must be on the same device**, and Finance Steward must be 0.16 or newer. Without it, the menu entries open nothing and the review step says to open Steward once.
+- **A purchase flagged before its event is linked** makes no "Talk about it" task later.
+- **Not tried on real devices before it went up:** two real apps handing over on a real iPhone, iPad and Mac.
 
 ## Build 367 · 24 November 2026
 
