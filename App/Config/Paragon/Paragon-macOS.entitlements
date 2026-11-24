@@ -29,6 +29,13 @@
 	<array>
 		<string>D24ENP83QQ.group.com.schabbauer.amspara</string>
 	</array>
+	<!-- Build 368: the keychain group shared with AMS Financial Steward. The app's own group stays
+	     FIRST (the first entry is the default group); the bridge is second. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.schabbauer.AMSPara</string>
+		<string>$(AppIdentifierPrefix)com.schabbauer.ams.bridge</string>
+	</array>
 	<!-- Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). -->
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>

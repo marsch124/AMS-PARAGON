@@ -2,6 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.com.schabbauer.AMSPara</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudDocuments</string>
+	</array>
+	<key>com.apple.developer.ubiquity-container-identifiers</key>
+	<array>
+		<string>iCloud.com.schabbauer.AMSPara</string>
+	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<key>com.apple.security.application-groups</key>
@@ -14,20 +28,10 @@
 	<true/>
 	<key>com.apple.security.personal-information.calendars</key>
 	<true/>
-	<key>com.apple.developer.healthkit</key>
-	<true/>
-	<!-- Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). -->
-	<key>com.apple.developer.icloud-container-identifiers</key>
+	<key>keychain-access-groups</key>
 	<array>
-		<string>iCloud.com.schabbauer.AMSPara</string>
-	</array>
-	<key>com.apple.developer.icloud-services</key>
-	<array>
-		<string>CloudDocuments</string>
-	</array>
-	<key>com.apple.developer.ubiquity-container-identifiers</key>
-	<array>
-		<string>iCloud.com.schabbauer.AMSPara</string>
+		<string>$(AppIdentifierPrefix)com.schabbauer.AMSPara</string>
+		<string>$(AppIdentifierPrefix)com.schabbauer.ams.bridge</string>
 	</array>
 </dict>
 </plist>

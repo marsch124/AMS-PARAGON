@@ -231,6 +231,7 @@ struct AreaProjectRow: View {
             ProjectAreaMenu(model: model, note: line.note)
             Divider()
             ProjectStatusItems(model: model, note: line.note)
+            StewardMenuItem(note: line.note)
         }
     }
 

@@ -129,6 +129,16 @@ enum TestVault {
         bike.frontmatter.set("created", DateOnly.today().adding(days: -41).description)
         bike.frontmatter.set(Note.endedKey, DateOnly.today().description)
         _ = try vault.save(bike)
+        // Build 368: with `-paragon-bridge-sample` the project that Steward's sample event
+        // "Lisbon Marathon" is linked to, and the live project the finished sample event is linked to.
+        if ProcessInfo.processInfo.arguments.contains(StewardBridgeState.sampleArgument) {
+            _ = try vault.createNote(kind: .project, title: sampleProject,
+                                     extraFrontmatter: [(Note.stewardEventKey, StewardBridgeState.lisbonID),
+                                                        ("due", DateOnly.today().adding(days: 25).description)])
+            var live = try vault.loadNote(relativePath: "Projects/\(project).md")
+            live.frontmatter.set(Note.stewardEventKey, StewardBridgeState.finishedID)
+            _ = try vault.save(live)
+        }
         _ = try vault.createNote(kind: .area, title: area, extraFrontmatter: [("goal", aspiration)])
         _ = try vault.createNote(kind: .resource, title: resource)
         // Through `capture`, the same path the capture screens use, so the line is exactly
@@ -148,6 +158,7 @@ enum TestVault {
     static let datedGoal = "Walk the Kungsleden in one go"
     static let project = "Plan the Kungsleden trip"
     static let finishedProject = "Fix the bike"
+    static let sampleProject = "Lisbon Marathon"
     static let area = "Health"
     static let resource = "Packing list"
     static let inboxLine = "Call the bank about the ferry"

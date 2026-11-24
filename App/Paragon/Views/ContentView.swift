@@ -341,6 +341,7 @@ struct ContentView: View {
         // "What is next for this goal?" (build 271), asked when a project ends and its goal is
         // left with nothing working on it. A modifier of its own, so this chain gets one line.
         .modifier(WhatNextDialog())
+        .modifier(StewardQuestions())
         // Build 307: the brake for mass changes, and "remove its reminders too?".
         .modifier(SyncSafetyDialogs())
     }
@@ -937,6 +938,9 @@ struct NoteListView: View {
             if note.kind == .project {
                 // Build 269: the same choices as **In area…** at the top of the project.
                 ProjectAreaMenu(model: model, note: note)
+            }
+            if note.kind == .project {
+                StewardMenuItem(note: note)
             }
             if model.canArchive(note) {
                 Button("Archive") { model.archive(note) }

@@ -148,7 +148,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 367
+    static let number = 368
 }
 
 @MainActor
@@ -196,6 +196,8 @@ final class AppModel: ObservableObject {
             // `saveText` put the saved note into this array and never call `reload()`.
             writeWidgetSnapshotSoon()
             readPicturesSoon()
+            // Build 368: a changed project, deadline, status or link reaches Finance Steward.
+            stewardListMayHaveChanged()
         }
     }
     /// Build 294: the words read in the vault's pictures (path → words), for Search.
@@ -3491,6 +3493,8 @@ final class AppModel: ObservableObject {
         }
         guard save(updated) else { return }
         reload()
+        // Build 368: a linked project's new deadline may mean the event moves too.
+        askStewardMove(after: updated, newDue: date)
     }
 
     /// A goal's target date, written as `target:` (build 268). Before this build the line was
@@ -4272,9 +4276,9 @@ final class AppModel: ObservableObject {
         // Not while the question "What is next for this goal?" is up either (build 271): it
         // is a dialog at the window's root, and a sheet opened over it is two presentations at
         // once. Closing the question calls this again (`whatNext`'s `didSet`).
-        guard activeSheet == nil, whatNext == nil, waitingScreen != nil else { return }
+        guard activeSheet == nil, whatNext == nil, stewardDone == nil, waitingScreen != nil else { return }
         afterUpdate {
-            guard self.activeSheet == nil, self.whatNext == nil, let sheet = self.waitingScreen else { return }
+            guard self.activeSheet == nil, self.whatNext == nil, self.stewardDone == nil, let sheet = self.waitingScreen else { return }
             // Cleared before the vault check: a press that can no longer be answered (the vault
             // was closed meanwhile) is dropped, never left to open a screen hours later.
             self.waitingScreen = nil
@@ -4291,6 +4295,18 @@ final class AppModel: ObservableObject {
     @Published var whatNext: WhatNextQuestion? {
         didSet { openWaitingScreen() }
     }
+
+    // Build 368: the link to Finance Steward (`StewardBridge368.swift`).
+    /// The keychain bridge (memory only in a test run) and what was last written to it.
+    let stewardState = StewardBridgeState()
+    /// Steward's event list as it was last read; nil until Steward has written one on this device.
+    @Published var stewardEvents: EventBridge.EventList?
+    /// "<event> is finished in Steward. Mark the project done?"
+    @Published var stewardDone: StewardDoneQuestion? {
+        didSet { openWaitingScreen() }
+    }
+    /// "Move the event in Steward to start on <day> too?"
+    @Published var stewardMove: StewardMoveQuestion?
 
     /// What the New Note sheet starts with, handed over by **Add a project…** in the question
     /// above. **A plain variable, not `@Published`** (the plan's own correction): the sheet reads
@@ -4858,6 +4874,9 @@ final class AppModel: ObservableObject {
     @discardableResult
     func drainOutbox() -> Int {
         guard let vault else { return 0 }
+        // Build 368: the same moments — the vault has opened, the app came to the front — are when
+        // Finance Steward's messages are read and the project list is written again.
+        defer { syncSteward() }
         var filed = 0
         var kept = 0
         var ticked = 0

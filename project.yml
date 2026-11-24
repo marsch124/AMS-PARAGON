@@ -119,6 +119,10 @@ targets:
         # own entitlements file and never reads Health).
         com.apple.developer.healthkit: true
         com.apple.security.application-groups: [group.com.schabbauer.amspara]
+        # Build 368: the keychain group shared with AMS Financial Steward (projects and events lists, messages).
+        # 🚨 The app's OWN group stays FIRST: the first entry is the default group, and the device-id item
+        # (`DeviceIDKeychain`, no group named) is found there. Not on the Mac Debug build (ad hoc signing).
+        keychain-access-groups: [$(AppIdentifierPrefix)com.schabbauer.AMSPara, $(AppIdentifierPrefix)com.schabbauer.ams.bridge]
         # Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). The same three
         # keys are in Paragon-macOS.entitlements, which is kept by hand. NOT in the Mac Debug
         # entitlements: that build is signed to run locally and macOS would refuse to start it.

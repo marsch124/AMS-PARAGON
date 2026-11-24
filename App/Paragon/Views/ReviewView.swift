@@ -44,7 +44,7 @@ struct ReviewView: View {
 
     /// Every part that folds, in the order they are drawn. The id is also the screen test's
     /// name for the heading: `review.part.<id>`.
-    static let parts = ["due", "1", "2", "3", "4", "5", "6", "7", "8", "9", "noGoal"]
+    static let parts = ["due", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "noGoal"]
 
     /// The aspirations among the review's goals, and the dated goals. Two plain functions
     /// rather than work done inside the body: a `@ViewBuilder` takes views and nothing else
@@ -256,6 +256,8 @@ struct ReviewView: View {
             Group {
                 WeekLookStep(chosenWeek: $lookedWeek, isOpen: openBinding("8"))
                 WeekGoalStep(isOpen: openBinding("9"))
+                // Build 368: the events Finance Steward knows of, 8 weeks ahead. After step 9, before the end.
+                StewardEventsStep(isOpen: openBinding("10"))
                 // Round 8 (build 315): the walk has an end, and the end is recorded.
                 ReviewDoneStep()
             }
@@ -327,7 +329,7 @@ struct ReviewView: View {
          .init("5", toDo: datedGoals(report).filter(\.needsAttention).count),
          .init("6", toDo: report.projectsNeedingAttention.count),
          .init("7", toDo: report.areas.filter(\.needsAttention).count),
-         .init("8", toDo: nil), .init("9", toDo: nil), .init("noGoal", toDo: nil)]
+         .init("8", toDo: nil), .init("9", toDo: nil), .init("10", toDo: nil), .init("noGoal", toDo: nil)]
     }
 
     private func toDo(_ part: String, _ report: ReviewReport, _ due: Int) -> Int? {

@@ -247,6 +247,7 @@ struct NoteEditorView: View {
                         }
                         .accessibilityIdentifier("note.find")
                         shareMenu
+                        if let note, note.kind == .project { StewardMenuItem(note: note) }
                         if let note, NotebookLink.isOffered(for: note) { notebookMenu(note) }
                         if let note, note.kind != .inbox, note.kind != .daily {
                             Button {
@@ -326,6 +327,16 @@ struct NoteEditorView: View {
                 // Round 8 (build 315): Share… and, on the Mac, Show in Finder.
                 shareMenu
                     .help("Send this note on: as a PDF, as plain text, or the file itself")
+                // Build 368: a project's event in Finance Steward.
+                if let note, note.kind == .project {
+                    Menu {
+                        StewardMenuItem(note: note)
+                    } label: {
+                        MarkLabel("Steward", "arrow.up.forward.app", size: 16)
+                    }
+                    .help("Open this project's event in Finance Steward, or make one")
+                    .accessibilityIdentifier("note.steward")
+                }
                 // Build 343: a Resource's Google notebook.
                 if let note, NotebookLink.isOffered(for: note) {
                     notebookMenu(note)
@@ -1856,6 +1867,8 @@ struct NoteHeader: View {
             }
             if note.kind == .project {
                 ProjectDeadlineChip(model: model, note: note)
+                // Build 368: the event it is linked to in Finance Steward.
+                StewardFactChip(note: note)
             } else if let due = note.dueDate {
                 fact("Due", due.description)
             }

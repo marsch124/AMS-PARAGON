@@ -166,6 +166,7 @@ struct ProjectsListView: View {
         // offer different lines.
         ProjectStatusItems(model: model, note: note)
         Divider()
+        StewardMenuItem(note: note)
         if model.canArchive(note) {
             Button("Archive") { model.archive(note) }
         }
