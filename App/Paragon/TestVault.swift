@@ -135,9 +135,12 @@ enum TestVault {
             _ = try vault.createNote(kind: .project, title: sampleProject,
                                      extraFrontmatter: [(Note.stewardEventKey, StewardBridgeState.lisbonID),
                                                         ("due", DateOnly.today().adding(days: 25).description)])
-            var live = try vault.loadNote(relativePath: "Projects/\(project).md")
-            live.frontmatter.set(Note.stewardEventKey, StewardBridgeState.finishedID)
-            _ = try vault.save(live)
+            // Only with the finished event: without it the live project stays unlinked ("Make a Steward event").
+            if !ProcessInfo.processInfo.arguments.contains(StewardBridgeState.noFinishedArgument) {
+                var live = try vault.loadNote(relativePath: "Projects/\(project).md")
+                live.frontmatter.set(Note.stewardEventKey, StewardBridgeState.finishedID)
+                _ = try vault.save(live)
+            }
         }
         _ = try vault.createNote(kind: .area, title: area, extraFrontmatter: [("goal", aspiration)])
         _ = try vault.createNote(kind: .resource, title: resource)

@@ -375,7 +375,7 @@ struct StewardEventsStep: View {
                 .font(Txt.listSecond).foregroundStyle(.secondary)
             Text(StewardLink.moneyLine(event))
                 .font(Txt.listSecond).foregroundStyle(.secondary)
-            HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
                 if let project {
                     Button { model.show(section: .review, notePath: project.relativePath) } label: {
                         MarkLabel(project.displayTitle, ChainSymbol.project, text: .caption)

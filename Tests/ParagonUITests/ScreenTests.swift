@@ -2870,6 +2870,32 @@ final class ScreenTests: XCTestCase {
                       "Open all was pressed and step 8 stayed folded. On screen: \(visibleTexts())")
     }
 
+    /// **Build 368: the link to Finance Steward.** With the made-up events (`-paragon-bridge-sample`,
+    /// kept in memory, never in the keychain) the card "Mark the project done?" stands over the
+    /// app, "Not now" puts it away, and the review's step 10 lists the Lisbon event.
+    func testTheStewardLinkAsksAndListsEvents() {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments += ["-paragon-test-vault", "-paragon-bridge-sample"]
+        app.launch()
+
+        let markDone = app.buttons.matching(identifier: "steward.doneCard.markDone").firstMatch
+        XCTAssertTrue(markDone.waitForExistence(timeout: appears),
+                      "The card \"Mark the project done?\" never appeared. On screen: \(visibleTexts())")
+        let notNow = app.buttons.matching(identifier: "steward.doneCard.notNow").firstMatch
+        XCTAssertTrue(notNow.exists, "The card has no Not now button. On screen: \(visibleTexts())")
+        notNow.press()
+        XCTAssertTrue(becomes(within: 10) { !markDone.exists }, "Not now was pressed and the card stayed. On screen: \(visibleTexts())")
+
+        go(to: .review)
+        openReviewPart("10")
+        let step = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'review.eventsAhead.'")).firstMatch
+        let row = reveal(step)
+        XCTAssertTrue(row.exists, "Step 10 of the review lists no event. On screen: \(visibleTexts())")
+        XCTAssertTrue(row.staticTexts["Lisbon Marathon"].exists || row.label.contains("Lisbon Marathon"),
+                      "Step 10 does not name Lisbon Marathon. On screen: \(visibleTexts())")
+    }
+
     /// Opens one part of the Weekly review, which starts folded (build 266). The heading is
     /// found among buttons (build 249) and scrolled to first, in case it is below the fold.
     private func openReviewPart(_ part: String) {
