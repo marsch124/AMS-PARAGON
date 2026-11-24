@@ -166,6 +166,9 @@ PARAGON uses a few words of its own. Each one is explained here in one or two se
 
 - **Voice notes** — the row that lists every thought you recorded with **Record a Thought**, newest first. Under **Look back** on the Mac, in **Browse › Plan** on the iPhone.
 - **Check after filing** — a setting in Settings › Voice (on at start). The thought is filed at once; a card then lets you change the title and switch tasks off, or throw it away. It was called **Check before filing** until build 352.
+- **Live page** — the large dark page inside PARAGON that shows a recording while it runs and, after **Stop**, the title, the summary, the key points and the tasks found. It stays until you press **Done**. iPhone and iPad, since build 366.
+- **Record a Thought on Screen** — the action that opens PARAGON on the live page and starts recording. **Record a Thought** does not open PARAGON.
+- **Hide** — on the live page while it records: takes the page away; the recording goes on.
 - **Throw it away** — moves the newest voice note to **Deleted**, where it stays 30 days, and takes its tasks out of the Inbox.
 - **Write it up again** — on a voice note's menu: makes the summary again from the full text and adds tasks that are new.
 - **Words it mishears** — Settings › Voice. Names and odd words you say. PARAGON listens for them and writes them right.

@@ -2516,6 +2516,33 @@ final class ScreenTests: XCTestCase {
     }
 
     #if os(iOS)
+    /// Build 366: the live page of a recording. The test recording (`-paragon-voice-demo`: sample
+    /// words for about 20 seconds, then the real write-up and filing into the test notes) brings
+    /// up the large page (`voiceLive.page`); after the stop it **stays**, with the title and
+    /// **Done**, and only Done takes it away. Nothing here depends on catching the 20 seconds
+    /// of listening: a slow launch on the runner may be longer than that, and the page waits.
+    func testTheLivePageStaysAfterTheRecordingUntilDone() {
+        app.terminate()
+        app.launchArguments += ["-paragon-voice-demo"]
+        app.launch()
+        let page = element("voiceLive.page")
+        XCTAssertTrue(page.waitForExistence(timeout: appears),
+                      "The test recording brought up no live page (voiceLive.page). On screen: \(visibleTexts())")
+        let done = element("voiceLive.done")
+        XCTAssertTrue(done.waitForExistence(timeout: 150),
+                      "The live page never showed the filed thought with Done. On screen: \(visibleTexts())")
+        XCTAssertTrue(element("voiceLive.title").waitForExistence(timeout: 20),
+                      "The filed thought has no title field (voiceLive.title). On screen: \(visibleTexts())")
+        XCTAssertTrue(element("voiceLive.tasks").exists,
+                      "The filed thought does not say how many tasks were found (voiceLive.tasks).")
+        // It stays: still there six seconds on, nobody having touched it.
+        Thread.sleep(forTimeInterval: 6)
+        XCTAssertTrue(page.exists, "The live page went away by itself; it must stay until Done.")
+        done.press()
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: page)
+        waitForExpectations(timeout: 15)
+    }
+
     /// Build 324: a list opened from Browse has Apple's own search field, "Search in Projects".
     /// It hangs under the title (pull down); a word that matches nothing gives "Nothing found".
     func testAListOpenedFromBrowseHasItsOwnSearchField() {

@@ -109,6 +109,35 @@ extension RecordThoughtIntoTodayIntent: AudioRecordingIntent {}
 /// Build 360: see `RecordThoughtIntent: LiveActivityIntent`.
 extension RecordThoughtIntoTodayIntent: LiveActivityIntent {}
 
+/// Build 366: **Record a Thought on Screen** — the same recorder, but the press opens PARAGON
+/// on its large live page (`VoiceLivePageView`): the words, the key points and the buttons while
+/// he speaks, with the screen kept lit, and after Stop the title, the summary and the tasks
+/// found, until he presses Done.
+///
+/// A third action, not a change to the first two: **Record a Thought** still does not open
+/// PARAGON (his design, build 358). He chooses per Action Button which one he wants. An action
+/// that opens the app worked on his iPhone in builds 355 to 357.
+struct RecordThoughtOnScreenIntent: AppIntent {
+    static let title: LocalizedStringResource = "Record a Thought on Screen"
+    static let description = IntentDescription(
+        "Opens PARAGON and records on its large live page: your words and the key points while you speak, and after Stop the title, the summary and the tasks found. Press once to start, press again to stop.",
+        categoryName: "Capture")
+    static let openAppWhenRun = true
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        // The action named the place, so the start screen steps aside (build 329).
+        AppModel.shared.arrived(by: .shortcut)
+        return try await RecordThoughtIntent.pressed(into: .inbox)
+    }
+}
+
+@available(iOS 18.0, *)
+extension RecordThoughtOnScreenIntent: AudioRecordingIntent {}
+
+/// See `RecordThoughtIntent: LiveActivityIntent` (build 360).
+extension RecordThoughtOnScreenIntent: LiveActivityIntent {}
+
 enum VoiceProblem: Error, CustomLocalizedStringResourceConvertible {
     case tooOld
     case cannotStart(String)

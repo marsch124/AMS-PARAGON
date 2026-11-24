@@ -175,6 +175,8 @@ enum Txt {
     static let pageTitle = Font.system(size: 26, weight: .bold)
     /// The one big number on a screen's band (build 282).
     static let bandNumber = Font.system(size: 34, weight: .bold)
+    /// Words meant to be read from a little way off: the live recording page (build 366).
+    static let reading = Font.system(size: 20)
     /// A panel's or section's heading, always in the part's colour.
     static let sectionTitle = Font.system(size: 17, weight: .semibold)
     /// Note text, task titles in a note, facts, fields, the words inside a panel.
@@ -208,6 +210,7 @@ enum Txt {
     #else
     static let pageTitle = Font.largeTitle.weight(.bold)
     static let bandNumber = Font.largeTitle.weight(.bold)
+    static let reading = Font.title2
     static let sectionTitle = Font.headline
     static let value = Font.body
     static let label = Font.footnote

@@ -1,6 +1,57 @@
 # Version history
 
-The version is shown as 1.0 (365) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (366) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 366 · 24 November 2026
+
+**A large live page for Record a Thought, and it stays after Stop.** (iPhone and iPad only. The Mac is unchanged.)
+
+Why: the Lock Screen card is small, and iOS turns a locked screen dark after some seconds. No app can change either. iOS allows a Lock Screen card 160 points of height, and no app may keep a locked screen lit. So the large page is inside PARAGON, where both are possible.
+
+### New
+
+- **The live page.** While a recording runs and PARAGON is in front, a large dark page fills the screen. It shows:
+  - a red dot and "Listening · Inbox" (or "Listening · Today's note"),
+  - the running time, large,
+  - **Key points so far**: up to 3 key points, larger than on the card (when **Key points while you speak** is on),
+  - what you said, in large letters, the newest words at the foot. The page shows about 700 letters; the Lock Screen card shows 110,
+  - "1 task heard · 1 marked" when there are any,
+  - 4 large buttons: **Mark**, **Pause** (then **Go on**), **Stop to Today** (it reads **Stop to Inbox** when the recording was started for today's note) and the red **Stop**.
+- **The screen stays on.** While the page is open and you record, and while PARAGON writes the thought up, the iPhone does not turn the screen dark. The page says so: "The screen stays on while this page is open and you record."
+- **After Stop the page stays.** It says "Writing it up…", then "Saved to Inbox" (or "Saved to today's note"), and shows:
+  - "Recorded 1:12 · saved to the Inbox",
+  - the **title**, in a field you can change,
+  - the **Summary**, whole (the Lock Screen card cuts it at 240 letters),
+  - **Key points while you spoke**,
+  - the tasks under "3 tasks found" (or "1 task found", "No tasks found"), each with a switch. Switch off a task you do not want; it is taken out of the Inbox (or of today's note) when you press **Done**,
+  - 3 buttons: **Open the note**, **Throw it away** (the note goes to **Deleted** for 30 days) and **Done**.
+- **It stays until you press Done.** The line "This page stays until you press Done." says so. The screen is kept lit for 2 more minutes after the thought is saved; after that the iPhone's own Auto-Lock decides again, and the page is still there when you unlock.
+- **How you get to the page.**
+  - Press the Lock Screen card, or the red dot at the top of the screen (the Dynamic Island), while it records. PARAGON opens on the live page. (The iPhone asks for Face ID first when it is locked.)
+  - Or open PARAGON while it records.
+  - Or use the new action **Record a Thought on Screen** (next point).
+  - If you recorded with the iPhone locked and open PARAGON afterwards, the page shows the result of that recording.
+- **A new action: Record a Thought on Screen.** It is in the **Shortcuts** app under PARAGON, with an eye on its tile. Say "Record on screen in PARAGON" or "Record a thought on screen in PARAGON". It opens PARAGON on the live page and starts recording; a second press stops. You can put it on the Action Button: Settings app › Action Button › Shortcut › PARAGON › Record a Thought on Screen. The iPhone must be unlocked for it (Face ID), because it opens an app.
+- **Record a Thought is unchanged.** It still does not open PARAGON. You choose which of the two actions is on the Action Button.
+- **Hide.** While it records, **Hide** at the top right takes the page away and the recording goes on. The Lock Screen card and the red dot still show it. The page comes back the next time PARAGON comes to the front while it records.
+- **Nothing heard.** The page says "Nothing heard — nothing saved" and has **Done**.
+
+### Changed
+
+- **Check the thought.** While the live page is up, the card **Check the thought** does not open: the page does the same job (title, tasks with switches, **Throw it away**). When you record without the page (you pressed **Hide**, or PARAGON was closed by iOS meanwhile), the card comes as before.
+- **PARAGON has 9 actions on the iPhone and the iPad now** (8 before). The Mac still has 6.
+- **A new text size, "Reading"** (Apple's Title 2 on the iPhone), for words meant to be read from a little way off. Only the live page uses it.
+
+### Not changed
+
+- **The Lock Screen card.** Its size and the dark screen are iOS's own. To keep the card in sight on a locked iPhone, turn on Settings app › Display & Brightness › **Always On Display**.
+- **The Mac.** Its floating card is as in build 365 (it still goes 5 minutes after it says "Saved").
+
+### Fixed
+
+- Nothing in this build.
+
+Not yet tried: a real iPhone or iPad. No screen here could show the page, so its look was not seen before it shipped. One new screen test starts a sample recording, waits for the page with the filed thought, checks that it stays, and closes it with **Done**. Four small tests cover the rules (when the page comes up, how long the screen stays lit, the words).
 
 ## Build 365 · 23 November 2026
 

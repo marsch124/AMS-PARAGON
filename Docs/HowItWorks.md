@@ -79,6 +79,7 @@ A row in a list is a coloured dot (or the note's own icon), one title, and at mo
 - **Inbox tray on that card (since build 348)** — the thought is saved in the Inbox ("Saved to Inbox"). A pale dot means it is getting ready or writing it up.
 - **Open on an Inbox note line (since build 348)** — the line leads to a note (a recorded thought); **Open** shows that note. Such a line has no **Make task**.
 - **Microphone mark on a Shortcut tile (since build 348)** — the action **Record a Thought**.
+- **Eye on a Shortcut tile (since build 366)** — the action **Record a Thought on Screen**: it opens PARAGON on the live page.
 - **Pause and Mark on the Lock Screen card (since build 350)** — **Pause** stops the recording for a while; the dot turns pale and the heading says "Paused". **Mark** (words only) marks the moment; the card says "N marked".
 - **Microphone mark on Voice notes (since build 350)** — the row **Voice notes**: every thought you recorded.
 - **Pin mark on a task (since build 350)** — the task has a place to remind you at. The place's name is beside it.
@@ -2110,7 +2111,7 @@ Since build 318 a note shows pictures in **Read** too, and shows a PDF as a row.
 
 ## Siri and Shortcuts
 
-Since build 317, on the iPhone, the iPad and the Mac. PARAGON has 8 actions on the iPhone and the iPad, 6 on the Mac (6 before build 348; the 7th is **Record a Thought**, build 348, the 8th is **Record into Today's Note**, build 349; see **Record a thought**). You set up nothing: they are in the **Shortcuts** app under PARAGON, in the system search, and Siri understands them. You can also put one on the Action Button, on the Home Screen, or into a longer shortcut of your own.
+Since build 317, on the iPhone, the iPad and the Mac. PARAGON has 9 actions on the iPhone and the iPad, 6 on the Mac (6 before build 348; the 7th is **Record a Thought**, build 348, the 8th is **Record into Today's Note**, build 349, the 9th is **Record a Thought on Screen**, build 366; see **Record a thought**). You set up nothing: they are in the **Shortcuts** app under PARAGON, in the system search, and Siri understands them. You can also put one on the Action Button, on the Home Screen, or into a longer shortcut of your own.
 
 Each phrase must have the name PARAGON in it. That is Apple's rule: the name is what Siri listens for.
 
@@ -2124,6 +2125,7 @@ Each phrase must have the name PARAGON in it. That is Apple's rule: the name is 
 - **Start Focus**: "Start focus in PARAGON". Also "Start a focus in PARAGON", "Start the focus clock in PARAGON", "Focus with PARAGON". PARAGON does not open.
 - **Record a Thought** (iPhone and iPad only, build 348): "Record a thought in PARAGON". Also "Record in PARAGON", "Voice note in PARAGON". Press once to start, again to stop. PARAGON does not open (since build 358; builds 355 to 357 opened it). See **Record a thought** below.
 - **Record into Today's Note** (iPhone and iPad only, build 349): "Record into today's note in PARAGON". Also "Today's note recording in PARAGON". Like Record a Thought, but the thought goes into today's note, not the Inbox. Press again to stop. See **Record a thought** below.
+- **Record a Thought on Screen** (iPhone and iPad only, build 366): "Record on screen in PARAGON". Also "Record a thought on screen in PARAGON". It opens PARAGON on the live page and starts recording. Press again to stop. The iPhone must be unlocked. See **The live page** in **Record a thought** below.
 
 **Settings › Siri and Shortcuts** (after **Quick capture**) lists the actions with the first phrase of each (8 on the iPhone and the iPad, 6 on the Mac). Under them is a button that opens the **Shortcuts** app: Apple's own **Shortcuts** button on the iPhone and the iPad, **Open Shortcuts** on the Mac.
 
@@ -2246,6 +2248,22 @@ Since build 348, on the iPhone and the iPad with iOS 26 or newer. You speak, and
 - **Headings.** A recording of 4 minutes or more, or over 600 words, is cut at sentence ends into at most 8 parts, each with a short heading (### in the note). The words are never rewritten. If Apple Intelligence is off or slow (12 seconds), you get plain text.
 - **Summary in English.** Settings › Voice › **Summary in English**, shown only when the voice language is Svenska (or the phone is Swedish and the language is the phone's). Title, summary and tasks are written in English; **Full text** stays as said. A summary that comes late is also in English.
 - **Names become links.** The first mention of each project, area, resource or goal name (4 letters or more, whole words, capitals do not matter) in the summary and the full text becomes a [[link]]. Not in a summary that comes late.
+
+**The live page (since build 366; iPhone and iPad).** The Lock Screen card is small (iOS allows it 160 points of height) and iOS turns a locked screen dark after some seconds. No app can change that. So PARAGON has a large page of its own for a recording.
+- **When it shows.** Whenever a recording runs and PARAGON is in front: you press the Lock Screen card or the red dot at the top of the screen (the iPhone asks for Face ID when it is locked), you open PARAGON yourself, or you start with the action **Record a Thought on Screen**. If you recorded with the iPhone locked and open PARAGON afterwards, the page shows the result. If a window such as **New** is open in PARAGON, the page is under it and shows when you close that window.
+- **While it records.** A red dot and "Listening · Inbox" (or "Listening · Today's note"), the running time in large numbers, **Key points so far** (up to 3), what you said in large letters with the newest words at the foot (about 700 letters; the card shows 110), "1 task heard · 1 marked", and 4 large buttons: **Mark**, **Pause** (then **Go on**), **Stop to Today** (or **Stop to Inbox**) and the red **Stop**. After **Stop** is pressed the buttons are pale and the small line says "Stopping…" until the recorder answers.
+- **The screen stays on** while the page is open and it records or writes up, and for 2 minutes after the thought is saved. After that the iPhone's own Auto-Lock decides. The page is still there when you unlock.
+- **Hide** (top right, only while it records) takes the page away; the recording goes on. The page comes back the next time PARAGON comes to the front while it records.
+- **After Stop.** "Writing it up…" with the time and the words, then "Saved to Inbox" (or "Saved to today's note"): the line "Recorded 1:12 · saved to the Inbox", the title in a field you can change, **Summary** (whole), **Key points while you spoke**, and the tasks under "3 tasks found" ("1 task found", "No tasks found"), each with a switch. Under them: "Switch off a task you do not want. It is taken out of the Inbox." (or "…of today's note.").
+- **If there is no summary.** "The summary is still being written. PARAGON adds it to the note when it is ready." when it came late (the page then asks for it again after 30 seconds and shows it when it arrives), or "No summary. It needs Apple Intelligence."
+- **Three buttons.** **Done** keeps the thought with your changes (a new title renames the note, switched-off tasks are taken out) and closes the page. **Open the note** does the same and opens the note. **Throw it away** moves the note to **Deleted** (30 days) and takes its tasks and its line out.
+- **It stays until one of them is pressed.** The line "This page stays until you press Done." says so. A new recording replaces what the page shows; a thought you had not looked at is still filed.
+- **Check the thought** does not open while the page is up; the page does that job. Without the page (after **Hide**, or when iOS closed PARAGON meanwhile) the card comes as before.
+- **Nothing heard:** "Nothing heard — nothing saved" and **Done**. If PARAGON was not in front then, no page is shown for it.
+- **No notes folder open:** the page shows the title and "It is filed the next time PARAGON opens your notes."
+- **The action Record a Thought on Screen** opens PARAGON on this page and starts recording; a second press stops. **Record a Thought** still does not open PARAGON. Put either on the Action Button: Settings app › Action Button › Shortcut › PARAGON.
+- **Not on the Mac.** The Mac has its floating card (build 365).
+- Not yet tried on a real iPhone or iPad.
 
 **The Voice notes page.** The row **Voice notes** (microphone mark, green): under **Look back** on the Mac (after **Recent**), in **Browse › Plan** on the iPhone (after **Map**). It lists notes tagged voice, newest first: title, "2026-11-20 14:03 · 0:42" and the first words of the summary (of what was said when there is none). A search field, **Find a voice note**. A press opens the note and the page stays. The **More** menu on a row, and the right-click or hold menu: **Read aloud** (a second press stops), **Write it up again** (iPhone and iPad) and **Throw it away** (newest only). Empty: "No voice notes yet" and "Record a thought with the Action Button or Siri. It lands here as a note, with a summary and its tasks." No match: "No voice note has these words."
 

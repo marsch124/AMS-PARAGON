@@ -14,6 +14,7 @@ There is one scale, kept in one place in the code (`Txt` in Look.swift). No scre
 |------|--------|--------|--------|----------|
 | Band number | 34 | bold | white | The one big number in a band (section 15). `Txt.bandNumber`. |
 | Page title | 26 | bold | black by day, white at night | The open note's title and the title of a screen that fills a column. |
+| Reading | 20 | regular | white | Words meant to be read from a little way off: the live recording page on the iPhone and iPad (build 366). `Txt.reading`. |
 | Section heading | 17 | semibold | the colour of the part | Every heading (`SectionLabel`, `Heading`) and the title in an edit window's bar. |
 | Value | 15 | regular | black or white | Note text, facts, fields, and the words in panels. |
 | Label | 12 | regular | soft grey | The small word above a value, footers. (Counts in headings are capsules since build 291.) |
@@ -46,6 +47,7 @@ The iPhone uses only Apple's own text styles, so the text grows and shrinks with
 |----------|--------------|-----------------------|
 | Band number | Large title, bold | 34 |
 | Page title | Large title, bold. It shrinks to a small title when you scroll. | 34, then 17 |
+| Reading | Title 2 | 22 |
 | Section heading | Headline | 17 |
 | Value, List | Body | 17 |
 | Label, second line | Footnote | 13 |

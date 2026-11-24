@@ -8,7 +8,7 @@ import AppIntents
 /// name is one the app already draws its own mark for (`Marks.byName`), so the tile and the
 /// app show the same idea: the tray for the Inbox, the sun for Today.
 ///
-/// Apple allows ten; these are six. A phrase is never changed lightly: he learns them by heart.
+/// Apple allows ten; these are six on the Mac and nine on the iPhone (build 366). A phrase is never changed lightly: he learns them by heart.
 struct ParagonShortcuts: AppShortcutsProvider {
     static let shortcutTileColor: ShortcutTileColor = .purple
 
@@ -91,6 +91,15 @@ struct ParagonShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Record into Today's Note",
             systemImageName: "sun.max")
+        // Build 366: the same recorder, opening PARAGON on its large live page.
+        AppShortcut(
+            intent: RecordThoughtOnScreenIntent(),
+            phrases: [
+                "Record on screen in \(.applicationName)",
+                "Record a thought on screen in \(.applicationName)",
+            ],
+            shortTitle: "Record on Screen",
+            systemImageName: "eye")
         #endif
     }
 }

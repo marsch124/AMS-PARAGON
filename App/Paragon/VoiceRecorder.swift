@@ -236,6 +236,7 @@ final class VoiceRecorder {
         guard activity != nil else {
             VoiceLog.note("Lock Screen card: not shown. \(activityProblem) The microphone was not started.")
             isRecording = false
+            VoiceLiveCenter.shared.clear()
             throw Problem.noLiveActivity(activityProblem)
         }
         VoiceLog.note("Lock Screen card: shown.")
@@ -628,6 +629,10 @@ final class VoiceRecorder {
         guard isRecording, !isPaused, Date().timeIntervalSince(lastShown) >= 1 else { return }
         lastShown = Date()
         let words = VoiceThought.liveTail(transcript)
+        #if os(iOS)
+        // Build 366: the live page shows a longer run of what was said than the card can.
+        VoiceLiveCenter.shared.hear(VoiceThought.liveTail(transcript, limit: VoiceLivePage.lettersShown))
+        #endif
         Task { await showActivity(listeningState(words.isEmpty ? "Listening…" : words)) }
     }
 
@@ -908,6 +913,8 @@ final class VoiceRecorder {
         // Build 365: the Mac's small floating card shows the same state.
         VoiceCardCenter.shared.show(state, startedAt: startedAt, closes: endAfter != nil)
         #else
+        // Build 366: the live page inside PARAGON shows the same state, large.
+        VoiceLiveCenter.shared.show(state, startedAt: startedAt)
         let content = ActivityContent(state: state, staleDate: nil)
         if activity == nil || activity?.attributes.startedAt != startedAt {
             for old in Activity<VoiceActivityAttributes>.activities { await old.end(nil, dismissalPolicy: .immediate) }

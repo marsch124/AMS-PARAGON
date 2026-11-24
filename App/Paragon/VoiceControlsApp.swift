@@ -99,6 +99,11 @@ extension AppModel {
     func presentVoiceCheckIfWaiting() {
         guard vault != nil, VoiceHistory.nextToCheck(in: VoiceHistoryStore.load()) != nil else { return }
         if activeSheet == .voiceCheck { return }
+        #if os(iOS)
+        // Build 366: the live page is the check while it is up; a card over it would be a
+        // second place asking the same thing.
+        if VoiceLiveCenter.shared.isUp { return }
+        #endif
         openWhenFree(.voiceCheck)
     }
 

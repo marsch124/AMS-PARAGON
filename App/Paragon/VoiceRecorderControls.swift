@@ -16,7 +16,22 @@ extension VoiceRecorder {
         model.voiceHistoryStamp += 1
         // The thought is already filed, so nothing is lost if he never opens the card. It shows
         // when PARAGON is in front (now, or the next time it opens).
-        if waitsForCheck { model.presentVoiceCheckIfWaiting() }
+        // Build 366: while the live page is up it shows the thought itself (title, summary,
+        // tasks with their switches), so the check card stays away.
+        #if os(iOS)
+        let onPage = VoiceLiveCenter.shared.took(filed, summaryLate: thought.summaryPending)
+        if onPage, thought.summaryPending, Self.onScreen {
+            // The summary did not come in time. With PARAGON in front nothing else asks for
+            // it again (that happens when the app comes to the front), so the page does.
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(30))
+                await VoiceRecorder.shared.finishLateSummaries()
+            }
+        }
+        #else
+        let onPage = false
+        #endif
+        if waitsForCheck, !onPage { model.presentVoiceCheckIfWaiting() }
         if VoiceSettings.readsAloud,
            let words = VoiceNoteText.spoken(from: thought.noteText(today: day), language: locale) {
             VoiceReader.shared.speak(words, language: locale)

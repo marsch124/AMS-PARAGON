@@ -198,6 +198,9 @@ struct ContentView: View {
         // The clock and battery are black by day, and black on slate cannot be read: no status
         // bar while the start screen is up. It comes back with the tap.
         .statusBarHidden(model.startScreenUp)
+        // Build 366: the live page of a recording lies over everything, the start screen too.
+        // An overlay like the start screen, never a second sheet.
+        .overlay { VoiceLivePageLayer() }
         #endif
         #if os(macOS)
         // The Mac draws the toolbar in the window's own bar, above any overlay: away with it
@@ -257,6 +260,9 @@ struct ContentView: View {
                         Task { await VoiceRecorder.shared.finishLateSummaries() }
                     }
                     #if os(iOS)
+                    // Build 366: a recording that runs shows its live page when PARAGON comes
+                    // to the front (a press on the Lock Screen card brings him here).
+                    VoiceLiveCenter.shared.cameToFront()
                     // Round 350: a recorded thought waits for its check.
                     model.presentVoiceCheckIfWaiting()
                     #endif
