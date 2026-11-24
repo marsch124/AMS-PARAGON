@@ -69,6 +69,28 @@ jobs:
               sys.exit(f"No app with bundle id {os.environ['BUNDLE_ID']} in App Store Connect.")
           app_id = apps[0]["id"]
 
+          # Which builds Apple has: the newest uploads, per platform, with their state. This
+          # answers "is the new build in TestFlight at all?" without asking anyone. It only
+          # reads, and a refusal does not stop the crash reports below.
+          newest = get("/v1/builds", must=False, sort="-uploadedDate", limit=12,
+                       include="preReleaseVersion",
+                       **{"filter[app]": app_id,
+                          "fields[builds]": "version,uploadedDate,processingState,expired,preReleaseVersion",
+                          "fields[preReleaseVersions]": "version,platform"})
+          if newest:
+              versions = {item["id"]: item.get("attributes", {})
+                          for item in newest.get("included", []) if item.get("type") == "preReleaseVersions"}
+              print("NEWEST BUILDS IN TESTFLIGHT (newest first):")
+              for build in newest["data"]:
+                  a = build.get("attributes", {})
+                  link = ((build.get("relationships") or {}).get("preReleaseVersion") or {}).get("data") or {}
+                  v = versions.get(link.get("id"), {})
+                  print(f"  build {str(a.get('version', '?')).split('.')[0]:>4}"
+                        f"  (CFBundleVersion {a.get('version')}, version {v.get('version', '?')})"
+                        f"  {v.get('platform', '?'):8}  uploaded {a.get('uploadedDate')}"
+                        f"  {a.get('processingState')}{'  EXPIRED' if a.get('expired') else ''}")
+              print()
+
           # Which build crashed: asked for alongside the list, since the report's own "build"
           # link answers 403 ("no allowed operations"). If Apple refuses that too, the list is
           # fetched without it and each report says it does not know.
