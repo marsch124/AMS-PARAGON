@@ -141,6 +141,10 @@ extension AppModel {
         guard let note = self.note(at: path) else { return }
         renameNote(note, to: title)
         let moved: Note? = index.notesTagged(VoiceThought.tag).first { $0.displayTitle == title }
+        // Build 366: a summary that is still to come follows the note to its new place.
+        if let moved, #available(iOS 26.0, macOS 26.0, *) {
+            VoiceRecorder.lateSummaryMoved(from: path, to: moved.relativePath)
+        }
         guard let moved, var entry = VoiceHistoryStore.entry(path: path) else { return }
         entry.path = moved.relativePath
         entry.title = moved.displayTitle

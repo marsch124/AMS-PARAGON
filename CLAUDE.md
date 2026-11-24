@@ -5736,9 +5736,9 @@ refused, `perform` returned → abort.
 - **That is iOS, not PARAGON.** No app can keep a locked screen lit. Nothing in the recorder is at fault,
   and nothing was changed. Told him: Settings › Display & Brightness › **Always On Display** (not seen on
   his phone; how often iOS refreshes a card there is not known), and offered a live page inside PARAGON
-  that keeps the screen on (phone unlocked, PARAGON in front). **Waiting for his choice; do not build
-  before it.** `AlertConfiguration` on an update lights the screen but comes with a sound: not checked,
-  not offered as built.
+  that keeps the screen on (phone unlocked, PARAGON in front). He answered the same hour, and that is
+  build 366 below. `AlertConfiguration` on an update lights the screen but comes with a sound: not
+  checked, not offered as built.
 - **On the iPhone there is no panel inside PARAGON while it records**: only the Lock Screen card and the
   Dynamic Island (a red dot and a clock while unlocked). The Mac has its floating card (365).
 - **The Crash reports workflow now lists the newest builds Apple has** ("NEWEST BUILDS IN TESTFLIGHT",
@@ -5747,5 +5747,61 @@ refused, `perform` returned → abort.
 - 🪤 I spent the first half of this session on "which build is in TestFlight" and on the code, because
   his first message said "it still doesn't work". **One question with four pictures of the screen placed
   it in a minute** (builds 123 to 127 again). Ask what the screen shows before reading 1,200 lines.
-- These two commits are on the branch `claude/peaceful-mayer-j2p3zr` (this cloud session's branch), not
-  yet on `claude/ams-para-reminders-sync-s0ex53`. Merge them before the next build.
+
+## Build 366 (24 November 2026) — the live page
+
+His words: *"I want the panel to be larger and I want it to be persistent. And when I press stop, I still
+want it to be persistent and show the analytics, what is defined as, or what is suggested as an action and
+so on."* The Lock Screen card cannot be either (160 points, and iOS darkens a locked screen), so it is a
+page inside PARAGON, iPhone and iPad. Built in a cloud session with no compiler.
+
+- **Core** `Vault/VoiceLivePage.swift` (tests `VoiceLivePageTests`, 4): `comesUp(stage, hidden:)` (only a
+  running recording raises the page, never after **Hide**), `keepsScreenLit(stage, secondsSinceEnd:)`
+  (recording and writing always; 120 s after saved or nothing), `lettersShown` 700, and the words
+  (`recordedLine`, `tasksHeading`, `tasksHint`, `summaryStandIn`, `screenNote`, `staysNote`).
+- **App** `App/Paragon/VoiceLivePageView.swift` (whole file `#if os(iOS)`): `VoiceLiveCenter` (state,
+  `heard`, `result: VoiceFiled?`, `summaryLate`, `stopping`, `title`, `removed`; `show`, `hear`, `took`,
+  `hide`, `close`, `cameToFront`; sets `isIdleTimerDisabled`), `VoiceLivePageLayer`, `VoiceLivePageView`.
+  Identifiers `voiceLive.page`, `.heading`, `.clock`, `.words`, `.points`, `.heard`, `.hide`, `.mark`,
+  `.pause`, `.other`, `.stop`, `.where`, `.title`, `.summary`, `.tasks`, `.task.<words>`, `.open`,
+  `.throwAway`, `.done`, `.nothing`.
+- **It is an overlay on `ContentView`, never a sheet** (after the start screen's overlay, iOS only). The
+  window has one sheet (build 44) and a page that came up over an open sheet would be two presentations
+  (build 246). Under an open sheet the page waits.
+- **Three hooks in the recorder, all iOS only**: `showActivity` hands every card state to
+  `VoiceLiveCenter.show`; `showWords` hands the longer tail to `hear`; `afterFiling` hands the filed
+  thought to `took`, which returns true when the page shows it — then **Check the thought** stays away
+  (`presentVoiceCheckIfWaiting` also returns while `isUp`). `filed.checked` stays false until **Done**,
+  so a page lost with the process still gets its check card.
+- **The page's buttons go through `VoiceActivityBridge`** (`runStop/runPause/runMark`), the Lock Screen
+  card's own way in, so the view needs no `@available(iOS 26)`.
+- 🪤 **A second Stop while the first is still tearing down takes the Lock Screen card away**:
+  `stopAndFile` with nothing recording ends every Live Activity. The page guards with `stopping`. The
+  Lock Screen card's own Stop has the same hazard and is NOT guarded (older than this build).
+- **`RecordThoughtOnScreenIntent`** ("Record a Thought on Screen", `openAppWhenRun = true`, the ninth App
+  Shortcut on iOS, tile picture `eye`): opens PARAGON on the page. **Record a Thought is unchanged and
+  still does not open PARAGON** (his design, build 358) — the new action is beside it, not instead.
+- `Txt.reading` (iOS Title 2, Mac 20) is new in the scale; `Docs/Look.md` has the row.
+- A late summary with PARAGON in front: `afterFiling` asks `finishLateSummaries` again after 30 s (nothing
+  else would until the app next comes to the front).
+- The strip behind the status bar keeps `Theme.canvas`, so the clock is readable by day; the dark page
+  starts under it.
+- Screen test `testTheLivePageStaysAfterTheRecordingUntilDone` (iOS; `-paragon-voice-demo`). It never
+  asserts on the 20 seconds of listening: a slow launch may be longer, and the page waits.
+- **A second reader (a subagent given only the diff) found five behaviour faults after CI had already
+  compiled it green**, all fixed before upload: (1) `.environment(\.colorScheme, .dark)` on the whole
+  stack also turned the `Theme.canvas` strip behind the status bar to its night colour, so the clock was
+  black on dark by day — the dark look now sits on the inner stack only. 🪤 **A `Color(day:night:)` reads
+  the colour scheme of the place it is drawn in, not the phone's.** (2) A late summary was lost when the
+  note was renamed first (the waiting entry kept the old path; older fault, but the page offers the title
+  field at once): `VoiceRecorder.lateSummaryMoved(from:to:)`, called from `renameVoiceNote`. (3) **Hide**
+  did not last: every return to active (Control Center, Face ID) raised the page again — now only when
+  PARAGON was really in the background (`wentAway`). (4) **Done** after a failed save opened the check
+  card over the error message. (5) **Throw it away** closed the page even when it failed.
+  **Known, not fixed (rare):** a check card already waiting behind another sheet (`waitingScreen`) when
+  the recording starts can still open over the page for the same thought.
+- **NOT seen on any screen**, and not tried on a real device. The Mac card is unchanged (its saved card
+  still goes after 5 minutes): he asked about the iPhone; offer it if he wants the same there.
+- **The iPhone screen tests were already red in six tests before this build** (CI 517, build 365:
+  `note.editor` not found in four editor tests, `testAProjectHasAnInAreaButton`,
+  `testTheSettingsBlockCanBeFoldedAway`), and one on the Mac. Not looked into here.

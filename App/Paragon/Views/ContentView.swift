@@ -268,6 +268,10 @@ struct ContentView: View {
                     #endif
                 }
             case .inactive, .background:
+                #if os(iOS)
+                // Build 366: the live page comes back after Hide only when PARAGON was away.
+                if phase == .background { VoiceLiveCenter.shared.wentAway() }
+                #endif
                 // Going to the background (or being quit on iOS): write what is being typed.
                 model.flushPendingEdits()
                 // And let the widgets have the latest at once, not in two seconds (build 271).

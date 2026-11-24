@@ -1052,6 +1052,20 @@ extension VoiceRecorder {
 
     static func remember(_ late: LateSummary) { waiting.append(late) }
 
+    /// Build 366: a voice note was renamed while its summary is still to come. The waiting
+    /// entry follows the note, or the summary would be written to a path that is gone and the
+    /// note would say "The summary is still being written" for good. The live page offers the
+    /// title field at once, so this is now easy to reach.
+    static func lateSummaryMoved(from old: String, to new: String) {
+        var list = waiting
+        var changed = false
+        for index in list.indices where list[index].path == old {
+            list[index].path = new
+            changed = true
+        }
+        if changed { waiting = list }
+    }
+
     /// When PARAGON comes to the front: writes the summaries that did not finish while the
     /// phone was locked into their notes, and their tasks into the Inbox.
     func finishLateSummaries() async {

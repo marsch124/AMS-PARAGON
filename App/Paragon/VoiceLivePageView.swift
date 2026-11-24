@@ -50,6 +50,8 @@ final class VoiceLiveCenter: ObservableObject {
 
     /// He pressed **Hide** for this recording.
     private var hidden = false
+    /// PARAGON was really away (in the background), not only covered for a moment.
+    private var wasAway = false
     private var endedAt: Date?
     private var dimming: Task<Void, Never>?
 
@@ -138,13 +140,21 @@ final class VoiceLiveCenter: ObservableObject {
         refreshScreen()
     }
 
+    /// PARAGON went to the background.
+    func wentAway() {
+        wasAway = true
+    }
+
     /// PARAGON came to the front. A recording that runs shows its page again, also after
     /// **Hide**: a press on the Lock Screen card or on the red dot is how he asks for it.
+    /// Only when PARAGON was really away: Control Center, a Face ID question or the list of
+    /// notifications cover the app for a moment, and a page he hid must not come back for those.
     func cameToFront() {
-        if let stage, VoiceCardWords.isRunning(stage) {
+        if wasAway, let stage, VoiceCardWords.isRunning(stage) {
             hidden = false
             isUp = true
         }
+        wasAway = false
         refreshScreen()
     }
 
@@ -226,18 +236,22 @@ struct VoiceLivePageView: View {
         ZStack(alignment: .top) {
             // The strip behind the clock and the battery keeps the app's own page colour, so
             // they stay readable by day; the dark page starts under it.
+            // The dark look is set on the page under it only: set on the whole stack it would
+            // turn this strip to its night colour too, and the clock would be black on dark.
             Theme.canvas.ignoresSafeArea()
-            Self.page.ignoresSafeArea(edges: [.bottom, .horizontal])
-            if let state = center.state, let stage = center.stage {
-                content(state, stage)
-                    .frame(maxWidth: 640)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 14)
-                    .padding(.bottom, 10)
+            ZStack(alignment: .top) {
+                Self.page.ignoresSafeArea(edges: [.bottom, .horizontal])
+                if let state = center.state, let stage = center.stage {
+                    content(state, stage)
+                        .frame(maxWidth: 640)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 14)
+                        .padding(.bottom, 10)
+                }
             }
+            .foregroundStyle(Color.white)
+            .environment(\.colorScheme, .dark)
         }
-        .foregroundStyle(Color.white)
-        .environment(\.colorScheme, .dark)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("voiceLive.page")
         .accessibilityAddTraits(.isModal)
@@ -541,8 +555,9 @@ struct VoiceLivePageView: View {
     private func done() {
         keep()
         center.close()
-        // An older thought that was never looked at gets its check card now.
-        model.presentVoiceCheckIfWaiting()
+        // An older thought that was never looked at gets its check card now. Not when the save
+        // just failed: the message about that is up, and a card over it would be two at once.
+        if model.errorMessage == nil { model.presentVoiceCheckIfWaiting() }
     }
 
     private func openNote() {
@@ -560,7 +575,9 @@ struct VoiceLivePageView: View {
     private func throwAway() {
         guard let filed = center.result else { return }
         model.throwAwayVoice(filed)
-        center.close()
+        // It could not be thrown away (a note changed on another device): the page stays, so
+        // he can try again once the message is closed.
+        if model.errorMessage == nil { center.close() }
     }
 }
 
