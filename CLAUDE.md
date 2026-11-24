@@ -5825,8 +5825,43 @@ tomorrow, or do."* And: *"take it all the way from here to test flight, includin
   asked for, added because a preview of a very long text is scaled down by iOS, and the picked line is
   what sits right above Today / Tomorrow / File it.
 - `testACaptureLandsInTheInbox` now also checks the new line's frame is above the fixture's line.
-- **366 never reached the iPhone**: its iPhone upload job sat queued at GitHub for two hours (the Mac half
-  ran; CI jobs on the same label got machines meanwhile; cancel and re-run of the job did not help). 367
-  carries the live page. 🪤 **A TestFlight job that stays queued for more than half an hour while this
-  repository's own CI jobs get machines is stuck, not waiting: cancel it and dispatch a fresh run.**
+- **366 never reached the iPhone as its own build**: its iPhone upload job waited at GitHub for two hours
+  and was cancelled; only the Mac half went up. 367 carries the live page. **367 is at Apple for both**:
+  Mac at about 14:20 UTC, iPhone at 15:12 UTC (TestFlight run 206, "Upload succeeded", all three bundles
+  with their App Group).
+- **What the wait really was (an earlier version of this note was wrong).** On 24 November from about
+  11:25 UTC every `macos-26` job of this repository waited, some more than two hours, while Linux jobs
+  started at once. GitHub did not hand out the machines in the order the jobs were queued, so a CI job
+  could start while an older TestFlight job still waited. The job was not "stuck": cancelling it and
+  running it again did not help, and it only cost its place. What helped a little: cancel the CI runs
+  that compete for the same machines, and wait.
+- **`.github/workflows/runner-probe.yml`** (run by hand only) asks three machine names for their macOS
+  and Xcode. One run that afternoon: `macos-latest` started after about 1.5 minutes (macOS 26.7.2, Xcode
+  26.6, iOS 26.5 SDK), `macos-15` after about 10 minutes, `macos-26` was still waiting. **One
+  observation, not a rule.** If the wait comes back, run the probe first; moving `testflight.yml` to
+  `macos-latest` is then a possible way out, but Apple refuses an upload built with an older SDK
+  (build 48), so check what the probe prints before changing it.
+- 🪤 **His Mac was not reachable from this cloud session** (`list_computer_folders`: not available), so
+  `Tools/ship.sh` could not be the way round. Builds 360 to 365 went up that way from a session on his Mac.
 - NOT seen on a screen; the long-press card not tried anywhere.
+
+## Record a Thought: what is possible (the verdict given to him, 24 November 2026)
+
+He asked for "your clear opinion and critical eyes" after about 16 builds that changed voice (348 to 366).
+What he was told, and what holds until he says otherwise:
+
+- **Works, proven on his iPhone:** one press records, a second press files a note with a summary and
+  tasks (since build 360). The small Lock Screen card shows the words live.
+- **Not possible, whatever is built:** a large panel on a **locked** iPhone that stays lit. Apple limits
+  a Lock Screen card to 160 points, and iOS turns a locked screen dark after some seconds. No app can
+  change either. I never said this plainly before 24 November; that is the main fault of those builds.
+- **Possible only with the iPhone unlocked and PARAGON open:** the live page (builds 366 and 367). It has
+  never run on his iPhone. One screen test passes on a simulator; that is all the proof there is.
+- **Not known:** whether key points come while the phone is locked (Apple slows its model there).
+- **My mistakes, said to him:** builds 355 to 357 went in a direction he never asked for (opening the
+  app), 358 crashed, and the fix (`LiveActivityIntent`) had been in this repository since build 317.
+  Features were stacked on a base that was not yet proven on his phone.
+- **The rule now: no new voice feature without his word.** He tests the live page of 367 once and then
+  decides: keep it, or take it out. Offered and not built: the Mac card staying after "Saved";
+  **Settings › Display & Brightness › Always On Display** as his own setting to try (not seen on his phone).
+
