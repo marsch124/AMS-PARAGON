@@ -5726,3 +5726,26 @@ refused, `perform` returned → abort.
 - **Test hooks (DEBUG, Mac):** `-paragon-test-vault -paragon-voice-demo` plays the sample words through the real card, write-up and filing; `-paragonVoiceCardPictures <folder inside the app's container>` makes the app draw the card's 8 states and the menu bar row into PNG files (`VoiceCardCenter.writePictures`).
 - 🪤 **The Mac test copy must be the SIGNED Debug build** (`xcodebuild … build` without `CODE_SIGNING_ALLOWED=NO`): it is sandboxed and uses the container `com.schabbauer.AMSPara.dev`. The unsigned copy is not sandboxed and hung at start in `CaptureOutbox.drain` (a blocked `open` on a folder, most likely a macOS permission question nobody saw). Its settings are in `~/Library/Containers/com.schabbauer.AMSPara.dev/Data/Library/Preferences/…plist`.
 - **Seen 23 Nov:** the 8 card states and the menu bar row as pictures drawn by the app; the demo on the Mac end to end (card shown, Apple's model answered with title "Screws and Call", summary, 3 tasks; note in Resources, tasks and line in the Inbox). **NOT seen:** the real floating card on the screen (computer-use access to the .dev copy was declined; not worked round), a click on any card button, the File menu items, Settings › Voice on the Mac, a real microphone, the check card on the Mac, the card on a second screen or in full-screen apps.
+
+## Record a Thought on his real iPhone (24 November 2026, no build)
+
+- **It works on build 365, and this is the first report from his real iPhone since 358.** His words:
+  *"I have the correct version, and when I enter the app, I can see my notes, but I would like to see it
+  live on when the iPhone is locked."* Asked which of four it is, he chose **"Live card, then dark"**:
+  the Lock Screen card shows his words live, then the screen turns dark after some seconds.
+- **That is iOS, not PARAGON.** No app can keep a locked screen lit. Nothing in the recorder is at fault,
+  and nothing was changed. Told him: Settings › Display & Brightness › **Always On Display** (not seen on
+  his phone; how often iOS refreshes a card there is not known), and offered a live page inside PARAGON
+  that keeps the screen on (phone unlocked, PARAGON in front). **Waiting for his choice; do not build
+  before it.** `AlertConfiguration` on an update lights the screen but comes with a sound: not checked,
+  not offered as built.
+- **On the iPhone there is no panel inside PARAGON while it records**: only the Lock Screen card and the
+  Dynamic Island (a red dot and a clock while unlocked). The Mac has its floating card (365).
+- **The Crash reports workflow now lists the newest builds Apple has** ("NEWEST BUILDS IN TESTFLIGHT",
+  per platform, with state). Use it for "is the build in TestFlight?"; builds 360 to 365 went up from his
+  Mac with `Tools/ship.sh`, so the TestFlight workflow's run list does not show them.
+- 🪤 I spent the first half of this session on "which build is in TestFlight" and on the code, because
+  his first message said "it still doesn't work". **One question with four pictures of the screen placed
+  it in a minute** (builds 123 to 127 again). Ask what the screen shows before reading 1,200 lines.
+- These two commits are on the branch `claude/peaceful-mayer-j2p3zr` (this cloud session's branch), not
+  yet on `claude/ams-para-reminders-sync-s0ex53`. Merge them before the next build.
