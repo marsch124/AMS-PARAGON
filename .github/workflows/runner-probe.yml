@@ -1,0 +1,35 @@
+# Asks GitHub's Mac build machines two things and changes nothing:
+#   1. how long each kind of machine takes to answer (the "queued" time of each job), and
+#   2. which Xcode versions that kind of machine carries.
+#
+# Made on 24 November 2026, when jobs for `macos-26` waited more than two hours for a machine
+# and an upload to TestFlight could not start. If another kind of machine answers at once and
+# carries a new enough Xcode, the upload can be moved there for the day.
+name: Runner probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    name: Probe ${{ matrix.machine }}
+    runs-on: ${{ matrix.machine }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [macos-15, macos-latest, macos-26]
+    steps:
+      - name: Which Xcode versions are here
+        run: |
+          sw_vers
+          echo "--- Xcode apps on this machine:"
+          ls -d /Applications/Xcode*.app
+          echo "--- the one selected now:"
+          xcodebuild -version
+          echo "--- the highest one:"
+          HIGHEST=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "$HIGHEST"
+          sudo xcode-select -s "$HIGHEST/Contents/Developer"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i -E "iOS|macOS" || true
