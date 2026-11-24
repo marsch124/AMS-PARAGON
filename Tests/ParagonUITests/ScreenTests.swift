@@ -530,6 +530,15 @@ final class ScreenTests: XCTestCase {
         let line = element("inbox.Captured by the screen test")
         XCTAssertTrue(line.waitForExistence(timeout: 20),
                       "The captured line is not in the Inbox. Either the capture was not written, or the Inbox did not reload.")
+
+        // Build 367: the newest line is on top. The test notes came with one older line; the
+        // line just captured must stand above it. Asked only when both rows have a place on
+        // screen, so a row that is scrolled out cannot fail this for its own reasons.
+        let older = element("inbox.Call the bank about the ferry")
+        if older.exists, !line.frame.isEmpty, !older.frame.isEmpty {
+            XCTAssertLessThan(line.frame.minY, older.frame.minY,
+                              "The line captured last is not above the older line. Newest: \(line.frame), older: \(older.frame)")
+        }
     }
 
     /// A box on the Map takes a tap and opens its note. Build 85 had every box swallow clicks

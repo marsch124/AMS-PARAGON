@@ -5805,3 +5805,28 @@ page inside PARAGON, iPhone and iPad. Built in a cloud session with no compiler.
 - **The iPhone screen tests were already red in six tests before this build** (CI 517, build 365:
   `note.editor` not found in four editor tests, `testAProjectHasAnInAreaButton`,
   `testTheSettingsBlockCanBeFoldedAway`), and one on the Mac. Not looked into here.
+
+## Build 367 (24 November 2026) — the Inbox, newest on top, whole text
+
+His words: *"the sorting order has to be the latest on top. And then if the inbox item is a long text, I need
+to be able to long press it and show the whole text. Otherwise, I cannot tell if it should be today,
+tomorrow, or do."* And: *"take it all the way from here to test flight, including GitHub."*
+
+- **Core** `Vault/InboxOrder.swift` (tests `InboxOrderTests`, 3): `newestFirst(_:)` (the file's order turned
+  round; a capture is written at the END of its part, `Note.appendLine`) and `titleLines(picked:)` (2, nil
+  for the picked line). **The file is not changed**, so Reminders and sync see nothing.
+- **App** `InboxItems.waiting` returns the turned list, and it is the ONE list every walker reads (arrow
+  keys, `file` → next line, `act`, `InboxSelectBar`, the **File it** column), so they all follow. The
+  **Notes** part (`InboxNotes.lines`) is turned in `InboxTriageView.notes`.
+- **Long press**: `InboxRow` uses `.contextMenu { InboxLineMenu } preview: { InboxWholeText(ref:) }`
+  (`inbox.wholeText`). The same press as before, so nothing new takes the row's click (builds 71–74). The
+  Mac shows no preview on a right-click; there the picked line and the **File it** card show it whole.
+- **The picked line shows all its words** (`.lineLimit(InboxOrder.titleLines(picked: isSelected))`). Not
+  asked for, added because a preview of a very long text is scaled down by iOS, and the picked line is
+  what sits right above Today / Tomorrow / File it.
+- `testACaptureLandsInTheInbox` now also checks the new line's frame is above the fixture's line.
+- **366 never reached the iPhone**: its iPhone upload job sat queued at GitHub for two hours (the Mac half
+  ran; CI jobs on the same label got machines meanwhile; cancel and re-run of the job did not help). 367
+  carries the live page. 🪤 **A TestFlight job that stays queued for more than half an hour while this
+  repository's own CI jobs get machines is stuck, not waiting: cancel it and dispatch a fresh run.**
+- NOT seen on a screen; the long-press card not tried anywhere.

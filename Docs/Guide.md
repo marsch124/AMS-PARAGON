@@ -28,7 +28,7 @@ Under the field you also find **Dictate** (speak instead of type), **Scan a list
 
 ### Sorting the Inbox
 
-Pick a line and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it** (into a project or area). Captured notes sit under **Notes**, where **Make task** turns one into a task. When nothing is left, the screen says **Inbox zero**.
+The newest line is on top (since build 367). Pick a line and four buttons appear: **Today**, **Tomorrow**, **Pick a date** and **File it** (into a project or area). The line you pick shows all its words; on the iPhone and the iPad a long press on any line shows its whole text above its menu (since build 367). Captured notes sit under **Notes**, where **Make task** turns one into a task. When nothing is left, the screen says **Inbox zero**.
 
 In the Inbox, **Snooze until…** on a line's menu puts it away until a day (on the iPhone it is also at the end of **File it**), and **Select** lets you pick several lines and file them at once. When every line is snoozed, the Inbox says **All lines are snoozed** and when the first comes back; **Bring back** brings them all back.
 

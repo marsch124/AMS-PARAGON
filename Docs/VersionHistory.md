@@ -1,6 +1,27 @@
 # Version history
 
-The version is shown as 1.0 (366) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (367) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 367 · 24 November 2026
+
+**The Inbox: the newest line on top, and the whole text of a long line.** (iPhone, iPad and Mac. This build also carries the live page of build 366, which did not reach the iPhone on its own.)
+
+### Changed
+
+- **The newest line is on top.** Before, the Inbox listed its lines in the order they were captured, the oldest first, so a new capture was at the foot of the list. Now the line captured last is first. The **Notes** part under the tasks is turned round the same way.
+- **Only the list on screen is turned round.** The Inbox note itself is written as before: a new capture goes to the end of the note. Nothing in your notes, in Apple Reminders or in sync changes.
+- **Everything that walks the lines follows the new order:** the arrow keys on the Mac, the line that is picked next after you file or tick one, and **Select all**.
+
+### New
+
+- **A long press shows the whole text (iPhone and iPad).** Before, a line showed 2 lines of its words and the rest was cut off with "…". Now a long press on a line shows a card with all its words (and its date, when it has one) above the menu you already know (**Move to**, **Turn into a note**, **Snooze until…**, **Rename…**, **Delete**). Tap beside it to close it.
+- **The line you pick shows all its words.** Tap a line and it opens to its full length, right above the buttons **Today**, **Tomorrow**, **Pick a date** and **File it**. The other lines still show 2 lines. This is on the Mac too. On the Mac the **File it** column on the right has always shown the picked line whole; a right-click on the Mac shows the menu without the card.
+
+### Fixed
+
+- Nothing in this build.
+
+Not yet tried: a real iPhone, iPad or Mac. The card on a long press was not seen on a screen. One small test covers the order rule, and the screen test of a capture now also checks that the new line stands above the older one.
 
 ## Build 366 · 24 November 2026
 

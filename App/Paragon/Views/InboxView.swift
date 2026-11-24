@@ -12,11 +12,16 @@ import UIKit
 enum InboxItems {
     static func note(_ model: AppModel) -> Note? { model.notes(in: .inbox).first }
 
-    /// The open, top-level lines waiting to be sorted.
+    /// The open, top-level lines waiting to be sorted, **the newest first** (build 367: "the
+    /// sorting order has to be the latest on top"). A capture is written at the end of the
+    /// Inbox note, so this is the file's order turned round (`InboxOrder`); the file is not
+    /// changed. Everything that walks the lines reads this one list, so the arrow keys, "the
+    /// next line after this one" and the Mac's **File it** column all follow the same order.
     static func waiting(_ model: AppModel) -> [TaskRef] {
         guard let note = note(model) else { return [] }
-        return note.awaitingTasks().filter { !$0.isSubtask }
+        let lines = note.awaitingTasks().filter { !$0.isSubtask }
             .map { TaskRef(notePath: note.relativePath, noteTitle: note.displayTitle, task: $0) }
+        return InboxOrder.newestFirst(lines)
     }
 
     static func selected(_ model: AppModel) -> TaskRef? {
@@ -115,7 +120,8 @@ struct InboxTriageView: View {
     private var inbox: Note? { InboxItems.note(model) }
     private var items: [TaskRef] { InboxItems.waiting(model) }
     /// Build 299: notes captured into the Inbox, listed under the tasks.
-    private var notes: [InboxNotes.Line] { inbox.map { InboxNotes.lines(in: $0.text) } ?? [] }
+    /// Build 367: the newest first, like the tasks above them.
+    private var notes: [InboxNotes.Line] { inbox.map { InboxOrder.newestFirst(InboxNotes.lines(in: $0.text)) } ?? [] }
     private var selected: TaskRef? { InboxItems.selected(model) }
     private var snoozedCount: Int { InboxItems.snoozedCount(model) }
 
@@ -407,8 +413,10 @@ struct InboxRow: View {
                         .focused($fieldFocused)
                         .onSubmit(commit)
                 } else {
+                    // Build 367: two lines, and the whole of it for the line that is picked, so a
+                    // long line can be read right above the buttons that decide about it.
                     Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
-                        .lineLimit(2)
+                        .lineLimit(InboxOrder.titleLines(picked: isSelected))
                 }
                 // Round 9 (build 316): the date and the deadline on one small line, each mark
                 // 5 points from its words and the first mark under the first letter of the
@@ -434,7 +442,16 @@ struct InboxRow: View {
         // Nothing here may take the row's click: `.draggable` and `.onTapGesture` both do, and
         // between them they cost builds 71 to 74 — a line could no longer be picked at all.
         // Renaming is on the menu instead, and a line is filed by clicking a destination.
-        .contextMenu { InboxLineMenu(ref: ref, rename: startEditing) }
+        // Build 367: **a long press shows the whole text**, above the menu (his words: "I need to
+        // be able to long press it and show the whole text. Otherwise, I cannot tell if it
+        // should be today, tomorrow, or do."). The same press as before, so still nothing here
+        // takes the row's click. The Mac's right-click shows no such card; there the whole
+        // text is in the picked line and in the **File it** column.
+        .contextMenu {
+            InboxLineMenu(ref: ref, rename: startEditing)
+        } preview: {
+            InboxWholeText(ref: ref)
+        }
         // **Build 306 (his pick): swipe an Inbox line from the right to move it to tomorrow**,
         // the same button task rows got in build 305, with an Undo in the message. Open lines
         // only. A swipe action takes no click, so a line can still be picked (builds 71–74).
@@ -523,6 +540,30 @@ struct FilingPlaces: View {
         ForEach(places) { note in
             Button(note.displayTitle) { model.moveTask(ref, to: note.relativePath) }
         }
+    }
+}
+
+/// Build 367: the whole text of a line, shown above its menu on a long press (iPhone and iPad).
+/// A picture of the words, not a place to press: iOS draws it and takes it away with the menu.
+struct InboxWholeText: View {
+    let ref: TaskRef
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Note.removingTag(Note.nextActionTag, from: ref.task.title))
+                .font(Txt.value)
+                .foregroundStyle(Color.primary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let due = ref.task.dueDate {
+                MarkLabel(ref.task.dueText ?? due.description, ref.task.dueTime == nil ? "calendar" : "clock", text: .footnote)
+                    .font(Txt.label)
+                    .foregroundStyle(due < .today() ? Color.red : Theme.soft)
+            }
+        }
+        .padding(16)
+        .frame(width: 330, alignment: .leading)
+        .background(Theme.surface)
+        .accessibilityIdentifier("inbox.wholeText")
     }
 }
 
