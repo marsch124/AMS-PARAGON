@@ -254,6 +254,8 @@ struct ContentView: View {
                     model.syncFocusActivity()
                     // Round 350: today's steps and workouts, when the switch in Settings is on.
                     model.updateHealthLine()
+                    // Build 369: the "Training:" line on Today.
+                    model.refreshTraining()
                     // Build 348: summaries of recorded thoughts that did not finish while locked.
                     // Build 365: on the Mac too.
                     if #available(iOS 26.0, macOS 26.0, *) {

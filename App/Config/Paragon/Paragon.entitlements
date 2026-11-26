@@ -32,6 +32,7 @@
 	<array>
 		<string>$(AppIdentifierPrefix)com.schabbauer.AMSPara</string>
 		<string>$(AppIdentifierPrefix)com.schabbauer.ams.bridge</string>
+		<string>$(AppIdentifierPrefix)com.schabbauer.AMSWorkoutSync</string>
 	</array>
 </dict>
 </plist>

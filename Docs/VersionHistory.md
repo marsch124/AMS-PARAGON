@@ -1,6 +1,34 @@
 # Version history
 
-The version is shown as 1.0 (368) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+The version is shown as 1.0 (369) in Settings › About, at the foot of the Mac sidebar and at the foot of Browse on the iPhone. Newest first.
+
+## Build 369 · 26 November 2026
+
+**One line on Today: what AMS Triathlon Training says for today.** (iPhone, iPad and Mac. It needs AMS Triathlon Training 2.8 or newer on the same device.)
+
+Before, Today showed no training. Now one short line stands under **Now** and **Then**, for example **Training: Run 45 min**. It only shows what Triathlon wrote. PARAGON never changes anything there.
+
+### New
+
+- **The "Training:" line on Today.** It sits under the Now and Then lines and above **This week**, in one row, and it is cut off at the end if it is too long. It has a small "opens another app" mark at its end.
+- **What it says.**
+  - One session to do: **Training: Run 45 min**. Without a length, only **Run**.
+  - Several sessions, in Triathlon's order: **Training: Swim done, Run 45 min**. A session that is missed says **missed**, for example **Bike missed**. Rest sessions are left out.
+  - Everything done: **Training: done**.
+  - A rest day: **Training: rest day**.
+- **A press opens it in AMS Triathlon Training.** When exactly one session is still to do, it opens that session. In every other case it opens Triathlon's Today page. Nothing is logged or changed in Triathlon by this. There is no Done button here.
+- **Not while you pick.** While **Today** is picking tasks, the line is not drawn, like the week's goal line.
+
+### What is not there
+
+- **No line at all** when Triathlon has not been opened today on this device, when its note is older than 36 hours, when it is from another day, when Triathlon is not installed, or when it is a newer kind of note than PARAGON knows. PARAGON does not ask you to open Triathlon.
+- **It needs AMS Triathlon Training 2.8 or newer on the same device.** The iPhone's note does not travel to the iPad or the Mac: on each device, Triathlon must have been opened that day.
+- **It is read when PARAGON comes to the front and when Today appears.** It does not change while Today stays open and Triathlon is used in the meantime.
+- **Not tried on real devices before it went up:** reading Triathlon's note on a real iPhone, iPad and Mac, and, on the Mac, whether a sandboxed Mac app may read it. Pictures were made with a made-up note.
+
+### Fixed
+
+- Nothing in this build.
 
 ## Build 368 · 24 November 2026
 

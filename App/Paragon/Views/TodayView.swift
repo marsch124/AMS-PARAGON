@@ -152,6 +152,13 @@ struct TodayView: View {
             // `List` for the same reason the date is (build 220). Nothing at all on a day with
             // no plan, or once the last block is over, so Today is then as short as before.
             NowAndNextLines()
+            // **Training, one line** (build 369): what AMS Triathlon Training says for today, read only.
+            // Nothing at all when there is no note for today. A press opens it in Triathlon.
+            if !picking, let training = model.trainingLine {
+                TrainingLine(line: training)
+                    .padding(.horizontal, Theme.gutter + 6)
+                    .padding(.bottom, Theme.tight)
+            }
             // **The goal for this week, one line under the date** (build 251), outside the
             // `List` for the same reason the date is (build 220). Nothing at all when no goal is
             // written: an empty line asking for one every morning would be a nag, and the week
@@ -323,6 +330,7 @@ struct TodayView: View {
         // Today's events are what the blocks are fitted around, so they are read fresh when
         // picking starts rather than trusted from earlier (build 238).
         .task(id: EventsKey(day: today, picking: picking)) { await model.loadEvents(for: today) }
+        .onAppear { model.refreshTraining() }
         .onChange(of: picking) { _, on in
             if on { hintOpens = HintRule.counting(hintOpens) }
         }
@@ -732,5 +740,41 @@ private extension View {
         #else
         self
         #endif
+    }
+}
+
+/// **Training: Run 45 min** (build 369), one line. The words come from Triathlon's note (rules in Core,
+/// `TrainingToday`). The whole line is a button that opens it in AMS Triathlon Training; the small
+/// "opens another app" mark at its end says so, as it does on "Open in Steward". It never changes anything.
+private struct TrainingLine: View {
+    let line: TrainingToday.Line
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        Button { open() } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                (Text("Training: ").fontWeight(.semibold).foregroundColor(Theme.planBlockTint.ink)
+                    + Text(line.words))
+                    .font(Txt.label)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                MarkImage("arrow.up.forward.app", text: .footnote)
+                    .foregroundStyle(.soft)
+                    .fixedSize()
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(TrainingToday.spoken(line))
+        .accessibilityHint("Opens it in AMS Triathlon Training")
+        .accessibilityIdentifier("today.training")
+    }
+
+    /// Only a link of Triathlon's own scheme is ever opened.
+    private func open() {
+        guard line.link.lowercased().hasPrefix(TrainingToday.scheme), let url = URL(string: line.link) else { return }
+        openURL(url)
     }
 }

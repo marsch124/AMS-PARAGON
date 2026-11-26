@@ -66,6 +66,8 @@ targets:
         # Without this key macOS and iOS ignore the AppIcon set in the asset catalog.
         CFBundleIconName: AppIcon
         LSApplicationCategoryType: public.app-category.productivity
+        # Build 369: lets the app ask whether AMS Triathlon Training is installed (`amsworkoutsync://`).
+        LSApplicationQueriesSchemes: [amsworkoutsync]
         CFBundleURLTypes:
           - CFBundleURLName: com.schabbauer.amspara
             CFBundleURLSchemes: [amspara]
@@ -122,7 +124,8 @@ targets:
         # Build 368: the keychain group shared with AMS Financial Steward (projects and events lists, messages).
         # 🚨 The app's OWN group stays FIRST: the first entry is the default group, and the device-id item
         # (`DeviceIDKeychain`, no group named) is found there. Not on the Mac Debug build (ad hoc signing).
-        keychain-access-groups: [$(AppIdentifierPrefix)com.schabbauer.AMSPara, $(AppIdentifierPrefix)com.schabbauer.ams.bridge]
+        # Build 369: the third group is AMS Triathlon Training's (its "today" note is read from there).
+        keychain-access-groups: [$(AppIdentifierPrefix)com.schabbauer.AMSPara, $(AppIdentifierPrefix)com.schabbauer.ams.bridge, $(AppIdentifierPrefix)com.schabbauer.AMSWorkoutSync]
         # Build 319: PARAGON's own folder in iCloud Drive (iCloud Documents). The same three
         # keys are in Paragon-macOS.entitlements, which is kept by hand. NOT in the Mac Debug
         # entitlements: that build is signed to run locally and macOS would refuse to start it.

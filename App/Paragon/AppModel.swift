@@ -148,7 +148,7 @@ enum AppSheet: String, Identifiable {
 
 /// Bumped on every push so the running build can be told apart from an older one.
 enum BuildStamp {
-    static let number = 368
+    static let number = 369
 }
 
 @MainActor
@@ -4301,6 +4301,25 @@ final class AppModel: ObservableObject {
     let stewardState = StewardBridgeState()
     /// Steward's event list as it was last read; nil until Steward has written one on this device.
     @Published var stewardEvents: EventBridge.EventList?
+
+    // Build 369: the "Training:" line on Today (`TrainingReader.swift`, rules in Core `TrainingToday`).
+    /// Where Triathlon Training's note is read from (memory only in a test run).
+    let trainingSource: TrainingSource = TrainingReader.make()
+    /// What Today shows after "Training: "; nil = no line at all.
+    @Published private(set) var trainingLine: TrainingToday.Line?
+
+    /// Reads the note OFF the main thread (the keychain can be slow) and publishes only a change.
+    func refreshTraining() {
+        let source = trainingSource
+        Task.detached(priority: .utility) { [weak self] in
+            let line = TrainingToday.line(from: source.read(), today: DateOnly.today().description, now: Date())
+            await self?.publishTraining(line)
+        }
+    }
+
+    private func publishTraining(_ line: TrainingToday.Line?) {
+        if trainingLine != line { trainingLine = line }
+    }
     /// "<event> is finished in Steward. Mark the project done?"
     @Published var stewardDone: StewardDoneQuestion? {
         didSet { openWaitingScreen() }

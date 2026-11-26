@@ -2896,6 +2896,21 @@ final class ScreenTests: XCTestCase {
                       "Step 10 does not name Lisbon Marathon. On screen: \(visibleTexts())")
     }
 
+    /// **Build 369: the "Training:" line on Today.** With the made-up note
+    /// (`-paragon-training-sample`, kept in memory, never read from the keychain) the line
+    /// stands on Today and says what Triathlon Training would say.
+    func testTheTrainingLineShowsOnToday() {
+        app.terminate()
+        app = XCUIApplication()
+        app.launchArguments += ["-paragon-test-vault", "-paragon-training-sample"]
+        app.launch()
+
+        let line = app.descendants(matching: .any).matching(identifier: "today.training").firstMatch
+        XCTAssertTrue(line.waitForExistence(timeout: appears),
+                      "Today has no Training line. On screen: \(visibleTexts())")
+        XCTAssertEqual(line.label, "Training: Run 45 min")
+    }
+
     /// Opens one part of the Weekly review, which starts folded (build 266). The heading is
     /// found among buttons (build 249) and scrolled to first, in case it is below the fold.
     private func openReviewPart(_ part: String) {
